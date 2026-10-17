@@ -9,3 +9,5 @@ local.properties
 tools/compatibility/node_modules/
 tools/compatibility/.runtime/
 dist/
+__pycache__/
+*.pyc

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-16T21:20:00-04:00",
+  "title": "Design System: ActualExpenses",
+  "extensions": {
+    "breakpoints": [{ "name": "content-max", "value": "640dp" }]
+  },
+  "components": [],
+  "narrative": {
+    "northStar": "Record the purchase; return to the register.",
+    "overview": "Native Material 3 controls express the approved minimal expense workflow. Account context, delivery state and real recent purchases lead; one Add expense action remains within reach.",
+    "keyCharacteristics": ["Native Android", "Restrained green semantic accent", "System type", "One primary action"],
+    "rules": [{ "name": "Accessible state", "body": "Pending, offline and destructive states are labelled in words, never color alone.", "section": "colors" }],
+    "dos": ["Use Material role colors and typography", "Keep all controls at least 48dp", "Respect system text size, dark mode and Back"],
+    "donts": ["Add decorative dashboards", "Introduce unrelated budgeting controls", "Present synthetic transactions in the app"]
+  }
+}

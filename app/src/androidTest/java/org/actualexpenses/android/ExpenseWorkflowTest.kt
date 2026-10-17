@@ -34,7 +34,7 @@ class ExpenseWorkflowTest {
         compose.onNodeWithContentDescription("Add expense").performClick()
         compose.onNodeWithText("Amount (USD)").performTextInput("0")
         compose.onNodeWithText("Save expense").performScrollTo().performClick()
-        compose.onNodeWithText("Enter a positive amount with up to 2 decimal places.").assertExists()
+        compose.onNodeWithText("Enter a positive expense amount", substring = true).assertExists()
         compose.runOnIdle { assertNull(actions.saved) }
     }
 
@@ -78,7 +78,6 @@ class ExpenseWorkflowTest {
     @Test fun recreatedEditorObservesSaveCompletionWithoutOldCallback() {
         val restoration = StateRestorationTester(compose)
         val live = mutableStateOf(state)
-        actions.completeAutomatically = false
         restoration.setContent { ActualExpensesTheme { ExpensesScreen(live.value, actions) } }
         compose.onNodeWithContentDescription("Add expense").performClick()
         compose.onNodeWithText("Amount (USD)").performTextInput("8.50")
@@ -95,8 +94,8 @@ class ExpenseWorkflowTest {
 
     private class RecordingActions : ExpenseUiActions {
         override fun backToLogin() = Unit
+        override fun cancelSignIn() = Unit
         var saved: ExpenseForm? = null
-        var completeAutomatically = true
         var saveCount = 0
         var editing: String? = null
         var deleted: String? = null
@@ -106,8 +105,8 @@ class ExpenseWorkflowTest {
         override fun chooseAccount(id: String) = Unit
         override fun showAccounts() = Unit
         override fun refresh() = Unit
-        override fun save(form: ExpenseForm, completed: () -> Unit) { saved = form; saveCount++; if (completeAutomatically) completed() }
-        override fun delete(id: String, operationId: String, completed: () -> Unit) { deleted = id; completed() }
+        override fun save(form: ExpenseForm) { saved = form; saveCount++ }
+        override fun delete(id: String, operationId: String) { deleted = id }
         override fun dismissMessage() = Unit
     }
 }

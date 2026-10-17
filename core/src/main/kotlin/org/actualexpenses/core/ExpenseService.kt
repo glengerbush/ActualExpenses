@@ -65,7 +65,9 @@ class ExpenseService(
         val expenses = visible.map { row ->
             val id = row.text("id")!!
             val payeeId = resolveMapping(rows, "payee_mapping", row.text("description"), "targetId")
+                ?.takeIf { rows["payees"]?.get(it)?.flag("tombstone") != true }
             val categoryId = resolveMapping(rows, "category_mapping", row.text("category"), "transferId")
+                ?.takeIf { rows["categories"]?.get(it)?.flag("tombstone") != true }
             Expense(id, row.text("acct").orEmpty(), -row.number("amount"), formatDate(row.number("date")),
                 payeeId, rows["payees"]?.get(payeeId)?.text("name").orEmpty(), categoryId,
                 rows["categories"]?.get(categoryId)?.text("name").orEmpty(), row.text("notes").orEmpty(),
@@ -142,7 +144,7 @@ class ExpenseService(
         }
         val view = state()
         require(view.accounts.any { it.id == account }) { "This account is unavailable. Your pending work is retained." }
-        val amount = parseAmount(draft.amount, view.decimalPlaces)
+        val amount = parseExpenseAmount(draft.amount, view.decimalPlaces)
         val date = try { LocalDate.parse(draft.date).toString().replace("-", "").toInt() } catch (_: Exception) { throw IllegalArgumentException("Enter a valid date (YYYY-MM-DD).") }
         require(date in 10000101..99991231) { "Choose a date between years 1000 and 9999." }
         if (edit != null) require(edit.beganOnline || canEdit(edit.transactionId)) { "Connect to Actual before editing this expense." }
@@ -165,7 +167,7 @@ class ExpenseService(
                 set("payee_mapping", newId, "targetId", JsonPrimitive(newId))
             }
             val fields = linkedMapOf<String, JsonElement>()
-            if (original == null || parseAmount(original.amount, view.decimalPlaces) != amount) fields["amount"] = JsonPrimitive(-amount)
+            if (original == null || parseExpenseAmount(original.amount, view.decimalPlaces) != amount) fields["amount"] = JsonPrimitive(-amount)
             if (original == null || original.date != draft.date) fields["date"] = JsonPrimitive(date)
             if (payeeChanged) fields["description"] = json(payee)
             if (original == null || original.categoryId != draft.categoryId) fields["category"] = json(draft.categoryId)
@@ -337,12 +339,6 @@ class ExpenseService(
         return runCatching { JsonParser.parseString(value).asString }.getOrDefault(value).takeIf { it.matches(Regex("[A-Z]{3}")) }.orEmpty()
     }
     private fun precision(currency: String) = if (currency in setOf("IRR", "JPY", "KRW")) 0 else 2
-    private fun parseAmount(value: String, digits: Int): Long {
-        require(value.matches(Regex("[0-9]+([.,][0-9]+)?"))) { "Enter a positive expense amount." }
-        val minor = try { BigDecimal(value.replace(',', '.')).movePointRight(digits).longValueExact() } catch (_: ArithmeticException) { throw IllegalArgumentException("Enter an amount with at most $digits decimal places.") }
-        require(minor in 1..2_251_799_813_685_247L) { "Enter a positive expense amount within Actual's supported range." }
-        return minor
-    }
     private fun formatDate(value: Long): String = value.toString().padStart(8, '0').let { "${it.take(4)}-${it.substring(4, 6)}-${it.takeLast(2)}" }
     private fun cell(m: ProtocolChange) = "${m.dataset}\u001f${m.row}\u001f${m.column}"
     private fun json(value: String?): JsonElement = value?.let(::JsonPrimitive) ?: JsonNull.INSTANCE

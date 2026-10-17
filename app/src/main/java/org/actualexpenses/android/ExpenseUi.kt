@@ -39,6 +39,7 @@ data class ExpenseUiState(
     val savingOperationId: String? = null,
     val completedOperationId: String? = null,
     val requiresSignIn: Boolean = false,
+    val canCancelSignIn: Boolean = false,
 )
 
 data class ExpenseForm(
@@ -53,13 +54,14 @@ data class ExpenseForm(
 
 interface ExpenseUiActions {
     fun backToLogin()
+    fun cancelSignIn()
     fun beginEdit(id: String, completed: () -> Unit)
     fun login(server: String, password: String)
     fun chooseBudget(id: String)
     fun chooseAccount(id: String)
     fun showAccounts()
     fun refresh()
-    fun save(form: ExpenseForm, completed: () -> Unit)
-    fun delete(id: String, operationId: String, completed: () -> Unit)
+    fun save(form: ExpenseForm)
+    fun delete(id: String, operationId: String)
     fun dismissMessage()
 }

@@ -4,7 +4,7 @@ A focused native Android companion for recording expenses in one Actual budget. 
 
 ## Install
 
-Install the signed `app-release.apk` from the build output on Android 8.0 (API 26) or newer. Allow installation from your chosen file manager when Android asks. Updates must use the same signing key and retain the application ID; install over the previous version rather than uninstalling, which deletes local pending work.
+Install the signed `dist/ActualExpenses-0.1.0.apk` (or `app/build/outputs/apk/release/app-release.apk` after building) on Android 8.0 (API 26) or newer. Allow installation from your chosen file manager when Android asks. Updates must use the same signing key and retain the application ID; install over the previous version rather than uninstalling, which deletes local pending work.
 
 Setup: server address → existing Actual password → budget → account. HTTP LAN and tailnet addresses are supported. This version supports **Actual 26.10.0, unencrypted budgets only**. It checks server and snapshot compatibility before writes. It requires no extra server service.
 
@@ -22,6 +22,8 @@ python3 tools/build-release.py --initialize-signing
 The release helper creates a stable private signing identity under `~/.local/share/actualexpenses/signing`, then builds `app/build/outputs/apk/release/app-release.apk`. Back up that directory securely; it contains the key and its password. Subsequent builds use `python3 tools/build-release.py`. Never commit signing files. For externally managed signing, supply the `ACTUALEXPENSES_KEYSTORE`, `ACTUALEXPENSES_STORE_PASSWORD`, `ACTUALEXPENSES_KEY_ALIAS`, and `ACTUALEXPENSES_KEY_PASSWORD` environment variables directly to Gradle.
 
 ## Verify
+
+Recorded results, release fingerprint, and qualification limits: [validation](docs/validation.md). Independent review: [standards and spec](docs/review.md).
 
 Start the disposable real Actual server and independent official API oracle described in [compatibility documentation](docs/compatibility.md). Then:
 

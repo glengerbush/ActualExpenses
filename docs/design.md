@@ -1,6 +1,6 @@
 # ActualExpenses design interview
 
-Status: Approved by the user on 2026-10-16 and converted to an Obsidian spec. No implementation has begun.
+Status: Approved and implemented on 2026-10-16. See [validation evidence and remaining qualification limits](validation.md) and [implementation review](review.md).
 
 Published spec: [ActualExpenses Android Expense Entry Spec](</home/ggg/Documents/pileOfNotes/Work/Issues/ActualExpenses Android Expense Entry Spec.md>).
 
@@ -74,9 +74,9 @@ Published spec: [ActualExpenses Android Expense Entry Spec](</home/ggg/Documents
 ## Delivery sequence
 
 1. Completed: confirm this design and record the project and spec in Obsidian.
-2. When implementation is requested, prove direct protocol compatibility against a disposable budget, including retries and conflict boundaries.
-3. Build the focused Android interface and durable pending-change handling on the validated integration.
-4. Run the acceptance checks and deliver a signed APK with installation instructions.
+2. Completed: prove direct protocol compatibility against a disposable budget, including retries and conflict boundaries.
+3. Completed: build the focused Android interface and durable pending-change handling on the validated integration.
+4. Completed: deliver the signed APK with installation instructions and recorded acceptance evidence; deployment-specific checks remain explicit in the validation record.
 
 ## Evidence
 

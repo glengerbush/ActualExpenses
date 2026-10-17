@@ -48,6 +48,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     override fun chooseAccount(id: String) = task { graph.access { it.chooseAccount(id) }; pickingAccount.value = false }
     override fun showAccounts() { pickingAccount.value = true }
     override fun backToLogin() { showingLogin.value = true }
+    override fun cancelSignIn() { showingLogin.value = false }
     override fun refresh() {
         if (refreshJob?.isActive == true) return
         refreshJob = viewModelScope.launch {
@@ -65,7 +66,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         editSession = graph.access { it.beginEdit(id) }
         withContext(Dispatchers.Main) { completed() }
     }
-    override fun save(form: ExpenseForm, completed: () -> Unit) = saveOperation(form.operationId) {
+    override fun save(form: ExpenseForm) = saveOperation(form.operationId) {
         graph.access { service ->
             val matchingPayee = service.state().payees.find { it.name.equals(form.payee.trim(), ignoreCase = true) }
             service.saveExpense(ExpenseDraft(form.amount, form.date.toString(), form.payee, matchingPayee?.id, form.categoryId, form.notes,
@@ -74,7 +75,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
                     ?: error("Reopen this expense before editing it."))
         }
     }
-    override fun delete(id: String, operationId: String, completed: () -> Unit) = saveOperation(operationId) {
+    override fun delete(id: String, operationId: String) = saveOperation(operationId) {
         val session = editSession?.takeIf { it.transactionId == id } ?: error("Reopen this expense before deleting it.")
         graph.access { it.deleteExpense(session) }
     }
@@ -113,5 +114,6 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         associations = payeeCategoryAssociations, currency = currency, decimalPlaces = decimalPlaces,
         online = online, busy = busy, pendingCount = pendingCount, error = localError ?: error, notice = notice,
         requiresSignIn = budgetId != null && !authenticated,
+        canCancelSignIn = budgetId != null,
     )
 }

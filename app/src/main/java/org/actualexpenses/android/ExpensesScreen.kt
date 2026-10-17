@@ -39,6 +39,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Currency
 import java.util.UUID
+import org.actualexpenses.core.parseExpenseAmount
 
 /*
  THESIS: Record a purchase, then return to a compact expense register. No dashboard.
@@ -70,6 +71,7 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
         state.selectedAccount?.let { actions.chooseAccount(it.id) }
     }
     BackHandler(state.screen == Screen.BUDGETS) { actions.backToLogin() }
+    BackHandler(state.screen == Screen.LOGIN && state.canCancelSignIn) { actions.cancelSignIn() }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -83,7 +85,10 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
                     } else Text("ActualExpenses")
                 },
                 navigationIcon = {
-                    if (state.screen == Screen.BUDGETS) IconButton(onClick = actions::backToLogin) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to sign in") }
+                    if (state.screen == Screen.LOGIN && state.canCancelSignIn) IconButton(onClick = actions::cancelSignIn, enabled = !state.busy) {
+                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to expenses")
+                    }
+                    else if (state.screen == Screen.BUDGETS) IconButton(onClick = actions::backToLogin) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to sign in") }
                     else if (state.screen == Screen.ACCOUNTS && state.selectedAccount != null) IconButton(onClick = { actions.chooseAccount(state.selectedAccount.id) }) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to expenses")
                     }
@@ -221,13 +226,13 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
             (transactionId != null && state.expenses.any { it.id == transactionId && it.pendingDeletion })) close()
     }
     BackHandler(saving) { /* Finish the local atomic save before leaving this form. */ }
-    val number = amount.replace(',', '.').toBigDecimalOrNull()
-    val valid = number != null && number > BigDecimal.ZERO && number.scale() <= state.decimalPlaces && number.movePointRight(state.decimalPlaces) <= BigDecimal.valueOf(Long.MAX_VALUE)
+    val validation = runCatching { parseExpenseAmount(amount, state.decimalPlaces) }
+    val valid = validation.isSuccess
     val context = LocalContext.current
     val save: () -> Unit = {
         submitted = true
         if (valid && !saving) {
-            actions.save(ExpenseForm(transactionId, amount, LocalDate.parse(date), payee.trim(), categoryId, notes, operationId), close)
+            actions.save(ExpenseForm(transactionId, amount, LocalDate.parse(date), payee.trim(), categoryId, notes, operationId))
         }
     }
     Scaffold(
@@ -241,7 +246,7 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
                 Text(state.selectedAccount?.name.orEmpty(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedTextField(amount, { amount = it }, label = { Text(if (state.currency.isBlank()) "Amount" else "Amount (${state.currency})") },
                     textStyle = MaterialTheme.typography.headlineMedium, singleLine = true, enabled = !saving, isError = submitted && !valid,
-                    supportingText = { if (submitted && !valid) Text(if (state.decimalPlaces == 0) "Enter a positive whole amount." else "Enter a positive amount with up to ${state.decimalPlaces} decimal places.") },
+                    supportingText = { if (submitted && !valid) Text(validation.exceptionOrNull()?.message ?: "Enter a valid expense amount.") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next), modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(payee, { payee = it; payeeSuggestions = true }, label = { Text("Payee (optional)") }, singleLine = true, enabled = !saving,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next), modifier = Modifier.fillMaxWidth())
@@ -277,7 +282,7 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
     if (deleteConfirmation && existing != null) AlertDialog(
         onDismissRequest = { deleteConfirmation = false }, title = { Text("Delete expense?") },
         text = { Text("${money(existing.amountMinor, state.currency, state.decimalPlaces)} · ${existing.payee.ifBlank { "No payee" }}\n${dateLabel(existing.date)}") },
-        confirmButton = { TextButton(onClick = { deleteConfirmation = false; actions.delete(existing.id, operationId, close) }) { Text("Delete", color = MaterialTheme.colorScheme.error) } },
+        confirmButton = { TextButton(onClick = { deleteConfirmation = false; actions.delete(existing.id, operationId) }) { Text("Delete", color = MaterialTheme.colorScheme.error) } },
         dismissButton = { TextButton(onClick = { deleteConfirmation = false }) { Text("Keep expense") } },
     )
 }

@@ -71,7 +71,9 @@ Read-only inspection of the disposable official-client snapshot established thes
 
 ## Current protocol limits
 
-The direct client pulls from the epoch so delayed mutations with older timestamps are not missed. This trades efficiency for a small, auditable implementation: every sync reads the group's entire message log. It does not yet use Actual's Merkle tree to request only divergent history. Large or long-lived budgets may need incremental synchronization before they perform acceptably on a phone.
+After a complete pull, the direct client saves the latest received timestamp and complete Merkle tree atomically with the applied rows. With no pending changes, it first requests messages after that timestamp. An empty response with an identical tree completes sync without replaying history or rewriting storage. If messages arrive or the tree differs, it pulls from the epoch so delayed mutations with older timestamps are not missed. Pending changes always use the complete-history acknowledgement and conflict path. Old installations establish their checkpoint on their first successful sync after updating.
+
+Changed budgets still require the group's full message log; divergent-history reconciliation is not implemented. Large or long-lived budgets may need further incremental synchronization before they perform acceptably on a phone.
 
 The client rejects responses larger than 128 MiB, decompressed archives larger than 256 MiB, and outgoing batches larger than 19 MiB. These limits retain pending work; they do not make every budget below the limits fit Android's heap. Snapshot data, decoded rows, and history are currently held in memory. The disposable fixture demonstrates correctness on a small budget, not large-budget memory or performance qualification.
 

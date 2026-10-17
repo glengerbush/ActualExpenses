@@ -16,3 +16,9 @@ No functional mismatch or scope creep identified in the reviewed implementation.
 The review initially identified missing device evidence for signed updates and OS-denied background execution. A signed in-place reinstall preserved pending work; force-stop/background denial retained it until foreground recovery, with exactly one expense confirmed independently. Android API 26 and 36 checks passed. These results and their limits are recorded in [validation](validation.md).
 
 Standards: 0 unresolved findings. Spec: 0 functional findings; deployment qualification limits remain documented separately.
+
+## Unchanged-budget sync review — 2026-10-17
+
+An Astra/high protocol subagent reviewed the checkpoint optimization against Actual 26.10.0's server implementation; the parent reviewed the diff and regression evidence. No blocking findings remained. Checkpoints are committed atomically with rows only after complete read-only pulls, never from upload responses. Empty probes require structural equality of the complete Merkle tree and a second pending-work check after the network response. Tree changes trigger full replay, preserving late older mutations. Legacy saved state bootstraps a checkpoint without dropping pending operations. Compatibility, authentication and sync-group guards still run before the fast path.
+
+The measured history-heavy improvement is separate from the user's unresolved empty-budget startup delay; see [validation](validation.md#unchanged-budget-sync-012--2026-10-17).

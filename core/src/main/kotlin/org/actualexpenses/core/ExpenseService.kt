@@ -12,6 +12,7 @@ private data class PendingOperation(
     val changes: MutableList<ProtocolChange> = mutableListOf(), val createdOffline: Boolean = false,
     val creates: Boolean = false, val deletes: Boolean = false, var attempted: Boolean = false,
 )
+private data class SyncCheckpoint(val since: String, val merkle: JsonObject)
 private data class SavedState(
     var server: String = "", var token: String? = null,
     var budgets: List<RemoteBudget> = emptyList(), var budget: RemoteBudget? = null,
@@ -22,6 +23,7 @@ private data class SavedState(
     val pending: MutableList<PendingOperation> = mutableListOf(),
     val retained: MutableMap<String, String> = mutableMapOf(),
     var notice: String? = null,
+    var checkpoint: SyncCheckpoint? = null,
 )
 
 /** Single application boundary shared by foreground UI and pending-only Android worker. */
@@ -99,6 +101,7 @@ class ExpenseService(
         val snapshot = decoder.decode(client().downloadBudget(budget))
         change { next ->
             next.budget = budget
+            next.checkpoint = null
             next.rows.clear(); next.versions.clear()
             snapshot.rows.filterKeys { it !in setOf("messages_crdt", "messages_clock", "__migrations__") }.forEach { (table, records) ->
                 next.rows[table] = records.mapNotNull { row -> row.text("id")?.let { it to row.deepCopy() } }.toMap().toMutableMap()
@@ -226,9 +229,26 @@ class ExpenseService(
             val remote = remoteBudgets.find { it.fileId == budget.fileId }
                 ?: throw ActualException(ActualException.Kind.UNSUPPORTED, "This budget is no longer available. Pending changes are retained.")
             if (remote.groupId != budget.groupId || remote.encryptKeyId != budget.encryptKeyId) throw ActualException(ActualException.Kind.UNSUPPORTED, "The budget sync group changed. Pending changes are retained; restore the original budget before retrying.")
-            val pulled = client.pull(budget).messages
+            val checkpoint = synchronized(this) { saved.checkpoint.takeIf { saved.pending.isEmpty() } }
+            if (checkpoint != null) {
+                val probe = client.pull(budget, checkpoint.since)
+                if (probe.messages.isEmpty() && probe.merkle == checkpoint.merkle) {
+                    // Saves can arrive while the network request is in flight. A queued
+                    // operation still needs the complete-history acknowledgement/conflict path.
+                    synchronized(this) {
+                        if (saved.pending.isEmpty()) {
+                            markSynced()
+                            return
+                        }
+                    }
+                }
+            }
+            // A changed tree may represent a late-arriving mutation OLDER than since.
+            // A timestamp cursor alone would miss it; always replay when the tree differs.
+            val pull = client.pull(budget)
+            val pulled = pull.messages
             change { next ->
-                applyRemote(next, pulled)
+                applyCompletePull(next, pull)
                 val observed = pulled.map { it.timestamp }.toSet()
                 next.pending.removeAll { op -> op.changes.all { it.timestamp in observed } }
                 next.pending.removeAll { op ->
@@ -243,9 +263,11 @@ class ExpenseService(
             }
             var operations: List<PendingOperation> = emptyList()
             // Capture and mark one batch atomically with respect to local saves/deletions.
-            change { next ->
-                next.pending.forEach { it.attempted = true }
-                operations = next.pending.toList()
+            synchronized(this) {
+                if (saved.pending.isNotEmpty()) change { next ->
+                    next.pending.forEach { it.attempted = true }
+                    operations = next.pending.toList()
+                }
             }
             if (operations.isNotEmpty()) {
                 val batch = client.exchange(budget, operations.flatMap { it.changes })
@@ -254,10 +276,10 @@ class ExpenseService(
                     operations.flatMap { it.changes }.forEach { apply(next.rows, next.versions, it) }
                     next.pending.removeAll { op -> operations.any { it.id == op.id } }
                 }
-                val confirmation = client.pull(budget).messages
-                change { applyRemote(it, confirmation) }
+                val confirmation = client.pull(budget)
+                change { applyCompletePull(it, confirmation) }
             }
-            online = true; needsLogin = false; error = null; syncBlocked = false
+            markSynced()
         } catch (e: Exception) {
             online = false; error = e.message ?: "Could not sync. Pending changes are retained."
             if (e is ActualException && e.kind == ActualException.Kind.AUTHENTICATION) needsLogin = true
@@ -265,6 +287,15 @@ class ExpenseService(
         }
     }
 
+    private fun markSynced() {
+        online = true; needsLogin = false; error = null; syncBlocked = false
+    }
+    private fun applyCompletePull(next: SavedState, batch: SyncBatch) {
+        applyRemote(next, batch.messages)
+        // Commit rows and checkpoint atomically. Never use an upload response here:
+        // its tree includes uploaded messages that its returned history may omit.
+        next.checkpoint = SyncCheckpoint(batch.messages.maxOfOrNull { it.timestamp } ?: ZERO_TIMESTAMP, batch.merkle.deepCopy())
+    }
     private fun client() = ActualClient(saved.server, saved.token, transport)
     @Synchronized private fun change(block: (SavedState) -> Unit) {
         val next = gson.fromJson(gson.toJson(saved), SavedState::class.java)

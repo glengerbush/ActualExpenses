@@ -71,3 +71,13 @@ Review results: [standards and spec](review.md). Installation and rebuilding: [R
 [Release v0.1.1](https://github.com/glengerbush/ActualExpenses/releases/tag/v0.1.1) contains the APK and `SHA256SUMS`. The downloaded APK was independently checked: package `org.actualexpenses.android`, versionCode `2`, versionName `0.1.1`, minimum API 26; signature matches the original certificate above. APK SHA-256: `626615000817e6f094701ab59072ed16d3d4d8cb29c275fd8caab15b2e575a71`.
 
 This patch updates release tooling and the app version; it introduces no app behavior changes. Earlier device evidence remains the baseline; no additional device tests were claimed for this hosted artifact.
+
+## Unchanged-budget sync 0.1.2 — 2026-10-17
+
+Unchanged sync now checks the saved Merkle tree and skips full-history replay and saved-state rewrites. Changed history, including late mutations older than the saved timestamp, still receives a complete pull. Existing authentication, compatibility and sync-group checks remain in place.
+
+The history-heavy reproduction used 128 expenses with 4 KiB notes and a simulated 128 KiB/s response throughput. Before the change: approximately 4,983 ms, 639,621 sync bytes and two storage writes. After the change: 22 ms in the targeted run; 49 ms in the final full suite, 389 sync bytes and zero storage writes. Three network requests remain. These are JVM fixture measurements, not physical-phone timings or a promise of the same speedup on every budget.
+
+All 16 real-server integration tests passed with zero failures or skips. Four new tests cover unchanged sync after restart, an older offline mutation arriving after the checkpoint, saving during the probe, and upgrading persisted 0.1.1 state with pending work. Nine release-automation tests, Android release lint and the debug APK build also passed.
+
+A separate temporary fresh-budget harness measured 19–32 ms across ten full-history refreshes with zero transactions. It excludes Android startup and the user's network. The user's reported 5–10 second empty-budget delay was not reproduced and remains undiagnosed; this release ships the independently verified optimization. No new physical-device results are claimed.

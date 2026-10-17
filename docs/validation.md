@@ -63,3 +63,11 @@ APK Signature Scheme v2 verified. The stable RSA signing identity is outside the
 - Background delivery is best-effort. Published-deletion races retain Actual's native semantics; the app does not promise an atomic server-side conflict check.
 
 Review results: [standards and spec](review.md). Installation and rebuilding: [ReadMe](../ReadMe.md).
+
+## Hosted release 0.1.1 — 2026-10-16
+
+[GitHub Actions run 38996712861](https://github.com/glengerbush/ActualExpenses/actions/runs/38996712861) succeeded from commit `b21c0e26eaa613117e0cbbbffca2c285aed7b1f4`: version-bump detection, nine automation tests, disposable-server integration tests with no skipped cases, release lint, signed build, signature verification, and publication. The first run failed because the extra SDK setup action requested the obsolete `tools` package; using the hosted runner's existing SDK resolved it.
+
+[Release v0.1.1](https://github.com/glengerbush/ActualExpenses/releases/tag/v0.1.1) contains the APK and `SHA256SUMS`. The downloaded APK was independently checked: package `org.actualexpenses.android`, versionCode `2`, versionName `0.1.1`, minimum API 26; signature matches the original certificate above. APK SHA-256: `626615000817e6f094701ab59072ed16d3d4d8cb29c275fd8caab15b2e575a71`.
+
+This patch updates release tooling and the app version; it introduces no app behavior changes. Earlier device evidence remains the baseline; no additional device tests were claimed for this hosted artifact.

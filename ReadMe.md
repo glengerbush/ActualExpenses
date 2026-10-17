@@ -4,7 +4,7 @@ A focused native Android companion for recording expenses in one Actual budget. 
 
 ## Install
 
-Install the signed `dist/ActualExpenses-0.1.0.apk` (or `app/build/outputs/apk/release/app-release.apk` after building) on Android 8.0 (API 26) or newer. Allow installation from your chosen file manager when Android asks. Updates must use the same signing key and retain the application ID; install over the previous version rather than uninstalling, which deletes local pending work.
+Download the signed APK from the [latest GitHub release](https://github.com/glengerbush/ActualExpenses/releases/latest), or use `app/build/outputs/apk/release/app-release.apk` after building. Install on Android 8.0 (API 26) or newer. Allow installation from your chosen file manager when Android asks. Updates must use the same signing key and retain the application ID; install over the previous version rather than uninstalling, which deletes local pending work.
 
 Setup: server address → existing Actual password → budget → account. HTTP LAN and tailnet addresses are supported. This version supports **Actual 26.10.0, unencrypted budgets only**. It checks server and snapshot compatibility before writes. It requires no extra server service.
 
@@ -26,11 +26,11 @@ The release helper creates a stable private signing identity under `~/.local/sha
 The [release workflow](.github/workflows/release.yml) publishes a signed APK when a push to `main` increases **both** values in `app/build.gradle.kts`, for example:
 
 ```kotlin
-versionCode = 2
-versionName = "0.1.1"
+versionCode = 3
+versionName = "0.1.2"
 ```
 
-Use plain `major.minor.patch` versions. Ordinary commits do not release; changing only one value or lowering either fails validation. Detection compares the whole push, so a bump followed by another commit in the same push still releases. Introducing the Android version for the first time also releases: pushing the initial application and workflow to the original README-only repository will publish `v0.1.0` once signing is configured.
+Use plain `major.minor.patch` versions. Ordinary commits do not release; changing only one value or lowering either fails validation. Detection compares the whole push, so a bump followed by another commit in the same push still releases. Introducing the Android version for the first time is also eligible for release.
 
 Before enabling the workflow, configure its four encrypted repository secrets using the **existing** local signing identity:
 
@@ -41,11 +41,13 @@ python3 tools/configure-release-signing.py
 
 The helper targets `glengerbush/ActualExpenses` and sends `ACTUALEXPENSES_KEYSTORE_BASE64`, `ACTUALEXPENSES_STORE_PASSWORD`, `ACTUALEXPENSES_KEY_PASSWORD`, and `ACTUALEXPENSES_KEY_ALIAS` through stdin. It never prints their values or generates a replacement key. Repository access to manage Actions secrets is required. Keep the local signing backup; GitHub secrets cannot be downloaded later. Upload these secrets before pushing the workflow/application to `main`.
 
+Alternatively, add those four repository secrets manually under **Settings → Secrets and variables → Actions**. Their values are the Base64-encoded `.p12` file, the `password` from `signing.json` for both password entries, and its `alias`. The configured repository already has these secrets; future version bumps do not require uploading them again.
+
 Each release runs the automation tests, real-server integration tests (skips fail the release), and Android release lint. It builds with JDK 17/SDK 35, verifies the APK signature, then publishes tag `v<version>` with `ActualExpenses-<version>.apk`, `SHA256SUMS`, and generated release notes. The built commit is pinned to the workflow's push SHA. Android device tests remain a separate validation step.
 
 Publication uses a draft until both assets are uploaded. Rerun a failed Actions run to retry the same commit: an unfinished draft resumes, a complete published release remains unchanged, and a tag pointing at a different commit is rejected. **Actions → Release Android APK → Run workflow**, selecting `main`, can also publish/retry the current version without another bump. Use the original run when its draft/tag belongs to an earlier commit. Future state migrations still require explicit upgrade testing.
 
-GitHub setup has not been verified from this workstation while `gh` is signed out. Local validation: nine release-automation tests, `actionlint`, and Android release lint pass. Independent review found and verified the fix for draft discovery during retry. This file does not claim a hosted release has run.
+Hosted release verified on 2026-10-16: [run 38996712861](https://github.com/glengerbush/ActualExpenses/actions/runs/38996712861) published [v0.1.1](https://github.com/glengerbush/ActualExpenses/releases/tag/v0.1.1) after a version bump. Its downloaded APK checksum and original signing certificate were verified. The runner uses its preinstalled Android SDK; it does not install the obsolete `tools` package. Local validation also passed nine release-automation tests and `actionlint`; independent review verified draft discovery during retry.
 
 References: [GitHub push/manual workflow events](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows), [repository secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets), [release creation](https://cli.github.com/manual/gh_release_create).
 

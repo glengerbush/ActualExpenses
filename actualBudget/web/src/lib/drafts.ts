@@ -1,4 +1,5 @@
 import { uuid, type Budget, type NewAccount } from "./api";
+import { parseDateInput } from "./dates";
 import {
   captureAmountFormat,
   formatAmountInput,
@@ -126,10 +127,15 @@ export function prepareSubmission(draft: CreationDraft): CreationDraft {
         },
       },
     };
-  if (!calendarDate(draft.fields.date))
+  const date = parseDateInput(
+    draft.fields.date,
+    draft.fields.date_format ?? "yyyy-MM-dd",
+  );
+  if (!calendarDate(date))
     throw new Error("Enter a valid opening date between years 0001 and 9999.");
   return {
     ...draft,
+    fields: { ...draft.fields, date },
     pending: {
       key: draft.draft_id,
       body: {
@@ -140,7 +146,7 @@ export function prepareSubmission(draft: CreationDraft): CreationDraft {
           number_format: draft.fields.number_format ?? "comma-dot",
           decimal_places: draft.fields.decimal_places ?? 2,
         }),
-        opening_date: draft.fields.date,
+        opening_date: date,
         notes: draft.fields.notes,
       },
     },

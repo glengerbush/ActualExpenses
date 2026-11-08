@@ -1,5 +1,6 @@
 <script lang="ts">
   import DateInput from "./DateInput.svelte";
+  import { parseDateInput, validDate } from "./dates";
   import { preferences } from "./preferences.svelte";
   import { onMount } from "svelte";
   import { uuid, RequestError, errorMessage, type Account } from "./api";
@@ -134,9 +135,11 @@
     if (!draft) return null;
     if (draft.pending) return draft.pending;
     const f = draft.fields;
+    const date = parseDateInput(f.date, draft.dateFormat);
+    if (!validDate(date)) throw new Error(t("Enter a valid date."));
     const body: Record<string, unknown> = {
       account_id: f.account_id,
-      date: f.date,
+      date,
       cleared: f.cleared,
       notes: f.notes,
       payee_id: f.payee === "new" ? null : f.payee || null,

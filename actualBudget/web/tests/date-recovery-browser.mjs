@@ -1,0 +1,182 @@
+import { chromium, expect } from "@playwright/test";
+import { randomUUID } from "node:crypto";
+import { startServer } from "./server.mjs";
+const server = await startServer(),
+  api = server.url.replace("actualbudget.test", "127.0.0.1");
+async function write(path, body, method = "POST") {
+  const response = await fetch(api + "/api/v1" + path, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "Idempotency-Key": randomUUID(),
+    },
+    body: JSON.stringify(body),
+  });
+  expect(response.ok).toBe(true);
+  return (await response.json()).data;
+}
+let browser;
+try {
+  browser = await chromium.launch({
+    executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
+    args: [
+      "--no-sandbox",
+      "--no-proxy-server",
+      "--host-resolver-rules=MAP actualbudget.test 127.0.0.1",
+    ],
+  });
+  for (const [format, raw, expected] of [
+    ["MM/dd/yyyy", "4/5", "2026-04-05"],
+    ["dd/MM/yyyy", "4/5", "2026-05-04"],
+    ["dd.MM.yyyy", "04.05.2026", "2026-05-04"],
+    ["yyyy-MM-dd", "2026-4-5", "2026-04-05"],
+  ]) {
+    const context = await browser.newContext({ timezoneId: "UTC" }),
+      page = await context.newPage();
+    await page.clock.install({ time: new Date("2026-11-08T12:00:00Z") });
+    async function loseFirstAck(path) {
+      const attempts = [];
+      if (format !== "MM/dd/yyyy") return attempts;
+      await page.route("**/api/v1" + path, async (route) => {
+        const request = route.request();
+        if (request.method() !== "POST") return route.continue();
+        attempts.push({
+          key: request.headers()["idempotency-key"],
+          body: request.postDataJSON(),
+        });
+        if (attempts.length !== 1) return route.continue();
+        const target = new URL(request.url());
+        const headers = { ...request.headers(), host: target.host };
+        target.hostname = "127.0.0.1";
+        const result = await route.fetch({ url: target.href, headers });
+        expect(result.status()).toBe(201);
+        await route.abort("failed");
+      });
+      return attempts;
+    }
+    async function retryAfterYearChange(button, attempts) {
+      if (format !== "MM/dd/yyyy") return;
+      await expect(
+        page.getByRole("button", { name: button, exact: true }),
+      ).toBeVisible();
+      await page.clock.setSystemTime(new Date("2027-11-08T12:00:00Z"));
+      await page.reload();
+      await page.getByRole("button", { name: button, exact: true }).click();
+      await expect.poll(() => attempts.length).toBe(2);
+      expect(attempts[1]).toEqual(attempts[0]);
+      await page.clock.setSystemTime(new Date("2026-11-08T12:00:00Z"));
+    }
+    const budget = randomUUID();
+    await write("/budgets", { id: budget, name: "Recovered dates" });
+    await write(
+      `/budgets/${budget}/preferences`,
+      { date_format: format },
+      "PATCH",
+    );
+    await page.goto(server.url);
+    await page.evaluate(
+      (budget) =>
+        localStorage.setItem(
+          "actualBudget.selection",
+          JSON.stringify({ budgetId: budget, accountId: null }),
+        ),
+      budget,
+    );
+    await page.reload();
+    await page
+      .getByRole("button", { name: "Add account", exact: true })
+      .click();
+    await page
+      .getByLabel("Account name", { exact: true })
+      .fill("Restored opening");
+    await page.getByLabel("Opening balance", { exact: true }).fill("10");
+    await page.getByLabel("Opening date", { exact: true }).fill("");
+    await page
+      .getByLabel("Opening date", { exact: true })
+      .pressSequentially(raw);
+    await expect(page.getByLabel("Opening date", { exact: true })).toHaveValue(
+      raw,
+    );
+    await write(
+      `/budgets/${budget}/preferences`,
+      { date_format: format === "MM/dd/yyyy" ? "dd/MM/yyyy" : "MM/dd/yyyy" },
+      "PATCH",
+    );
+    await page.reload();
+    const accountAttempts = await loseFirstAck(`/budgets/${budget}/accounts`);
+    // Direct save: restored date never receives focus, blur, or Enter.
+    await page
+      .getByRole("button", { name: "Create account", exact: true })
+      .click();
+    await retryAfterYearChange("Retry creation", accountAttempts);
+    await expect(
+      page.getByRole("button", { name: "Add transaction", exact: true }),
+    ).toBeEnabled();
+    const accounts = (
+      await (await fetch(api + `/api/v1/budgets/${budget}/accounts`)).json()
+    ).data;
+    expect(accounts).toHaveLength(1);
+    const account = accounts[0].id;
+    const opening = (
+      await (
+        await fetch(
+          api + `/api/v1/budgets/${budget}/transactions?account_id=${account}`,
+        )
+      ).json()
+    ).data;
+    expect(opening).toHaveLength(1);
+    expect(opening[0].date).toBe(expected);
+    await write(
+      `/budgets/${budget}/preferences`,
+      { date_format: format },
+      "PATCH",
+    );
+    await page.reload();
+    await expect(page.getByLabel("Show through date")).toHaveAttribute(
+      "placeholder",
+      format.toUpperCase(),
+    );
+    await page
+      .getByRole("button", { name: "Add transaction", exact: true })
+      .click();
+    await page.getByLabel("Amount", { exact: true }).fill("1");
+    await page.getByLabel("Notes", { exact: true }).fill("Recovered date");
+    await page.getByLabel("Date", { exact: true }).fill("");
+    await page.getByLabel("Date", { exact: true }).pressSequentially(raw);
+    // Captured draft format must win even after shared display format changes.
+    await write(
+      `/budgets/${budget}/preferences`,
+      { date_format: format === "MM/dd/yyyy" ? "dd/MM/yyyy" : "MM/dd/yyyy" },
+      "PATCH",
+    );
+    await page.reload();
+    const transactionAttempts = await loseFirstAck(
+      `/budgets/${budget}/transactions`,
+    );
+    await page
+      .getByRole("button", { name: "Save transaction", exact: true })
+      .click();
+    await retryAfterYearChange("Retry saved transaction", transactionAttempts);
+    await expect(
+      page.getByRole("button", { name: "Add transaction", exact: true }),
+    ).toBeEnabled();
+    const transactions = (
+      await (
+        await fetch(
+          api + `/api/v1/budgets/${budget}/transactions?account_id=${account}`,
+        )
+      ).json()
+    ).data;
+    expect(transactions).toHaveLength(2);
+    expect(transactions.find((t) => t.notes === "Recovered date").date).toBe(
+      expected,
+    );
+    await context.close();
+  }
+  console.log(
+    "PASS eight restored raw date saves with captured formats; lost acknowledgements preserve account/transaction payloads across year changes",
+  );
+} finally {
+  await browser?.close();
+  await server.stop();
+}

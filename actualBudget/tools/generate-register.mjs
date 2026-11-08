@@ -5,6 +5,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { mock } from 'node:test';
+import { setImmediate as yieldEventLoop } from 'node:timers/promises';
 
 const requireOracle = createRequire(new URL('../../actualExpenses/tools/compatibility/package.json', import.meta.url));
 const api = requireOracle('@actual-app/api');
@@ -68,7 +69,23 @@ try {
         await api.deleteTransaction(operation.id);
         break;
     }
-    const rows = await api.getTransactions(account);
+    // Mutation acknowledgement precedes the published API's asynchronous query-cache
+    // invalidation. Wait for the requested identity/field change to become visible;
+    // do not capture an old cached rowset beside fresh financial query results.
+    const deadline = performance.now() + 5000;
+    let rows;
+    for (;;) {
+      rows = await api.getTransactions(account);
+      const row = rows.find(value => value.id === operation.id);
+      const visible = operation.action === 'create'
+        ? input.transactions.every(input => rows.some(value => value.id === input.id))
+        : operation.action === 'update'
+          ? row && Object.entries(operation.patch).every(([field, value]) => row[field] === value)
+          : operation.action === 'duplicate' ? !!row : !row;
+      if (visible) break;
+      assert.ok(performance.now() < deadline, `Actual did not expose ${operation.name} within five seconds`);
+      await yieldEventLoop();
+    }
     const payees = await api.getPayees();
     const categories = await api.getCategories();
     const total = await api.aqlQuery(api.q('transactions').filter({ account }).calculate({ $sum: '$amount' }));
@@ -96,7 +113,7 @@ try {
   const rendered = JSON.stringify({
     oracle: '@actual-app/api@26.10.0', source_commit: '2bebdbaae0b701120a8cad9d56aafd64fa04c577',
     clock: '2026-10-15T12:00:00Z', timezone: 'UTC',
-    description: 'Public API mutations, AQL all-date register totals and getAccountBalance calendar cutoffs. Random opening identity normalized. Duplicate payload follows pinned UI hook; no replacement engine, sleeps, live server or user data.',
+    description: 'Public API mutations, AQL all-date register totals and getAccountBalance calendar cutoffs. Random opening identity normalized. Duplicate payload follows pinned UI hook. Bounded reads wait for mutation visibility before sampling; no replacement engine, arbitrary sleeps, live server or user data.',
     input, snapshots,
   }, null, 2) + '\n';
   if (process.argv.includes('--check')) {

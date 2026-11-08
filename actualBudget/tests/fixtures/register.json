@@ -3,7 +3,7 @@
   "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
   "clock": "2026-10-15T12:00:00Z",
   "timezone": "UTC",
-  "description": "Public API mutations, AQL all-date register totals and getAccountBalance calendar cutoffs. Random opening identity normalized. Duplicate payload follows pinned UI hook; no replacement engine, sleeps, live server or user data.",
+  "description": "Public API mutations, AQL all-date register totals and getAccountBalance calendar cutoffs. Random opening identity normalized. Duplicate payload follows pinned UI hook. Bounded reads wait for mutation visibility before sampling; no replacement engine, arbitrary sleeps, live server or user data.",
   "input": {
     "account": {
       "name": "Spending",
@@ -218,6 +218,10 @@
           "balance": 19734
         },
         {
+          "date": "2026-01-03",
+          "balance": 18534
+        },
+        {
           "date": "2026-10-15",
           "balance": 28534
         },
@@ -240,10 +244,10 @@
         },
         {
           "id": "10000000-0000-4000-8000-000000000002",
-          "date": "2026-01-01",
-          "amount": -1234,
-          "notes": "expense",
-          "cleared": false,
+          "date": "2026-01-03",
+          "amount": -1200,
+          "notes": "edited expense",
+          "cleared": true,
           "reconciled": false,
           "starting_balance": false,
           "payee_name": "Cafe",
@@ -435,10 +439,6 @@
           "balance": 19500
         },
         {
-          "date": "2026-01-02",
-          "balance": 19500
-        },
-        {
           "date": "2026-01-03",
           "balance": 17100
         },
@@ -468,17 +468,6 @@
           "date": "2026-01-03",
           "amount": -1200,
           "notes": "edited expense",
-          "cleared": true,
-          "reconciled": false,
-          "starting_balance": false,
-          "payee_name": "Cafe",
-          "category_name": "Food"
-        },
-        {
-          "id": "10000000-0000-4000-8000-000000000003",
-          "date": "2026-01-02",
-          "amount": 234,
-          "notes": "refund",
           "cleared": true,
           "reconciled": false,
           "starting_balance": false,

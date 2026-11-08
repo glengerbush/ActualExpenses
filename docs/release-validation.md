@@ -79,3 +79,11 @@ the ticket's approved acceptance path; full migration/cutover remains separate.
 The previously accepted [container/browser evidence](../actualBudget/tools/container-smoke.md)
 also applies to the source baseline. Raw local rehearsal logs are ignored scratch
 artifacts; the commands, outcomes and immutable identifiers above are the durable record.
+
+## Acceptance and independent review
+
+Implementation commit: `608ac8b`; fixed review diff: `a771d84...608ac8b`.
+Root independently reran all 16 new and 12 legacy release tests successfully.
+Separate Astra/high reviews reported **Standards: 0 findings; Spec: 0 findings**.
+The approved dry-run qualification path meets ticket48's acceptance criteria.
+Ticket48 is complete; this does not establish complete rewrite or production acceptance.

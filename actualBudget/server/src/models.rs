@@ -34,7 +34,7 @@ pub fn validate_id(id: &str) -> Result<(), Error> {
     }
     Ok(())
 }
-fn validate_name(name: &str) -> Result<(), Error> {
+pub(crate) fn validate_name(name: &str) -> Result<(), Error> {
     if name.trim().is_empty() || name.chars().count() > 120 || name.chars().any(char::is_control) {
         return Err(Error::invalid(
             "name must contain 1–120 characters and no control characters",
@@ -66,16 +66,21 @@ impl NewAccount {
                 "opening_balance must be an integer within the safe range ±9007199254740991",
             ));
         }
-        let date = chrono::NaiveDate::parse_from_str(&self.opening_date, "%Y-%m-%d")
-            .map_err(|_| Error::invalid("opening_date must be a valid YYYY-MM-DD calendar date"))?;
-        if self.opening_date.len() != 10
-            || self.opening_date.starts_with("0000")
-            || date.format("%Y-%m-%d").to_string() != self.opening_date
-        {
-            return Err(Error::invalid(
-                "opening_date must use YYYY-MM-DD, years 0001–9999",
-            ));
-        }
+        validate_date(&self.opening_date)?;
         Ok(())
     }
+}
+
+pub(crate) fn validate_date(date_string: &str) -> Result<(), Error> {
+    let date = chrono::NaiveDate::parse_from_str(date_string, "%Y-%m-%d")
+        .map_err(|_| Error::invalid("opening_date must be a valid YYYY-MM-DD calendar date"))?;
+    if date_string.len() != 10
+        || date_string.starts_with("0000")
+        || date.format("%Y-%m-%d").to_string() != date_string
+    {
+        return Err(Error::invalid(
+            "opening_date must use YYYY-MM-DD, years 0001–9999",
+        ));
+    }
+    Ok(())
 }

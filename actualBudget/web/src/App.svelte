@@ -14,6 +14,10 @@
   import BudgetForm from "./lib/BudgetForm.svelte";
   import AccountForm from "./lib/AccountForm.svelte";
   import AccountView from "./lib/AccountView.svelte";
+  import Register from "./lib/Register.svelte";
+  import Settings from "./lib/Settings.svelte";
+  import { preferences } from "./lib/preferences.svelte";
+  import { t } from "./lib/i18n.svelte";
   let budgets = $state.raw<Budget[]>([]);
   let accounts = $state.raw<Account[]>([]);
   let budget = $state.raw<Budget | null>(null);
@@ -21,7 +25,7 @@
   let loading = $state(true);
   let error = $state("");
   let recoveryError = $state("");
-  let form = $state<"budget" | "account" | null>(null);
+  let form = $state<"budget" | "account" | "settings" | null>(null);
   let main: HTMLElement | undefined;
   let retry = $state<() => Promise<void>>(initialize);
   async function focusContent() {
@@ -38,7 +42,9 @@
       );
       if (info.api_version !== 1)
         throw new Error(
-          "This server uses an unsupported API version. Update the app and server together.",
+          t(
+            "This server uses an unsupported API version. Update the app and server together.",
+          ),
         );
       budgets = await list<Budget>("/budgets");
       recoveryError = "";
@@ -69,7 +75,11 @@
     form = null;
     retry = () => openBudget(value, accountId);
     try {
-      accounts = await list<Account>(`/budgets/${value.id}/accounts`);
+      const [accountRows] = await Promise.all([
+        list<Account>(`/budgets/${value.id}/accounts`),
+        preferences.loadBudget(value.id),
+      ]);
+      accounts = accountRows;
       account = accounts.find((a) => a.id === accountId) ?? null;
       saveSelection(value.id, account?.id);
       try {
@@ -88,6 +98,7 @@
   async function showBudgets() {
     recoveryError = "";
     budget = null;
+    preferences.clearBudget();
     account = null;
     accounts = [];
     form = null;
@@ -101,7 +112,7 @@
     saveSelection(budget!.id, value?.id);
     await focusContent();
   }
-  async function showForm(value: "budget" | "account" | null) {
+  async function showForm(value: "budget" | "account" | "settings" | null) {
     recoveryError = "";
     form = value;
     await focusContent();
@@ -115,44 +126,62 @@
     form = null;
     await selectAccount(value);
   }
+  async function refreshAccounts() {
+    const budgetId = budget?.id;
+    if (!budgetId) return;
+    const updated = await list<Account>(`/budgets/${budgetId}/accounts`);
+    if (budget?.id !== budgetId) return;
+    accounts = updated;
+    account = updated.find((item) => item.id === account?.id) ?? null;
+  }
   onMount(() => {
+    const stopDevicePreferences = preferences.startDevice();
     void initialize();
+    return stopDevicePreferences;
   });
 </script>
 
-<a class="skip-link" href="#main">Skip to content</a>
+<a class="skip-link" href="#main">{t("Skip to content")}</a>
 <div class="app-shell">
-  <aside class="sidebar" aria-label="Budget navigation">
+  <aside class="sidebar" aria-label={t("Budget navigation")}>
     <div class="brand">actualBudget</div>
     {#if budget}
       <button class="quiet" onclick={showBudgets} disabled={!!form || loading}
-        >All budgets</button
+        >{t("All budgets")}</button
       >
       <div class="budget-name">{budget.name}</div>
       <p class="hint method">
         {budget.budget_type === "tracking"
-          ? "Tracking budget"
-          : "Envelope budget"}
+          ? t("Tracking budget")
+          : t("Envelope budget")}
       </p>
-      <nav aria-label="Accounts">
+      <nav aria-label={t("Accounts")}>
         <button
-          class={{ current: !account }}
-          aria-current={!account ? "page" : undefined}
+          class={{ current: !account && !form }}
+          aria-current={!account && !form ? "page" : undefined}
           onclick={() => selectAccount(null)}
-          disabled={!!form || loading}>All accounts</button
+          disabled={!!form || loading}>{t("All accounts")}</button
         >
         {#each accounts as item (item.id)}<button
-            class={{ current: account?.id === item.id }}
-            aria-current={account?.id === item.id ? "page" : undefined}
+            class={{ current: account?.id === item.id && !form }}
+            aria-current={account?.id === item.id && !form ? "page" : undefined}
             onclick={() => selectAccount(item)}
             disabled={!!form || loading}
             ><span>{item.name}</span><span class="nav-amount"
-              >{formatAmount(item.balance)}</span
+              >{preferences.hasUsableShared
+                ? formatAmount(item.balance)
+                : "—"}</span
             ></button
           >{/each}
       </nav>
+      <button
+        class={{ current: form === "settings" }}
+        aria-current={form === "settings" ? "page" : undefined}
+        onclick={() => showForm("settings")}
+        disabled={!!form || loading}>{t("Settings")}</button
+      >
     {:else}<p class="muted sidebar-description">
-        Your accounts, together.
+        {t("Your accounts, together.")}
       </p>{/if}
   </aside>
   <main
@@ -169,15 +198,31 @@
     {#if recoveryError && !form}<p class="error" role="alert">
         {recoveryError}
       </p>{/if}
+    {#if preferences.deviceError && form !== "settings"}<p
+        class="error"
+        role="alert"
+      >
+        {t(preferences.deviceError)}
+      </p>{/if}
+    {#if preferences.error && form !== "settings"}<div role="alert">
+        <p class="error">
+          {t("Display preferences could not be refreshed.")}
+          {preferences.error}
+        </p>
+        <button
+          onclick={() => budget && preferences.loadBudget(budget.id)}
+          disabled={preferences.loading}>{t("Retry preferences")}</button
+        >
+      </div>{/if}
     {#if loading}<div class="loading" role="status">
-        <h1>Opening your budget…</h1>
+        <h1>{t("Opening your budget…")}</h1>
         <div class="skeleton"></div>
         <div class="skeleton short"></div>
       </div>
     {:else if error}<section>
-        <h1>Unable to open your data</h1>
+        <h1>{t("Unable to open your data")}</h1>
         <p class="error" role="alert">{error}</p>
-        <button class="primary" onclick={retry}>Retry</button>
+        <button class="primary" onclick={retry}>{t("Retry")}</button>
       </section>
     {:else if form === "budget"}<BudgetForm
         oncreated={budgetCreated}
@@ -188,14 +233,18 @@
         oncreated={accountCreated}
         oncancel={() => showForm(null)}
       />
+    {:else if form === "settings" && budget}<Settings
+        budgetId={budget.id}
+        onclose={() => showForm(null)}
+      />
     {:else if !budget}
       <div class="page-heading">
         <div>
-          <h1>Your budgets</h1>
-          <p class="muted">Choose a budget or start a new one.</p>
+          <h1>{t("Your budgets")}</h1>
+          <p class="muted">{t("Choose a budget or start a new one.")}</p>
         </div>
         <button class="primary" onclick={() => showForm("budget")}
-          >New budget</button
+          >{t("New budget")}</button
         >
       </div>
       {#if budgets.length}<ul class="budget-list">
@@ -203,37 +252,52 @@
               <button onclick={() => openBudget(item)}
                 ><span class="list-name">{item.name}</span><span class="muted"
                   >{item.budget_type === "tracking"
-                    ? "Tracking"
-                    : "Envelope"}</span
-                ><span>Open</span></button
+                    ? t("Tracking")
+                    : t("Envelope")}</span
+                ><span>{t("Open")}</span></button
               >
             </li>{/each}
         </ul>
       {:else}<div class="empty-state">
-          <h2>A place for your accounts</h2>
+          <h2>{t("A place for your accounts")}</h2>
           <p>
-            Create your first budget, then add an account with its opening
-            balance.
+            {t(
+              "Create your first budget, then add an account with its opening balance.",
+            )}
           </p>
         </div>{/if}
-    {:else if account}<AccountView {account} />
+    {:else if !preferences.hasUsableShared}
+      <section>
+        <h1>{t("Display preferences are unavailable")}</h1>
+        <p>
+          {t(
+            "Refresh preferences before viewing amounts or entering new transactions. Saved requests keep their original amounts.",
+          )}
+        </p>
+      </section>
+    {:else if account}<AccountView
+        {account}
+        budgetId={budget.id}
+        onchanged={refreshAccounts}
+      />
     {:else}
       <div class="page-heading">
         <div>
-          <h1>Accounts</h1>
+          <h1>{t("Accounts")}</h1>
           <p class="muted">{budget.name}</p>
         </div>
         <button class="primary" onclick={() => showForm("account")}
-          >Add account</button
+          >{t("Add account")}</button
         >
       </div>
       {#if accounts.length}<div class="table-wrap">
           <table>
             <caption class="visually-hidden"
-              >Accounts and current balances</caption
+              >{t("Accounts and current balances")}</caption
             ><thead
               ><tr
-                ><th>Account</th><th>Type</th><th class="amount">Balance</th
+                ><th>{t("Account")}</th><th>{t("Type")}</th><th class="amount"
+                  >{t("Balance")}</th
                 ></tr
               ></thead
             ><tbody
@@ -244,19 +308,25 @@
                       onclick={() => selectAccount(item)}>{item.name}</button
                     ></td
                   ><td class="muted"
-                    >{item.off_budget ? "Off budget" : "On budget"}</td
+                    >{item.off_budget ? t("Off budget") : t("On budget")}</td
                   ><td class="amount">{formatAmount(item.balance)}</td></tr
                 >{/each}</tbody
             >
           </table>
         </div>
       {:else}<div class="empty-state">
-          <h2>Add your first account</h2>
+          <h2>{t("Add your first account")}</h2>
           <p>
-            Start with an everyday spending account, savings, or a credit card.
-            Enter its current balance to begin.
+            {t(
+              "Start with an everyday spending account, savings, or a credit card. Enter its current balance to begin.",
+            )}
           </p>
         </div>{/if}
+      {#key budget.id + ":all"}<Register
+          budgetId={budget.id}
+          accountId={null}
+          onchanged={refreshAccounts}
+        />{/key}
     {/if}
   </main>
 </div>

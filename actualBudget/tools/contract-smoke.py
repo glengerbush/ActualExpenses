@@ -84,6 +84,46 @@ def main():
             check(accounts, account_template)
             check(f"{budgets}/{uuid.uuid4()}/accounts", account_template, expected=404)
             check(f"{budgets}/{budget_id}/transactions?account_id={account_id}", budgets + "/{budget}/transactions")
+            references = {}
+            for kind in ("payees", "categories"):
+                path = f"{budgets}/{budget_id}/{kind}"
+                template = budgets + "/{budget}/" + kind
+                reference = {"id": str(uuid.uuid4()), "name": f"Contract {kind}"}
+                if kind == "categories":
+                    reference["is_income"] = False
+                check(path, template, "POST", reference, {"Idempotency-Key": kind}, 201)
+                check(path, template)
+                references[kind] = reference["id"]
+            entries = f"{budgets}/{budget_id}/transactions"
+            entries_template = budgets + "/{budget}/transactions"
+            transaction = {
+                "id": str(uuid.uuid4()), "account_id": account_id, "date": "2026-10-16",
+                "amount": -123, "cleared": True, "notes": "Contract expense",
+                "payee_id": references["payees"], "category_id": references["categories"],
+            }
+            check(entries, entries_template, "POST", transaction, {"Idempotency-Key": "entry"}, 201)
+            entry = entries + "/" + transaction["id"]
+            entry_template = entries_template + "/{id}"
+            check(entry, entry_template)
+            check(entry, entry_template, "PATCH", {"notes": "Contract edit"}, {"Idempotency-Key": "edit"})
+            check(entry, entry_template, "PATCH", {"amount": "invalid"}, {"Idempotency-Key": "invalid-edit"}, 400)
+            duplicate = {"id": str(uuid.uuid4())}
+            check(entry + "/duplicate", entry_template + "/duplicate", "POST", duplicate, {"Idempotency-Key": "duplicate"}, 201)
+            check(entries + f"?account_id={account_id}&limit=1", entries_template)
+            check(entries + "?as_of=2026-10-15", entries_template)
+            check(entry, entry_template, "DELETE", headers={"Idempotency-Key": "delete"})
+            check(entry, entry_template, "DELETE", headers={"Idempotency-Key": "delete"})
+            check(entry, entry_template, expected=404)
+            calculator = "/api/v1/amounts/evaluate"
+            check(calculator, calculator, "POST", {"expression": "2.675", "decimal_places": 2})
+            check(calculator, calculator, "POST", {"expression": "1/0"}, expected=400)
+            preferences = f"{budgets}/{budget_id}/preferences"
+            preferences_template = budgets + "/{budget}/preferences"
+            check(preferences, preferences_template)
+            check(preferences, preferences_template, "PATCH", {"number_format": "dot-comma", "experimental": {"currency": True}}, {"Idempotency-Key": "preferences"})
+            check(preferences, preferences_template, "PATCH", {"unknown": True}, {"Idempotency-Key": "invalid-preferences"}, 400)
+            conversion = "/api/v1/preferences/convert-actual"
+            check(conversion, conversion, "POST", {"synced": {"numberFormat": "space-comma", "flags.customThemes": "true"}, "global": {"theme": "midnight", "language": "fr"}})
             print("PASS: served OpenAPI schemas validate real success, validation, conflict, origin and missing-resource responses")
         finally:
             process.terminate()

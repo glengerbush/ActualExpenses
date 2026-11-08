@@ -1,8 +1,8 @@
 # actualBudget
 
-The replacement web/server application uses a static Svelte 5 frontend, Rust/Axum and authoritative SQLite, with no application login. The first slice creates/selects budgets and accounts with exact opening balances. Other rewrite features, including limited offline expense capture, follow in later tickets; this is not yet a production cutover. See the [accepted architecture](../docs/adr/0005-server-authoritative-web-architecture.md) and [migration plan](../docs/fork-migration-plan.md).
+The replacement web/server application uses a static Svelte 5 frontend, Rust/Axum and authoritative SQLite, with no application login. The current runtime creates/selects budgets and accounts, manages ledger transactions, and retains display preferences. Other rewrite features, including limited offline expense capture, follow in later tickets; this is not yet a production cutover. See the [accepted architecture](../docs/adr/0005-server-authoritative-web-architecture.md) and [migration plan](../docs/fork-migration-plan.md).
 
-## Run the first slice locally
+## Run locally
 
 Requires Node 24 and Rust 1.99.1 (or the Docker build). From the repository root:
 
@@ -16,7 +16,7 @@ ACTUALBUDGET_DATA_DIR=/tmp/actualbudget-development ACTUALBUDGET_WEB_DIR="$PWD/a
 
 Open http://127.0.0.1:5006. The chosen data directory persists across process restarts. Use a disposable directory for tests. `ACTUALBUDGET_HOST` defaults to loopback; the container binds all interfaces. `ACTUALBUDGET_PORT` defaults to 5006. No login or SharedArrayBuffer is required. Budget/account selection and creation drafts are remembered in browser storage. Reading existing server data remains available when storage is disabled, but creation requires working browser storage so its request identity can survive reloads.
 
-`GET /api/v1/info` publishes capabilities; `GET /api/v1/openapi.json` publishes the machine-readable v1 contract. Monetary amounts are signed integer minor units bounded by JavaScript's exact integer range; the initial web form displays two decimal places. Currency/display preferences are a later slice.
+`GET /api/v1/info` publishes capabilities; `GET /api/v1/openapi.json` publishes the machine-readable v1 contract. Monetary amounts are signed integer minor units bounded by JavaScript's exact integer range; display and entry use the budget’s currency precision and formatting preferences.
 
 ## Recover creation drafts
 
@@ -26,7 +26,7 @@ Acknowledgement or an intentional cancellation of an unsubmitted draft removes i
 
 A draft's UUID also identifies its operation and resulting entity. Two tabs submitting the same saved draft therefore cannot create two entities. Different payloads using that identity receive a conflict rather than silently replacing the first creation; this does not provide collaborative form editing.
 
-## Verify the slice
+## Verify the runtime
 
 ```sh
 cargo test --locked --manifest-path actualBudget/server/Cargo.toml
@@ -58,3 +58,7 @@ Without `--check`, the importer creates a new snapshot only; it refuses to overw
 The [Android compatibility harness](../docs/compatibility.md) installs the **published** Actual API and sync-server version 26.10.0 with a lockfile. It creates fresh loopback-only server state and a disposable budget. Run it from `actualExpenses/tools/compatibility`; never point it at a live budget. This supplies an executable reference while the new runtime is built independently.
 
 Each replacement slice must record baseline source/fixture evidence and observable results in the [parity ledger](../docs/parity-ledger.md). Passing the existing Android fixture does not establish feature parity for the new application.
+
+Display preferences are available from Settings within a budget. Formatting and experimental opt-ins persist in the budget's SQLite data; theme/language stay in this browser. Light, dark, midnight and system appearance are supported, with all 15 language catalogs shipped by Actual 26.10.0 loaded on demand. New explanatory/recovery copy uses English fallback where the released catalog lacks a translation. See [preferences contract and provenance](web/docs/preferences-contract.md).
+
+Preference changes and account creation require writable browser storage for recoverable drafts. A failed refresh can use validated cached formatting; without it, financial entry waits for preferences rather than guessing currency precision. Unconfirmed saved requests remain retryable after reload. `POST /api/v1/preferences/convert-actual` converts raw preference records with explicit warnings/unmapped values; it is not a full budget archive importer.

@@ -1,0 +1,9 @@
+{
+  "source_commit": "4600a70",
+  "generator": "actualBudget/tools/qualify-register-upgrade.py",
+  "sha256": "f2708ed93ae195188f44c4a6670b07f42026650f0d1dffe69a7e9df03199ef4e",
+  "description": "Artificial budget/account created through genuine schema1 server public HTTP; original operation outcomes retained. New server reads this input fixture only through its public API in tests.",
+  "budget_id": "20000000-0000-4000-8000-000000000001",
+  "account_id": "20000000-0000-4000-8000-000000000002",
+  "expected_balance": -12345
+}

@@ -1,7 +1,7 @@
 # actualBudget server
 
-Ticket 02: create/list budgets and accounts, exact opening balances, durable retries,
-and static web serving. Financial editing arrives through subsequent tickets.
+No-login budgets, accounts, exact opening balances and transaction registers,
+durable retries, shared preferences, and static web serving.
 
 From this directory, after building `../web`:
 
@@ -28,11 +28,28 @@ errors use `{ "error": { "code": ..., "message": ... } }`.
 
 - `GET/POST /api/v1/budgets`
 - `GET/POST /api/v1/budgets/{budget}/accounts`
-- `GET /api/v1/budgets/{budget}/transactions?account_id=UUID&limit=100&offset=0`
+- `GET/POST /api/v1/budgets/{budget}/transactions`
+- `GET/PATCH/DELETE /api/v1/budgets/{budget}/transactions/{id}`
+- `POST /api/v1/budgets/{budget}/transactions/{id}/duplicate`
+- `GET/POST /api/v1/budgets/{budget}/payees` and `/categories`
+- `POST /api/v1/amounts/evaluate`
+- `GET/PATCH /api/v1/budgets/{budget}/preferences`
 
-POST requires a stable `Idempotency-Key` (1–128 visible ASCII characters).
+Register queries accept optional `account_id`, inclusive `as_of=YYYY-MM-DD`,
+`limit`, and `offset`. Responses include `data`, exact `balances`, `as_of`, and
+`next_offset`. All-date balances include future entries; an explicit cutoff gives
+balances through that date. Account registers include per-row running balances;
+the all-account register returns null running balances.
+
+Create income/refunds with positive amounts, expenses with negative amounts.
+PATCH changes only supplied fields; null clears a payee/category. `new_payee`
+and `new_category` can create references atomically with a transaction. Duplicate
+copies ordinary fields into the caller's new ID, resetting cleared/reconciled and
+starting-balance status. Delete retains a tombstone; IDs cannot be reused.
+
+Financial mutations and preference updates require a stable `Idempotency-Key` (1–128 visible ASCII characters).
 An operation is scoped to its method and resource path. Equivalent normalized
-request bodies replay the original 201 result; changed bodies return 409
+request bodies replay the original status and result; changed bodies return 409
 `idempotency_conflict`. Validation/failed writes do not consume the key. Success
 and replay outcome commit in the same SQLite transaction. Outcomes have no expiry;
 future compaction requires an explicit acknowledgement protocol.
@@ -46,11 +63,23 @@ bounded to 1000 entries and offset 1000000. Budget/account lists include all ite
 Nonzero opening balances create real cleared, unreconciled transactions with a
 Starting Balance payee. On-budget entries use the Starting Balances income
 category; off-budget entries are uncategorized. Zero creates no transaction.
-Account balances are calculated from ledger entries, not stored mutable totals.
+Account totals are derived from ledger entries and cached transactionally. Checked
+integer arithmetic protects totals and running balances. Common latest-date
+appends and newest-page reads use indexed rows and cached aggregates; historical
+financial edits recompute only affected accounts. Metadata-only edits skip totals.
+
+The calculator preserves pinned Actual binary64 expression/rounding behavior
+(including negative half-cent ties and accepted expression prefixes), then checks
+and converts to integer minor units. Ledger storage/arithmetic never uses floats.
+`decimal_places` is 0 or 2; browser drafts capture their number/currency format so
+later preference changes cannot reinterpret a pending write.
 
 Storage uses foreign keys, WAL, synchronous FULL, and transactional schema
-initialization. Newer schema versions fail startup. No upgrade from an older
-released schema exists yet; future migrations require pre-upgrade backups. A
+initialization and migrations. Before upgrading an existing schema, SQLite writes
+a consistent standalone backup (including committed WAL data) under
+`ACTUALBUDGET_DATA_DIR/backups/before-v{schema}-{uuid}.sqlite3`; migration failure
+leaves the original schema intact. Restore a backup into a separate data directory
+with its matching old binary. Newer schema versions fail startup. A
 single asynchronous permit bounds blocking SQLite work; two Tokio event threads
 serve network traffic. SIGTERM/SIGINT drain active requests; successful writes
 also survive abrupt process termination.
@@ -69,3 +98,9 @@ concurrent/restarted retries, conflict rejection, isolation, integer limits,
 validation, origin policy, static serving and published contracts. Seven opening
 balance cases consume the independent pinned Actual 26.10.0 fixture from
 `../tests/fixtures/opening-balances.json`; no test reads SQLite internals.
+
+
+Register validation additionally covers pinned Actual transaction snapshots,
+calculator cases, per-field PATCH, duplicate/delete, atomic references, aggregate
+overflow rollback, and a genuine schema-1 database upgrade/backup fixture. See
+[register validation](REGISTER-VALIDATION.md) for reproduction and limits.

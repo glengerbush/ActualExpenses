@@ -448,7 +448,7 @@
     },
     "/api/v1/budgets/{budget}/transactions": {
       "get": {
-        "description": "Read-only ledger entries, ordered by date descending then ID. This initial slice creates opening entries only. Nonzero opening balances create cleared, unreconciled starting-balance transactions; zero creates none. On-budget category is Starting Balances income; off-budget category is null.",
+        "description": "Ordinary ledger entries ordered by date descending, creation order descending, then ID. With account_id, running_balance includes all preceding entries and does not reset per page; all-account rows return null. Default totals include future dates. Explicit as_of limits balances and entries inclusively to that calendar date. Newest account page uses cached totals and an indexed bounded row read. Tombstoned entries are excluded.",
         "parameters": [
           {
             "name": "budget",
@@ -463,7 +463,7 @@
           {
             "name": "account_id",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
               "format": "uuid",
@@ -489,27 +489,23 @@
               "maximum": 1000000,
               "default": 0
             }
+          },
+          {
+            "name": "as_of",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Ledger entries",
+            "description": "Register page and exact all-date or explicit as-of balances",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Transaction"
-                      }
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "additionalProperties": false
+                  "$ref": "#/components/schemas/RegisterPage"
                 }
               }
             }
@@ -555,6 +551,1654 @@
             }
           }
         }
+      },
+      "post": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewTransaction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Committed or replayed original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Transaction"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "New payee/category objects are created in the same transaction as the financial write and durable replay outcome; select an ID or create a reference, never both. Off-budget entries cannot have a category. Financial values and every account running/cleared/uncleared balance must remain safe integers."
+      }
+    },
+    "/api/v1/budgets/{budget}/transactions/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current live entry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Transaction"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Committed or replayed original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Transaction"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "Only supplied fields change. Explicit null clears payee/category. Reconciled entries require unlocking in the reconciliation workflow. Deleted identities cannot be reused."
+      },
+      "delete": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Durably tombstoned or replayed delete",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                        },
+                        "deleted": {
+                          "const": true
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "deleted"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/transactions/{id}/duplicate": {
+      "post": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Committed or replayed original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Transaction"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "Copies fields into the supplied new stable UUID; cleared and reconciled are false. Duplicate is an ordinary entry, not another account starting balance."
+      }
+    },
+    "/api/v1/budgets/{budget}/payees": {
+      "get": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "minimum": 1,
+              "maximum": 1000
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0,
+              "maximum": 1000000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reference selection page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Payee"
+                      }
+                    },
+                    "next_offset": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "next_offset"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewPayee"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Committed or replayed original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Payee"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/categories": {
+      "get": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "minimum": 1,
+              "maximum": 1000
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0,
+              "maximum": 1000000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reference selection page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Category"
+                      }
+                    },
+                    "next_offset": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "next_offset"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewCategory"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Committed or replayed original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Category"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/amounts/evaluate": {
+      "post": {
+        "description": "Pure calculator input conversion, no idempotency key required. Canonical decimal dot input, whitespace ignored, + - * / ^ and parentheses. Baseline binary64 expression evaluation and Math.round-compatible ties toward positive infinity; negative primaries precede exponentiation, exponentiation is right-associative, valid expression prefixes ignore trailing characters. Nonfinite/out-of-range results rejected. Ledger storage and calculations remain exact integers.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expression": {
+                    "type": "string",
+                    "maxLength": 256
+                  },
+                  "decimal_places": {
+                    "type": "integer",
+                    "enum": [
+                      0,
+                      2
+                    ],
+                    "default": 2
+                  }
+                },
+                "required": [
+                  "expression"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Checked integer minor units",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "amount": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991,
+                          "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+                        }
+                      },
+                      "required": [
+                        "amount"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/preferences": {
+      "get": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current values or replayed successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetPreferences"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable operation ID scoped to budget preference PATCH. Same payload replays original result; different payload returns409."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferenceChanges"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Current values or replayed successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetPreferences"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/preferences/convert-actual": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "synced": {
+                    "type": "object"
+                  },
+                  "global": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Current values or replayed successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ConvertedPreferences"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Read-only Actual preference conversion. Does not import an archive or mutate a budget."
       }
     }
   },
@@ -791,6 +2435,26 @@
                 "type": "null"
               }
             ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "account_name": {
+            "type": "string"
+          },
+          "running_balance": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -805,7 +2469,9 @@
           "payee_name",
           "category_id",
           "category_name",
-          "category_is_income"
+          "category_is_income",
+          "notes",
+          "account_name"
         ],
         "additionalProperties": false
       },
@@ -868,6 +2534,938 @@
           "openapi"
         ],
         "additionalProperties": false
+      },
+      "NewPayee": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Nonblank; no control characters."
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "NewCategory": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Nonblank; no control characters."
+          },
+          "is_income": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "Payee": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Nonblank; no control characters."
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Nonblank; no control characters."
+          },
+          "is_income": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "is_income"
+        ],
+        "additionalProperties": false
+      },
+      "NewTransaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "account_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "cleared": {
+            "type": "boolean",
+            "default": false
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 10000,
+            "default": ""
+          },
+          "payee_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "new_payee": {
+            "$ref": "#/components/schemas/NewPayee"
+          },
+          "new_category": {
+            "$ref": "#/components/schemas/NewCategory"
+          }
+        },
+        "required": [
+          "id",
+          "account_id",
+          "amount",
+          "date"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionPatch": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "cleared": {
+            "type": "boolean",
+            "default": false
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 10000,
+            "default": ""
+          },
+          "payee_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "new_payee": {
+            "$ref": "#/components/schemas/NewPayee"
+          },
+          "new_category": {
+            "$ref": "#/components/schemas/NewCategory"
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "minProperties": 1
+      },
+      "Balances": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+          },
+          "cleared": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+          },
+          "uncleared": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+          }
+        },
+        "required": [
+          "total",
+          "cleared",
+          "uncleared"
+        ],
+        "additionalProperties": false
+      },
+      "RegisterPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            }
+          },
+          "balances": {
+            "$ref": "#/components/schemas/Balances"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "balances",
+          "as_of",
+          "next_offset"
+        ],
+        "additionalProperties": false
+      },
+      "BudgetPreferences": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "number_format": {
+            "type": "string",
+            "enum": [
+              "comma-dot",
+              "dot-comma",
+              "space-comma",
+              "apostrophe-dot",
+              "comma-dot-in"
+            ]
+          },
+          "date_format": {
+            "type": "string",
+            "enum": [
+              "MM/dd/yyyy",
+              "dd/MM/yyyy",
+              "yyyy-MM-dd",
+              "MM.dd.yyyy",
+              "dd.MM.yyyy",
+              "dd-MM-yyyy"
+            ]
+          },
+          "hide_fraction": {
+            "type": "boolean"
+          },
+          "first_day_of_week": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 6
+          },
+          "currency_code": {
+            "type": "string",
+            "enum": [
+              "",
+              "AED",
+              "ARS",
+              "AUD",
+              "BRL",
+              "BYN",
+              "CAD",
+              "CHF",
+              "CLP",
+              "CNY",
+              "COP",
+              "CRC",
+              "CZK",
+              "DKK",
+              "DOP",
+              "EGP",
+              "EUR",
+              "GBP",
+              "GTQ",
+              "HKD",
+              "HUF",
+              "IDR",
+              "ILS",
+              "INR",
+              "IRR",
+              "JMD",
+              "JPY",
+              "KRW",
+              "LKR",
+              "MDL",
+              "MKD",
+              "MXN",
+              "MYR",
+              "PEN",
+              "PHP",
+              "PKR",
+              "PLN",
+              "QAR",
+              "RON",
+              "RSD",
+              "RUB",
+              "SAR",
+              "SEK",
+              "SGD",
+              "THB",
+              "TRY",
+              "TWD",
+              "UAH",
+              "USD",
+              "UYU",
+              "UZS"
+            ]
+          },
+          "currency_symbol_position": {
+            "type": "string",
+            "enum": [
+              "before",
+              "after"
+            ]
+          },
+          "currency_space": {
+            "type": "boolean"
+          },
+          "experimental": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "newSidebarUI": {
+                "type": "boolean"
+              },
+              "goalTemplatesEnabled": {
+                "type": "boolean"
+              },
+              "goalTemplatesUIEnabled": {
+                "type": "boolean"
+              },
+              "actionTemplating": {
+                "type": "boolean"
+              },
+              "formulaMode": {
+                "type": "boolean"
+              },
+              "currency": {
+                "type": "boolean"
+              },
+              "balanceForecastReport": {
+                "type": "boolean"
+              },
+              "customThemes": {
+                "type": "boolean"
+              },
+              "budgetAnalysisReport": {
+                "type": "boolean"
+              },
+              "enableBanking": {
+                "type": "boolean"
+              },
+              "sankeyReport": {
+                "type": "boolean"
+              },
+              "akahuBankSync": {
+                "type": "boolean"
+              },
+              "mobileCalculator": {
+                "type": "boolean"
+              },
+              "monteCarloReport": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "newSidebarUI",
+              "goalTemplatesEnabled",
+              "goalTemplatesUIEnabled",
+              "actionTemplating",
+              "formulaMode",
+              "currency",
+              "balanceForecastReport",
+              "customThemes",
+              "budgetAnalysisReport",
+              "enableBanking",
+              "sankeyReport",
+              "akahuBankSync",
+              "mobileCalculator",
+              "monteCarloReport"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "number_format",
+          "date_format",
+          "hide_fraction",
+          "first_day_of_week",
+          "currency_code",
+          "currency_symbol_position",
+          "currency_space",
+          "experimental",
+          "revision"
+        ]
+      },
+      "PreferenceChanges": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "number_format": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "comma-dot",
+                  "dot-comma",
+                  "space-comma",
+                  "apostrophe-dot",
+                  "comma-dot-in"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "date_format": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "MM/dd/yyyy",
+                  "dd/MM/yyyy",
+                  "yyyy-MM-dd",
+                  "MM.dd.yyyy",
+                  "dd.MM.yyyy",
+                  "dd-MM-yyyy"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hide_fraction": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "first_day_of_week": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "",
+                  "AED",
+                  "ARS",
+                  "AUD",
+                  "BRL",
+                  "BYN",
+                  "CAD",
+                  "CHF",
+                  "CLP",
+                  "CNY",
+                  "COP",
+                  "CRC",
+                  "CZK",
+                  "DKK",
+                  "DOP",
+                  "EGP",
+                  "EUR",
+                  "GBP",
+                  "GTQ",
+                  "HKD",
+                  "HUF",
+                  "IDR",
+                  "ILS",
+                  "INR",
+                  "IRR",
+                  "JMD",
+                  "JPY",
+                  "KRW",
+                  "LKR",
+                  "MDL",
+                  "MKD",
+                  "MXN",
+                  "MYR",
+                  "PEN",
+                  "PHP",
+                  "PKR",
+                  "PLN",
+                  "QAR",
+                  "RON",
+                  "RSD",
+                  "RUB",
+                  "SAR",
+                  "SEK",
+                  "SGD",
+                  "THB",
+                  "TRY",
+                  "TWD",
+                  "UAH",
+                  "USD",
+                  "UYU",
+                  "UZS"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency_symbol_position": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "before",
+                  "after"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency_space": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "experimental": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "newSidebarUI": {
+                    "type": "boolean"
+                  },
+                  "goalTemplatesEnabled": {
+                    "type": "boolean"
+                  },
+                  "goalTemplatesUIEnabled": {
+                    "type": "boolean"
+                  },
+                  "actionTemplating": {
+                    "type": "boolean"
+                  },
+                  "formulaMode": {
+                    "type": "boolean"
+                  },
+                  "currency": {
+                    "type": "boolean"
+                  },
+                  "balanceForecastReport": {
+                    "type": "boolean"
+                  },
+                  "customThemes": {
+                    "type": "boolean"
+                  },
+                  "budgetAnalysisReport": {
+                    "type": "boolean"
+                  },
+                  "enableBanking": {
+                    "type": "boolean"
+                  },
+                  "sankeyReport": {
+                    "type": "boolean"
+                  },
+                  "akahuBankSync": {
+                    "type": "boolean"
+                  },
+                  "mobileCalculator": {
+                    "type": "boolean"
+                  },
+                  "monteCarloReport": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "ConvertedPreferences": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "shared",
+          "device",
+          "warnings",
+          "unmapped"
+        ],
+        "properties": {
+          "shared": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "number_format": {
+                "type": "string",
+                "enum": [
+                  "comma-dot",
+                  "dot-comma",
+                  "space-comma",
+                  "apostrophe-dot",
+                  "comma-dot-in"
+                ]
+              },
+              "date_format": {
+                "type": "string",
+                "enum": [
+                  "MM/dd/yyyy",
+                  "dd/MM/yyyy",
+                  "yyyy-MM-dd",
+                  "MM.dd.yyyy",
+                  "dd.MM.yyyy",
+                  "dd-MM-yyyy"
+                ]
+              },
+              "hide_fraction": {
+                "type": "boolean"
+              },
+              "first_day_of_week": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "currency_code": {
+                "type": "string",
+                "enum": [
+                  "",
+                  "AED",
+                  "ARS",
+                  "AUD",
+                  "BRL",
+                  "BYN",
+                  "CAD",
+                  "CHF",
+                  "CLP",
+                  "CNY",
+                  "COP",
+                  "CRC",
+                  "CZK",
+                  "DKK",
+                  "DOP",
+                  "EGP",
+                  "EUR",
+                  "GBP",
+                  "GTQ",
+                  "HKD",
+                  "HUF",
+                  "IDR",
+                  "ILS",
+                  "INR",
+                  "IRR",
+                  "JMD",
+                  "JPY",
+                  "KRW",
+                  "LKR",
+                  "MDL",
+                  "MKD",
+                  "MXN",
+                  "MYR",
+                  "PEN",
+                  "PHP",
+                  "PKR",
+                  "PLN",
+                  "QAR",
+                  "RON",
+                  "RSD",
+                  "RUB",
+                  "SAR",
+                  "SEK",
+                  "SGD",
+                  "THB",
+                  "TRY",
+                  "TWD",
+                  "UAH",
+                  "USD",
+                  "UYU",
+                  "UZS"
+                ]
+              },
+              "currency_symbol_position": {
+                "type": "string",
+                "enum": [
+                  "before",
+                  "after"
+                ]
+              },
+              "currency_space": {
+                "type": "boolean"
+              },
+              "experimental": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "newSidebarUI": {
+                    "type": "boolean"
+                  },
+                  "goalTemplatesEnabled": {
+                    "type": "boolean"
+                  },
+                  "goalTemplatesUIEnabled": {
+                    "type": "boolean"
+                  },
+                  "actionTemplating": {
+                    "type": "boolean"
+                  },
+                  "formulaMode": {
+                    "type": "boolean"
+                  },
+                  "currency": {
+                    "type": "boolean"
+                  },
+                  "balanceForecastReport": {
+                    "type": "boolean"
+                  },
+                  "customThemes": {
+                    "type": "boolean"
+                  },
+                  "budgetAnalysisReport": {
+                    "type": "boolean"
+                  },
+                  "enableBanking": {
+                    "type": "boolean"
+                  },
+                  "sankeyReport": {
+                    "type": "boolean"
+                  },
+                  "akahuBankSync": {
+                    "type": "boolean"
+                  },
+                  "mobileCalculator": {
+                    "type": "boolean"
+                  },
+                  "monteCarloReport": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "newSidebarUI",
+                  "goalTemplatesEnabled",
+                  "goalTemplatesUIEnabled",
+                  "actionTemplating",
+                  "formulaMode",
+                  "currency",
+                  "balanceForecastReport",
+                  "customThemes",
+                  "budgetAnalysisReport",
+                  "enableBanking",
+                  "sankeyReport",
+                  "akahuBankSync",
+                  "mobileCalculator",
+                  "monteCarloReport"
+                ]
+              }
+            },
+            "required": [
+              "number_format",
+              "date_format",
+              "hide_fraction",
+              "first_day_of_week",
+              "currency_code",
+              "currency_symbol_position",
+              "currency_space",
+              "experimental"
+            ]
+          },
+          "device": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "theme",
+              "preferred_dark_theme",
+              "language"
+            ],
+            "properties": {
+              "theme": {
+                "enum": [
+                  "light",
+                  "dark",
+                  "midnight",
+                  "system"
+                ]
+              },
+              "preferred_dark_theme": {
+                "enum": [
+                  "dark",
+                  "midnight"
+                ]
+              },
+              "language": {
+                "type": "string"
+              }
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "key",
+                "reason"
+              ],
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "unmapped": {
+            "type": "object",
+            "required": [
+              "synced",
+              "global"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "synced": {
+                "type": "object"
+              },
+              "global": {
+                "type": "object"
+              }
+            }
+          }
+        }
       }
     }
   }

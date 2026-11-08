@@ -1,0 +1,943 @@
+{
+  "paths": {
+    "/api/v1/budgets/{budget}/preferences": {
+      "get": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current values or replayed successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetPreferences"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable operation ID scoped to budget preference PATCH. Same payload replays original result; different payload returns409."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferenceChanges"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Current values or replayed successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetPreferences"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/preferences/convert-actual": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "synced": {
+                    "type": "object"
+                  },
+                  "global": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Current values or replayed successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ConvertedPreferences"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Read-only Actual preference conversion. Does not import an archive or mutate a budget."
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BudgetPreferences": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "number_format": {
+            "type": "string",
+            "enum": [
+              "comma-dot",
+              "dot-comma",
+              "space-comma",
+              "apostrophe-dot",
+              "comma-dot-in"
+            ]
+          },
+          "date_format": {
+            "type": "string",
+            "enum": [
+              "MM/dd/yyyy",
+              "dd/MM/yyyy",
+              "yyyy-MM-dd",
+              "MM.dd.yyyy",
+              "dd.MM.yyyy",
+              "dd-MM-yyyy"
+            ]
+          },
+          "hide_fraction": {
+            "type": "boolean"
+          },
+          "first_day_of_week": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 6
+          },
+          "currency_code": {
+            "type": "string",
+            "enum": [
+              "",
+              "AED",
+              "ARS",
+              "AUD",
+              "BRL",
+              "BYN",
+              "CAD",
+              "CHF",
+              "CLP",
+              "CNY",
+              "COP",
+              "CRC",
+              "CZK",
+              "DKK",
+              "DOP",
+              "EGP",
+              "EUR",
+              "GBP",
+              "GTQ",
+              "HKD",
+              "HUF",
+              "IDR",
+              "ILS",
+              "INR",
+              "IRR",
+              "JMD",
+              "JPY",
+              "KRW",
+              "LKR",
+              "MDL",
+              "MKD",
+              "MXN",
+              "MYR",
+              "PEN",
+              "PHP",
+              "PKR",
+              "PLN",
+              "QAR",
+              "RON",
+              "RSD",
+              "RUB",
+              "SAR",
+              "SEK",
+              "SGD",
+              "THB",
+              "TRY",
+              "TWD",
+              "UAH",
+              "USD",
+              "UYU",
+              "UZS"
+            ]
+          },
+          "currency_symbol_position": {
+            "type": "string",
+            "enum": [
+              "before",
+              "after"
+            ]
+          },
+          "currency_space": {
+            "type": "boolean"
+          },
+          "experimental": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "newSidebarUI": {
+                "type": "boolean"
+              },
+              "goalTemplatesEnabled": {
+                "type": "boolean"
+              },
+              "goalTemplatesUIEnabled": {
+                "type": "boolean"
+              },
+              "actionTemplating": {
+                "type": "boolean"
+              },
+              "formulaMode": {
+                "type": "boolean"
+              },
+              "currency": {
+                "type": "boolean"
+              },
+              "balanceForecastReport": {
+                "type": "boolean"
+              },
+              "customThemes": {
+                "type": "boolean"
+              },
+              "budgetAnalysisReport": {
+                "type": "boolean"
+              },
+              "enableBanking": {
+                "type": "boolean"
+              },
+              "sankeyReport": {
+                "type": "boolean"
+              },
+              "akahuBankSync": {
+                "type": "boolean"
+              },
+              "mobileCalculator": {
+                "type": "boolean"
+              },
+              "monteCarloReport": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "newSidebarUI",
+              "goalTemplatesEnabled",
+              "goalTemplatesUIEnabled",
+              "actionTemplating",
+              "formulaMode",
+              "currency",
+              "balanceForecastReport",
+              "customThemes",
+              "budgetAnalysisReport",
+              "enableBanking",
+              "sankeyReport",
+              "akahuBankSync",
+              "mobileCalculator",
+              "monteCarloReport"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "number_format",
+          "date_format",
+          "hide_fraction",
+          "first_day_of_week",
+          "currency_code",
+          "currency_symbol_position",
+          "currency_space",
+          "experimental",
+          "revision"
+        ]
+      },
+      "PreferenceChanges": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "number_format": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "comma-dot",
+                  "dot-comma",
+                  "space-comma",
+                  "apostrophe-dot",
+                  "comma-dot-in"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "date_format": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "MM/dd/yyyy",
+                  "dd/MM/yyyy",
+                  "yyyy-MM-dd",
+                  "MM.dd.yyyy",
+                  "dd.MM.yyyy",
+                  "dd-MM-yyyy"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hide_fraction": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "first_day_of_week": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "",
+                  "AED",
+                  "ARS",
+                  "AUD",
+                  "BRL",
+                  "BYN",
+                  "CAD",
+                  "CHF",
+                  "CLP",
+                  "CNY",
+                  "COP",
+                  "CRC",
+                  "CZK",
+                  "DKK",
+                  "DOP",
+                  "EGP",
+                  "EUR",
+                  "GBP",
+                  "GTQ",
+                  "HKD",
+                  "HUF",
+                  "IDR",
+                  "ILS",
+                  "INR",
+                  "IRR",
+                  "JMD",
+                  "JPY",
+                  "KRW",
+                  "LKR",
+                  "MDL",
+                  "MKD",
+                  "MXN",
+                  "MYR",
+                  "PEN",
+                  "PHP",
+                  "PKR",
+                  "PLN",
+                  "QAR",
+                  "RON",
+                  "RSD",
+                  "RUB",
+                  "SAR",
+                  "SEK",
+                  "SGD",
+                  "THB",
+                  "TRY",
+                  "TWD",
+                  "UAH",
+                  "USD",
+                  "UYU",
+                  "UZS"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency_symbol_position": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "before",
+                  "after"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency_space": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "experimental": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "newSidebarUI": {
+                    "type": "boolean"
+                  },
+                  "goalTemplatesEnabled": {
+                    "type": "boolean"
+                  },
+                  "goalTemplatesUIEnabled": {
+                    "type": "boolean"
+                  },
+                  "actionTemplating": {
+                    "type": "boolean"
+                  },
+                  "formulaMode": {
+                    "type": "boolean"
+                  },
+                  "currency": {
+                    "type": "boolean"
+                  },
+                  "balanceForecastReport": {
+                    "type": "boolean"
+                  },
+                  "customThemes": {
+                    "type": "boolean"
+                  },
+                  "budgetAnalysisReport": {
+                    "type": "boolean"
+                  },
+                  "enableBanking": {
+                    "type": "boolean"
+                  },
+                  "sankeyReport": {
+                    "type": "boolean"
+                  },
+                  "akahuBankSync": {
+                    "type": "boolean"
+                  },
+                  "mobileCalculator": {
+                    "type": "boolean"
+                  },
+                  "monteCarloReport": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "ConvertedPreferences": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "shared",
+          "device",
+          "warnings",
+          "unmapped"
+        ],
+        "properties": {
+          "shared": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "number_format": {
+                "type": "string",
+                "enum": [
+                  "comma-dot",
+                  "dot-comma",
+                  "space-comma",
+                  "apostrophe-dot",
+                  "comma-dot-in"
+                ]
+              },
+              "date_format": {
+                "type": "string",
+                "enum": [
+                  "MM/dd/yyyy",
+                  "dd/MM/yyyy",
+                  "yyyy-MM-dd",
+                  "MM.dd.yyyy",
+                  "dd.MM.yyyy",
+                  "dd-MM-yyyy"
+                ]
+              },
+              "hide_fraction": {
+                "type": "boolean"
+              },
+              "first_day_of_week": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6
+              },
+              "currency_code": {
+                "type": "string",
+                "enum": [
+                  "",
+                  "AED",
+                  "ARS",
+                  "AUD",
+                  "BRL",
+                  "BYN",
+                  "CAD",
+                  "CHF",
+                  "CLP",
+                  "CNY",
+                  "COP",
+                  "CRC",
+                  "CZK",
+                  "DKK",
+                  "DOP",
+                  "EGP",
+                  "EUR",
+                  "GBP",
+                  "GTQ",
+                  "HKD",
+                  "HUF",
+                  "IDR",
+                  "ILS",
+                  "INR",
+                  "IRR",
+                  "JMD",
+                  "JPY",
+                  "KRW",
+                  "LKR",
+                  "MDL",
+                  "MKD",
+                  "MXN",
+                  "MYR",
+                  "PEN",
+                  "PHP",
+                  "PKR",
+                  "PLN",
+                  "QAR",
+                  "RON",
+                  "RSD",
+                  "RUB",
+                  "SAR",
+                  "SEK",
+                  "SGD",
+                  "THB",
+                  "TRY",
+                  "TWD",
+                  "UAH",
+                  "USD",
+                  "UYU",
+                  "UZS"
+                ]
+              },
+              "currency_symbol_position": {
+                "type": "string",
+                "enum": [
+                  "before",
+                  "after"
+                ]
+              },
+              "currency_space": {
+                "type": "boolean"
+              },
+              "experimental": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "newSidebarUI": {
+                    "type": "boolean"
+                  },
+                  "goalTemplatesEnabled": {
+                    "type": "boolean"
+                  },
+                  "goalTemplatesUIEnabled": {
+                    "type": "boolean"
+                  },
+                  "actionTemplating": {
+                    "type": "boolean"
+                  },
+                  "formulaMode": {
+                    "type": "boolean"
+                  },
+                  "currency": {
+                    "type": "boolean"
+                  },
+                  "balanceForecastReport": {
+                    "type": "boolean"
+                  },
+                  "customThemes": {
+                    "type": "boolean"
+                  },
+                  "budgetAnalysisReport": {
+                    "type": "boolean"
+                  },
+                  "enableBanking": {
+                    "type": "boolean"
+                  },
+                  "sankeyReport": {
+                    "type": "boolean"
+                  },
+                  "akahuBankSync": {
+                    "type": "boolean"
+                  },
+                  "mobileCalculator": {
+                    "type": "boolean"
+                  },
+                  "monteCarloReport": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "newSidebarUI",
+                  "goalTemplatesEnabled",
+                  "goalTemplatesUIEnabled",
+                  "actionTemplating",
+                  "formulaMode",
+                  "currency",
+                  "balanceForecastReport",
+                  "customThemes",
+                  "budgetAnalysisReport",
+                  "enableBanking",
+                  "sankeyReport",
+                  "akahuBankSync",
+                  "mobileCalculator",
+                  "monteCarloReport"
+                ]
+              }
+            },
+            "required": [
+              "number_format",
+              "date_format",
+              "hide_fraction",
+              "first_day_of_week",
+              "currency_code",
+              "currency_symbol_position",
+              "currency_space",
+              "experimental"
+            ]
+          },
+          "device": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "theme",
+              "preferred_dark_theme",
+              "language"
+            ],
+            "properties": {
+              "theme": {
+                "enum": [
+                  "light",
+                  "dark",
+                  "midnight",
+                  "system"
+                ]
+              },
+              "preferred_dark_theme": {
+                "enum": [
+                  "dark",
+                  "midnight"
+                ]
+              },
+              "language": {
+                "type": "string"
+              }
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "key",
+                "reason"
+              ],
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "unmapped": {
+            "type": "object",
+            "required": [
+              "synced",
+              "global"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "synced": {
+                "type": "object"
+              },
+              "global": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

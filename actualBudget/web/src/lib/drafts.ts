@@ -1,5 +1,17 @@
 import { uuid, type Budget, type NewAccount } from "./api";
-import { parseAmount, today } from "./money";
+import {
+  captureAmountFormat,
+  formatAmountInput,
+  parseAmount,
+  today,
+} from "./money";
+import { preferences } from "./preferences.svelte";
+import {
+  numberFormats,
+  dateFormats,
+  type NumberFormat,
+  type DateFormat,
+} from "./preferences/types";
 
 export type DraftScope =
   { kind: "budget" } | { kind: "account"; budget_id: string };
@@ -13,6 +25,9 @@ export interface BudgetFields {
   method: "tracking" | "envelope";
 }
 export interface AccountFields {
+  number_format?: NumberFormat;
+  decimal_places?: 0 | 2;
+  date_format?: DateFormat;
   name: string;
   balance: string;
   date: string;
@@ -57,6 +72,11 @@ export function newBudgetDraft(): BudgetDraft {
   };
 }
 export function newAccountDraft(budget_id: string): AccountDraft {
+  if (!preferences.hasUsableShared)
+    throw new Error(
+      "Load this budget's display preferences before creating an account.",
+    );
+  const amountFormat = captureAmountFormat();
   return {
     version: 1,
     origin: location.origin,
@@ -65,7 +85,9 @@ export function newAccountDraft(budget_id: string): AccountDraft {
     budget_id,
     fields: {
       name: "",
-      balance: "0.00",
+      balance: formatAmountInput(0, amountFormat),
+      ...amountFormat,
+      date_format: preferences.shared.date_format,
       date: today(),
       off_budget: false,
       notes: "",
@@ -114,7 +136,10 @@ export function prepareSubmission(draft: CreationDraft): CreationDraft {
         id: draft.draft_id,
         name: draft.fields.name.trim(),
         off_budget: draft.fields.off_budget,
-        opening_balance: parseAmount(draft.fields.balance),
+        opening_balance: parseAmount(draft.fields.balance, {
+          number_format: draft.fields.number_format ?? "comma-dot",
+          decimal_places: draft.fields.decimal_places ?? 2,
+        }),
         opening_date: draft.fields.date,
         notes: draft.fields.notes,
       },
@@ -145,6 +170,17 @@ function validate(value: unknown, scope: DraftScope): value is CreationDraft {
     !string(fields.notes, 10000)
   )
     return false;
+  if (
+    scope.kind === "account" &&
+    ((fields.number_format !== undefined &&
+      !numberFormats.includes(fields.number_format as NumberFormat)) ||
+      (fields.date_format !== undefined &&
+        !dateFormats.includes(fields.date_format as DateFormat)) ||
+      (fields.decimal_places !== undefined &&
+        fields.decimal_places !== 0 &&
+        fields.decimal_places !== 2))
+  )
+    return false;
   if (value.pending === null) return true;
   if (
     !object(value.pending) ||
@@ -172,7 +208,13 @@ function validate(value: unknown, scope: DraftScope): value is CreationDraft {
   )
     return false;
   try {
-    return body.opening_balance === parseAmount(fields.balance as string);
+    return (
+      body.opening_balance ===
+      parseAmount(fields.balance as string, {
+        number_format: (fields.number_format ?? "comma-dot") as NumberFormat,
+        decimal_places: (fields.decimal_places ?? 2) as 0 | 2,
+      })
+    );
   } catch {
     return false;
   }

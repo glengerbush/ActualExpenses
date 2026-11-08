@@ -1,0 +1,112 @@
+{
+  "package": "@actual-app/web",
+  "version": "26.10.0",
+  "integrity": "sha512-8igoXn/mvsYTl28NaN2ewiS+lNtX4Xwwo8HecjPSWUnVlKUbZHHHkCCHbvq8xPDMiwxwoBx+FuAOpf0JpMzmhg==",
+  "catalogs": {
+    "ca": {
+      "source": "../../../locale/ca.json",
+      "source_map": "ca.Chhgedur.chunk.js.map",
+      "source_map_sha256": "2400203b27df8d56f6a2e3854a9c81feffafc85bf607285e06db3bdc6451c26e",
+      "sha256": "9ce8a1a967918b475a0e6987f0915cd6b49e7dfb96c35c35f36e1232edde0c0b",
+      "keys": 1891
+    },
+    "de": {
+      "source": "../../../locale/de.json",
+      "source_map": "de.lkublLKT.chunk.js.map",
+      "source_map_sha256": "c81c4e37251e4fbacbeb69bff5274ba851fadb25611f1a79188a6883524002a4",
+      "sha256": "e8140a0250178be73c0b239eb1e812c2a99386de8a91064c5b2bd00526954489",
+      "keys": 2080
+    },
+    "en-GB": {
+      "source": "../../../locale/en-GB.json",
+      "source_map": "en-GB.BG03r60l.chunk.js.map",
+      "source_map_sha256": "4a1a9bbd864782785fabd787112535e12b80a20c4bd5ab073d0fc031450e40df",
+      "sha256": "2dfaf3614f7c515da8ec5464730ef4a6e690b7c5e3637042b5401303c4aa34c4",
+      "keys": 82
+    },
+    "en": {
+      "source": "../../../locale/en.json",
+      "source_map": "en.DffUqt3-.chunk.js.map",
+      "source_map_sha256": "54504591d7662773c0c7caf254b95b78ba2c6379dc1869a7935cd3b95b82b32a",
+      "sha256": "dd32828b94e7b21f63971fe5425220e592bf02d40913797c8afcab5a5df3dd8b",
+      "keys": 2854
+    },
+    "es": {
+      "source": "../../../locale/es.json",
+      "source_map": "es.7oXsCK0C.chunk.js.map",
+      "source_map_sha256": "f4a311ad82b434ae32982ac74c72585536b74da7a619faf0c2cb311da07b3abd",
+      "sha256": "0be4a9377a46142a91849824b7b5a732fe2b8f0db10443304cd5b4e80984bcf6",
+      "keys": 1971
+    },
+    "fr": {
+      "source": "../../../locale/fr.json",
+      "source_map": "fr.CStj6vNz.chunk.js.map",
+      "source_map_sha256": "e5ebe421dbfe7202d33d8bdfbebdb3d5f0f2cc60d04710efdc5c7a30ba2bdfa8",
+      "sha256": "5a1f39b0cf8e301cef64d871efa1768f8d1aea64683629fb0571868c36d5f044",
+      "keys": 1923
+    },
+    "it": {
+      "source": "../../../locale/it.json",
+      "source_map": "it.DrkF9rrp.chunk.js.map",
+      "source_map_sha256": "902a8fc95947c9412db95d43abaa29a9fd4020e5d0828ab546f67b3214769d69",
+      "sha256": "9e7c293bb2ad19e0790aa7d0b025bb2977b23dff99c0f355b9752899db04c389",
+      "keys": 1767
+    },
+    "nb-NO": {
+      "source": "../../../locale/nb-NO.json",
+      "source_map": "nb-NO.DuLar2Rp.chunk.js.map",
+      "source_map_sha256": "1b7f51b8a7067475af19648b69662bccc79d51835dd9930364dc6492be47ee7f",
+      "sha256": "626ea0cb1a4789405f5ee30f1c068d9eb36422d10b121650ee95b52e4fa0dfa4",
+      "keys": 1684
+    },
+    "nl": {
+      "source": "../../../locale/nl.json",
+      "source_map": "nl.CirDaWIC.chunk.js.map",
+      "source_map_sha256": "06f0ea35eb3923c79a72ec8e306905d07a3b8a1ab4ad728f708128de32e257d8",
+      "sha256": "ba5abb0046ab0a81e4725c7566c9f551919bbcad2c0a5085809c31b1496d0241",
+      "keys": 1708
+    },
+    "pl": {
+      "source": "../../../locale/pl.json",
+      "source_map": "pl.DFuMNx_h.chunk.js.map",
+      "source_map_sha256": "63a2c7afe15619403361baec358df1547863ff7efbd608788e73fc27496b90da",
+      "sha256": "2ac7b30fe2ff2ee6aadc5d2f1b99c7f001069ef9479aab164d5af525c9d91feb",
+      "keys": 1702
+    },
+    "pt-BR": {
+      "source": "../../../locale/pt-BR.json",
+      "source_map": "pt-BR.SA2E9mLO.chunk.js.map",
+      "source_map_sha256": "2455af21fc062d4e2f320ee691c2d284ce0e37bb7d3ed2bd02517999d43e1c76",
+      "sha256": "efcb9fee489e3b25b95d100ec7321f2f87adcaef5876cfdc37186f8fa2751637",
+      "keys": 2020
+    },
+    "ru": {
+      "source": "../../../locale/ru.json",
+      "source_map": "ru.VUnucNky.chunk.js.map",
+      "source_map_sha256": "4597b7a41f28e2e4c7b0e412e12ce5882adbb632be7baeb5b2634ae0fceb9b30",
+      "sha256": "0afa4890cbc5709c42d829cf64d8c3ac81b19a952e1c0ab5e13ac3e6b702eb9b",
+      "keys": 1646
+    },
+    "uk": {
+      "source": "../../../locale/uk.json",
+      "source_map": "uk.D3ez2x9L.chunk.js.map",
+      "source_map_sha256": "e8a2c38d7bc96915fc39dd16f048541064306d8ad1fff692d9cdec55928d8c3c",
+      "sha256": "318d335c5feb2106f0bfc59c2ec8ac7cb237a0d09368bc426f2250f3e9650f34",
+      "keys": 1801
+    },
+    "zh-Hans": {
+      "source": "../../../locale/zh-Hans.json",
+      "source_map": "zh-Hans.CCSKeB4P.chunk.js.map",
+      "source_map_sha256": "cdf58c53bc68dda2211f4e3825c8c6eb4c0693d1f23f8c53dc337c17bbdbe026",
+      "sha256": "389e5e5715c9ce140c061e47dc5d8baa72eb7bb244e2cf85c7431dad65c872d3",
+      "keys": 1520
+    },
+    "zh-Hant": {
+      "source": "../../../locale/zh-Hant.json",
+      "source_map": "zh-Hant.nQ9I434y.chunk.js.map",
+      "source_map_sha256": "939bbfc1dacc677b31fe1ccbb182e5cce5ee6ccbe2439ceb3ec93091c4398f72",
+      "sha256": "382c9bd4d6b07e4e203a4e33baee45a966af62154f703066f312973c04aa6d65",
+      "keys": 1675
+    }
+  }
+}

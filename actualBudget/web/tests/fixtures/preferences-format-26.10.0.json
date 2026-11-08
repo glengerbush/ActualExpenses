@@ -1,0 +1,1547 @@
+{
+  "baseline": "Actual 26.10.0",
+  "source": "packages/loot-core/src/shared/util.ts",
+  "source_sha256": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+  "cases": [
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -123456789,
+      "expected": "-123,456,789"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -250,
+      "expected": "-250"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -150,
+      "expected": "-150"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -50,
+      "expected": "-50"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -1,
+      "expected": "-1"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 0,
+      "expected": "0"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 1,
+      "expected": "1"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 50,
+      "expected": "50"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 150,
+      "expected": "150"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 250,
+      "expected": "250"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 123456789,
+      "expected": "123,456,789"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -123456789,
+      "expected": "-1,234,567.89"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -250,
+      "expected": "-2.50"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -150,
+      "expected": "-1.50"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -50,
+      "expected": "-0.50"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -1,
+      "expected": "-0.01"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 0,
+      "expected": "0.00"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 1,
+      "expected": "0.01"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 50,
+      "expected": "0.50"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 150,
+      "expected": "1.50"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 250,
+      "expected": "2.50"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 123456789,
+      "expected": "1,234,567.89"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -123456789,
+      "expected": "-123,456,789"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -250,
+      "expected": "-250"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -150,
+      "expected": "-150"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -50,
+      "expected": "-50"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -1,
+      "expected": "-1"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 0,
+      "expected": "0"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 1,
+      "expected": "1"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 50,
+      "expected": "50"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 150,
+      "expected": "150"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 250,
+      "expected": "250"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 123456789,
+      "expected": "123,456,789"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -123456789,
+      "expected": "-1,234,568"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -250,
+      "expected": "-3"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -150,
+      "expected": "-2"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -50,
+      "expected": "-1"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -1,
+      "expected": "0"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 0,
+      "expected": "0"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 1,
+      "expected": "0"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 50,
+      "expected": "1"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 150,
+      "expected": "2"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 250,
+      "expected": "3"
+    },
+    {
+      "number_format": "comma-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 123456789,
+      "expected": "1,234,568"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -123456789,
+      "expected": "-123.456.789"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -250,
+      "expected": "-250"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -150,
+      "expected": "-150"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -50,
+      "expected": "-50"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -1,
+      "expected": "-1"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 0,
+      "expected": "0"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 1,
+      "expected": "1"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 50,
+      "expected": "50"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 150,
+      "expected": "150"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 250,
+      "expected": "250"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 123456789,
+      "expected": "123.456.789"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -123456789,
+      "expected": "-1.234.567,89"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -250,
+      "expected": "-2,50"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -150,
+      "expected": "-1,50"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -50,
+      "expected": "-0,50"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -1,
+      "expected": "-0,01"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 0,
+      "expected": "0,00"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 1,
+      "expected": "0,01"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 50,
+      "expected": "0,50"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 150,
+      "expected": "1,50"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 250,
+      "expected": "2,50"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 123456789,
+      "expected": "1.234.567,89"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -123456789,
+      "expected": "-123.456.789"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -250,
+      "expected": "-250"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -150,
+      "expected": "-150"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -50,
+      "expected": "-50"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -1,
+      "expected": "-1"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 0,
+      "expected": "0"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 1,
+      "expected": "1"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 50,
+      "expected": "50"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 150,
+      "expected": "150"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 250,
+      "expected": "250"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 123456789,
+      "expected": "123.456.789"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -123456789,
+      "expected": "-1.234.568"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -250,
+      "expected": "-3"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -150,
+      "expected": "-2"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -50,
+      "expected": "-1"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -1,
+      "expected": "0"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 0,
+      "expected": "0"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 1,
+      "expected": "0"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 50,
+      "expected": "1"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 150,
+      "expected": "2"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 250,
+      "expected": "3"
+    },
+    {
+      "number_format": "dot-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 123456789,
+      "expected": "1.234.568"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -123456789,
+      "expected": "-123 456 789"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -250,
+      "expected": "-250"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -150,
+      "expected": "-150"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -50,
+      "expected": "-50"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -1,
+      "expected": "-1"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 0,
+      "expected": "0"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 1,
+      "expected": "1"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 50,
+      "expected": "50"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 150,
+      "expected": "150"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 250,
+      "expected": "250"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 123456789,
+      "expected": "123 456 789"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -123456789,
+      "expected": "-1 234 567,89"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -250,
+      "expected": "-2,50"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -150,
+      "expected": "-1,50"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -50,
+      "expected": "-0,50"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -1,
+      "expected": "-0,01"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 0,
+      "expected": "0,00"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 1,
+      "expected": "0,01"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 50,
+      "expected": "0,50"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 150,
+      "expected": "1,50"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 250,
+      "expected": "2,50"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 123456789,
+      "expected": "1 234 567,89"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -123456789,
+      "expected": "-123 456 789"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -250,
+      "expected": "-250"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -150,
+      "expected": "-150"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -50,
+      "expected": "-50"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -1,
+      "expected": "-1"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 0,
+      "expected": "0"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 1,
+      "expected": "1"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 50,
+      "expected": "50"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 150,
+      "expected": "150"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 250,
+      "expected": "250"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 123456789,
+      "expected": "123 456 789"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -123456789,
+      "expected": "-1 234 568"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -250,
+      "expected": "-3"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -150,
+      "expected": "-2"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -50,
+      "expected": "-1"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -1,
+      "expected": "0"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 0,
+      "expected": "0"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 1,
+      "expected": "0"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 50,
+      "expected": "1"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 150,
+      "expected": "2"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 250,
+      "expected": "3"
+    },
+    {
+      "number_format": "space-comma",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 123456789,
+      "expected": "1 234 568"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -123456789,
+      "expected": "-123’456’789"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -250,
+      "expected": "-250"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -150,
+      "expected": "-150"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -50,
+      "expected": "-50"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -1,
+      "expected": "-1"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 0,
+      "expected": "0"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 1,
+      "expected": "1"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 50,
+      "expected": "50"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 150,
+      "expected": "150"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 250,
+      "expected": "250"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 123456789,
+      "expected": "123’456’789"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -123456789,
+      "expected": "-1’234’567.89"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -250,
+      "expected": "-2.50"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -150,
+      "expected": "-1.50"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -50,
+      "expected": "-0.50"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -1,
+      "expected": "-0.01"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 0,
+      "expected": "0.00"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 1,
+      "expected": "0.01"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 50,
+      "expected": "0.50"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 150,
+      "expected": "1.50"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 250,
+      "expected": "2.50"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 123456789,
+      "expected": "1’234’567.89"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -123456789,
+      "expected": "-123’456’789"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -250,
+      "expected": "-250"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -150,
+      "expected": "-150"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -50,
+      "expected": "-50"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -1,
+      "expected": "-1"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 0,
+      "expected": "0"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 1,
+      "expected": "1"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 50,
+      "expected": "50"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 150,
+      "expected": "150"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 250,
+      "expected": "250"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 123456789,
+      "expected": "123’456’789"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -123456789,
+      "expected": "-1’234’568"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -250,
+      "expected": "-3"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -150,
+      "expected": "-2"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -50,
+      "expected": "-1"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -1,
+      "expected": "0"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 0,
+      "expected": "0"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 1,
+      "expected": "0"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 50,
+      "expected": "1"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 150,
+      "expected": "2"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 250,
+      "expected": "3"
+    },
+    {
+      "number_format": "apostrophe-dot",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 123456789,
+      "expected": "1’234’568"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -123456789,
+      "expected": "-12,34,56,789"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -250,
+      "expected": "-250"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -150,
+      "expected": "-150"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -50,
+      "expected": "-50"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": -1,
+      "expected": "-1"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 0,
+      "expected": "0"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 1,
+      "expected": "1"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 50,
+      "expected": "50"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 150,
+      "expected": "150"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 250,
+      "expected": "250"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 0,
+      "amount": 123456789,
+      "expected": "12,34,56,789"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -123456789,
+      "expected": "-12,34,567.89"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -250,
+      "expected": "-2.50"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -150,
+      "expected": "-1.50"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -50,
+      "expected": "-0.50"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": -1,
+      "expected": "-0.01"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 0,
+      "expected": "0.00"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 1,
+      "expected": "0.01"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 50,
+      "expected": "0.50"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 150,
+      "expected": "1.50"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 250,
+      "expected": "2.50"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": false,
+      "decimal_places": 2,
+      "amount": 123456789,
+      "expected": "12,34,567.89"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -123456789,
+      "expected": "-12,34,56,789"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -250,
+      "expected": "-250"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -150,
+      "expected": "-150"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -50,
+      "expected": "-50"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": -1,
+      "expected": "-1"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 0,
+      "expected": "0"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 1,
+      "expected": "1"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 50,
+      "expected": "50"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 150,
+      "expected": "150"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 250,
+      "expected": "250"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 0,
+      "amount": 123456789,
+      "expected": "12,34,56,789"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -123456789,
+      "expected": "-12,34,568"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -250,
+      "expected": "-3"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -150,
+      "expected": "-2"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -50,
+      "expected": "-1"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": -1,
+      "expected": "0"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 0,
+      "expected": "0"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 1,
+      "expected": "0"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 50,
+      "expected": "1"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 150,
+      "expected": "2"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 250,
+      "expected": "3"
+    },
+    {
+      "number_format": "comma-dot-in",
+      "hide_fraction": true,
+      "decimal_places": 2,
+      "amount": 123456789,
+      "expected": "12,34,568"
+    }
+  ]
+}

@@ -31,22 +31,26 @@ export async function request<T>(
   path: string,
   body?: unknown,
   key?: string,
+  method: "GET" | "POST" | "PATCH" | "DELETE" = body === undefined
+    ? "GET"
+    : "POST",
 ): Promise<T> {
+  const mutation = method !== "GET";
   let response: Response;
   try {
     response = await fetch(`/api/v1${path}`, {
-      method: body === undefined ? "GET" : "POST",
-      headers:
-        body === undefined
-          ? {}
-          : { "Content-Type": "application/json", "Idempotency-Key": key! },
+      method,
+      headers: {
+        ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+        ...(key === undefined ? {} : { "Idempotency-Key": key }),
+      },
       body: body === undefined ? undefined : JSON.stringify(body),
       signal: AbortSignal.timeout(15000),
     });
   } catch {
     throw new RequestError(
       "Cannot reach the server. Check your connection and retry.",
-      body !== undefined,
+      mutation,
     );
   }
   const result = await response.json().catch(() => null);
@@ -54,7 +58,7 @@ export async function request<T>(
     throw new RequestError(
       result?.error?.message ??
         "The server could not complete the request. Retry in a moment.",
-      body !== undefined && (response.status >= 500 || !result),
+      mutation && (response.status >= 500 || !result),
     );
   }
   return result;

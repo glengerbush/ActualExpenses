@@ -1,5 +1,6 @@
 use crate::{
     error::Error,
+    ledger::{self, NewTransaction},
     models::{NewAccount, NewBudget, validate_id},
     store::{self, Store},
 };
@@ -16,6 +17,10 @@ use serde_json::{Value, json};
 
 pub fn router(store: Store) -> Router {
     Router::new()
+        .route(
+            "/api/v1/amounts/evaluate",
+            axum::routing::post(crate::calculator::evaluate),
+        )
         .route("/api/v1/info", get(info))
         .route("/api/v1/openapi.json", get(contract))
         .route("/api/v1/budgets", get(list_budgets).post(create_budget))
@@ -25,8 +30,20 @@ pub fn router(store: Store) -> Router {
         )
         .route(
             "/api/v1/budgets/{budget}/transactions",
-            get(list_transactions),
+            get(list_transactions).post(create_transaction),
         )
+        .route(
+            "/api/v1/budgets/{budget}/transactions/{id}",
+            get(get_transaction)
+                .patch(update_transaction)
+                .delete(delete_transaction),
+        )
+        .route(
+            "/api/v1/budgets/{budget}/transactions/{id}/duplicate",
+            axum::routing::post(duplicate_transaction),
+        )
+        .merge(crate::references::router())
+        .merge(crate::preferences::router())
         .route("/api", any(|| async { Error::missing() }))
         .route("/api/{*rest}", any(|| async { Error::missing() }))
         .method_not_allowed_fallback(|| async {
@@ -48,7 +65,7 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["budgets", "accounts", "opening_balances", "idempotency"],
+        "capabilities": ["budgets", "accounts", "opening_balances", "idempotency", "transactions", "payees", "categories", "amount_calculator", "preferences"],
         "openapi": "/api/v1/openapi.json"
     }))
 }
@@ -113,7 +130,8 @@ async fn create_account(
 #[derive(serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct TransactionQuery {
-    account_id: String,
+    account_id: Option<String>,
+    as_of: Option<String>,
     #[serde(default = "default_limit")]
     limit: u32,
     #[serde(default)]
@@ -129,26 +147,38 @@ async fn list_transactions(
 ) -> Result<Json<Value>, Error> {
     let budget = budget_id(path)?;
     let Query(query) = query.map_err(|_| Error::invalid("Invalid transaction query"))?;
-    validate_id(&query.account_id)?;
+    if let Some(id) = &query.account_id {
+        validate_id(id)?;
+    }
+    if let Some(date) = &query.as_of {
+        crate::models::validate_date(date)?;
+    }
     if query.limit == 0 || query.limit > 1000 || query.offset > 1000000 {
         return Err(Error::invalid(
             "limit must be 1–1000; offset at most 1000000",
         ));
     }
-    Ok(data(
+    Ok(Json(
         store
             .run(move |db| {
-                store::transactions(db, &budget, &query.account_id, query.limit, query.offset)
+                ledger::list(
+                    db,
+                    &budget,
+                    query.account_id.as_deref(),
+                    query.as_of.as_deref(),
+                    query.limit,
+                    query.offset,
+                )
             })
             .await?,
     ))
 }
-fn budget_id(path: Result<Path<String>, PathRejection>) -> Result<String, Error> {
+pub(crate) fn budget_id(path: Result<Path<String>, PathRejection>) -> Result<String, Error> {
     let Path(budget) = path.map_err(|_| Error::invalid("Invalid budget path"))?;
     validate_id(&budget)?;
     Ok(budget)
 }
-fn idempotency_key(headers: &HeaderMap) -> Result<String, Error> {
+pub(crate) fn idempotency_key(headers: &HeaderMap) -> Result<String, Error> {
     let key = headers
         .get("Idempotency-Key")
         .and_then(|v| v.to_str().ok())
@@ -160,7 +190,7 @@ fn idempotency_key(headers: &HeaderMap) -> Result<String, Error> {
     }
     Ok(key.into())
 }
-fn json_error(error: JsonRejection) -> Error {
+pub(crate) fn json_error(error: JsonRejection) -> Error {
     let status = match error.status() {
         StatusCode::PAYLOAD_TOO_LARGE => StatusCode::PAYLOAD_TOO_LARGE,
         StatusCode::UNSUPPORTED_MEDIA_TYPE => StatusCode::UNSUPPORTED_MEDIA_TYPE,
@@ -171,4 +201,121 @@ fn json_error(error: JsonRejection) -> Error {
         "invalid_request",
         "Expected JSON matching the documented request schema",
     )
+}
+
+async fn create_transaction(
+    State(store): State<Store>,
+    path: Result<Path<String>, PathRejection>,
+    headers: HeaderMap,
+    input: Result<Json<NewTransaction>, JsonRejection>,
+) -> Result<(StatusCode, Json<Value>), Error> {
+    let budget = budget_id(path)?;
+    let Json(input) = input.map_err(json_error)?;
+    input.validate()?;
+    let key = idempotency_key(&headers)?;
+    let payload = serde_json::to_string(&input).map_err(Error::internal)?;
+    let result = store
+        .run(move |db| {
+            store::write(
+                db,
+                &format!("POST /budgets/{budget}/transactions"),
+                &key,
+                &payload,
+                |db| ledger::create(db, &budget, input),
+            )
+        })
+        .await?;
+    Ok((StatusCode::CREATED, data(result)))
+}
+
+fn transaction_path(
+    path: Result<Path<(String, String)>, PathRejection>,
+) -> Result<(String, String), Error> {
+    let Path((budget, id)) = path.map_err(|_| Error::invalid("Invalid transaction path"))?;
+    validate_id(&budget)?;
+    validate_id(&id)?;
+    Ok((budget, id))
+}
+async fn get_transaction(
+    State(store): State<Store>,
+    path: Result<Path<(String, String)>, PathRejection>,
+) -> Result<Json<Value>, Error> {
+    let (budget, id) = transaction_path(path)?;
+    Ok(data(
+        store.run(move |db| ledger::get(db, &budget, &id)).await?,
+    ))
+}
+async fn update_transaction(
+    State(store): State<Store>,
+    path: Result<Path<(String, String)>, PathRejection>,
+    headers: HeaderMap,
+    input: Result<Json<Value>, JsonRejection>,
+) -> Result<Json<Value>, Error> {
+    let (budget, id) = transaction_path(path)?;
+    let Json(input) = input.map_err(json_error)?;
+    let key = idempotency_key(&headers)?;
+    let payload = input.to_string();
+    Ok(data(
+        store
+            .run(move |db| {
+                store::write(
+                    db,
+                    &format!("PATCH /budgets/{budget}/transactions/{id}"),
+                    &key,
+                    &payload,
+                    |db| ledger::update(db, &budget, &id, input),
+                )
+            })
+            .await?,
+    ))
+}
+async fn delete_transaction(
+    State(store): State<Store>,
+    path: Result<Path<(String, String)>, PathRejection>,
+    headers: HeaderMap,
+) -> Result<Json<Value>, Error> {
+    let (budget, id) = transaction_path(path)?;
+    let key = idempotency_key(&headers)?;
+    Ok(data(
+        store
+            .run(move |db| {
+                store::write(
+                    db,
+                    &format!("DELETE /budgets/{budget}/transactions/{id}"),
+                    &key,
+                    "null",
+                    |db| ledger::delete(db, &budget, &id),
+                )
+            })
+            .await?,
+    ))
+}
+#[derive(serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+struct Duplicate {
+    id: String,
+}
+async fn duplicate_transaction(
+    State(store): State<Store>,
+    path: Result<Path<(String, String)>, PathRejection>,
+    headers: HeaderMap,
+    input: Result<Json<Duplicate>, JsonRejection>,
+) -> Result<(StatusCode, Json<Value>), Error> {
+    let (budget, source) = transaction_path(path)?;
+    let Json(input) = input.map_err(json_error)?;
+    validate_id(&input.id)?;
+    let key = idempotency_key(&headers)?;
+    let payload = serde_json::to_string(&input).map_err(Error::internal)?;
+    let result = store
+        .run(move |db| {
+            store::write(
+                db,
+                &format!("POST /budgets/{budget}/transactions/{source}/duplicate"),
+                &key,
+                &payload,
+                |db| ledger::duplicate(db, &budget, &source, &input.id),
+            )
+        })
+        .await?;
+    Ok((StatusCode::CREATED, data(result)))
 }

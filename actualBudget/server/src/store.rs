@@ -21,22 +21,11 @@ impl Store {
     pub fn open(directory: &Path) -> Result<Self, Error> {
         std::fs::create_dir_all(directory).map_err(Error::internal)?;
         let mut db = Connection::open(directory.join("actualbudget.sqlite3"))?;
-        let version: i64 = db.pragma_query_value(None, "user_version", |row| row.get(0))?;
-        if version > 1 {
-            return Err(Error::internal(
-                "Database version is newer than this server supports",
-            ));
-        }
         db.busy_timeout(Duration::from_secs(5))?;
         db.execute_batch(
             "PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;",
         )?;
-        if version == 0 {
-            let tx = db.transaction()?;
-            tx.execute_batch(include_str!("schema.sql"))?;
-            tx.pragma_update(None, "user_version", 1)?;
-            tx.commit()?;
-        }
+        crate::migrations::apply(&mut db, directory)?;
         Ok(Self {
             db: Arc::new(Mutex::new(db)),
             worker: Arc::new(Semaphore::new(1)),
@@ -79,7 +68,7 @@ pub fn require_budget(db: &Connection, id: &str) -> Result<(), Error> {
 }
 pub fn accounts(db: &Connection, budget: &str) -> Result<Value, Error> {
     require_budget(db, budget)?;
-    let mut stmt=db.prepare("SELECT a.id,a.name,a.notes,a.off_budget,a.closed,COALESCE(SUM(t.amount),0) FROM accounts a LEFT JOIN transactions t ON t.budget_id=a.budget_id AND t.account_id=a.id WHERE a.budget_id=?1 GROUP BY a.id ORDER BY a.name,a.id")?;
+    let mut stmt=db.prepare("SELECT a.id,a.name,a.notes,a.off_budget,a.closed,COALESCE(t.total,0) FROM accounts a LEFT JOIN ledger_totals t ON t.budget_id=a.budget_id AND t.account_id=a.id WHERE a.budget_id=?1 ORDER BY a.name,a.id")?;
     let rows=stmt.query_map([budget],|row|Ok(json!({"id":row.get::<_,String>(0)?,"name":row.get::<_,String>(1)?,"notes":row.get::<_,String>(2)?,"off_budget":row.get::<_,bool>(3)?,"closed":row.get::<_,bool>(4)?,"balance":row.get::<_,i64>(5)?})))?;
     Ok(json!(rows.collect::<Result<Vec<_>, _>>()?))
 }
@@ -136,28 +125,11 @@ pub fn create_account(db: &Connection, budget: &str, input: NewAccount) -> Resul
         };
         tx.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,starting_balance,payee_id,category_id) VALUES(?1,?2,?3,?4,?5,1,1,?6,?7)",params![budget,Uuid::new_v4().to_string(),input.id,input.opening_balance,input.opening_date,payee,category])?;
     }
+    crate::ledger::refresh_account(db, budget, &input.id)?;
+    crate::ledger::validate_budget_total(db, budget)?;
     Ok(
         json!({"id":input.id,"name":input.name,"notes":input.notes,"off_budget":input.off_budget,"closed":false,"balance":input.opening_balance}),
     )
-}
-pub fn transactions(
-    db: &Connection,
-    budget: &str,
-    account: &str,
-    limit: u32,
-    offset: u32,
-) -> Result<Value, Error> {
-    require_budget(db, budget)?;
-    if !db.query_row(
-        "SELECT EXISTS(SELECT 1 FROM accounts WHERE budget_id=?1 AND id=?2)",
-        params![budget, account],
-        |r| r.get::<_, bool>(0),
-    )? {
-        return Err(Error::missing());
-    }
-    let mut stmt=db.prepare("SELECT t.id,t.account_id,t.amount,t.date,t.cleared,t.reconciled,t.starting_balance,t.payee_id,p.name,t.category_id,c.name,c.is_income FROM transactions t LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id WHERE t.budget_id=?1 AND t.account_id=?2 ORDER BY t.date DESC,t.id LIMIT ?3 OFFSET ?4")?;
-    let rows=stmt.query_map(params![budget,account,limit,offset],|r|Ok(json!({"id":r.get::<_,String>(0)?,"account_id":r.get::<_,String>(1)?,"amount":r.get::<_,i64>(2)?,"date":r.get::<_,String>(3)?,"cleared":r.get::<_,bool>(4)?,"reconciled":r.get::<_,bool>(5)?,"starting_balance":r.get::<_,bool>(6)?,"payee_id":r.get::<_,Option<String>>(7)?,"payee_name":r.get::<_,Option<String>>(8)?,"category_id":r.get::<_,Option<String>>(9)?,"category_name":r.get::<_,Option<String>>(10)?,"category_is_income":r.get::<_,Option<bool>>(11)?})))?;
-    Ok(json!(rows.collect::<Result<Vec<_>, _>>()?))
 }
 
 pub fn write(

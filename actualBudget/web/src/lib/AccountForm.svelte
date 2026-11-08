@@ -1,6 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { t } from "./i18n.svelte";
   import type { Account } from "./api";
+  import DateInput from "./DateInput.svelte";
+  import { preferences } from "./preferences.svelte";
   import { CreationSession } from "./CreationSession.svelte";
   import { newAccountDraft, type AccountDraft } from "./drafts";
   let {
@@ -12,11 +15,17 @@
     oncreated: (account: Account) => void;
     oncancel: () => void;
   } = $props();
-  const session = new CreationSession<AccountDraft, Account>(() =>
-    newAccountDraft(budgetId),
+  const session = new CreationSession<AccountDraft, Account>(
+    () => newAccountDraft(budgetId),
+    () => ({ kind: "account", budget_id: budgetId }),
   );
   async function submit(event: SubmitEvent) {
     event.preventDefault();
+    if (!session.draft?.pending && !preferences.hasUsableShared) {
+      session.error =
+        "Load this budget's display preferences before creating an account.";
+      return;
+    }
     const result = await session.submit();
     if (result) oncreated(result);
   }
@@ -27,17 +36,21 @@
 </script>
 
 <section class="form-section" aria-labelledby="account-form-title">
-  <h1 id="account-form-title">Add account</h1>
+  <h1 id="account-form-title">{t("Add account")}</h1>
   <p class="muted">
-    Start with the balance on the date you want to track from.
+    {t("Start with the balance on the date you want to track from.")}
   </p>
   {#if session.restored}<p class="hint" role="status">
-      Recovered your saved draft.
+      {t("Recovered your saved draft.")}
     </p>{/if}
   {#if session.draft}
     <form onsubmit={submit} aria-busy={session.busy}>
-      <fieldset disabled={session.busy || !!session.draft.pending}>
-        <label for="account-name">Account name</label><input
+      <fieldset
+        disabled={session.busy ||
+          !!session.draft.pending ||
+          !preferences.hasUsableShared}
+      >
+        <label for="account-name">{t("Account name")}</label><input
           id="account-name"
           bind:value={
             () => session.draft!.fields.name,
@@ -49,7 +62,7 @@
         />
         <div class="form-row">
           <div>
-            <label for="opening-balance">Opening balance</label><input
+            <label for="opening-balance">{t("Opening balance")}</label><input
               id="opening-balance"
               maxlength="128"
               bind:value={
@@ -61,39 +74,39 @@
               aria-describedby="balance-hint"
             />
             <p id="balance-hint" class="hint">
-              Use a minus sign for money owed.
+              {t("Use a minus sign for money owed.")}
             </p>
           </div>
           <div>
-            <label for="opening-date">Opening date</label><input
+            <DateInput
               id="opening-date"
-              type="date"
-              min="0001-01-01"
-              max="9999-12-31"
+              label={t("Opening date")}
               bind:value={
                 () => session.draft!.fields.date,
                 (value) => session.update({ date: value })
               }
+              format={session.draft.fields.date_format}
               required
             />
           </div>
         </div>
-        <label for="account-type">Account type</label><select
+        <label for="account-type">{t("Account type")}</label><select
           id="account-type"
           bind:value={
             () => session.draft!.fields.off_budget,
             (value) => session.update({ off_budget: value })
           }
-          ><option value={false}>On budget</option><option value={true}
-            >Off budget</option
+          ><option value={false}>{t("On budget")}</option><option value={true}
+            >{t("Off budget")}</option
           ></select
         >
         <p class="hint">
-          Off-budget accounts track assets or debts outside your spending
-          budget.
+          {t(
+            "Off-budget accounts track assets or debts outside your spending budget.",
+          )}
         </p>
         <label for="account-notes"
-          >Notes <span class="muted">(optional)</span></label
+          >{t("Notes")}<span class="muted">{t("(optional)")}</span></label
         ><textarea
           id="account-notes"
           bind:value={
@@ -104,31 +117,35 @@
           maxlength="10000"></textarea>
       </fieldset>
       {#if session.error}<div class="error" role="alert">
-          {session.error}
+          {t(session.error)}
         </div>{/if}
       {#if session.draft.pending && !session.busy}<p
           class="error"
           role="status"
         >
-          The outcome is unconfirmed. Retry this saved request before changing
-          its details.
+          {t(
+            "The outcome is unconfirmed. Retry this saved request before changing its details.",
+          )}
         </p>{/if}
       <div class="actions">
         <button class="primary" disabled={session.busy}
-          >{session.busy
-            ? "Creating…"
-            : session.draft.pending
-              ? "Retry creation"
-              : "Create account"}</button
+          >{t(
+            session.busy
+              ? "Creating…"
+              : session.draft.pending
+                ? "Retry creation"
+                : "Create account",
+          )}</button
         ><button
           type="button"
           onclick={cancel}
-          disabled={session.busy || !!session.draft.pending}>Cancel</button
+          disabled={session.busy || !!session.draft.pending}
+          >{t("Cancel")}</button
         >
       </div>
     </form>
   {:else}
-    {#if session.error}<p class="error" role="alert">{session.error}</p>{/if}
-    <button onclick={() => session.load()}>Retry draft recovery</button>
+    {#if session.error}<p class="error" role="alert">{t(session.error)}</p>{/if}
+    <button onclick={() => session.load()}>{t("Retry draft recovery")}</button>
   {/if}
 </section>

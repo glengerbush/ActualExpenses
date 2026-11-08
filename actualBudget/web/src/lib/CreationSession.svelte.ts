@@ -5,6 +5,7 @@ import {
   readDraft,
   saveDraft,
   type CreationDraft,
+  type DraftScope,
 } from "./drafts";
 
 /** One recoverable creation form. Persistence precedes every network mutation. */
@@ -13,13 +14,15 @@ export class CreationSession<D extends CreationDraft, Result> {
   busy = $state(false);
   error = $state("");
   restored = $state(false);
-  constructor(private readonly create: () => D) {}
+  constructor(
+    private readonly create: () => D,
+    private readonly scope?: () => DraftScope,
+  ) {}
   load() {
     this.error = "";
     try {
-      const fresh = this.create();
-      const saved = readDraft(fresh);
-      this.draft = (saved ?? fresh) as D;
+      const saved = readDraft(this.scope ? this.scope() : this.create());
+      this.draft = (saved ?? this.create()) as D;
       this.restored = saved !== null;
       saveDraft(this.draft);
     } catch (error) {

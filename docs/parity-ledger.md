@@ -26,7 +26,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 1 | 02, 52 | Budget files, backups and migration | [02: fresh HTTP web/API entry without login](open-budget-validation.md); final audit pending |
 | 2 | 02, 52 | Budget files, backups and migration | [02: no app credentials, sessions or identity flows in replacement](open-budget-validation.md); Android transition/final audit pending |
 | 3 | 02, 08 | Budget files, backups and migration | [02: create/select persistent budgets](open-budget-validation.md); rename/close/delete pending 08 |
-| 4 | 02, 08, 43 | Budget files, backups and migration | [02: remembered budget/account and draft recovery](open-budget-validation.md); broader preferences pending |
+| 4 | 02, 08, 43 | Budget files, backups and migration | [02: remembered selection/drafts](open-budget-validation.md); [43: shared/device preferences and conversion](../actualBudget/web/docs/preferences-validation.md); budget management pending 08 |
 | 5 | 04, 50 | Budget files, backups and migration | Pending feature acceptance |
 | 6 | 08, 50 | Budget files, backups and migration | Pending feature acceptance |
 | 7 | 27 | Budget files, backups and migration | Pending feature acceptance |
@@ -34,14 +34,14 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 9 | 04, 08, 50 | Budget files, backups and migration | Pending feature acceptance |
 | 10 | 02, 09 | Accounts and reconciliation | [02: on/off-budget creation, notes and seven independent opening-balance cases](open-budget-validation.md); account management pending 09 |
 | 11 | 09 | Accounts and reconciliation | Pending feature acceptance |
-| 12 | 03, 09, 12 | Accounts and reconciliation | Pending feature acceptance |
+| 12 | 03, 09, 12 | Accounts and reconciliation | [03: exact account and running balances](register-validation.md); organization and register customization pending 09/12 |
 | 13 | 16 | Accounts and reconciliation | Pending feature acceptance |
 | 14 | 16 | Accounts and reconciliation | Pending feature acceptance |
 | 15 | 16 | Accounts and reconciliation | Pending feature acceptance |
 | 16 | 09 | Accounts and reconciliation | Pending feature acceptance |
-| 17 | 03, 13 | Transactions, payees and categories | Pending feature acceptance |
-| 18 | 03, 52 | Transactions, payees and categories | Pending feature acceptance |
-| 19 | 03, 13 | Transactions, payees and categories | Pending feature acceptance |
+| 17 | 03, 13 | Transactions, payees and categories | [03: single transaction CRUD and duplicate](register-validation.md); bulk/undo pending 13 |
+| 18 | 03, 52 | Transactions, payees and categories | [03: exact financial values, dates and calculator baseline](register-validation.md); whole-feature audit pending 52 |
+| 19 | 03, 13 | Transactions, payees and categories | [03: ordinary transaction field edits and retry recovery](register-validation.md); bulk/undo pending 13 |
 | 20 | 13 | Transactions, payees and categories | Pending feature acceptance |
 | 21 | 12 | Transactions, payees and categories | Pending feature acceptance |
 | 22 | 12, 16 | Transactions, payees and categories | Pending feature acceptance |
@@ -49,12 +49,12 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 24 | 15 | Transactions, payees and categories | Pending feature acceptance |
 | 25 | 15 | Transactions, payees and categories | Pending feature acceptance |
 | 26 | 25 | Transactions, payees and categories | Pending feature acceptance |
-| 27 | 03, 11 | Transactions, payees and categories | Pending feature acceptance |
+| 27 | 03, 11 | Transactions, payees and categories | [03: payee creation/selection and references](register-validation.md); payee management pending 11 |
 | 28 | 11, 19 | Transactions, payees and categories | Pending feature acceptance |
 | 29 | 46 | Transactions, payees and categories | Pending feature acceptance |
 | 30 | 11 | Transactions, payees and categories | Pending feature acceptance |
-| 31 | 03, 10 | Transactions, payees and categories | Pending feature acceptance |
-| 32 | 03, 10 | Transactions, payees and categories | Pending feature acceptance |
+| 31 | 03, 10 | Transactions, payees and categories | [03: category creation/selection](register-validation.md); category organization pending 10 |
+| 32 | 03, 10 | Transactions, payees and categories | [03: refunds and uncategorized entries](register-validation.md); broader category behavior pending 10 |
 | 33 | 17, 18 | Tracking, envelope and automation | Pending feature acceptance |
 | 34 | 18 | Tracking, envelope and automation | Pending feature acceptance |
 | 35 | 18 | Tracking, envelope and automation | Pending feature acceptance |
@@ -96,15 +96,15 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 71 | 39, 40 | Reports, dashboards and formulas | Pending feature acceptance |
 | 72 | 41 | Reports, dashboards and formulas | Pending feature acceptance |
 | 73 | 33, 35, 36, 37, 38, 39, 40, 41 | Reports, dashboards and formulas | Pending feature acceptance |
-| 74 | 43, 51 | Settings and accessible workflows | Pending feature acceptance |
-| 75 | 43, 51 | Settings and accessible workflows | Pending feature acceptance |
-| 76 | 43, 44 | Settings and accessible workflows | Pending feature acceptance |
-| 77 | 43 | Settings and accessible workflows | Pending feature acceptance |
+| 74 | 43, 51 | Settings and accessible workflows | [43: accessible responsive preference controls](../actualBudget/web/docs/preferences-validation.md); whole-app qualification pending 51 |
+| 75 | 43, 51 | Settings and accessible workflows | [43: number/date/currency/decimal/week-start controls](../actualBudget/web/docs/preferences-validation.md); whole-app qualification pending 51 |
+| 76 | 43, 44 | Settings and accessible workflows | [43: light/dark/midnight/system](../actualBudget/web/docs/preferences-validation.md); custom themes pending 44 |
+| 77 | 43 | Settings and accessible workflows | [43: released language catalogs, device scope and retry](../actualBudget/web/docs/preferences-validation.md) |
 | 78 | 12, 45 | Settings and accessible workflows | Pending feature acceptance |
 | 79 | 45 | Settings and accessible workflows | Pending feature acceptance |
-| 80 | 31, 32, 35, 36, 37, 39, 41, 42, 43 | Settings and accessible workflows | Pending feature acceptance |
+| 80 | 31, 32, 35, 36, 37, 39, 41, 42, 43 | Settings and accessible workflows | [43: preserved opt-in flags and currency gating](../actualBudget/web/docs/preferences-validation.md); remaining experimental features pending assigned tickets |
 | 81 | 49 | Settings and accessible workflows | Pending feature acceptance |
-| 82 | 03, 43, 49, 51 | Settings and accessible workflows | Pending feature acceptance |
+| 82 | 03, 43, 49, 51 | Settings and accessible workflows | [03: retained forms and durable retry](register-validation.md); [43: settings/storage/connection recovery](../actualBudget/web/docs/preferences-validation.md); repair and whole-app qualification pending 49/51 |
 | 83 | 07, 20 | Android and offline expense capture | Pending feature acceptance |
 | 84 | 07, 20 | Android and offline expense capture | Pending feature acceptance |
 | 85 | 07, 20 | Android and offline expense capture | Pending feature acceptance |
@@ -124,10 +124,10 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 99 | 47, 52 | Public API, deployment and resources | Pending feature acceptance |
 | 100 | 34, 47, 52 | Public API, deployment and resources | Pending feature acceptance |
 | 101 | 05, 51 | Public API, deployment and resources | Pending feature acceptance |
-| 102 | 02, 48, 53 | Public API, deployment and resources | [02: real single-container web/API with SQLite volume replacement/replay](open-budget-validation.md); release/cutover qualification pending |
-| 103 | 01, 48, 53 | Public API, deployment and resources | Pending feature acceptance |
-| 104 | 01, 48, 53 | Public API, deployment and resources | Pending feature acceptance |
-| 105 | 48, 53 | Public API, deployment and resources | Pending feature acceptance |
+| 102 | 02, 48, 53 | Public API, deployment and resources | [02: container persistence/replay](open-budget-validation.md); [48: signed image promotion and isolated registry rehearsal](release-validation.md); production cutover qualification pending 53 |
+| 103 | 01, 48, 53 | Public API, deployment and resources | [01: independent application layout](foundation-validation.md); [48: independent APK/container versions and release automation](release-validation.md); final deployment qualification pending 53 |
+| 104 | 01, 48, 53 | Public API, deployment and resources | [01: original Android identity preserved](foundation-validation.md); [48: original APK signer and container signature verified](release-validation.md); final deployment qualification pending 53 |
+| 105 | 48, 53 | Public API, deployment and resources | [48: manual image pull/restart release path, no automatic deployment](release-validation.md); full cutover rehearsal pending 53 |
 | 106 | 04, 08, 50, 53 | Public API, deployment and resources | Pending feature acceptance |
 | 107 | 51 | Public API, deployment and resources | Pending feature acceptance |
 

@@ -66,3 +66,19 @@ Observed image ID:
 Docker reported 120,329,422 bytes and runtime user `10001:10001`.
 The disposable image/container/volume were removed after verification.
 This is a local qualification image, not a published release digest.
+
+## Tickets 03 and 43 evidence — 2026-11-08
+
+Final source commit: `0b66dc61b61314abfa4bb871cae6e62a7451b10b`.
+The same `--browser` qualification passed creation, register CRUD/calculator,
+reference creation, stable concurrent pagination, date cutoff recovery, settings,
+themes/languages, 220 formatting and 120 date-input baseline cases, and eight
+restored-date workflows. Lost acknowledgements replay exact requests across
+reload, missing preferences, changed formatting and year changes. Persistence
+and idempotent retry passed after replacing the real container.
+
+Image ID: `sha256:7fc8a8aa7b3dd0916291a3aaec3011ef33112b14a88cc907a8ec9045d431652d`.
+Docker reported 124,191,107 bytes and runtime user `10001:10001`. Disposable test
+resources were removed. Independent Standards/Spec reviews report zero remaining
+findings. [Detailed evidence](../../docs/register-validation.md). No publication
+or production cutover occurred.

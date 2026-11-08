@@ -6,7 +6,8 @@ No live budget, server deployment, release version or Android identity changed.
 ## Public behavior
 
 `tests/http.rs` runs 16 real-process HTTP tests, including all nine ticket02
-checks. `tests/preferences.rs` adds three ticket43 HTTP tests. All 19 passed,
+checks. `tests/preferences.rs` adds five ticket43 HTTP tests and
+`tests/register_snapshot.rs` adds two concurrent-pagination checks. All 23 passed,
 zero ignored/skipped. No assertion reads internal SQLite state. The schema1
 SQLite file is an input fixture generated through the old public HTTP API.
 
@@ -98,6 +99,19 @@ Svelte diagnostics report no errors or warnings; both components' autofixer
 reports are empty, and Impeccable detector reports no findings. The UI follows
 the existing Operate surface, theme variables, visible labels and keyboard focus.
 
-The parent separately validates published OpenAPI schemas against real responses
-using `actualBudget/tools/contract-smoke.py`. Final container qualification and
-independent Standards/Spec reviews remain parent-owned acceptance evidence.
+The parent separately validated published OpenAPI schemas against real responses
+using `actualBudget/tools/contract-smoke.py`, including stable and invalidated
+pagination snapshots. Pages use a consistent read transaction; a concurrent
+write causes continuation to return `409 register_changed`, then the browser
+reloads a coherent first page. Failed date-cutoff reads retain the confirmed
+label, rows and totals. Pending transaction requests remain recoverable without
+cached preferences, while financial displays stay hidden until formatting is known.
+
+The final real container qualification at `0b66dc6` passed all creation, register,
+date, recovery and preference browser suites, including 220 formatting and 120
+date-input oracle cases, plain HTTP and replacement-container persistence/replay.
+Image: `sha256:7fc8a8aa7b3dd0916291a3aaec3011ef33112b14a88cc907a8ec9045d431652d`,
+124,191,107 bytes, user `10001:10001`. Disposable test resources were cleaned.
+The final eight restored-date browser flows cover account/transaction direct
+submission and exact pending replay across year changes. Independent Standards
+and Spec reviews both report zero remaining findings. Tickets 03 and 43 accepted.

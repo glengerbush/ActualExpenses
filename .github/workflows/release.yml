@@ -1,54 +1,107 @@
-name: Release Android APK
+name: Qualify and release applications
 
 on:
   push:
     branches: [main]
     paths:
       - actualExpenses/app/build.gradle.kts
+      - actualBudget/VERSION
+      - actualBudget/server/Cargo.toml
+      - actualBudget/server/Cargo.lock
+      - actualBudget/web/package.json
+      - actualBudget/web/package-lock.json
+      - release-policy.json
       - .github/workflows/release.yml
+      - tools/**
       - actualExpenses/tools/release.py
       - actualExpenses/tools/test_release.py
   workflow_dispatch:
+    inputs:
+      application:
+        description: Application to qualify (unchanged candidate requires explicit selection)
+        type: choice
+        options: [actualBudget, actualExpenses, both]
+        default: actualBudget
+      channel:
+        type: choice
+        options: [candidate, stable]
+        default: candidate
+      before:
+        description: Existing comparison commit; required for stable publication
+        type: string
+        default: ''
+      dry_run:
+        description: Build and verify only; no GitHub release or registry writes
+        type: boolean
+        default: true
 
 permissions:
   contents: read
 
-defaults:
-  run:
-    working-directory: actualExpenses
-
 jobs:
-  version:
+  plan:
     if: github.repository == 'glengerbush/ActualExpenses' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     outputs:
-      release: ${{ steps.version.outputs.release }}
-      version: ${{ steps.version.outputs.version }}
+      before: ${{ steps.plan.outputs.before }}
+      channel: ${{ steps.plan.outputs.channel }}
+      dry_run: ${{ steps.plan.outputs.dry_run }}
+      android_qualify: ${{ steps.plan.outputs.android_qualify }}
+      android_publish: ${{ steps.plan.outputs.android_publish }}
+      android_version: ${{ steps.plan.outputs.android_version }}
+      budget_qualify: ${{ steps.plan.outputs.budget_qualify }}
+      budget_publish: ${{ steps.plan.outputs.budget_publish }}
+      budget_version: ${{ steps.plan.outputs.budget_version }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Test release automation
-        run: python3 -m unittest discover -s tools -p test_release.py -v
-      - name: Detect version bump across the complete push
-        id: version
+      - name: Test independent and historical release automation
+        run: |
+          python3 -m unittest discover -s tools -p test_release.py -v
+          python3 -m unittest discover -s actualExpenses/tools -p test_release.py -v
+      - name: Plan the complete push without remote side effects
+        id: plan
         env:
-          BEFORE: ${{ github.event.before }}
-        run: python3 tools/release.py plan --before "$BEFORE" --head "$GITHUB_SHA"
+          BEFORE: ${{ github.event.before || inputs.before }}
+          CHANNEL: ${{ inputs.channel || 'stable' }}
+          APPLICATION: ${{ inputs.application }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+        run: |
+          if [ -z "$BEFORE" ]; then
+            if [ "$DRY_RUN" = true ] || [ "$CHANNEL" = candidate ]; then
+              BEFORE="$GITHUB_SHA"
+            else
+              echo '::error::Stable publication requires an explicit comparison commit.'
+              exit 1
+            fi
+          fi
+          args=(--before "$BEFORE" --head "$GITHUB_SHA" --channel "$CHANNEL" --repository "$GITHUB_REPOSITORY")
+          if [ -n "$APPLICATION" ]; then args+=(--app "$APPLICATION"); fi
+          python3 tools/release.py plan "${args[@]}" > release-plan.json
+          cat release-plan.json
+          python3 - <<'OUTPUTS'
+          import json, os
+          plan = json.load(open('release-plan.json'))
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f"before={plan['before']}\nchannel={plan['channel']}\ndry_run={os.environ['DRY_RUN']}\n")
+          OUTPUTS
 
-  release:
-    needs: version
-    if: needs.version.outputs.release == 'true'
+  android:
+    needs: plan
+    if: needs.plan.outputs.android_qualify == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       contents: write
     concurrency:
-      group: android-release-${{ needs.version.outputs.version }}
+      group: actualExpenses-release
       cancel-in-progress: false
     env:
-      VERSION: ${{ needs.version.outputs.version }}
+      VERSION: ${{ needs.plan.outputs.android_version }}
+      BEFORE: ${{ needs.plan.outputs.before }}
+      CHANNEL: ${{ needs.plan.outputs.channel }}
       ACTUAL_FIXTURE: ${{ github.workspace }}/actualExpenses/tools/compatibility/.fixture/fixture.json
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -64,7 +117,7 @@ jobs:
         run: |
           for name in KEYSTORE STORE_PASSWORD KEY_PASSWORD KEY_ALIAS; do
             if [ -z "${!name}" ]; then
-              echo "::error::Missing signing secret. Run tools/configure-release-signing.py locally."
+              echo "::error::Missing existing Android signing secret."
               exit 1
             fi
           done
@@ -74,7 +127,7 @@ jobs:
           java-version: '17'
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
-          node-version: '22'
+          node-version: '24'
       - name: Verify Android SDK on hosted runner
         run: |
           # ubuntu-24.04 includes SDK 35 and build tools 35.0.0 already.
@@ -82,6 +135,7 @@ jobs:
           test -f "$ANDROID_HOME/platforms/android-35/android.jar"
           test -x "$ANDROID_HOME/build-tools/35.0.0/apksigner"
       - name: Test against disposable Actual and run Android lint
+        working-directory: actualExpenses
         run: |
           npm ci --prefix tools/compatibility
           node tools/compatibility/fixture.mjs > "$RUNNER_TEMP/actual-fixture.log" 2>&1 &
@@ -106,6 +160,7 @@ jobs:
           assert all(int(s.get(k, 0)) == 0 for s in suites for k in ('failures', 'errors', 'skipped')), 'Integration tests failed or skipped'
           PY
       - name: Build and verify signed APK
+        working-directory: actualExpenses
         env:
           KEYSTORE_BASE64: ${{ secrets.ACTUALEXPENSES_KEYSTORE_BASE64 }}
           ACTUALEXPENSES_STORE_PASSWORD: ${{ secrets.ACTUALEXPENSES_STORE_PASSWORD }}
@@ -121,10 +176,99 @@ jobs:
           cp app/build/outputs/apk/release/app-release.apk "dist/ActualExpenses-$VERSION.apk"
           cd dist
           sha256sum "ActualExpenses-$VERSION.apk" > SHA256SUMS
-      - name: Publish release with APK and checksum
+      - name: Verify checksum, package and original signing certificate
+        run: |
+          CODE=$(python3 -c 'import sys; sys.path.insert(0, "tools"); from release import android_module; print(android_module().version_at("HEAD")[1])')
+          python3 tools/artifacts.py apk --directory actualExpenses/dist --version "$VERSION" --code "$CODE" --apksigner "$ANDROID_HOME/build-tools/35.0.0/apksigner" --aapt "$ANDROID_HOME/build-tools/35.0.0/aapt"
+      - name: Review publication dry run
+        run: python3 tools/publish.py actualExpenses --before "$BEFORE" --head "$GITHUB_SHA" --channel "$CHANNEL" --repository "$GITHUB_REPOSITORY" --directory actualExpenses/dist
+      - name: Publish only the qualified Android release
+        if: needs.plan.outputs.dry_run != 'true' && needs.plan.outputs.android_publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 tools/release.py publish --repository "$GITHUB_REPOSITORY" --sha "$GITHUB_SHA"
+        run: python3 tools/publish.py actualExpenses --before "$BEFORE" --head "$GITHUB_SHA" --channel "$CHANNEL" --repository "$GITHUB_REPOSITORY" --directory actualExpenses/dist --apksigner "$ANDROID_HOME/build-tools/35.0.0/apksigner" --aapt "$ANDROID_HOME/build-tools/35.0.0/aapt" --execute
+      - name: Preserve qualified APK and checksum
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: actualExpenses-qualification-${{ github.run_id }}
+          path: actualExpenses/dist/
+          if-no-files-found: error
       - name: Remove temporary signing material
         if: always()
         run: rm -f "$RUNNER_TEMP/actualexpenses.p12"
+
+  budget:
+    needs: plan
+    if: needs.plan.outputs.budget_qualify == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+    concurrency:
+      group: actualBudget-release
+      cancel-in-progress: false
+    env:
+      VERSION: ${{ needs.plan.outputs.budget_version }}
+      BEFORE: ${{ needs.plan.outputs.before }}
+      CHANNEL: ${{ needs.plan.outputs.channel }}
+      RUSTUP_TOOLCHAIN: 1.99.1
+      LOCAL_IMAGE: actualbudget-qualification:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '24'
+      - name: Install pinned compiler and browser test dependencies
+        run: |
+          rustup toolchain install 1.99.1 --profile minimal --component rustfmt --component clippy
+          npm ci --prefix actualBudget/web
+          npm ci --prefix actualExpenses/tools/compatibility
+          cd actualBudget/web
+          npx playwright install --with-deps chromium
+          node --input-type=module -e 'import {chromium} from "@playwright/test"; import {appendFileSync} from "node:fs"; appendFileSync(process.env.GITHUB_ENV, `CHROMIUM_PATH=${chromium.executablePath()}\n`)'
+      - name: Check public API, financial reference and web build
+        run: |
+          cargo fmt --manifest-path actualBudget/server/Cargo.toml -- --check
+          cargo clippy --locked --manifest-path actualBudget/server/Cargo.toml --all-targets -- -D warnings
+          cargo test --locked --manifest-path actualBudget/server/Cargo.toml
+          npm --prefix actualBudget/web run check
+          npm --prefix actualBudget/web run format:check
+          npm --prefix actualBudget/web run build
+          node actualBudget/tools/generate-opening-balances.mjs --check
+          node actualBudget/tools/generate-register.mjs --check
+          node actualBudget/tools/generate-calculator.mjs --check
+          python3 -m venv "$RUNNER_TEMP/contract-check"
+          "$RUNNER_TEMP/contract-check/bin/pip" install jsonschema==4.23.0
+          "$RUNNER_TEMP/contract-check/bin/python" actualBudget/tools/contract-smoke.py
+      - name: Build the exact image that will be qualified and published
+        run: |
+          docker build --tag "$LOCAL_IMAGE" --file actualBudget/Dockerfile --label "org.opencontainers.image.revision=$GITHUB_SHA" --label "org.opencontainers.image.version=$VERSION" --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" actualBudget
+      - name: Verify real container persistence and browser workflows
+        run: python3 actualBudget/tools/container-smoke.py --image "$LOCAL_IMAGE" --browser
+      - name: Review publication dry run
+        run: python3 tools/publish.py actualBudget --before "$BEFORE" --head "$GITHUB_SHA" --channel "$CHANNEL" --repository "$GITHUB_REPOSITORY" --image "$LOCAL_IMAGE" --directory dist/actualBudget
+      - name: Log into GHCR only for an eligible publication
+        if: needs.plan.outputs.dry_run != 'true' && needs.plan.outputs.budget_publish == 'true'
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Install pinned image signing tool
+        if: needs.plan.outputs.dry_run != 'true' && needs.plan.outputs.budget_publish == 'true'
+        uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
+        with:
+          cosign-release: v3.1.4
+      - name: Sign, verify and publish; never deploy
+        if: needs.plan.outputs.dry_run != 'true' && needs.plan.outputs.budget_publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/publish.py actualBudget --before "$BEFORE" --head "$GITHUB_SHA" --channel "$CHANNEL" --repository "$GITHUB_REPOSITORY" --image "$LOCAL_IMAGE" --directory dist/actualBudget --execute
+      - name: Remove local qualification image
+        if: always()
+        run: docker image rm "$LOCAL_IMAGE" || true

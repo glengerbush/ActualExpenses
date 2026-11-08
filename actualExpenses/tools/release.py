@@ -6,6 +6,10 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
+from github_release import publish_release
 
 VERSION_FILES = ("actualExpenses/app/build.gradle.kts", "app/build.gradle.kts")
 
@@ -51,50 +55,10 @@ def plan(before, head):
     return {"release": "true", "version": current[0], "tag": f"v{current[0]}"}
 
 
-def api(path):
-    response = subprocess.run(["gh", "api", path], capture_output=True, text=True)
-    if response.returncode:
-        if "(HTTP 404)" in response.stderr:
-            return None
-        raise RuntimeError(f"GitHub request failed: {response.stderr.strip()}")
-    return json.loads(response.stdout)
-
-
 def publish(repository, sha, directory):
     version, _ = version_at(sha)
-    tag = f"v{version}"
     assets = [directory / f"ActualExpenses-{version}.apk", directory / "SHA256SUMS"]
-    if not all(path.is_file() for path in assets):
-        raise ValueError("Signed APK and checksum must exist before publishing.")
-    prefix = f"repos/{repository}"
-    ref = api(f"{prefix}/git/ref/tags/{tag}")
-    if ref is not None:
-        obj = ref["object"]
-        while obj["type"] == "tag":
-            obj = api(f"{prefix}/git/tags/{obj['sha']}")["object"]
-        if obj["type"] != "commit" or obj["sha"] != sha:
-            raise ValueError(f"Tag {tag} already points elsewhere; refusing to replace it.")
-    # REST's tag endpoint misses drafts whose tag has not been published yet.
-    # Authenticated release listing includes drafts; paginate without a fixed limit.
-    pages = json.loads(run("gh", "api", "--paginate", "--slurp", f"{prefix}/releases?per_page=100"))
-    release = next((item for page in pages for item in page if item["tag_name"] == tag), None)
-    if release is not None:
-        if ref is None and release["target_commitish"] != sha:
-            raise ValueError("Existing draft belongs to another commit.")
-        if not release["draft"]:
-            names = {asset["name"] for asset in release["assets"]}
-            if not {asset.name for asset in assets} <= names:
-                raise ValueError("Published release is missing assets; refusing to rewrite it.")
-            print(f"{tag} is already published; leaving it unchanged.")
-            return
-    else:
-        subprocess.run(["gh", "release", "create", tag, "--repo", repository,
-                        "--target", sha, "--title", f"ActualExpenses {version}",
-                        "--generate-notes", "--draft"], check=True)
-    # Upload before publication. A failed run can safely replace draft assets.
-    subprocess.run(["gh", "release", "upload", tag, *map(str, assets),
-                    "--repo", repository, "--clobber"], check=True)
-    subprocess.run(["gh", "release", "edit", tag, "--repo", repository, "--draft=false"], check=True)
+    publish_release(repository, sha, f"v{version}", f"ActualExpenses {version}", assets)
 
 
 def main():

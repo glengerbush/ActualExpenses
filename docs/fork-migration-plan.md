@@ -7,7 +7,7 @@ Status: specification published; implementation not started. The [canonical Obsi
 - Bring Actual's web application and sync server into the existing ActualExpenses repository alongside the Android companion. Discard upstream desktop support entirely from the fork. See [web-first decision](adr/0004-web-first-without-upstream-desktop.md).
 - Use top-level `actualExpenses/` for the Android expense-tracking companion and `actualBudget/` for the full web budgeting application and sync server. Keep their build tools separate, with shared documentation and release workflows at the repository root. Preserve this exact directory casing.
 - Initially produce Android APK releases and actualBudget web/server container releases. Desktop artifacts are not required for this migration.
-- Version and release actualExpenses and actualBudget independently. actualBudget's web and server share one release version; an Android-only change does not require an actualBudget release. A version bump on `main` automatically publishes the affected app after its required checks pass, using separate release tags. Exact tag conventions remain to be decided.
+- Version and release actualExpenses and actualBudget independently. actualBudget's web and server share one release version; an Android-only change does not require an actualBudget release. Accepted version bumps on `main` publish the affected app after its checks pass. New tags use `actualExpenses-vX.Y.Z` and `actualBudget-vX.Y.Z`; historical Android `v*` tags remain. See the [release workflow](releases.md) for candidate and production-acceptance gates.
 - Prepare Coolify to deploy the server and bundled web app from this repository.
 - Coolify deployments are initiated manually from the app's page, preserving the user's current update workflow as closely as possible. The user currently selects "Pull latest and restart." Publishing a release or pushing a commit must not automatically update the live server.
 - Build the production Dockerfile from `actualBudget/` in GitHub Actions and publish the server/web image to GitHub Container Registry. Point the existing Coolify Docker Image resource at our image, preserving "Pull latest and restart," port settings and the data volume. This supersedes building the source inside Coolify. See [deployment decision](adr/0003-publish-server-image-for-coolify.md).
@@ -42,7 +42,7 @@ Sources: [upstream source](https://github.com/actualbudget/actual), [26.10.0 bui
 
 ## Decisions to resolve
 
-Resolve exact release tag/image alias conventions and API/schema details during implementation, within the spec's contracts. Verify live Coolify settings and rehearse backups, staged migration and rollback before cutover. Desktop replacement mechanics and updater implementation remain deferred. Frameworks, server authority, limited offline scope and removal of login are decided.
+Resolve API/schema details during implementation, within the spec's contracts. The fork image is `ghcr.io/glengerbush/actualbudget`, with immutable version/digest references and the moving stable alias `latest`. Verify live Coolify settings and rehearse backups, staged migration and rollback before cutover. Desktop replacement mechanics and updater implementation remain deferred. Frameworks, server authority, limited offline scope and removal of login are decided.
 
 ## Current architecture — Actual 26.10.0
 

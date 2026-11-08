@@ -23,16 +23,16 @@ Each feature owner records a baseline source/function, independent fixture and e
 
 | Story | Tickets | Reference family | Replacement evidence |
 | --- | --- | --- | --- |
-| 1 | 02, 52 | Budget files, backups and migration | Pending feature acceptance |
-| 2 | 02, 52 | Budget files, backups and migration | Pending feature acceptance |
-| 3 | 02, 08 | Budget files, backups and migration | Pending feature acceptance |
-| 4 | 02, 08, 43 | Budget files, backups and migration | Pending feature acceptance |
+| 1 | 02, 52 | Budget files, backups and migration | [02: fresh HTTP web/API entry without login](open-budget-validation.md); final audit pending |
+| 2 | 02, 52 | Budget files, backups and migration | [02: no app credentials, sessions or identity flows in replacement](open-budget-validation.md); Android transition/final audit pending |
+| 3 | 02, 08 | Budget files, backups and migration | [02: create/select persistent budgets](open-budget-validation.md); rename/close/delete pending 08 |
+| 4 | 02, 08, 43 | Budget files, backups and migration | [02: remembered budget/account and draft recovery](open-budget-validation.md); broader preferences pending |
 | 5 | 04, 50 | Budget files, backups and migration | Pending feature acceptance |
 | 6 | 08, 50 | Budget files, backups and migration | Pending feature acceptance |
 | 7 | 27 | Budget files, backups and migration | Pending feature acceptance |
 | 8 | 08 | Budget files, backups and migration | Pending feature acceptance |
 | 9 | 04, 08, 50 | Budget files, backups and migration | Pending feature acceptance |
-| 10 | 02, 09 | Accounts and reconciliation | Pending feature acceptance |
+| 10 | 02, 09 | Accounts and reconciliation | [02: on/off-budget creation, notes and seven independent opening-balance cases](open-budget-validation.md); account management pending 09 |
 | 11 | 09 | Accounts and reconciliation | Pending feature acceptance |
 | 12 | 03, 09, 12 | Accounts and reconciliation | Pending feature acceptance |
 | 13 | 16 | Accounts and reconciliation | Pending feature acceptance |
@@ -124,7 +124,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 99 | 47, 52 | Public API, deployment and resources | Pending feature acceptance |
 | 100 | 34, 47, 52 | Public API, deployment and resources | Pending feature acceptance |
 | 101 | 05, 51 | Public API, deployment and resources | Pending feature acceptance |
-| 102 | 02, 48, 53 | Public API, deployment and resources | Pending feature acceptance |
+| 102 | 02, 48, 53 | Public API, deployment and resources | [02: real single-container web/API with SQLite volume replacement/replay](open-budget-validation.md); release/cutover qualification pending |
 | 103 | 01, 48, 53 | Public API, deployment and resources | Pending feature acceptance |
 | 104 | 01, 48, 53 | Public API, deployment and resources | Pending feature acceptance |
 | 105 | 48, 53 | Public API, deployment and resources | Pending feature acceptance |

@@ -45,6 +45,8 @@ claim parity for unfinished tickets. Browser interaction is included with
 
 Verified with Docker Engine 29.9.2 on Linux amd64:
 
+Source commit: `8d090124820d2bafdfe4f32a27ebf6abfdd2ce19`.
+
 ```sh
 python3 actualBudget/tools/container-smoke.py --browser
 ```
@@ -55,9 +57,12 @@ with exactly one opening transaction. Browser acceptance against this same
 container passed insecure HTTP/no SharedArrayBuffer, keyboard creation, exact
 amounts, validation retention, reload, lost-response retry, mobile layout,
 budget reselection and connection-error recovery with no uncaught errors.
+The final rerun also verified draft recovery after reload, failed browser-storage
+writes, retry after a committed response was lost across reload, and two tabs
+submitting one restored draft without creating duplicate budgets.
 
 Observed image ID:
-`sha256:ff20c3fa6962fbbecf476eef0a918ecf7a880fdae7dad32e2fd0b3e1e94de9c2`.
-Docker reported 120,339,646 bytes and runtime user `10001:10001`.
+`sha256:583740a3ebd7e39fb7204152ee5ba2332221817282c2da893d584a9e08aa0eff`.
+Docker reported 120,329,422 bytes and runtime user `10001:10001`.
 The disposable image/container/volume were removed after verification.
 This is a local qualification image, not a published release digest.

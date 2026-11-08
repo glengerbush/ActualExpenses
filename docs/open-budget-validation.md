@@ -1,6 +1,6 @@
 # Persistent budget slice — verification record
 
-Ticket 02 is in progress. This record distinguishes completed checks from pending acceptance; it does not establish full rewrite parity.
+Ticket 02 is complete in `6f3661d` plus recovery fix `8d09012`. This record establishes the persistent budget/account slice, not full rewrite parity.
 
 ## Independent opening-balance oracle
 
@@ -47,8 +47,14 @@ Fresh Astra/high reviewer: **0 findings**. Reviewed production API/storage, Svel
 
 Fresh Astra/high reviewer: **1 P2 finding**, no scope creep or other incorrect behavior identified. Creation drafts and pending request identities lived only in component memory. Verified reproduction: enter account details, interrupt creation, reload; retry state disappears and reopening the form loses values. A lost committed response similarly loses the identity needed for safe reconciliation. This violates the parent specification's unsaved-form recovery and retry-after-restart requirements; the later expense-outbox ticket does not own budget/account creation.
 
-Fix in progress: persist and restore creation drafts plus original request identity/payload before submission; cover lost committed response followed by reload and retry, ordinary draft recovery and storage failure. Ticket remains open pending this fix, focused re-verification and review.
+Fixed in `8d09012`: validated, versioned drafts preserve original payload/entity/operation identity before submission, scoped to origin and budget. Reload restores fields and requires explicit retry of an unconfirmed creation. Storage failure prevents a new POST; deterministic identities prevent duplicate creation across tabs. Confirmed-rejection cleanup cannot replace a different saved pending request.
 
-## Outstanding acceptance
+## Follow-up acceptance — `6f3661d...8d09012`
 
-Resolve the Spec review's reload-recovery finding and reverify the changed browser/container behavior before ticket closure. Later tickets cover ordinary register writes, importing real budgets, Android transport migration and the remaining financial features.
+- **Standards: 0 findings.** Shared creation state removes duplicated retry logic; persistence/recovery boundaries are clear. Svelte and Impeccable checks clean.
+- **Spec: resolved, 0 remaining findings.** Reviewer independently verified interrupted creation → reload → restored fields/request → explicit retry. No scope creep.
+- Root independently reran the browser suite: all five groups passed, including a lost committed response followed by reload and identical request replay, one resulting account/entry, ordinary draft recovery, storage failure without POST, and two tabs creating one budget.
+- Final `container-smoke.py --browser` rebuilt source commit `8d090124820d2bafdfe4f32a27ebf6abfdd2ce19` and passed container replacement/persistence plus all five browser groups. Image `sha256:583740a3ebd7e39fb7204152ee5ba2332221817282c2da893d584a9e08aa0eff`, 120,329,422 bytes, UID/GID `10001:10001`. Temporary resources removed. This supersedes the pre-fix image above.
+- Updated frontend bundle: 58.95 KB JavaScript (21.83 KB gzip). Typecheck/build, formatting, changed Svelte checks and Impeccable detector passed.
+
+All ticket 02 acceptance criteria met; parent rewrite remains active. Later tickets cover ordinary register writes, real-budget import, Android transport migration and remaining financial features. No release publication or production cutover occurred.

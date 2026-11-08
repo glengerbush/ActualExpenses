@@ -30,5 +30,6 @@ Assignments reserve ownership, not permission to bypass blocking edges. Root coo
 ## Current progress
 
 - Ticket 01: complete in `d5a49e0`; independent Standards and Spec reviews found no actionable findings. [Evidence](foundation-validation.md): 16 real-server tests with no skips, 12 release tests, signed/debug builds, lint and 3,088 verified reference files.
-- Ticket 02: in progress; implementing the no-login persistent budget/account vertical slice. Other tickets are assigned and await reviewed prerequisites.
+- Ticket 02: complete in `6f3661d` and `8d09012`; [evidence](open-budget-validation.md) includes 9 HTTP tests, 7 pinned Actual cases, browser/container restart and replay checks, and resolved independent review findings.
+- Current parallel frontier: ticket 03 (foundation, register), 43 (web_and_reports, preferences), and 48 (android_and_imports, independent release automation). Remaining tickets retain their reviewed prerequisite edges.
 - Local Docker access restored on 2026-11-08: the user added `ggg` to the docker group; `newgrp docker` lets this existing session access Docker 29.9.2 (Linux x86_64). Ticket 02 will build and exercise isolated test containers/volumes. Access verification alone does not establish successful container qualification.

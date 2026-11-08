@@ -29,6 +29,6 @@ Assignments reserve ownership, not permission to bypass blocking edges. Root coo
 
 ## Current progress
 
-- Ticket 01: implementing repository reorganization and pinned reference import; evidence pending.
-- Other tickets: assigned; implementation waits for reviewed prerequisites.
+- Ticket 01: complete in `d5a49e0`; independent Standards and Spec reviews found no actionable findings. [Evidence](foundation-validation.md): 16 real-server tests with no skips, 12 release tests, signed/debug builds, lint and 3,088 verified reference files.
+- Ticket 02: in progress; implementing the no-login persistent budget/account vertical slice. Other tickets are assigned and await reviewed prerequisites.
 - Container qualification is currently unavailable: the local Docker socket requires the docker group, and passwordless sudo is unavailable. Normal-process API/oracle tests can proceed. Do not equate them with a successful container rehearsal.

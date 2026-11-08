@@ -36,6 +36,22 @@ The source-only baseline is Actual 26.10.0 at commit `2bebdbaae0b701120a8cad9d56
 
 The [reference guide](../actualBudget/README.md) explains reproduction and the independent published-package oracle. The [parity ledger](parity-ledger.md) assigns all 107 stories to tickets and identifies reference evidence families; replacement parity remains pending its feature tests.
 
+## Review
+
+Candidate commit: `d5a49e0`; fixed review baseline: `c73bbc3`.
+
+### Standards
+
+Independent reviewer: web_and_reports. No actionable findings. Relocation, historical release detection, provenance, licensing and byte preservation match documented boundaries; no material code-smell findings. Reviewer verified all 3,088 committed hashes and passed 12 release tests.
+
+### Spec
+
+Independent reviewer: android_and_imports. No actionable findings against ticket 01. App/core Git blobs remain unchanged, source exclusions are documented, executable oracle and signing evidence are recorded, and all 107 stories are mapped with replacement evidence explicitly pending. Reviewer inspected XML confirming 16 tests with no failures/errors/skips and reran 12 release tests.
+
+Root additionally verified all retained reference bytes from the committed Git archive and reran release tests. A pre-review issue with CRLF normalization was fixed using scoped Git attributes; all 3,088 committed files now match original hashes.
+
+Standards: 0 findings; Spec: 0 findings. Ticket 01 acceptance is complete; future feature parity is not implied.
+
 ## Limits
 
 No live server, Coolify configuration, GitHub release, signing secrets or version fields changed. No device workflow was rerun for this mechanical relocation; the previously recorded device evidence remains historical. The user cannot access the Docker socket, but rootless runc is installed and user namespaces work; container rehearsal remains a separate qualification step. The source reference is deliberately not a second buildable React/Node application; the successful runnable baseline checks above use the pinned published server/API fixture as normal user processes.

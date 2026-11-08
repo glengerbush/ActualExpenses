@@ -1,0 +1,174 @@
+{
+  "oracle": "Actual 26.10.0 UI arithmetic + public API amountToInteger",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "cases": [
+    {
+      "expression": "1.005",
+      "canonical": "1.005",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 100
+    },
+    {
+      "expression": "-1.005",
+      "canonical": "-1.005",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": -100
+    },
+    {
+      "expression": "0.005",
+      "canonical": "0.005",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 1
+    },
+    {
+      "expression": "-0.005",
+      "canonical": "-0.005",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 0
+    },
+    {
+      "expression": "2.675",
+      "canonical": "2.675",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 268
+    },
+    {
+      "expression": "-2.675",
+      "canonical": "-2.675",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": -267
+    },
+    {
+      "expression": "1/3",
+      "canonical": "1/3",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 33
+    },
+    {
+      "expression": "-1/3",
+      "canonical": "-1/3",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": -33
+    },
+    {
+      "expression": "0.1+0.2",
+      "canonical": "0.1+0.2",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 30
+    },
+    {
+      "expression": "(5+3)*10",
+      "canonical": "(5+3)*10",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 8000
+    },
+    {
+      "expression": "5+3*10",
+      "canonical": "5+3*10",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 3500
+    },
+    {
+      "expression": "-2^2",
+      "canonical": "-2^2",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 400
+    },
+    {
+      "expression": "2^3^2",
+      "canonical": "2^3^2",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 51200
+    },
+    {
+      "expression": "24/3*2",
+      "canonical": "24/3*2",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 1600
+    },
+    {
+      "expression": "1+2)foo",
+      "canonical": "1+2)foo",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 300
+    },
+    {
+      "expression": "(1+2)x",
+      "canonical": "(1+2)x",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 300
+    },
+    {
+      "expression": "10+20 trailing",
+      "canonical": "10+20 trailing",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 3000
+    },
+    {
+      "expression": "1+2(3",
+      "canonical": "1+2(3",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 300
+    },
+    {
+      "expression": "$1,222.45 + $2.55",
+      "canonical": "1222.45+2.55",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 122500
+    },
+    {
+      "expression": "1 222,45 + 2,55",
+      "canonical": "1222.45+2.55",
+      "number_format": "space-comma",
+      "decimal_places": 2,
+      "expected": 122500
+    },
+    {
+      "expression": "1’222.45 + 2.55",
+      "canonical": "1222.45+2.55",
+      "number_format": "apostrophe-dot",
+      "decimal_places": 2,
+      "expected": 122500
+    },
+    {
+      "expression": "1.5",
+      "canonical": "1.5",
+      "number_format": "comma-dot",
+      "decimal_places": 0,
+      "expected": 2
+    },
+    {
+      "expression": "-1.5",
+      "canonical": "-1.5",
+      "number_format": "comma-dot",
+      "decimal_places": 0,
+      "expected": -1
+    },
+    {
+      "expression": "90071992547409.91",
+      "canonical": "90071992547409.91",
+      "number_format": "comma-dot",
+      "decimal_places": 2,
+      "expected": 9007199254740991
+    }
+  ]
+}

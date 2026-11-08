@@ -37,6 +37,18 @@ Root independently ran `uv run actualBudget/tools/contract-smoke.py` successfull
 - `python3 actualBudget/tools/container-smoke.py --browser` built the real Dockerfile and passed the same-origin HTML/JS/CSS checks, exact opening balance, complete container replacement with retained volume, and replay leaving one account/one opening entry. The browser suite also passed against that exact image over an insecure HTTP origin.
 - Verified image: `sha256:ff20c3fa6962fbbecf476eef0a918ecf7a880fdae7dad32e2fd0b3e1e94de9c2`, 120,339,646 bytes, runtime UID/GID `10001:10001`, read-only root filesystem during the test. Temporary image/container/volume removed; no live data accessed. See [container evidence](../actualBudget/tools/container-smoke.md).
 
+## Independent review — `611c1d2...6f3661d`
+
+### Standards
+
+Fresh Astra/high reviewer: **0 findings**. Reviewed production API/storage, Svelte UI, tests, oracle generation and container build against documented standards; no material Fowler smells. Svelte autofixers and Impeccable detector clean; mobile/enlarged rendering inspected.
+
+### Spec
+
+Fresh Astra/high reviewer: **1 P2 finding**, no scope creep or other incorrect behavior identified. Creation drafts and pending request identities lived only in component memory. Verified reproduction: enter account details, interrupt creation, reload; retry state disappears and reopening the form loses values. A lost committed response similarly loses the identity needed for safe reconciliation. This violates the parent specification's unsaved-form recovery and retry-after-restart requirements; the later expense-outbox ticket does not own budget/account creation.
+
+Fix in progress: persist and restore creation drafts plus original request identity/payload before submission; cover lost committed response followed by reload and retry, ordinary draft recovery and storage failure. Ticket remains open pending this fix, focused re-verification and review.
+
 ## Outstanding acceptance
 
-Independent implementation reviews remain pending before ticket closure. Later tickets cover ordinary register writes, importing real budgets, Android transport migration and the remaining financial features.
+Resolve the Spec review's reload-recovery finding and reverify the changed browser/container behavior before ticket closure. Later tickets cover ordinary register writes, importing real budgets, Android transport migration and the remaining financial features.

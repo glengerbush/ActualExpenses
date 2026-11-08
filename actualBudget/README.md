@@ -14,9 +14,17 @@ cargo build --locked --manifest-path actualBudget/server/Cargo.toml
 ACTUALBUDGET_DATA_DIR=/tmp/actualbudget-development ACTUALBUDGET_WEB_DIR="$PWD/actualBudget/web/dist" actualBudget/server/target/debug/actualbudget-server
 ```
 
-Open http://127.0.0.1:5006. The chosen data directory persists across process restarts. Use a disposable directory for tests. `ACTUALBUDGET_HOST` defaults to loopback; the container binds all interfaces. `ACTUALBUDGET_PORT` defaults to 5006. No login or SharedArrayBuffer is required. Budget/account selection is remembered in browser storage; disabled browser storage does not affect server persistence.
+Open http://127.0.0.1:5006. The chosen data directory persists across process restarts. Use a disposable directory for tests. `ACTUALBUDGET_HOST` defaults to loopback; the container binds all interfaces. `ACTUALBUDGET_PORT` defaults to 5006. No login or SharedArrayBuffer is required. Budget/account selection and creation drafts are remembered in browser storage. Reading existing server data remains available when storage is disabled, but creation requires working browser storage so its request identity can survive reloads.
 
 `GET /api/v1/info` publishes capabilities; `GET /api/v1/openapi.json` publishes the machine-readable v1 contract. Monetary amounts are signed integer minor units bounded by JavaScript's exact integer range; the initial web form displays two decimal places. Currency/display preferences are a later slice.
+
+## Recover creation drafts
+
+Budget creation uses an origin-scoped versioned localStorage record; account creation uses a separate record for each budget UUID. Field changes are saved as entered, including incomplete values. Reloading restores the matching form. Submitted bodies, entity IDs and idempotency keys are persisted before POST and remain immutable until the outcome is acknowledged. A recovered pending creation requires an explicit **Retry creation**; it is never sent automatically or in the background.
+
+Acknowledgement or an intentional cancellation of an unsubmitted draft removes its record. A confirmed validation rejection preserves editable fields. Unknown, malformed, mismatched-origin or mismatched-budget records are retained and reported instead of being delivered or overwritten. A storage error is visible and blocks a new POST; it does not erase the current fields. Clearing browser data manually removes local drafts, so avoid doing that while a creation is unconfirmed.
+
+A draft's UUID also identifies its operation and resulting entity. Two tabs submitting the same saved draft therefore cannot create two entities. Different payloads using that identity receive a conflict rather than silently replacing the first creation; this does not provide collaborative form editing.
 
 ## Verify the slice
 
@@ -27,7 +35,7 @@ uv run actualBudget/tools/contract-smoke.py
 python3 actualBudget/tools/container-smoke.py
 ```
 
-Build the Rust binary and web assets first. Browser tests automatically launch that binary on a free port with a fresh temporary data directory, then stop it and remove the directory. Chromium (`CHROMIUM_PATH` overrides `/usr/bin/chromium`) maps `actualbudget.test` to loopback while retaining an insecure origin, exercising real LAN-HTTP restrictions. `ACTUALBUDGET_TEST_URL` may explicitly target an already running **isolated test server**; never use a live budget server. Tests create budgets, verify real server responses, inject a lost committed response, and capture desktop/mobile/200%-text screenshots in ignored `web/test-results/`.
+Build the Rust binary and web assets first. Browser tests automatically launch that binary on a free port with a fresh temporary data directory, then stop it and remove the directory. Chromium (`CHROMIUM_PATH` overrides `/usr/bin/chromium`) maps `actualbudget.test` to loopback while retaining an insecure origin, exercising real LAN-HTTP restrictions. `ACTUALBUDGET_TEST_URL` may explicitly target an already running **isolated test server**; never use a live budget server. Tests create budgets, verify real server responses, inject a lost committed response then reload/retry, verify draft/storage-failure and two-tab behavior, and capture desktop/mobile/200%-text screenshots in ignored `web/test-results/`.
 
 The contract smoke uses a disposable server and a pinned JSON Schema validator managed by `uv` to check real API responses against the served contract. The container smoke builds the Dockerfile, uses a unique temporary volume, creates data through HTTP, recreates the container and checks persistence. It removes its test resources. It never uses the production volume. Build manually with `docker build -f actualBudget/Dockerfile -t actualbudget:local actualBudget`.
 

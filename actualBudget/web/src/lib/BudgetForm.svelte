@@ -1,94 +1,87 @@
 <script lang="ts">
-  import {
-    errorMessage,
-    request,
-    RequestError,
-    uuid,
-    type Budget,
-  } from "./api";
+  import { onMount } from "svelte";
+  import type { Budget } from "./api";
+  import { CreationSession } from "./CreationSession.svelte";
+  import { newBudgetDraft, type BudgetDraft } from "./drafts";
   let {
     oncreated,
     oncancel,
   }: { oncreated: (budget: Budget) => void; oncancel: () => void } = $props();
-  let name = $state("");
-  let method = $state<"tracking" | "envelope">("tracking");
-  let busy = $state(false);
-  let error = $state("");
-  let uncertain = $state(false);
-  let pending: { body: Budget; key: string } | undefined;
+  const session = new CreationSession<BudgetDraft, Budget>(newBudgetDraft);
   async function submit(event: SubmitEvent) {
     event.preventDefault();
-    if (busy) return;
-    if (!name.trim()) {
-      error = "Enter a budget name.";
-      return;
-    }
-    if (!uncertain)
-      pending = {
-        body: { id: uuid(), name: name.trim(), budget_type: method },
-        key: uuid(),
-      };
-    busy = true;
-    error = "";
-    try {
-      const result = await request<{ data: Budget }>(
-        "/budgets",
-        pending!.body,
-        pending!.key,
-      );
-      oncreated(result.data);
-    } catch (e) {
-      error = errorMessage(e);
-      uncertain = e instanceof RequestError && e.uncertain;
-    } finally {
-      busy = false;
-    }
+    const result = await session.submit();
+    if (result) oncreated(result);
   }
+  function cancel() {
+    if (session.cancel()) oncancel();
+  }
+  onMount(() => session.load());
 </script>
 
 <section class="form-section" aria-labelledby="budget-form-title">
   <h1 id="budget-form-title">New budget</h1>
   <p class="muted">Keep related accounts together in one budget.</p>
-  <form onsubmit={submit} aria-busy={busy}>
-    <fieldset disabled={busy || uncertain}>
-      <label for="budget-name">Budget name</label>
-      <input
-        id="budget-name"
-        bind:value={name}
-        required
-        maxlength="120"
-        autocomplete="off"
-      />
-      <label for="budget-method">Budgeting method</label>
-      <select
-        id="budget-method"
-        bind:value={method}
-        aria-describedby="method-hint"
-        ><option value="tracking">Tracking</option><option value="envelope"
-          >Envelope</option
-        ></select
-      >
-      <p id="method-hint" class="hint">
-        Tracking follows income and spending. Envelope assigns money to
-        categories.
-      </p>
-    </fieldset>
-    {#if error}<div class="error" role="alert">
-        {error}{#if uncertain}<p>
-            The outcome is unconfirmed. Retry this request before changing its
-            details.
-          </p>{/if}
-      </div>{/if}
-    <div class="actions">
-      <button class="primary" disabled={busy}
-        >{busy
-          ? "Creating…"
-          : uncertain
-            ? "Retry creation"
-            : "Create budget"}</button
-      ><button type="button" onclick={oncancel} disabled={busy || uncertain}
-        >Cancel</button
-      >
-    </div>
-  </form>
+  {#if session.restored}<p class="hint" role="status">
+      Recovered your saved draft.
+    </p>{/if}
+  {#if session.draft}
+    <form onsubmit={submit} aria-busy={session.busy}>
+      <fieldset disabled={session.busy || !!session.draft.pending}>
+        <label for="budget-name">Budget name</label>
+        <input
+          id="budget-name"
+          bind:value={
+            () => session.draft!.fields.name,
+            (value) => session.update({ name: value })
+          }
+          required
+          maxlength="120"
+          autocomplete="off"
+        />
+        <label for="budget-method">Budgeting method</label>
+        <select
+          id="budget-method"
+          bind:value={
+            () => session.draft!.fields.method,
+            (value) => session.update({ method: value })
+          }
+          aria-describedby="method-hint"
+          ><option value="tracking">Tracking</option><option value="envelope"
+            >Envelope</option
+          ></select
+        >
+        <p id="method-hint" class="hint">
+          Tracking follows income and spending. Envelope assigns money to
+          categories.
+        </p>
+      </fieldset>
+      {#if session.error}<div class="error" role="alert">
+          {session.error}
+        </div>{/if}
+      {#if session.draft.pending && !session.busy}<p
+          class="error"
+          role="status"
+        >
+          The outcome is unconfirmed. Retry this saved request before changing
+          its details.
+        </p>{/if}
+      <div class="actions">
+        <button class="primary" disabled={session.busy}
+          >{session.busy
+            ? "Creating…"
+            : session.draft.pending
+              ? "Retry creation"
+              : "Create budget"}</button
+        ><button
+          type="button"
+          onclick={cancel}
+          disabled={session.busy || !!session.draft.pending}>Cancel</button
+        >
+      </div>
+    </form>
+  {:else}
+    {#if session.error}<p class="error" role="alert">{session.error}</p>{/if}
+    <button onclick={() => session.load()}>Retry draft recovery</button>
+  {/if}
 </section>

@@ -1,13 +1,8 @@
 <script lang="ts">
-  import {
-    errorMessage,
-    request,
-    RequestError,
-    uuid,
-    type Account,
-    type NewAccount,
-  } from "./api";
-  import { parseAmount, today } from "./money";
+  import { onMount } from "svelte";
+  import type { Account } from "./api";
+  import { CreationSession } from "./CreationSession.svelte";
+  import { newAccountDraft, type AccountDraft } from "./drafts";
   let {
     budgetId,
     oncreated,
@@ -17,47 +12,18 @@
     oncreated: (account: Account) => void;
     oncancel: () => void;
   } = $props();
-  let name = $state("");
-  let balance = $state("0.00");
-  let date = $state(today());
-  let offBudget = $state(false);
-  let notes = $state("");
-  let busy = $state(false);
-  let error = $state("");
-  let uncertain = $state(false);
-  let pending: { body: NewAccount; key: string } | undefined;
+  const session = new CreationSession<AccountDraft, Account>(() =>
+    newAccountDraft(budgetId),
+  );
   async function submit(event: SubmitEvent) {
     event.preventDefault();
-    if (busy) return;
-    error = "";
-    try {
-      if (!name.trim()) throw new Error("Enter an account name.");
-      if (!uncertain)
-        pending = {
-          body: {
-            id: uuid(),
-            name: name.trim(),
-            off_budget: offBudget,
-            opening_balance: parseAmount(balance),
-            opening_date: date,
-            notes,
-          },
-          key: uuid(),
-        };
-      busy = true;
-      const result = await request<{ data: Account }>(
-        `/budgets/${budgetId}/accounts`,
-        pending!.body,
-        pending!.key,
-      );
-      oncreated(result.data);
-    } catch (e) {
-      error = errorMessage(e);
-      uncertain = e instanceof RequestError && e.uncertain;
-    } finally {
-      busy = false;
-    }
+    const result = await session.submit();
+    if (result) oncreated(result);
   }
+  function cancel() {
+    if (session.cancel()) oncancel();
+  }
+  onMount(() => session.load());
 </script>
 
 <section class="form-section" aria-labelledby="account-form-title">
@@ -65,71 +31,104 @@
   <p class="muted">
     Start with the balance on the date you want to track from.
   </p>
-  <form onsubmit={submit} aria-busy={busy}>
-    <fieldset disabled={busy || uncertain}>
-      <label for="account-name">Account name</label><input
-        id="account-name"
-        bind:value={name}
-        required
-        maxlength="120"
-        autocomplete="off"
-      />
-      <div class="form-row">
-        <div>
-          <label for="opening-balance">Opening balance</label><input
-            id="opening-balance"
-            bind:value={balance}
-            inputmode="decimal"
-            required
-            aria-describedby="balance-hint"
-          />
-          <p id="balance-hint" class="hint">Use a minus sign for money owed.</p>
+  {#if session.restored}<p class="hint" role="status">
+      Recovered your saved draft.
+    </p>{/if}
+  {#if session.draft}
+    <form onsubmit={submit} aria-busy={session.busy}>
+      <fieldset disabled={session.busy || !!session.draft.pending}>
+        <label for="account-name">Account name</label><input
+          id="account-name"
+          bind:value={
+            () => session.draft!.fields.name,
+            (value) => session.update({ name: value })
+          }
+          required
+          maxlength="120"
+          autocomplete="off"
+        />
+        <div class="form-row">
+          <div>
+            <label for="opening-balance">Opening balance</label><input
+              id="opening-balance"
+              maxlength="128"
+              bind:value={
+                () => session.draft!.fields.balance,
+                (value) => session.update({ balance: value })
+              }
+              inputmode="decimal"
+              required
+              aria-describedby="balance-hint"
+            />
+            <p id="balance-hint" class="hint">
+              Use a minus sign for money owed.
+            </p>
+          </div>
+          <div>
+            <label for="opening-date">Opening date</label><input
+              id="opening-date"
+              type="date"
+              min="0001-01-01"
+              max="9999-12-31"
+              bind:value={
+                () => session.draft!.fields.date,
+                (value) => session.update({ date: value })
+              }
+              required
+            />
+          </div>
         </div>
-        <div>
-          <label for="opening-date">Opening date</label><input
-            id="opening-date"
-            type="date"
-            min="0001-01-01"
-            max="9999-12-31"
-            bind:value={date}
-            required
-          />
-        </div>
+        <label for="account-type">Account type</label><select
+          id="account-type"
+          bind:value={
+            () => session.draft!.fields.off_budget,
+            (value) => session.update({ off_budget: value })
+          }
+          ><option value={false}>On budget</option><option value={true}
+            >Off budget</option
+          ></select
+        >
+        <p class="hint">
+          Off-budget accounts track assets or debts outside your spending
+          budget.
+        </p>
+        <label for="account-notes"
+          >Notes <span class="muted">(optional)</span></label
+        ><textarea
+          id="account-notes"
+          bind:value={
+            () => session.draft!.fields.notes,
+            (value) => session.update({ notes: value })
+          }
+          rows="3"
+          maxlength="10000"></textarea>
+      </fieldset>
+      {#if session.error}<div class="error" role="alert">
+          {session.error}
+        </div>{/if}
+      {#if session.draft.pending && !session.busy}<p
+          class="error"
+          role="status"
+        >
+          The outcome is unconfirmed. Retry this saved request before changing
+          its details.
+        </p>{/if}
+      <div class="actions">
+        <button class="primary" disabled={session.busy}
+          >{session.busy
+            ? "Creating…"
+            : session.draft.pending
+              ? "Retry creation"
+              : "Create account"}</button
+        ><button
+          type="button"
+          onclick={cancel}
+          disabled={session.busy || !!session.draft.pending}>Cancel</button
+        >
       </div>
-      <label for="account-type">Account type</label><select
-        id="account-type"
-        bind:value={offBudget}
-        ><option value={false}>On budget</option><option value={true}
-          >Off budget</option
-        ></select
-      >
-      <p class="hint">
-        Off-budget accounts track assets or debts outside your spending budget.
-      </p>
-      <label for="account-notes"
-        >Notes <span class="muted">(optional)</span></label
-      ><textarea
-        id="account-notes"
-        bind:value={notes}
-        rows="3"
-        maxlength="10000"></textarea>
-    </fieldset>
-    {#if error}<div class="error" role="alert">
-        {error}{#if uncertain}<p>
-            The outcome is unconfirmed. Retry this request before changing its
-            details.
-          </p>{/if}
-      </div>{/if}
-    <div class="actions">
-      <button class="primary" disabled={busy}
-        >{busy
-          ? "Creating…"
-          : uncertain
-            ? "Retry creation"
-            : "Create account"}</button
-      ><button type="button" onclick={oncancel} disabled={busy || uncertain}
-        >Cancel</button
-      >
-    </div>
-  </form>
+    </form>
+  {:else}
+    {#if session.error}<p class="error" role="alert">{session.error}</p>{/if}
+    <button onclick={() => session.load()}>Retry draft recovery</button>
+  {/if}
 </section>

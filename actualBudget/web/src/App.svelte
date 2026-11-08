@@ -10,6 +10,7 @@
     type Account,
   } from "./lib/api";
   import { formatAmount } from "./lib/money";
+  import { readDraft } from "./lib/drafts";
   import BudgetForm from "./lib/BudgetForm.svelte";
   import AccountForm from "./lib/AccountForm.svelte";
   import AccountView from "./lib/AccountView.svelte";
@@ -19,6 +20,7 @@
   let account = $state.raw<Account | null>(null);
   let loading = $state(true);
   let error = $state("");
+  let recoveryError = $state("");
   let form = $state<"budget" | "account" | null>(null);
   let main: HTMLElement | undefined;
   let retry = $state<() => Promise<void>>(initialize);
@@ -39,6 +41,15 @@
           "This server uses an unsupported API version. Update the app and server together.",
         );
       budgets = await list<Budget>("/budgets");
+      recoveryError = "";
+      try {
+        if (readDraft({ kind: "budget" })) {
+          form = "budget";
+          return;
+        }
+      } catch (e) {
+        recoveryError = errorMessage(e);
+      }
       const saved = loadSelection();
       const found = budgets.find((b) => b.id === saved.budgetId);
       if (found) await openBudget(found, saved.accountId);
@@ -49,6 +60,7 @@
     }
   }
   async function openBudget(value: Budget, accountId?: string) {
+    recoveryError = "";
     budget = value;
     account = null;
     accounts = [];
@@ -60,6 +72,12 @@
       accounts = await list<Account>(`/budgets/${value.id}/accounts`);
       account = accounts.find((a) => a.id === accountId) ?? null;
       saveSelection(value.id, account?.id);
+      try {
+        if (readDraft({ kind: "account", budget_id: value.id }))
+          form = "account";
+      } catch (e) {
+        recoveryError = errorMessage(e);
+      }
     } catch (e) {
       error = errorMessage(e);
     } finally {
@@ -68,6 +86,7 @@
     }
   }
   async function showBudgets() {
+    recoveryError = "";
     budget = null;
     account = null;
     accounts = [];
@@ -83,15 +102,16 @@
     await focusContent();
   }
   async function showForm(value: "budget" | "account" | null) {
+    recoveryError = "";
     form = value;
     await focusContent();
   }
   async function budgetCreated(value: Budget) {
-    budgets = [...budgets, value];
+    budgets = [...budgets.filter((b) => b.id !== value.id), value];
     await openBudget(value);
   }
   async function accountCreated(value: Account) {
-    accounts = [...accounts, value];
+    accounts = [...accounts.filter((a) => a.id !== value.id), value];
     form = null;
     await selectAccount(value);
   }
@@ -146,6 +166,9 @@
     tabindex="-1"
     aria-busy={loading}
   >
+    {#if recoveryError && !form}<p class="error" role="alert">
+        {recoveryError}
+      </p>{/if}
     {#if loading}<div class="loading" role="status">
         <h1>Opening your budget…</h1>
         <div class="skeleton"></div>

@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+"""Build and verify a disposable actualBudget container through its public HTTP API.
+
+Uses only new, randomly named resources. Never opens an existing budget volume.
+Requires Docker and Python 3. Run from any directory; no extra Python packages.
+"""
+
+import argparse
+from html.parser import HTMLParser
+import json
+import os
+from pathlib import Path
+import subprocess
+import time
+import urllib.error
+import urllib.request
+from urllib.parse import urljoin, urlsplit
+import uuid
+
+
+def docker(*args, capture=True, check=True):
+    return subprocess.run(
+        ["docker", *args], check=check, text=True,
+        stdout=subprocess.PIPE if capture else None,
+    ).stdout
+
+
+def request(base, path, payload=None, headers=None):
+    data = None if payload is None else json.dumps(payload).encode()
+    request_headers = {"Content-Type": "application/json", **(headers or {})}
+    with urllib.request.urlopen(urllib.request.Request(
+        base + path, data=data, headers=request_headers,
+    ), timeout=5) as response:
+        assert response.status == (200 if payload is None else 201), (path, response.status)
+        return json.load(response)
+
+
+def start(image, container, volume):
+    docker("run", "--detach", "--name", container, "--read-only",
+           "--cap-drop=ALL", "--security-opt=no-new-privileges",
+           "--tmpfs", "/tmp:rw,noexec,nosuid,size=16m",
+           "--publish", "127.0.0.1::5006",
+           "--mount", f"type=volume,src={volume},dst=/data", image)
+    address = docker("port", container, "5006/tcp").strip()
+    base = "http://" + address
+    deadline = time.monotonic() + 30
+    while True:
+        try:
+            info = request(base, "/api/v1/info")
+            assert info["data"]["api_version"] == 1, info
+            assert info["data"]["authentication"] == "none", info
+            return base
+        except (urllib.error.URLError, TimeoutError, ConnectionError):
+            if time.monotonic() >= deadline:
+                raise RuntimeError("Container did not become ready within 30 seconds")
+            time.sleep(0.2)
+
+
+class AssetLinks(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.scripts = []
+        self.styles = []
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "script" and attrs.get("type") == "module" and attrs.get("src"):
+            self.scripts.append(attrs["src"])
+        if tag == "link" and attrs.get("rel") == "stylesheet" and attrs.get("href"):
+            self.styles.append(attrs["href"])
+
+
+def verify_web_assets(base):
+    with urllib.request.urlopen(base, timeout=5) as response:
+        assert "text/html" in response.headers["Content-Type"]
+        index = response.read().decode()
+    links = AssetLinks()
+    links.feed(index)
+    assert links.scripts and links.styles, "Built HTML must reference JavaScript and CSS"
+    for path in links.scripts + links.styles:
+        url = urljoin(base, path)
+        assert urlsplit(url).netloc == urlsplit(base).netloc, "Assets must be self-contained"
+        with urllib.request.urlopen(url, timeout=5) as response:
+            assert "text/html" not in response.headers["Content-Type"], path
+            assert response.read(), f"Empty bundled asset: {path}"
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--image", help="Test an already-built image instead of building")
+    parser.add_argument("--browser", action="store_true",
+                        help="Also run web browser acceptance against the container (requires web test dependencies)")
+    args = parser.parse_args()
+    prefix = "actualbudget-smoke-" + uuid.uuid4().hex
+    container, volume = prefix + "-app", prefix + "-data"
+    image = args.image or prefix + ":test"
+    project = Path(__file__).resolve().parents[1]
+    try:
+        if not args.image:
+            docker("build", "--tag", image, "--file", str(project / "Dockerfile"),
+                   str(project), capture=False)
+        docker("volume", "create", volume)
+        base = start(image, container, volume)
+        verify_web_assets(base)
+
+        budget_id, account_id = str(uuid.uuid4()), str(uuid.uuid4())
+        budget = request(base, "/api/v1/budgets", {
+            "id": budget_id, "name": "Container persistence", "budget_type": "tracking",
+        }, {"Idempotency-Key": str(uuid.uuid4())})["data"]
+        assert budget["id"] == budget_id, budget
+        account_path = f"/api/v1/budgets/{budget_id}/accounts"
+        account_key = {"Idempotency-Key": str(uuid.uuid4())}
+        account_body = {
+            "id": account_id, "name": "Spending", "notes": "", "off_budget": False,
+            "opening_balance": 123456, "opening_date": "2026-11-08",
+        }
+        account = request(base, account_path, account_body, account_key)["data"]
+        assert account["balance"] == 123456, account
+
+        # Recreate, not just restart, to prove the image's writable layer is dispensable.
+        docker("stop", "--time", "10", container)
+        docker("rm", container)
+        base = start(image, container, volume)
+        assert request(base, account_path, account_body, account_key)["data"] == account
+        budgets = request(base, "/api/v1/budgets")["data"]
+        assert any(item["id"] == budget_id for item in budgets), budgets
+        accounts = request(base, f"/api/v1/budgets/{budget_id}/accounts")["data"]
+        restored = next(item for item in accounts if item["id"] == account_id)
+        assert restored["name"] == "Spending" and restored["balance"] == 123456, restored
+        assert len(accounts) == 1, accounts
+        transactions = request(base, f"/api/v1/budgets/{budget_id}/transactions?account_id={account_id}")["data"]
+        assert len(transactions) == 1, transactions
+        opening = transactions[0]
+        assert opening["amount"] == 123456 and opening["date"] == "2026-11-08", opening
+        assert opening["starting_balance"] is True, opening
+        if args.browser:
+            environment = dict(os.environ, ACTUALBUDGET_TEST_URL=f"http://actualbudget.test:{urlsplit(base).port}")
+            subprocess.run(["npm", "--prefix", str(project / "web"), "run", "test:browser"],
+                           env=environment, check=True)
+        print("PASS: plain HTTP, no login, bundled web assets, exact opening balance, "
+              "persistence and idempotent retry after container replacement")
+        print(docker("image", "inspect", "--format",
+                     'image={{.Id}} bytes={{.Size}} user={{.Config.User}}', image).strip())
+    except BaseException:
+        docker("logs", container, capture=False, check=False)
+        raise
+    finally:
+        docker("rm", "--force", container, check=False)
+        docker("volume", "rm", volume, check=False)
+        if not args.image:
+            docker("image", "rm", image, check=False)
+
+
+if __name__ == "__main__":
+    main()

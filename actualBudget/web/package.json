@@ -1,0 +1,25 @@
+{
+  "name": "actualbudget-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "build": "vite build",
+    "test:browser": "node tests/browser.mjs",
+    "format:check": "prettier --plugin=prettier-plugin-svelte --check \"src/**/*.{ts,svelte,css}\" \"tests/*.mjs\" package.json tsconfig.json vite.config.ts index.html"
+  },
+  "dependencies": {
+    "svelte": "5.57.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "prettier": "3.9.10",
+    "prettier-plugin-svelte": "4.1.1",
+    "svelte-check": "4.7.8",
+    "typescript": "5.9.3",
+    "vite": "8.3.6"
+  }
+}

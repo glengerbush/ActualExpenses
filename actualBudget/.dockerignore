@@ -1,0 +1,19 @@
+# Only application sources enter the build; the pinned reference is research material.
+**
+!server/
+!server/**
+!web/
+!web/**
+server/target/
+web/node_modules/
+web/dist/
+web/test-results/
+web/playwright-report/
+**/.env
+**/.env.*
+**/*.jks
+**/*.keystore
+**/*.sqlite
+**/*.sqlite-*
+**/*.db
+**/*.db-*

@@ -1,11 +1,17 @@
-# ActualExpenses
+# actualExpenses and actualBudget
 
-A focused expense-entry companion to Actual Budget.
+Two applications sharing a budget: focused expense tracking and full budgeting.
 
 ## Language
 
+**actualExpenses**:
+The Android companion for recording and managing expenses in a selected account. Its scope is expense tracking.
+
+**actualBudget**:
+The full web application for managing budgets, including features beyond expense tracking. A desktop application is deferred.
+
 **Budget**:
-The Actual budget containing the accounts and transactions used by an installation of ActualExpenses. The user chooses one budget during setup.
+An independent financial dataset containing accounts, transactions, categories and a budgeting plan. actualBudget can manage multiple budgets; actualExpenses selects one during setup.
 _Avoid_: Account
 
 **Account**:
@@ -31,5 +37,11 @@ An expense marked cleared in Actual. New expenses from ActualExpenses are marked
 A transaction marked reconciled in Actual. These entries are excluded from ActualExpenses.
 
 **Pending change**:
-A transaction addition, modification, or deletion saved on the phone that has not yet been confirmed by Actual. “Edits” includes deletions when discussing sync behavior.
+A transaction addition, modification, or deletion saved on a device that has not yet been confirmed by the budget server. “Edits” includes deletions when discussing sync behavior.
 _Avoid_: Synced transaction
+
+**Cached view**:
+A previously retrieved view of budget information available on a device while disconnected. It can be older than the current budget and is not a separate authoritative budget.
+
+**Offline expense capture**:
+Recording an expense while disconnected, with correction or deletion allowed before that offline-created expense is delivered. This does not imply full offline budgeting.

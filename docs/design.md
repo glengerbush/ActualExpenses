@@ -2,7 +2,7 @@
 
 Status: Approved and implemented on 2026-10-16. See [validation evidence and remaining qualification limits](validation.md) and [implementation review](review.md).
 
-Published spec: [ActualExpenses Android Expense Entry Spec](</home/ggg/Documents/pileOfNotes/Work/Issues/ActualExpenses Android Expense Entry Spec.md>).
+The original published issue is no longer in the tracker; this document preserves its implemented requirements. The [actualBudget web rewrite spec](</home/ggg/Documents/pileOfNotes/ActualExpenses/Issues/ActualBudget Web Rewrite Spec.md>) governs the future server/API transition and removes application login. Authentication and native-protocol references below describe the released Android baseline, not the replacement architecture.
 
 ## Confirmed scope
 

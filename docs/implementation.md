@@ -31,4 +31,4 @@ Assignments reserve ownership, not permission to bypass blocking edges. Root coo
 
 - Ticket 01: complete in `d5a49e0`; independent Standards and Spec reviews found no actionable findings. [Evidence](foundation-validation.md): 16 real-server tests with no skips, 12 release tests, signed/debug builds, lint and 3,088 verified reference files.
 - Ticket 02: in progress; implementing the no-login persistent budget/account vertical slice. Other tickets are assigned and await reviewed prerequisites.
-- Container qualification is currently unavailable: the local Docker socket requires the docker group, and passwordless sudo is unavailable. Normal-process API/oracle tests can proceed. Do not equate them with a successful container rehearsal.
+- Local Docker access restored on 2026-11-08: the user added `ggg` to the docker group; `newgrp docker` lets this existing session access Docker 29.9.2 (Linux x86_64). Ticket 02 will build and exercise isolated test containers/volumes. Access verification alone does not establish successful container qualification.

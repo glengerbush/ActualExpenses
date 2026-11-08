@@ -4,14 +4,18 @@ on:
   push:
     branches: [main]
     paths:
-      - app/build.gradle.kts
+      - actualExpenses/app/build.gradle.kts
       - .github/workflows/release.yml
-      - tools/release.py
-      - tools/test_release.py
+      - actualExpenses/tools/release.py
+      - actualExpenses/tools/test_release.py
   workflow_dispatch:
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    working-directory: actualExpenses
 
 jobs:
   version:
@@ -45,7 +49,7 @@ jobs:
       cancel-in-progress: false
     env:
       VERSION: ${{ needs.version.outputs.version }}
-      ACTUAL_FIXTURE: ${{ github.workspace }}/tools/compatibility/.fixture/fixture.json
+      ACTUAL_FIXTURE: ${{ github.workspace }}/actualExpenses/tools/compatibility/.fixture/fixture.json
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:

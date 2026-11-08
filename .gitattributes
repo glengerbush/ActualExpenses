@@ -1,0 +1,2 @@
+# Reference provenance hashes describe original bytes, including financial-file CRLF.
+actualBudget/reference/** -text

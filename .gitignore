@@ -6,8 +6,9 @@ local.properties
 *.keystore
 *.hprof
 .idea/
-tools/compatibility/node_modules/
-tools/compatibility/.runtime/
+node_modules/
+actualExpenses/tools/compatibility/.runtime/
 dist/
 __pycache__/
 *.pyc
+.scratch/

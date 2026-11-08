@@ -1,73 +1,10 @@
-# ActualExpenses
+# actualExpenses and actualBudget
 
-A focused native Android companion for recording expenses in one Actual budget. Select an account, add an expense, and correct recent purchases. New expenses are cleared automatically.
+Two applications sharing a budget:
 
-## Install
+- **[actualExpenses](actualExpenses/ReadMe.md)** — the released native Android expense companion. Build and run its tools from `actualExpenses/`; its application ID, signing identity and version remain unchanged.
+- **[actualBudget](actualBudget/README.md)** — the web/server replacement, based on the recorded Actual 26.10.0 behavior. The approved architecture is Svelte, Rust/Axum and SQLite. Desktop delivery is deferred.
 
-Download the signed APK from the [latest GitHub release](https://github.com/glengerbush/ActualExpenses/releases/latest), or use `app/build/outputs/apk/release/app-release.apk` after building. Install on Android 8.0 (API 26) or newer. Allow installation from your chosen file manager when Android asks. Updates must use the same signing key and retain the application ID; install over the previous version rather than uninstalling, which deletes local pending work.
+The Android [release workflow](.github/workflows/release.yml) remains at the repository root. Shared [design decisions](docs/adr/), [domain vocabulary](CONTEXT.md) and [issue-tracker instructions](docs/agents/issue-tracker.md) also remain here.
 
-Setup: server address → existing Actual password → budget → account. HTTP LAN and tailnet addresses are supported. This version supports **Actual 26.10.0, unencrypted budgets only**. It checks server and snapshot compatibility before writes. It requires no extra server service.
-
-The app remembers the account, caches recent expenses, and saves pending additions/modifications/deletions durably. Offline editing is limited to unsynced offline-created expenses; edits begun online survive connection loss. Background delivery is best-effort and runs only for pending work.
-
-## Build
-
-Requires JDK 17, Android SDK platform 35/build tools 35.0.0, and network access for Gradle dependencies. Set `JAVA_HOME` and `ANDROID_HOME`, or put `sdk.dir=/your/android-sdk` in ignored `local.properties`.
-
-```sh
-./gradlew :app:assembleDebug
-python3 tools/build-release.py --initialize-signing
-```
-
-The release helper creates a stable private signing identity under `~/.local/share/actualexpenses/signing`, then builds `app/build/outputs/apk/release/app-release.apk`. Back up that directory securely; it contains the key and its password. Subsequent builds use `python3 tools/build-release.py`. Never commit signing files. For externally managed signing, supply the `ACTUALEXPENSES_KEYSTORE`, `ACTUALEXPENSES_STORE_PASSWORD`, `ACTUALEXPENSES_KEY_ALIAS`, and `ACTUALEXPENSES_KEY_PASSWORD` environment variables directly to Gradle.
-
-## Automatic GitHub releases
-
-The [release workflow](.github/workflows/release.yml) publishes a signed APK when a push to `main` increases **both** values in `app/build.gradle.kts`, for example:
-
-```kotlin
-versionCode = 3
-versionName = "0.1.2"
-```
-
-Use plain `major.minor.patch` versions. Ordinary commits do not release; changing only one value or lowering either fails validation. Detection compares the whole push, so a bump followed by another commit in the same push still releases. Introducing the Android version for the first time is also eligible for release.
-
-Before enabling the workflow, configure its four encrypted repository secrets using the **existing** local signing identity:
-
-```sh
-gh auth login
-python3 tools/configure-release-signing.py
-```
-
-The helper targets `glengerbush/ActualExpenses` and sends `ACTUALEXPENSES_KEYSTORE_BASE64`, `ACTUALEXPENSES_STORE_PASSWORD`, `ACTUALEXPENSES_KEY_PASSWORD`, and `ACTUALEXPENSES_KEY_ALIAS` through stdin. It never prints their values or generates a replacement key. Repository access to manage Actions secrets is required. Keep the local signing backup; GitHub secrets cannot be downloaded later. Upload these secrets before pushing the workflow/application to `main`.
-
-Alternatively, add those four repository secrets manually under **Settings → Secrets and variables → Actions**. Their values are the Base64-encoded `.p12` file, the `password` from `signing.json` for both password entries, and its `alias`. The configured repository already has these secrets; future version bumps do not require uploading them again.
-
-Each release runs the automation tests, real-server integration tests (skips fail the release), and Android release lint. It builds with JDK 17/SDK 35, verifies the APK signature, then publishes tag `v<version>` with `ActualExpenses-<version>.apk`, `SHA256SUMS`, and generated release notes. The built commit is pinned to the workflow's push SHA. Android device tests remain a separate validation step.
-
-Publication uses a draft until both assets are uploaded. Rerun a failed Actions run to retry the same commit: an unfinished draft resumes, a complete published release remains unchanged, and a tag pointing at a different commit is rejected. **Actions → Release Android APK → Run workflow**, selecting `main`, can also publish/retry the current version without another bump. Use the original run when its draft/tag belongs to an earlier commit. Future state migrations still require explicit upgrade testing.
-
-Hosted release verified on 2026-10-16: [run 38996712861](https://github.com/glengerbush/ActualExpenses/actions/runs/38996712861) published [v0.1.1](https://github.com/glengerbush/ActualExpenses/releases/tag/v0.1.1) after a version bump. Its downloaded APK checksum and original signing certificate were verified. The runner uses its preinstalled Android SDK; it does not install the obsolete `tools` package. Local validation also passed nine release-automation tests and `actionlint`; independent review verified draft discovery during retry.
-
-References: [GitHub push/manual workflow events](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows), [repository secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets), [release creation](https://cli.github.com/manual/gh_release_create).
-
-## Verify
-
-Recorded results, release fingerprint, and qualification limits: [validation](docs/validation.md). Independent review: [standards and spec](docs/review.md).
-
-Start the disposable real Actual server and independent official API oracle described in [compatibility documentation](docs/compatibility.md). Then:
-
-```sh
-ACTUAL_FIXTURE="$PWD/tools/compatibility/.fixture/fixture.json" ./gradlew :core:test
-./gradlew :app:lintDebug :app:connectedDebugAndroidTest
-```
-
-The integration suite skips real-server cases when `ACTUAL_FIXTURE` is absent; skipped tests are not a compatibility pass. Never point the fixture at a real budget. The official Node API is used only as an independent test oracle; the Android app is entirely native Kotlin.
-
-## Boundaries
-
-Only ordinary, unreconciled expenses appear. Income, transfers, splits, and reconciled entries remain in Actual. Ten newest transaction dates are shown, with pending changes and the last backdated addition retained as described in the [design](docs/design.md).
-
-Native per-field logical ordering decides conflicts. An unpublished phone deletion is cancelled if a newer remote edit is discovered before publication; a publication race or already-published deletion follows Actual's native behavior without automatic restoration.
-
-The initial protocol implementation replays the sync log for correctness, and holds the snapshot/cache in memory. Large budgets need performance qualification; see [protocol limits](docs/compatibility.md#current-protocol-limits). Android encrypts local session and budget data using a Keystore key and excludes it from backup. Authentication/server failures retain pending work.
+The independent fork does not track routine upstream merges. The pinned source-only reference under actualBudget supplies feature/migration evidence; the disposable published-server harness supplies a runnable independent oracle. Neither changes the deployed server.

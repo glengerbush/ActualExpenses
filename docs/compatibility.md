@@ -4,10 +4,10 @@ The compatibility reference is Actual **26.10.0**. The harness installs the publ
 
 ## Run
 
-Requires Node 22+ and npm. From the repository:
+Requires Node 22+ and npm. From the repository root:
 
 ```sh
-cd tools/compatibility
+cd actualExpenses/tools/compatibility
 npm ci
 npm start
 ```
@@ -26,7 +26,7 @@ The ignored `.fixture/fixture.json` contains disposable credentials and endpoint
 In another terminal, validate the fixture:
 
 ```sh
-cd tools/compatibility
+cd actualExpenses/tools/compatibility
 npm run smoke
 ```
 

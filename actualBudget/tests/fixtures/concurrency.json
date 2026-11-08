@@ -1,0 +1,217 @@
+{
+  "oracle": "Actual API/sync-server 26.10.0 and its locked CRDT package",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "timestamp_source_sha256": "90d6c01ffeba8d25d5720cb3b1805f2c04e8a5535b9ba209416d44120fc885be",
+  "clocks": {
+    "physical_time": "2026-01-01T00:00:00.000Z",
+    "sends": [
+      "2026-01-01T00:00:00.000Z-0000-0000000000000000",
+      "2026-01-01T00:00:00.000Z-0001-0000000000000000",
+      "2026-01-01T00:00:00.000Z-0002-0000000000000000"
+    ],
+    "receives": [
+      {
+        "input": "2025-12-31T23:59:59.000Z-0000-0000000000000001",
+        "result": "2026-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      {
+        "input": "2026-01-01T00:05:00.000Z-0000-0000000000000001",
+        "result": "2026-01-01T00:05:00.000Z-0001-0000000000000000"
+      },
+      {
+        "input": "2026-01-01T00:05:00.001Z-0000-0000000000000001",
+        "error": "ClockDriftError"
+      }
+    ],
+    "counter_overflow": "OverflowError"
+  },
+  "scenarios": [
+    {
+      "name": "late-independent-field-and-old-same-field",
+      "id": "05000000-0000-4000-8000-000000000001",
+      "mutations": [
+        {
+          "clock": "2026-01-03T00:00:00.000Z-0000-0000000000000001",
+          "fields": {
+            "notes": "newest note"
+          }
+        },
+        {
+          "clock": "2026-01-02T00:00:00.000Z-0000-0000000000000001",
+          "fields": {
+            "amount": -250
+          }
+        },
+        {
+          "clock": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+          "fields": {
+            "notes": "older note"
+          }
+        },
+        {
+          "clock": "2026-01-02T00:00:00.000Z-0000-0000000000000001",
+          "fields": {
+            "amount": -250
+          },
+          "replay": true
+        }
+      ],
+      "initial": {
+        "amount": -100,
+        "notes": "initial",
+        "date": "2026-01-01",
+        "cleared": true,
+        "clock": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "expected": {
+        "amount": -250,
+        "notes": "newest note",
+        "tombstone": false,
+        "visible": true,
+        "field_versions": {
+          "amount": "2026-01-02T00:00:00.000Z-0000-0000000000000001",
+          "notes": "2026-01-03T00:00:00.000Z-0000-0000000000000001"
+        }
+      }
+    },
+    {
+      "name": "same-time-node-tie",
+      "id": "05000000-0000-4000-8000-000000000002",
+      "mutations": [
+        {
+          "clock": "2026-01-03T00:00:00.000Z-0001-0000000000000022",
+          "fields": {
+            "notes": "larger node"
+          }
+        },
+        {
+          "clock": "2026-01-03T00:00:00.000Z-0001-0000000000000021",
+          "fields": {
+            "notes": "smaller node arrives later"
+          }
+        }
+      ],
+      "initial": {
+        "amount": -100,
+        "notes": "initial",
+        "date": "2026-01-01",
+        "cleared": true,
+        "clock": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "expected": {
+        "amount": -100,
+        "notes": "larger node",
+        "tombstone": false,
+        "visible": true,
+        "field_versions": {
+          "notes": "2026-01-03T00:00:00.000Z-0001-0000000000000022"
+        }
+      }
+    },
+    {
+      "name": "counter-before-node",
+      "id": "05000000-0000-4000-8000-000000000003",
+      "mutations": [
+        {
+          "clock": "2026-01-03T00:00:00.000Z-0001-0000000000000033",
+          "fields": {
+            "notes": "lower counter"
+          }
+        },
+        {
+          "clock": "2026-01-03T00:00:00.000Z-0002-0000000000000031",
+          "fields": {
+            "notes": "higher counter"
+          }
+        }
+      ],
+      "initial": {
+        "amount": -100,
+        "notes": "initial",
+        "date": "2026-01-01",
+        "cleared": true,
+        "clock": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "expected": {
+        "amount": -100,
+        "notes": "higher counter",
+        "tombstone": false,
+        "visible": true,
+        "field_versions": {
+          "notes": "2026-01-03T00:00:00.000Z-0002-0000000000000031"
+        }
+      }
+    },
+    {
+      "name": "published-tombstone-with-later-ordinary-edit",
+      "id": "05000000-0000-4000-8000-000000000004",
+      "mutations": [
+        {
+          "clock": "2026-01-03T00:00:00.000Z-0000-0000000000000004",
+          "fields": {
+            "tombstone": 1
+          }
+        },
+        {
+          "clock": "2026-01-04T00:00:00.000Z-0000-0000000000000004",
+          "fields": {
+            "notes": "later hidden edit"
+          }
+        }
+      ],
+      "initial": {
+        "amount": -100,
+        "notes": "initial",
+        "date": "2026-01-01",
+        "cleared": true,
+        "clock": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "expected": {
+        "amount": -100,
+        "notes": "later hidden edit",
+        "tombstone": true,
+        "visible": false,
+        "field_versions": {
+          "notes": "2026-01-04T00:00:00.000Z-0000-0000000000000004",
+          "tombstone": "2026-01-03T00:00:00.000Z-0000-0000000000000004"
+        }
+      }
+    },
+    {
+      "name": "raw-actual-old-deletion-policy-boundary",
+      "id": "05000000-0000-4000-8000-000000000005",
+      "mutations": [
+        {
+          "clock": "2026-01-03T00:00:00.000Z-0000-0000000000000005",
+          "fields": {
+            "notes": "newer retained work"
+          }
+        },
+        {
+          "clock": "2026-01-02T00:00:00.000Z-0000-0000000000000005",
+          "fields": {
+            "tombstone": 1
+          }
+        }
+      ],
+      "policy": "Actual applies the independent tombstone field. The approved replacement rejects this unpublished deletion before publication; this scenario documents the intentional stronger policy, not direct parity.",
+      "initial": {
+        "amount": -100,
+        "notes": "initial",
+        "date": "2026-01-01",
+        "cleared": true,
+        "clock": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "expected": {
+        "amount": -100,
+        "notes": "newer retained work",
+        "tombstone": true,
+        "visible": false,
+        "field_versions": {
+          "notes": "2026-01-03T00:00:00.000Z-0000-0000000000000005",
+          "tombstone": "2026-01-02T00:00:00.000Z-0000-0000000000000005"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "baseline_commit": "0b66dc61b61314abfa4bb871cae6e62a7451b10b",
+  "schema_version": 3,
+  "provenance": "Genuine committed server binary; public HTTP writes; copied after graceful shutdown",
+  "sha256": "0f6ef102009eaae05290533c0d0b3549d43d4dd2e36b166a34136bfd3243d8f5",
+  "budget_id": "05300000-0000-4000-8000-000000000001",
+  "account_id": "05300000-0000-4000-8000-000000000002",
+  "receipts": [
+    {
+      "method": "POST",
+      "path": "/budgets",
+      "key": "v3-budget",
+      "body": {
+        "id": "05300000-0000-4000-8000-000000000001",
+        "name": "Pre-concurrency receipts",
+        "budget_type": "tracking"
+      },
+      "status": 201,
+      "response": {
+        "data": {
+          "budget_type": "tracking",
+          "id": "05300000-0000-4000-8000-000000000001",
+          "name": "Pre-concurrency receipts"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/budgets/05300000-0000-4000-8000-000000000001/accounts",
+      "key": "v3-account",
+      "body": {
+        "id": "05300000-0000-4000-8000-000000000002",
+        "name": "Spending",
+        "opening_balance": 0,
+        "opening_date": "2024-02-29"
+      },
+      "status": 201,
+      "response": {
+        "data": {
+          "balance": 0,
+          "closed": false,
+          "id": "05300000-0000-4000-8000-000000000002",
+          "name": "Spending",
+          "notes": "",
+          "off_budget": false
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/budgets/05300000-0000-4000-8000-000000000001/transactions",
+      "key": "v3-create",
+      "body": {
+        "id": "05300000-0000-4000-8000-000000000003",
+        "account_id": "05300000-0000-4000-8000-000000000002",
+        "date": "2024-02-29",
+        "amount": -1234,
+        "notes": "Original",
+        "cleared": true
+      },
+      "status": 201,
+      "response": {
+        "data": {
+          "account_id": "05300000-0000-4000-8000-000000000002",
+          "account_name": "Spending",
+          "amount": -1234,
+          "category_id": null,
+          "category_is_income": null,
+          "category_name": null,
+          "cleared": true,
+          "date": "2024-02-29",
+          "id": "05300000-0000-4000-8000-000000000003",
+          "notes": "Original",
+          "payee_id": null,
+          "payee_name": null,
+          "reconciled": false,
+          "starting_balance": false
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/budgets/05300000-0000-4000-8000-000000000001/transactions/05300000-0000-4000-8000-000000000003",
+      "key": "v3-edit",
+      "body": {
+        "amount": -234,
+        "notes": "Edited before concurrency upgrade"
+      },
+      "status": 200,
+      "response": {
+        "data": {
+          "account_id": "05300000-0000-4000-8000-000000000002",
+          "account_name": "Spending",
+          "amount": -234,
+          "category_id": null,
+          "category_is_income": null,
+          "category_name": null,
+          "cleared": true,
+          "date": "2024-02-29",
+          "id": "05300000-0000-4000-8000-000000000003",
+          "notes": "Edited before concurrency upgrade",
+          "payee_id": null,
+          "payee_name": null,
+          "reconciled": false,
+          "starting_balance": false
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/budgets/05300000-0000-4000-8000-000000000001/transactions/05300000-0000-4000-8000-000000000003/duplicate",
+      "key": "v3-duplicate",
+      "body": {
+        "id": "05300000-0000-4000-8000-000000000004"
+      },
+      "status": 201,
+      "response": {
+        "data": {
+          "account_id": "05300000-0000-4000-8000-000000000002",
+          "account_name": "Spending",
+          "amount": -234,
+          "category_id": null,
+          "category_is_income": null,
+          "category_name": null,
+          "cleared": false,
+          "date": "2024-02-29",
+          "id": "05300000-0000-4000-8000-000000000004",
+          "notes": "Edited before concurrency upgrade",
+          "payee_id": null,
+          "payee_name": null,
+          "reconciled": false,
+          "starting_balance": false
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/budgets/05300000-0000-4000-8000-000000000001/transactions/05300000-0000-4000-8000-000000000004",
+      "key": "v3-delete",
+      "body": null,
+      "status": 200,
+      "response": {
+        "data": {
+          "deleted": true,
+          "id": "05300000-0000-4000-8000-000000000004"
+        }
+      }
+    }
+  ],
+  "register": {
+    "as_of": null,
+    "balances": {
+      "cleared": -234,
+      "total": -234,
+      "uncleared": 0
+    },
+    "data": [
+      {
+        "account_id": "05300000-0000-4000-8000-000000000002",
+        "account_name": "Spending",
+        "amount": -234,
+        "category_id": null,
+        "category_is_income": null,
+        "category_name": null,
+        "cleared": true,
+        "date": "2024-02-29",
+        "id": "05300000-0000-4000-8000-000000000003",
+        "notes": "Edited before concurrency upgrade",
+        "payee_id": null,
+        "payee_name": null,
+        "reconciled": false,
+        "running_balance": -234,
+        "starting_balance": false
+      }
+    ],
+    "next_offset": null,
+    "snapshot": "r10000000000000006"
+  }
+}

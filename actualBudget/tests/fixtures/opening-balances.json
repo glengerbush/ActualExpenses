@@ -1,0 +1,159 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-10-15T12:00:00Z",
+  "timezone": "UTC",
+  "description": "Public createAccount/getAccountBalance/getTransactions outputs; randomized identities normalized to names. No live server or user data.",
+  "cases": [
+    {
+      "input": {
+        "name": "Empty spending",
+        "off_budget": false,
+        "opening_balance": 0,
+        "opening_date": "2026-10-15"
+      },
+      "expected": {
+        "balance": 0,
+        "transactions": []
+      }
+    },
+    {
+      "input": {
+        "name": "Cash",
+        "off_budget": false,
+        "opening_balance": 12345,
+        "opening_date": "2026-10-15"
+      },
+      "expected": {
+        "balance": 12345,
+        "transactions": [
+          {
+            "amount": 12345,
+            "date": "2026-10-15",
+            "cleared": true,
+            "reconciled": false,
+            "starting_balance": true,
+            "payee_name": "Starting Balance",
+            "category_name": "Starting Balances",
+            "category_is_income": true
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "name": "Credit card",
+        "off_budget": false,
+        "opening_balance": -6789,
+        "opening_date": "2026-10-15"
+      },
+      "expected": {
+        "balance": -6789,
+        "transactions": [
+          {
+            "amount": -6789,
+            "date": "2026-10-15",
+            "cleared": true,
+            "reconciled": false,
+            "starting_balance": true,
+            "payee_name": "Starting Balance",
+            "category_name": "Starting Balances",
+            "category_is_income": true
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "name": "Asset",
+        "off_budget": true,
+        "opening_balance": 234567,
+        "opening_date": "2026-10-15"
+      },
+      "expected": {
+        "balance": 234567,
+        "transactions": [
+          {
+            "amount": 234567,
+            "date": "2026-10-15",
+            "cleared": true,
+            "reconciled": false,
+            "starting_balance": true,
+            "payee_name": "Starting Balance",
+            "category_name": null,
+            "category_is_income": null
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "name": "Loan",
+        "off_budget": true,
+        "opening_balance": -345678,
+        "opening_date": "2026-10-15"
+      },
+      "expected": {
+        "balance": -345678,
+        "transactions": [
+          {
+            "amount": -345678,
+            "date": "2026-10-15",
+            "cleared": true,
+            "reconciled": false,
+            "starting_balance": true,
+            "payee_name": "Starting Balance",
+            "category_name": null,
+            "category_is_income": null
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "name": "One cent",
+        "off_budget": false,
+        "opening_balance": 1,
+        "opening_date": "2026-10-15"
+      },
+      "expected": {
+        "balance": 1,
+        "transactions": [
+          {
+            "amount": 1,
+            "date": "2026-10-15",
+            "cleared": true,
+            "reconciled": false,
+            "starting_balance": true,
+            "payee_name": "Starting Balance",
+            "category_name": "Starting Balances",
+            "category_is_income": true
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "name": "Negative cent",
+        "off_budget": true,
+        "opening_balance": -1,
+        "opening_date": "2026-10-15"
+      },
+      "expected": {
+        "balance": -1,
+        "transactions": [
+          {
+            "amount": -1,
+            "date": "2026-10-15",
+            "cleared": true,
+            "reconciled": false,
+            "starting_balance": true,
+            "payee_name": "Starting Balance",
+            "category_name": null,
+            "category_is_income": null
+          }
+        ]
+      }
+    }
+  ]
+}

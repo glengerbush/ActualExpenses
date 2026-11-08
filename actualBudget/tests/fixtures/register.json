@@ -1,0 +1,535 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-10-15T12:00:00Z",
+  "timezone": "UTC",
+  "description": "Public API mutations, AQL all-date register totals and getAccountBalance calendar cutoffs. Random opening identity normalized. Duplicate payload follows pinned UI hook; no replacement engine, sleeps, live server or user data.",
+  "input": {
+    "account": {
+      "name": "Spending",
+      "opening_balance": 10000,
+      "opening_date": "2026-10-15",
+      "off_budget": false
+    },
+    "payee": {
+      "name": "Cafe"
+    },
+    "category": {
+      "name": "Food",
+      "is_income": false
+    },
+    "transactions": [
+      {
+        "id": "10000000-0000-4000-8000-000000000001",
+        "date": "2025-12-31",
+        "amount": 20000,
+        "notes": "income",
+        "cleared": true
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000002",
+        "date": "2026-01-01",
+        "amount": -1234,
+        "notes": "expense",
+        "cleared": false,
+        "payee_name": "Cafe",
+        "category_name": "Food"
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000003",
+        "date": "2026-01-02",
+        "amount": 234,
+        "notes": "refund",
+        "cleared": true,
+        "payee_name": "Cafe",
+        "category_name": "Food"
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000004",
+        "date": "2024-02-29",
+        "amount": -500,
+        "notes": "uncategorized",
+        "cleared": false
+      },
+      {
+        "id": "10000000-0000-4000-8000-000000000005",
+        "date": "2027-01-01",
+        "amount": -100,
+        "notes": "future",
+        "cleared": true
+      }
+    ],
+    "operations": [
+      {
+        "name": "created",
+        "action": "create"
+      },
+      {
+        "name": "edited",
+        "action": "update",
+        "id": "10000000-0000-4000-8000-000000000002",
+        "patch": {
+          "amount": -1200,
+          "date": "2026-01-03",
+          "cleared": true,
+          "notes": "edited expense"
+        }
+      },
+      {
+        "name": "duplicated",
+        "action": "duplicate",
+        "source_id": "10000000-0000-4000-8000-000000000002",
+        "id": "10000000-0000-4000-8000-000000000006"
+      },
+      {
+        "name": "deleted refund",
+        "action": "delete",
+        "id": "10000000-0000-4000-8000-000000000003"
+      }
+    ]
+  },
+  "snapshots": [
+    {
+      "name": "created",
+      "balances": {
+        "total": 28400,
+        "cleared": 30134,
+        "uncleared": -1734
+      },
+      "current_api_balance": 28500,
+      "through_dates": [
+        {
+          "date": "2024-02-29",
+          "balance": -500
+        },
+        {
+          "date": "2025-12-31",
+          "balance": 19500
+        },
+        {
+          "date": "2026-01-01",
+          "balance": 18266
+        },
+        {
+          "date": "2026-01-02",
+          "balance": 18500
+        },
+        {
+          "date": "2026-10-15",
+          "balance": 28500
+        },
+        {
+          "date": "2027-01-01",
+          "balance": 28400
+        }
+      ],
+      "transactions": [
+        {
+          "id": "10000000-0000-4000-8000-000000000001",
+          "date": "2025-12-31",
+          "amount": 20000,
+          "notes": "income",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": null,
+          "category_name": null
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000002",
+          "date": "2026-01-01",
+          "amount": -1234,
+          "notes": "expense",
+          "cleared": false,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": "Cafe",
+          "category_name": "Food"
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000003",
+          "date": "2026-01-02",
+          "amount": 234,
+          "notes": "refund",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": "Cafe",
+          "category_name": "Food"
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000004",
+          "date": "2024-02-29",
+          "amount": -500,
+          "notes": "uncategorized",
+          "cleared": false,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": null,
+          "category_name": null
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000005",
+          "date": "2027-01-01",
+          "amount": -100,
+          "notes": "future",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": null,
+          "category_name": null
+        },
+        {
+          "id": "opening",
+          "date": "2026-10-15",
+          "amount": 10000,
+          "notes": "",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": true,
+          "payee_name": "Starting Balance",
+          "category_name": "Starting Balances"
+        }
+      ]
+    },
+    {
+      "name": "edited",
+      "balances": {
+        "total": 28434,
+        "cleared": 28934,
+        "uncleared": -500
+      },
+      "current_api_balance": 28534,
+      "through_dates": [
+        {
+          "date": "2024-02-29",
+          "balance": -500
+        },
+        {
+          "date": "2025-12-31",
+          "balance": 19500
+        },
+        {
+          "date": "2026-01-01",
+          "balance": 19500
+        },
+        {
+          "date": "2026-01-02",
+          "balance": 19734
+        },
+        {
+          "date": "2026-10-15",
+          "balance": 28534
+        },
+        {
+          "date": "2027-01-01",
+          "balance": 28434
+        }
+      ],
+      "transactions": [
+        {
+          "id": "10000000-0000-4000-8000-000000000001",
+          "date": "2025-12-31",
+          "amount": 20000,
+          "notes": "income",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": null,
+          "category_name": null
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000002",
+          "date": "2026-01-01",
+          "amount": -1234,
+          "notes": "expense",
+          "cleared": false,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": "Cafe",
+          "category_name": "Food"
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000003",
+          "date": "2026-01-02",
+          "amount": 234,
+          "notes": "refund",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": "Cafe",
+          "category_name": "Food"
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000004",
+          "date": "2024-02-29",
+          "amount": -500,
+          "notes": "uncategorized",
+          "cleared": false,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": null,
+          "category_name": null
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000005",
+          "date": "2027-01-01",
+          "amount": -100,
+          "notes": "future",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": null,
+          "category_name": null
+        },
+        {
+          "id": "opening",
+          "date": "2026-10-15",
+          "amount": 10000,
+          "notes": "",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": true,
+          "payee_name": "Starting Balance",
+          "category_name": "Starting Balances"
+        }
+      ]
+    },
+    {
+      "name": "duplicated",
+      "balances": {
+        "total": 27234,
+        "cleared": 28934,
+        "uncleared": -1700
+      },
+      "current_api_balance": 27334,
+      "through_dates": [
+        {
+          "date": "2024-02-29",
+          "balance": -500
+        },
+        {
+          "date": "2025-12-31",
+          "balance": 19500
+        },
+        {
+          "date": "2026-01-01",
+          "balance": 19500
+        },
+        {
+          "date": "2026-01-02",
+          "balance": 19734
+        },
+        {
+          "date": "2026-01-03",
+          "balance": 17334
+        },
+        {
+          "date": "2026-10-15",
+          "balance": 27334
+        },
+        {
+          "date": "2027-01-01",
+          "balance": 27234
+        }
+      ],
+      "transactions": [
+        {
+          "id": "10000000-0000-4000-8000-000000000001",
+          "date": "2025-12-31",
+          "amount": 20000,
+          "notes": "income",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": null,
+          "category_name": null
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000002",
+          "date": "2026-01-03",
+          "amount": -1200,
+          "notes": "edited expense",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": "Cafe",
+          "category_name": "Food"
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000003",
+          "date": "2026-01-02",
+          "amount": 234,
+          "notes": "refund",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": "Cafe",
+          "category_name": "Food"
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000004",
+          "date": "2024-02-29",
+          "amount": -500,
+          "notes": "uncategorized",
+          "cleared": false,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": null,
+          "category_name": null
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000005",
+          "date": "2027-01-01",
+          "amount": -100,
+          "notes": "future",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": null,
+          "category_name": null
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000006",
+          "date": "2026-01-03",
+          "amount": -1200,
+          "notes": "edited expense",
+          "cleared": false,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": "Cafe",
+          "category_name": "Food"
+        },
+        {
+          "id": "opening",
+          "date": "2026-10-15",
+          "amount": 10000,
+          "notes": "",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": true,
+          "payee_name": "Starting Balance",
+          "category_name": "Starting Balances"
+        }
+      ]
+    },
+    {
+      "name": "deleted refund",
+      "balances": {
+        "total": 27000,
+        "cleared": 28700,
+        "uncleared": -1700
+      },
+      "current_api_balance": 27100,
+      "through_dates": [
+        {
+          "date": "2024-02-29",
+          "balance": -500
+        },
+        {
+          "date": "2025-12-31",
+          "balance": 19500
+        },
+        {
+          "date": "2026-01-01",
+          "balance": 19500
+        },
+        {
+          "date": "2026-01-02",
+          "balance": 19500
+        },
+        {
+          "date": "2026-01-03",
+          "balance": 17100
+        },
+        {
+          "date": "2026-10-15",
+          "balance": 27100
+        },
+        {
+          "date": "2027-01-01",
+          "balance": 27000
+        }
+      ],
+      "transactions": [
+        {
+          "id": "10000000-0000-4000-8000-000000000001",
+          "date": "2025-12-31",
+          "amount": 20000,
+          "notes": "income",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": null,
+          "category_name": null
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000002",
+          "date": "2026-01-03",
+          "amount": -1200,
+          "notes": "edited expense",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": "Cafe",
+          "category_name": "Food"
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000003",
+          "date": "2026-01-02",
+          "amount": 234,
+          "notes": "refund",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": "Cafe",
+          "category_name": "Food"
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000004",
+          "date": "2024-02-29",
+          "amount": -500,
+          "notes": "uncategorized",
+          "cleared": false,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": null,
+          "category_name": null
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000005",
+          "date": "2027-01-01",
+          "amount": -100,
+          "notes": "future",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": null,
+          "category_name": null
+        },
+        {
+          "id": "10000000-0000-4000-8000-000000000006",
+          "date": "2026-01-03",
+          "amount": -1200,
+          "notes": "edited expense",
+          "cleared": false,
+          "reconciled": false,
+          "starting_balance": false,
+          "payee_name": "Cafe",
+          "category_name": "Food"
+        },
+        {
+          "id": "opening",
+          "date": "2026-10-15",
+          "amount": 10000,
+          "notes": "",
+          "cleared": true,
+          "reconciled": false,
+          "starting_balance": true,
+          "payee_name": "Starting Balance",
+          "category_name": "Starting Balances"
+        }
+      ]
+    }
+  ]
+}

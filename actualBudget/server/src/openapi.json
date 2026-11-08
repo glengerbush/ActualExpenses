@@ -448,7 +448,7 @@
     },
     "/api/v1/budgets/{budget}/transactions": {
       "get": {
-        "description": "Ordinary ledger entries ordered by date descending, creation order descending, then ID. With account_id, running_balance includes all preceding entries and does not reset per page; all-account rows return null. Default totals include future dates. Explicit as_of limits balances and entries inclusively to that calendar date. Newest account page uses cached totals and an indexed bounded row read. Tombstoned entries are excluded.",
+        "description": "Ordinary ledger entries ordered by date descending, creation order descending, then ID. With account_id, running_balance includes all preceding entries and does not reset per page; all-account rows return null. Default totals include future dates. Explicit as_of limits balances and entries inclusively to that calendar date. Newest account page uses cached totals and an indexed bounded row read. Tombstoned entries are excluded. Every response includes an opaque snapshot token. Send it unchanged on subsequent pages with the same filters. Any committed server mutation may conservatively invalidate it (including writes in another budget); a 409 register_changed requires discarding accumulated pages and reloading from offset zero. Unchanged reads and idempotent mutation replays preserve the token. Rows, totals and token share one read-only database snapshot. Raw offset without snapshot remains supported but does not guarantee consistency across requests.",
         "parameters": [
           {
             "name": "budget",
@@ -497,6 +497,18 @@
               "type": "string",
               "format": "date"
             }
+          },
+          {
+            "name": "snapshot",
+            "in": "query",
+            "required": false,
+            "description": "Opaque token from the first page; preserve unchanged for consistent continuation.",
+            "schema": {
+              "type": "string",
+              "minLength": 18,
+              "maxLength": 18,
+              "pattern": "^r1[0-9a-f]{16}$"
+            }
           }
         ],
         "responses": {
@@ -542,6 +554,16 @@
           },
           "500": {
             "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "register_changed: discard accumulated pages and reload from offset zero",
             "content": {
               "application/json": {
                 "schema": {
@@ -2822,13 +2844,20 @@
                 "type": "null"
               }
             ]
+          },
+          "snapshot": {
+            "type": "string",
+            "minLength": 18,
+            "maxLength": 18,
+            "pattern": "^r1[0-9a-f]{16}$"
           }
         },
         "required": [
           "data",
           "balances",
           "as_of",
-          "next_offset"
+          "next_offset",
+          "snapshot"
         ],
         "additionalProperties": false
       },

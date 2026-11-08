@@ -23,6 +23,7 @@ export class RequestError extends Error {
   constructor(
     message: string,
     readonly uncertain = false,
+    readonly code?: string,
   ) {
     super(message);
   }
@@ -59,6 +60,7 @@ export async function request<T>(
       result?.error?.message ??
         "The server could not complete the request. Retry in a moment.",
       mutation && (response.status >= 500 || !result),
+      typeof result?.error?.code === "string" ? result.error.code : undefined,
     );
   }
   return result;

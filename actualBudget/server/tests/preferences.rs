@@ -226,3 +226,53 @@ fn preferences_and_idempotency_survive_server_replacement() {
     let replay: Value = server.patch(&path, "durable", changes).json().unwrap();
     assert_eq!(replay, acknowledged);
 }
+
+#[test]
+fn currency_requires_explicit_opt_in_and_disabling_clears_the_code() {
+    let server = Server::start();
+    server.budget(BUDGET);
+    let path = format!("/api/v1/budgets/{BUDGET}/preferences");
+    let disabled: Value = server
+        .patch(&path, "disabled-code", json!({"currency_code":"JPY"}))
+        .json()
+        .unwrap();
+    assert_eq!(disabled["data"]["currency_code"], "");
+    let enabled: Value = server
+        .patch(
+            &path,
+            "enabled",
+            json!({"currency_code":"JPY","experimental":{"currency":true},"hide_fraction":true}),
+        )
+        .json()
+        .unwrap();
+    assert_eq!(enabled["data"]["currency_code"], "JPY");
+    let disabled: Value = server
+        .patch(&path, "disable", json!({"experimental":{"currency":false}}))
+        .json()
+        .unwrap();
+    assert_eq!(disabled["data"]["currency_code"], "");
+    assert_eq!(disabled["data"]["hide_fraction"], true);
+    let enabled: Value = server
+        .patch(&path, "reenable", json!({"experimental":{"currency":true}}))
+        .json()
+        .unwrap();
+    assert_eq!(enabled["data"]["currency_code"], "");
+    for flag in [None, Some(false), Some(true)] {
+        let mut input = json!({"synced":{"defaultCurrencyCode":"JPY"}});
+        if let Some(flag) = flag {
+            input["synced"]["flags.currency"] = json!(flag);
+        }
+        let converted: Value = server
+            .client
+            .post(format!("{}/api/v1/preferences/convert-actual", server.url))
+            .json(&input)
+            .send()
+            .unwrap()
+            .json()
+            .unwrap();
+        assert_eq!(
+            converted["data"]["shared"]["currency_code"],
+            if flag == Some(true) { "JPY" } else { "" }
+        );
+    }
+}

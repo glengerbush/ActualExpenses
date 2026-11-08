@@ -40,6 +40,13 @@
   function update(changes: Partial<SharedPreferences>) {
     session?.update(changes);
   }
+  function changeFeature(name: FeatureName, enabled: boolean) {
+    if (!session?.draft) return;
+    update({
+      experimental: { ...session.draft.values.experimental, [name]: enabled },
+      ...(name === "currency" && !enabled ? { currency_code: "" } : {}),
+    });
+  }
   function changeCurrency(code: string) {
     if (!code) {
       update({ currency_code: "" });
@@ -212,44 +219,47 @@
               }
             />{t("Hide decimal places")}</label
           >
-          <div class="settings-grid">
-            <div>
-              <label for="currency">{t("Default Currency")}</label><select
-                id="currency"
-                bind:value={
-                  () => session!.draft!.values.currency_code, changeCurrency
-                }
-                >{#each currencies as currency (currency.code)}<option
-                    value={currency.code}
-                    >{currency.code
-                      ? `${currency.code} — ${t(currency.name)} (${currency.symbol})`
-                      : t("None")}</option
-                  >{/each}</select
-              >
+          {#if session.draft.values.experimental.currency}
+            <div class="settings-grid">
+              <div>
+                <label for="currency">{t("Default Currency")}</label><select
+                  id="currency"
+                  bind:value={
+                    () => session!.draft!.values.currency_code, changeCurrency
+                  }
+                  >{#each currencies as currency (currency.code)}<option
+                      value={currency.code}
+                      >{currency.code
+                        ? `${currency.code} — ${t(currency.name)} (${currency.symbol})`
+                        : t("None")}</option
+                    >{/each}</select
+                >
+              </div>
+              <div>
+                <label for="symbol-position">{t("Symbol Position")}</label
+                ><select
+                  id="symbol-position"
+                  bind:value={
+                    () => session!.draft!.values.currency_symbol_position,
+                    (currency_symbol_position) =>
+                      update({ currency_symbol_position })
+                  }
+                  ><option value="before">{t("Before amount")}</option><option
+                    value="after">{t("After amount")}</option
+                  ></select
+                >
+              </div>
             </div>
-            <div>
-              <label for="symbol-position">{t("Symbol Position")}</label><select
-                id="symbol-position"
-                bind:value={
-                  () => session!.draft!.values.currency_symbol_position,
-                  (currency_symbol_position) =>
-                    update({ currency_symbol_position })
+            <label class="check-label"
+              ><input
+                type="checkbox"
+                bind:checked={
+                  () => session!.draft!.values.currency_space,
+                  (currency_space) => update({ currency_space })
                 }
-                ><option value="before">{t("Before amount")}</option><option
-                  value="after">{t("After amount")}</option
-                ></select
-              >
-            </div>
-          </div>
-          <label class="check-label"
-            ><input
-              type="checkbox"
-              bind:checked={
-                () => session!.draft!.values.currency_space,
-                (currency_space) => update({ currency_space })
-              }
-            />{t("Space between amount and symbol")}</label
-          >
+              />{t("Space between amount and symbol")}</label
+            >
+          {/if}
           <details class="experimental">
             <summary>{t("Experimental features")}</summary>
             <p class="hint">
@@ -263,13 +273,7 @@
                     type="checkbox"
                     bind:checked={
                       () => session!.draft!.values.experimental[name],
-                      (enabled) =>
-                        update({
-                          experimental: {
-                            ...session!.draft!.values.experimental,
-                            [name]: enabled,
-                          },
-                        })
+                      (enabled) => changeFeature(name, enabled)
                     }
                   />{t(featureLabels[name])}</label
                 >{/each}

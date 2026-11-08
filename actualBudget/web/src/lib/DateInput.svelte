@@ -58,11 +58,22 @@
       timeZone: "UTC",
     }).format(dateObject(`${month}-01`));
   }
-  function edit(raw: string) {
-    value = parseDateInput(raw, pattern);
+  function validateInput() {
     input?.setCustomValidity(
-      (!value && !required) || validDate(value) ? "" : t("Enter a valid date."),
+      (!value && !required) || validDate(parseDateInput(value, pattern))
+        ? ""
+        : t("Enter a valid date."),
     );
+  }
+  function edit(raw: string) {
+    // Persist unfinished text, including invalid dates, without expanding a
+    // valid abbreviation while the user is still typing its remaining digits.
+    value = raw;
+    validateInput();
+  }
+  function commit() {
+    value = parseDateInput(value, pattern);
+    validateInput();
   }
   async function focusDay() {
     await tick();
@@ -151,13 +162,13 @@
       placeholder={pattern.toUpperCase()}
       aria-describedby={`${id}-format`}
       bind:value={() => displayDate(value, pattern), edit}
+      onblur={commit}
+      onkeydown={(event) => {
+        if (event.key === "Enter") commit();
+      }}
       {@attach (element) => {
         input = element;
-        input.setCustomValidity(
-          (!value && !required) || validDate(value)
-            ? ""
-            : t("Enter a valid date."),
-        );
+        validateInput();
         return () => {
           input = undefined;
         };

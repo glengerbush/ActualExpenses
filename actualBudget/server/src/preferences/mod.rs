@@ -98,6 +98,12 @@ pub fn validate_change(key: &str, value: &Value) -> Result<(), Error> {
         Err(Error::invalid(format!("Invalid preference: {key}")))
     }
 }
+/// Actual clears the selected currency when its experimental feature is disabled.
+pub(super) fn normalize_currency(values: &mut Value) {
+    if values["experimental"]["currency"] != true {
+        values["currency_code"] = json!("");
+    }
+}
 pub fn get_preferences(db: &Connection, budget: &str) -> Result<Value, Error> {
     store::require_budget(db, budget)?;
     let existing: Option<(String, i64)> = db
@@ -114,6 +120,7 @@ pub fn get_preferences(db: &Connection, budget: &str) -> Result<Value, Error> {
         ),
         None => (defaults(), 0),
     };
+    normalize_currency(&mut values);
     values["revision"] = json!(revision);
     Ok(values)
 }
@@ -139,6 +146,7 @@ pub fn apply_changes(
             values[key] = value.clone();
         }
     }
+    normalize_currency(&mut values);
     let revision = revision
         .checked_add(1)
         .ok_or_else(|| Error::internal("Preference revision exhausted"))?;

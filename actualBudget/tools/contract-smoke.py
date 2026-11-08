@@ -109,9 +109,12 @@ def main():
             check(entry, entry_template, "PATCH", {"amount": "invalid"}, {"Idempotency-Key": "invalid-edit"}, 400)
             duplicate = {"id": str(uuid.uuid4())}
             check(entry + "/duplicate", entry_template + "/duplicate", "POST", duplicate, {"Idempotency-Key": "duplicate"}, 201)
-            check(entries + f"?account_id={account_id}&limit=1", entries_template)
+            page = check(entries + f"?account_id={account_id}&limit=1", entries_template)
+            continuation = entries + f"?account_id={account_id}&limit=1&offset=1&snapshot={page['snapshot']}"
+            check(continuation, entries_template)
             check(entries + "?as_of=2026-10-15", entries_template)
             check(entry, entry_template, "DELETE", headers={"Idempotency-Key": "delete"})
+            check(continuation, entries_template, expected=409)
             check(entry, entry_template, "DELETE", headers={"Idempotency-Key": "delete"})
             check(entry, entry_template, expected=404)
             calculator = "/api/v1/amounts/evaluate"

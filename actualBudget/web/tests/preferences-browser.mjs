@@ -72,6 +72,7 @@ try {
         number_format: sample.number_format,
         hide_fraction: sample.hide_fraction,
         currency_code: sample.decimal_places === 0 ? "JPY" : "",
+        experimental: { currency: sample.decimal_places === 0 },
         currency_symbol_position: "after",
         currency_space: false,
       },
@@ -102,6 +103,58 @@ try {
     "PASS 220 pinned Actual format results, including negative half ties and JPY",
   );
   await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(page.locator("#currency")).toHaveCount(0);
+  await page.getByText("Experimental features", { exact: true }).click();
+  await expect(
+    page.getByLabel("Currency display", { exact: true }),
+  ).not.toBeChecked();
+  await page.getByLabel("Currency display", { exact: true }).check();
+  await page.locator("#currency").selectOption("JPY");
+  await page.getByRole("button", { name: "Save shared preferences" }).click();
+  await expect(page.getByRole("status")).toHaveText(
+    "Shared preferences saved.",
+  );
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await expect(
+    page
+      .locator("tbody tr")
+      .filter({
+        has: page.getByRole("button", { name: "Amount 150", exact: true }),
+      })
+      .locator("td.amount"),
+  ).toHaveText("\u202a¥\u202c150");
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByText("Experimental features", { exact: true }).click();
+  await page.getByLabel("Currency display", { exact: true }).uncheck();
+  await expect(page.locator("#currency")).toHaveCount(0);
+  await page.getByRole("button", { name: "Save shared preferences" }).click();
+  await expect(page.getByRole("status")).toHaveText(
+    "Shared preferences saved.",
+  );
+  expect(
+    (await api(`/budgets/${budget}/preferences`, undefined, "GET")).data
+      .currency_code,
+  ).toBe("");
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await expect(
+    page
+      .locator("tbody tr")
+      .filter({
+        has: page.getByRole("button", { name: "Amount 150", exact: true }),
+      })
+      .locator("td.amount"),
+  ).toHaveText("2");
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByText("Experimental features", { exact: true }).click();
+  await page.getByLabel("Currency display", { exact: true }).check();
+  await expect(page.locator("#currency")).toHaveValue("");
+  await page.getByRole("button", { name: "Save shared preferences" }).click();
+  await expect(page.getByRole("status")).toHaveText(
+    "Shared preferences saved.",
+  );
+  console.log(
+    "PASS currency default-off, explicit opt-in/JPY, disable clears code and restores two-decimal units",
+  );
   for (const theme of ["dark", "midnight", "light"]) {
     await page.locator("#theme").selectOption(theme);
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
@@ -273,10 +326,16 @@ try {
   await page.unroute("**/preferences");
   await page.getByRole("button", { name: "Discard changes" }).click();
   // Original account body remains retryable after reload even if preferences are unavailable.
+  await api(
+    `/budgets/${budget}/preferences`,
+    { currency_code: "JPY", experimental: { currency: true } },
+    "PATCH",
+  );
+  await page.reload();
   await page.getByRole("button", { name: "All accounts", exact: true }).click();
   await page.getByRole("button", { name: "Add account", exact: true }).click();
   await page.getByLabel("Account name").fill("Recover without preferences");
-  await page.getByLabel("Opening balance", { exact: true }).fill("12,34");
+  await page.getByLabel("Opening balance", { exact: true }).fill("1234");
   let accountWrites = [];
   let loseAccount = true;
   await page.route(`**/api/v1/budgets/${budget}/accounts`, async (route) => {
@@ -304,6 +363,11 @@ try {
   await expect(
     page.getByRole("button", { name: "Retry creation" }),
   ).toBeVisible();
+  await api(
+    `/budgets/${budget}/preferences`,
+    { experimental: { currency: false } },
+    "PATCH",
+  );
   await page.evaluate(
     (budget) =>
       localStorage.removeItem(`actualBudget.preferencesCache.v1.${budget}`),

@@ -236,10 +236,27 @@ pub fn list(
     as_of: Option<&str>,
     limit: u32,
     offset: u32,
+    expected_snapshot: Option<&str>,
 ) -> Result<Value, Error> {
     store::require_budget(db, budget)?;
     if let Some(account) = account {
         account_exists(db, budget, account)?;
+    }
+    // Durable receipts are never deleted. The latest rowid is an indexed lookup,
+    // not a history scan. Conservatively invalidate for any committed server
+    // mutation until the per-budget change cursor replaces this marker.
+    let revision: i64 = db.query_row(
+        "SELECT COALESCE((SELECT rowid FROM operations ORDER BY rowid DESC LIMIT 1),0)",
+        [],
+        |row| row.get(0),
+    )?;
+    let snapshot = format!("r1{revision:016x}");
+    if expected_snapshot.is_some_and(|expected| expected != snapshot) {
+        return Err(Error::new(
+            axum::http::StatusCode::CONFLICT,
+            "register_changed",
+            "Register changed; reload the first page",
+        ));
     }
     let summary = if as_of.is_none() {
         match account {
@@ -304,7 +321,7 @@ pub fn list(
     }
 
     Ok(
-        json!({"data":rows,"balances":summary,"as_of":as_of,"next_offset":if more {Some(offset+limit)} else {None}}),
+        json!({"data":rows,"balances":summary,"as_of":as_of,"snapshot":snapshot,"next_offset":if more {Some(offset+limit)} else {None}}),
     )
 }
 

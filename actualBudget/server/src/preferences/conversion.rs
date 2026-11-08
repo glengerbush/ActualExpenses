@@ -147,6 +147,7 @@ pub fn convert_actual(input: &Value) -> Result<Value, Error> {
             }
         }
     }
+    super::normalize_currency(&mut shared);
     Ok(
         json!({"shared":shared,"device":device,"warnings":warnings,"unmapped":{"synced":unmapped_synced,"global":unmapped_global}}),
     )

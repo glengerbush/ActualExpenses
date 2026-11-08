@@ -1,0 +1,611 @@
+{
+  "baseline": "Actual 26.10.0",
+  "date_fns": "4.4.0",
+  "reference": "2026-11-08",
+  "source_sha256": {
+    "DateSelect": "a1685617d36241378b9b5d1890611af0f085286ddbab9e7c71c43463d4be950c",
+    "months": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3"
+  },
+  "cases": [
+    {
+      "format": "MM/dd/yyyy",
+      "input": "4/5",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "04/05",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "4/5/19",
+      "expected": "2019-04-05"
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "4/5/75",
+      "expected": "2075-04-05"
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "4/5/76",
+      "expected": "1976-04-05"
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "4/5/00",
+      "expected": "2000-04-05"
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "2/29/2024",
+      "expected": "2024-02-29"
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "2/29/24",
+      "expected": "2024-02-29"
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "2/29",
+      "expected": null
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "2/29/2026",
+      "expected": null
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "13/1/2026",
+      "expected": null
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "1/32/2026",
+      "expected": null
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "1/2/1",
+      "expected": "0001-01-02"
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "1/2/0001",
+      "expected": "0001-01-02"
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "4/5/2026 ",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "4",
+      "expected": null
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "4/",
+      "expected": null
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "",
+      "expected": null
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "garbage",
+      "expected": null
+    },
+    {
+      "format": "MM/dd/yyyy",
+      "input": "2026-04-05",
+      "expected": null
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "5/4",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "05/04",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "5/4/19",
+      "expected": "2019-04-05"
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "5/4/75",
+      "expected": "2075-04-05"
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "5/4/76",
+      "expected": "1976-04-05"
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "5/4/00",
+      "expected": "2000-04-05"
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "29/2/2024",
+      "expected": "2024-02-29"
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "29/2/24",
+      "expected": "2024-02-29"
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "29/2",
+      "expected": null
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "29/2/2026",
+      "expected": null
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "1/13/2026",
+      "expected": null
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "32/1/2026",
+      "expected": null
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "2/1/1",
+      "expected": "0001-01-02"
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "2/1/0001",
+      "expected": "0001-01-02"
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "5/4/2026 ",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "4",
+      "expected": null
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "4/",
+      "expected": null
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "",
+      "expected": null
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "garbage",
+      "expected": null
+    },
+    {
+      "format": "dd/MM/yyyy",
+      "input": "2026-04-05",
+      "expected": null
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "4-5",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "04-05",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "19-4-5",
+      "expected": "2019-04-05"
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "75-4-5",
+      "expected": "2075-04-05"
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "76-4-5",
+      "expected": "1976-04-05"
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "00-4-5",
+      "expected": "2000-04-05"
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "2024-2-29",
+      "expected": "2024-02-29"
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "24-2-29",
+      "expected": "2024-02-29"
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "2-29",
+      "expected": null
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "2026-2-29",
+      "expected": null
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "2026-13-1",
+      "expected": null
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "2026-1-32",
+      "expected": null
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "1-1-2",
+      "expected": "0001-01-02"
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "0001-1-2",
+      "expected": "0001-01-02"
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "2026-4-5 ",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "4",
+      "expected": null
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "4-",
+      "expected": null
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "",
+      "expected": null
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "garbage",
+      "expected": null
+    },
+    {
+      "format": "yyyy-MM-dd",
+      "input": "2026-04-05",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "4.5",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "04.05",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "4.5.19",
+      "expected": "2019-04-05"
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "4.5.75",
+      "expected": "2075-04-05"
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "4.5.76",
+      "expected": "1976-04-05"
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "4.5.00",
+      "expected": "2000-04-05"
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "2.29.2024",
+      "expected": "2024-02-29"
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "2.29.24",
+      "expected": "2024-02-29"
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "2.29",
+      "expected": null
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "2.29.2026",
+      "expected": null
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "13.1.2026",
+      "expected": null
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "1.32.2026",
+      "expected": null
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "1.2.1",
+      "expected": "0001-01-02"
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "1.2.0001",
+      "expected": "0001-01-02"
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "4.5.2026 ",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "4",
+      "expected": null
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "4.",
+      "expected": null
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "",
+      "expected": null
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "garbage",
+      "expected": null
+    },
+    {
+      "format": "MM.dd.yyyy",
+      "input": "2026-04-05",
+      "expected": null
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "5.4",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "05.04",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "5.4.19",
+      "expected": "2019-04-05"
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "5.4.75",
+      "expected": "2075-04-05"
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "5.4.76",
+      "expected": "1976-04-05"
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "5.4.00",
+      "expected": "2000-04-05"
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "29.2.2024",
+      "expected": "2024-02-29"
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "29.2.24",
+      "expected": "2024-02-29"
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "29.2",
+      "expected": null
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "29.2.2026",
+      "expected": null
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "1.13.2026",
+      "expected": null
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "32.1.2026",
+      "expected": null
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "2.1.1",
+      "expected": "0001-01-02"
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "2.1.0001",
+      "expected": "0001-01-02"
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "5.4.2026 ",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "4",
+      "expected": null
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "4.",
+      "expected": null
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "",
+      "expected": null
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "garbage",
+      "expected": null
+    },
+    {
+      "format": "dd.MM.yyyy",
+      "input": "2026-04-05",
+      "expected": null
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "5-4",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "05-04",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "5-4-19",
+      "expected": "2019-04-05"
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "5-4-75",
+      "expected": "2075-04-05"
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "5-4-76",
+      "expected": "1976-04-05"
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "5-4-00",
+      "expected": "2000-04-05"
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "29-2-2024",
+      "expected": "2024-02-29"
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "29-2-24",
+      "expected": "2024-02-29"
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "29-2",
+      "expected": null
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "29-2-2026",
+      "expected": null
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "1-13-2026",
+      "expected": null
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "32-1-2026",
+      "expected": null
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "2-1-1",
+      "expected": "0001-01-02"
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "2-1-0001",
+      "expected": "0001-01-02"
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "5-4-2026 ",
+      "expected": "2026-04-05"
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "4",
+      "expected": null
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "4-",
+      "expected": null
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "",
+      "expected": null
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "garbage",
+      "expected": null
+    },
+    {
+      "format": "dd-MM-yyyy",
+      "input": "2026-04-05",
+      "expected": null
+    }
+  ]
+}

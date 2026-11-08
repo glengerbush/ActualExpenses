@@ -19,8 +19,11 @@ const locales: Record<NumberFormat, string> = {
 export function captureAmountFormat(): AmountFormat {
   return {
     number_format: preferences.shared.number_format,
-    decimal_places: getCurrency(preferences.shared.currency_code)
-      .decimalPlaces as 0 | 2,
+    decimal_places: getCurrency(
+      preferences.shared.experimental.currency
+        ? preferences.shared.currency_code
+        : "",
+    ).decimalPlaces as 0 | 2,
   };
 }
 export function amountDecimalPlaces(
@@ -110,7 +113,9 @@ export function formatAmount(amount: number): string {
   if (!hidden && format.decimal_places)
     formatted +=
       separator(format) + (absolute % divisor).toString().padStart(2, "0");
-  const currency = getCurrency(settings.currency_code);
+  const currency = getCurrency(
+    settings.experimental.currency ? settings.currency_code : "",
+  );
   if (currency.symbol) {
     const space = settings.currency_space ? "\u202f" : "";
     formatted =

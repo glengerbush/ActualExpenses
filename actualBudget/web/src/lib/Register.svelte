@@ -13,7 +13,6 @@
   } from "./register-storage";
   import TransactionForm from "./TransactionForm.svelte";
   import DateInput from "./DateInput.svelte";
-  import { validDate } from "./dates";
   import {
     registerPage,
     references,
@@ -39,30 +38,43 @@
   let busy = $state(false);
   let error = $state("");
   let recoveryError = $state("");
-  let asOf = $state("");
+  let asOf = $derived(register?.as_of ?? "");
+  let retryCutoff = "";
+  let loadGeneration = 0;
+  let notice = $state("");
   let filterDate = $state("");
   let showForm = $state(false);
   let editing = $state.raw<Transaction | null>(null);
   let deleting = $state.raw<Transaction | null>(null);
   let pending = $state<SavedAction | null>(null);
   async function load() {
+    return refresh(asOf);
+  }
+  async function refresh(cutoff: string) {
+    const generation = ++loadGeneration;
+    retryCutoff = cutoff;
     loading = true;
     error = "";
+    notice = "";
     try {
       const [page, accountRows, payeeRows, categoryRows] = await Promise.all([
-        registerPage(budgetId, accountId, 0, asOf),
+        registerPage(budgetId, accountId, 0, cutoff),
         list<Account>(`/budgets/${budgetId}/accounts`),
         references(budgetId, "payees"),
         references(budgetId, "categories"),
       ]);
+      if (generation !== loadGeneration) return false;
       register = page;
+      filterDate = page.as_of ?? "";
       accounts = accountRows;
       payees = payeeRows;
       categories = categoryRows;
+      return true;
     } catch (e) {
-      error = errorMessage(e);
+      if (generation === loadGeneration) error = errorMessage(e);
+      return false;
     } finally {
-      loading = false;
+      if (generation === loadGeneration) loading = false;
     }
   }
   function recover() {
@@ -95,20 +107,31 @@
   }
   async function more() {
     if (!register || register.next_offset === null) return;
+    const previous = register;
+    const generation = ++loadGeneration;
     loading = true;
     error = "";
+    notice = "";
     try {
       const page = await registerPage(
         budgetId,
         accountId,
-        register.next_offset,
-        asOf,
+        previous.next_offset!,
+        previous.as_of ?? "",
+        previous.snapshot,
       );
-      register = { ...page, data: [...register.data, ...page.data] };
+      if (generation === loadGeneration)
+        register = { ...page, data: [...previous.data, ...page.data] };
     } catch (e) {
-      error = errorMessage(e);
+      if (generation !== loadGeneration) return;
+      if (e instanceof RequestError && e.code === "register_changed") {
+        const refreshed = await refresh(previous.as_of ?? "");
+        notice = refreshed
+          ? t("Data changed. The transaction list was refreshed.")
+          : t("Data changed. Retry loading before continuing.");
+      } else error = errorMessage(e);
     } finally {
-      loading = false;
+      if (generation === loadGeneration) loading = false;
     }
   }
   function open(transaction: Transaction | null) {
@@ -178,11 +201,13 @@
         !preferences.hasUsableShared}>{t("Add transaction")}</button
     >
   </div>
-  {#if register}
+  {#if register && preferences.hasUsableShared}
     <dl class="register-balances">
       <div>
         <dt>
-          {asOf ? t("Balance through selected date") : t("All-date balance")}
+          {asOf
+            ? t("Balance through {{date}}", { date: formatDate(asOf) })
+            : t("All-date balance")}
         </dt>
         <dd data-testid="register-total">
           {#if accountId}<span data-testid="account-balance"
@@ -207,8 +232,7 @@
       class="date-filter"
       onsubmit={(event) => {
         event.preventDefault();
-        asOf = filterDate;
-        void load();
+        void refresh(filterDate);
       }}
     >
       <DateInput
@@ -217,16 +241,11 @@
         bind:value={filterDate}
         disabled={loading || busy}
       />
-      <button
-        disabled={loading || busy || (!!filterDate && !validDate(filterDate))}
-        >{t("Apply")}</button
-      >
+      <button disabled={loading || busy}>{t("Apply")}</button>
       {#if asOf}<button
           type="button"
           onclick={() => {
-            asOf = "";
-            filterDate = "";
-            void load();
+            void refresh("");
           }}
           disabled={loading || busy}>{t("All dates")}</button
         >
@@ -236,14 +255,9 @@
   {/if}
   {#if recoveryError}<p class="error" role="alert">{recoveryError}</p>
     <button onclick={recover}>{t("Retry saved work recovery")}</button>{/if}
-  {#if !preferences.hasUsableShared}<p class="error" role="alert">
-      {t("Load this budget’s display preferences before entering an amount.")}
-    </p>
-    <button onclick={() => void preferences.loadBudget(budgetId)}
-      >{t("Retry display preferences")}</button
-    >{/if}
+  {#if notice}<p role="status">{notice}</p>{/if}
   {#if error}<p class="error" role="alert">{error}</p>
-    <button onclick={load} disabled={loading || busy}
+    <button onclick={() => refresh(retryCutoff)} disabled={loading || busy}
       >{t("Retry loading transactions")}</button
     >{/if}
   {#if pending}<div class="pending-action">
@@ -273,7 +287,7 @@
     />
   {/if}
   {#if loading}<p role="status">{t("Loading transactions…")}</p>{/if}
-  {#if register?.data.length}
+  {#if register?.data.length && preferences.hasUsableShared}
     <table class="register-table">
       <caption class="visually-hidden"
         >{t("Account transactions, newest first")}</caption
@@ -368,7 +382,7 @@
         onclick={more}
         disabled={loading || busy}>{t("Load more transactions")}</button
       >{/if}
-  {:else if !loading && !error}<p class="empty">
+  {:else if preferences.hasUsableShared && !loading && !error}<p class="empty">
       {accounts.length
         ? t("No transactions yet. Add an income or expense to begin.")
         : t("Create an account before recording transactions.")}

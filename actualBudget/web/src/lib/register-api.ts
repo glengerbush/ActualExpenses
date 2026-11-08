@@ -26,6 +26,7 @@ export interface RegisterPage {
   balances: { total: number; cleared: number; uncleared: number };
   as_of: string | null;
   next_offset: number | null;
+  snapshot: string;
 }
 export interface PendingMutation {
   path: string;
@@ -38,10 +39,12 @@ export function registerPage(
   accountId: string | null,
   offset = 0,
   asOf = "",
+  snapshot?: string,
 ) {
   const params = new URLSearchParams({ limit: "100", offset: String(offset) });
   if (accountId) params.set("account_id", accountId);
   if (asOf) params.set("as_of", asOf);
+  if (snapshot) params.set("snapshot", snapshot);
   return request<RegisterPage>(`/budgets/${budgetId}/transactions?${params}`);
 }
 export async function references(

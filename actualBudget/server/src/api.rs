@@ -136,6 +136,7 @@ struct TransactionQuery {
     limit: u32,
     #[serde(default)]
     offset: u32,
+    snapshot: Option<String>,
 }
 fn default_limit() -> u32 {
     100
@@ -158,16 +159,30 @@ async fn list_transactions(
             "limit must be 1–1000; offset at most 1000000",
         ));
     }
+    if let Some(snapshot) = &query.snapshot {
+        if snapshot.len() != 18
+            || !snapshot.starts_with("r1")
+            || !snapshot[2..]
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        {
+            return Err(Error::invalid("Invalid register snapshot"));
+        }
+    }
     Ok(Json(
         store
             .run(move |db| {
+                // One read transaction keeps rows, totals and snapshot coherent even
+                // if another connection writes while this page is being assembled.
+                let read = db.transaction()?;
                 ledger::list(
-                    db,
+                    &read,
                     &budget,
                     query.account_id.as_deref(),
                     query.as_of.as_deref(),
                     query.limit,
                     query.offset,
+                    query.snapshot.as_deref(),
                 )
             })
             .await?,

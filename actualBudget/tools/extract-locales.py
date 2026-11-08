@@ -27,4 +27,7 @@ locked = lock['packages']['node_modules/@actual-app/web']
 english = json.loads((output / 'en.json').read_text())
 (output / 'english-plurals.json').write_text(json.dumps({key: value for key, value in english.items() if key.rsplit('_', 1)[-1] in ['one','other','zero','two','few','many']}, ensure_ascii=False, indent=2) + '\n')
 (output / 'LICENSE.txt').write_bytes((root / 'actualBudget/reference/actual-26.10.0/LICENSE.txt').read_bytes())
+notices = root / 'actualBudget/web/public/licenses'
+notices.mkdir(parents=True, exist_ok=True)
+(notices / 'actual-MIT.txt').write_bytes((output / 'LICENSE.txt').read_bytes())
 print(f'Extracted {len(entries)} published catalogs without rewriting their contents.')

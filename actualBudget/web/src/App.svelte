@@ -275,6 +275,13 @@
           )}
         </p>
       </section>
+      {#key budget.id + ":recovery:" + (account?.id ?? "all")}
+        <Register
+          budgetId={budget.id}
+          accountId={account?.id ?? null}
+          onchanged={refreshAccounts}
+        />
+      {/key}
     {:else if account}<AccountView
         {account}
         budgetId={budget.id}

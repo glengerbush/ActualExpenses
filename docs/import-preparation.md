@@ -1,7 +1,8 @@
 # Actual archive import preparation
 
-Ticket04 remains queued behind ticket03 acceptance. This is read-only research,
-not an implemented importer or a migration acceptance claim.
+Ticket04 production implementation began after ticket03 acceptance at `0b66dc6`.
+Preparation includes pinned public export/import fixtures; no replacement
+importer or production migration has yet been qualified.
 
 ## Observed source behavior
 
@@ -44,3 +45,20 @@ allocations. Reject ambiguous paths/entries and never extract archive-controlled
 paths into application storage. Inspect isolated SQLite read-only, query-only,
 with untrusted schema execution disabled. The final API and limits will be chosen
 against ticket04 and tested at its public boundary.
+
+## Executed public oracle
+
+The [fixture record](../actualBudget/tests/fixtures/IMPORT.md) documents two
+unchanged public Actual26.10.0 exports and their independent manifests. The
+ordinary ledger fixture contains genuine synced per-field HLC history and a
+published tombstone; the second adds an unsupported real rule. Generation and
+`generate-import-fixture.mjs --check` exercise public import/re-export, exact
+identity/field-order retention and independent AQL financial results. All data
+and server instances are disposable. No production import code changed.
+
+Ticket05 reserves schema migration4 for clocks/cursors; ticket04 will use
+migration5 for its source-identity/staging records and the shared field-clock
+seeding seam. Import must preserve exact known source clocks and published
+tombstones; retain unknown/deferred records separately. Ticket43's shared
+preference converter remains authoritative, with optional device/global source
+metadata retained separately for ticket44 rather than promoted to budget prefs.

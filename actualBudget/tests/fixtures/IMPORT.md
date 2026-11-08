@@ -1,0 +1,79 @@
+# Pinned Actual archive fixtures
+
+Generated entirely through published `@actual-app/api@26.10.0` against a fresh
+loopback `@actual-app/sync-server@26.10.0`; source commit
+`2bebdbaae0b701120a8cad9d56aafd64fa04c577`. No user budget or existing server is
+accepted by the generator. Both ZIPs are unchanged public `exportBudget()`
+results, not databases assembled by replacement code.
+
+| Archive | Bytes | SHA-256 | CRDT history / latest cells |
+| --- | ---: | --- | ---: |
+| `import-26.10.0.zip` | 17,496 | `78c56715303eb040e3bdbf097f2dc6416715687f8de3835fbcb5895e67d9920e` | 48 / 45 |
+| `import-unsupported-rule-26.10.0.zip` | 17,900 | `601881b204c9615ddbc9a2110396c4243cc001522585cdc5facb8f18f102d0d4` | 52 / 49 |
+
+The paired JSON manifests contain independent public API accounts, transactions,
+payees, categories/groups, rules, preferences and AQL all-date balances. An
+isolated read-only SQLite inspection additionally records source schema/counts,
+raw ordinary rows (including tombstones), mappings, source identities and exact
+latest per-cell HLC strings/serialized values. Full history and all other feature
+records remain in the original archive.
+
+## Observable oracle results
+
+- Spending: `31434` total, `31534` cleared, `-100` uncleared minor units.
+- Off-budget Reserve: `-5000` total/cleared, zero uncleared.
+- Seven raw transactions, six visible; one deletion was published and synced.
+- A corrected expense retains its UUID and independent original field ordering.
+- Future expense contributes to all-date totals. No current-day cutoff is implied.
+- Shared preferences: tracking, comma-dot, yyyy-MM-dd, USD, fractions visible.
+- The second archive adds one real payee-to-category rule. This is unsupported
+  financial behavior for the initial ledger-only importer: report and retain it,
+  and refuse automatic activation until the relevant converter is available.
+- Both archives retain baseline dashboard/page defaults, aliases and transfer
+  payees. Empty unsupported financial tables differ from these automatic defaults;
+  the conversion audit must identify every retained feature instead of discarding
+  nonempty tables. No split or transfer transaction is fabricated.
+
+`metadata.id` is an original non-UUID local slug. `cloudFileId` and `groupId` are
+separate original IDs. Preserve these explicitly beside any new API resource ID.
+The ephemeral generated `userId` is provenance only and confers no replacement
+identity or permissions. No password, token or signing key is included.
+
+`resetClock: true` does not reset imported field order. The public engine's
+import/re-export was checked to retain all original latest field clocks and raw
+transaction rows, including the published tombstone. Initial rows created inside
+`runImport` have no individual history; do not invent migration-time clocks for
+those rows. `messages_pending` is empty here; future unknown-schema deferred
+records require a separate fixture and must not be confused with Android outbox
+operations. Global/device settings are absent from ordinary Actual exports.
+
+## Generate and verify
+
+From repository root, with the locked compatibility dependencies installed:
+
+```sh
+npm ci --prefix actualExpenses/tools/compatibility
+node actualBudget/tools/generate-import-fixture.mjs
+node actualBudget/tools/generate-import-fixture.mjs --check
+```
+
+Generation creates new native random IDs, source HLC times and opening dates, so
+it intentionally replaces both ZIPs and manifests together. Review those changes.
+`--check` does **not** regenerate identities or normalize away evidence. It checks
+the committed archive hashes and inspection, imports each through the public
+pinned API in separate disposable directories, compares full public results,
+and re-exports to verify raw transaction/tombstone and field-clock retention.
+It needs no network server or credentials. Both modes remove disposable data.
+Python3 uses only stdlib; the inspector is test tooling, not an import endpoint.
+
+## Replacement acceptance still required
+
+These artifacts qualify the oracle, not a production migration. Ticket04 must
+exercise running replacement HTTP staging, inactive-until-activation behavior,
+relationship/count/balance comparisons, byte-identical original download,
+atomic activation, retry/restart deduplication, and the visible imported register.
+Use copies of the supported ZIP for deliberately malformed metadata/SQLite,
+dangling-reference, duplicate-path and bounded-archive rejection cases; label
+those as synthetic negative tests, not public Actual exports. Encrypted-input
+rejection is also a replacement test; these fixtures are explicitly unencrypted.
+No client pending-operation migration or production cutover is qualified here.

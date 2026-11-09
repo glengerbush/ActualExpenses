@@ -133,7 +133,7 @@ class ApiExpenseService(
                 .filter { eligible(it) && it.text("account_id") == account }
                 .sortedWith(
                     compareByDescending<JsonObject> { it.text("date") }
-                        .thenByDescending { it.long("sort_order") }
+                        .thenByDescending { orderKey(it) }
                         .thenBy { it.text("id") }
                 )
         val pendingIds = saved.pending.map { it.transactionId }.toSet()
@@ -291,6 +291,10 @@ class ApiExpenseService(
         val budget = candidate["id"].asString
         val epoch = candidate["epoch"].asString
         val view = legacy.view
+        val viewOrder =
+            view.expenses
+                .mapIndexed { index, row -> row.id to (view.expenses.size - index).toLong() }
+                .toMap()
         val pendingAccounts = mutableMapOf<String, String>()
         // This single atomic write is the handoff. Failure leaves the old recovery state active.
         change { next ->
@@ -327,6 +331,7 @@ class ApiExpenseService(
             view.expenses.forEach { row ->
                 next.rows[row.id] =
                     JsonObject().apply {
+                        addProperty("sort_order", viewOrder[row.id])
                         addProperty("id", row.id)
                         addProperty("account_id", row.accountId)
                         addProperty("amount", -row.amountMinor)
@@ -348,6 +353,7 @@ class ApiExpenseService(
                 val op = item.asJsonObject
                 val projection = LegacyUpgrade.projection(op)
                 val id = op["transactionId"].asString
+                viewOrder[id]?.let { projection.addProperty("order_key", nativeOrderKey(it)) }
                 val account =
                     projection["account_id"]?.asString
                         ?: pendingAccounts[id]
@@ -1167,6 +1173,12 @@ class ApiExpenseService(
             row["reconciled"]?.asBoolean != true &&
             row.text("transfer_id") == null &&
             row["deleted"]?.asBoolean != true
+
+    private fun nativeOrderKey(rank: Long) =
+        java.lang.Long.toUnsignedString(rank xor Long.MIN_VALUE, 16).padStart(16, '0')
+
+    private fun orderKey(row: JsonObject) =
+        row.text("order_key") ?: nativeOrderKey(row.long("sort_order"))
 
     private fun JsonObject.text(key: String) = get(key)?.takeUnless { it.isJsonNull }?.asString
 

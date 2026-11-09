@@ -16727,7 +16727,7 @@
     "/api/v1/budgets/{budget}/android-upgrade/operations": {
       "post": {
         "summary": "Reconcile one original released Android CRDT operation",
-        "description": "Send original operation UUID as Idempotency-Key. Preserve each original message timestamp, row, column, typed value, sequence and attempted state; no X-Actual-Edit-Clock batch header is accepted. Source cloud/group must match this imported budget. Body epoch is captured once on local atomic handoff and never rebased. Receipts resolve before current epoch/eligibility checks. Exact observed source fields reconcile before split/transfer guards; unknown changes retain ordinary-expense guards. Published tombstones never resurrect. Imported source fractional sort_order is provenance, not native rank: existing imported rank stays; new absent expenses append in original operation order. Unsupported messages/partial creations refuse atomically, retaining original work. Supports original-body X-Actual-Receipt-Only and X-Actual-Cancel-If-Uncommitted; unknown receipt probes never execute. No automatic rules/learning.",
+        "description": "Send original operation UUID as Idempotency-Key. Preserve each original message timestamp, row, column, typed value, sequence and attempted state; no X-Actual-Edit-Clock batch header is accepted. Source cloud/group must match this imported budget. Body epoch is captured once on local atomic handoff and never rebased. Receipts resolve before current epoch/eligibility checks. Exact observed source fields reconcile before split/transfer guards; unknown changes retain ordinary-expense guards. Published tombstones never resurrect. Original fractional sort_order is retained separately from private integer ranks. Stable display keys insert absent legacy creations between source positions, retain equal-order ID ties and preserve existing native anchors without rewriting their ranks/history. Unsupported messages/partial creations refuse atomically, retaining original work. Supports original-body X-Actual-Receipt-Only and X-Actual-Cancel-If-Uncommitted; unknown receipt probes never execute. No automatic rules/learning.",
         "parameters": [
           {
             "name": "budget",
@@ -17269,6 +17269,11 @@
               "exact_money_range"
             ],
             "description": "Present only when an intermediate running balance cannot be represented as an exact safe JSON integer; page and final totals remain available."
+          },
+          "order_key": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{16,4096}$",
+            "description": "Optional opaque display ordering key for recovered legacy positions. Sort lexically within transaction date, falling back to signed native sort_order encoded as a 16-digit lowercase hexadecimal value with sign bit flipped. Private integer ranks and original field HLCs remain unchanged."
           }
         },
         "required": [

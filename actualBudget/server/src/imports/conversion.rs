@@ -793,7 +793,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             sums[0] += amount as i128;
             sums[if cleared { 1 } else { 2 }] += amount as i128;
         }
-        converted["transactions"].as_array_mut().unwrap().push(json!({"id":id,"account_id":account,"amount":amount,"date":date,"cleared":cleared,"reconciled":flag(row,"reconciled")?,"tombstone":tombstone,"starting_balance":flag(row,"starting_balance_flag")?,"payee_id":resolve(&row["description"],&payee_map,&payee_ids)?,"category_id":resolve(&row["category"],&category_map,&category_ids)?,"notes":row["notes"].as_str().unwrap_or(""),"imported_payee":row["imported_description"],"transfer_id":row["transferred_id"],"sort_order":rank,"is_parent":flag(row,"isParent")?,"parent_id":row["parent_id"]}));
+        converted["transactions"].as_array_mut().unwrap().push(json!({"id":id,"account_id":account,"amount":amount,"date":date,"cleared":cleared,"reconciled":flag(row,"reconciled")?,"tombstone":tombstone,"starting_balance":flag(row,"starting_balance_flag")?,"payee_id":resolve(&row["description"],&payee_map,&payee_ids)?,"category_id":resolve(&row["category"],&category_map,&category_ids)?,"notes":row["notes"].as_str().unwrap_or(""),"imported_payee":row["imported_description"],"transfer_id":row["transferred_id"],"sort_order":rank,"source_sort_order":row["sort_order"],"is_parent":flag(row,"isParent")?,"parent_id":row["parent_id"]}));
     }
     converted["transfer_version"] = json!(1);
     for row in array(&converted, "transactions")
@@ -942,6 +942,14 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
         let category =
             crate::categories::resolve(db, budget, row["category_id"].as_str().map(str::to_owned))?;
         db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,reconciled,starting_balance,payee_id,category_id,notes,tombstone,sort_order,is_parent,parent_id,imported_payee,transfer_id) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17)",params![budget,row["id"].as_str(),row["account_id"].as_str(),row["amount"].as_i64(),row["date"].as_str(),row["cleared"].as_bool(),row["reconciled"].as_bool(),row["starting_balance"].as_bool(),row["payee_id"].as_str(),category,row["notes"].as_str(),row["tombstone"].as_bool(),row["sort_order"].as_i64(),row["is_parent"].as_bool().unwrap_or(false),row["parent_id"].as_str(),row["imported_payee"].as_str(),row["transfer_id"].as_str()])?;
+    }
+    for row in array(data, "transactions") {
+        crate::android_upgrade::order::seed(
+            db,
+            budget,
+            row["id"].as_str().unwrap(),
+            row["source_sort_order"].as_f64(),
+        )?;
     }
     for row in array(data, "accounts") {
         ledger::refresh_account(db, budget, row["id"].as_str().unwrap())?;

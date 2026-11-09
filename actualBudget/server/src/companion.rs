@@ -79,11 +79,11 @@ async fn view(
                 return Err(Error::missing());
             }
             // Transfer exclusion precedes activation and applies to retained IDs too.
-            let mut statement = read.prepare(
-                "SELECT id FROM transactions WHERE budget_id=?1 AND account_id=?2
+            let mut statement = read.prepare(&format!(
+                "SELECT id FROM transactions t WHERE budget_id=?1 AND account_id=?2
              AND tombstone=0 AND reconciled=0 AND amount<0 AND transfer_id IS NULL AND is_parent=0 AND parent_id IS NULL
-             ORDER BY date DESC,sort_order DESC,id ASC LIMIT 10",
-            )?;
+             ORDER BY date DESC,{} DESC,id ASC LIMIT 10",crate::android_upgrade::order::SQL
+            ))?;
             let ids = statement
                 .query_map(params![budget, query.account_id], |row| {
                     row.get::<_, String>(0)

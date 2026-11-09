@@ -1,5 +1,6 @@
 //! One-time native CRDT handoff. Message clocks are data, never a batch clock.
 //! Receipts retain the original operation and all original messages indefinitely.
+pub mod order;
 use crate::{
     api::{budget_id, idempotency_key, json_error},
     concurrency::{self, Mutation},
@@ -495,6 +496,13 @@ fn apply(db: &Connection, budget: &str, key: &str, handoff: Handoff) -> Result<V
             .map_err(|_| Error::invalid("Invalid saved expense"))?;
         input.validate()?;
         ledger::create(db, budget, input)?;
+        let source_order = op
+            .changes
+            .iter()
+            .find(|m| m.dataset == "transactions" && m.column == "sort_order")
+            .and_then(|m| m.value.as_f64())
+            .ok_or_else(|| Error::invalid("Missing original transaction order"))?;
+        order::insert(db, budget, &op.transaction_id, source_order)?;
         for m in &op.changes {
             if m.dataset == "transactions" {
                 if let Some((field, _)) = native_field(m)? {

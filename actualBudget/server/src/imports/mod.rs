@@ -190,6 +190,7 @@ async fn activate(
                 return Err(Error::new(StatusCode::CONFLICT,"import_budget_conflict","Assigned budget identity already exists; this import cannot replace it"));
             }
             conversion::install(db,budget,&converted)?;
+            for (id,order) in original_orders(&db.query_row("SELECT original FROM staged_imports WHERE id=?1",[&id],|r|r.get::<_,Vec<u8>>(0))?)? {db.execute("UPDATE android_upgrade_order SET source_order=?3 WHERE budget_id=?1 AND id=?2",params![budget,id,order])?;}
             crate::transfers::validate(db,budget)?;
             let source=&stage["report"]["source"];
             db.execute("INSERT INTO imported_sources(budget_id,import_id,source_local_id,source_cloud_id,source_group_id,source_metadata) VALUES(?1,?2,?3,?4,?5,?6)",params![budget,id,source["id"].as_str(),source["cloudFileId"].as_str(),source["groupId"].as_str(),source.to_string()])?;
@@ -291,4 +292,21 @@ pub(crate) fn backfill_payees_tags(db: &rusqlite::Connection) -> Result<(), Erro
         }
     }
     Ok(())
+}
+
+/// Recover exact original ordering from the retained source SQLite, not its
+/// compressed native ranks or only the latest surviving CRDT field clock.
+pub(crate) fn original_orders(bytes: &[u8]) -> Result<Vec<(String, Option<f64>)>, Error> {
+    let (_, data) = conversion::inspect(bytes)?;
+    Ok(data["transactions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| {
+            (
+                r["id"].as_str().unwrap().to_owned(),
+                r["source_sort_order"].as_f64(),
+            )
+        })
+        .collect())
 }

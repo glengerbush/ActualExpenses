@@ -25,6 +25,7 @@ pub const TABLES: &[&str] = &[
     "tags",
     "categories",
     "transactions",
+    "android_upgrade_order",
     "budget_cells",
     "budget_months",
     "budget_settings",
@@ -151,7 +152,7 @@ pub fn capture(db: &Connection, budget: &str) -> Result<Vec<u8>, Error> {
     let body = serde_json::to_vec(&state).map_err(Error::internal)?;
     let mut entries = BTreeMap::from([("budget.json".to_owned(), body)]);
     entries.extend(blobs);
-    let manifest = json!({"format":"actualBudget","version":1,"schema_version":17,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
+    let manifest = json!({"format":"actualBudget","version":1,"schema_version":18,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
     if entries.len() + 1 > 1000
         || entries.values().map(Vec::len).sum::<usize>() + manifest.to_string().len() > MAX_EXPANDED
     {
@@ -227,7 +228,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || !matches!(manifest["schema_version"].as_u64(), Some(6..=17))
+        || !matches!(manifest["schema_version"].as_u64(), Some(6..=18))
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }
@@ -554,6 +555,20 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             row.push(Value::Null);
         }
     }
+    if manifest["schema_version"].as_u64().is_some_and(|v| v < 18) {
+        state.tables.insert(
+            "android_upgrade_order".into(),
+            Table {
+                columns: vec![
+                    "budget_id".into(),
+                    "id".into(),
+                    "source_order".into(),
+                    "display_key".into(),
+                ],
+                rows: vec![],
+            },
+        );
+    }
     if state.budget["id"] != manifest["budget_id"] {
         return Err(invalid("Budget identity differs from manifest"));
     }
@@ -792,6 +807,15 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
                     Value::Null => Ok(SqlValue::Null),
                     Value::String(v) => Ok(SqlValue::Text(v.clone())),
                     Value::Number(v)
+                        if *table == "android_upgrade_order"
+                            && source.columns[index] == "source_order" =>
+                    {
+                        v.as_f64()
+                            .filter(|n| n.is_finite())
+                            .map(SqlValue::Real)
+                            .ok_or_else(|| invalid("Invalid source transaction order"))
+                    }
+                    Value::Number(v)
                         if ["categories", "category_groups"].contains(table)
                             && source.columns[index] == "sort_order" =>
                     {
@@ -845,6 +869,12 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
             }
             db.execute(&sql, rusqlite::params_from_iter(values))?;
         }
+    }
+    if archive.state.tables["android_upgrade_order"]
+        .rows
+        .is_empty()
+    {
+        crate::android_upgrade::order::enrich(db, archive.state.budget["id"].as_str())?;
     }
     crate::register_settings::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
     if archive.legacy_category_metadata {
@@ -909,6 +939,7 @@ pub fn validate_financial_state(db: &Connection, budget: &str) -> Result<(), Err
             return Err(invalid("Account notes exceed 10000 characters"));
         }
     }
+    crate::android_upgrade::order::validate(db, budget)?;
     let mut ids = db.prepare("SELECT id FROM transactions WHERE budget_id=?1")?;
     for id in ids.query_map([budget], |r| r.get::<_, String>(0))? {
         let row = ledger::get_any(db, budget, &id?)?;

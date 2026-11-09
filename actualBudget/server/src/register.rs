@@ -455,7 +455,7 @@ impl Query {
             Direction::Asc => "ASC",
             Direction::Desc => "DESC",
         };
-        if matches!(self.sort, Sort::Date) {
+        let order = if matches!(self.sort, Sort::Date) {
             format!(
                 "t.date {dir},t.starting_balance {},t.sort_order {dir},t.id {}",
                 if matches!(self.direction, Direction::Asc) {
@@ -471,7 +471,8 @@ impl Query {
             )
         } else {
             format!("{col} {dir},t.date DESC,t.starting_balance ASC,t.sort_order DESC,t.id ASC")
-        }
+        };
+        order.replace("t.sort_order", crate::android_upgrade::order::SQL)
     }
 }
 // Saved queries retain stable source IDs. Resolve aliases when executing, without
@@ -629,14 +630,17 @@ fn latest(
             bind(&mut values, SqlValue::Text(account.into()))
         );
     }
-    let order = "date DESC,starting_balance ASC,sort_order DESC,id ASC";
+    let order = format!(
+        "date DESC,starting_balance ASC,{} DESC,id ASC",
+        crate::android_upgrade::order::SQL
+    );
     let count: i64 = db.query_row(
         &format!("SELECT count(*) FROM transactions WHERE {filter}"),
         params_from_iter(values.iter()),
         |r| r.get(0),
     )?;
     let mut statement = db.prepare(&format!(
-        "SELECT id FROM transactions WHERE {filter} ORDER BY {order} LIMIT {} OFFSET {offset}",
+        "SELECT id FROM transactions t WHERE {filter} ORDER BY {order} LIMIT {} OFFSET {offset}",
         limit + 1
     ))?;
     let mut ids = statement
@@ -808,7 +812,7 @@ fn list_inner(
     let mut count = 0u64;
     // Stream integers on the server, keeping only the requested page. i128 avoids
     // SQLite's intermediate SUM overflow and floating-point TOTAL rounding.
-    let mut stmt=db.prepare(&format!("SELECT t.id,t.amount,t.cleared,coalesce(({filter}),0) {joins} WHERE {base} ORDER BY t.date ASC,t.starting_balance DESC,t.sort_order ASC,t.id DESC"))?;
+    let mut stmt=db.prepare(&format!("SELECT t.id,t.amount,t.cleared,coalesce(({filter}),0) {joins} WHERE {base} ORDER BY t.date ASC,t.starting_balance DESC,{} ASC,t.id DESC",crate::android_upgrade::order::SQL))?;
     let mut rows = stmt.query(params_from_iter(values.iter()))?;
     while let Some(row) = rows.next()? {
         let id: String = row.get(0)?;

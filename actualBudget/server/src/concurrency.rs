@@ -809,6 +809,7 @@ pub(crate) fn decorate_many(
         let (id, field, clock) = row?;
         rows[positions[&id]]["field_versions"][field] = json!(clock);
     }
+    crate::android_upgrade::order::decorate(db, budget, rows)?;
     Ok(())
 }
 

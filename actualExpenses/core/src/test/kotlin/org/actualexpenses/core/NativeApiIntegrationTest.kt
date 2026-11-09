@@ -431,6 +431,120 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun `upgrade ordering keys preserve public companion order in cached native restart`() {
+        Server().use { server ->
+            val directory = Path.of("../../actualBudget/tests/fixtures")
+            val expected =
+                JsonParser.parseString(Files.readString(directory.resolve("android-order.json")))
+                    .asJsonObject
+            val stage =
+                server.upload(Files.readAllBytes(directory.resolve("android-order-source.zip")))
+            server.post("/imports/${stage["id"].asString}/activate", "{}")
+            val budget = stage["budget_id"].asString
+            val account = expected["account"].asString
+            val epoch =
+                server.get("/budgets/$budget/checkpoint").getAsJsonObject("data")["epoch"].asString
+            fun id(n: Int) = "20000000-0000-4000-8000-${n.toString().padStart(12,'0')}"
+            server.post(
+                "/budgets/$budget/transactions",
+                """{"id":"${id(4)}","account_id":"$account","amount":-400,"date":"2026-01-01","cleared":true}""",
+            )
+            for ((n, order) in listOf(2 to 2000, 5 to 2000, 6 to 500, 7 to 3500)) {
+                val fields =
+                    linkedMapOf<String, com.google.gson.JsonElement>(
+                        "amount" to com.google.gson.JsonPrimitive(-n * 100),
+                        "date" to com.google.gson.JsonPrimitive(20260101),
+                        "acct" to com.google.gson.JsonPrimitive(account),
+                        "description" to com.google.gson.JsonNull.INSTANCE,
+                        "category" to com.google.gson.JsonNull.INSTANCE,
+                        "notes" to com.google.gson.JsonPrimitive("pending $n"),
+                        "cleared" to com.google.gson.JsonPrimitive(1),
+                        "reconciled" to com.google.gson.JsonPrimitive(0),
+                        "tombstone" to com.google.gson.JsonPrimitive(0),
+                        "isParent" to com.google.gson.JsonPrimitive(0),
+                        "isChild" to com.google.gson.JsonPrimitive(0),
+                        "parent_id" to com.google.gson.JsonNull.INSTANCE,
+                        "transferred_id" to com.google.gson.JsonNull.INSTANCE,
+                        "sort_order" to com.google.gson.JsonPrimitive(order),
+                    )
+                val operation =
+                    JsonObject().apply {
+                        addProperty("id", id(n + 1000))
+                        addProperty("transactionId", id(n))
+                        addProperty("creates", true)
+                        addProperty("deletes", false)
+                        addProperty("createdOffline", true)
+                        addProperty("attempted", false)
+                        add(
+                            "changes",
+                            com.google.gson.JsonArray().apply {
+                                fields.entries.forEachIndexed { i, (field, value) ->
+                                    add(
+                                        JsonObject().apply {
+                                            addProperty("dataset", "transactions")
+                                            addProperty("row", id(n))
+                                            addProperty("column", field)
+                                            add("value", value)
+                                            addProperty(
+                                                "timestamp",
+                                                "2026-11-09T00:00:00.000Z-${(n*20+i).toString(16).uppercase().padStart(4,'0')}-dddddddddddddddd",
+                                            )
+                                        }
+                                    )
+                                }
+                            },
+                        )
+                    }
+                val source = stage.getAsJsonObject("report").getAsJsonObject("source")
+                val body =
+                    JsonObject().apply {
+                        add(
+                            "source",
+                            JsonObject().apply {
+                                add("file_id", source["cloudFileId"])
+                                add("group_id", source["groupId"])
+                            },
+                        )
+                        addProperty("epoch", epoch)
+                        add("operation", operation)
+                    }
+                val response =
+                    HttpClient.newHttpClient()
+                        .send(
+                            HttpRequest.newBuilder(
+                                    URI(
+                                        "${server.url}/api/v1/budgets/$budget/android-upgrade/operations"
+                                    )
+                                )
+                                .header("Content-Type", "application/json")
+                                .header("Idempotency-Key", id(n + 1000))
+                                .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                                .build(),
+                            HttpResponse.BodyHandlers.ofString(),
+                        )
+                assertEquals(200, response.statusCode(), response.body())
+            }
+            val store = MemoryStore()
+            var app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.chooseBudget(budget)
+            app.chooseAccount(account)
+            val ids =
+                expected.getAsJsonArray("snapshots")[5].asJsonObject.getAsJsonArray("ids").map {
+                    it.asString
+                }
+            assertEquals(ids, app.state().expenses.map { it.id })
+            val bytes = store.raw
+            app = ApiExpenseService(store)
+            app.markOffline()
+            assertEquals(ids, app.state().expenses.map { it.id })
+            assertEquals(bytes, store.raw)
+            app.refresh()
+            assertEquals(ids, app.state().expenses.map { it.id })
+        }
+    }
+
+    @Test
     fun `simple rule associations cache while native overrides never rerun rules or teach defaults`() {
         Server().use { server ->
             val base = "/budgets/${server.budget}"

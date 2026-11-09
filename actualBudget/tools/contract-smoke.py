@@ -467,6 +467,28 @@ def main():
             check(rr + "/transactions/" + counterpart, budgets + "/{budget}/transactions/{id}")
             check(rr + "/transactions?account_id=" + schedule_peer, budgets + "/{budget}/transactions")
 
+            match_template = schedule_template + "/matches"
+            match_path = schedule_path + "/matches"
+            match_schema = contract["paths"][match_template]["post"]["requestBody"]["content"]["application/json"]["schema"]
+            match_validator = Draft202012Validator(
+                {**match_schema, "components": contract["components"]}, format_checker=FormatChecker())
+            match_checkpoint = check(rr + "/checkpoint", budgets + "/{budget}/checkpoint")
+            match_body = {"snapshot": match_checkpoint["data"]["snapshot"],
+                          "conditions": [{"field": "account", "op": "is", "value": ra},
+                                         {"field": "amount", "op": "is", "value": -25}],
+                          "limit": 1, "offset": 0}
+            match_validator.validate(match_body)
+            matched = check(match_path, match_template, "POST", match_body)["data"]
+            assert transferred["data"]["transaction"]["id"] in [row["id"] for row in matched["transactions"]]
+            assert matched["snapshot"] == match_body["snapshot"]
+            assert check(rr + "/checkpoint", budgets + "/{budget}/checkpoint") == match_checkpoint
+            for invalid in ({**match_body, "limit": 0}, {**match_body, "limit": 1001},
+                            {**match_body, "offset": -1}, {**match_body, "snapshot": None}):
+                assert not match_validator.is_valid(invalid)
+                check(match_path, match_template, "POST", invalid, expected=400)
+            check(match_path, match_template, "POST", {**match_body, "snapshot": schedule_cursor}, expected=409)
+            assert check(rr + "/checkpoint", budgets + "/{budget}/checkpoint") == match_checkpoint
+
             # Genuine released Android work validates the public handoff contract,
             # including dense order keys returned by the ordinary companion view.
             legacy_dir = project / "tests/fixtures/android-upgrade"

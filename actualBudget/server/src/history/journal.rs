@@ -288,8 +288,19 @@ pub fn record(
             graph_ids.extend(connected);
         }
     }
-    if let Some(change) = changes.iter_mut().find(|c| c.table == "transactions") {
+    let mut link_ids = BTreeSet::new();
+    for change in changes.iter().filter(|c| c.table == "schedule_links") {
+        if graph_ids.contains(&change.id) || link_ids.contains(&change.id) {
+            continue;
+        }
+        link_ids.extend(graph::connected(&links, std::slice::from_ref(&change.id)));
+    }
+    if let Some(change) = changes.first_mut() {
         change.graph = graph::capture(db, budget, owner, &graph_ids)?;
+        let only_links = link_ids.difference(&graph_ids).cloned().collect();
+        change
+            .graph
+            .extend(graph::capture_links(db, budget, owner, &only_links)?);
     }
     db.execute("DELETE FROM history_capture", [])?;
     if !changes.is_empty() {

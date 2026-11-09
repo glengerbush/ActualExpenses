@@ -29,6 +29,8 @@ pub(super) struct Guard {
     row: Value,
     versions: Value,
     protection: Value,
+    #[serde(default)]
+    ignore_notes: bool,
 }
 pub(super) fn edges(db: &Connection, budget: &str) -> Result<Edges, Error> {
     Ok(db
@@ -86,6 +88,7 @@ pub(super) fn capture(
         .map(|id| {
             Ok(Guard {
                 id: id.clone(),
+                ignore_notes: false,
                 row: journal::row(db, budget, "transactions", id)?,
                 protection: serde_json::json!(generation(
                     db,
@@ -121,13 +124,18 @@ pub(super) fn verify(
         return Err(journal::conflict());
     }
     for guard in guards {
-        let versions = journal::versions(db, budget, "transactions", &guard.id, &[])?;
+        let mut versions = journal::versions(db, budget, "transactions", &guard.id, &[])?;
+        let mut current = journal::row(db, budget, "transactions", &guard.id)?;
+        if guard.ignore_notes {
+            current.as_object_mut().unwrap().remove("notes");
+            versions.as_object_mut().unwrap().remove("notes");
+        }
         if generation(db, budget, owner, &guard.id, &versions["reconciled"])?
             != guard
                 .protection
                 .as_str()
                 .unwrap_or(crate::concurrency::ZERO)
-            || journal::row(db, budget, "transactions", &guard.id)? != guard.row
+            || current != guard.row
             || versions
                 .as_object()
                 .unwrap()
@@ -141,18 +149,53 @@ pub(super) fn verify(
     }
     Ok(())
 }
+fn ignore_notes(guard: &mut Guard) {
+    guard.ignore_notes = true;
+    guard.row.as_object_mut().unwrap().remove("notes");
+    guard.versions.as_object_mut().unwrap().remove("notes");
+}
+/// Link-only history never overwrites ordinary expense notes. Paired/split
+/// snapshots retain the complete graph guard used by financial actions.
+pub(super) fn capture_links(
+    db: &Connection,
+    budget: &str,
+    owner: &Owner,
+    ids: &BTreeSet<String>,
+) -> Result<Vec<Guard>, Error> {
+    let mut guards = capture(db, budget, owner, ids)?;
+    for guard in &mut guards {
+        if guard.row["is_parent"] == 0
+            && guard.row["parent_id"].is_null()
+            && guard.row["transfer_id"].is_null()
+        {
+            ignore_notes(guard);
+        }
+    }
+    Ok(guards)
+}
 pub(super) fn refresh(
     db: &Connection,
     budget: &str,
     owner: &Owner,
     guards: &[Guard],
 ) -> Result<Vec<Guard>, Error> {
-    capture(
+    let mut current = capture(
         db,
         budget,
         owner,
         &guards.iter().map(|g| g.id.clone()).collect(),
-    )
+    )?;
+    let ignored = guards
+        .iter()
+        .filter(|g| g.ignore_notes)
+        .map(|g| g.id.as_str())
+        .collect::<BTreeSet<_>>();
+    for guard in &mut current {
+        if ignored.contains(guard.id.as_str()) {
+            ignore_notes(guard);
+        }
+    }
+    Ok(current)
 }
 
 pub(super) fn ids(guards: &[Guard]) -> impl Iterator<Item = &str> {

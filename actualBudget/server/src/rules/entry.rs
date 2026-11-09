@@ -89,10 +89,10 @@ pub(super) async fn create(
             if let Some(schedule)=linked_schedule {
                 let row=crate::ledger::get(db,&b,&id)?;
                 if row["schedule_id"]!=schedule {crate::schedules::link(db,&b,&id,&schedule,&clock)?;}
-                if row["is_parent"]!=true {if let Some(peer)=row["transfer_id"].as_str(){
+                if row["is_parent"]!=true && let Some(peer)=row["transfer_id"].as_str(){
                     let row=crate::ledger::get(db,&b,peer)?;
                     if row["schedule_id"]!=schedule{crate::schedules::link(db,&b,peer,&schedule,&clock)?;}
-                }}
+                }
             }
             if learn{learning::manual(db,&b,std::slice::from_ref(&id),&clock)?;}
             let mut saved=crate::ledger::get_any(db,&b,&id)?;

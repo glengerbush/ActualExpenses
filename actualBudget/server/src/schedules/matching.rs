@@ -56,3 +56,31 @@ pub(super) async fn read(
         Ok(json!({"data":{"transactions":page,"total_count":total,"next_offset":(body.offset+body.limit<total).then_some(body.offset+body.limit),"snapshot":sync::cursor(db,&b)?,"epoch":crate::lifecycle::epoch(db,&b)?}}))
     }).await?))
 }
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct LinkedPage {
+    snapshot: String,
+    #[serde(default)]
+    offset: usize,
+    #[serde(default = "limit")]
+    limit: usize,
+}
+pub(super) async fn linked(
+    State(store): State<Store>,
+    Path((b, id)): Path<(String, String)>,
+    query: Result<Query<LinkedPage>, axum::extract::rejection::QueryRejection>,
+) -> Result<Json<Value>, Error> {
+    crate::models::validate_id(&b)?;
+    crate::models::validate_id(&id)?;
+    let Query(page) = query.map_err(|_| Error::invalid("Invalid linked transaction page"))?;
+    if page.limit == 0 || page.limit > 1000 || page.offset > 100000 {
+        return Err(Error::invalid("Read1–1000 linked transactions per page"));
+    }
+    Ok(Json(store.run(move|db|{
+        sync::check_snapshot(db,&b,Some(&page.snapshot))?;data::get(db,&b,&id)?;
+        let total:i64=db.query_row("SELECT COUNT(*) FROM schedule_links l JOIN transactions t ON t.budget_id=l.budget_id AND t.id=l.id WHERE l.budget_id=?1 AND l.schedule_id=?2 AND l.tombstone=0 AND t.tombstone=0",params![b,id],|r|r.get(0))?;
+        let ids=db.prepare("SELECT t.id FROM schedule_links l JOIN transactions t ON t.budget_id=l.budget_id AND t.id=l.id WHERE l.budget_id=?1 AND l.schedule_id=?2 AND l.tombstone=0 AND t.tombstone=0 ORDER BY t.date DESC,t.id LIMIT ?3 OFFSET ?4")?.query_map(params![b,id,page.limit as i64,page.offset as i64],|r|r.get::<_,String>(0))?.collect::<Result<Vec<_>,_>>()?;
+        Ok(json!({"data":{"transactions":crate::ledger::get_many(db,&b,&ids)?,"total_count":total,"next_offset":(((page.offset+page.limit) as i64)<total).then_some(page.offset+page.limit),"snapshot":sync::cursor(db,&b)?,"epoch":crate::lifecycle::epoch(db,&b)?}}))
+    }).await?))
+}

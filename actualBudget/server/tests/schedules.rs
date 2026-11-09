@@ -1274,3 +1274,391 @@ fn contradictory_rule_schedule_links_on_a_pair_refuse_atomically() {
     );
     assert_eq!(checkpoint(&s), cp);
 }
+
+#[test]
+fn explicit_unlink_releases_occurrence_without_erasing_payment_and_new_post_replays_once() {
+    let mut s = Server::start();
+    setup(&s);
+    let root = format!("/api/v1/budgets/{B}");
+    let response = command(
+        &s,
+        "release-schedule",
+        json!({"action":"create","id":S,"posts_transaction":true,"conditions":[{"field":"account","op":"is","value":A},{"field":"amount","op":"is","value":-100},{"field":"date","op":"is","value":"2026-11-09"}]}),
+    );
+    assert_eq!(response.status(), 201);
+    let cp = checkpoint(&s);
+    let original = json!({"action":"catch-up","through":"2026-11-09"});
+    let send_original = |s: &Server| {
+        s.client
+            .post(format!("{}{root}/schedules/commands", s.url))
+            .header("Idempotency-Key", "original-auto")
+            .header("X-Actual-Budget-Epoch", cp["epoch"].as_str().unwrap())
+            .json(&original)
+            .send()
+            .unwrap()
+    };
+    let first = send_original(&s);
+    assert_eq!(first.status(), 200);
+    let receipt: Value = first.json().unwrap();
+    let old = receipt["data"]["transaction_ids"][0]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let cp_unlink = checkpoint(&s);
+    let owner = "21220000-0000-4000-8000-000000000197";
+    let response=s.client.post(format!("{}{root}/schedules/commands",s.url)).header("Idempotency-Key","owned-unlink").header("X-Actual-History-Owner",owner).header("X-Actual-Budget-Epoch",cp_unlink["epoch"].as_str().unwrap()).json(&json!({"action":"unlink","id":S,"transaction_ids":[old],"snapshot":cp_unlink["snapshot"]})).send().unwrap();
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let rows: Value = s.get(&format!("{root}/transactions")).json().unwrap();
+    assert_eq!(rows["data"].as_array().unwrap().len(), 1);
+    assert_eq!(rows["data"][0]["amount"], -100);
+    assert!(rows["data"][0]["schedule_id"].is_null());
+    for action in ["undo", "redo"] {
+        let history: Value = s
+            .client
+            .get(format!("{}{root}/history", s.url))
+            .header("X-Actual-History-Owner", owner)
+            .header(
+                "X-Actual-Budget-Epoch",
+                cp_unlink["epoch"].as_str().unwrap(),
+            )
+            .send()
+            .unwrap()
+            .json()
+            .unwrap();
+        let available = &history["data"][action];
+        let response = s
+            .client
+            .post(format!("{}{root}/history/{action}", s.url))
+            .header("Idempotency-Key", format!("release-{action}"))
+            .header("X-Actual-History-Owner", owner)
+            .header(
+                "X-Actual-Budget-Epoch",
+                cp_unlink["epoch"].as_str().unwrap(),
+            )
+            .json(&json!({"action_id":available["id"]}))
+            .send()
+            .unwrap();
+        assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    }
+    s = s.restart();
+    let response = command(
+        &s,
+        "after-explicit-release",
+        json!({"action":"catch-up","through":"2026-11-09"}),
+    );
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let current: Value = response.json().unwrap();
+    let new = current["data"]["transaction_ids"][0].as_str().unwrap();
+    assert_ne!(new, old);
+    let before: Value = s.get(&format!("{root}/transactions")).json().unwrap();
+    assert_eq!(before["data"].as_array().unwrap().len(), 2);
+    assert_eq!(before["balances"]["total"], -200);
+    assert!(
+        before["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["id"] == old && r["schedule_id"].is_null())
+    );
+    let cp_final = checkpoint(&s);
+    s = s.restart();
+    assert_eq!(send_original(&s).json::<Value>().unwrap(), receipt);
+    assert_eq!(
+        s.get(&format!("{root}/transactions"))
+            .json::<Value>()
+            .unwrap(),
+        before
+    );
+    assert_eq!(checkpoint(&s), cp_final);
+    let again = command(
+        &s,
+        "after-release-repeat",
+        json!({"action":"catch-up","through":"2026-11-09"}),
+    );
+    assert_eq!(again.status(), 200);
+    assert_eq!(again.json::<Value>().unwrap()["data"]["posted_count"], 0);
+    assert_eq!(
+        s.get(&format!("{root}/transactions"))
+            .json::<Value>()
+            .unwrap(),
+        before
+    );
+}
+
+#[test]
+fn schedule_link_history_merges_unrelated_notes_but_refuses_a_new_reconciliation_generation() {
+    let s = Server::start();
+    setup(&s);
+    let root = format!("/api/v1/budgets/{B}");
+    let id = "21220000-0000-4000-8000-000000000196";
+    let owner = "21220000-0000-4000-8000-000000000195";
+    assert_eq!(command(&s,"history-schedule",json!({"action":"create","id":S,"conditions":[{"field":"account","op":"is","value":A},{"field":"amount","op":"is","value":-100},{"field":"date","op":"is","value":"2026-11-09"}]})).status(),201);
+    assert_eq!(
+        s.post(
+            &format!("{root}/transactions"),
+            "history-payment",
+            json!({"id":id,"account_id":A,"amount":-100,"date":"2026-11-09","cleared":true})
+        )
+        .status(),
+        201
+    );
+    let cp = checkpoint(&s);
+    let epoch = cp["epoch"].as_str().unwrap();
+    let response = s
+        .client
+        .post(format!("{}{root}/schedules/commands", s.url))
+        .header("Idempotency-Key", "owned-link-only")
+        .header("X-Actual-History-Owner", owner)
+        .header("X-Actual-Budget-Epoch", epoch)
+        .json(&json!({"action":"link","id":S,"transaction_ids":[id],"snapshot":cp["snapshot"]}))
+        .send()
+        .unwrap();
+    assert_eq!(response.status(), 200);
+    assert_eq!(
+        s.client
+            .patch(format!("{}{root}/transactions/{id}", s.url))
+            .header("Idempotency-Key", "unrelated-note")
+            .json(&json!({"notes":"Other device note"}))
+            .send()
+            .unwrap()
+            .status(),
+        200
+    );
+    let inverse = |action: &str, key: &str| {
+        let history: Value = s
+            .client
+            .get(format!("{}{root}/history", s.url))
+            .header("X-Actual-History-Owner", owner)
+            .header("X-Actual-Budget-Epoch", epoch)
+            .send()
+            .unwrap()
+            .json()
+            .unwrap();
+        s.client
+            .post(format!("{}{root}/history/{action}", s.url))
+            .header("Idempotency-Key", key)
+            .header("X-Actual-History-Owner", owner)
+            .header("X-Actual-Budget-Epoch", epoch)
+            .json(&json!({"action_id":history["data"][action]["id"]}))
+            .send()
+            .unwrap()
+    };
+    for action in ["undo", "redo"] {
+        let response = inverse(action, &format!("notes-{action}"));
+        assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+        assert_eq!(
+            s.get(&format!("{root}/transactions/{id}"))
+                .json::<Value>()
+                .unwrap()["data"]["notes"],
+            "Other device note"
+        );
+    }
+    let cp = checkpoint(&s);
+    let response=s.post(&format!("{root}/accounts/{A}/reconciliation"),"new-lock",json!({"action":"lock","statement_balance":-100,"date":"2026-11-09","snapshot":cp["snapshot"]}));
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let before: Value = s.get(&format!("{root}/transactions")).json().unwrap();
+    assert_eq!(before["data"][0]["reconciled"], true);
+    let response = inverse("undo", "refuse-new-lock");
+    assert_eq!(
+        response.status(),
+        409,
+        "A newer reconciliation generation must not be authorized by old link history"
+    );
+    assert_eq!(
+        s.get(&format!("{root}/transactions"))
+            .json::<Value>()
+            .unwrap(),
+        before
+    );
+}
+
+#[test]
+fn reassignment_releases_original_auto_claim_and_matches_all_four_pinned_financial_graphs() {
+    let oracle: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/schedule-reassignment.json"
+    ))
+    .unwrap();
+    for case in oracle["cases"].as_array().unwrap() {
+        let s = Server::start();
+        setup(&s);
+        let root = format!("/api/v1/budgets/{B}");
+        let target = "21220000-0000-4000-8000-000000000194";
+        assert_eq!(
+            s.post(
+                &format!("{root}/accounts"),
+                "other-account",
+                json!({"id":P,"name":"Savings","opening_balance":0,"opening_date":"2026-01-01"})
+            )
+            .status(),
+            201
+        );
+        assert_eq!(
+            s.post(
+                &format!("{root}/payees"),
+                "ordinary-payee",
+                json!({"id":PAYEE,"name":"Bill"})
+            )
+            .status(),
+            201
+        );
+        let schedule = |id: &str, automatic: bool| {
+            let mut c = json!({"action":"create","id":id,"posts_transaction":automatic,"conditions":[{"field":"account","op":"is","value":A},{"field":"amount","op":"is","value":-100},{"field":"date","op":"is","value":"2026-11-09"}]});
+            if case["transfer"] == true {
+                c["transfer_account_id"] = json!(P);
+            } else {
+                c["conditions"]
+                    .as_array_mut()
+                    .unwrap()
+                    .push(json!({"field":"payee","op":"is","value":PAYEE}));
+            }
+            c
+        };
+        assert_eq!(command(&s, "schedule-A", schedule(S, true)).status(), 201);
+        let cp = checkpoint(&s);
+        let original_body =
+            json!({"action":"catch-up","through":"2026-11-09","snapshot":cp["snapshot"]});
+        let send_original = || {
+            s.client
+                .post(format!("{}{root}/schedules/commands", s.url))
+                .header("Idempotency-Key", "A-posted-original")
+                .header("X-Actual-Budget-Epoch", cp["epoch"].as_str().unwrap())
+                .json(&original_body)
+                .send()
+                .unwrap()
+        };
+        let first = send_original();
+        assert_eq!(first.status(), 200);
+        let receipt: Value = first.json().unwrap();
+        let old = receipt["data"]["transaction_ids"][0]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        assert_eq!(
+            command(
+                &s,
+                "schedule-B",
+                schedule(target, case["target_automatic"].as_bool().unwrap())
+            )
+            .status(),
+            201
+        );
+        let response = command(
+            &s,
+            "move-to-B",
+            json!({"action":"link","id":target,"transaction_ids":[old]}),
+        );
+        assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+        let point = checkpoint(&s);
+        let linked = s.get(&format!(
+            "{root}/schedules/{target}/transactions?snapshot={}&limit=1",
+            point["snapshot"].as_str().unwrap()
+        ));
+        assert_eq!(linked.status(), 200, "{}", linked.text().unwrap());
+        let linked: Value = linked.json().unwrap();
+        assert_eq!(
+            linked["data"]["total_count"],
+            if case["transfer"] == true { 2 } else { 1 }
+        );
+        assert_eq!(linked["data"]["transactions"].as_array().unwrap().len(), 1);
+        assert_eq!(linked["data"]["transactions"][0]["schedule_id"], target);
+        assert_eq!(checkpoint(&s), point);
+        let response = command(
+            &s,
+            "service-after-move",
+            json!({"action":"catch-up","through":"2026-11-09"}),
+        );
+        assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+        let posted: Value = response.json().unwrap();
+        assert_eq!(posted["data"]["posted_count"], 1);
+        let new = posted["data"]["transaction_ids"][0]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        assert_ne!(old, new);
+        let view: Value = s.get(&format!("{root}/transactions")).json().unwrap();
+        let rows = view["data"].as_array().unwrap();
+        let mut labels = std::collections::BTreeMap::from([
+            (old.clone(), "payment-1".to_owned()),
+            (new.clone(), "payment-2".to_owned()),
+        ]);
+        for (id, label) in [(&old, "payment-1-peer"), (&new, "payment-2-peer")] {
+            if let Some(peer) =
+                rows.iter().find(|r| r["id"] == *id).unwrap()["transfer_id"].as_str()
+            {
+                labels.insert(peer.into(), label.into());
+            }
+        }
+        let payees: Value = s
+            .get(&format!("{root}/payees?include_transfers=true"))
+            .json()
+            .unwrap();
+        let mut refs = std::collections::BTreeMap::from([
+            (A.to_owned(), "ACCOUNT"),
+            (P.to_owned(), "PEER"),
+            (PAYEE.to_owned(), "PAYEE"),
+            (S.to_owned(), "A"),
+            (target.to_owned(), "B"),
+        ]);
+        for p in payees["data"].as_array().unwrap() {
+            if p["transfer_account_id"] == P {
+                refs.insert(p["id"].as_str().unwrap().into(), "TRANSFER");
+            } else if p["transfer_account_id"] == A {
+                refs.insert(p["id"].as_str().unwrap().into(), "BACK_TRANSFER");
+            }
+        }
+        let reference = |v: &Value| {
+            v.as_str()
+                .map(|id| {
+                    json!(
+                        refs.get(id)
+                            .unwrap_or_else(|| panic!("Unknown reference {id}"))
+                    )
+                })
+                .unwrap_or(Value::Null)
+        };
+        let identity = |v: &Value| {
+            v.as_str()
+                .map(|id| json!(labels.get(id).expect("Missing reciprocal payment")))
+                .unwrap_or(Value::Null)
+        };
+        let mut actual=rows.iter().map(|r|json!({"id":identity(&r["id"]),"account":reference(&r["account_id"]),"amount":r["amount"],"date":r["date"],"payee":reference(&r["payee_id"]),"category":r["category_id"],"notes":r["notes"],"cleared":r["cleared"],"reconciled":r["reconciled"],"transfer_id":identity(&r["transfer_id"]),"parent_id":identity(&r["parent_id"]),"is_parent":r["is_parent"].as_bool().unwrap_or(false),"schedule":reference(&r["schedule_id"])})).collect::<Vec<_>>();
+        actual.sort_by_key(|r| r["id"].as_str().unwrap().to_owned());
+        let expected = case["snapshots"].as_array().unwrap().last().unwrap();
+        let mut ledger = expected["ledger"].as_array().unwrap().clone();
+        ledger.sort_by_key(|r| r["id"].as_str().unwrap().to_owned());
+        assert_eq!(
+            actual, ledger,
+            "transfer={} target_auto={}",
+            case["transfer"], case["target_automatic"]
+        );
+        let balances = [A, P]
+            .iter()
+            .map(|a| {
+                s.get(&format!("{root}/transactions?account_id={a}"))
+                    .json::<Value>()
+                    .unwrap()["balances"]["total"]
+                    .clone()
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(json!(balances), expected["balances"]);
+        let before = checkpoint(&s);
+        assert_eq!(send_original().json::<Value>().unwrap(), receipt);
+        assert_eq!(checkpoint(&s), before);
+        assert_eq!(
+            s.get(&format!("{root}/transactions"))
+                .json::<Value>()
+                .unwrap(),
+            view
+        );
+        assert_eq!(
+            command(
+                &s,
+                "repeat-service",
+                json!({"action":"catch-up","through":"2026-11-09"})
+            )
+            .json::<Value>()
+            .unwrap()["data"]["posted_count"],
+            0
+        );
+    }
+}

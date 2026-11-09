@@ -154,8 +154,8 @@ pub fn import_clock(db: &Connection, b: &str, data: &Value, row: &Value) -> Resu
     if let Some((entity, id, field)) = target {
         sync::seed_field_version(db, b, entity, &id, field, clock)?;
     }
-    if dataset == "schedules_next_date" {
-        if let Some(state) = data["next_states"]
+    if dataset == "schedules_next_date"
+        && let Some(state) = data["next_states"]
             .as_array()
             .into_iter()
             .flatten()
@@ -164,16 +164,15 @@ pub fn import_clock(db: &Connection, b: &str, data: &Value, row: &Value) -> Resu
                     && (s["field"] == field
                         || matches!(field, "local_next_date_ts" | "base_next_date_ts"))
             })
-        {
-            sync::seed_field_version(
-                db,
-                b,
-                "schedules",
-                state["schedule_id"].as_str().unwrap(),
-                "next_date",
-                clock,
-            )?;
-        }
+    {
+        sync::seed_field_version(
+            db,
+            b,
+            "schedules",
+            state["schedule_id"].as_str().unwrap(),
+            "next_date",
+            clock,
+        )?;
     }
     Ok(())
 }

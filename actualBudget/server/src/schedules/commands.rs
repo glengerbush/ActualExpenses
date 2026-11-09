@@ -5,6 +5,7 @@ use crate::models::{validate_id, validate_name};
 pub struct Command {
     pub action: String,
     pub transfer_account_id: Option<String>,
+    pub transaction_ids: Option<Vec<String>>,
     pub id: Option<String>,
     pub snapshot: Option<String>,
     pub name: Option<String>,
@@ -119,7 +120,13 @@ pub fn apply(
     epoch: Option<&str>,
 ) -> Result<Value, Error> {
     match c.action.as_str() {
-        "create" => return create(db, b, &c, clock),
+        "create" => {
+            let saved = create(db, b, &c, clock)?;
+            if c.transaction_ids.is_some() {
+                super::links::apply(db, b, &c, clock)?;
+            }
+            return Ok(saved);
+        }
         "catch-up" => return catch_up(db, b, clock, epoch, c.through.as_deref()),
         "settings" => {
             let value = required(&c.upcoming_length, "upcoming_length")?;
@@ -133,6 +140,9 @@ pub fn apply(
             return Ok(json!({"upcoming_length":value}));
         }
         _ => {}
+    }
+    if matches!(c.action.as_str(), "link" | "unlink") {
+        return super::links::apply(db, b, &c, clock);
     }
     let id = required(&c.id, "id")?;
     validate_id(id)?;
@@ -322,7 +332,23 @@ fn post(
         .map(|c| c["value"].clone())
         .unwrap_or(json!(0));
     let amount = scheduled_amount(&amount)?;
-    let tx = data::identity(&["actualBudget.schedule-transaction.v1", b, id, date]);
+    let occurrence = data::identity(&["actualBudget.schedule-occurrence.v1", b, id, date]);
+    let release:Option<Option<String>>=db.query_row("SELECT f.clock FROM schedule_occurrences o LEFT JOIN field_versions f ON f.budget_id=o.budget_id AND f.entity='schedule_occurrences' AND f.entity_id=o.id AND f.field='tombstone' WHERE o.budget_id=?1 AND o.id=?2 AND o.tombstone=1",params![b,occurrence],|r|r.get(0)).optional()?;
+    let tx = match release {
+        Some(Some(original)) => data::identity(&[
+            "actualBudget.schedule-transaction.release.v1",
+            b,
+            id,
+            date,
+            &original,
+        ]),
+        Some(None) => {
+            return Err(Error::conflict(
+                "This released occurrence lacks its original generation proof. Review the schedule before posting.",
+            ));
+        }
+        None => data::identity(&["actualBudget.schedule-transaction.v1", b, id, date]),
+    };
     let input = json!({"id":tx,"account_id":account,"payee_id":payee,"category_id":null,"amount":amount,"date":if today{calendar::day()?}else{date.to_owned()},"notes":"","cleared":false,"schedule_id":id,"is_parent":false,"parent_id":null});
     let (remaining, inserted) =
         crate::rules::post_schedule(db, b, &input, clock, epoch, std::mem::take(work))?;

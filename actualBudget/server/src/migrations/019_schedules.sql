@@ -13,6 +13,7 @@ CREATE TABLE schedule_occurrences (
  transaction_id TEXT,tombstone INTEGER NOT NULL DEFAULT 0 CHECK(tombstone IN(0,1)),
  PRIMARY KEY(budget_id,id),UNIQUE(budget_id,schedule_id,occurrence_date)
 );
+CREATE INDEX schedule_occurrences_payment ON schedule_occurrences(budget_id,transaction_id) WHERE tombstone=0;
 CREATE TABLE schedule_links (
  budget_id TEXT NOT NULL REFERENCES budgets(id),id TEXT NOT NULL,schedule_id TEXT NOT NULL,
  tombstone INTEGER NOT NULL DEFAULT 0 CHECK(tombstone IN(0,1)),PRIMARY KEY(budget_id,id)

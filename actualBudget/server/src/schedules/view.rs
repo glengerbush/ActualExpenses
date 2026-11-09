@@ -123,25 +123,25 @@ pub fn list(db: &Connection, b: &str, query: &super::Page) -> Result<Value, Erro
                 .map(|c| c["value"].clone())
                 .unwrap_or(Value::Null);
         }
-        if !matches!(status, "completed" | "scheduled") {
-            if let Some(date) = date.map(str::to_owned) {
-                let available = (1000usize - previews.len()).min(10);
-                if available == 0 {
-                    continuations.push(json!({"schedule_id":row["id"],"from":date}));
-                    continue;
-                }
-                let (mut dates, more) =
-                    occurrences::dates(row, &date, &end, available + usize::from(paid), &mut work)?;
-                if paid && dates.first() == Some(&date) {
-                    dates.remove(0);
-                }
-                if more && let Some(last) = dates.last() {
-                    continuations
-                        .push(json!({"schedule_id":row["id"],"from":calendar::shift(last,1)?}));
-                }
-                for date in dates {
-                    previews.push(json!({"id":format!("preview/{}/{}",row["id"].as_str().unwrap(),date),"schedule_id":row["id"],"date":date,"account_id":row["account_id"],"payee_id":row["payee_id"],"amount":commands::scheduled_amount(&row["amount"])?,"status":status}));
-                }
+        if !matches!(status, "completed" | "scheduled")
+            && let Some(date) = date.map(str::to_owned)
+        {
+            let available = (1000usize - previews.len()).min(10);
+            if available == 0 {
+                continuations.push(json!({"schedule_id":row["id"],"from":date}));
+                continue;
+            }
+            let (mut dates, more) =
+                occurrences::dates(row, &date, &end, available + usize::from(paid), &mut work)?;
+            if paid && dates.first() == Some(&date) {
+                dates.remove(0);
+            }
+            if more && let Some(last) = dates.last() {
+                continuations
+                    .push(json!({"schedule_id":row["id"],"from":calendar::shift(last,1)?}));
+            }
+            for date in dates {
+                previews.push(json!({"id":format!("preview/{}/{}",row["id"].as_str().unwrap(),date),"schedule_id":row["id"],"date":date,"account_id":row["account_id"],"payee_id":row["payee_id"],"amount":commands::scheduled_amount(&row["amount"])?,"status":status}));
             }
         }
     }

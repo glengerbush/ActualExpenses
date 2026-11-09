@@ -92,6 +92,16 @@ pub fn link(db: &Connection, b: &str, id: &str, schedule: &str, clock: &str) -> 
         &["schedule_id", "tombstone"],
         clock,
     )?;
+    let previous: Option<String> = db
+        .query_row(
+            "SELECT schedule_id FROM schedule_links WHERE budget_id=?1 AND id=?2 AND tombstone=0",
+            params![b, id],
+            |r| r.get(0),
+        )
+        .optional()?;
+    if previous.as_deref().is_some_and(|old| old != schedule) {
+        super::links::release_payment(db, b, id, Some(schedule), clock)?;
+    }
     db.execute("INSERT INTO schedule_links(budget_id,id,schedule_id) VALUES(?1,?2,?3) ON CONFLICT(budget_id,id) DO UPDATE SET schedule_id=excluded.schedule_id,tombstone=0",params![b,id,schedule])?;
     stamp(
         db,

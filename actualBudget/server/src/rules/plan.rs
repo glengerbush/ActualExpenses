@@ -406,12 +406,12 @@ pub(super) fn commit_with_work(
                     (before, after)
                 }),
         ) {
-            if after["deleted"] != true && after["schedule_id"] != before["schedule_id"] {
-                if let (Some(id), Some(schedule)) =
+            if after["deleted"] != true
+                && after["schedule_id"] != before["schedule_id"]
+                && let (Some(id), Some(schedule)) =
                     (after["id"].as_str(), after["schedule_id"].as_str())
-                {
-                    schedule_links.insert(id.into(), schedule.into());
-                }
+            {
+                schedule_links.insert(id.into(), schedule.into());
             }
         }
     }
@@ -655,18 +655,18 @@ pub(super) fn commit_with_work(
     let mut expanded = schedule_links.clone();
     for (id, schedule) in &schedule_links {
         let row = ledger::get(db, b, id)?;
-        if row["is_parent"] != true {
-            if let Some(peer) = row["transfer_id"].as_str() {
-                if schedule_links
-                    .get(peer)
-                    .is_some_and(|other| other != schedule)
-                {
-                    return Err(Error::conflict(
-                        "Selected rules link the transfer legs to different schedules. No rule actions were saved.",
-                    ));
-                }
-                expanded.insert(peer.into(), schedule.clone());
+        if row["is_parent"] != true
+            && let Some(peer) = row["transfer_id"].as_str()
+        {
+            if schedule_links
+                .get(peer)
+                .is_some_and(|other| other != schedule)
+            {
+                return Err(Error::conflict(
+                    "Selected rules link the transfer legs to different schedules. No rule actions were saved.",
+                ));
             }
+            expanded.insert(peer.into(), schedule.clone());
         }
     }
     for (id, schedule) in expanded {

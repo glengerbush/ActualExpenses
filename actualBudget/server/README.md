@@ -34,10 +34,11 @@ errors use `{ "error": { "code": ..., "message": ... } }`.
 - `GET/POST /api/v1/budgets/{budget}/payees` and `/categories`
 - `POST /api/v1/amounts/evaluate`
 - `GET/PATCH /api/v1/budgets/{budget}/preferences`
+- `GET /api/v1/budgets/{budget}/changes?cursor=...`
 
 Register queries accept optional `account_id`, inclusive `as_of=YYYY-MM-DD`,
 `limit`, and `offset`. Responses include `data`, exact `balances`, `as_of`, and
-`next_offset`. All-date balances include future entries; an explicit cutoff gives
+`next_offset` and an atomic `snapshot` checkpoint. All-date balances include future entries; an explicit cutoff gives
 balances through that date. Account registers include per-row running balances;
 the all-account register returns null running balances.
 
@@ -50,7 +51,9 @@ starting-balance status. Delete retains a tombstone; IDs cannot be reused.
 Financial mutations and preference updates require a stable `Idempotency-Key` (1–128 visible ASCII characters).
 An operation is scoped to its method and resource path. Equivalent normalized
 request bodies replay the original status and result; changed bodies return 409
-`idempotency_conflict`. Validation/failed writes do not consume the key. Success
+`idempotency_conflict`. Clock headers also participate in identity matching.
+Validation/failed writes do not consume the key; terminal deletion conflicts are
+durable outcomes. Success
 and replay outcome commit in the same SQLite transaction. Outcomes have no expiry;
 future compaction requires an explicit acknowledgement protocol.
 
@@ -104,3 +107,6 @@ Register validation additionally covers pinned Actual transaction snapshots,
 calculator cases, per-field PATCH, duplicate/delete, atomic references, aggregate
 overflow rollback, and a genuine schema-1 database upgrade/backup fixture. See
 [register validation](REGISTER-VALIDATION.md) for reproduction and limits.
+
+See [ordered edits and change cursors](CONCURRENCY.md) for clock, deletion,
+retention, explicit recovery and Android adapter boundaries.

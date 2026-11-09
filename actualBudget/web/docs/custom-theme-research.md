@@ -58,6 +58,8 @@ Extend the existing public preference conversion response with a device-theme co
 
 ## Independent reference fixtures
 
-`node tests/generate-theme-fixture.mjs --check` executes immutable baseline TypeScript helpers in an isolated VM without network access. Fixture `tests/fixtures/custom-themes-26.10.0.json` records source hashes,33 catalog entries and token inventories,15 CSS validation cases,6 installed-record parse cases and4 override migration cases. Cases include valid variable reference/font, unsupported selector/remote font/fallback variable, malformed record, unknown base, existing override precedence and light/dark collision.
+`node tests/generate-theme-fixture.mjs --check` executes immutable baseline TypeScript helpers in an isolated VM without network access. Fixture `tests/fixtures/custom-themes-26.10.0.json` records source hashes,33 catalog entries and token inventories,15 CSS validation cases,6 installed-record parse cases and5 override migration cases. Cases include valid variable reference/font, unsupported selector/remote font/fallback variable, malformed record, unknown base, existing override precedence and light/dark collision.
 
 Future public acceptance should compare these outcomes and verify catalog fetch failure/abort, pasted CSS warnings, exact raw export/reload, malformed stored recovery, light/dark/system selection, unsupported-token visibility, explicit reset, keyboard/mobile/large text, and no startup network fetch after installation. No production files changed by this preparation.
+
+Implementation and final acceptance evidence: [custom-theme contract](custom-theme-contract.md). The separate theme conversion endpoint keeps device-only data outside shared budget preferences.

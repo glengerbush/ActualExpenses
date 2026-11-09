@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import ThemeInstaller from "./themes/ThemeInstaller.svelte";
   import { preferences } from "./preferences.svelte";
   import { languages, languageState, t } from "./i18n.svelte";
   import { currencies, getCurrency } from "./preferences/currencies";
@@ -141,6 +142,7 @@
       <button onclick={() => preferences.retryLanguage()}>{t("Retry")}</button
       >{/if}
   </section>
+  <ThemeInstaller />
   <section aria-labelledby="shared-settings">
     <h2 id="shared-settings">{t("This budget")}</h2>
     <p class="hint">

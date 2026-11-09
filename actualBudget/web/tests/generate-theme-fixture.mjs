@@ -91,6 +91,13 @@ const legacyDark = JSON.stringify({
   overrideCss: ":root { --color-pageText: #222; }",
 });
 const migrations = [
+  {
+    existingOverride: undefined,
+    lightJson: JSON.stringify({
+      overrideCss: ":root { --color-pageText: #456; }",
+    }),
+    darkJson: undefined,
+  },
   { existingOverride: undefined, lightJson: legacyLight, darkJson: legacyDark },
   {
     existingOverride: ":root { --color-pageText: #333; }",

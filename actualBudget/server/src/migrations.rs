@@ -7,6 +7,8 @@ const MIGRATIONS: &[&str] = &[
     include_str!("schema.sql"),
     include_str!("migrations/002_register.sql"),
     include_str!("preferences/schema.sql"),
+    include_str!("migrations/004_concurrency.sql"),
+    include_str!("imports/schema.sql"),
 ];
 pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;

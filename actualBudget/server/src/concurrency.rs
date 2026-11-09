@@ -1,0 +1,478 @@
+//! Per-field ordering and incremental state convergence. All writes run inside
+//! the same SQLite transaction as the financial mutation and durable receipt.
+use crate::{
+    error::Error,
+    ledger::{self, NewTransaction},
+    store,
+};
+use axum::{
+    Json, Router,
+    extract::{
+        Path, Query, State,
+        rejection::{PathRejection, QueryRejection},
+    },
+    http::{HeaderMap, StatusCode},
+    routing::get,
+};
+use chrono::{DateTime, SecondsFormat, Utc};
+use rusqlite::{Connection, OptionalExtension, params};
+use serde::Deserialize;
+use serde_json::{Value, json};
+use std::time::{SystemTime, UNIX_EPOCH};
+pub const ZERO: &str = "1970-01-01T00:00:00.000Z-0000-0000000000000000";
+const FIELDS: &[&str] = &[
+    "account_id",
+    "amount",
+    "date",
+    "cleared",
+    "notes",
+    "payee_id",
+    "category_id",
+    "reconciled",
+    "starting_balance",
+    "tombstone",
+];
+fn now_ms() -> Result<i64, Error> {
+    i64::try_from(
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map_err(Error::internal)?
+            .as_millis(),
+    )
+    .map_err(Error::internal)
+}
+fn parse_clock(value: &str) -> Result<(i64, u32), Error> {
+    let invalid = || {
+        Error::new(
+            StatusCode::BAD_REQUEST,
+            "invalid_clock",
+            "Edit clock must be a canonical Actual HLC timestamp",
+        )
+    };
+    if value.len() != 46
+        || !value.is_ascii()
+        || &value[24..25] != "-"
+        || &value[29..30] != "-"
+        || !value[25..29]
+            .bytes()
+            .all(|c| c.is_ascii_digit() || (b'A'..=b'F').contains(&c))
+        || !value[30..].bytes().all(|c| c.is_ascii_hexdigit())
+    {
+        return Err(invalid());
+    }
+    let date = DateTime::parse_from_rfc3339(&value[..24]).map_err(|_| invalid())?;
+    if date.timestamp_millis() < 0
+        || date.to_rfc3339_opts(SecondsFormat::Millis, true) != value[..24]
+    {
+        return Err(invalid());
+    }
+    Ok((
+        date.timestamp_millis(),
+        u32::from_str_radix(&value[25..29], 16).map_err(|_| invalid())?,
+    ))
+}
+pub fn validate_import_clock(value: &str) -> Result<(), Error> {
+    parse_clock(value)?;
+    Ok(())
+}
+pub fn import_clock_ahead(value: &str) -> Result<bool, Error> {
+    Ok(parse_clock(value)?.0 - now_ms()? > 300_000)
+}
+pub fn header(headers: &HeaderMap) -> Result<Option<String>, Error> {
+    headers
+        .get("X-Actual-Edit-Clock")
+        .map(|v| {
+            v.to_str()
+                .map(str::to_owned)
+                .map_err(|_| Error::invalid("Invalid edit clock header"))
+        })
+        .transpose()
+}
+fn clock(db: &Connection, budget: &str, proposed: Option<&str>) -> Result<String, Error> {
+    let now = now_ms()?;
+    let (last, node): (String, String) = db.query_row(
+        "SELECT clock,node FROM budget_sync WHERE budget_id=?1",
+        [budget],
+        |r| Ok((r.get(0)?, r.get(1)?)),
+    )?;
+    let (last_ms, last_counter) = parse_clock(&last)?;
+    let incoming = proposed.map(parse_clock).transpose()?;
+    if incoming.is_some_and(|(ms, _)| ms - now > 300_000) || last_ms - now > 300_000 {
+        return Err(Error::new(
+            StatusCode::BAD_REQUEST,
+            "clock_skew",
+            "A device clock is more than five minutes ahead. Correct its clock and retry the unchanged operation.",
+        ));
+    }
+    let millis = now.max(last_ms).max(incoming.map_or(0, |v| v.0));
+    let counter = match incoming {
+        Some((remote, c)) if millis == last_ms && millis == remote => last_counter.max(c) + 1,
+        Some((remote, c)) if millis == remote => c + 1,
+        _ if millis == last_ms => last_counter + 1,
+        _ => 0,
+    };
+    if counter > 65535 {
+        return Err(Error::new(
+            StatusCode::BAD_REQUEST,
+            "clock_overflow",
+            "Logical clock counter exhausted. Retry the unchanged operation after time advances.",
+        ));
+    }
+    let date = DateTime::<Utc>::from_timestamp_millis(millis)
+        .ok_or_else(|| Error::invalid("Clock outside supported range"))?
+        .to_rfc3339_opts(SecondsFormat::Millis, true);
+    let generated = format!("{date}-{counter:04X}-{node}");
+    db.execute(
+        "UPDATE budget_sync SET clock=?2 WHERE budget_id=?1",
+        params![budget, generated],
+    )?;
+    Ok(proposed.map(str::to_owned).unwrap_or(generated))
+}
+/// Import exact source ordering; never replace missing clocks with migration time.
+/// Unknown fields may be retained here too. This does not resurrect SQL tombstones.
+pub fn seed_field_version(
+    db: &Connection,
+    budget: &str,
+    entity: &str,
+    id: &str,
+    field: &str,
+    clock: &str,
+) -> Result<(), Error> {
+    parse_clock(clock)?;
+    db.execute("INSERT INTO field_versions(budget_id,entity,entity_id,field,clock) VALUES(?1,?2,?3,?4,?5) ON CONFLICT(budget_id,entity,entity_id,field) DO UPDATE SET clock=excluded.clock WHERE excluded.clock>field_versions.clock",params![budget,entity,id,field,clock])?;
+    db.execute(
+        "UPDATE budget_sync SET clock=?2 WHERE budget_id=?1 AND clock<?2",
+        params![budget, clock],
+    )?;
+    Ok(())
+}
+pub fn stamp_new_transaction(db: &Connection, budget: &str, id: &str) -> Result<(), Error> {
+    let assigned = clock(db, budget, None)?;
+    for field in FIELDS {
+        seed_field_version(db, budget, "transactions", id, field, &assigned)?;
+    }
+    mark(db, budget, "transactions", id)
+}
+pub fn versions(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
+    let mut values = serde_json::Map::new();
+    for field in FIELDS {
+        values.insert((*field).into(), json!(ZERO));
+    }
+    let mut q=db.prepare("SELECT field,clock FROM field_versions WHERE budget_id=?1 AND entity='transactions' AND entity_id=?2")?;
+    for row in q.query_map(params![budget, id], |r| {
+        Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
+    })? {
+        let (k, v) = row?;
+        values.insert(k, json!(v));
+    }
+    Ok(Value::Object(values))
+}
+pub fn decorate(db: &Connection, budget: &str, mut row: Value) -> Result<Value, Error> {
+    row["field_versions"] = versions(
+        db,
+        budget,
+        row["id"]
+            .as_str()
+            .ok_or_else(|| Error::internal("Missing transaction ID"))?,
+    )?;
+    Ok(row)
+}
+pub fn mark(db: &Connection, budget: &str, entity: &str, id: &str) -> Result<(), Error> {
+    db.execute(
+        "UPDATE budget_sync SET sequence=sequence+1 WHERE budget_id=?1",
+        [budget],
+    )?;
+    db.execute("INSERT INTO budget_changes(budget_id,entity,entity_id,sequence) VALUES(?1,?2,?3,(SELECT sequence FROM budget_sync WHERE budget_id=?1)) ON CONFLICT(budget_id,entity,entity_id) DO UPDATE SET sequence=excluded.sequence",params![budget,entity,id])?;
+    Ok(())
+}
+pub fn cursor(db: &Connection, budget: &str) -> Result<String, Error> {
+    let (epoch, sequence): (String, i64) = db.query_row(
+        "SELECT epoch,sequence FROM budget_sync WHERE budget_id=?1",
+        [budget],
+        |r| Ok((r.get(0)?, r.get(1)?)),
+    )?;
+    Ok(format!("c1{epoch}{sequence:016x}"))
+}
+fn deleted(db: &Connection, budget: &str, id: &str) -> Result<bool, Error> {
+    db.query_row(
+        "SELECT tombstone FROM transactions WHERE budget_id=?1 AND id=?2",
+        params![budget, id],
+        |r| r.get(0),
+    )
+    .optional()?
+    .ok_or_else(Error::missing)
+}
+fn tombstone(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
+    Ok(json!({"id":id,"deleted":true,"field_versions":versions(db,budget,id)?}))
+}
+fn outcome(status: StatusCode, body: Value) -> Value {
+    json!({"response_status":status.as_u16(),"response_body":body})
+}
+fn success(
+    db: &Connection,
+    budget: &str,
+    data: Value,
+    clock: &str,
+    conflicts: Vec<Value>,
+    status: StatusCode,
+) -> Result<Value, Error> {
+    Ok(outcome(
+        status,
+        json!({"data":data,"edit_clock":clock,"conflicts":conflicts,"cursor":cursor(db,budget)?}),
+    ))
+}
+fn refusal(
+    db: &Connection,
+    budget: &str,
+    data: Value,
+    code: &str,
+    message: &str,
+) -> Result<Value, Error> {
+    Ok(outcome(
+        StatusCode::CONFLICT,
+        json!({"error":{"code":code,"message":message},"data":data,"cursor":cursor(db,budget)?}),
+    ))
+}
+pub enum Mutation {
+    Create(Box<NewTransaction>),
+    Patch(String, Value),
+    Delete(String),
+    Duplicate(String, String),
+}
+pub fn execute(
+    db: &Connection,
+    budget: &str,
+    proposed: Option<&str>,
+    mutation: Mutation,
+) -> Result<Value, Error> {
+    store::require_budget(db, budget)?;
+    let edit_clock = clock(db, budget, proposed)?;
+    match mutation {
+        Mutation::Create(input) => {
+            let id = input.id.clone();
+            ledger::create(db, budget, *input)?;
+            for field in FIELDS {
+                seed_field_version(db, budget, "transactions", &id, field, &edit_clock)?;
+            }
+            mark(db, budget, "transactions", &id)?;
+            success(
+                db,
+                budget,
+                ledger::get(db, budget, &id)?,
+                &edit_clock,
+                vec![],
+                StatusCode::CREATED,
+            )
+        }
+        Mutation::Duplicate(source, id) => {
+            ledger::duplicate(db, budget, &source, &id)?;
+            for field in FIELDS {
+                seed_field_version(db, budget, "transactions", &id, field, &edit_clock)?;
+            }
+            mark(db, budget, "transactions", &id)?;
+            success(
+                db,
+                budget,
+                ledger::get(db, budget, &id)?,
+                &edit_clock,
+                vec![],
+                StatusCode::CREATED,
+            )
+        }
+        Mutation::Patch(id, patch) => {
+            let hidden = deleted(db, budget, &id)?;
+            let previous = if hidden {
+                ledger::get_any(db, budget, &id)?
+            } else {
+                ledger::get(db, budget, &id)?
+            };
+            ledger::validate_patch(&previous, &patch)?;
+            let fields = patch.as_object().unwrap();
+            let old = versions(db, budget, &id)?;
+            let mut accepted = serde_json::Map::new();
+            let mut conflicts = vec![];
+            let mut changed_fields = vec![];
+            for (field, value) in fields {
+                let target = match field.as_str() {
+                    "new_payee" => "payee_id",
+                    "new_category" => "category_id",
+                    _ => field,
+                };
+                let winning = old[target].as_str().unwrap_or(ZERO);
+                if edit_clock.as_str() > winning {
+                    accepted.insert(field.clone(), value.clone());
+                    changed_fields.push(target.to_owned());
+                } else {
+                    conflicts.push(json!({"field":target,"submitted_clock":edit_clock,"winning_clock":winning}));
+                }
+            }
+            if !accepted.is_empty() {
+                if hidden {
+                    ledger::update_hidden(db, budget, &id, Value::Object(accepted))?;
+                } else {
+                    ledger::update(db, budget, &id, Value::Object(accepted))?;
+                }
+                for field in changed_fields {
+                    seed_field_version(db, budget, "transactions", &id, &field, &edit_clock)?;
+                }
+                mark(db, budget, "transactions", &id)?;
+            }
+            let mut result = if hidden {
+                ledger::get_any(db, budget, &id)?
+            } else {
+                ledger::get(db, budget, &id)?
+            };
+            if hidden {
+                result["deleted"] = json!(true);
+            }
+            success(db, budget, result, &edit_clock, conflicts, StatusCode::OK)
+        }
+        Mutation::Delete(id) => {
+            if deleted(db, budget, &id)? {
+                return refusal(
+                    db,
+                    budget,
+                    tombstone(db, budget, &id)?,
+                    "transaction_deleted",
+                    "This transaction was already deleted.",
+                );
+            }
+            let known = versions(db, budget, &id)?;
+            if known.as_object().unwrap().values().any(|clock| {
+                clock
+                    .as_str()
+                    .is_some_and(|clock| clock > edit_clock.as_str())
+            }) {
+                return refusal(
+                    db,
+                    budget,
+                    ledger::get(db, budget, &id)?,
+                    "deletion_superseded",
+                    "A newer edit kept this transaction. The pending deletion was canceled.",
+                );
+            }
+            ledger::delete(db, budget, &id)?;
+            seed_field_version(db, budget, "transactions", &id, "tombstone", &edit_clock)?;
+            mark(db, budget, "transactions", &id)?;
+            success(
+                db,
+                budget,
+                tombstone(db, budget, &id)?,
+                &edit_clock,
+                vec![],
+                StatusCode::OK,
+            )
+        }
+    }
+}
+pub fn write(
+    db: &mut Connection,
+    scope: &str,
+    key: &str,
+    payload: &str,
+    clock: Option<&str>,
+    legacy_status: StatusCode,
+    operation: impl FnOnce(&Connection) -> Result<Value, Error>,
+) -> Result<(StatusCode, Json<Value>), Error> {
+    // Keep old headerless payload bytes so pre-upgrade pending receipts still replay.
+    let payload = clock
+        .map(|clock| json!({"payload":payload,"edit_clock":clock}).to_string())
+        .unwrap_or_else(|| payload.to_owned());
+    let result = store::write(db, scope, key, &payload, operation)?;
+    if let (Some(status), Some(body)) = (
+        result["response_status"].as_u64(),
+        result.get("response_body"),
+    ) {
+        Ok((
+            StatusCode::from_u16(status as u16).map_err(Error::internal)?,
+            Json(body.clone()),
+        ))
+    } else {
+        Ok((legacy_status, Json(json!({"data":result}))))
+    }
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ChangeQuery {
+    cursor: String,
+    #[serde(default = "limit")]
+    limit: u32,
+}
+fn limit() -> u32 {
+    100
+}
+pub fn router() -> Router<store::Store> {
+    Router::new().route("/api/v1/budgets/{budget}/changes", get(changes))
+}
+async fn changes(
+    State(store): State<store::Store>,
+    path: Result<Path<String>, PathRejection>,
+    query: Result<Query<ChangeQuery>, QueryRejection>,
+) -> Result<Json<Value>, Error> {
+    let budget = crate::api::budget_id(path)?;
+    let Query(query) = query.map_err(|_| Error::invalid("Invalid change query"))?;
+    if query.limit == 0 || query.limit > 1000 {
+        return Err(Error::invalid("limit must be1–1000"));
+    }
+    Ok(Json(
+        store
+            .run(move |db| {
+                let read = db.transaction()?;
+                read_changes(&read, &budget, &query.cursor, query.limit)
+            })
+            .await?,
+    ))
+}
+pub fn read_changes(
+    db: &Connection,
+    budget: &str,
+    after: &str,
+    limit: u32,
+) -> Result<Value, Error> {
+    store::require_budget(db, budget)?;
+    let checkpoint = cursor(db, budget)?;
+    if after.len() != 50
+        || !after.is_ascii()
+        || after[..34] != checkpoint[..34]
+        || !after[34..].bytes().all(|c| c.is_ascii_hexdigit())
+    {
+        return Err(Error::new(
+            StatusCode::CONFLICT,
+            "cursor_invalid",
+            "This checkpoint belongs to another budget or snapshot. Reload the initial view.",
+        ));
+    }
+    let sequence = i64::from_str_radix(&after[34..], 16)
+        .map_err(|_| Error::invalid("Invalid change sequence"))?;
+    let current = i64::from_str_radix(&checkpoint[34..], 16).map_err(Error::internal)?;
+    if sequence > current {
+        return Err(Error::new(
+            StatusCode::CONFLICT,
+            "cursor_invalid",
+            "The checkpoint is newer than this database. Reload the initial view.",
+        ));
+    }
+    let mut q=db.prepare("SELECT entity,entity_id,sequence FROM budget_changes WHERE budget_id=?1 AND sequence>?2 ORDER BY sequence LIMIT ?3")?;
+    let mut rows = q
+        .query_map(params![budget, sequence, limit + 1], |r| {
+            Ok((
+                r.get::<_, String>(0)?,
+                r.get::<_, String>(1)?,
+                r.get::<_, i64>(2)?,
+            ))
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
+    let more = rows.len() > limit as usize;
+    rows.truncate(limit as usize);
+    let next = if more {
+        format!("{}{:016x}", &checkpoint[..34], rows.last().unwrap().2)
+    } else {
+        checkpoint
+    };
+    let mut data = vec![];
+    for (entity, id, _) in rows {
+        let value=match entity.as_str(){"transactions"=>if deleted(db,budget,&id)?{tombstone(db,budget,&id)?}else{ledger::get(db,budget,&id)?},"accounts"=>db.query_row("SELECT a.name,a.notes,a.off_budget,a.closed,COALESCE(t.total,0) FROM accounts a LEFT JOIN ledger_totals t ON t.budget_id=a.budget_id AND t.account_id=a.id WHERE a.budget_id=?1 AND a.id=?2",params![budget,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?,"notes":r.get::<_,String>(1)?,"off_budget":r.get::<_,bool>(2)?,"closed":r.get::<_,bool>(3)?,"balance":r.get::<_,i64>(4)?})))?,"preferences"=>crate::preferences::get_preferences(db,budget)?,"payees"=>db.query_row("SELECT name FROM payees WHERE budget_id=?1 AND id=?2",params![budget,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?})))?,"categories"=>db.query_row("SELECT name,is_income FROM categories WHERE budget_id=?1 AND id=?2",params![budget,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?,"is_income":r.get::<_,bool>(1)?})))?,_=>return Err(Error::internal("Unknown change entity"))};
+        data.push(json!({"entity":entity,"id":id,"data":value}));
+    }
+    Ok(json!({"data":data,"next_cursor":next,"has_more":more}))
+}

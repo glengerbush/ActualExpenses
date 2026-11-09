@@ -351,16 +351,31 @@ fn static_app_and_versioned_machine_contract_are_available_on_plain_http() {
         missing.json::<Value>().unwrap()["error"]["code"],
         "not_found"
     );
-    let method = server
-        .client
-        .delete(format!("{}/api/v1/budgets", server.url))
-        .send()
-        .unwrap();
-    assert_eq!(method.status(), 405);
-    assert_eq!(
-        method.json::<Value>().unwrap()["error"]["code"],
-        "method_not_allowed"
-    );
+    for (verb, path) in [
+        (reqwest::Method::DELETE, "/api/v1/budgets"),
+        (reqwest::Method::POST, "/api/v1/themes/catalog"),
+        (reqwest::Method::POST, "/api/v1/imports"),
+    ] {
+        let method = server
+            .client
+            .request(verb, format!("{}{path}", server.url))
+            .send()
+            .unwrap();
+        assert_eq!(method.status(), 405, "{path}");
+        assert_eq!(
+            method
+                .headers()
+                .get("content-type")
+                .and_then(|v| v.to_str().ok()),
+            Some("application/json"),
+            "{path}"
+        );
+        assert_eq!(
+            method.json::<Value>().unwrap()["error"]["code"],
+            "method_not_allowed",
+            "{path}"
+        );
+    }
 }
 
 #[test]

@@ -1,0 +1,292 @@
+{
+  "__meta__": [
+    "key",
+    "value"
+  ],
+  "__migrations__": [
+    "id"
+  ],
+  "account_groups": [
+    "id",
+    "name",
+    "sort_order",
+    "tombstone"
+  ],
+  "accounts": [
+    "id",
+    "account_id",
+    "name",
+    "balance_current",
+    "balance_available",
+    "balance_limit",
+    "mask",
+    "official_name",
+    "subtype",
+    "bank",
+    "offbudget",
+    "closed",
+    "tombstone",
+    "sort_order",
+    "type",
+    "account_sync_source",
+    "last_sync",
+    "last_reconciled",
+    "bank_sync_status",
+    "account_group_id"
+  ],
+  "banks": [
+    "id",
+    "bank_id",
+    "name",
+    "tombstone"
+  ],
+  "categories": [
+    "id",
+    "name",
+    "is_income",
+    "cat_group",
+    "sort_order",
+    "tombstone",
+    "hidden",
+    "goal_def",
+    "template_settings",
+    "cleanup_def"
+  ],
+  "category_groups": [
+    "id",
+    "name",
+    "is_income",
+    "sort_order",
+    "tombstone",
+    "hidden"
+  ],
+  "category_mapping": [
+    "id",
+    "transferId"
+  ],
+  "cleanup_groups": [
+    "id",
+    "name",
+    "tombstone"
+  ],
+  "created_budgets": [
+    "month"
+  ],
+  "custom_reports": [
+    "id",
+    "name",
+    "start_date",
+    "end_date",
+    "date_static",
+    "date_range",
+    "mode",
+    "group_by",
+    "balance_type",
+    "show_empty",
+    "show_offbudget",
+    "show_hidden",
+    "show_uncategorized",
+    "selected_categories",
+    "graph_type",
+    "conditions",
+    "conditions_op",
+    "metadata",
+    "interval",
+    "color_scheme",
+    "tombstone",
+    "include_current",
+    "sort_by",
+    "trim_intervals",
+    "show_trend_lines"
+  ],
+  "dashboard": [
+    "id",
+    "type",
+    "width",
+    "height",
+    "x",
+    "y",
+    "meta",
+    "tombstone",
+    "dashboard_page_id"
+  ],
+  "dashboard_pages": [
+    "id",
+    "name",
+    "tombstone"
+  ],
+  "kvcache": [
+    "key",
+    "value"
+  ],
+  "kvcache_key": [
+    "id",
+    "key"
+  ],
+  "messages_clock": [
+    "id",
+    "clock"
+  ],
+  "messages_crdt": [
+    "id",
+    "timestamp",
+    "dataset",
+    "row",
+    "column",
+    "value"
+  ],
+  "messages_pending": [
+    "dataset",
+    "row",
+    "column",
+    "timestamp",
+    "value"
+  ],
+  "notes": [
+    "id",
+    "note"
+  ],
+  "payee_locations": [
+    "id",
+    "payee_id",
+    "latitude",
+    "longitude",
+    "created_at",
+    "tombstone"
+  ],
+  "payee_mapping": [
+    "id",
+    "targetId"
+  ],
+  "payees": [
+    "id",
+    "name",
+    "category",
+    "tombstone",
+    "transfer_acct",
+    "favorite",
+    "learn_categories"
+  ],
+  "pending_transactions": [
+    "id",
+    "acct",
+    "amount",
+    "description",
+    "date"
+  ],
+  "preferences": [
+    "id",
+    "value"
+  ],
+  "reflect_budgets": [
+    "id",
+    "month",
+    "category",
+    "amount",
+    "carryover",
+    "goal",
+    "long_goal"
+  ],
+  "rules": [
+    "id",
+    "stage",
+    "conditions",
+    "actions",
+    "tombstone",
+    "conditions_op"
+  ],
+  "schedules": [
+    "id",
+    "rule",
+    "active",
+    "completed",
+    "posts_transaction",
+    "tombstone",
+    "name",
+    "custom_upcoming_length",
+    "sort_order"
+  ],
+  "schedules_json_paths": [
+    "schedule_id",
+    "payee",
+    "account",
+    "amount",
+    "date"
+  ],
+  "schedules_next_date": [
+    "id",
+    "schedule_id",
+    "local_next_date",
+    "local_next_date_ts",
+    "base_next_date",
+    "base_next_date_ts",
+    "tombstone"
+  ],
+  "sqlite_stat1": [
+    "tbl",
+    "idx",
+    "stat"
+  ],
+  "sqlite_stat4": [
+    "tbl",
+    "idx",
+    "neq",
+    "nlt",
+    "ndlt",
+    "sample"
+  ],
+  "tags": [
+    "id",
+    "tag",
+    "color",
+    "description",
+    "tombstone",
+    "hidden"
+  ],
+  "transaction_filters": [
+    "id",
+    "name",
+    "conditions",
+    "conditions_op",
+    "tombstone"
+  ],
+  "transactions": [
+    "id",
+    "isParent",
+    "isChild",
+    "acct",
+    "category",
+    "amount",
+    "description",
+    "notes",
+    "date",
+    "financial_id",
+    "type",
+    "location",
+    "error",
+    "imported_description",
+    "starting_balance_flag",
+    "transferred_id",
+    "sort_order",
+    "tombstone",
+    "cleared",
+    "pending",
+    "parent_id",
+    "schedule",
+    "reconciled",
+    "raw_synced_data"
+  ],
+  "zero_budget_months": [
+    "id",
+    "buffered"
+  ],
+  "zero_budgets": [
+    "id",
+    "month",
+    "category",
+    "amount",
+    "carryover",
+    "goal",
+    "long_goal"
+  ]
+}

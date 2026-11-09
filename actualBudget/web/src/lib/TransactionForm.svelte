@@ -1,5 +1,11 @@
 <script lang="ts">
   import DateInput from "./DateInput.svelte";
+  import {
+    nextEditClock,
+    observeVersions,
+    LocalClockError,
+    resetCorrectedClock,
+  } from "./edit-clock";
   import { parseDateInput, validDate } from "./dates";
   import { preferences } from "./preferences.svelte";
   import { onMount } from "svelte";
@@ -36,13 +42,14 @@
     categories: Reference[];
     initial?: Transaction | null;
     defaultAccountId?: string | null;
-    oncomplete: (transaction: Transaction) => void;
+    oncomplete: (transaction: Transaction | null, notice?: string) => void;
     oncancel: () => void;
   } = $props();
   let draft = $state<Draft | null>(null);
   let error = $state("");
   let busy = $state(false);
   let restored = $state(false);
+  let localClockProblem = $state(false);
   let selectedAccount = $derived(
     accounts.find((a) => a.id === draft?.fields.account_id),
   );
@@ -103,6 +110,7 @@
   function update<K extends keyof Fields>(field: K, value: Fields[K]) {
     if (!draft || draft.pending) return;
     draft.fields[field] = value;
+    draft.editClock = undefined;
     if (field === "amount" || field === "direction") draft.amountDirty = true;
     if (
       field === "account_id" &&
@@ -134,6 +142,29 @@
   async function prepare(): Promise<PendingMutation | null> {
     if (!draft) return null;
     if (draft.pending) return draft.pending;
+    const saved = readTransactionDraft(budgetId);
+    if (saved?.draftId === draft.draftId && saved.pending) {
+      throw new Error(
+        t(
+          "Another unconfirmed transaction is saved. Reload and retry it first.",
+        ),
+      );
+    }
+    if (
+      saved?.draftId === draft.draftId &&
+      saved.editClock &&
+      !draft.editClock
+    ) {
+      if (JSON.stringify(saved.fields) !== JSON.stringify(draft.fields))
+        throw new Error(
+          t("Another copy of this draft changed. Reload before submitting."),
+        );
+      draft.editClock = saved.editClock;
+    }
+    if (!draft.editClock) {
+      draft.editClock = nextEditClock(draft.original?.field_versions);
+      persist(draft);
+    }
     const f = draft.fields;
     const date = parseDateInput(f.date, draft.dateFormat);
     if (!validDate(date)) throw new Error(t("Enter a valid date."));
@@ -180,8 +211,21 @@
       path: `/budgets/${budgetId}/transactions${draft.original ? `/${draft.id}` : ""}`,
       method: draft.original ? "PATCH" : "POST",
       key: draft.draftId,
+      edit_clock: draft.editClock,
       body,
     };
+  }
+  function fieldLabel(field: string) {
+    const labels: Record<string, string> = {
+      account_id: t("Account"),
+      amount: t("Amount"),
+      date: t("Date"),
+      cleared: t("Cleared"),
+      notes: t("Notes"),
+      payee_id: t("Payee"),
+      category_id: t("Category"),
+    };
+    return labels[field] ?? t("Transaction details");
   }
   async function submit(event: SubmitEvent) {
     event.preventDefault();
@@ -189,6 +233,8 @@
     busy = true;
     error = "";
     let completed: Transaction | null = null;
+    let notice = "";
+    let deletedRemotely = false;
     try {
       const pending = await prepare();
       if (!pending) {
@@ -197,18 +243,40 @@
         return;
       }
       const submitted = { ...draft, pending };
-      persist(submitted);
       draft = submitted;
+      persist(submitted);
       const response = await mutate<Transaction>(pending);
       completed = response.data;
+      observeVersions(completed.field_versions);
+      if (completed.deleted)
+        notice = t(
+          "This transaction remains deleted. Its newer field edits were retained without restoring it.",
+        );
+      if (!completed.deleted && response.conflicts?.length)
+        notice =
+          t("A newer edit replaced these fields:") +
+          " " +
+          response.conflicts
+            .map((conflict) => fieldLabel(conflict.field))
+            .join(", ");
       clearTransactionDraft(draft, true);
     } catch (e) {
       error = errorMessage(e);
+      if (e instanceof LocalClockError) localClockProblem = true;
       if (draft && e instanceof RequestError && !e.uncertain && draft.pending) {
         try {
-          const editable = { ...draft, pending: null };
-          saveTransactionDraft(editable, draft.pending);
-          draft = editable;
+          if (e.code === "clock_skew" || e.code === "clock_overflow") {
+            draft.clockRejected = true;
+            persist(draft);
+          } else if (e.code === "transaction_deleted") {
+            clearTransactionDraft(draft, true);
+            deletedRemotely = true;
+            notice = error;
+          } else {
+            const editable = { ...draft, pending: null };
+            saveTransactionDraft(editable, draft.pending);
+            draft = editable;
+          }
         } catch (storageError) {
           error = errorMessage(storageError);
         }
@@ -217,7 +285,24 @@
     } finally {
       busy = false;
     }
-    if (completed) oncomplete(completed);
+    if (completed || deletedRemotely) oncomplete(completed, notice);
+  }
+  function recoverClock(discard = false) {
+    if (!draft || busy || (draft.pending && !draft.clockRejected)) return;
+    try {
+      resetCorrectedClock();
+      if (discard && draft.clockRejected) {
+        clearTransactionDraft(draft, true);
+        oncancel();
+      } else if (!draft.pending) {
+        draft.editClock = undefined;
+        persist(draft);
+        localClockProblem = false;
+        error = "";
+      }
+    } catch (e) {
+      error = errorMessage(e);
+    }
   }
   function cancel() {
     if (!draft || draft.pending || busy) return;
@@ -375,11 +460,24 @@
         >
       </fieldset>
       {#if error}<p class="error" role="alert">{error}</p>{/if}
-      {#if draft.pending && !busy}<p role="status">
+      {#if draft.pending && !draft.clockRejected && !busy}<p role="status">
           {t(
             "The outcome is unconfirmed. Retry this saved request before changing its details.",
           )}
         </p>{/if}
+      {#if draft.clockRejected}<p role="status">
+          {t(
+            "The server rejected this request before making changes. Correct the device time. Retry keeps its original edit time; discard this rejected edit to start again.",
+          )}
+        </p>
+        <button type="button" onclick={() => recoverClock(true)} disabled={busy}
+          >{t("Discard rejected edit")}</button
+        >
+      {:else if localClockProblem && !draft.pending}<button
+          type="button"
+          onclick={() => recoverClock()}
+          disabled={busy}>{t("Use corrected device time")}</button
+        >{/if}
       <div class="actions">
         <button class="primary" disabled={busy}
           >{busy

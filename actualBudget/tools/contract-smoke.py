@@ -23,7 +23,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 
 def request(base, path, method="GET", body=None, headers=None):
-    payload = None if body is None else json.dumps(body).encode()
+    payload = body if isinstance(body, bytes) else None if body is None else json.dumps(body).encode()
     req = urllib.request.Request(
         base + path, data=payload, method=method,
         headers={"Content-Type": "application/json", **(headers or {})},
@@ -127,6 +127,54 @@ def main():
             check(preferences, preferences_template, "PATCH", {"unknown": True}, {"Idempotency-Key": "invalid-preferences"}, 400)
             conversion = "/api/v1/preferences/convert-actual"
             check(conversion, conversion, "POST", {"synced": {"numberFormat": "space-comma", "flags.customThemes": "true"}, "global": {"theme": "midnight", "language": "fr"}})
+
+            # New clocked operations retain the original body, clock and receipt.
+            ordered = {**transaction, "id": str(uuid.uuid4())}
+            zero = "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+            clock1 = "2026-01-01T00:00:00.000Z-0000-0000000000000001"
+            clock2 = "2026-01-02T00:00:00.000Z-0000-0000000000000001"
+            check(entries, entries_template, "POST", ordered,
+                  {"Idempotency-Key": "ordered-create", "X-Actual-Edit-Clock": zero}, 201)
+            ordered_path = entries + "/" + ordered["id"]
+            page = check(entries + "?limit=1", entries_template)
+            changes_path = f"{budgets}/{budget_id}/changes"
+            changes_template = budgets + "/{budget}/changes"
+            check(changes_path + "?cursor=" + page["snapshot"], changes_template)
+            check(ordered_path, entry_template, "PATCH", {"notes": "Newer"},
+                  {"Idempotency-Key": "ordered-new", "X-Actual-Edit-Clock": clock2})
+            check(ordered_path, entry_template, "PATCH", {"notes": "Older", "amount": -10},
+                  {"Idempotency-Key": "ordered-old", "X-Actual-Edit-Clock": clock1})
+            check(ordered_path, entry_template, "DELETE", headers={
+                  "Idempotency-Key": "ordered-delete", "X-Actual-Edit-Clock": clock1}, expected=409)
+            check(changes_path + "?cursor=" + page["snapshot"], changes_template)
+            check(changes_path + "?cursor=invalid", changes_template, expected=409)
+
+            # Import HTTP responses use the unchanged pinned public export fixture.
+            imports = "/api/v1/imports"
+            stage = check(imports + "/actual", imports + "/actual", "POST",
+                          (project / "tests/fixtures/import-26.10.0.zip").read_bytes(),
+                          {"Content-Type": "application/zip", "Idempotency-Key": "stage"}, 201)["data"]
+            check(imports, imports)
+            stage_path = imports + "/" + stage["id"]
+            check(stage_path, imports + "/{id}")
+            check(stage_path + "/activate", imports + "/{id}/activate", "POST", {},
+                  {"Idempotency-Key": "activate"}, 201)
+            check(imports + "/actual", imports + "/actual", "POST", b"invalid zip",
+                  {"Content-Type": "application/zip", "Idempotency-Key": "invalid-stage"}, 422)
+            blocked = check(imports + "/actual", imports + "/actual", "POST",
+                            (project / "tests/fixtures/import-unsupported-rule-26.10.0.zip").read_bytes(),
+                            {"Content-Type": "application/zip", "Idempotency-Key": "blocked-stage"}, 201)["data"]
+            check(imports + "/" + blocked["id"] + "/activate", imports + "/{id}/activate", "POST", {},
+                  {"Idempotency-Key": "blocked-activate"}, 409)
+
+            themes = "/api/v1/themes"
+            check(themes + "/catalog", themes + "/catalog")
+            for css in (":root { --color-pageText: #123456; }", "body { color: red; }"):
+                check(themes + "/compile", themes + "/compile", "POST", {"css": css})
+            check(themes + "/compile", themes + "/compile", "POST", {}, expected=400)
+            check(themes + "/convert-actual", themes + "/convert-actual", "POST", {"global": {
+                "installed-custom-theme": "{bad", "custom-css-override": ":root { --color-pageText: #123456; }",
+            }})
             print("PASS: served OpenAPI schemas validate real success, validation, conflict, origin and missing-resource responses")
         finally:
             process.terminate()

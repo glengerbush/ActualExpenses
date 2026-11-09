@@ -1423,6 +1423,15 @@
   "migrations": [
     {
       "input": {
+        "lightJson": "{\"overrideCss\":\":root { --color-pageText: #456; }\"}"
+      },
+      "result": {
+        "override": ":root { --color-pageText: #456; }",
+        "newLightJson": "{\"overrideCss\":\":root { --color-pageText: #456; }\"}"
+      }
+    },
+    {
+      "input": {
         "lightJson": "{\"id\":\"fixture\",\"name\":\"Fixture\",\"repo\":\"https://github.com/example/theme\",\"cssContent\":\":root { --color-pageBackground: #123456; --color-pageText: #fff; }\",\"baseTheme\":\"dark\",\"overrideCss\":\":root { --color-pageText: #111; }\"}",
         "darkJson": "{\"id\":\"dark\",\"name\":\"Fixture\",\"repo\":\"https://github.com/example/theme\",\"cssContent\":\":root { --color-pageBackground: #123456; --color-pageText: #fff; }\",\"baseTheme\":\"dark\",\"overrideCss\":\":root { --color-pageText: #222; }\"}"
       },

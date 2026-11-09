@@ -1,6 +1,8 @@
 import { request } from "./api";
 export interface Transaction {
   id: string;
+  field_versions?: Record<string, string>;
+  deleted?: boolean;
   account_id: string;
   account_name: string;
   amount: number;
@@ -32,6 +34,7 @@ export interface PendingMutation {
   path: string;
   method: "POST" | "PATCH" | "DELETE";
   key: string;
+  edit_clock?: string;
   body?: unknown;
 }
 export function registerPage(
@@ -62,11 +65,21 @@ export async function references(
   return items;
 }
 export function mutate<T>(pending: PendingMutation) {
-  return request<{ data: T }>(
+  return request<{
+    data: T;
+    conflicts?: {
+      field: string;
+      submitted_clock: string;
+      winning_clock: string;
+    }[];
+    edit_clock?: string;
+    cursor?: string;
+  }>(
     pending.path,
     pending.body,
     pending.key,
     pending.method,
+    pending.edit_clock,
   );
 }
 export function draftKey(budgetId: string) {
@@ -74,4 +87,14 @@ export function draftKey(budgetId: string) {
 }
 export function actionKey(budgetId: string) {
   return `actualBudget.register-action.v1.${budgetId}`;
+}
+
+export function changes(budgetId: string, cursor: string) {
+  return request<{
+    data: { entity: string; id: string; data: unknown }[];
+    next_cursor: string;
+    has_more: boolean;
+  }>(
+    `/budgets/${budgetId}/changes?${new URLSearchParams({ cursor, limit: "100" })}`,
+  );
 }

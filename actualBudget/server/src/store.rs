@@ -123,7 +123,9 @@ pub fn create_account(db: &Connection, budget: &str, input: NewAccount) -> Resul
         } else {
             tx.query_row("SELECT id FROM categories WHERE budget_id=?1 AND is_income=1 ORDER BY name='Starting Balances' DESC,id LIMIT 1",[budget],|r|r.get(0)).optional()?
         };
-        tx.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,starting_balance,payee_id,category_id) VALUES(?1,?2,?3,?4,?5,1,1,?6,?7)",params![budget,Uuid::new_v4().to_string(),input.id,input.opening_balance,input.opening_date,payee,category])?;
+        let transaction_id = Uuid::new_v4().to_string();
+        tx.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,starting_balance,payee_id,category_id) VALUES(?1,?2,?3,?4,?5,1,1,?6,?7)",params![budget,transaction_id,input.id,input.opening_balance,input.opening_date,payee,category])?;
+        crate::concurrency::stamp_new_transaction(db, budget, &transaction_id)?;
     }
     crate::ledger::refresh_account(db, budget, &input.id)?;
     crate::ledger::validate_budget_total(db, budget)?;

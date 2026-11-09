@@ -15,6 +15,7 @@ async function write(path, body, method = "POST") {
   expect(response.ok).toBe(true);
   return (await response.json()).data;
 }
+const currentYear = new Date().getUTCFullYear();
 let browser;
 try {
   browser = await chromium.launch({
@@ -26,14 +27,14 @@ try {
     ],
   });
   for (const [format, raw, expected] of [
-    ["MM/dd/yyyy", "4/5", "2026-04-05"],
-    ["dd/MM/yyyy", "4/5", "2026-05-04"],
+    ["MM/dd/yyyy", "4/5", `${currentYear}-04-05`],
+    ["dd/MM/yyyy", "4/5", `${currentYear}-05-04`],
     ["dd.MM.yyyy", "04.05.2026", "2026-05-04"],
     ["yyyy-MM-dd", "2026-4-5", "2026-04-05"],
   ]) {
     const context = await browser.newContext({ timezoneId: "UTC" }),
       page = await context.newPage();
-    await page.clock.install({ time: new Date("2026-11-08T12:00:00Z") });
+    await page.clock.install({ time: new Date() });
     async function loseFirstAck(path) {
       const attempts = [];
       if (format !== "MM/dd/yyyy") return attempts;
@@ -59,12 +60,14 @@ try {
       await expect(
         page.getByRole("button", { name: button, exact: true }),
       ).toBeVisible();
-      await page.clock.setSystemTime(new Date("2027-11-08T12:00:00Z"));
+      await page.clock.setSystemTime(
+        new Date(`${currentYear + 1}-11-08T12:00:00Z`),
+      );
       await page.reload();
       await page.getByRole("button", { name: button, exact: true }).click();
       await expect.poll(() => attempts.length).toBe(2);
       expect(attempts[1]).toEqual(attempts[0]);
-      await page.clock.setSystemTime(new Date("2026-11-08T12:00:00Z"));
+      await page.clock.setSystemTime(new Date());
     }
     const budget = randomUUID();
     await write("/budgets", { id: budget, name: "Recovered dates" });

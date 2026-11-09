@@ -1,4 +1,5 @@
 use crate::{
+    concurrency::{self, Mutation},
     error::Error,
     ledger::{self, NewTransaction},
     models::{NewAccount, NewBudget, validate_id},
@@ -44,8 +45,12 @@ pub fn router(store: Store) -> Router {
         )
         .merge(crate::references::router())
         .merge(crate::preferences::router())
+        .merge(concurrency::router())
         .route("/api", any(|| async { Error::missing() }))
         .route("/api/{*rest}", any(|| async { Error::missing() }))
+        .layer(DefaultBodyLimit::max(65536))
+        .merge(crate::imports::router())
+        .merge(crate::themes::router())
         .method_not_allowed_fallback(|| async {
             Error::new(
                 StatusCode::METHOD_NOT_ALLOWED,
@@ -53,7 +58,6 @@ pub fn router(store: Store) -> Router {
                 "HTTP method not supported",
             )
         })
-        .layer(DefaultBodyLimit::max(65536))
         .with_state(store)
 }
 fn data(value: Value) -> Json<Value> {
@@ -65,7 +69,7 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["budgets", "accounts", "opening_balances", "idempotency", "transactions", "payees", "categories", "amount_calculator", "preferences"],
+        "capabilities": ["budgets", "accounts", "opening_balances", "idempotency", "transactions", "payees", "categories", "amount_calculator", "preferences", "field_ordering", "change_cursors", "custom_themes", "actual_imports"],
         "openapi": "/api/v1/openapi.json"
     }))
 }
@@ -160,8 +164,8 @@ async fn list_transactions(
         ));
     }
     if let Some(snapshot) = &query.snapshot {
-        if snapshot.len() != 18
-            || !snapshot.starts_with("r1")
+        if snapshot.len() != 50
+            || !snapshot.starts_with("c1")
             || !snapshot[2..]
                 .bytes()
                 .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
@@ -228,19 +232,28 @@ async fn create_transaction(
     let Json(input) = input.map_err(json_error)?;
     input.validate()?;
     let key = idempotency_key(&headers)?;
+    let clock = concurrency::header(&headers)?;
     let payload = serde_json::to_string(&input).map_err(Error::internal)?;
-    let result = store
+    store
         .run(move |db| {
-            store::write(
+            concurrency::write(
                 db,
                 &format!("POST /budgets/{budget}/transactions"),
                 &key,
                 &payload,
-                |db| ledger::create(db, &budget, input),
+                clock.as_deref(),
+                StatusCode::CREATED,
+                |db| {
+                    concurrency::execute(
+                        db,
+                        &budget,
+                        clock.as_deref(),
+                        Mutation::Create(Box::new(input)),
+                    )
+                },
             )
         })
-        .await?;
-    Ok((StatusCode::CREATED, data(result)))
+        .await
 }
 
 fn transaction_path(
@@ -265,45 +278,49 @@ async fn update_transaction(
     path: Result<Path<(String, String)>, PathRejection>,
     headers: HeaderMap,
     input: Result<Json<Value>, JsonRejection>,
-) -> Result<Json<Value>, Error> {
+) -> Result<(StatusCode, Json<Value>), Error> {
     let (budget, id) = transaction_path(path)?;
     let Json(input) = input.map_err(json_error)?;
     let key = idempotency_key(&headers)?;
+    let clock = concurrency::header(&headers)?;
     let payload = input.to_string();
-    Ok(data(
-        store
-            .run(move |db| {
-                store::write(
-                    db,
-                    &format!("PATCH /budgets/{budget}/transactions/{id}"),
-                    &key,
-                    &payload,
-                    |db| ledger::update(db, &budget, &id, input),
-                )
-            })
-            .await?,
-    ))
+    store
+        .run(move |db| {
+            concurrency::write(
+                db,
+                &format!("PATCH /budgets/{budget}/transactions/{id}"),
+                &key,
+                &payload,
+                clock.as_deref(),
+                StatusCode::OK,
+                |db| {
+                    concurrency::execute(db, &budget, clock.as_deref(), Mutation::Patch(id, input))
+                },
+            )
+        })
+        .await
 }
 async fn delete_transaction(
     State(store): State<Store>,
     path: Result<Path<(String, String)>, PathRejection>,
     headers: HeaderMap,
-) -> Result<Json<Value>, Error> {
+) -> Result<(StatusCode, Json<Value>), Error> {
     let (budget, id) = transaction_path(path)?;
     let key = idempotency_key(&headers)?;
-    Ok(data(
-        store
-            .run(move |db| {
-                store::write(
-                    db,
-                    &format!("DELETE /budgets/{budget}/transactions/{id}"),
-                    &key,
-                    "null",
-                    |db| ledger::delete(db, &budget, &id),
-                )
-            })
-            .await?,
-    ))
+    let clock = concurrency::header(&headers)?;
+    store
+        .run(move |db| {
+            concurrency::write(
+                db,
+                &format!("DELETE /budgets/{budget}/transactions/{id}"),
+                &key,
+                "null",
+                clock.as_deref(),
+                StatusCode::OK,
+                |db| concurrency::execute(db, &budget, clock.as_deref(), Mutation::Delete(id)),
+            )
+        })
+        .await
 }
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -320,17 +337,26 @@ async fn duplicate_transaction(
     let Json(input) = input.map_err(json_error)?;
     validate_id(&input.id)?;
     let key = idempotency_key(&headers)?;
+    let clock = concurrency::header(&headers)?;
     let payload = serde_json::to_string(&input).map_err(Error::internal)?;
-    let result = store
+    store
         .run(move |db| {
-            store::write(
+            concurrency::write(
                 db,
                 &format!("POST /budgets/{budget}/transactions/{source}/duplicate"),
                 &key,
                 &payload,
-                |db| ledger::duplicate(db, &budget, &source, &input.id),
+                clock.as_deref(),
+                StatusCode::CREATED,
+                |db| {
+                    concurrency::execute(
+                        db,
+                        &budget,
+                        clock.as_deref(),
+                        Mutation::Duplicate(source, input.id),
+                    )
+                },
             )
         })
-        .await?;
-    Ok((StatusCode::CREATED, data(result)))
+        .await
 }

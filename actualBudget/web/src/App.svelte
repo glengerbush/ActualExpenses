@@ -16,6 +16,8 @@
   import AccountView from "./lib/AccountView.svelte";
   import Register from "./lib/Register.svelte";
   import Settings from "./lib/Settings.svelte";
+  import ThemeRecovery from "./lib/themes/ThemeRecovery.svelte";
+  import ImportBudget from "./lib/ImportBudget.svelte";
   import { preferences } from "./lib/preferences.svelte";
   import { t } from "./lib/i18n.svelte";
   let budgets = $state.raw<Budget[]>([]);
@@ -25,7 +27,7 @@
   let loading = $state(true);
   let error = $state("");
   let recoveryError = $state("");
-  let form = $state<"budget" | "account" | "settings" | null>(null);
+  let form = $state<"budget" | "account" | "settings" | "import" | null>(null);
   let main: HTMLElement | undefined;
   let retry = $state<() => Promise<void>>(initialize);
   async function focusContent() {
@@ -112,7 +114,9 @@
     saveSelection(budget!.id, value?.id);
     await focusContent();
   }
-  async function showForm(value: "budget" | "account" | "settings" | null) {
+  async function showForm(
+    value: "budget" | "account" | "settings" | "import" | null,
+  ) {
     recoveryError = "";
     form = value;
     await focusContent();
@@ -142,6 +146,7 @@
 </script>
 
 <a class="skip-link" href="#main">{t("Skip to content")}</a>
+<ThemeRecovery />
 <div class="app-shell">
   <aside class="sidebar" aria-label={t("Budget navigation")}>
     <div class="brand">actualBudget</div>
@@ -237,15 +242,24 @@
         budgetId={budget.id}
         onclose={() => showForm(null)}
       />
+    {:else if form === "import"}<ImportBudget
+        oncreated={budgetCreated}
+        oncancel={() => showForm(null)}
+      />
     {:else if !budget}
       <div class="page-heading">
         <div>
           <h1>{t("Your budgets")}</h1>
           <p class="muted">{t("Choose a budget or start a new one.")}</p>
         </div>
-        <button class="primary" onclick={() => showForm("budget")}
-          >{t("New budget")}</button
-        >
+        <div class="budget-actions">
+          <button onclick={() => showForm("import")}
+            >{t("Import Actual budget")}</button
+          >
+          <button class="primary" onclick={() => showForm("budget")}
+            >{t("New budget")}</button
+          >
+        </div>
       </div>
       {#if budgets.length}<ul class="budget-list">
           {#each budgets as item (item.id)}<li>
@@ -337,3 +351,11 @@
     {/if}
   </main>
 </div>
+
+<style>
+  .budget-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+</style>

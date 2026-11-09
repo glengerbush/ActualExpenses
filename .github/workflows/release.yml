@@ -242,6 +242,8 @@ jobs:
           node actualBudget/tools/generate-opening-balances.mjs --check
           node actualBudget/tools/generate-register.mjs --check
           node actualBudget/tools/generate-calculator.mjs --check
+          node actualBudget/tools/generate-import-fixture.mjs --check
+          node actualBudget/tools/generate-concurrency.mjs --check
           python3 -m venv "$RUNNER_TEMP/contract-check"
           "$RUNNER_TEMP/contract-check/bin/pip" install jsonschema==4.23.0
           "$RUNNER_TEMP/contract-check/bin/python" actualBudget/tools/contract-smoke.py

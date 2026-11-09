@@ -35,6 +35,7 @@ export async function request<T>(
   method: "GET" | "POST" | "PATCH" | "DELETE" = body === undefined
     ? "GET"
     : "POST",
+  editClock?: string,
 ): Promise<T> {
   const mutation = method !== "GET";
   let response: Response;
@@ -44,6 +45,9 @@ export async function request<T>(
       headers: {
         ...(body === undefined ? {} : { "Content-Type": "application/json" }),
         ...(key === undefined ? {} : { "Idempotency-Key": key }),
+        ...(editClock === undefined
+          ? {}
+          : { "X-Actual-Edit-Clock": editClock }),
       },
       body: body === undefined ? undefined : JSON.stringify(body),
       signal: AbortSignal.timeout(15000),

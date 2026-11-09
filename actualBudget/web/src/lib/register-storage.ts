@@ -1,3 +1,4 @@
+import { validClock } from "./edit-clock";
 import type { AmountFormat } from "./money";
 import { dateFormats, type DateFormat } from "./preferences/types";
 import {
@@ -32,8 +33,13 @@ export interface TransactionDraft {
   dateFormat: DateFormat;
   amountDirty: boolean;
   pending: PendingMutation | null;
+  editClock?: string;
+  clockRejected?: boolean;
 }
-export type SavedAction = PendingMutation & { description: string };
+export type SavedAction = PendingMutation & {
+  description: string;
+  clockRejected?: boolean;
+};
 const isObject = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === "object" && !Array.isArray(value);
 const uuid = (value: unknown): value is string =>
@@ -66,6 +72,13 @@ function validPending(
   budget: string,
 ): value is PendingMutation {
   if (!isObject(value) || !uuid(value.key) || typeof value.path !== "string")
+    return false;
+  if (value.edit_clock !== undefined && !validClock(value.edit_clock))
+    return false;
+  if (
+    value.clockRejected !== undefined &&
+    typeof value.clockRejected !== "boolean"
+  )
     return false;
   const base = `/budgets/${budget}/transactions`;
   if (value.method === "POST" && value.path === base)
@@ -142,7 +155,14 @@ function validDraft(value: unknown, budget: string): value is TransactionDraft {
       !Number.isSafeInteger(value.original.amount))
   )
     return false;
-  if (value.pending === null) return true;
+  if (value.editClock !== undefined && !validClock(value.editClock))
+    return false;
+  if (
+    value.clockRejected !== undefined &&
+    typeof value.clockRejected !== "boolean"
+  )
+    return false;
+  if (value.pending === null) return !value.clockRejected;
   if (
     !validPending(value.pending, budget) ||
     value.pending.key !== value.draftId
@@ -225,7 +245,7 @@ export function readRegisterAction(budget: string): SavedAction | null {
 }
 export function saveRegisterAction(budget: string, pending: SavedAction): void {
   const stored = readRegisterAction(budget);
-  if (stored && !equal(stored, pending))
+  if (stored && !equalAction(stored, pending))
     throw new Error(
       "Another unconfirmed register action is saved. Reload and retry it first.",
     );
@@ -240,9 +260,16 @@ export function clearRegisterAction(
 ): void {
   const stored = readRegisterAction(budget);
   if (!stored) return;
-  if (!equal(stored, pending))
+  if (!equalAction(stored, pending))
     throw new Error(
       "Another register action is saved. Reload before continuing.",
     );
   localStorage.removeItem(actionKey(budget));
+}
+
+function equalAction(a: SavedAction, b: SavedAction) {
+  return equal(
+    { ...a, clockRejected: undefined },
+    { ...b, clockRejected: undefined },
+  );
 }

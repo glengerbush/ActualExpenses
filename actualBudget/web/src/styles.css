@@ -1,12 +1,23 @@
 :root {
-  font-family:
+  font-family: var(
+    --font-family,
     Inter,
     ui-sans-serif,
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
-    sans-serif;
+    sans-serif
+  );
+  --table-surface: var(--surface);
+  --table-text: var(--text);
+  --table-hover: var(--hover);
+  --button-surface: var(--surface);
+  --input-surface: var(--surface);
+  --input-text: var(--text);
+  --sidebar-text: var(--button-text);
+  --sidebar-title: var(--text);
+  --link: var(--accent);
   color: var(--text);
   background: var(--page);
   line-height: 1.5;
@@ -107,7 +118,7 @@ button {
   cursor: pointer;
   min-height: 44px;
   border: 1px solid var(--button-border);
-  background: var(--surface);
+  background: var(--button-surface);
   color: var(--button-text);
   padding: 0.55rem 1rem;
   border-radius: 6px;
@@ -155,8 +166,8 @@ textarea {
   min-width: 0;
   min-height: 44px;
   border: 1px solid var(--control-border);
-  background: var(--surface);
-  color: var(--text);
+  background: var(--input-surface);
+  color: var(--input-text);
   border-radius: 5px;
   padding: 0.6rem 0.7rem;
 }
@@ -197,7 +208,7 @@ p {
   max-width: 70ch;
 }
 a {
-  color: var(--accent);
+  color: var(--link);
   text-underline-offset: 0.2em;
 }
 .muted,
@@ -214,6 +225,7 @@ a {
   min-height: 100dvh;
 }
 .sidebar {
+  color: var(--sidebar-title);
   background: var(--sidebar);
   padding: 2rem 1.1rem;
   border-right: 1px solid var(--line);
@@ -247,6 +259,7 @@ a {
   gap: 0.25rem;
 }
 .sidebar nav button {
+  color: var(--sidebar-text);
   border: 0;
   background: transparent;
   display: flex;
@@ -352,6 +365,8 @@ main {
   overflow-x: auto;
 }
 table {
+  background: var(--table-surface);
+  color: var(--table-text);
   width: 100%;
   border-collapse: collapse;
 }
@@ -643,4 +658,8 @@ th {
     animation: none !important;
     transition: none !important;
   }
+}
+
+tbody tr:hover {
+  background: var(--table-hover);
 }

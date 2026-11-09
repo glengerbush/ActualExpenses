@@ -139,7 +139,7 @@ fn validate_references(db: &Connection, budget: &str, input: &NewTransaction) ->
     }
     Ok(())
 }
-fn cached_balances(db: &Connection, budget: &str, account: &str) -> Result<Balances, Error> {
+pub fn cached_balances(db: &Connection, budget: &str, account: &str) -> Result<Balances, Error> {
     Ok(db.query_row("SELECT total,cleared,uncleared FROM ledger_totals WHERE budget_id=?1 AND account_id=?2",params![budget,account],|r|Ok(Balances{total:r.get(0)?,cleared:r.get(1)?,uncleared:r.get(2)?})).optional()?.unwrap_or_default())
 }
 fn store_balances(
@@ -221,13 +221,26 @@ fn row(r: &rusqlite::Row) -> rusqlite::Result<Value> {
     )
 }
 pub fn get(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
-    db.query_row(
-        &format!("{SELECT} WHERE t.budget_id=?1 AND t.id=?2 AND t.tombstone=0"),
+    let active: bool = db.query_row(
+        "SELECT EXISTS(SELECT 1 FROM transactions WHERE budget_id=?1 AND id=?2 AND tombstone=0)",
         params![budget, id],
-        row,
-    )
-    .optional()?
-    .ok_or_else(Error::missing)
+        |r| r.get(0),
+    )?;
+    if !active {
+        return Err(Error::missing());
+    }
+    get_any(db, budget, id)
+}
+pub fn get_any(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
+    let row = db
+        .query_row(
+            &format!("{SELECT} WHERE t.budget_id=?1 AND t.id=?2"),
+            params![budget, id],
+            row,
+        )
+        .optional()?
+        .ok_or_else(Error::missing)?;
+    crate::concurrency::decorate(db, budget, row)
 }
 pub fn list(
     db: &Connection,
@@ -242,15 +255,7 @@ pub fn list(
     if let Some(account) = account {
         account_exists(db, budget, account)?;
     }
-    // Durable receipts are never deleted. The latest rowid is an indexed lookup,
-    // not a history scan. Conservatively invalidate for any committed server
-    // mutation until the per-budget change cursor replaces this marker.
-    let revision: i64 = db.query_row(
-        "SELECT COALESCE((SELECT rowid FROM operations ORDER BY rowid DESC LIMIT 1),0)",
-        [],
-        |row| row.get(0),
-    )?;
-    let snapshot = format!("r1{revision:016x}");
+    let snapshot = crate::concurrency::cursor(db, budget)?;
     if expected_snapshot.is_some_and(|expected| expected != snapshot) {
         return Err(Error::new(
             axum::http::StatusCode::CONFLICT,
@@ -310,6 +315,7 @@ pub fn list(
         }
     }
     for entry in &mut rows {
+        *entry = crate::concurrency::decorate(db, budget, entry.take())?;
         entry["running_balance"] = if account.is_some() {
             json!(checked(running)?)
         } else {
@@ -325,13 +331,10 @@ pub fn list(
     )
 }
 
-pub fn update(db: &Connection, budget: &str, id: &str, patch: Value) -> Result<Value, Error> {
-    let previous = get(db, budget, id)?;
-    if previous["reconciled"] == true {
-        return Err(Error::conflict(
-            "Unlock the reconciled transaction before editing",
-        ));
-    }
+pub fn validate_patch(previous: &Value, patch: &Value) -> Result<NewTransaction, Error> {
+    let id = previous["id"]
+        .as_str()
+        .ok_or_else(|| Error::internal("Missing transaction ID"))?;
     let fields = patch
         .as_object()
         .ok_or_else(|| Error::invalid("Expected a transaction field object"))?;
@@ -363,9 +366,40 @@ pub fn update(db: &Connection, budget: &str, id: &str, patch: Value) -> Result<V
             input["category_id"] = Value::Null;
         }
     }
-    let mut input: NewTransaction = serde_json::from_value(input)
+    let input: NewTransaction = serde_json::from_value(input)
         .map_err(|_| Error::invalid("Invalid transaction field value"))?;
     input.validate()?;
+    Ok(input)
+}
+pub fn update(db: &Connection, budget: &str, id: &str, patch: Value) -> Result<Value, Error> {
+    update_row(db, budget, id, patch, false)
+}
+pub fn update_hidden(
+    db: &Connection,
+    budget: &str,
+    id: &str,
+    patch: Value,
+) -> Result<Value, Error> {
+    update_row(db, budget, id, patch, true)
+}
+fn update_row(
+    db: &Connection,
+    budget: &str,
+    id: &str,
+    patch: Value,
+    hidden: bool,
+) -> Result<Value, Error> {
+    let previous = if hidden {
+        get_any(db, budget, id)?
+    } else {
+        get(db, budget, id)?
+    };
+    if previous["reconciled"] == true && !hidden {
+        return Err(Error::conflict(
+            "Unlock the reconciled transaction before editing",
+        ));
+    }
+    let mut input = validate_patch(&previous, &patch)?;
     resolve_new_references(db, budget, &mut input)?;
     validate_references(db, budget, &input)?;
     db.execute("UPDATE transactions SET account_id=?3,amount=?4,date=?5,cleared=?6,notes=?7,payee_id=?8,category_id=?9 WHERE budget_id=?1 AND id=?2",params![budget,id,input.account_id,input.amount,input.date,input.cleared,input.notes,input.payee_id,input.category_id])?;
@@ -373,14 +407,18 @@ pub fn update(db: &Connection, budget: &str, id: &str, patch: Value) -> Result<V
         || previous["amount"] != input.amount
         || previous["date"] != input.date
         || previous["cleared"] != input.cleared;
-    if financial_changed {
+    if financial_changed && !hidden {
         refresh_account(db, budget, previous["account_id"].as_str().unwrap())?;
         if previous["account_id"] != input.account_id {
             refresh_account(db, budget, &input.account_id)?;
         }
         validate_budget_total(db, budget)?;
     }
-    get(db, budget, id)
+    if hidden {
+        get_any(db, budget, id)
+    } else {
+        get(db, budget, id)
+    }
 }
 pub fn delete(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
     let previous = get(db, budget, id)?;

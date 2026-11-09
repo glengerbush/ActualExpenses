@@ -1,4 +1,5 @@
 import { errorMessage, request } from "./api";
+import { themes } from "./themes/themes.svelte";
 import { setLanguage, languages } from "./i18n.svelte";
 import {
   defaultDevice,
@@ -47,6 +48,7 @@ class Preferences {
     }
     this.media = matchMedia("(prefers-color-scheme: dark)");
     this.applyTheme();
+    void themes.start();
     const changed = () => this.applyTheme();
     this.media.addEventListener("change", changed);
     void this.retryLanguage();
@@ -59,9 +61,11 @@ class Preferences {
           ? this.device.preferred_dark_theme
           : "light"
         : this.device.theme;
-    document.documentElement.dataset.theme = theme;
-    document.documentElement.style.colorScheme =
-      theme === "light" ? "light" : "dark";
+    themes.setBase(
+      theme,
+      this.device.theme === "system",
+      !!this.media?.matches,
+    );
   }
   async retryLanguage() {
     const generation = ++this.languageGeneration;
@@ -91,6 +95,27 @@ class Preferences {
       this.deviceError =
         "Cannot save device preferences to browser storage. Enable storage or free space, then retry.";
       this.device = { ...this.device };
+      return;
+    }
+    const changedTheme =
+      changes.theme !== undefined && changes.theme !== this.device.theme;
+    const changedDark =
+      changes.preferred_dark_theme !== undefined &&
+      changes.preferred_dark_theme !== this.device.preferred_dark_theme;
+    try {
+      if (changedTheme || changedDark)
+        await themes.clearInstalledSlots(!changedTheme);
+    } catch (error) {
+      try {
+        localStorage.setItem(
+          deviceKey,
+          JSON.stringify({ version: 1, values: this.device }),
+        );
+      } catch {
+        /* Preserve the visible error; current appearance stays usable. */
+      }
+      this.device = { ...this.device };
+      this.deviceError = errorMessage(error);
       return;
     }
     this.device = next;

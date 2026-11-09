@@ -1,5 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import {
+    nextEditClock,
+    observeVersions,
+    LocalClockError,
+    resetCorrectedClock,
+  } from "./edit-clock";
   import { list, uuid, RequestError, errorMessage, type Account } from "./api";
   import { t } from "./i18n.svelte";
   import { formatAmount, formatDate } from "./money";
@@ -15,6 +21,7 @@
   import DateInput from "./DateInput.svelte";
   import {
     registerPage,
+    changes,
     references,
     mutate,
     type RegisterPage,
@@ -38,6 +45,7 @@
   let busy = $state(false);
   let error = $state("");
   let recoveryError = $state("");
+  let localClockProblem = $state(false);
   let asOf = $derived(register?.as_of ?? "");
   let retryCutoff = "";
   let loadGeneration = 0;
@@ -64,6 +72,7 @@
         references(budgetId, "categories"),
       ]);
       if (generation !== loadGeneration) return false;
+      for (const row of page.data) observeVersions(row.field_versions);
       register = page;
       filterDate = page.as_of ?? "";
       accounts = accountRows;
@@ -91,11 +100,12 @@
     void load();
   });
 
-  async function changed() {
+  async function changed(message = "") {
     showForm = false;
     editing = null;
     deleting = null;
     await load();
+    notice = message;
     try {
       await onchanged();
     } catch (e) {
@@ -103,6 +113,46 @@
         t("Saved. Refresh the account list to see its updated balance.") +
         " " +
         errorMessage(e);
+    }
+  }
+  async function refreshChanges() {
+    if (!register) {
+      await load();
+      return;
+    }
+    loading = true;
+    error = "";
+    notice = "";
+    try {
+      let cursor = register.snapshot;
+      let changed = false,
+        changedPreferences = false;
+      for (;;) {
+        const page = await changes(budgetId, cursor);
+        changed ||= page.data.length > 0;
+        changedPreferences ||= page.data.some(
+          (change) => change.entity === "preferences",
+        );
+        cursor = page.next_cursor;
+        if (!page.has_more) break;
+      }
+      if (changed) {
+        if (changedPreferences) await preferences.loadBudget(budgetId);
+        const loaded = await load();
+        if (loaded) {
+          await onchanged();
+          notice = t("Transactions refreshed.");
+        }
+      } else notice = t("Transactions are up to date.");
+    } catch (e) {
+      if (e instanceof RequestError && e.code === "cursor_invalid") {
+        if (await load())
+          notice = t(
+            "The saved checkpoint changed. Transactions were reloaded.",
+          );
+      } else error = errorMessage(e);
+    } finally {
+      loading = false;
     }
   }
   async function more() {
@@ -147,6 +197,7 @@
     busy = true;
     error = "";
     let acknowledged = false;
+    let terminalNotice = "";
     try {
       if (!pending) {
         if (!row || !action) return;
@@ -154,6 +205,7 @@
           path: `/budgets/${budgetId}/transactions/${row.id}${action === "duplicate" ? "/duplicate" : ""}`,
           method: action === "delete" ? "DELETE" : "POST",
           key: uuid(),
+          edit_clock: nextEditClock(row.field_versions),
           body: action === "duplicate" ? { id: uuid() } : undefined,
           description: `${action === "delete" ? t("Delete") : t("Duplicate")} ${description(row)}`,
         };
@@ -165,10 +217,21 @@
       pending = null;
     } catch (e) {
       error = errorMessage(e);
+      if (e instanceof LocalClockError) localClockProblem = true;
       if (e instanceof RequestError && !e.uncertain && pending) {
         try {
-          clearRegisterAction(budgetId, pending);
-          pending = null;
+          if (e.code === "clock_skew" || e.code === "clock_overflow") {
+            pending = { ...pending, clockRejected: true };
+            saveRegisterAction(budgetId, pending);
+          } else {
+            clearRegisterAction(budgetId, pending);
+            pending = null;
+            if (
+              e.code === "deletion_superseded" ||
+              e.code === "transaction_deleted"
+            )
+              terminalNotice = error;
+          }
         } catch {
           error = t(
             "Cannot update the saved action on this device. Free storage and retry.",
@@ -178,7 +241,25 @@
     } finally {
       busy = false;
     }
-    if (acknowledged && !pending) await changed();
+    if ((acknowledged || terminalNotice) && !pending)
+      await changed(terminalNotice);
+  }
+  function recoverClock() {
+    if (busy || (pending && !pending.clockRejected)) return;
+    try {
+      resetCorrectedClock();
+      if (pending) {
+        clearRegisterAction(budgetId, pending);
+        pending = null;
+      }
+      localClockProblem = false;
+      error = "";
+      notice = t(
+        "Rejected action discarded. You can start a new action with the corrected device time.",
+      );
+    } catch (e) {
+      error = errorMessage(e);
+    }
   }
 </script>
 
@@ -189,6 +270,11 @@
 >
   <div class="register-heading">
     <h2 id="register-title">{t("Transactions")}</h2>
+    <button
+      onclick={refreshChanges}
+      disabled={loading || busy || showForm || !!pending || !!recoveryError}
+      >{t("Refresh transactions")}</button
+    >
     <button
       class="primary"
       onclick={() => open(null)}
@@ -253,6 +339,18 @@
         >{/if}
     </form>
   {/if}
+  {#if pending?.clockRejected}<p role="status">
+      {t(
+        "This action was rejected before making changes. Retry keeps its original edit time; discard it after correcting the device time to start again.",
+      )}
+    </p>
+    <button onclick={recoverClock} disabled={busy}
+      >{t("Discard rejected action")}</button
+    >
+  {:else if localClockProblem && !pending}<button
+      onclick={recoverClock}
+      disabled={busy}>{t("Use corrected device time")}</button
+    >{/if}
   {#if recoveryError}<p class="error" role="alert">{recoveryError}</p>
     <button onclick={recover}>{t("Retry saved work recovery")}</button>{/if}
   {#if notice}<p role="status">{notice}</p>{/if}
@@ -261,11 +359,11 @@
       >{t("Retry loading transactions")}</button
     >{/if}
   {#if pending}<div class="pending-action">
-      <p role="status">
-        {t(
-          "The outcome is unconfirmed. Retry this saved request before making another change.",
-        )}
-      </p>
+      {#if !pending.clockRejected}<p role="status">
+          {t(
+            "The outcome is unconfirmed. Retry this saved request before making another change.",
+          )}
+        </p>{/if}
       <p>{pending.description}</p>
       <button onclick={() => void runAction()} disabled={busy}
         >{t("Retry saved action")}</button
@@ -279,7 +377,7 @@
       {categories}
       initial={editing}
       defaultAccountId={accountId}
-      oncomplete={() => void changed()}
+      oncomplete={(_transaction, message) => void changed(message)}
       oncancel={() => {
         showForm = false;
         editing = null;

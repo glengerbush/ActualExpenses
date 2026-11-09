@@ -1,0 +1,34 @@
+{
+  "baseline": "Actual26.10.0",
+  "commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "sources": {
+    "catalog.json": {
+      "path": "packages/desktop-client/src/data/customThemeCatalog.json",
+      "sha256": "2674f675574305c1440dd0a3ee708a6c6cb3ef2d45cba52d8f87efadc0b6a488"
+    },
+    "LICENSE.txt": {
+      "path": "LICENSE.txt",
+      "sha256": "71e4b3053e4622e1f5fc5d8aa5336350de32ead39247924c596d659b89b47b6f"
+    },
+    "palette": {
+      "path": "packages/component-library/src/themes/palette.css",
+      "sha256": "4c2d01c06c22c7460944b1f3890a8357a11a977ffb505b70843d1daf6beb53f4"
+    },
+    "light": {
+      "path": "packages/component-library/src/themes/light.css",
+      "sha256": "13a7f746d86cddf93cc965069ba250ba93a6b124cff21ca66e3ca95f9a52e42f"
+    },
+    "dark": {
+      "path": "packages/component-library/src/themes/dark.css",
+      "sha256": "9c0f8358d50c8726c54859b444caa871d07f35e89d761edef6cbf7e46c17281b"
+    },
+    "midnight": {
+      "path": "packages/component-library/src/themes/midnight.css",
+      "sha256": "6dfb996ad83c9661aa10961f559f20bf3cab05da27c8dec4f7f93ee7d96f0387"
+    },
+    "sidebar-redesign-light": {
+      "path": "packages/component-library/src/themes/sidebar-redesign-light.css",
+      "sha256": "959be8de94af6c970360f1358af7b4a00cd9157639c7e6cb5c9684343f5951bf"
+    }
+  }
+}

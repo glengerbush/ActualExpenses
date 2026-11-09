@@ -504,10 +504,7 @@
             "required": false,
             "description": "Opaque token from the first page; preserve unchanged for consistent continuation.",
             "schema": {
-              "type": "string",
-              "minLength": 18,
-              "maxLength": 18,
-              "pattern": "^r1[0-9a-f]{16}$"
+              "$ref": "#/components/schemas/ChangeCursor"
             }
           }
         ],
@@ -597,6 +594,15 @@
               "pattern": "^[!-~]+$"
             },
             "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
           }
         ],
         "requestBody": {
@@ -619,6 +625,18 @@
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Transaction"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "conflicts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldConflict"
+                      }
+                    },
+                    "cursor": {
+                      "$ref": "#/components/schemas/ChangeCursor"
                     }
                   },
                   "required": [
@@ -664,7 +682,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MutationConflict"
+                    }
+                  ]
                 }
               }
             }
@@ -700,7 +725,7 @@
             }
           }
         },
-        "description": "New payee/category objects are created in the same transaction as the financial write and durable replay outcome; select an ID or create a reference, never both. Off-budget entries cannot have a category. Financial values and every account running/cleared/uncleared balance must remain safe integers."
+        "description": "New payee/category objects are created in the same transaction as the financial write and durable replay outcome; select an ID or create a reference, never both. Off-budget entries cannot have a category. Financial values and every account running/cleared/uncleared balance must remain safe integers. Per-field newest HLC wins; independent fields merge and superseded fields are reported. Accepted/rejected-delete outcomes replay durably. Unpublished deletions older than any known field are rejected; published tombstones stay hidden while newer ordinary fields may still merge. No operation, clock, or tombstone retention expiry is applied."
       }
     },
     "/api/v1/budgets/{budget}/transactions/{id}": {
@@ -852,6 +877,15 @@
               "pattern": "^[!-~]+$"
             },
             "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
           }
         ],
         "requestBody": {
@@ -874,6 +908,18 @@
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Transaction"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "conflicts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldConflict"
+                      }
+                    },
+                    "cursor": {
+                      "$ref": "#/components/schemas/ChangeCursor"
                     }
                   },
                   "required": [
@@ -919,7 +965,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MutationConflict"
+                    }
+                  ]
                 }
               }
             }
@@ -955,7 +1008,7 @@
             }
           }
         },
-        "description": "Only supplied fields change. Explicit null clears payee/category. Reconciled entries require unlocking in the reconciliation workflow. Deleted identities cannot be reused."
+        "description": "Only supplied fields change. Explicit null clears payee/category. Reconciled entries require unlocking in the reconciliation workflow. Deleted identities cannot be reused. Per-field newest HLC wins; independent fields merge and superseded fields are reported. Accepted/rejected-delete outcomes replay durably. Unpublished deletions older than any known field are rejected; published tombstones stay hidden while newer ordinary fields may still merge. No operation, clock, or tombstone retention expiry is applied."
       },
       "delete": {
         "parameters": [
@@ -990,6 +1043,15 @@
               "pattern": "^[!-~]+$"
             },
             "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
           }
         ],
         "responses": {
@@ -1001,22 +1063,19 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "uuid",
-                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-                        },
-                        "deleted": {
-                          "const": true
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "deleted"
-                      ],
-                      "additionalProperties": false
+                      "$ref": "#/components/schemas/TransactionTombstone"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "conflicts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldConflict"
+                      }
+                    },
+                    "cursor": {
+                      "$ref": "#/components/schemas/ChangeCursor"
                     }
                   },
                   "required": [
@@ -1062,7 +1121,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MutationConflict"
+                    }
+                  ]
                 }
               }
             }
@@ -1097,7 +1163,8 @@
               }
             }
           }
-        }
+        },
+        "description": " Per-field newest HLC wins; independent fields merge and superseded fields are reported. Accepted/rejected-delete outcomes replay durably. Unpublished deletions older than any known field are rejected; published tombstones stay hidden while newer ordinary fields may still merge. No operation, clock, or tombstone retention expiry is applied."
       }
     },
     "/api/v1/budgets/{budget}/transactions/{id}/duplicate": {
@@ -1134,6 +1201,15 @@
               "pattern": "^[!-~]+$"
             },
             "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
           }
         ],
         "requestBody": {
@@ -1167,6 +1243,18 @@
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Transaction"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "conflicts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldConflict"
+                      }
+                    },
+                    "cursor": {
+                      "$ref": "#/components/schemas/ChangeCursor"
                     }
                   },
                   "required": [
@@ -1212,7 +1300,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MutationConflict"
+                    }
+                  ]
                 }
               }
             }
@@ -1248,7 +1343,7 @@
             }
           }
         },
-        "description": "Copies fields into the supplied new stable UUID; cleared and reconciled are false. Duplicate is an ordinary entry, not another account starting balance."
+        "description": "Copies fields into the supplied new stable UUID; cleared and reconciled are false. Duplicate is an ordinary entry, not another account starting balance. Per-field newest HLC wins; independent fields merge and superseded fields are reported. Accepted/rejected-delete outcomes replay durably. Unpublished deletions older than any known field are rejected; published tombstones stay hidden while newer ordinary fields may still merge. No operation, clock, or tombstone retention expiry is applied."
       }
     },
     "/api/v1/budgets/{budget}/payees": {
@@ -2222,6 +2317,713 @@
         },
         "description": "Read-only Actual preference conversion. Does not import an archive or mutate a budget."
       }
+    },
+    "/api/v1/budgets/{budget}/changes": {
+      "get": {
+        "description": "Read latest affected entities and retained tombstones after an atomic initial register checkpoint. Coalesced state is ordered by server sequence, not edit time; concurrent changes move later and remain retrievable. Advance only to returned next_cursor; repeat while has_more. Empty refresh writes nothing. Wrong epoch/budget or future cursor gives cursor_invalid; explicitly reload initial views. Retention is indefinite; no silent cursor expiry. Backup restore must rotate budget epochs before serving clients.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ChangeCursor"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Incremental state page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid limit/cursor syntax",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Checkpoint requires explicit fresh snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unable to read the change page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/themes/compile": {
+      "post": {
+        "operationId": "themecompile",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "css"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "css": {
+                    "type": "string",
+                    "maxLength": 16777216
+                  },
+                  "base_theme": {
+                    "enum": [
+                      "light",
+                      "dark",
+                      "midnight"
+                    ],
+                    "default": "light"
+                  },
+                  "id": {
+                    "type": "string",
+                    "maxLength": 512
+                  },
+                  "name": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "repo": {
+                    "type": "string",
+                    "maxLength": 2048
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Compiled device data; no server persistence",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/CompiledTheme"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid theme request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Theme request exceeds body limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Expected application/json content type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/themes/convert-actual": {
+      "post": {
+        "operationId": "themeconvert_actual",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "global"
+                ],
+                "properties": {
+                  "global": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Compiled device data; no server persistence",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ConvertedThemes"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid theme request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Theme request exceeds body limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Expected application/json content type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/themes/catalog": {
+      "get": {
+        "operationId": "themeCatalog",
+        "responses": {
+          "200": {
+            "description": "Compiled device data; no server persistence",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "version",
+                        "entries",
+                        "token_map",
+                        "limits"
+                      ],
+                      "properties": {
+                        "version": {
+                          "const": 1
+                        },
+                        "entries": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "name",
+                              "repo",
+                              "mode"
+                            ],
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "repo": {
+                                "type": "string"
+                              },
+                              "mode": {
+                                "enum": [
+                                  "light",
+                                  "dark"
+                                ]
+                              },
+                              "colors": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "token_map": {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "limits": {
+                          "type": "object",
+                          "required": [
+                            "css_bytes",
+                            "font_bytes",
+                            "total_font_bytes"
+                          ],
+                          "properties": {
+                            "css_bytes": {
+                              "type": "integer"
+                            },
+                            "font_bytes": {
+                              "type": "integer"
+                            },
+                            "total_font_bytes": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/imports/actual": {
+      "post": {
+        "summary": "Stage an unencrypted pinned Actual archive",
+        "description": "Maximum16MiB compressed,64MiB expanded,128entries,100000rows per inspected table. Malformed/encrypted inputs cannot create budgets. Valid unsupported features remain retained in blocked stages. Archive/audit/receipt commit atomically. Identical SHA deduplicates across keys. ZIP64/multi-disk archives unsupported.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/zip": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Durable ready or blocked stage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ActualImportStage"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Archive exceeds16MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid archive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/imports": {
+      "get": {
+        "summary": "List the100 most recent imports",
+        "responses": {
+          "200": {
+            "description": "Most recent first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ActualImportStage"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/imports/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current stage and retained audit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ActualImportStage"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Import missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/imports/{id}/original.zip": {
+      "get": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Byte-identical original archive; attachment, no-store",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Import missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/imports/{id}/activate": {
+      "post": {
+        "summary": "Atomically activate reviewed ledger conversion",
+        "description": "Ready stages only. Insert source IDs, relationships, preferences, original field order and tombstones; verify target totals before commit. Durable result and receipt commit together. Retry/restart or a repeated activation returns the same budget. Source local/cloud/group IDs remain explicitly mapped to the assigned budget UUID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Activated budget",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Budget"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Import missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "import_requires_conversion or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Conversion integrity failure; rolled back",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2477,6 +3279,13 @@
                 "type": "null"
               }
             ]
+          },
+          "field_versions": {
+            "$ref": "#/components/schemas/FieldVersions"
+          },
+          "deleted": {
+            "const": true,
+            "description": "Only mutation responses for already published tombstones; fields may merge without restoring visibility."
           }
         },
         "required": [
@@ -2846,10 +3655,7 @@
             ]
           },
           "snapshot": {
-            "type": "string",
-            "minLength": 18,
-            "maxLength": 18,
-            "pattern": "^r1[0-9a-f]{16}$"
+            "$ref": "#/components/schemas/ChangeCursor"
           }
         },
         "required": [
@@ -3493,6 +4299,527 @@
                 "type": "object"
               }
             }
+          }
+        }
+      },
+      "EditClock": {
+        "type": "string",
+        "minLength": 46,
+        "maxLength": 46,
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z-[0-9A-F]{4}-[0-9a-fA-F]{16}$",
+        "description": "Actual HLC: ISO UTC milliseconds, hexadecimal counter, node. Full-string per-field ordering; deterministic node tie break. Future drift beyond five minutes rejects before commit. Old clocks remain valid. Retry never changes its original clock."
+      },
+      "ChangeCursor": {
+        "type": "string",
+        "minLength": 50,
+        "maxLength": 50,
+        "pattern": "^c1[0-9a-f]{48}$",
+        "description": "Opaque per-budget epoch and durable change sequence, independent of edit timestamps. Never synthesize or reuse across budgets."
+      },
+      "FieldVersions": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/components/schemas/EditClock"
+        },
+        "description": "Latest accepted ordering per field. Missing historical source metadata uses1970-01-01T00:00:00.000Z-0000-0000000000000000, never migration time."
+      },
+      "TransactionTombstone": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "deleted": {
+            "const": true
+          },
+          "field_versions": {
+            "$ref": "#/components/schemas/FieldVersions"
+          }
+        },
+        "required": [
+          "id",
+          "deleted"
+        ],
+        "additionalProperties": false
+      },
+      "FieldConflict": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "submitted_clock": {
+            "$ref": "#/components/schemas/EditClock"
+          },
+          "winning_clock": {
+            "$ref": "#/components/schemas/EditClock"
+          }
+        },
+        "required": [
+          "field",
+          "submitted_clock",
+          "winning_clock"
+        ],
+        "additionalProperties": false
+      },
+      "MutationConflict": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ],
+            "additionalProperties": false
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Transaction"
+              },
+              {
+                "$ref": "#/components/schemas/TransactionTombstone"
+              }
+            ]
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          }
+        },
+        "required": [
+          "error",
+          "data",
+          "cursor"
+        ],
+        "additionalProperties": false
+      },
+      "ChangePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "transactions"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/Transaction"
+                        },
+                        {
+                          "$ref": "#/components/schemas/TransactionTombstone"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "accounts"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Account"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "payees"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Payee"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "categories"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Category"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "preferences"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetPreferences"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "next_cursor": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "has_more": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "data",
+          "next_cursor",
+          "has_more"
+        ],
+        "additionalProperties": false
+      },
+      "ThemeWarning": {
+        "type": "object",
+        "required": [
+          "key",
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "CompiledTheme": {
+        "type": "object",
+        "required": [
+          "version",
+          "id",
+          "name",
+          "repo",
+          "base_theme",
+          "source",
+          "valid",
+          "variables",
+          "fonts",
+          "warnings",
+          "variables_by_base"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": 1
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "repo": {
+            "type": "string"
+          },
+          "base_theme": {
+            "enum": [
+              "light",
+              "dark",
+              "midnight"
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "valid": {
+            "type": "boolean"
+          },
+          "variables": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "fonts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ThemeWarning"
+            }
+          },
+          "variables_by_base": {
+            "type": "object",
+            "required": [
+              "light",
+              "dark",
+              "midnight"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "light": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "dark": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "midnight": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ConvertedThemes": {
+        "type": "object",
+        "required": [
+          "version",
+          "light",
+          "dark",
+          "override",
+          "original",
+          "warnings"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": 1
+          },
+          "light": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CompiledTheme"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dark": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CompiledTheme"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "override": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CompiledTheme"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "original": {
+            "type": "object"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ThemeWarning"
+            }
+          }
+        }
+      },
+      "ActualImportStage": {
+        "type": "object",
+        "required": [
+          "id",
+          "budget_id",
+          "status",
+          "report"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "budget_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "blocked",
+              "activated"
+            ]
+          },
+          "report": {
+            "type": "object",
+            "required": [
+              "source",
+              "archive_sha256",
+              "counts",
+              "accounts",
+              "balances",
+              "source_field_clock_count",
+              "requirements",
+              "preferences",
+              "source_preferences",
+              "checks",
+              "extra_archive_entries"
+            ],
+            "properties": {
+              "source": {
+                "type": "object"
+              },
+              "archive_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "counts": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "accounts": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "balances": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "source_field_clock_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "requirements": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "feature",
+                    "count",
+                    "blocking",
+                    "reason"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "feature": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "blocking": {
+                      "type": "boolean"
+                    },
+                    "reason": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "preferences": {
+                "type": "object"
+              },
+              "source_preferences": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "checks": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "boolean"
+                }
+              },
+              "extra_archive_entries": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
           }
         }
       }

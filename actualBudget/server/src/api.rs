@@ -181,7 +181,7 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["transfers", "transfer_cancellation", "transfer_receipt_lookup", "budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "tags", "splits"],
+        "capabilities": ["expense_kind_precondition", "transfers", "transfer_cancellation", "transfer_receipt_lookup", "budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "tags", "splits"],
         "openapi": "/api/v1/openapi.json"
     }))
 }
@@ -478,7 +478,14 @@ async fn update_transaction(
                         clock.as_deref(),
                         cancel,
                         epoch.as_deref(),
-                        Mutation::Patch(id, input),
+                        if headers
+                            .get("X-Actual-Expense-Only")
+                            .is_some_and(|v| v == "true")
+                        {
+                            Mutation::ExpensePatch(id, input)
+                        } else {
+                            Mutation::Patch(id, input)
+                        },
                     )
                 },
             )
@@ -521,7 +528,14 @@ async fn delete_transaction(
                         clock.as_deref(),
                         cancel,
                         epoch.as_deref(),
-                        Mutation::Delete(id),
+                        if headers
+                            .get("X-Actual-Expense-Only")
+                            .is_some_and(|v| v == "true")
+                        {
+                            Mutation::ExpenseDelete(id)
+                        } else {
+                            Mutation::Delete(id)
+                        },
                     )
                 },
             )

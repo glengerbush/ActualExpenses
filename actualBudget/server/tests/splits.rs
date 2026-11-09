@@ -777,3 +777,67 @@ fn split_payee_aliases_and_removed_references_preserve_domain_rules() {
         "Rejected split leaves aggregate and snapshot unchanged"
     );
 }
+
+#[test]
+fn removed_parent_payee_changes_only_children_sharing_its_retained_identity() {
+    for (clear, alias_child) in [(false, false), (true, false), (false, true)] {
+        let server = Server::start();
+        create_budget(&server);
+        let base = format!("/api/v1/budgets/{BUDGET}");
+        assert_eq!(server.post(&format!("{base}/accounts"),"account",json!({"id":ACCOUNT,"name":"Checking","opening_balance":0,"opening_date":"2026-01-01"})).status(),201);
+        let old = uuid::Uuid::new_v4().to_string();
+        let new = uuid::Uuid::new_v4().to_string();
+        let alias = uuid::Uuid::new_v4().to_string();
+        for (id, name) in [(&old, "Old"), (&new, "New"), (&alias, "Alias")] {
+            assert_eq!(
+                server
+                    .post(&format!("{base}/payees"), id, json!({"id":id,"name":name}))
+                    .status(),
+                201
+            );
+        }
+        let parent = uuid::Uuid::new_v4().to_string();
+        let shared = uuid::Uuid::new_v4().to_string();
+        let blank = uuid::Uuid::new_v4().to_string();
+        assert_eq!(server.post(&format!("{base}/transactions"),"entry",json!({"id":parent,"account_id":ACCOUNT,"amount":-100,"date":"2026-01-02","payee_id":old})).status(),201);
+        let path = format!("{base}/transactions/{parent}/splits");
+        let view: Value = server.get(&path).json().unwrap();
+        let r=server.post(&path,"split",json!({"snapshot":view["snapshot"],"children":[{"id":shared,"amount":-60,"payee_id":old},{"id":blank,"amount":-40}]}));
+        assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+        assert_eq!(
+            server
+                .post(
+                    &format!("{base}/payees/batch"),
+                    "alias",
+                    json!({"action":"merge","ids":[alias],"target_id":old})
+                )
+                .status(),
+            200
+        );
+        assert_eq!(
+            server
+                .post(
+                    &format!("{base}/payees/batch"),
+                    "remove",
+                    json!({"action":"remove","ids":[old]})
+                )
+                .status(),
+            200
+        );
+        let view: Value = server.get(&path).json().unwrap();
+        assert_eq!(view["data"]["retained_payee_id"], old);
+        assert!(view["data"]["children"][1]["retained_payee_id"].is_null());
+        let choice = if clear { Value::Null } else { json!(new) };
+        let r=server.post(&path,"change-parent",json!({"snapshot":view["snapshot"],"fields":{"payee_id":choice},"children":[{"id":shared,"amount":-60,"payee_id":if alias_child{&alias}else{&old}},{"id":blank,"amount":-40}]}));
+        assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+        let result: Value = r.json().unwrap();
+        assert_eq!(
+            result["data"]["children"][0]["retained_payee_id"], choice,
+            "Shared removed payee follows the parent, including an alias selection"
+        );
+        assert!(
+            result["data"]["children"][1]["retained_payee_id"].is_null(),
+            "Unrelated blank child remains blank"
+        );
+    }
+}

@@ -1,6 +1,6 @@
 # Linked transfers
 
-Ticket15, stories24/25/39/95. Provisional schema10 on base570806f; root must renumber after tickets12/14.
+Ticket15, stories24/25/39/95. Provisional schema11 on merged baseefa600f (split schema10); root renumbers after register12.
 
 `POST /budgets/{budget}/transfers` accepts client-generated `id`, `counterpart_id`,
 `account_id`, `to_account_id`, signed integer `amount`, calendar `date`, optional
@@ -38,9 +38,9 @@ method/path/body/key/clock/epoch, read-only receipt lookup and explicit cancel
 fences. Existing account/transaction capabilities continue to own their routes.
 No metadata writes enter the expense outbox. Plain HTTP, no app login.
 
-The native archive registry already covers transactions/payees; schema10 adds
+The native archive registry already covers transactions/payees; schema11 adds
 nullable transfer references, reciprocal active-pair validation, and defaults for
-schema6–9 archives. Genuine Actual transfers convert their source references and
+schema6–10 archives. Genuine Actual transfers convert their source references and
 HLCs. A fresh upload intent rechecks previously blocked conversion plans; exact
 old upload keys retain their original receipt. Recent and retained companion
 queries exclude transfers before activation. Native state also excludes transfer
@@ -51,24 +51,40 @@ rows and transfer payee identities after genuine incremental updates.
 - Ticket12: use `t.transfer_id IS NOT NULL` for transfer predicates; preserve
   `transfer_id` in its batch row hydrator. Both signed legs belong in all-account
   register totals; they cancel. Ordinary rows omit absent transfer metadata.
-- Ticket14: split children can be transfer legs; parent may not. Parent amount,
-  all children, counterpart, field clocks and receipt require one atomic boundary.
-  Ordinary-side deletion must detach a child without deleting its allocation.
-  Date sync to a child must include its parent/siblings. Split replacement,
-  unsplit/recombine and parent deletion must explicitly maintain paired legs.
-  This isolated base does not contain ticket14: combined implementation and tests
-  remain a root integration gate, not accepted parity.
+- Ticket14 composition is implemented: split parents cannot be transfer legs;
+  children accept `transfer_account_id` and stable `counterpart_id` in the split
+  mutation. The same receipt owns both rows and allocations. Amount edits on
+  either side adjust a child’s parent by the delta. Date synchronization follows
+  connected split parents/siblings and transfer pairs. Cleared remains local to
+  its split aggregate. A paired ordinary deletion detaches the child, retaining
+  its allocation. Removing/recombining an allocation removes an ordinary peer or
+  detaches a peer allocation. Unsplit keeps pairs, including single-child promotion
+  to the original transaction; duplication creates fresh counterparts. Replacement
+  can change destinations atomically. Parent deletion fences newer peer edits.
 - Ticket13: wrap the existing transaction/receipt boundary with one undo group,
   retaining both legs, generated payees, relevant parent/account state and versions.
   Do not expose per-leg undo or silently omit transfers. Undo is not implemented
   in this base; acceptance waits for the combined undo contract.
-- Ticket16: PATCH accepts `confirm_reconciled`; strip it before transfer field
-  validation and call `reconciliation::protect` for both legs. Disclose both
-  protected legs in the editor. DELETE retains explicit local unlock requirements
-  on both legs; it does not accept a confirmation bypass. Current guards reject
-  either locked leg.
+- Ticket16: PATCH confirmation must carry exact observed lock versions per ID
+  (for example `reconciled_versions`), plus the original intent clock. Strip
+  confirmation metadata before transfer field validation and call the shared
+  version-aware protection for both legs and affected parent/sibling rows. A
+  boolean alone must not bypass a later relock. Disclose protected entries in the
+  editor. DELETE retains explicit local unlock requirements on both legs.
+  Current composition rejects locked entries; confirmation integration remains.
 
 Pinned combined oracle reveals a defect: editing a counterpart from600 to700
 changes its split child from−600 to−700 while the parent remains−1000 and another
 child−400. The rewrite's explicit exact-total requirement takes precedence: root
-integration must adjust parent by the delta atomically, documenting the divergence.
+composition adjusts parent by the delta atomically; the public fixture records this deliberate divergence.
+
+## Captured companion operations
+
+`X-Actual-Expense-Only: true` opts PATCH/DELETE into a durable kind precondition.
+A converted split/transfer returns a `split_transaction`/`transfer_transaction`
+receipt, irrespective of the original clock, without mutating the aggregate.
+The header also accompanies receipt lookups; original body/key/clock/epoch stay
+unchanged. Generic register writes retain transfer semantics. The native client
+requires `expense_kind_precondition` when a server advertises transfers, keeps
+rejected work across restarts and discards only after verifying the exact receipt.
+Older generic PATCH clocks preceding pair linkage also receive a transfer refusal.

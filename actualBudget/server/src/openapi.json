@@ -1070,6 +1070,15 @@
               "pattern": "^[0-9a-f]{32}$"
             },
             "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-Expense-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Durably refuse split_transaction or transfer_transaction if this captured expense changed kind. Omit for general register operations. Receipts and cancellation retain original request identity."
           }
         ],
         "requestBody": {
@@ -1280,6 +1289,15 @@
               ]
             },
             "description": "Requires transaction_receipt_lookup capability. Read-only reconciliation using the original method/path/body/key/edit clock/epoch. Known receipts return their original status/body before budget generation and account availability checks. Unknown requests return 404 operation_uncommitted without mutation, cancellation, clock advancement or consuming the key. Cannot combine with X-Actual-Cancel-If-Uncommitted; supported only on transaction POST/PATCH/DELETE."
+          },
+          {
+            "name": "X-Actual-Expense-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Durably refuse split_transaction or transfer_transaction if this captured expense changed kind. Omit for general register operations. Receipts and cancellation retain original request identity."
           }
         ],
         "responses": {
@@ -12075,6 +12093,14 @@
               "$ref": "#/components/schemas/Transaction"
             },
             "description": "Active child allocations in stable split order. Parent totals count once in registers; reports use children instead of the parent."
+          },
+          "transfer_account_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Account of the linked counterpart, when linked."
           }
         },
         "required": [
@@ -14364,6 +14390,20 @@
           "notes": {
             "type": "string",
             "maxLength": 10000
+          },
+          "transfer_account_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "counterpart_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
           }
         }
       },

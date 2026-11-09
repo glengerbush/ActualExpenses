@@ -897,23 +897,23 @@
                   row.reconciled}
                 aria-label={`${t("Edit")} ${description(row)}`}
                 >{t("Edit")}</button
-              ><button
-                onclick={() => {
-                  void splitEditor?.open(row);
-                }}
-                disabled={disconnected ||
-                  loading ||
-                  busy ||
-                  showForm ||
-                  splitActive ||
-                  !!pending ||
-                  !!recoveryError ||
-                  row.reconciled ||
-                  row.starting_balance}
-                >{row.is_parent
-                  ? t("Edit splits")
-                  : t("Split transaction")}</button
-              ><button
+              >{#if !row.transfer_id}<button
+                  onclick={() => {
+                    void splitEditor?.open(row);
+                  }}
+                  disabled={disconnected ||
+                    loading ||
+                    busy ||
+                    showForm ||
+                    splitActive ||
+                    !!pending ||
+                    !!recoveryError ||
+                    row.reconciled ||
+                    row.starting_balance}
+                  >{row.is_parent
+                    ? t("Edit splits")
+                    : t("Split transaction")}</button
+                >{/if}<button
                 onclick={() => void runAction("duplicate", row)}
                 disabled={disconnected ||
                   loading ||
@@ -942,7 +942,7 @@
                 aria-label={`${t("Delete")} ${description(row)}`}
                 >{t("Delete")}</button
               >
-              {#if !row.transfer_id && !row.starting_balance}<button
+              {#if !row.transfer_id && !row.starting_balance && !row.is_parent}<button
                   onclick={() => openTransfer("link", row)}
                   disabled={disconnected ||
                     loading ||
@@ -959,7 +959,7 @@
               ><td colspan={8}
                 ><p>
                   {row.transfer_id
-                    ? "Delete both sides of this transfer?"
+                    ? "Delete this transfer? Its paired entry is also deleted unless it belongs to a split, in which case it stays unlinked."
                     : t("Delete this transaction?")}
                   {description(row)}
                 </p>

@@ -18,6 +18,8 @@ export interface SplitDraft {
     payee_id: string;
     category_id: string;
     notes: string;
+    transfer_account_id?: string;
+    counterpart_id?: string;
   }[];
   fields: {
     account_id: string;
@@ -71,6 +73,12 @@ function validate(value: SplitDraft | undefined, budgetId: string) {
           !identifier(c.id) ||
           typeof c.amount !== "string" ||
           typeof c.notes !== "string" ||
+          (c.transfer_account_id != null &&
+            c.transfer_account_id !== "" &&
+            !identifier(c.transfer_account_id)) ||
+          (c.counterpart_id != null &&
+            c.counterpart_id !== "" &&
+            !identifier(c.counterpart_id)) ||
           ![c.payee_id, c.category_id].every(
             (id) => id === "" || identifier(id),
           ),

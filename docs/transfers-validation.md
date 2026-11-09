@@ -82,3 +82,74 @@ served OpenAPI, Rust check/fmt, Svelte check/autofixer pass. Evidence:
 `/tmp/merge14-15-{tests,contract,webcheck2,autofixer}.log`,
 `/tmp/native14-15-merged.log`. Combined split-transfer financial behavior still
 requires implementation, tests and review; the merge alone does not satisfy it.
+
+## Combined split/transfer candidate on efa600f
+
+The formerly pending ticket14 composition is implemented in
+`server/src/transfers/composition.rs` and the split receipt boundary. Split child
+creation/replacement owns stable counterpart IDs, paired amount/notes, categories,
+account destinations and clocks. Opposite-side amount edits update parent totals
+by delta; synchronized dates traverse linked split aggregates. Parent-to-transfer
+and transfer-to-parent operations are refused. Ordinary-side deletion retains an
+unlinked child allocation. Replacement, child removal, recombination, unsplitting
+(including one-child promotion), duplication and parent deletion maintain pairs.
+A stale parent deletion checks independent peer changes and returns a durable
+refusal. The pinned parent-total defect remains recorded, not copied.
+
+The split editor exposes a destination per child, restores it on reload, freezes
+saved request details and allows existing ordinary entries to link to nested
+children. The transfer picker excludes parents. Parent link and transfer split
+buttons are absent. Rendered 1280/390px layouts preserve the incumbent controls,
+focus styling and responsive grid. New captures: `screenshots/transfers/split-desktop.png`
+and `split-mobile.png`. The native recovery copy explicitly covers transfers;
+`screenshots/transfers/native-split-transfer-recovery.png` captures the actual
+API36 Compose surface. No signing, application ID or version changes.
+
+The new companion `X-Actual-Expense-Only` precondition protects queued edits and
+deletes even when their original clock is newer than remote conversion. Rejected
+work retains body/key/clock/epoch through process recreation and can be discarded
+only after read-only receipt confirmation. Generic register pair editing remains
+available. The native client requires the new protection capability from servers
+advertising transfers. This closes a race that incremental eligibility alone could
+not protect. Existing serialized recovery fields keep their names for compatibility.
+
+Evidence after composition:
+
+- Red public child-transfer tracer: `/tmp/ticket15-combined-red.log` (HTTP400 before
+  the split schema accepted counterpart fields).
+- Full Rust suite: **112 pass**, zero failures/skips,
+  `/tmp/ticket15-combined-full-rust.log`. Includes ten transfer and ten split cases.
+  Root's `3bef1aa` retained-payee inheritance fix/test is included unchanged in meaning.
+- Final focused transfer suite: **11 pass** (`/tmp/ticket15-combined-transfers-final.log`),
+  including a later historical-edit check after the counterpart account closes
+  with a balance transfer. Existing paired history remains editable; new
+  destinations still require open accounts. Full suite112 preceded this focused
+  addition; the broad suite was not repeated.
+- Genuine combined pinned source import, original ZIP retention, companion
+  recent/retained exclusions and native archive restore:
+  `/tmp/ticket15-combined-import.log`.
+- Browser: combined child creation, lost committed acknowledgement/reload/replay,
+  editing, linking existing entry to nested child, opposite-parent delta and
+  responsive keyboard flow: `/tmp/ticket15-combined-browser.log`. Existing split
+  and transfer suites: `/tmp/ticket15-combined-splits-browser.log`,
+  `/tmp/ticket15-combined-transfers-browser.log`. Split keyboard assertion now
+  includes the new destination selector between amount and payee.
+- Native API: **24 pass**, zero skips/failures, including four conversion-race
+  combinations (edit/delete × queued before/after conversion),
+  `/tmp/ticket15-combined-native-build.log`. Same invocation builds debug APK,
+  instrumentation APK and lint successfully.
+- Focused actual API36 recovery rendering/action: **1 pass**, zero skips,
+  `/tmp/ticket15-combined-device.log`. Prior disposable AVD was copied to
+  `/tmp/ticket15-avd`; primary AVD untouched, temporary emulator stopped.
+- Served OpenAPI ordinary + combined transfer schemas and expense-kind refusal:
+  `/tmp/ticket15-combined-contract.log`.
+- Svelte check/build, autofixers and Clippy: `/tmp/ticket15-combined-check.log`,
+  `/tmp/ticket15-combined-build.log`, `/tmp/ticket15-combined-svelte-*.log`,
+  `/tmp/ticket15-combined-clippy.log`. Autofixers find no issues; SplitEditor keeps
+  the existing heading `bind:this` advisory. Impeccable detector already ran once
+  this session; manual craft-floor and rendered review cover the new controls.
+
+Still required: independent Standards/Spec and Impeccable finish review; register12
+hydration/query integration; ticket13 atomic undo; ticket16 exact lock-version
+confirmation for every affected leg/aggregate; final schema renumbering. Provisional
+schema11 is unchanged by composition. This is not whole-ticket or rewrite acceptance.

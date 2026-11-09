@@ -635,3 +635,466 @@ fn genuine_synced_transfer_source_keeps_ids_balances_original_bytes_and_hlcs() {
         true
     );
 }
+
+fn split_fixture(s: &Server) -> String {
+    let root = format!("/api/v1/budgets/{B}");
+    ok(s.write(
+        "POST",
+        "/api/v1/budgets",
+        "budget",
+        None,
+        json!({"id":B,"name":"Split transfers"}),
+    ));
+    for n in [2, 3, 4] {
+        ok(s.write("POST", &format!("{root}/accounts"), &format!("account-{n}"), None, json!({"id":id(n),"name":format!("Account {n}"),"opening_balance":0,"opening_date":"2026-01-01"})));
+    }
+    ok(s.write("POST", &format!("{root}/transactions"), "parent", None, json!({"id":id(10),"account_id":id(2),"amount":-1000,"date":"2026-01-01","notes":"Split payment"})));
+    let snapshot = s.get(&format!("{root}/transactions/{}/splits", id(10)))["snapshot"].clone();
+    ok(s.write("POST", &format!("{root}/transactions/{}/splits",id(10)), "split-transfer", None, json!({"snapshot":snapshot,"children":[{"id":id(11),"amount":-600,"notes":"Transfer allocation","transfer_account_id":id(3),"counterpart_id":id(12)},{"id":id(13),"amount":-400,"notes":"Ordinary allocation"}]})));
+    root
+}
+#[test]
+fn split_transfer_amount_dates_delete_and_duplicate_remain_one_aggregate() {
+    let s = Server::start();
+    let root = split_fixture(&s);
+    let fixture: Value =
+        serde_json::from_str(include_str!("../../tests/fixtures/split-transfers.json")).unwrap();
+    for (alias, n) in [
+        ("parent", 10),
+        ("child", 11),
+        ("child-other", 12),
+        ("ordinary", 13),
+    ] {
+        let actual = s.get(&format!("{root}/transactions/{}", id(n)))["data"].clone();
+        let expected = fixture["snapshots"][0]["rows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["id"] == alias)
+            .unwrap();
+        for f in ["amount", "date", "notes"] {
+            assert_eq!(actual[f], expected[f], "{alias}/{f}");
+        }
+    }
+    let update = ok(s.write(
+        "PATCH",
+        &format!("{root}/transactions/{}", id(12)),
+        "opposite-edit",
+        None,
+        json!({"amount":700,"notes":"Changed from other account"}),
+    ));
+    let parent = s.get(&format!("{root}/transactions/{}", id(10)))["data"].clone();
+    assert_eq!(parent["amount"], -1100); // Deliberate exact-total correction to pinned Actual defect.
+    assert_eq!(parent["children"][0]["amount"], -700);
+    assert_eq!(parent["field_versions"]["amount"], update["edit_clock"]);
+    ok(s.write(
+        "PATCH",
+        &format!("{root}/transactions/{}", id(12)),
+        "sync-date",
+        None,
+        json!({"date":"2026-02-01","sync_transfer_date":true}),
+    ));
+    for n in [10, 11, 12, 13] {
+        assert_eq!(
+            s.get(&format!("{root}/transactions/{}", id(n)))["data"]["date"],
+            "2026-02-01"
+        );
+    }
+    let copy = ok(s.write(
+        "POST",
+        &format!("{root}/transactions/{}/duplicate", id(10)),
+        "duplicate-split",
+        None,
+        json!({"id":id(20)}),
+    ))["data"]
+        .clone();
+    let child = &copy["children"][0];
+    let peer = s.get(&format!(
+        "{root}/transactions/{}",
+        child["transfer_id"].as_str().unwrap()
+    ))["data"]
+        .clone();
+    assert_eq!(peer["transfer_id"], child["id"]);
+    assert_eq!(peer["amount"], 700);
+    ok(s.write(
+        "DELETE",
+        &format!("{root}/transactions/{}", id(12)),
+        "detach-child",
+        None,
+        Value::Null,
+    ));
+    let child = s.get(&format!("{root}/transactions/{}", id(11)))["data"].clone();
+    assert!(child["transfer_id"].is_null());
+    assert!(child["payee_id"].is_null());
+    assert_eq!(child["amount"], -700);
+    assert_eq!(child["parent_id"], id(10));
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{}", id(10)))["data"]["amount"],
+        -1100
+    );
+    ok(s.write(
+        "DELETE",
+        &format!("{root}/transactions/{}", id(20)),
+        "delete-copy",
+        None,
+        Value::Null,
+    ));
+    assert_eq!(
+        s.client
+            .get(format!(
+                "{}{root}/transactions/{}",
+                s.url,
+                peer["id"].as_str().unwrap()
+            ))
+            .send()
+            .unwrap()
+            .status(),
+        404
+    );
+}
+
+#[test]
+fn split_transfer_replacement_unsplit_recombine_and_failed_intents_are_atomic() {
+    let s = Server::start();
+    let root = split_fixture(&s);
+    let path = format!("{root}/transactions/{}/splits", id(10));
+    let before = s.get(&format!("{root}/transactions"));
+    let invalid = json!({"snapshot":before["snapshot"],"children":[{"id":id(11),"amount":-600,"transfer_account_id":id(4),"counterpart_id":id(14)},{"id":id(13),"amount":-400,"category_id":id(99)}]});
+    assert_eq!(
+        s.write("POST", &path, "invalid-replacement", None, invalid)
+            .status(),
+        400
+    );
+    assert_eq!(
+        s.get(&format!("{root}/transactions")),
+        before,
+        "No changed peers, balances or feed snapshot after rollback"
+    );
+    let replacement = json!({"snapshot":before["snapshot"],"children":[{"id":id(11),"amount":-500,"transfer_account_id":id(4),"counterpart_id":id(14)},{"id":id(13),"amount":-500}]});
+    let cancel = s
+        .client
+        .post(format!("{}{path}", s.url))
+        .header("Idempotency-Key", "canceled-replacement")
+        .header("X-Actual-Cancel-If-Uncommitted", "true")
+        .json(&replacement)
+        .send()
+        .unwrap();
+    assert_eq!(cancel.status(), 409);
+    let canceled: Value = cancel.json().unwrap();
+    assert_eq!(canceled["error"]["code"], "operation_canceled");
+    assert_eq!(
+        s.write(
+            "POST",
+            &path,
+            "canceled-replacement",
+            None,
+            replacement.clone()
+        )
+        .json::<Value>()
+        .unwrap(),
+        canceled
+    );
+    assert_eq!(s.get(&format!("{root}/transactions")), before);
+    ok(s.write("POST", &path, "replace-destination", None, replacement));
+    assert_eq!(
+        s.client
+            .get(format!("{}{root}/transactions/{}", s.url, id(12)))
+            .send()
+            .unwrap()
+            .status(),
+        404
+    );
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{}", id(14)))["data"]["amount"],
+        500
+    );
+    let snapshot = s.get(&path)["snapshot"].clone();
+    ok(s.write(
+        "POST",
+        &path,
+        "unsplit",
+        None,
+        json!({"snapshot":snapshot,"action":"unsplit","detach":[id(11)]}),
+    ));
+    assert!(s.get(&format!("{root}/transactions/{}", id(11)))["data"]["parent_id"].is_null());
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{}", id(14)))["data"]["transfer_id"],
+        id(11)
+    );
+    let peer_path = format!("{root}/transactions/{}/splits", id(14));
+    let snapshot = s.get(&peer_path)["snapshot"].clone();
+    assert_eq!(
+        s.write(
+            "POST",
+            &peer_path,
+            "reject-parent-pair",
+            None,
+            json!({"snapshot":snapshot,"children":[{"id":id(15),"amount":500}]})
+        )
+        .status(),
+        400
+    );
+
+    // A one-allocation split promotes the pair to the original transaction on unsplit.
+    let ordinary = format!("{root}/transactions/{}/splits", id(13));
+    let snapshot = s.get(&ordinary)["snapshot"].clone();
+    ok(s.write("POST",&ordinary,"single-transfer",None,json!({"snapshot":snapshot,"children":[{"id":id(16),"amount":-500,"transfer_account_id":id(3),"counterpart_id":id(17)}]})));
+    let snapshot = s.get(&ordinary)["snapshot"].clone();
+    ok(s.write(
+        "POST",
+        &ordinary,
+        "single-unsplit",
+        None,
+        json!({"snapshot":snapshot,"action":"unsplit"}),
+    ));
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{}", id(17)))["data"]["transfer_id"],
+        id(13)
+    );
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{}", id(13)))["data"]["transfer_id"],
+        id(17)
+    );
+}
+
+#[test]
+fn linked_children_and_stale_peer_deletion_keep_exact_totals_and_durable_receipts() {
+    let s = Server::start();
+    let root = split_fixture(&s);
+    ok(s.write(
+        "POST",
+        &format!("{root}/transactions"),
+        "second-parent",
+        None,
+        json!({"id":id(20),"account_id":id(4),"amount":500,"date":"2026-01-01"}),
+    ));
+    let path = format!("{root}/transactions/{}/splits", id(20));
+    let snapshot = s.get(&path)["snapshot"].clone();
+    ok(s.write("POST",&path,"second-split",None,json!({"snapshot":snapshot,"children":[{"id":id(21),"amount":400},{"id":id(22),"amount":100}]})));
+    let invalid = s.write(
+        "POST",
+        &format!("{root}/transfers/link"),
+        "parent-link",
+        None,
+        json!({"id":id(20),"counterpart_id":id(13)}),
+    );
+    assert_eq!(invalid.status(), 400);
+    ok(s.write(
+        "POST",
+        &format!("{root}/transfers/link"),
+        "children-link",
+        None,
+        json!({"id":id(13),"counterpart_id":id(21)}),
+    ));
+    ok(s.write(
+        "PATCH",
+        &format!("{root}/transactions/{}", id(21)),
+        "child-amount",
+        None,
+        json!({"amount":450}),
+    ));
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{}", id(20)))["data"]["amount"],
+        550
+    );
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{}", id(10)))["data"]["amount"],
+        -1050
+    );
+    let old = s.get(&format!("{root}/transactions/{}", id(13)))["data"]["field_versions"]["amount"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    ok(s.write(
+        "PATCH",
+        &format!("{root}/transactions/{}", id(12)),
+        "independent-peer",
+        None,
+        json!({"date":"2026-03-03"}),
+    ));
+    let rejected = s
+        .write(
+            "DELETE",
+            &format!("{root}/transactions/{}", id(10)),
+            "old-parent-delete",
+            Some(&old),
+            Value::Null,
+        )
+        .json::<Value>()
+        .unwrap();
+    assert_eq!(rejected["error"]["code"], "deletion_superseded");
+    assert_eq!(
+        s.write(
+            "DELETE",
+            &format!("{root}/transactions/{}", id(10)),
+            "old-parent-delete",
+            Some(&old),
+            Value::Null
+        )
+        .json::<Value>()
+        .unwrap(),
+        rejected
+    );
+    let snapshot = s.get(&format!("{root}/transactions/{}/splits", id(10)))["snapshot"].clone();
+    ok(s.write(
+        "POST",
+        &format!("{root}/transactions/{}/splits", id(10)),
+        "recombine",
+        None,
+        json!({"snapshot":snapshot,"action":"recombine"}),
+    ));
+    let child = s.get(&format!("{root}/transactions/{}", id(21)))["data"].clone();
+    assert!(child["transfer_id"].is_null());
+    assert_eq!(child["amount"], 450);
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{}", id(20)))["data"]["amount"],
+        550
+    );
+    assert_eq!(
+        s.client
+            .get(format!("{}{root}/transactions/{}", s.url, id(12)))
+            .send()
+            .unwrap()
+            .status(),
+        404
+    );
+}
+
+#[test]
+fn genuine_split_transfer_source_and_native_restore_keep_allocations_and_pairs() {
+    let s = Server::start();
+    let source = include_bytes!("../../tests/fixtures/split-transfers-26.10.0.zip").as_slice();
+    let staged = ok(s
+        .client
+        .post(format!("{}/api/v1/imports/actual", s.url))
+        .header("Idempotency-Key", "split-transfer-source")
+        .header("Content-Type", "application/zip")
+        .body(source)
+        .send()
+        .unwrap());
+    assert_eq!(staged["data"]["status"], "ready", "{staged}");
+    let import = staged["data"]["id"].as_str().unwrap();
+    let b = staged["data"]["budget_id"].as_str().unwrap();
+    let root = format!("/api/v1/budgets/{b}");
+    ok(s.write(
+        "POST",
+        &format!("/api/v1/imports/{import}/activate"),
+        "activate-combined",
+        None,
+        json!({}),
+    ));
+    let original = s
+        .client
+        .get(format!("{}/api/v1/imports/{import}/original.zip", s.url))
+        .send()
+        .unwrap();
+    assert_eq!(original.bytes().unwrap().as_ref(), source);
+    let rows = s.get(&format!("{root}/transactions"));
+    let parent = rows["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["is_parent"] == true)
+        .unwrap();
+    let child = parent["children"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|c| !c["transfer_id"].is_null())
+        .unwrap();
+    let peer = s.get(&format!(
+        "{root}/transactions/{}",
+        child["transfer_id"].as_str().unwrap()
+    ))["data"]
+        .clone();
+    assert_eq!(peer["transfer_id"], child["id"]);
+    assert_eq!(
+        peer["amount"].as_i64(),
+        child["amount"].as_i64().map(|v| -v)
+    );
+    assert_eq!(
+        parent["amount"].as_i64().unwrap(),
+        parent["children"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| r["amount"].as_i64().unwrap())
+            .sum::<i64>()
+    );
+    for row in [parent, child, &peer] {
+        let companion = s.get(&format!(
+            "{root}/companion?account_id={}&retain={}",
+            row["account_id"].as_str().unwrap(),
+            row["id"].as_str().unwrap()
+        ));
+        assert_eq!(companion["data"]["recent"], json!([]));
+        assert_eq!(companion["data"]["unavailable"], json!([row["id"]]));
+    }
+    let backup = ok(s.write(
+        "POST",
+        &format!("{root}/backups"),
+        "combined-backup",
+        None,
+        json!({"label":"Split transfer"}),
+    ));
+    let bytes = s
+        .client
+        .get(format!(
+            "{}{root}/backups/{}/download",
+            s.url,
+            backup["data"]["id"].as_str().unwrap()
+        ))
+        .send()
+        .unwrap()
+        .bytes()
+        .unwrap();
+    let stage = ok(s
+        .client
+        .post(format!("{}/api/v1/restores", s.url))
+        .header("Idempotency-Key", "combined-restore")
+        .header("Content-Type", "application/zip")
+        .body(bytes.to_vec())
+        .send()
+        .unwrap());
+    let rid = stage["data"]["id"].as_str().unwrap();
+    let name = s.get(&root)["data"]["name"].clone();
+    ok(s.write(
+        "POST",
+        &format!("{root}/restores/{rid}/activate"),
+        "combined-restore-activate",
+        None,
+        json!({"confirm_name":name}),
+    ));
+    assert_eq!(s.get(&format!("{root}/transactions"))["data"], rows["data"]);
+}
+
+#[test]
+fn closed_counterpart_keeps_existing_split_transfer_history_editable() {
+    let s = Server::start();
+    let root = split_fixture(&s);
+    ok(s.write(
+        "POST",
+        &format!("{root}/accounts/{}/close", id(3)),
+        "close-other",
+        None,
+        json!({"id":id(30),"counterpart_id":id(31),"to_account_id":id(4),"date":"2026-01-02","expected_balance":600}),
+    ));
+    let path = format!("{root}/transactions/{}/splits", id(10));
+    let snapshot = s.get(&path)["snapshot"].clone();
+    ok(s.write("POST",&path,"edit-closed-history",None,json!({"snapshot":snapshot,"children":[{"id":id(11),"amount":-600,"notes":"Historical correction","transfer_account_id":id(3),"counterpart_id":id(12)},{"id":id(13),"amount":-400}]})));
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{}", id(12)))["data"]["notes"],
+        "Historical correction"
+    );
+    ok(s.write(
+        "PATCH",
+        &format!("{root}/transactions/{}", id(12)),
+        "closed-category",
+        None,
+        json!({"category_id":null}),
+    ));
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{}", id(10)))["data"]["amount"],
+        -1000
+    );
+}

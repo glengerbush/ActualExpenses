@@ -287,6 +287,16 @@ def main():
                 check(transfer_root+"/transactions", entries_template, "POST", {"id":identity,"account_id":account,"amount":amount,"date":"2026-01-01"}, {"Idempotency-Key":identity}, 201)
             check(transfer_root+"/transfers/link", root_template+"/transfers/link", "POST", {"id":first,"counterpart_id":second}, {"Idempotency-Key":"pair-link"})
             check(transfer_root+"/accounts/"+cash+"/close", account_template+"/{id}/close", "POST", {"id":str(uuid.uuid4()),"counterpart_id":str(uuid.uuid4()),"to_account_id":card,"date":"2026-02-01","expected_balance":-100}, {"Idempotency-Key":"transfer-close"})
+            parent, child, peer, sibling = (str(uuid.uuid4()) for _ in range(4))
+            check(transfer_root+"/transactions", entries_template, "POST", {"id":parent,"account_id":card,"amount":-1000,"date":"2026-01-01"}, {"Idempotency-Key":"split-transfer-parent"},201)
+            # Reopen the source account for a child transfer destination.
+            check(transfer_root+"/accounts/"+cash+"/reopen",account_template+"/{id}/reopen","POST",{}, {"Idempotency-Key":"reopen-for-split"})
+            split_path=transfer_root+"/transactions/"+parent+"/splits"
+            split_template=entries_template+"/{id}/splits"
+            snapshot=check(split_path,split_template)["snapshot"]
+            check(split_path,split_template,"POST",{"snapshot":snapshot,"children":[{"id":child,"amount":-600,"transfer_account_id":cash,"counterpart_id":peer},{"id":sibling,"amount":-400}]},{"Idempotency-Key":"combined-split"})
+            check(transfer_root+"/transactions/"+peer,entries_template+"/{id}","PATCH",{"amount":700},{"Idempotency-Key":"combined-pair-patch"})
+            check(transfer_root+"/transactions/"+peer,entries_template+"/{id}","PATCH",{"notes":"Queued expense"},{"Idempotency-Key":"expense-only","X-Actual-Expense-Only":"true"},409)
             print("PASS: served OpenAPI schemas validate real success, validation, conflict, origin and missing-resource responses")
         finally:
             process.terminate()

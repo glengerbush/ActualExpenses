@@ -1,4 +1,5 @@
 //! Transfer pairs are one financial operation and one receipt transaction.
+pub mod composition;
 use crate::{
     api, concurrency as order,
     error::Error,
@@ -143,6 +144,14 @@ fn account(db: &Connection, b: &str, id: &str) -> Result<bool, Error> {
     .optional()?
     .ok_or_else(|| Error::invalid("Choose an open account in this budget"))
 }
+fn existing_account(db: &Connection, b: &str, id: &str) -> Result<bool, Error> {
+    ledger::account_exists(db, b, id)?;
+    Ok(db.query_row(
+        "SELECT off_budget FROM accounts WHERE budget_id=?1 AND id=?2",
+        params![b, id],
+        |r| r.get(0),
+    )?)
+}
 fn payee(db: &Connection, b: &str, account: &str) -> Result<String, Error> {
     if let Some(id)=db.query_row("SELECT id FROM payees WHERE budget_id=?1 AND transfer_account_id=?2 AND tombstone=0 ORDER BY id LIMIT 1",params![b,account],|r|r.get::<_,String>(0)).optional()?{return Ok(id)}
     let id = uuid::Uuid::new_v4().to_string();
@@ -258,6 +267,10 @@ fn link_pair(db: &Connection, b: &str, input: &Link, clock: &str) -> Result<(), 
         ));
     }
     for row in [&a, &z] {
+        if row["is_parent"] == true {
+            return Err(Error::invalid("Split parents cannot be transfer legs"));
+        }
+        composition::guard(db, b, row, clock)?;
         if row["reconciled"] == true || row["starting_balance"] == true {
             return Err(Error::conflict(
                 "Opening balances and reconciled entries cannot be linked",
@@ -345,6 +358,24 @@ pub fn patch(
             "Unlock both reconciled transfer entries before editing",
         ));
     }
+    // A queued ordinary edit cannot acquire pair semantics after conversion.
+    let linked_clock = a["field_versions"]["transfer_id"]
+        .as_str()
+        .unwrap_or(order::ZERO)
+        .max(
+            z["field_versions"]["transfer_id"]
+                .as_str()
+                .unwrap_or(order::ZERO),
+        );
+    if clock < linked_clock {
+        return refusal(
+            db,
+            b,
+            id,
+            "transfer_transaction",
+            "This expense is now a linked transfer. Your pending edit is retained; cancel it or review both accounts in actualBudget.",
+        );
+    }
     let mut conflicts = vec![];
     for (field, value) in fields {
         let shared = field == "amount" || field == "notes" || field == "date" && sync;
@@ -362,11 +393,46 @@ pub fn patch(
                 "Cannot edit transfer field {field}"
             )));
         }
-        let mut winning = a["field_versions"][&field].as_str().unwrap_or(order::ZERO);
-        if shared {
-            winning = winning.max(z["field_versions"][&field].as_str().unwrap_or(order::ZERO));
+        if field == "account_id" && !a["parent_id"].is_null() {
+            return Err(Error::invalid(
+                "Move a split allocation through its parent split",
+            ));
         }
-        if clock <= winning {
+        let initial = if shared {
+            vec![id, other.as_str()]
+        } else {
+            vec![id]
+        };
+        let targets = composition::field_rows(db, b, &initial, &field, sync)?;
+        let mut winning = order::ZERO.to_owned();
+        for target in &targets {
+            if target["reconciled"] == true {
+                return Err(Error::conflict(
+                    "Unlock the affected split and transfer entries before editing",
+                ));
+            }
+            winning = winning.max(
+                target["field_versions"][&field]
+                    .as_str()
+                    .unwrap_or(order::ZERO)
+                    .into(),
+            );
+            if field == "amount" {
+                if let Some(parent) = target["parent_id"].as_str() {
+                    let parent = ledger::get(db, b, parent)?;
+                    if parent["reconciled"] == true {
+                        return Err(Error::conflict("Unlock the split before editing"));
+                    }
+                    winning = winning.max(
+                        parent["field_versions"]["amount"]
+                            .as_str()
+                            .unwrap_or(order::ZERO)
+                            .into(),
+                    );
+                }
+            }
+        }
+        if clock <= winning.as_str() {
             conflicts.push(json!({"field":field,"winning_clock":winning,"submitted_clock":clock}));
             continue;
         }
@@ -408,8 +474,8 @@ pub fn patch(
                     )
                 };
                 let category = crate::categories::resolve(db, b, category)?;
-                let off = account(db, b, a["account_id"].as_str().unwrap())?;
-                let other_off = account(db, b, z["account_id"].as_str().unwrap())?;
+                let off = existing_account(db, b, a["account_id"].as_str().unwrap())?;
+                let other_off = existing_account(db, b, z["account_id"].as_str().unwrap())?;
                 if category.is_some() && (off || off == other_off) {
                     return Err(Error::invalid(
                         "Only the on-budget side of a crossing transfer can have a category",
@@ -437,22 +503,13 @@ pub fn patch(
             }
             _ => unreachable!(),
         };
-        db.execute(
-            &format!("UPDATE transactions SET {field}=?3 WHERE budget_id=?1 AND id=?2"),
-            params![b, id, sql],
-        )?;
-        stamp(db, b, id, &[&field], clock)?;
-        if shared {
-            let opposite = if field == "amount" {
+        for target in targets {
+            let opposite = if field == "amount" && target["id"] != id {
                 rusqlite::types::Value::Integer(-value.as_i64().unwrap())
             } else {
-                sql
+                sql.clone()
             };
-            db.execute(
-                &format!("UPDATE transactions SET {field}=?3 WHERE budget_id=?1 AND id=?2"),
-                params![b, other, opposite],
-            )?;
-            stamp(db, b, &other, &[&field], clock)?;
+            composition::apply_field(db, b, &target, &field, opposite, clock)?;
         }
     }
     if let Some(preference) = preference {
@@ -489,6 +546,8 @@ pub fn patch(
         ledger::refresh_account(db, b, row["account_id"].as_str().unwrap())?;
     }
     refresh(db, b, id, &other)?;
+    crate::splits::validate(db, b)?;
+    validate(db, b)?;
     response(db, b, id, clock, conflicts, StatusCode::OK)
 }
 pub fn delete(db: &Connection, b: &str, id: &str, clock: &str) -> Result<Value, Error> {
@@ -512,6 +571,11 @@ pub fn delete(db: &Connection, b: &str, id: &str, clock: &str) -> Result<Value, 
             json!({"id":id,"deleted":true,"field_versions":order::versions(db,b,id)?});
         return Ok(result);
     }
+    if !a["parent_id"].is_null() {
+        return Err(Error::invalid(
+            "Remove a transfer allocation through its parent split",
+        ));
+    }
     for row in [&a, &z] {
         if newer(row, clock) {
             return refusal(
@@ -529,6 +593,11 @@ pub fn delete(db: &Connection, b: &str, id: &str, clock: &str) -> Result<Value, 
         }
     }
     for rid in [id, &other] {
+        if rid == other && !z["parent_id"].is_null() {
+            composition::guard(db, b, &z, clock)?;
+            composition::detach(db, b, rid, clock)?;
+            continue;
+        }
         db.execute(
             "UPDATE transactions SET tombstone=1 WHERE budget_id=?1 AND id=?2",
             params![b, rid],
@@ -544,7 +613,7 @@ pub fn delete(db: &Connection, b: &str, id: &str, clock: &str) -> Result<Value, 
 /// Validate imported/native state before making it visible. Hidden historic pairs
 /// retain their references; every visible leg must have one reciprocal active leg.
 pub fn validate(db: &Connection, b: &str) -> Result<(), Error> {
-    let invalid:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM transactions t LEFT JOIN transactions p ON p.budget_id=t.budget_id AND p.id=t.transfer_id LEFT JOIN payees y ON y.budget_id=t.budget_id AND y.id=t.payee_id WHERE t.budget_id=?1 AND t.tombstone=0 AND ((t.transfer_id IS NOT NULL AND (p.id IS NULL OR p.tombstone<>0 OR p.transfer_id IS NOT t.id OR p.amount<>-t.amount OR p.account_id=t.account_id OR y.transfer_account_id IS NOT p.account_id)) OR (t.transfer_id IS NULL AND y.transfer_account_id IS NOT NULL)))",[b],|r|r.get(0))?;
+    let invalid:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM transactions t LEFT JOIN transactions p ON p.budget_id=t.budget_id AND p.id=t.transfer_id LEFT JOIN payees y ON y.budget_id=t.budget_id AND y.id=t.payee_id WHERE t.budget_id=?1 AND t.tombstone=0 AND ((t.transfer_id IS NOT NULL AND (t.is_parent=1 OR p.is_parent=1 OR p.id IS NULL OR p.tombstone<>0 OR p.transfer_id IS NOT t.id OR p.amount<>-t.amount OR p.account_id=t.account_id OR y.transfer_account_id IS NOT p.account_id)) OR (t.transfer_id IS NULL AND y.transfer_account_id IS NOT NULL)))",[b],|r|r.get(0))?;
     if invalid {
         return Err(Error::invalid(
             "Transfer pairs must have reciprocal references, accounts and opposite amounts",

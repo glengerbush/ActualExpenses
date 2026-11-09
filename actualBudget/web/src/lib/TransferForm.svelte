@@ -228,13 +228,16 @@
         );
         snapshot = page.snapshot;
         found.push(
-          ...page.data.filter(
-            (r) =>
-              !r.transfer_id &&
-              !r.reconciled &&
-              !r.starting_balance &&
-              r.amount === -(draft?.original?.amount ?? 0),
-          ),
+          ...page.data
+            .flatMap((row) => (row.is_parent ? (row.children ?? []) : [row]))
+            .filter(
+              (r) =>
+                !r.transfer_id &&
+                !r.is_parent &&
+                !r.reconciled &&
+                !r.starting_balance &&
+                r.amount === -(draft?.original?.amount ?? 0),
+            ),
         );
         offset = page.next_offset;
       } while (offset !== null);

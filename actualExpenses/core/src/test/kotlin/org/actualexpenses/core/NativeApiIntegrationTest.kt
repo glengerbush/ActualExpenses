@@ -218,6 +218,48 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun `expense edit and delete captured before transfer conversion retain exact intent until discard`() {
+        for (delete in listOf(false, true)) for (queueFirst in listOf(false, true)) Server().use { server ->
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            val id = app.saveExpense(ExpenseDraft("7.89", notes = "Original"))
+            app.refresh()
+            val edit = app.beginEdit(id)
+            app.markOffline()
+            fun queue() {
+                if (delete) app.deleteExpense(edit) else app.saveExpense(edit.original!!.copy(notes = "Pending correction"), edit)
+            }
+            if (queueFirst) queue()
+            val account = UUID.randomUUID().toString()
+            val peer = UUID.randomUUID().toString()
+            val base = "/budgets/${server.budget}"
+            server.post("$base/accounts", """{"id":"$account","name":"Other","opening_balance":0,"opening_date":"2026-01-01"}""")
+            server.post("$base/transactions", """{"id":"$peer","account_id":"$account","amount":789,"date":"2026-01-01"}""")
+            server.post("$base/transfers/link", """{"id":"$id","counterpart_id":"$peer"}""", 200)
+            if (!queueFirst) queue()
+            val pending = JsonParser.parseString(store.raw).asJsonObject.getAsJsonArray("pending")[0].asJsonObject.deepCopy()
+            app.refresh()
+            assertEquals(1, app.state().pendingCount)
+            assertTrue(app.state().splitRecovery, app.state().toString())
+            val restarted = ApiExpenseService(store)
+            assertTrue(restarted.state().splitRecovery)
+            val retained = JsonParser.parseString(store.raw).asJsonObject.getAsJsonArray("pending")[0].asJsonObject
+            for (field in listOf("id", "path", "body", "clock", "epoch")) assertEquals(pending[field], retained[field])
+            restarted.discardRejectedSplitEdit()
+            restarted.refresh()
+            assertEquals(0, restarted.state().pendingCount)
+            assertTrue(restarted.state().expenses.isEmpty())
+            val row = server.get("$base/transactions/$id").getAsJsonObject("data")
+            assertEquals("Original", row["notes"].asString)
+            assertEquals(peer, row["transfer_id"].asString)
+            assertEquals(id, server.get("$base/transactions/$peer").getAsJsonObject("data")["transfer_id"].asString)
+        }
+    }
+
+    @Test
     fun `no credentials select account create edit delete through real API and preserve remembered selection`() {
         Server().use { server ->
             val store = MemoryStore()

@@ -433,6 +433,14 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
                 .as_f64()
                 .partial_cmp(&b["sort_order"].as_f64())
                 .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| {
+                    // Pinned AQL accounts order ties by name; groups use ID.
+                    if table == "accounts" {
+                        a["name"].as_str().cmp(&b["name"].as_str())
+                    } else {
+                        std::cmp::Ordering::Equal
+                    }
+                })
                 .then_with(|| a["id"].as_str().cmp(&b["id"].as_str()))
         });
         rows.into_iter()

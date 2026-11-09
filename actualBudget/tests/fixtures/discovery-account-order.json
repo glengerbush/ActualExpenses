@@ -1,0 +1,69 @@
+{
+  "observed": {
+    "oracle": "@actual-app/api@26.10.0",
+    "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+    "clock": "2026-11-09T12:00:00Z",
+    "accounts": [
+      {
+        "id": "ALPHA",
+        "name": "Alpha",
+        "sort_order": 0
+      },
+      {
+        "id": "ZULU",
+        "name": "Zulu",
+        "sort_order": 0
+      }
+    ],
+    "suggestions": [
+      {
+        "account": "ALPHA",
+        "payee": "PAYEE",
+        "date": {
+          "frequency": "weekly",
+          "start": "2026-10-12"
+        },
+        "amount": -10000,
+        "_conditions": [
+          {
+            "op": "is",
+            "field": "account",
+            "value": "ALPHA"
+          },
+          {
+            "op": "is",
+            "field": "payee",
+            "value": "PAYEE"
+          },
+          {
+            "op": "is",
+            "field": "date",
+            "value": {
+              "frequency": "weekly",
+              "start": "2026-10-12"
+            }
+          },
+          {
+            "op": "is",
+            "field": "amount",
+            "value": -10000
+          }
+        ]
+      }
+    ]
+  },
+  "ids": {
+    "ZULU": "4de636ce-e753-4843-82c6-71979f10d0b2",
+    "ALPHA": "e01ab663-17d7-4aea-b28e-f89d5de3bbce",
+    "PAYEE": "6670915b-d076-4c89-a7e5-f4b3a173aad2",
+    "ALPHA-0": "22220000-0000-4000-8000-000000000910",
+    "ALPHA-1": "22220000-0000-4000-8000-000000000911",
+    "ALPHA-2": "22220000-0000-4000-8000-000000000912",
+    "ALPHA-3": "22220000-0000-4000-8000-000000000913",
+    "ZULU-0": "22220000-0000-4000-8000-000000000920",
+    "ZULU-1": "22220000-0000-4000-8000-000000000921",
+    "ZULU-2": "22220000-0000-4000-8000-000000000922",
+    "ZULU-3": "22220000-0000-4000-8000-000000000923"
+  },
+  "archive_sha256": "584e01bf39b0c6c31ded6c50dd21805340f074b303c9360b60a3696cebe6d1c4"
+}

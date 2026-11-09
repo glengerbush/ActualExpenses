@@ -310,3 +310,46 @@ fn discovery_pages_are_complete_and_invalid_or_stale_reads_have_no_effects() {
     assert_eq!(read(&query).status(), 409);
     assert_eq!(server.get(&format!("{root}/checkpoint")), advanced);
 }
+
+#[test]
+fn imported_tied_account_ranks_preserve_source_name_order_and_discovery_winner() {
+    let fixture: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/discovery-account-order.json"
+    ))
+    .unwrap();
+    let server = Server::start(tempfile::tempdir().unwrap());
+    let root = import(
+        &server,
+        &json!({"filename":"../discovery-account-order-26.10.zip","sha256":fixture["archive_sha256"]}),
+    );
+    let ids: BTreeMap<String, String> = serde_json::from_value(fixture["ids"].clone()).unwrap();
+    assert!(ids["ZULU"] < ids["ALPHA"]);
+    let cp = server.get(&format!("{root}/checkpoint"));
+    let ledger = server.get(&format!("{root}/transactions"));
+    assert_eq!(ledger["data"].as_array().unwrap().len(), 8);
+    let response = server
+        .client
+        .get(format!("{}{root}/schedules/discovery", server.url))
+        .query(&[
+            ("snapshot", cp["data"]["snapshot"].as_str().unwrap()),
+            ("as_of", "2026-11-09"),
+        ])
+        .send()
+        .unwrap();
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let body: Value = response.json().unwrap();
+    let actual=body["data"]["suggestions"].as_array().unwrap().iter().map(|v|normalized(&json!({"account":v["account_id"],"payee":v["payee_id"],"date":v["date"],"amount":v["amount"],"_conditions":v["conditions"]}),&ids)).collect::<Vec<_>>();
+    assert_eq!(json!(actual), fixture["observed"]["suggestions"]);
+    let accounts = server.get(&format!("{root}/accounts"));
+    assert_eq!(
+        accounts["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|a| a["name"].as_str().unwrap())
+            .collect::<Vec<_>>(),
+        vec!["Alpha", "Zulu"]
+    );
+    assert_eq!(server.get(&format!("{root}/checkpoint")), cp);
+    assert_eq!(server.get(&format!("{root}/transactions")), ledger);
+}

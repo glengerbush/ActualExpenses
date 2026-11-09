@@ -525,7 +525,7 @@
     },
     "/api/v1/budgets/{budget}/transactions": {
       "get": {
-        "description": "Ordinary ledger entries ordered by date descending, creation order descending, then ID. With account_id, running_balance includes all preceding entries and does not reset per page; all-account rows return null. Default totals include future dates. Explicit as_of limits balances and entries inclusively to that calendar date. Newest account page uses cached totals and an indexed bounded row read. Tombstoned entries are excluded. Every response includes an opaque snapshot token. Send it unchanged on subsequent pages with the same filters. Any committed server mutation may conservatively invalidate it (including writes in another budget); a 409 register_changed requires discarding accumulated pages and reloading from offset zero. Unchanged reads and idempotent mutation replays preserve the token. Rows, totals and token share one read-only database snapshot. Raw offset without snapshot remains supported but does not guarantee consistency across requests.",
+        "description": "Bounded account/all-account register. JSON query validates up to 20 AND/OR conditions; account, as_of and visibility intersect the result. Sorting has stable date/creation/identity ties. balances covers full scope, filtered_balances/count all matching history; running_balance is chronological full-scope balance independent of filtering/sorting. Exact integer aggregates stream on server; only the bounded page is downloaded. Continue using same query and snapshot; 409 register_changed requires starting over. No snapshot means no consistency guarantee. Patterns use ECMAScript non-u UTF-16 code-unit semantics. Compilation permits 2048 UTF-16 units, 64 nested groups and 256 structural tokens, with optimizer expansion disabled. Matching permits 20000 input code units and 10 interruption quanta of 1024 VM instructions, backtracker/loop steps and precharged backreference comparison units per invocation. Every invocation charges 1024 plus pattern/input code units against a shared 67108864-work-unit request budget; each additional interruption quantum charges 1024. Exceeding limits returns HTTP400 regex_complexity_limit or regex_work_limit, never partial rows/totals. Invalid syntax returns invalid_regex. Narrow account/date scope or simplify the pattern before retrying. Recurring date filters inspect first 100 occurrences, matching Actual 26.10 conditionsToAQL; weekend posting adjustments do not alter filter dates. Unfiltered newest-first reads retain cached financial totals and indexed row retrieval; count uses an index scan, later pages sum only preceding amounts. Filtered totals and arbitrary sorting may scan the selected scope. Search also recognizes absolute amounts and dates in the budget date format.",
         "parameters": [
           {
             "name": "budget",
@@ -604,6 +604,17 @@
               "pattern": "^[^#\\s]+$"
             },
             "description": "Exact case-sensitive unescaped note token, without #. Visibility metadata does not change note membership. Filtered lists retain full ledger balances and return null running_balance."
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterQuery"
+                }
+              }
+            }
           }
         ],
         "responses": {
@@ -11726,6 +11737,240 @@
           }
         }
       }
+    },
+    "/api/v1/budgets/{budget}/register-settings": {
+      "get": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authoritative register settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/RegisterSettingsState"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "register_settings_changed, budget_epoch_mismatch or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "description": "Online-only document CAS. Required revision prevents stale tab overwrites; budget epoch fences restored datasets. Exact idempotent retries replay original receipt; altered body/epoch conflicts. Settings survive native archives and duplication. Legacy Actual preferences/filters convert from retained source.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "revision",
+                  "settings"
+                ],
+                "properties": {
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "settings": {
+                    "$ref": "#/components/schemas/RegisterSettings"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authoritative register settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/RegisterSettingsState"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "register_settings_changed, budget_epoch_mismatch or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -12019,17 +12264,8 @@
             "type": "string"
           },
           "running_balance": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991,
-                "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": "integer",
+            "description": "Chronological balance across this register scope; null if the intermediate amount exceeds exact JSON monetary range."
           },
           "field_versions": {
             "$ref": "#/components/schemas/FieldVersions"
@@ -12101,6 +12337,19 @@
             ],
             "format": "uuid",
             "description": "Account of the linked counterpart, when linked."
+          },
+          "category_group_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "running_balance_error": {
+            "type": "string",
+            "enum": [
+              "exact_money_range"
+            ],
+            "description": "Present only when an intermediate running balance cannot be represented as an exact safe JSON integer; page and final totals remain available."
           }
         },
         "required": [
@@ -12569,6 +12818,13 @@
           },
           "snapshot": {
             "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "filtered_balances": {
+            "$ref": "#/components/schemas/Balances"
+          },
+          "filtered_count": {
+            "type": "integer",
+            "minimum": 0
           }
         },
         "required": [
@@ -12576,7 +12832,9 @@
           "balances",
           "as_of",
           "next_offset",
-          "snapshot"
+          "snapshot",
+          "filtered_balances",
+          "filtered_count"
         ],
         "additionalProperties": false
       },
@@ -13895,7 +14153,8 @@
                   8,
                   9,
                   10,
-                  11
+                  11,
+                  12
                 ]
               },
               "domains": {
@@ -14454,6 +14713,247 @@
           },
           "fields": {
             "$ref": "#/components/schemas/TransactionPatch"
+          }
+        }
+      },
+      "RegisterCondition": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "field",
+          "op",
+          "value"
+        ],
+        "properties": {
+          "field": {
+            "enum": [
+              "account",
+              "payee",
+              "category",
+              "category_group",
+              "account_name",
+              "payee_name",
+              "category_name",
+              "category_group_name",
+              "notes",
+              "date",
+              "amount",
+              "cleared",
+              "reconciled",
+              "transfer",
+              "parent"
+            ]
+          },
+          "op": {
+            "enum": [
+              "eq",
+              "ne",
+              "lt",
+              "lte",
+              "gt",
+              "gte",
+              "in",
+              "not_in",
+              "contains",
+              "not_contains",
+              "matches",
+              "isapprox",
+              "isbetween",
+              "hasTags",
+              "hasAnyTag",
+              "onBudget",
+              "offBudget"
+            ]
+          },
+          "value": {
+            "description": "Typed value: exact integer minor units for amounts, boolean status, canonical UUID for references (nullable), text, YYYY[-MM[-DD]] date, recurrence object, between {num1,num2}, or membership array of up to 100 values. Only meaningful field/operator combinations accepted."
+          },
+          "options": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "inflow": {
+                "type": "boolean",
+                "default": false
+              },
+              "outflow": {
+                "type": "boolean",
+                "default": false
+              },
+              "month": {
+                "type": "boolean",
+                "default": false
+              },
+              "year": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          }
+        }
+      },
+      "RegisterQuery": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "search": {
+            "type": "string",
+            "maxLength": 500,
+            "default": ""
+          },
+          "sort": {
+            "enum": [
+              "date",
+              "amount",
+              "payee",
+              "category",
+              "account",
+              "notes",
+              "cleared",
+              "reconciled"
+            ],
+            "default": "date"
+          },
+          "direction": {
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "default": "desc"
+          },
+          "hide_cleared": {
+            "type": "boolean",
+            "default": false
+          },
+          "hide_reconciled": {
+            "type": "boolean",
+            "default": false
+          },
+          "filter": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "op": {
+                "enum": [
+                  "and",
+                  "or"
+                ],
+                "default": "and"
+              },
+              "conditions": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "$ref": "#/components/schemas/RegisterCondition"
+                }
+              }
+            }
+          },
+          "account_scope": {
+            "enum": [
+              "all",
+              "onbudget",
+              "offbudget",
+              "closed",
+              "uncategorized"
+            ],
+            "default": "all"
+          }
+        }
+      },
+      "RegisterSettings": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "views": {
+            "type": "object",
+            "maxProperties": 1000,
+            "description": "Scope keys: all, onbudget, offbudget, closed, uncategorized, or account UUID.",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "query": {
+                  "$ref": "#/components/schemas/RegisterQuery"
+                },
+                "columns": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "enum": [
+                      "date",
+                      "account",
+                      "payee",
+                      "notes",
+                      "group",
+                      "category",
+                      "amount",
+                      "payment",
+                      "deposit",
+                      "status",
+                      "balance"
+                    ]
+                  }
+                },
+                "as_of": {
+                  "type": "string",
+                  "description": "Empty or YYYY-MM-DD"
+                },
+                "show_extra_balances": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            }
+          },
+          "saved_filters": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "name",
+                "query"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "query": {
+                  "$ref": "#/components/schemas/RegisterQuery"
+                }
+              }
+            }
+          }
+        }
+      },
+      "RegisterSettingsState": {
+        "type": "object",
+        "required": [
+          "settings",
+          "revision",
+          "epoch"
+        ],
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/RegisterSettings"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
           }
         }
       }

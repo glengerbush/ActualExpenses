@@ -40,6 +40,14 @@
   } from "./register-storage";
   import TransferForm from "./TransferForm.svelte";
   import SplitEditor from "./SplitEditor.svelte";
+  import RegisterTools from "./RegisterTools.svelte";
+  import {
+    defaultQuery,
+    defaultColumns,
+    columnLabels,
+    isDefaultQuery,
+    type RegisterQuery,
+  } from "./register-query";
   import TransactionForm from "./TransactionForm.svelte";
   import DateInput from "./DateInput.svelte";
   import {
@@ -155,6 +163,95 @@
       error = errorMessage(e);
     }
   }
+  let registerQuery = $state<RegisterQuery>(defaultQuery());
+  let confirmedQuery = $state<RegisterQuery>(defaultQuery());
+  let extraBalances = $state(true);
+  let visibleColumns = $state<string[]>([...defaultColumns]);
+  let appliedColumns = $derived(
+    visibleColumns.filter((column) => column !== "account" || !accountId),
+  );
+  async function applyRegisterQuery(
+    query: RegisterQuery,
+    columns: string[],
+    date: string,
+    showExtraBalances = true,
+  ) {
+    extraBalances = showExtraBalances;
+    registerQuery = query;
+    visibleColumns = columns;
+    return userRefresh(date);
+  }
+  function cell(row: Transaction, column: string) {
+    switch (column) {
+      case "date":
+        return formatDate(row.date);
+      case "account":
+        return row.account_name;
+      case "payee":
+        return row.payee_name ?? t("No payee");
+      case "notes":
+        return row.notes;
+      case "group":
+        return row.category_group_name ?? "";
+      case "category":
+        return row.is_parent
+          ? `${row.children?.length ?? 0} splits`
+          : (row.category_name ??
+              (row.transfer_id ? "Transfer" : t("Uncategorized")));
+      case "amount":
+        return formatAmount(row.amount);
+      case "payment":
+        return row.amount < 0 ? formatAmount(-row.amount) : "";
+      case "deposit":
+        return row.amount > 0 ? formatAmount(row.amount) : "";
+      case "balance":
+        return row.running_balance_error
+          ? "Outside exact range"
+          : row.running_balance == null
+            ? "Unavailable"
+            : formatAmount(row.running_balance);
+      case "status":
+        return row.reconciled
+          ? t("Reconciled")
+          : row.cleared
+            ? t("Cleared")
+            : t("Uncleared");
+      default:
+        return "";
+    }
+  }
+  function navigateRow(event: KeyboardEvent) {
+    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+    const target = event.target as HTMLElement;
+    if (target.tagName !== "BUTTON") return;
+    const row = target.closest("tr");
+    const table = row?.closest("table");
+    const rows = Array.from(
+      table?.querySelectorAll<HTMLTableRowElement>(
+        "tbody tr:not(.delete-confirmation)",
+      ) ?? [],
+    );
+    const index = rows.indexOf(row as HTMLTableRowElement);
+    const next =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? rows.length - 1
+          : Math.max(
+              0,
+              Math.min(
+                rows.length - 1,
+                index + (event.key === "ArrowDown" ? 1 : -1),
+              ),
+            );
+    const button = rows[next]?.querySelector<HTMLButtonElement>(
+      "button:not(:disabled)",
+    );
+    if (button) {
+      event.preventDefault();
+      button.focus();
+    }
+  }
   let register = $state.raw<RegisterPage | null>(null);
   let accounts = $state.raw<Account[]>([]);
   let payees = $state.raw<Reference[]>([]);
@@ -174,10 +271,6 @@
   let loadGeneration = 0;
   let notice = $state("");
   let filterDate = $state("");
-  let filterPayee = $state(""),
-    filterTag = $state(""),
-    appliedPayee = $state(""),
-    appliedTag = $state("");
   let showForm = $state(false);
   let transferMode = $state<"create" | "edit" | "link" | "close" | null>(null);
   let recoveredPending = $state(false);
@@ -193,20 +286,22 @@
     return refresh(asOf);
   }
   async function userRefresh(cutoff: string) {
-    appliedPayee = filterPayee;
-    appliedTag = filterTag.trim().replace(/^#/, "");
     setReachable(navigator.onLine);
     return refresh(cutoff);
   }
   async function refresh(cutoff: string) {
     const generation = ++loadGeneration;
+    const requestedQuery = $state.snapshot(registerQuery);
     retryCutoff = cutoff;
     loading = true;
     error = "";
     notice = "";
     try {
       const [cached, cachedBudget] = await Promise.all([
-        readView(budgetId, accountId, cutoff).catch((e) => {
+        (isDefaultQuery(requestedQuery)
+          ? readView(budgetId, accountId, cutoff)
+          : Promise.resolve(null)
+        ).catch((e) => {
           error = errorMessage(e);
           return null;
         }),
@@ -216,11 +311,12 @@
         }),
       ]);
       if (generation !== loadGeneration) return false;
-      if (cached && !appliedPayee && !appliedTag) {
+      if (cached) {
         register = cached.page;
+        confirmedQuery = defaultQuery();
         filterDate = cached.page.as_of ?? "";
         cachedAt = cached.savedAt;
-        loading = false;
+        loading = offlineStatus.reachable;
       }
       if (cachedBudget) {
         accounts = cachedBudget.accounts;
@@ -238,25 +334,17 @@
         return !!cached;
       }
       const [page, referenceData] = await Promise.all([
-        registerPage(
-          budgetId,
-          accountId,
-          0,
-          cutoff,
-          undefined,
-          appliedPayee,
-          appliedTag,
-        ),
+        registerPage(budgetId, accountId, 0, cutoff, undefined, requestedQuery),
         refreshBudget(budgetId),
       ]);
       if (generation !== loadGeneration) return false;
       for (const row of page.data) observeVersions(row.field_versions);
       register = page;
+      confirmedQuery = requestedQuery;
       try {
-        cachedAt =
-          appliedPayee || appliedTag
-            ? null
-            : await saveView(budgetId, accountId, page);
+        cachedAt = isDefaultQuery(requestedQuery)
+          ? await saveView(budgetId, accountId, page)
+          : null;
       } catch (e) {
         cachedAt = null;
         error = errorMessage(e);
@@ -389,8 +477,7 @@
         previous.next_offset!,
         previous.as_of ?? "",
         previous.snapshot,
-        appliedPayee,
-        appliedTag,
+        confirmedQuery,
       );
       if (generation === loadGeneration)
         register = { ...page, data: [...previous.data, ...page.data] };
@@ -639,18 +726,20 @@
             >{:else}{formatAmount(register.balances.total)}{/if}
         </dd>
       </div>
-      <div>
-        <dt>{t("Cleared")}</dt>
-        <dd data-testid="register-cleared">
-          {formatAmount(register.balances.cleared)}
-        </dd>
-      </div>
-      <div>
-        <dt>{t("Uncleared")}</dt>
-        <dd data-testid="register-uncleared">
-          {formatAmount(register.balances.uncleared)}
-        </dd>
-      </div>
+      {#if extraBalances}
+        <div>
+          <dt>{t("Cleared")}</dt>
+          <dd data-testid="register-cleared">
+            {formatAmount(register.balances.cleared)}
+          </dd>
+        </div>
+        <div>
+          <dt>{t("Uncleared")}</dt>
+          <dd data-testid="register-uncleared">
+            {formatAmount(register.balances.uncleared)}
+          </dd>
+        </div>
+      {/if}
     </dl>
     <form
       class="date-filter"
@@ -665,38 +754,7 @@
         bind:value={filterDate}
         disabled={loading || busy}
       />
-      <label for="register-payee-filter"
-        >{t("Payee")}<select
-          id="register-payee-filter"
-          bind:value={filterPayee}
-          disabled={loading || busy || disconnected}
-          ><option value="">All payees</option
-          >{#each payees as payee (payee.id)}<option value={payee.id}
-              >{payee.name}</option
-            >{/each}</select
-        ></label
-      >
-      <label for="register-tag-filter"
-        >{t("Tag")}<input
-          id="register-tag-filter"
-          bind:value={filterTag}
-          placeholder="Tag name"
-          disabled={loading || busy || disconnected}
-        /></label
-      >
       <button disabled={loading || busy || disconnected}>{t("Apply")}</button>
-      {#if appliedPayee || appliedTag}<button
-          type="button"
-          onclick={() => {
-            filterPayee = "";
-            filterTag = "";
-            void userRefresh(filterDate);
-          }}
-          disabled={loading || busy || disconnected}
-          >Clear payee and tag filters</button
-        ><span class="hint"
-          >Balances include all transactions; the list is filtered.</span
-        >{/if}
       {#if asOf}<button
           type="button"
           onclick={() => {
@@ -708,6 +766,25 @@
         >{/if}
     </form>
   {/if}
+  <RegisterTools
+    {accounts}
+    {payees}
+    {categories}
+    {budgetId}
+    {accountId}
+    {disconnected}
+    cutoff={asOf}
+    onapply={applyRegisterQuery}
+  />
+  {#if register?.filtered_balances && !isDefaultQuery(confirmedQuery)}<p
+      role="status"
+      data-testid="filtered-totals"
+    >
+      {register.filtered_count} matching transactions · Total {formatAmount(
+        register.filtered_balances.total,
+      )} · Cleared {formatAmount(register.filtered_balances.cleared)} · Uncleared
+      {formatAmount(register.filtered_balances.uncleared)}
+    </p>{/if}
   {#if pending?.clockRejected}<p role="status">
       {t(
         "This attempt was rejected. Correct the device time before retrying. Discard asks the server to cancel it; an already saved change will be restored.",
@@ -840,51 +917,45 @@
   />
   {#if loading}<p role="status">{t("Loading transactions…")}</p>{/if}
   {#if register?.data.length && preferences.hasUsableShared && viewMatchesEpoch}
+    <p class="hint">
+      Use Tab to reach transaction actions; arrow keys move between rows.
+    </p>
     <table class="register-table">
       <caption class="visually-hidden"
-        >{t("Account transactions, newest first")}</caption
-      ><thead
+        >Transactions sorted by {confirmedQuery.sort}, {confirmedQuery.direction ===
+        "asc"
+          ? "ascending"
+          : "descending"}</caption
+      >
+      <thead
         ><tr
-          ><th>{t("Date")}</th>{#if !accountId}<th>{t("Account")}</th>{/if}<th
-            >{t("Payee and notes")}</th
-          ><th>{t("Category")}</th><th class="number">{t("Amount")}</th><th
-            >{t("Status")}</th
-          >{#if accountId}<th class="number">{t("Running balance")}</th>{/if}<th
-            >{t("Actions")}</th
-          ></tr
+          >{#each appliedColumns as column (column)}<th
+              class:number={[
+                "amount",
+                "payment",
+                "deposit",
+                "balance",
+              ].includes(column)}>{t(columnLabels[column])}</th
+            >{/each}<th>{t("Actions")}</th></tr
         ></thead
-      ><tbody>
+      >
+      <tbody>
         {#each register.data as row (row.id)}
           <tr>
-            <td data-label={t("Date")}>{formatDate(row.date)}</td
-            >{#if !accountId}<td data-label={t("Account")}
-                >{row.account_name}</td
-              >{/if}
-            <td data-label={t("Payee and notes")}
-              ><span>{row.payee_name ?? t("No payee")}</span
-              >{#if row.notes}<span class="entry-notes">{row.notes}</span
-                >{/if}</td
-            >
-            <td data-label={t("Category")}
-              >{row.is_parent
-                ? `${row.children?.length ?? 0} splits`
-                : (row.category_name ??
-                  (row.transfer_id ? "Transfer" : t("Uncategorized")))}</td
-            ><td class="number amount" data-label={t("Amount")}
-              >{formatAmount(row.amount)}</td
-            >
-            <td data-label={t("Status")}
-              >{row.reconciled
-                ? t("Reconciled")
-                : row.cleared
-                  ? t("Cleared")
-                  : t("Uncleared")}</td
-            >
-            {#if accountId}<td class="number" data-label={t("Running balance")}
-                >{formatAmount(row.running_balance ?? 0)}</td
-              >{/if}
+            {#each appliedColumns as column (column)}<td
+                class:number={[
+                  "amount",
+                  "payment",
+                  "deposit",
+                  "balance",
+                ].includes(column)}
+                class:entry-notes={column === "notes"}
+                class:amount={column === "amount"}
+                data-label={t(columnLabels[column])}>{cell(row, column)}</td
+              >{/each}
             <td class="row-actions"
               ><button
+                onkeydown={navigateRow}
                 onclick={() => open(row)}
                 disabled={disconnected ||
                   loading ||
@@ -914,6 +985,7 @@
                     ? t("Edit splits")
                     : t("Split transaction")}</button
                 >{/if}<button
+                onkeydown={navigateRow}
                 onclick={() => void runAction("duplicate", row)}
                 disabled={disconnected ||
                   loading ||
@@ -926,6 +998,7 @@
                 aria-label={`${t("Duplicate")} ${description(row)}`}
                 >{t("Duplicate")}</button
               ><button
+                onkeydown={navigateRow}
                 onclick={() => {
                   deleting = row;
                   deletionEpoch = preferences.budgetEpoch;
@@ -956,7 +1029,7 @@
             >
           </tr>
           {#if deleting?.id === row.id}<tr class="delete-confirmation"
-              ><td colspan={8}
+              ><td colspan={appliedColumns.length + 1}
                 ><p>
                   {row.transfer_id
                     ? "Delete this transfer? Its paired entry is also deleted unless it belongs to a split, in which case it stays unlinked."
@@ -980,7 +1053,9 @@
       >{/if}
   {:else if preferences.hasUsableShared && !loading && !error}<p class="empty">
       {accounts.length
-        ? t("No transactions yet. Add an income or expense to begin.")
+        ? !isDefaultQuery(confirmedQuery)
+          ? "No transactions match these filters."
+          : t("No transactions yet. Add an income or expense to begin.")
         : t("Create an account before recording transactions.")}
     </p>{/if}
 </section>
@@ -1044,7 +1119,6 @@
     font-variant-numeric: tabular-nums;
   }
   .entry-notes {
-    display: block;
     max-width: 28ch;
     white-space: pre-wrap;
     overflow-wrap: anywhere;

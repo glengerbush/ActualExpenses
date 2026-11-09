@@ -423,19 +423,19 @@ pub fn patch(
                     .unwrap_or(order::ZERO)
                     .into(),
             );
-            if field == "amount" {
-                if let Some(parent) = target["parent_id"].as_str() {
-                    let parent = ledger::get(db, b, parent)?;
-                    if parent["reconciled"] == true {
-                        return Err(Error::conflict("Unlock the split before editing"));
-                    }
-                    winning = winning.max(
-                        parent["field_versions"]["amount"]
-                            .as_str()
-                            .unwrap_or(order::ZERO)
-                            .into(),
-                    );
+            if field == "amount"
+                && let Some(parent) = target["parent_id"].as_str()
+            {
+                let parent = ledger::get(db, b, parent)?;
+                if parent["reconciled"] == true {
+                    return Err(Error::conflict("Unlock the split before editing"));
                 }
+                winning = winning.max(
+                    parent["field_versions"]["amount"]
+                        .as_str()
+                        .unwrap_or(order::ZERO)
+                        .into(),
+                );
             }
         }
         if clock <= winning.as_str() {

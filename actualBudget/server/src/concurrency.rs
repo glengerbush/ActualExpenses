@@ -190,18 +190,6 @@ pub fn versions(db: &Connection, budget: &str, id: &str) -> Result<Value, Error>
     Ok(Value::Object(values))
 }
 pub fn decorate(db: &Connection, budget: &str, mut row: Value) -> Result<Value, Error> {
-    if row["transfer_id"].is_null() {
-        row.as_object_mut().unwrap().remove("transfer_id");
-    } else {
-        row["transfer_account_id"] = json!(
-            db.query_row(
-                "SELECT account_id FROM transactions WHERE budget_id=?1 AND id=?2",
-                params![budget, row["transfer_id"].as_str()],
-                |r| r.get::<_, String>(0)
-            )
-            .optional()?
-        );
-    }
     row["field_versions"] = versions(
         db,
         budget,
@@ -391,15 +379,13 @@ pub fn execute(
             // Retired pair references are provenance, never propagation edges.
             // Keep valid local tombstone merges; a stale date-sync choice has no
             // effect on live rows or shared preferences.
-            if hidden {
-                if let Some(sync) = patch
+            if hidden
+                && let Some(sync) = patch
                     .as_object_mut()
                     .and_then(|p| p.remove("sync_transfer_date"))
-                {
-                    if !sync.is_boolean() {
-                        return Err(Error::invalid("sync_transfer_date must be boolean"));
-                    }
-                }
+                && !sync.is_boolean()
+            {
+                return Err(Error::invalid("sync_transfer_date must be boolean"));
             }
             let previous = if hidden {
                 ledger::get_any(db, budget, &id)?
@@ -593,14 +579,14 @@ fn limit() -> u32 {
 }
 pub fn check_snapshot(db: &Connection, budget: &str, expected: Option<&str>) -> Result<(), Error> {
     store::require_budget(db, budget)?;
-    if let Some(expected) = expected {
-        if cursor(db, budget)? != expected {
-            return Err(Error::new(
-                StatusCode::CONFLICT,
-                "snapshot_changed",
-                "Budget data changed while loading. Start a fresh snapshot.",
-            ));
-        }
+    if let Some(expected) = expected
+        && cursor(db, budget)? != expected
+    {
+        return Err(Error::new(
+            StatusCode::CONFLICT,
+            "snapshot_changed",
+            "Budget data changed while loading. Start a fresh snapshot.",
+        ));
     }
     Ok(())
 }
@@ -686,10 +672,52 @@ pub fn read_changes(
             "account_groups" => crate::accounts::get_group(db, budget, &id)?,
             "preferences" => crate::preferences::get_preferences(db, budget)?,
             "payees" | "tags" => crate::payees_tags::record(db, budget, &entity, &id)?,
+            "register_settings" => crate::register_settings::read_settings(db, budget)?,
             "categories" | "category_groups" => crate::categories::get(db, budget, &entity, &id)?,
             _ => return Err(Error::internal("Unknown change entity")),
         };
         data.push(json!({"entity":entity,"id":id,"data":value}));
     }
     Ok(json!({"data":data,"next_cursor":next,"has_more":more}))
+}
+
+pub(crate) fn decorate_many(
+    db: &Connection,
+    budget: &str,
+    rows: &mut [Value],
+) -> Result<(), Error> {
+    if rows.is_empty() {
+        return Ok(());
+    }
+    let positions = rows
+        .iter()
+        .enumerate()
+        .map(|(index, row)| (row["id"].as_str().unwrap().to_string(), index))
+        .collect::<std::collections::HashMap<_, _>>();
+    let mut parameters = vec![budget.to_string()];
+    parameters.extend(rows.iter().map(|r| r["id"].as_str().unwrap().to_string()));
+    for row in rows.iter_mut() {
+        row["field_versions"] = json!(
+            FIELDS
+                .iter()
+                .map(|field| (field.to_string(), json!(ZERO)))
+                .collect::<serde_json::Map<_, _>>()
+        );
+    }
+    let placeholders = (2..=rows.len() + 1)
+        .map(|n| format!("?{n}"))
+        .collect::<Vec<_>>()
+        .join(",");
+    let mut statement=db.prepare(&format!("SELECT entity_id,field,clock FROM field_versions WHERE budget_id=?1 AND entity='transactions' AND entity_id IN ({placeholders})"))?;
+    for row in statement.query_map(rusqlite::params_from_iter(parameters.iter()), |r| {
+        Ok((
+            r.get::<_, String>(0)?,
+            r.get::<_, String>(1)?,
+            r.get::<_, String>(2)?,
+        ))
+    })? {
+        let (id, field, clock) = row?;
+        rows[positions[&id]]["field_versions"][field] = json!(clock);
+    }
+    Ok(())
 }

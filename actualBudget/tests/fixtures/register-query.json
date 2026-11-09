@@ -1,0 +1,1277 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "description": "Published AQL output; filter translations follow pinned conditionsToAQL. No production dataset.",
+  "input": [
+    {
+      "id": "12000000-0000-4000-8000-000000000001",
+      "amount": -1250,
+      "date": "2026-01-02",
+      "notes": "Coffee #Cafe #Work",
+      "cleared": true
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000002",
+      "amount": -375,
+      "date": "2026-01-03",
+      "notes": "Coffee beans ##Cafe",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000003",
+      "amount": 2400,
+      "date": "2026-02-02",
+      "notes": "Refund #Work",
+      "cleared": true
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000004",
+      "amount": -1300,
+      "date": "2027-01-02",
+      "notes": "COFFEE #Cafe",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000005",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "café",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000006",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "cafe",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000007",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "١",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000008",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "1",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000100",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "﻿",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000101",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000102",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "😀",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000103",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "a",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000104",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": " ",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000105",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": " ",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000106",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "\r",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000107",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "\n",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000108",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": " ",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000109",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "😀😀",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000110",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "a\n",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000111",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "u",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000112",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "uu",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000113",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "ſ",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000114",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "K",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000115",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "x😀y",
+      "cleared": false
+    },
+    {
+      "id": "12000000-0000-4000-8000-000000000116",
+      "amount": -100,
+      "date": "2030-06-15",
+      "notes": "\u0002",
+      "cleared": false
+    }
+  ],
+  "cases": [
+    {
+      "name": "UTF16 and Annex B ^\\s$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^\\s$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^\\s$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000100",
+        "12000000-0000-4000-8000-000000000104",
+        "12000000-0000-4000-8000-000000000105",
+        "12000000-0000-4000-8000-000000000106",
+        "12000000-0000-4000-8000-000000000107",
+        "12000000-0000-4000-8000-000000000108"
+      ],
+      "balances": {
+        "total": -600,
+        "cleared": 0,
+        "uncleared": -600
+      }
+    },
+    {
+      "name": "UTF16 and Annex B ^[^\\s]$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^[^\\s]$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^[^\\s]$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000007",
+        "12000000-0000-4000-8000-000000000008",
+        "12000000-0000-4000-8000-000000000101",
+        "12000000-0000-4000-8000-000000000103",
+        "12000000-0000-4000-8000-000000000111",
+        "12000000-0000-4000-8000-000000000113",
+        "12000000-0000-4000-8000-000000000114",
+        "12000000-0000-4000-8000-000000000116"
+      ],
+      "balances": {
+        "total": -800,
+        "cleared": 0,
+        "uncleared": -800
+      }
+    },
+    {
+      "name": "UTF16 and Annex B ^.$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^.$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^.$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000007",
+        "12000000-0000-4000-8000-000000000008",
+        "12000000-0000-4000-8000-000000000100",
+        "12000000-0000-4000-8000-000000000101",
+        "12000000-0000-4000-8000-000000000103",
+        "12000000-0000-4000-8000-000000000108",
+        "12000000-0000-4000-8000-000000000111",
+        "12000000-0000-4000-8000-000000000113",
+        "12000000-0000-4000-8000-000000000114",
+        "12000000-0000-4000-8000-000000000116"
+      ],
+      "balances": {
+        "total": -1000,
+        "cleared": 0,
+        "uncleared": -1000
+      }
+    },
+    {
+      "name": "UTF16 and Annex B ^..$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^..$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^..$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000102",
+        "12000000-0000-4000-8000-000000000112"
+      ],
+      "balances": {
+        "total": -200,
+        "cleared": 0,
+        "uncleared": -200
+      }
+    },
+    {
+      "name": "UTF16 and Annex B ^\\ud83d\\ude00$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^\\ud83d\\ude00$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^\\ud83d\\ude00$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000102"
+      ],
+      "balances": {
+        "total": -100,
+        "cleared": 0,
+        "uncleared": -100
+      }
+    },
+    {
+      "name": "UTF16 and Annex B ^\\ud83d.$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^\\ud83d.$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^\\ud83d.$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000102"
+      ],
+      "balances": {
+        "total": -100,
+        "cleared": 0,
+        "uncleared": -100
+      }
+    },
+    {
+      "name": "UTF16 and Annex B ^[😀]$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^[😀]$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^[😀]$"
+        }
+      },
+      "ids": [],
+      "balances": {
+        "total": 0,
+        "cleared": 0,
+        "uncleared": 0
+      }
+    },
+    {
+      "name": "UTF16 and Annex B ^😀+$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^😀+$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^😀+$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000102"
+      ],
+      "balances": {
+        "total": -100,
+        "cleared": 0,
+        "uncleared": -100
+      }
+    },
+    {
+      "name": "UTF16 and Annex B ^(.)\\1$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^(.)\\1$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^(.)\\1$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000112"
+      ],
+      "balances": {
+        "total": -100,
+        "cleared": 0,
+        "uncleared": -100
+      }
+    },
+    {
+      "name": "UTF16 and Annex B ^(?<part>.)\\k<part>$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^(?<part>.)\\k<part>$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^(?<part>.)\\k<part>$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000112"
+      ],
+      "balances": {
+        "total": -100,
+        "cleared": 0,
+        "uncleared": -100
+      }
+    },
+    {
+      "name": "UTF16 and Annex B ^\\u{2}$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^\\u{2}$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^\\u{2}$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000112"
+      ],
+      "balances": {
+        "total": -100,
+        "cleared": 0,
+        "uncleared": -100
+      }
+    },
+    {
+      "name": "UTF16 and Annex B ^\\2$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^\\2$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^\\2$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000116"
+      ],
+      "balances": {
+        "total": -100,
+        "cleared": 0,
+        "uncleared": -100
+      }
+    },
+    {
+      "name": "UTF16 and Annex B a$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "a$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "a$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000103"
+      ],
+      "balances": {
+        "total": -100,
+        "cleared": 0,
+        "uncleared": -100
+      }
+    },
+    {
+      "name": "UTF16 and Annex B (?<=x).(?=y)",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "(?<=x).(?=y)"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "(?<=x).(?=y)"
+        }
+      },
+      "ids": [],
+      "balances": {
+        "total": 0,
+        "cleared": 0,
+        "uncleared": 0
+      }
+    },
+    {
+      "name": "JavaScript LIKE ?",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "contains",
+              "value": "?"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$like": "%?%"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000001",
+        "12000000-0000-4000-8000-000000000002",
+        "12000000-0000-4000-8000-000000000003",
+        "12000000-0000-4000-8000-000000000004",
+        "12000000-0000-4000-8000-000000000005",
+        "12000000-0000-4000-8000-000000000006",
+        "12000000-0000-4000-8000-000000000007",
+        "12000000-0000-4000-8000-000000000008",
+        "12000000-0000-4000-8000-000000000100",
+        "12000000-0000-4000-8000-000000000101",
+        "12000000-0000-4000-8000-000000000102",
+        "12000000-0000-4000-8000-000000000103",
+        "12000000-0000-4000-8000-000000000108",
+        "12000000-0000-4000-8000-000000000109",
+        "12000000-0000-4000-8000-000000000110",
+        "12000000-0000-4000-8000-000000000111",
+        "12000000-0000-4000-8000-000000000112",
+        "12000000-0000-4000-8000-000000000113",
+        "12000000-0000-4000-8000-000000000114",
+        "12000000-0000-4000-8000-000000000115",
+        "12000000-0000-4000-8000-000000000116"
+      ],
+      "balances": {
+        "total": -2225,
+        "cleared": 1150,
+        "uncleared": -3375
+      }
+    },
+    {
+      "name": "JavaScript LIKE ??",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "contains",
+              "value": "??"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$like": "%??%"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000001",
+        "12000000-0000-4000-8000-000000000002",
+        "12000000-0000-4000-8000-000000000003",
+        "12000000-0000-4000-8000-000000000004",
+        "12000000-0000-4000-8000-000000000005",
+        "12000000-0000-4000-8000-000000000006",
+        "12000000-0000-4000-8000-000000000102",
+        "12000000-0000-4000-8000-000000000109",
+        "12000000-0000-4000-8000-000000000112",
+        "12000000-0000-4000-8000-000000000115"
+      ],
+      "balances": {
+        "total": -1125,
+        "cleared": 1150,
+        "uncleared": -2275
+      }
+    },
+    {
+      "name": "JavaScript LIKE s",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "contains",
+              "value": "s"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$like": "%s%"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000002"
+      ],
+      "balances": {
+        "total": -375,
+        "cleared": 0,
+        "uncleared": -375
+      }
+    },
+    {
+      "name": "JavaScript LIKE k",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "contains",
+              "value": "k"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$like": "%k%"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000001",
+        "12000000-0000-4000-8000-000000000003",
+        "12000000-0000-4000-8000-000000000114"
+      ],
+      "balances": {
+        "total": 1050,
+        "cleared": 1150,
+        "uncleared": -100
+      }
+    },
+    {
+      "name": "JavaScript regex ^\\w+$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^\\w+$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^\\w+$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000006",
+        "12000000-0000-4000-8000-000000000008",
+        "12000000-0000-4000-8000-000000000103",
+        "12000000-0000-4000-8000-000000000111",
+        "12000000-0000-4000-8000-000000000112",
+        "12000000-0000-4000-8000-000000000114"
+      ],
+      "balances": {
+        "total": -600,
+        "cleared": 0,
+        "uncleared": -600
+      }
+    },
+    {
+      "name": "JavaScript regex ^\\d+$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^\\d+$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^\\d+$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000008"
+      ],
+      "balances": {
+        "total": -100,
+        "cleared": 0,
+        "uncleared": -100
+      }
+    },
+    {
+      "name": "JavaScript regex \\bcaf\\b",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "\\bcaf\\b"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "\\bcaf\\b"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000005"
+      ],
+      "balances": {
+        "total": -100,
+        "cleared": 0,
+        "uncleared": -100
+      }
+    },
+    {
+      "name": "JavaScript regex ^\\W+$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^\\W+$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^\\w+$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000006",
+        "12000000-0000-4000-8000-000000000008",
+        "12000000-0000-4000-8000-000000000103",
+        "12000000-0000-4000-8000-000000000111",
+        "12000000-0000-4000-8000-000000000112",
+        "12000000-0000-4000-8000-000000000114"
+      ],
+      "balances": {
+        "total": -600,
+        "cleared": 0,
+        "uncleared": -600
+      }
+    },
+    {
+      "name": "JavaScript regex ^\\D+$",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^\\D+$"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^\\d+$"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000008"
+      ],
+      "balances": {
+        "total": -100,
+        "cleared": 0,
+        "uncleared": -100
+      }
+    },
+    {
+      "name": "JavaScript regex caf\\B",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "caf\\B"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "caf\\b"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000005"
+      ],
+      "balances": {
+        "total": -100,
+        "cleared": 0,
+        "uncleared": -100
+      }
+    },
+    {
+      "name": "single-character wildcard",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "contains",
+              "value": "coff?e"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$like": "%coff?e%"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000001",
+        "12000000-0000-4000-8000-000000000002",
+        "12000000-0000-4000-8000-000000000004"
+      ],
+      "balances": {
+        "total": -2925,
+        "cleared": -1250,
+        "uncleared": -1675
+      }
+    },
+    {
+      "name": "literal underscore",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "contains",
+              "value": "coff_e"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$like": "%coff_e%"
+        }
+      },
+      "ids": [],
+      "balances": {
+        "total": 0,
+        "cleared": 0,
+        "uncleared": 0
+      }
+    },
+    {
+      "name": "escaped percent",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "contains",
+              "value": "coffee\\%"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$like": "%coffee\\%%"
+        }
+      },
+      "ids": [],
+      "balances": {
+        "total": 0,
+        "cleared": 0,
+        "uncleared": 0
+      }
+    },
+    {
+      "name": "negative coffee",
+      "query": {
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "contains",
+              "value": "coffee"
+            },
+            {
+              "field": "amount",
+              "op": "lt",
+              "value": 0
+            }
+          ]
+        }
+      },
+      "aql": {
+        "$and": [
+          {
+            "notes": {
+              "$like": "%coffee%"
+            }
+          },
+          {
+            "amount": {
+              "$lt": 0
+            }
+          }
+        ]
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000001",
+        "12000000-0000-4000-8000-000000000002",
+        "12000000-0000-4000-8000-000000000004"
+      ],
+      "balances": {
+        "total": -2925,
+        "cleared": -1250,
+        "uncleared": -1675
+      }
+    },
+    {
+      "name": "regex",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^coffee.*beans"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$transform": "$lower",
+          "$regexp": "^coffee.*beans"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000002"
+      ],
+      "balances": {
+        "total": -375,
+        "cleared": 0,
+        "uncleared": -375
+      }
+    },
+    {
+      "name": "approximate outflow",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "isapprox",
+              "value": 1250,
+              "options": {
+                "outflow": true
+              }
+            }
+          ]
+        }
+      },
+      "aql": {
+        "$and": [
+          {
+            "amount": {
+              "$lt": 0
+            }
+          },
+          {
+            "amount": {
+              "$transform": "$neg",
+              "$gte": 1156
+            }
+          },
+          {
+            "amount": {
+              "$transform": "$neg",
+              "$lte": 1344
+            }
+          }
+        ]
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000001",
+        "12000000-0000-4000-8000-000000000004"
+      ],
+      "balances": {
+        "total": -2550,
+        "cleared": -1250,
+        "uncleared": -1300
+      }
+    },
+    {
+      "name": "between",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "isbetween",
+              "value": {
+                "num1": -400,
+                "num2": -1300
+              }
+            }
+          ]
+        }
+      },
+      "aql": {
+        "amount": [
+          {
+            "$gte": -1300
+          },
+          {
+            "$lte": -400
+          }
+        ]
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000001",
+        "12000000-0000-4000-8000-000000000004"
+      ],
+      "balances": {
+        "total": -2550,
+        "cleared": -1250,
+        "uncleared": -1300
+      }
+    },
+    {
+      "name": "month",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "date",
+              "op": "eq",
+              "value": "2026-01"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "$and": [
+          {
+            "date": {
+              "$gte": "2026-01-00"
+            }
+          },
+          {
+            "date": {
+              "$lte": "2026-01-99"
+            }
+          }
+        ]
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000001",
+        "12000000-0000-4000-8000-000000000002"
+      ],
+      "balances": {
+        "total": -1625,
+        "cleared": -1250,
+        "uncleared": -375
+      }
+    },
+    {
+      "name": "tag identity",
+      "query": {
+        "filter": {
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "hasTags",
+              "value": "#Cafe"
+            }
+          ]
+        }
+      },
+      "aql": {
+        "notes": {
+          "$regexp": "(?<!#)#Cafe([\\s#]|$)"
+        }
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000001",
+        "12000000-0000-4000-8000-000000000004"
+      ],
+      "balances": {
+        "total": -2550,
+        "cleared": -1250,
+        "uncleared": -1300
+      }
+    },
+    {
+      "name": "or",
+      "query": {
+        "filter": {
+          "op": "or",
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "gt",
+              "value": 0
+            },
+            {
+              "field": "cleared",
+              "op": "eq",
+              "value": false
+            }
+          ]
+        }
+      },
+      "aql": {
+        "$or": [
+          {
+            "amount": {
+              "$gt": 0
+            }
+          },
+          {
+            "cleared": false
+          }
+        ]
+      },
+      "ids": [
+        "12000000-0000-4000-8000-000000000002",
+        "12000000-0000-4000-8000-000000000003",
+        "12000000-0000-4000-8000-000000000004",
+        "12000000-0000-4000-8000-000000000005",
+        "12000000-0000-4000-8000-000000000006",
+        "12000000-0000-4000-8000-000000000007",
+        "12000000-0000-4000-8000-000000000008",
+        "12000000-0000-4000-8000-000000000100",
+        "12000000-0000-4000-8000-000000000101",
+        "12000000-0000-4000-8000-000000000102",
+        "12000000-0000-4000-8000-000000000103",
+        "12000000-0000-4000-8000-000000000104",
+        "12000000-0000-4000-8000-000000000105",
+        "12000000-0000-4000-8000-000000000106",
+        "12000000-0000-4000-8000-000000000107",
+        "12000000-0000-4000-8000-000000000108",
+        "12000000-0000-4000-8000-000000000109",
+        "12000000-0000-4000-8000-000000000110",
+        "12000000-0000-4000-8000-000000000111",
+        "12000000-0000-4000-8000-000000000112",
+        "12000000-0000-4000-8000-000000000113",
+        "12000000-0000-4000-8000-000000000114",
+        "12000000-0000-4000-8000-000000000115",
+        "12000000-0000-4000-8000-000000000116"
+      ],
+      "balances": {
+        "total": -1375,
+        "cleared": 2400,
+        "uncleared": -3775
+      }
+    }
+  ]
+}

@@ -190,3 +190,11 @@ Focused validation: concurrency12 + splits10 + transfers12 all pass
 `/tmp/ticket15-corrections-combined-browser.log`). Build/check/autofixer/Clippy pass
 (`/tmp/ticket15-corrections-{build,check,svelte,clippy}.log`). Broad suites were not
 repeated. Independent corrective review and root integration remain required.
+
+## Root register integration — 2026-11-09
+
+Merged query12 acceptance `8a941e9` into reviewed transfers `6b5e39e`, with provisional transfer schema12 after register schema11. New public red/green tests exposed and corrected a hardcoded-false transfer predicate, missing batched transfer-account metadata, stale renamed-account search/name filters, and on-budget transfer legs incorrectly appearing as uncategorized. Batched rows now use the same transfer projection as direct reads without per-child counterpart queries.
+
+Independent `@actual-app/api@26.10.0` fixture/generator `transfer-register` checks grouped transfer matches and exact totals, renamed destination search/name filtering, displayed-payee sorting and on/off-budget uncategorized eligibility. A browser regression exposed missing transfer identities in the filter selector; filter references now request existing `include_transfers=true`, leaving ordinary expense references unchanged. Corrected accessible-label selectors were verified red against the old exclusion and green against the candidate. A second red/green browser check verifies live account/payee renames update filter choices; ordinary options remain reactive and only transfer identities use the supplemental request. Desktop/mobile renders inspected; no overflow or page errors.
+
+All42 focused transfer/split/register/concurrency HTTP tests, served OpenAPI, Svelte checking/build/autofixers and Clippy pass. The newer merged Rust toolchain requested six mechanical collapsible-if fixes; applied without behavior changes. Original transfer/native/receipt qualifications above remain applicable. Reconciliation and bulk-history composition remain gates; this is not ticket acceptance.

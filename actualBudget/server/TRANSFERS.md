@@ -1,6 +1,6 @@
 # Linked transfers
 
-Ticket15, stories24/25/39/95. Provisional schema11 on merged baseefa600f (split schema10); root renumbers after register12.
+Ticket15, stories24/25/39/95. Provisional schema12 after register schema11; reconciliation integration will renumber transfers to13.
 
 `POST /budgets/{budget}/transfers` accepts client-generated `id`, `counterpart_id`,
 `account_id`, `to_account_id`, signed integer `amount`, calendar `date`, optional
@@ -38,7 +38,7 @@ method/path/body/key/clock/epoch, read-only receipt lookup and explicit cancel
 fences. Existing account/transaction capabilities continue to own their routes.
 No metadata writes enter the expense outbox. Plain HTTP, no app login.
 
-The native archive registry already covers transactions/payees; schema11 adds
+The native archive registry already covers transactions/payees; the transfer migration adds
 nullable transfer references, reciprocal active-pair validation, and defaults for
 schema6–10 archives. Genuine Actual transfers convert their source references and
 HLCs. A fresh upload intent rechecks previously blocked conversion plans; exact

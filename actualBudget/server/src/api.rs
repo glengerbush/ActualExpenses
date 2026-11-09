@@ -49,6 +49,7 @@ pub fn router(store: Store) -> Router {
         .merge(crate::accounts::router())
         .merge(crate::categories::router())
         .merge(crate::payees_tags::router())
+        .merge(crate::register_settings::router())
         .merge(crate::preferences::router())
         .merge(concurrency::router())
         .merge(crate::companion::router())
@@ -181,7 +182,7 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["expense_kind_precondition", "transfers", "transfer_cancellation", "transfer_receipt_lookup", "budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "tags", "splits"],
+        "capabilities": ["expense_kind_precondition", "transfers", "transfer_cancellation", "transfer_receipt_lookup", "budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "tags", "splits", "register_queries", "register_settings"],
         "openapi": "/api/v1/openapi.json"
     }))
 }
@@ -274,6 +275,7 @@ async fn create_account(
 #[derive(serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct TransactionQuery {
+    query: Option<String>,
     account_id: Option<String>,
     payee_id: Option<String>,
     tag: Option<String>,
@@ -311,23 +313,30 @@ async fn list_transactions(
             "limit must be 1–1000; offset at most 1000000",
         ));
     }
-    if let Some(snapshot) = &query.snapshot {
-        if snapshot.len() != 50
+    if let Some(snapshot) = &query.snapshot
+        && (snapshot.len() != 50
             || !snapshot.starts_with("c1")
             || !snapshot[2..]
                 .bytes()
-                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
-        {
-            return Err(Error::invalid("Invalid register snapshot"));
-        }
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)))
+    {
+        return Err(Error::invalid("Invalid register snapshot"));
     }
+    let filter: crate::register::Query = query
+        .query
+        .as_deref()
+        .map(serde_json::from_str)
+        .transpose()
+        .map_err(|_| Error::invalid("Invalid register query"))?
+        .unwrap_or_default();
+    filter.validate()?;
     Ok(Json(
         store
             .run(move |db| {
                 // One read transaction keeps rows, totals and snapshot coherent even
                 // if another connection writes while this page is being assembled.
                 let read = db.transaction()?;
-                ledger::list(
+                crate::register::list(
                     &read,
                     &budget,
                     ledger::RegisterFilters {
@@ -339,6 +348,7 @@ async fn list_transactions(
                     query.limit,
                     query.offset,
                     query.snapshot.as_deref(),
+                    &filter,
                 )
             })
             .await?,

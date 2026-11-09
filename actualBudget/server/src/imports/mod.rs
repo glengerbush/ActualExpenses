@@ -162,9 +162,10 @@ async fn activate(
         if stage["status"]=="blocked" {return Err(Error::new(StatusCode::CONFLICT,"import_requires_conversion","Import contains unsupported data; review its conversion requirements"));}
         let converted:String=db.query_row("SELECT conversion FROM staged_imports WHERE id=?1",[&id],|r|r.get(0))?;
         let mut converted:Value=serde_json::from_str(&converted).map_err(Error::internal)?;
-        if stage["status"]!="activated" && (converted.get("category_groups").is_none() || converted.get("account_groups").is_none()) {
+        if stage["status"]!="activated" && (converted.get("category_groups").is_none() || converted.get("account_groups").is_none() || converted.get("register_settings").is_none()) {
             let original:Vec<u8>=db.query_row("SELECT original FROM staged_imports WHERE id=?1",[&id],|r|r.get(0))?;
             let (_,current)=conversion::inspect(&original)?;
+            if converted.get("register_settings").is_none() { converted["register_settings"]=current["register_settings"].clone(); }
             if converted.get("account_groups").is_none() {
                 converted["account_groups"]=current["account_groups"].clone();
                 for account in converted["accounts"].as_array_mut().unwrap() {

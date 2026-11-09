@@ -654,6 +654,106 @@ fn split_fixture(s: &Server) -> String {
     root
 }
 #[test]
+fn register_transfer_filter_returns_complete_logical_rows_without_double_counting() {
+    let s = Server::start();
+    let root = split_fixture(&s);
+    let query = json!({"filter":{"conditions":[{"field":"transfer","op":"eq","value":true}]}});
+    let response = s
+        .client
+        .get(format!("{}{root}/transactions", s.url))
+        .query(&[("query", query.to_string())])
+        .send()
+        .unwrap();
+    let page = ok(response);
+    let mut ids = page["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|row| row["id"].as_str().unwrap().to_owned())
+        .collect::<Vec<_>>();
+    ids.sort();
+    assert_eq!(ids, vec![id(10), id(12)]);
+    assert_eq!(page["filtered_count"], 2);
+    assert_eq!(page["filtered_balances"]["total"], -400);
+    let parent = page["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["id"] == id(10))
+        .unwrap();
+    let direct = s.get(&format!("{root}/transactions/{}", id(10)));
+    assert_eq!(parent["children"], direct["data"]["children"]);
+    assert_eq!(parent["children"][0]["transfer_id"], id(12));
+}
+fn transfer_register_case(name: &str) {
+    let s = Server::start();
+    let root = split_fixture(&s);
+    ok(s.write("POST", &format!("{root}/accounts"), "off-account", None, json!({"id":id(5),"name":"Off budget","off_budget":true,"opening_balance":0,"opening_date":"2026-01-01"})));
+    for (n, account, amount) in [(20, 3, -200), (30, 5, -300)] {
+        ok(s.write("POST", &format!("{root}/transfers"), &format!("pair-{n}"), None, json!({"id":id(n),"counterpart_id":id(n+1),"account_id":id(2),"to_account_id":id(account),"amount":amount,"date":"2026-01-01"})));
+    }
+    ok(s.write(
+        "PATCH",
+        &format!("{root}/accounts/{}", id(3)),
+        "rename",
+        None,
+        json!({"name":"Zen savings"}),
+    ));
+    let fixture: Value =
+        serde_json::from_str(include_str!("../../tests/fixtures/transfer-register.json")).unwrap();
+    let case = fixture["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|case| case["name"] == name)
+        .unwrap();
+    let mut request = s
+        .client
+        .get(format!("{}{root}/transactions", s.url))
+        .query(&[("query", case["query"].to_string())]);
+    if let Some(account) = case["account"].as_str() {
+        request = request.query(&[("account_id", account)]);
+    }
+    let page = ok(request.send().unwrap());
+    let mut ids = page["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|row| row["id"].as_str().unwrap().to_owned())
+        .collect::<Vec<_>>();
+    if case["ordered"] != true {
+        ids.sort();
+    }
+    assert_eq!(json!(ids), case["ids"], "{name}");
+    assert_eq!(
+        page["filtered_count"],
+        case["ids"].as_array().unwrap().len(),
+        "{name}"
+    );
+    assert_eq!(page["filtered_balances"]["total"], case["total"], "{name}");
+}
+#[test]
+fn renamed_transfer_account_search_matches_pinned_actual() {
+    transfer_register_case("renamed account search");
+}
+
+#[test]
+fn renamed_transfer_payee_filter_matches_pinned_actual() {
+    transfer_register_case("renamed payee name");
+}
+
+#[test]
+fn uncategorized_transfer_scope_matches_pinned_actual() {
+    transfer_register_case("uncategorized");
+}
+
+#[test]
+fn sorted_transfer_names_and_filter_match_pinned_actual() {
+    transfer_register_case("sorted transfer names");
+    transfer_register_case("transfer");
+}
+
+#[test]
 fn split_transfer_amount_dates_delete_and_duplicate_remain_one_aggregate() {
     let s = Server::start();
     let root = split_fixture(&s);

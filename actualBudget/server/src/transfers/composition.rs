@@ -30,10 +30,10 @@ pub fn newer_related(
             if newer(&other, clock) {
                 return Ok(true);
             }
-            if let Some(parent) = other["parent_id"].as_str() {
-                if newer(&ledger::get(db, b, parent)?, clock) {
-                    return Ok(true);
-                }
+            if let Some(parent) = other["parent_id"].as_str()
+                && newer(&ledger::get(db, b, parent)?, clock)
+            {
+                return Ok(true);
             }
         }
     }
@@ -81,10 +81,11 @@ pub fn field_rows(
                         .filter_map(|c| c["id"].as_str().map(str::to_owned)),
                 );
             }
-            if field == "date" && sync {
-                if let Some(peer) = row["transfer_id"].as_str() {
-                    todo.push(peer.into());
-                }
+            if field == "date"
+                && sync
+                && let Some(peer) = row["transfer_id"].as_str()
+            {
+                todo.push(peer.into());
             }
         }
         rows.push(row);
@@ -101,25 +102,25 @@ pub fn apply_field(
     clock: &str,
 ) -> Result<(), Error> {
     let id = row["id"].as_str().unwrap();
-    if field == "amount" {
-        if let Some(parent) = row["parent_id"].as_str() {
-            let before = ledger::get(db, b, parent)?;
-            let rusqlite::types::Value::Integer(amount) = value else {
-                return Err(Error::invalid("Invalid amount"));
-            };
-            let next = before["amount"].as_i64().unwrap() as i128 + amount as i128
-                - row["amount"].as_i64().unwrap() as i128;
-            if next.abs() > MAX_MONEY as i128 {
-                return Err(Error::invalid(
-                    "Split total exceeds the exact integer range",
-                ));
-            }
-            db.execute(
-                "UPDATE transactions SET amount=?3 WHERE budget_id=?1 AND id=?2",
-                params![b, parent, next as i64],
-            )?;
-            stamp(db, b, parent, &["amount", "splits"], clock)?;
+    if field == "amount"
+        && let Some(parent) = row["parent_id"].as_str()
+    {
+        let before = ledger::get(db, b, parent)?;
+        let rusqlite::types::Value::Integer(amount) = value else {
+            return Err(Error::invalid("Invalid amount"));
+        };
+        let next = before["amount"].as_i64().unwrap() as i128 + amount as i128
+            - row["amount"].as_i64().unwrap() as i128;
+        if next.abs() > MAX_MONEY as i128 {
+            return Err(Error::invalid(
+                "Split total exceeds the exact integer range",
+            ));
         }
+        db.execute(
+            "UPDATE transactions SET amount=?3 WHERE budget_id=?1 AND id=?2",
+            params![b, parent, next as i64],
+        )?;
+        stamp(db, b, parent, &["amount", "splits"], clock)?;
     }
     db.execute(
         &format!("UPDATE transactions SET {field}=?3 WHERE budget_id=?1 AND id=?2"),

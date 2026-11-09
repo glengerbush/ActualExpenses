@@ -141,11 +141,12 @@ pub fn decorate(db: &Connection, budget: &str, mut row: Value) -> Result<Value, 
                 .collect::<Result<Vec<_>, _>>()?
         );
     }
-    if row["is_parent"] == false && row["parent_id"].is_null() {
-        if let Some(object) = row.as_object_mut() {
-            object.remove("is_parent");
-            object.remove("parent_id");
-        }
+    if row["is_parent"] == false
+        && row["parent_id"].is_null()
+        && let Some(object) = row.as_object_mut()
+    {
+        object.remove("is_parent");
+        object.remove("parent_id");
     }
     Ok(row)
 }

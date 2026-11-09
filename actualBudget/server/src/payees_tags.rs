@@ -630,23 +630,23 @@ pub fn validate_archive(db: &Connection, b: &str) -> Result<(), Error> {
         {
             return Err(Error::invalid("Invalid merged payee identity"));
         }
-        if let Some(a) = p["transfer_account_id"].as_str() {
-            if !db.query_row(
+        if let Some(a) = p["transfer_account_id"].as_str()
+            && !db.query_row(
                 "SELECT EXISTS(SELECT 1 FROM accounts WHERE budget_id=?1 AND id=?2)",
                 params![b, a],
                 |r| r.get::<_, bool>(0),
-            )? {
-                return Err(Error::invalid("Missing transfer account"));
-            }
+            )?
+        {
+            return Err(Error::invalid("Missing transfer account"));
         }
-        if let Some(c) = p["category_id"].as_str() {
-            if !db.query_row(
+        if let Some(c) = p["category_id"].as_str()
+            && !db.query_row(
                 "SELECT EXISTS(SELECT 1 FROM categories WHERE budget_id=?1 AND id=?2)",
                 params![b, c],
                 |r| r.get::<_, bool>(0),
-            )? {
-                return Err(Error::invalid("Missing payee category"));
-            }
+            )?
+        {
+            return Err(Error::invalid("Missing payee category"));
         }
     }
     let mut q = db.prepare("SELECT id,tag FROM tags WHERE budget_id=?1")?;

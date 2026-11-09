@@ -508,6 +508,48 @@ def main():
                       {**link_body, "snapshot": outcome["snapshot"], "transaction_ids": []},
                       {"Idempotency-Key": "empty-schedule-" + action}, expected=400)
 
+            # Discover actual history, then accept and link it in one recorded command.
+            discovery_payee = str(uuid.uuid4())
+            check(rr + "/payees", budgets + "/{budget}/payees", "POST",
+                  {"id": discovery_payee, "name": "Contract weekly bill"},
+                  {"Idempotency-Key": "discovery-payee"}, 201)
+            history_ids = []
+            for date in ("2026-10-12", "2026-10-19", "2026-10-26", "2026-11-02"):
+                history_id = str(uuid.uuid4())
+                history_ids.append(history_id)
+                check(rr + "/transactions", budgets + "/{budget}/transactions", "POST",
+                      {"id": history_id, "account_id": ra, "payee_id": discovery_payee,
+                       "amount": -765, "date": date}, {"Idempotency-Key": "discovery-" + date}, 201)
+            discovery_checkpoint = check(rr + "/checkpoint", budgets + "/{budget}/checkpoint")
+            discovery_template = schedule_template + "/discovery"
+            discovery_query = {"snapshot": discovery_checkpoint["data"]["snapshot"],
+                               "as_of": "2026-11-09", "account_id": ra, "offset": 0, "limit": 100}
+            discovery_path = schedule_path + "/discovery"
+            discovered = check(discovery_path + "?" + urllib.parse.urlencode(discovery_query), discovery_template)["data"]
+            suggestion = next(row for row in discovered["suggestions"] if row["payee_id"] == discovery_payee)
+            assert suggestion["amount"] == -765 and suggestion["date"]["frequency"] == "weekly"
+            assert discovered["as_of"] == "2026-11-09"
+            assert check(rr + "/checkpoint", budgets + "/{budget}/checkpoint") == discovery_checkpoint
+            for invalid in ({**discovery_query, "limit": 0}, {**discovery_query, "as_of": "invalid"},
+                            {key: value for key, value in discovery_query.items() if key != "snapshot"}):
+                check(discovery_path + "?" + urllib.parse.urlencode(invalid), discovery_template, expected=400)
+            discovered_schedule = str(uuid.uuid4())
+            accept_body = {"action": "create", "id": discovered_schedule,
+                           "snapshot": discovery_checkpoint["data"]["snapshot"],
+                           "conditions": suggestion["conditions"], "posts_transaction": False,
+                           "transaction_ids": history_ids}
+            accepted = schedule_command(accept_body, "accept-discovery", 201)
+            assert schedule_command(accept_body, "accept-discovery", 201,
+                                    {"X-Actual-Receipt-Only": "true"}) == accepted
+            linked_template = schedule_template + "/{id}/transactions"
+            linked_path = schedule_path + "/" + discovered_schedule + "/transactions"
+            linked = check(linked_path + "?" + urllib.parse.urlencode({"snapshot": accepted["snapshot"], "limit": 1}), linked_template)["data"]
+            assert linked["total_count"] == 4 and linked["next_offset"] == 1
+            assert linked["transactions"][0]["id"] in history_ids
+            assert linked["transactions"][0]["schedule_id"] == discovered_schedule
+            check(linked_path, linked_template, expected=400)
+            check(discovery_path + "?" + urllib.parse.urlencode(discovery_query), discovery_template, expected=409)
+
             # Genuine released Android work validates the public handoff contract,
             # including dense order keys returned by the ordinary companion view.
             legacy_dir = project / "tests/fixtures/android-upgrade"

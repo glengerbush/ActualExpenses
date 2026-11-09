@@ -1,0 +1,305 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "archives": [
+    {
+      "name": "weekly exact",
+      "filename": "weekly-exact.zip",
+      "sha256": "849832307dd010a63653354246bb8e8b7f3288cbf625d4d4b36fa502401b57b1",
+      "ids": {
+        "ACCOUNT": "6991b206-aa1c-4ef9-a45a-d05a4b0da057",
+        "PEER": "53b27a72-7542-4960-8231-043985b1c77d",
+        "PAYEE": "77af0ba7-56a3-4946-8e42-c382e40dc1d2",
+        "OTHER_PAYEE": "45efd467-0b43-4182-8d6f-aaa97a4b5dd8",
+        "CATEGORY": "6de93941-66aa-4cfd-ab4b-9f0c79feba37",
+        "TRANSFER": "f02a46f6-0f8a-475d-b72e-3972bd4efe1e",
+        "BACK_TRANSFER": "4e404841-3911-47f7-962d-dc08c5a87c9c",
+        "HISTORY0": "22220000-0000-4000-8000-000000000038",
+        "HISTORY1": "22220000-0000-4000-8000-000000000039",
+        "HISTORY2": "22220000-0000-4000-8000-000000000040"
+      }
+    },
+    {
+      "name": "weekly four entries",
+      "filename": "weekly-four-entries.zip",
+      "sha256": "b9981c46bdd0a6897bc0e0a04bce65cb837554b231a8be025ab8b9eae47b9a23",
+      "ids": {
+        "ACCOUNT": "475d0c3f-7a62-4565-b036-055cddfb001d",
+        "PEER": "34d896eb-3f55-4a74-ac63-aa16dfdddefe",
+        "PAYEE": "1cf22f8e-029a-477b-a735-e7be62a7b6f2",
+        "OTHER_PAYEE": "03c6196a-8e94-404c-ba89-597832c3a035",
+        "CATEGORY": "684b0686-5b49-4a9f-a097-42141a259fae",
+        "TRANSFER": "7e26f1f0-d5d2-4b4a-ba13-29191ad7ba7f",
+        "BACK_TRANSFER": "947ad74c-9f62-4a0e-8d0d-63905082df32",
+        "HISTORY0": "22220000-0000-4000-8000-000000000041",
+        "HISTORY1": "22220000-0000-4000-8000-000000000042",
+        "HISTORY2": "22220000-0000-4000-8000-000000000043",
+        "HISTORY3": "22220000-0000-4000-8000-000000000044"
+      }
+    },
+    {
+      "name": "biweekly exact",
+      "filename": "biweekly-exact.zip",
+      "sha256": "0e9d23a4fadfa783585412ad6c3e0cb8415cb2dd6d0267965e6dbebcc4c25c7d",
+      "ids": {
+        "ACCOUNT": "adbef30f-5906-479f-9d6a-d68a48951cc7",
+        "PEER": "f71c147f-6dac-48f7-a1a6-5b62b9d996aa",
+        "PAYEE": "b0caac72-e455-45e8-aaff-1e634d33d39a",
+        "OTHER_PAYEE": "264551fa-694a-4e73-89f1-85132bd5db52",
+        "CATEGORY": "c1aa75fa-dbd0-4cb5-b6d3-65851e137e35",
+        "TRANSFER": "6cfcce67-56eb-4a77-950d-69a7bf4a9a27",
+        "BACK_TRANSFER": "70085cca-cfe1-4161-9b32-41f8b1450cc3",
+        "HISTORY0": "22220000-0000-4000-8000-000000000045",
+        "HISTORY1": "22220000-0000-4000-8000-000000000046",
+        "HISTORY2": "22220000-0000-4000-8000-000000000047"
+      }
+    },
+    {
+      "name": "biweekly four entries",
+      "filename": "biweekly-four-entries.zip",
+      "sha256": "4155e877ed219e416402f3fb898ac7d60bac560b20ba04c467b8fcb75beae11d",
+      "ids": {
+        "ACCOUNT": "4a0b221e-aa21-4510-9273-2c4c0517c7a7",
+        "PEER": "ac0c8c72-5ece-4d97-bbbf-79c4a4b3954f",
+        "PAYEE": "452768a1-8b63-4b82-a97b-aa6d0e451e04",
+        "OTHER_PAYEE": "188d6720-7ae6-4b5e-8eec-1003e2c7320b",
+        "CATEGORY": "f8a604ed-e14b-4f2d-bb3c-c8f1833ce209",
+        "TRANSFER": "c53c860a-0bd0-4ed3-b546-88321a169ae5",
+        "BACK_TRANSFER": "9d308294-39a1-4dd5-b897-f687afbc8ebf",
+        "HISTORY0": "22220000-0000-4000-8000-000000000048",
+        "HISTORY1": "22220000-0000-4000-8000-000000000049",
+        "HISTORY2": "22220000-0000-4000-8000-000000000050",
+        "HISTORY3": "22220000-0000-4000-8000-000000000051"
+      }
+    },
+    {
+      "name": "monthly day15",
+      "filename": "monthly-day15.zip",
+      "sha256": "8e9b9a7520463b2e1b51c2c5824906afdb08a01800ba6a4220fe2be5afbcaf5c",
+      "ids": {
+        "ACCOUNT": "fe66da4b-6130-43df-a3f2-97440ee81633",
+        "PEER": "276e5b20-205e-405e-8e59-25148bea0130",
+        "PAYEE": "bfe8c987-7980-4162-8acc-e9d135841fde",
+        "OTHER_PAYEE": "302a81e9-fba7-47f7-88f8-95dfb1dc0b06",
+        "CATEGORY": "c87a6a4b-ae9d-4985-848d-48d06afbea0e",
+        "TRANSFER": "86933a05-690a-4e76-8552-f4171f1da7b5",
+        "BACK_TRANSFER": "e1c13204-ccc0-4d93-9b33-bbe719cd9db6",
+        "HISTORY0": "22220000-0000-4000-8000-000000000052",
+        "HISTORY1": "22220000-0000-4000-8000-000000000053",
+        "HISTORY2": "22220000-0000-4000-8000-000000000054"
+      }
+    },
+    {
+      "name": "monthly last day",
+      "filename": "monthly-last-day.zip",
+      "sha256": "239844d2e4caa8a40d057bd777026822395359211dc735a10d6253d3b8d4282f",
+      "ids": {
+        "ACCOUNT": "80232a91-3aa7-44ce-ac0e-4ada00a10200",
+        "PEER": "51554d1b-640e-4d68-93ac-826c3693ed4e",
+        "PAYEE": "384aa72d-6ad4-4115-8083-5ca2818b6a0a",
+        "OTHER_PAYEE": "34f5e7ef-a039-49ec-9f74-d98e0c33f260",
+        "CATEGORY": "a836f087-6348-442c-a2c2-5559e5e2b1f4",
+        "TRANSFER": "522638d7-5664-4bfe-ab5a-d5c319919929",
+        "BACK_TRANSFER": "c948bb8b-3510-4889-91b8-2fa887329ee0",
+        "HISTORY0": "22220000-0000-4000-8000-000000000055",
+        "HISTORY1": "22220000-0000-4000-8000-000000000056",
+        "HISTORY2": "22220000-0000-4000-8000-000000000057"
+      }
+    },
+    {
+      "name": "monthly last day four entries",
+      "filename": "monthly-last-day-four-entries.zip",
+      "sha256": "b92e04e11964ad9d05010c12c7d9416afb3e4220ea06259cf9efa04bee8d97fe",
+      "ids": {
+        "ACCOUNT": "ab9d6d8e-df07-4627-8560-b602f0a14c17",
+        "PEER": "84e05f89-eafc-46a7-b744-bb6dad6cea18",
+        "PAYEE": "65ebbcf7-0a51-4b9c-a2c4-2bda70c36b6d",
+        "OTHER_PAYEE": "9afdeb1c-8880-49a0-a899-02e6a07e2fb4",
+        "CATEGORY": "8eaf211a-d8dc-4b15-ad92-4fec619e798c",
+        "TRANSFER": "df5f72a4-8446-4bc8-a732-bcba961e1e25",
+        "BACK_TRANSFER": "21c59dab-2f3b-4d53-aec7-d89d4fcce405",
+        "HISTORY0": "22220000-0000-4000-8000-000000000058",
+        "HISTORY1": "22220000-0000-4000-8000-000000000059",
+        "HISTORY2": "22220000-0000-4000-8000-000000000060",
+        "HISTORY3": "22220000-0000-4000-8000-000000000061"
+      }
+    },
+    {
+      "name": "first and third Mondays",
+      "filename": "first-and-third-Mondays.zip",
+      "sha256": "e974b31e5ba96bb5bcede8285347cf9f659efec297f1eb57d4c47d5860f667ce",
+      "ids": {
+        "ACCOUNT": "77a49af0-2b0c-4aea-a9c7-fd389cc13ffb",
+        "PEER": "60694bea-fb30-452d-841b-636948128bfd",
+        "PAYEE": "df162fde-b721-4628-99a3-734951e6d5c0",
+        "OTHER_PAYEE": "da6f20b8-2b75-46b1-897a-0a155eb1c33e",
+        "CATEGORY": "011eeef4-1c19-495a-bfc1-3d590dd97b4e",
+        "TRANSFER": "83cf9b9f-e50a-45e9-a082-1d90f36c2959",
+        "BACK_TRANSFER": "895193de-4f27-4a66-bd6b-96282d5a44cf",
+        "HISTORY0": "22220000-0000-4000-8000-000000000062",
+        "HISTORY1": "22220000-0000-4000-8000-000000000063",
+        "HISTORY2": "22220000-0000-4000-8000-000000000064",
+        "HISTORY3": "22220000-0000-4000-8000-000000000065",
+        "HISTORY4": "22220000-0000-4000-8000-000000000066",
+        "HISTORY5": "22220000-0000-4000-8000-000000000067",
+        "HISTORY6": "22220000-0000-4000-8000-000000000068"
+      }
+    },
+    {
+      "name": "second and fourth Mondays",
+      "filename": "second-and-fourth-Mondays.zip",
+      "sha256": "c9367f8a0f963cc8ff5b1c0955b47dc2370198c167291101dca9ec3c373d446f",
+      "ids": {
+        "ACCOUNT": "0662740b-cda7-4076-b5e3-304ccbfab338",
+        "PEER": "97e54718-5740-4418-9055-d8bfe7364769",
+        "PAYEE": "d4f70bfc-0246-4f23-822f-fae1b371ba95",
+        "OTHER_PAYEE": "91124adf-39e7-4d4d-a89f-70fe3d3a7bd6",
+        "CATEGORY": "0e7400e7-43b5-4877-b69f-17415412895d",
+        "TRANSFER": "c58cfcc1-9232-453c-8882-92057080276d",
+        "BACK_TRANSFER": "9d2e6772-7e17-409b-babc-e3f535101b73",
+        "HISTORY0": "22220000-0000-4000-8000-000000000069",
+        "HISTORY1": "22220000-0000-4000-8000-000000000070",
+        "HISTORY2": "22220000-0000-4000-8000-000000000071",
+        "HISTORY3": "22220000-0000-4000-8000-000000000072",
+        "HISTORY4": "22220000-0000-4000-8000-000000000073",
+        "HISTORY5": "22220000-0000-4000-8000-000000000074",
+        "HISTORY6": "22220000-0000-4000-8000-000000000075",
+        "HISTORY7": "22220000-0000-4000-8000-000000000076",
+        "HISTORY8": "22220000-0000-4000-8000-000000000077",
+        "HISTORY9": "22220000-0000-4000-8000-000000000078",
+        "HISTORY10": "22220000-0000-4000-8000-000000000079",
+        "HISTORY11": "22220000-0000-4000-8000-000000000080",
+        "HISTORY12": "22220000-0000-4000-8000-000000000081",
+        "HISTORY13": "22220000-0000-4000-8000-000000000082",
+        "HISTORY14": "22220000-0000-4000-8000-000000000083",
+        "HISTORY15": "22220000-0000-4000-8000-000000000084"
+      }
+    },
+    {
+      "name": "variable weekly",
+      "filename": "variable-weekly.zip",
+      "sha256": "b37a25178b10af51ff86c51aee24b0a75637251bde6800ee821c4d63a3da89a3",
+      "ids": {
+        "ACCOUNT": "3342ad1e-82ca-4a10-8638-4f0b13ae2ed6",
+        "PEER": "fda92e6a-8b3f-43c4-907c-bda7e0b852de",
+        "PAYEE": "819f0c20-36a8-439f-9bd6-29e6372557e9",
+        "OTHER_PAYEE": "647de423-1509-4569-8faf-19ee00489282",
+        "CATEGORY": "d3fc57af-2129-4599-96a6-305ec3021a9d",
+        "TRANSFER": "f8324a36-59b5-47e1-8959-f265f504f2ee",
+        "BACK_TRANSFER": "b30e302d-42b2-47e5-b703-bed89675e93f",
+        "HISTORY0": "22220000-0000-4000-8000-000000000085",
+        "HISTORY1": "22220000-0000-4000-8000-000000000086",
+        "HISTORY2": "22220000-0000-4000-8000-000000000087"
+      }
+    },
+    {
+      "name": "insufficient two entries",
+      "filename": "insufficient-two-entries.zip",
+      "sha256": "c2de42f73dfb6341aa1ffc1e949ad57d269c8a00d2b06a2e91b1fa7f4d667583",
+      "ids": {
+        "ACCOUNT": "bbdd584e-568b-42b6-aa65-30b8c9ca293b",
+        "PEER": "10c753d0-5f08-4124-8727-893d78cb8ff3",
+        "PAYEE": "02540bef-2903-4b5e-960e-7523c0bcce52",
+        "OTHER_PAYEE": "00305158-8d5e-4d74-b23b-fcacf76d16d5",
+        "CATEGORY": "c8310c08-664a-4a1e-b35a-a0b3fbbbf2f7",
+        "TRANSFER": "574c31cb-1bd8-44d2-a049-16b1e2caba38",
+        "BACK_TRANSFER": "aba24227-1afb-4b7b-9b14-dca78f13c240",
+        "HISTORY0": "22220000-0000-4000-8000-000000000088",
+        "HISTORY1": "22220000-0000-4000-8000-000000000089"
+      }
+    },
+    {
+      "name": "already linked excluded",
+      "filename": "already-linked-excluded.zip",
+      "sha256": "eae4d0a1faa064c1840c47916922ea2514f603142cb1b3a3f3406cf0286591d7",
+      "ids": {
+        "ACCOUNT": "56461190-5c81-4d80-b819-9cc5d9178922",
+        "PEER": "a067e0f4-06a2-4eaf-8e14-96d44d1292d1",
+        "PAYEE": "1b79747e-c09d-4e16-9608-d45a63a47e96",
+        "OTHER_PAYEE": "fff29e28-6cf8-4ae7-ad76-1de50c5b9e7f",
+        "CATEGORY": "9367c14f-7170-4f47-bb3b-0c378e5d4a92",
+        "TRANSFER": "b6fed924-cbc0-47b2-8b67-9194a96c37a5",
+        "BACK_TRANSFER": "7f3376a4-6ba2-41b9-956f-d48effe85df2",
+        "HISTORY0": "22220000-0000-4000-8000-000000000090",
+        "HISTORY1": "22220000-0000-4000-8000-000000000091",
+        "HISTORY2": "22220000-0000-4000-8000-000000000092",
+        "EXISTING_SCHEDULE": "22220000-0000-4000-8000-000000000093"
+      }
+    },
+    {
+      "name": "closed account excluded",
+      "filename": "closed-account-excluded.zip",
+      "sha256": "83f6a350a07dae8c32c4aa8adaf3cb4844aa1ca31fd63af8f75f0536c6250326",
+      "ids": {
+        "ACCOUNT": "2b242691-4489-465c-99ce-d56b7295130d",
+        "PEER": "da7c1b0a-61e8-4d27-a232-2531d9ed1998",
+        "PAYEE": "294b2789-0b6a-47dd-9866-611a4c5f1cc3",
+        "OTHER_PAYEE": "cd4293a8-c7ce-458c-b843-32e8d77b6b3a",
+        "CATEGORY": "d12a1f3d-c9d0-4347-8d11-0d250a43dbe7",
+        "TRANSFER": "c768f615-882b-42fc-ac67-440cd9f50790",
+        "BACK_TRANSFER": "0db44119-e880-4000-94ea-13458f8b0f6b",
+        "HISTORY0": "22220000-0000-4000-8000-000000000094",
+        "HISTORY1": "22220000-0000-4000-8000-000000000095",
+        "HISTORY2": "22220000-0000-4000-8000-000000000096"
+      }
+    },
+    {
+      "name": "transfers excluded",
+      "filename": "transfers-excluded.zip",
+      "sha256": "18e52ecbd8c7646da6f60cd9a7694c7197902f171bd78e60a424cb0275605060",
+      "ids": {
+        "ACCOUNT": "98f6de65-ddc1-416d-be64-4808db4e4604",
+        "PEER": "5b54a585-6e0c-4469-9de1-f3f9d79b4acf",
+        "PAYEE": "dd7952a3-ec73-4ecb-8534-e9048c2685d4",
+        "OTHER_PAYEE": "23470f0b-96c8-4492-adfb-7bcc32ab5741",
+        "CATEGORY": "3bf84893-c919-458b-8497-b4e27eae5e37",
+        "TRANSFER": "58c9abab-ada2-43fd-a129-b7274cbe8cfd",
+        "BACK_TRANSFER": "c7d21de8-d2f2-49f7-90eb-2b8e9082006d",
+        "HISTORY0": "22220000-0000-4000-8000-000000000097",
+        "HISTORY1": "22220000-0000-4000-8000-000000000098",
+        "HISTORY2": "22220000-0000-4000-8000-000000000099",
+        "generated-1": "d4028e8e-2aab-411c-a7cd-bf5ec442955b",
+        "generated-2": "9cb2f6f9-bb6f-41d1-a252-dccf8116aa88",
+        "generated-3": "9bec82d5-175a-499f-9425-91ebf04c7a04"
+      }
+    },
+    {
+      "name": "split history",
+      "filename": "split-history.zip",
+      "sha256": "8ad2a486d60e5e0c5b278c01bb155626e4c22168e8b27d85189511f008cea65a",
+      "ids": {
+        "ACCOUNT": "0834d403-69fc-4a3b-a639-33804ff12a1b",
+        "PEER": "09b0e54f-1fc5-4fd4-8348-a7c4c2f50e47",
+        "PAYEE": "8e6b9508-467a-4fc2-9501-e3dcc6929fbd",
+        "OTHER_PAYEE": "8e2b9ca9-92b9-4034-b94e-3664bd7edaa9",
+        "CATEGORY": "215074c9-1a8b-4eb0-b028-0cb7d9c0be76",
+        "TRANSFER": "8b8aa041-869d-4ba7-a77b-e3642ee1c74c",
+        "BACK_TRANSFER": "1230301f-0721-4ac5-89c5-0656ec64fab1",
+        "HISTORY0": "22220000-0000-4000-8000-000000000100",
+        "ALLOCATION0": "22220000-0000-4000-8000-000000000101",
+        "HISTORY1": "22220000-0000-4000-8000-000000000102",
+        "ALLOCATION1": "22220000-0000-4000-8000-000000000103",
+        "HISTORY2": "22220000-0000-4000-8000-000000000104",
+        "ALLOCATION2": "22220000-0000-4000-8000-000000000105"
+      }
+    },
+    {
+      "name": "income history",
+      "filename": "income-history.zip",
+      "sha256": "27de98bce490e206572701695741d91e579e705ecc996149b599c0dcc88acb01",
+      "ids": {
+        "ACCOUNT": "db83ea1b-4d71-4d3b-85e5-578183649e8a",
+        "PEER": "6cf3e42b-be45-4897-8de4-b9828170149f",
+        "PAYEE": "6ba3da67-169f-496e-9884-81da30c26a53",
+        "OTHER_PAYEE": "446777a8-959e-4fc4-b2c2-816a94b3a9d2",
+        "CATEGORY": "96a73722-63de-49d9-90b5-f984fb9d7a31",
+        "TRANSFER": "c9354b0b-abd2-40c1-b81b-4059c062b010",
+        "BACK_TRANSFER": "356d8877-78cd-4976-8915-64b6e92d155b",
+        "HISTORY0": "22220000-0000-4000-8000-000000000106",
+        "HISTORY1": "22220000-0000-4000-8000-000000000107",
+        "HISTORY2": "22220000-0000-4000-8000-000000000108"
+      }
+    }
+  ]
+}

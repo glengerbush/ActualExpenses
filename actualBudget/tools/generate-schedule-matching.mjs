@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
-import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 
 process.env.TZ = 'UTC';
@@ -17,6 +17,8 @@ const api = require('@actual-app/api');
 assert.equal(JSON.parse(await readFile(require.resolve('@actual-app/api').replace(/dist\/index\.js$/, 'package.json'), 'utf8')).version, '26.10.0');
 const root = await mkdtemp(`${tmpdir()}/schedule-matching-oracle-`);
 const out = { oracle: '@actual-app/api@26.10.0', source_commit: '2bebdbaae0b701120a8cad9d56aafd64fa04c577', clock, matching: [], lifecycle: [], discovery: [], conversion: [], warnings: [] };
+const discoveryArchives = [];
+const discoveryDirectory = new URL('../tests/fixtures/schedule-discovery/', import.meta.url);
 const fixed = n => `22220000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 let engine;
 let serial = 0;
@@ -200,6 +202,13 @@ async function discoveryCases() {
     }
     if (c.closed) await send('account-close', { id: b.ids.ACCOUNT, forced: true });
     const seed = await b.snapshot('history');
+    if (process.argv.includes('--export-discovery-fixtures')) {
+      const filename = `${c.name.replaceAll(' ', '-')}.zip`;
+      const archive = await api.exportBudget();
+      await writeFile(new URL(filename, discoveryDirectory), archive, { flag: 'wx' });
+      discoveryArchives.push({ name: c.name, filename, sha256: createHash('sha256').update(archive).digest('hex'),
+        ids: Object.fromEntries([...b.labels].map(([id, label]) => [label, id])) });
+    }
     const found = await send('schedule/discover');
     const suggestions = found.map(({ id, ...suggestion }) => b.normalize(suggestion));
     suggestions.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
@@ -289,6 +298,7 @@ async function conversionCases() {
 }
 
 try {
+  if (process.argv.includes('--export-discovery-fixtures')) await mkdir(discoveryDirectory);
   engine = await api.init({ dataDir: root });
   await matchingCases();
   await lifecycleCases();
@@ -297,6 +307,8 @@ try {
   const path = new URL('../tests/fixtures/schedule-matching.json', import.meta.url);
   if (process.argv.includes('--check')) assert.deepEqual(out, JSON.parse(await readFile(path, 'utf8')));
   else await writeFile(path, `${JSON.stringify(out, null, 2)}\n`);
+  if (discoveryArchives.length) await writeFile(new URL('manifest.json', discoveryDirectory),
+    `${JSON.stringify({ oracle: out.oracle, source_commit: out.source_commit, clock: out.clock, archives: discoveryArchives }, null, 2)}\n`, { flag: 'wx' });
   console.log(`PASS ${out.matching.length} matching +${out.lifecycle.length} link/unlink +${out.discovery.length} discovery +${out.conversion.length} conversion +${out.warnings.length} horizon cases`);
 } finally {
   await api.shutdown();

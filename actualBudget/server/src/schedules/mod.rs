@@ -2,6 +2,7 @@
 mod calendar;
 mod commands;
 mod data;
+mod discovery;
 mod import;
 mod matching;
 mod occurrences;
@@ -25,6 +26,7 @@ pub fn router() -> Router<Store> {
         .route("/api/v1/schedules/preview-dates", post(preview_dates))
         .route("/api/v1/budgets/{budget}/schedules", get(list))
         .route("/api/v1/budgets/{budget}/schedules/due", get(due))
+        .route("/api/v1/budgets/{budget}/schedules/discovery", get(discovery::read))
         .route(
             "/api/v1/budgets/{budget}/schedules/matches",
             post(matching::read),

@@ -5,13 +5,13 @@
     {
       "method": "tracking",
       "ids": {
-        "cash": "c4006d4c-fb39-4c53-bff0-98feef635384",
-        "card": "70de012d-76e4-4b92-9f44-7a0208b7d993",
-        "off": "60ae6e9c-0081-4bc5-bf3e-445af888df94",
-        "expenses": "cedf1c82-a1cd-4380-ae0a-d31dfb5bb340",
-        "Food": "4196ac65-0d28-474a-8f44-03a7fd8aa2a5",
-        "Travel": "a2fa5547-7d63-41b2-b59b-d5d30affba93",
-        "Salary": "edd1bdfd-6a85-47f0-9c69-aad843b5e6c2"
+        "cash": "558d92e5-ac50-4924-8080-af7ae6be5380",
+        "card": "c425a55e-427c-4cc1-bbff-47920f46ba80",
+        "off": "3d9df002-ed3e-4316-bb16-ff6a12f3390f",
+        "expenses": "9ca1c259-ceac-4204-8c5e-cfefa4347837",
+        "Food": "c4c719be-a546-4a16-b16c-855a6554c0b4",
+        "Travel": "d4b529fd-9e7f-4e41-adb0-bfb199502122",
+        "Salary": "98619482-0994-4843-8a9e-e13f2257bcf0"
       },
       "steps": [
         {
@@ -2192,13 +2192,13 @@
     {
       "method": "envelope",
       "ids": {
-        "cash": "e4cbfef6-9219-40fc-b7ca-9be71ce7ba3a",
-        "card": "6aca657e-373e-4900-b31c-fa52cb7a84db",
-        "off": "8f4f3de5-428d-4dda-8c3d-78e7b609be05",
-        "expenses": "8df19e6e-9555-4314-9a42-ba8d4086de31",
-        "Food": "7d9b26c3-44e9-4552-94a4-974e1692e5d3",
-        "Travel": "d0cdf5b9-fe85-4f7e-9c81-0606e2c12683",
-        "Salary": "7c3c3685-09ae-4713-ac1c-55804ef9c4c1"
+        "cash": "2383ae3f-53f8-467f-9b70-523eb6e4ec84",
+        "card": "aa21b3ef-0cd4-4b7f-9f9a-e034546aa637",
+        "off": "9ef86515-b1a2-482c-ae0f-d8d6ae3eaac4",
+        "expenses": "fd244bc2-37e7-432a-b5a6-3841ea09be22",
+        "Food": "f71fcc5c-9475-44f6-ba7f-181e2ac39a3e",
+        "Travel": "b5030b0d-6910-4a8c-a313-1b28b4e6272b",
+        "Salary": "a4cb8c7b-9285-46f2-96e1-c4e4f28bcb7f"
       },
       "steps": [
         {
@@ -3373,6 +3373,154 @@
         },
         {
           "action": {
+            "action": "cover",
+            "month": "2027-01",
+            "from": "Food",
+            "to": "Travel",
+            "amount": 500
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 5000,
+                "buffered-selected": 5000,
+                "total-budgeted": -18000,
+                "to-budget": 7000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -3500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 42000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 25100,
+                "from-last-month": 12000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 8500,
+                  "actual": -5000,
+                  "balance": 1900,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6500,
+                  "actual": 0,
+                  "balance": 6500,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 25100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 25100,
+                "from-last-month": 25100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 1900,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6500,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
             "action": "reset_hold",
             "month": "2026-12"
           },
@@ -3461,15 +3609,15 @@
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": -5000,
-                  "balance": 2400,
+                  "balance": 1900,
                   "carryover": true
                 },
                 "Travel": {
-                  "budgeted": 6000,
+                  "budgeted": 6500,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -3497,13 +3645,13 @@
                 "Food": {
                   "budgeted": 0,
                   "actual": 0,
-                  "balance": 2400,
+                  "balance": 1900,
                   "carryover": true
                 },
                 "Travel": {
                   "budgeted": 0,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -3607,15 +3755,15 @@
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": -5000,
-                  "balance": 2400,
+                  "balance": 1900,
                   "carryover": true
                 },
                 "Travel": {
-                  "budgeted": 6000,
+                  "budgeted": 6500,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -3632,24 +3780,24 @@
                 "last-month-overspent": 0,
                 "buffered": 0,
                 "buffered-selected": 0,
-                "total-budgeted": -9000,
-                "to-budget": 16100,
+                "total-budgeted": -8500,
+                "to-budget": 16600,
                 "from-last-month": 25100,
                 "total-income": 0,
                 "total-spent": 0,
-                "total-leftover": 17400
+                "total-leftover": 16900
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": 0,
-                  "balance": 11400,
+                  "balance": 10400,
                   "carryover": true
                 },
                 "Travel": {
                   "budgeted": 0,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -3753,15 +3901,15 @@
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": -5000,
-                  "balance": 2400,
+                  "balance": 1900,
                   "carryover": true
                 },
                 "Travel": {
-                  "budgeted": 6000,
+                  "budgeted": 6500,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -3778,24 +3926,24 @@
                 "last-month-overspent": 0,
                 "buffered": 0,
                 "buffered-selected": 0,
-                "total-budgeted": -9000,
-                "to-budget": 16100,
+                "total-budgeted": -8500,
+                "to-budget": 16600,
                 "from-last-month": 25100,
                 "total-income": 0,
                 "total-spent": 0,
-                "total-leftover": 17400
+                "total-leftover": 16900
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": 0,
-                  "balance": 11400,
+                  "balance": 10400,
                   "carryover": true
                 },
                 "Travel": {
                   "budgeted": 0,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -3900,15 +4048,15 @@
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": -5000,
-                  "balance": 2400,
+                  "balance": 1900,
                   "carryover": true
                 },
                 "Travel": {
-                  "budgeted": 6000,
+                  "budgeted": 6500,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -3925,24 +4073,24 @@
                 "last-month-overspent": 0,
                 "buffered": 0,
                 "buffered-selected": 0,
-                "total-budgeted": -9000,
-                "to-budget": 16100,
+                "total-budgeted": -8500,
+                "to-budget": 16600,
                 "from-last-month": 25100,
                 "total-income": 0,
                 "total-spent": 0,
-                "total-leftover": 17400
+                "total-leftover": 16900
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": 0,
-                  "balance": 11400,
+                  "balance": 10400,
                   "carryover": true
                 },
                 "Travel": {
                   "budgeted": 0,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -4045,15 +4193,15 @@
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": -5000,
-                  "balance": 2400,
+                  "balance": 1900,
                   "carryover": true
                 },
                 "Travel": {
-                  "budgeted": 6000,
+                  "budgeted": 6500,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -4070,24 +4218,24 @@
                 "last-month-overspent": 0,
                 "buffered": 0,
                 "buffered-selected": 0,
-                "total-budgeted": -9000,
-                "to-budget": 16100,
+                "total-budgeted": -8500,
+                "to-budget": 16600,
                 "from-last-month": 25100,
                 "total-income": 0,
                 "total-spent": 0,
-                "total-leftover": 17400
+                "total-leftover": 16900
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": 0,
-                  "balance": 11400,
+                  "balance": 10400,
                   "carryover": true
                 },
                 "Travel": {
                   "budgeted": 0,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -4191,15 +4339,15 @@
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": -5000,
-                  "balance": 2400,
+                  "balance": 1900,
                   "carryover": true
                 },
                 "Travel": {
-                  "budgeted": 6000,
+                  "budgeted": 6500,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -4216,24 +4364,24 @@
                 "last-month-overspent": 0,
                 "buffered": 0,
                 "buffered-selected": 0,
-                "total-budgeted": -9000,
-                "to-budget": 16100,
+                "total-budgeted": -8500,
+                "to-budget": 16600,
                 "from-last-month": 25100,
                 "total-income": 0,
                 "total-spent": 0,
-                "total-leftover": 17400
+                "total-leftover": 16900
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": 0,
-                  "balance": 11400,
+                  "balance": 10400,
                   "carryover": true
                 },
                 "Travel": {
                   "budgeted": 0,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -4338,15 +4486,15 @@
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": -5000,
-                  "balance": 2400,
+                  "balance": 1900,
                   "carryover": true
                 },
                 "Travel": {
-                  "budgeted": 6000,
+                  "budgeted": 6500,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -4363,24 +4511,24 @@
                 "last-month-overspent": 0,
                 "buffered": 0,
                 "buffered-selected": 0,
-                "total-budgeted": -9000,
-                "to-budget": 16100,
+                "total-budgeted": -8500,
+                "to-budget": 16600,
                 "from-last-month": 25100,
                 "total-income": 0,
                 "total-spent": 0,
-                "total-leftover": 17400
+                "total-leftover": 16900
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": 0,
-                  "balance": 11400,
+                  "balance": 10400,
                   "carryover": true
                 },
                 "Travel": {
                   "budgeted": 0,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -4485,15 +4633,15 @@
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": -5000,
-                  "balance": 8400,
+                  "balance": 7900,
                   "carryover": true
                 },
                 "Travel": {
-                  "budgeted": 6000,
+                  "budgeted": 6500,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -4510,24 +4658,24 @@
                 "last-month-overspent": 0,
                 "buffered": 0,
                 "buffered-selected": 0,
-                "total-budgeted": -9000,
-                "to-budget": 10100,
+                "total-budgeted": -8500,
+                "to-budget": 10600,
                 "from-last-month": 19100,
                 "total-income": 0,
                 "total-spent": 0,
-                "total-leftover": 23400
+                "total-leftover": 22900
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": 0,
-                  "balance": 17400,
+                  "balance": 16400,
                   "carryover": true
                 },
                 "Travel": {
                   "budgeted": 0,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -4631,15 +4779,15 @@
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": -5000,
-                  "balance": 4400,
+                  "balance": 3900,
                   "carryover": true
                 },
                 "Travel": {
-                  "budgeted": 6000,
+                  "budgeted": 6500,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -4656,24 +4804,24 @@
                 "last-month-overspent": 0,
                 "buffered": 0,
                 "buffered-selected": 0,
-                "total-budgeted": -9000,
-                "to-budget": 14100,
+                "total-budgeted": -8500,
+                "to-budget": 14600,
                 "from-last-month": 23100,
                 "total-income": 0,
                 "total-spent": 0,
-                "total-leftover": 19400
+                "total-leftover": 18900
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": 0,
-                  "balance": 13400,
+                  "balance": 12400,
                   "carryover": true
                 },
                 "Travel": {
                   "budgeted": 0,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -4778,15 +4926,15 @@
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": -5000,
-                  "balance": 4400,
+                  "balance": 3900,
                   "carryover": true
                 },
                 "Travel": {
-                  "budgeted": 6000,
+                  "budgeted": 6500,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -4803,24 +4951,24 @@
                 "last-month-overspent": 0,
                 "buffered": 0,
                 "buffered-selected": 0,
-                "total-budgeted": -9000,
-                "to-budget": 14100,
+                "total-budgeted": -8500,
+                "to-budget": 14600,
                 "from-last-month": 23100,
                 "total-income": 0,
                 "total-spent": 0,
-                "total-leftover": 19400
+                "total-leftover": 18900
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": 0,
-                  "balance": 13400,
+                  "balance": 12400,
                   "carryover": true
                 },
                 "Travel": {
                   "budgeted": 0,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -4925,15 +5073,15 @@
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": -5000,
-                  "balance": 4400,
+                  "balance": 3900,
                   "carryover": true
                 },
                 "Travel": {
-                  "budgeted": 6000,
+                  "budgeted": 6500,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -4950,24 +5098,24 @@
                 "last-month-overspent": 0,
                 "buffered": 0,
                 "buffered-selected": 0,
-                "total-budgeted": -9000,
-                "to-budget": 14100,
+                "total-budgeted": -8500,
+                "to-budget": 14600,
                 "from-last-month": 23100,
                 "total-income": 0,
                 "total-spent": 0,
-                "total-leftover": 19400
+                "total-leftover": 18900
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": 0,
-                  "balance": 13400,
+                  "balance": 12400,
                   "carryover": true
                 },
                 "Travel": {
                   "budgeted": 0,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -5072,15 +5220,15 @@
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": -5000,
-                  "balance": 4400,
+                  "balance": 3900,
                   "carryover": true
                 },
                 "Travel": {
-                  "budgeted": 6000,
+                  "budgeted": 6500,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -5097,24 +5245,24 @@
                 "last-month-overspent": 0,
                 "buffered": 0,
                 "buffered-selected": 0,
-                "total-budgeted": -9000,
-                "to-budget": 14100,
+                "total-budgeted": -8500,
+                "to-budget": 14600,
                 "from-last-month": 23100,
                 "total-income": 0,
                 "total-spent": 0,
-                "total-leftover": 19400
+                "total-leftover": 18900
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": 0,
-                  "balance": 13400,
+                  "balance": 12400,
                   "carryover": true
                 },
                 "Travel": {
                   "budgeted": 0,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -5219,15 +5367,15 @@
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": -5000,
-                  "balance": 4400,
+                  "balance": 3900,
                   "carryover": true
                 },
                 "Travel": {
-                  "budgeted": 6000,
+                  "budgeted": 6500,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -5244,24 +5392,24 @@
                 "last-month-overspent": 0,
                 "buffered": 0,
                 "buffered-selected": 0,
-                "total-budgeted": -9000,
-                "to-budget": 14100,
+                "total-budgeted": -8500,
+                "to-budget": 14600,
                 "from-last-month": 23100,
                 "total-income": 0,
                 "total-spent": 0,
-                "total-leftover": 19400
+                "total-leftover": 18900
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": 0,
-                  "balance": 13400,
+                  "balance": 12400,
                   "carryover": true
                 },
                 "Travel": {
                   "budgeted": 0,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -5634,15 +5782,15 @@
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": -5000,
-                  "balance": 4400,
+                  "balance": 3900,
                   "carryover": true
                 },
                 "Travel": {
-                  "budgeted": 6000,
+                  "budgeted": 6500,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {
@@ -5659,24 +5807,24 @@
                 "last-month-overspent": 0,
                 "buffered": 0,
                 "buffered-selected": 0,
-                "total-budgeted": -9000,
-                "to-budget": 14100,
+                "total-budgeted": -8500,
+                "to-budget": 14600,
                 "from-last-month": 23100,
                 "total-income": 0,
                 "total-spent": 0,
-                "total-leftover": 19400
+                "total-leftover": 18900
               },
               "categories": {
                 "Food": {
-                  "budgeted": 9000,
+                  "budgeted": 8500,
                   "actual": 0,
-                  "balance": 13400,
+                  "balance": 12400,
                   "carryover": true
                 },
                 "Travel": {
                   "budgeted": 0,
                   "actual": 0,
-                  "balance": 6000,
+                  "balance": 6500,
                   "carryover": false
                 },
                 "Salary": {

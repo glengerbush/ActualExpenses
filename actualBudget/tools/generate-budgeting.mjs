@@ -55,7 +55,7 @@ try {
    ...(method==='tracking'?[{action:'set',month:'2026-12',category:'Salary',amount:35000}]:[]),
    {action:'carryover',month:'2026-12',category:'Food',enabled:true},
    {action:'copy_previous',month:'2027-01'},
-   ...(method==='envelope'?[{action:'hold',month:'2026-12',amount:5000},{action:'move',month:'2027-01',from:'Food',to:'Travel',amount:1000},{action:'cover',month:'2026-12',from:'to-budget',to:'Travel',amount:3000},{action:'reset_hold',month:'2026-12'}]:[]),
+   ...(method==='envelope'?[{action:'hold',month:'2026-12',amount:5000},{action:'move',month:'2027-01',from:'Food',to:'Travel',amount:1000},{action:'cover',month:'2026-12',from:'to-budget',to:'Travel',amount:3000},{action:'cover',month:'2027-01',from:'Food',to:'Travel',amount:500},{action:'reset_hold',month:'2026-12'}]:[]),
    {action:'copy_year',month:'2027-01',category:'Food'},
    ...(method==='envelope'?[
     {action:'hold',month:'2026-12',amount:1000},

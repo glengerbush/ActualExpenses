@@ -122,11 +122,11 @@ fn movement_note(
     b: &str,
     m: &str,
     data: &Value,
-    from: &str,
-    to: &str,
+    route: (&str, &str),
     n: i64,
     clock: &str,
 ) -> Result<(), Error> {
+    let (from, to) = route;
     let label = |id: &str| -> Result<String, Error> {
         Ok(if id == "to-budget" {
             "To Budget".into()
@@ -352,7 +352,7 @@ pub fn apply(db: &Connection, b: &str, body: &Value, clock: &str) -> Result<(), 
                 if requested < 0 {
                     return Err(Error::invalid("Cover a nonnegative amount"));
                 }
-                if deficit >= 0 || source_left <= 0 {
+                if requested == 0 || source_left <= 0 {
                     0
                 } else {
                     requested.min(source_left)
@@ -381,7 +381,7 @@ pub fn apply(db: &Connection, b: &str, body: &Value, clock: &str) -> Result<(), 
                         clock,
                     )?;
                 }
-                movement_note(db, b, m, data, from, to, n, clock)?;
+                movement_note(db, b, m, data, (from, to), n, clock)?;
             }
         }
         "category_notes" => {

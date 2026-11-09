@@ -146,6 +146,63 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun `planning changes advance native checkpoint without losing expenses`() {
+        Server().use { server ->
+            val base = "/budgets/${server.budget}"
+            val category = UUID.randomUUID().toString()
+            server.post(
+                "$base/categories",
+                """{"id":"$category","name":"Food","is_income":false}""",
+            )
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            val expense = app.saveExpense(ExpenseDraft("4.56", notes = "Before planning"))
+            val checkpoint = JsonParser.parseString(store.raw).asJsonObject["checkpoint"].asString
+            fun plan(action: String) {
+                val snapshot =
+                    server
+                        .get("$base/budget?month=2026-01")
+                        .getAsJsonObject("data")["snapshot"]
+                        .asString
+                server.post(
+                    "$base/budget",
+                    """{"month":"2026-01","snapshot":"$snapshot",$action}""",
+                    200,
+                )
+            }
+            plan("\"action\":\"set\",\"category\":\"$category\",\"amount\":500")
+            plan("\"action\":\"method\",\"method\":\"envelope\"")
+            plan("\"action\":\"hold\",\"amount\":0")
+            app.refresh()
+            assertTrue(app.state().online, app.state().error)
+            assertEquals(expense, app.state().expenses.single().id)
+            assertEquals(456, app.state().expenses.single().amountMinor)
+            val next = JsonParser.parseString(store.raw).asJsonObject["checkpoint"].asString
+            assertNotEquals(checkpoint, next)
+            val clock =
+                DateTimeFormatterBuilder()
+                    .appendInstant(3)
+                    .toFormatter()
+                    .format(Instant.now().plusMillis(1)) + "-0000-0000000000000001"
+            server.patch("$base/transactions/$expense", """{"notes":"After planning"}""", clock)
+            app.refresh()
+            assertTrue(app.state().online, app.state().error)
+            assertEquals("After planning", app.state().expenses.single().notes)
+            assertEquals(expense, app.state().expenses.single().id)
+            assertEquals(
+                server
+                    .get("$base/budget?month=2026-01")
+                    .getAsJsonObject("data")["snapshot"]
+                    .asString,
+                JsonParser.parseString(store.raw).asJsonObject["checkpoint"].asString,
+            )
+        }
+    }
+
+    @Test
     fun `location-only changes preserve native expense projection and pending offline edits`() {
         Server().use { server ->
             val base = "/budgets/${server.budget}"

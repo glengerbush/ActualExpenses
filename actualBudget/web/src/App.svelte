@@ -33,6 +33,8 @@
   import { readReferenceDraft } from "./lib/reference-actions";
   import AccountNavigation from "./lib/AccountNavigation.svelte";
   import { readAccountDraft, sortedAccounts } from "./lib/account-actions";
+  import BudgetPlan from "./lib/BudgetPlan.svelte";
+  import { planningKey } from "./lib/planning";
   import Register from "./lib/Register.svelte";
   import Categories from "./lib/Categories.svelte";
   import Settings from "./lib/Settings.svelte";
@@ -62,6 +64,7 @@
     | "organize"
     | "budget"
     | "account"
+    | "planning"
     | "settings"
     | "categories"
     | "import"
@@ -168,6 +171,8 @@
         loading = false;
       }
       saveSelection(value.id, account?.id ?? accountId);
+      if (localStorage.getItem(planningKey(value.id)) !== null)
+        form = "planning";
       try {
         if (readReferenceDraft(value.id)) {
           form = "references";
@@ -268,6 +273,7 @@
       | "organize"
       | "budget"
       | "account"
+      | "planning"
       | "settings"
       | "categories"
       | "import"
@@ -374,6 +380,10 @@
           onselect={selectAccount}
         />{/key}
 
+      <button
+        onclick={() => showForm("planning")}
+        disabled={!!form || loading || !compatible}>Budget</button
+      >
       <button
         onclick={() => showForm("categories")}
         disabled={!!form || loading || disconnected}>{t("Categories")}</button
@@ -496,6 +506,22 @@
         budgetId={budget.id}
         onclose={() => openBudget(budget!, account?.id)}
       />
+    {:else if form === "planning" && budget}{#key budget.id}<BudgetPlan
+          budgetId={budget.id}
+          {disconnected}
+          onclose={() => (form = null)}
+          onchanged={async (method) => {
+            if (budget) budget = { ...budget, budget_type: method };
+            await refreshAccounts();
+          }}
+          onaccount={(id) => {
+            const found = accounts.find((a) => a.id === id);
+            if (found) {
+              form = null;
+              void selectAccount(found);
+            }
+          }}
+        />{/key}
     {:else if form === "settings" && budget}<Settings
         budgetId={budget.id}
         onclose={() => showForm(null)}

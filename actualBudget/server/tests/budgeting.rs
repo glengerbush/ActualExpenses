@@ -755,3 +755,78 @@ fn exact_receipts_lookup_cancellation_and_equal_clock_have_public_route_contract
     );
     assert_eq!(allocation(&plan(&s, &root), C), 200);
 }
+
+#[test]
+fn change_feed_serializes_cells_months_and_method_without_breaking_reference_refresh() {
+    let (s, root) = setup();
+    let before = plan(&s, &root);
+    for (key, body) in [
+        ("set", json!({"action":"set","category":C,"amount":500})),
+        ("notes", json!({"action":"notes","notes":"Plan"})),
+        ("method", json!({"action":"method","method":"tracking"})),
+    ] {
+        assert_eq!(write_plan(&s, &root, key, body, None).status(), 200);
+    }
+    let r = s.get(&format!(
+        "{root}/changes?cursor={}",
+        before["snapshot"].as_str().unwrap()
+    ));
+    assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+    let v = r.json::<Value>().unwrap();
+    for entity in ["budget_cells", "budget_months", "budget_settings"] {
+        let row = v["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["entity"] == entity)
+            .unwrap();
+        assert_eq!(row["data"]["id"], row["id"]);
+        assert_eq!(row["data"]["deleted"], false);
+    }
+    assert_eq!(v["next_cursor"], plan(&s, &root)["snapshot"]);
+}
+
+#[test]
+fn planning_receipt_survives_restore_but_unknown_old_epoch_cannot_authorize_a_new_plan() {
+    let (s, root) = setup();
+    let v = plan(&s, &root);
+    let body = json!({"action":"set","month":"2026-01","category":C,"amount":200,"snapshot":v["snapshot"]});
+    let send = |key: &str, body: &Value| {
+        s.client
+            .post(format!("{}{root}/budget", s.url))
+            .header("Idempotency-Key", key)
+            .header("X-Actual-History-Owner", OWNER)
+            .header("X-Actual-Budget-Epoch", v["epoch"].as_str().unwrap())
+            .json(body)
+            .send()
+            .unwrap()
+    };
+    let original = send("original", &body);
+    assert_eq!(original.status(), 200);
+    let original = original.json::<Value>().unwrap();
+    let backup = s
+        .post(&format!("{root}/backups"), "backup", json!({}))
+        .json::<Value>()
+        .unwrap();
+    let restored = s.post(
+        &format!(
+            "{root}/backups/{}/restore",
+            backup["data"]["id"].as_str().unwrap()
+        ),
+        "restore",
+        json!({"confirm_name":"Plan"}),
+    );
+    assert_eq!(restored.status(), 200, "{}", restored.text().unwrap());
+    assert_ne!(plan(&s, &root)["epoch"], v["epoch"]);
+    assert_eq!(send("original", &body).json::<Value>().unwrap(), original);
+    let mut unknown = body;
+    unknown["snapshot"] = plan(&s, &root)["snapshot"].clone();
+    unknown["amount"] = json!(999);
+    let r = send("unknown-old-epoch", &unknown);
+    assert_eq!(r.status(), 409);
+    assert_eq!(
+        r.json::<Value>().unwrap()["error"]["code"],
+        "budget_restored"
+    );
+    assert_eq!(allocation(&plan(&s, &root), C), 200);
+}

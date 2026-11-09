@@ -391,6 +391,30 @@ pub(super) fn commit_with_work(
     }
     // Payee-name actions are planned during preview; create each planned name
     // once inside this same atomic receipt, including allocation-only names.
+    let mut schedule_links = std::collections::BTreeMap::<String, String>::new();
+    for entry in &entries {
+        for (before, after) in std::iter::once((&entry.before, &entry.after)).chain(
+            entry.after["children"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .map(|after| {
+                    let before = entry.before["children"]
+                        .as_array()
+                        .and_then(|rows| rows.iter().find(|row| row["id"] == after["id"]))
+                        .unwrap_or(&Value::Null);
+                    (before, after)
+                }),
+        ) {
+            if after["deleted"] != true && after["schedule_id"] != before["schedule_id"] {
+                if let (Some(id), Some(schedule)) =
+                    (after["id"].as_str(), after["schedule_id"].as_str())
+                {
+                    schedule_links.insert(id.into(), schedule.into());
+                }
+            }
+        }
+    }
     let mut entries = entries;
     let mut planned = std::collections::BTreeMap::new();
     for entry in &entries {
@@ -625,6 +649,28 @@ pub(super) fn commit_with_work(
             ));
         }
         changed.push(result["response_body"]["data"].clone());
+    }
+    // A schedule-only action is still a durable rule effect. Ordinary paired
+    // legs share the link; a split parent's allocations remain independent.
+    let mut expanded = schedule_links.clone();
+    for (id, schedule) in &schedule_links {
+        let row = ledger::get(db, b, id)?;
+        if row["is_parent"] != true {
+            if let Some(peer) = row["transfer_id"].as_str() {
+                expanded.insert(peer.into(), schedule.clone());
+            }
+        }
+    }
+    for (id, schedule) in expanded {
+        let row = ledger::get(db, b, &id)?;
+        if row["schedule_id"] != schedule {
+            crate::schedules::link(db, b, &id, &schedule, clock)?;
+            if let Some(saved) = changed.iter_mut().find(|row| row["id"] == id) {
+                *saved = ledger::get(db, b, &id)?;
+            } else {
+                changed.push(ledger::get(db, b, &id)?);
+            }
+        }
     }
     for peer in created_peers {
         super::entry::peer_rules(db, b, &peer, clock, &mut peer_runner)?;

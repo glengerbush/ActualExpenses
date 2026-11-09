@@ -75,6 +75,7 @@ pub(super) async fn create(
             final_input.validate()?;
             let result=sync::execute(db,&b,Some(&clock),false,epoch.as_deref(),sync::Mutation::Create(Box::new(final_input)))?;
             if result["response_status"].as_u64().unwrap_or(500)>=400{return Err(Error::conflict("The original transaction could not be saved"));}
+            let linked_schedule=after["schedule_id"].as_str().map(str::to_owned);
             after.as_object_mut().unwrap().remove("new_payee");
             if after["is_parent"]==true {
                 let before=crate::ledger::get(db,&b,&id)?;
@@ -82,7 +83,16 @@ pub(super) async fn create(
             }else if let Some(destination)=transfer {
                 let peer=super::actions::identity(&["actualBudget.rule-entry-pair.v1",&b,&id]);
                 crate::transfers::composition::save_child(db,&b,&id,&destination,&peer,&clock,None)?;
+                if let Some(schedule)=linked_schedule.as_deref(){crate::schedules::link(db,&b,&id,schedule,&clock)?;crate::schedules::link(db,&b,&peer,schedule,&clock)?;}
                 peer_rules(db,&b,&peer,&clock,&mut runner)?;
+            }
+            if let Some(schedule)=linked_schedule {
+                let row=crate::ledger::get(db,&b,&id)?;
+                if row["schedule_id"]!=schedule {crate::schedules::link(db,&b,&id,&schedule,&clock)?;}
+                if row["is_parent"]!=true {if let Some(peer)=row["transfer_id"].as_str(){
+                    let row=crate::ledger::get(db,&b,peer)?;
+                    if row["schedule_id"]!=schedule{crate::schedules::link(db,&b,peer,&schedule,&clock)?;}
+                }}
             }
             if learn{learning::manual(db,&b,std::slice::from_ref(&id),&clock)?;}
             let mut saved=crate::ledger::get_any(db,&b,&id)?;
@@ -207,7 +217,10 @@ pub(crate) fn post_schedule(
                 work: runner.into_work(),
             },
         )?;
-        crate::schedules::link(db, b, id, schedule, clock)?;
+        // The rule plan persists schedule-only effects alongside the split.
+        if crate::ledger::get(db, b, id)?["schedule_id"] != schedule {
+            crate::schedules::link(db, b, id, schedule, clock)?;
+        }
         return Ok((work, true));
     } else if let Some(destination) = transfer {
         let peer = super::actions::identity(&["actualBudget.schedule-pair.v1", b, id]);

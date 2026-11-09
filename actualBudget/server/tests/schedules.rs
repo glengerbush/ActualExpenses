@@ -1125,3 +1125,107 @@ fn imported_schedule_generation_selector_clocks_guard_effective_next_date() {
         );
     }
 }
+
+#[test]
+fn automatic_entry_retains_linked_schedule_and_suppresses_duplicate_posting() {
+    let server = Server::start();
+    setup(&server);
+    let response = command(
+        &server,
+        "create-linked",
+        json!({"action":"create","id":S,"name":"Bill","posts_transaction":true,"conditions":[{"field":"account","op":"is","value":A},{"field":"amount","op":"is","value":-1234},{"field":"date","op":"is","value":"2026-11-09"}]}),
+    );
+    assert_eq!(response.status(), 201);
+    let cp = checkpoint(&server);
+    let id = "21220000-0000-4000-8000-000000000199";
+    let body = json!({"snapshot":cp["snapshot"],"id":id,"account_id":A,"date":"2026-11-09","amount":-1234,"notes":"Actual payment"});
+    let response = server
+        .client
+        .post(format!(
+            "{}/api/v1/budgets/{B}/rules/transactions",
+            server.url
+        ))
+        .header("Idempotency-Key", "automatic-payment")
+        .header("X-Actual-Budget-Epoch", cp["epoch"].as_str().unwrap())
+        .json(&body)
+        .send()
+        .unwrap();
+    assert_eq!(response.status(), 201, "{}", response.text().unwrap());
+    let saved: Value = response.json().unwrap();
+    assert_eq!(saved["data"]["schedule_id"], S);
+    let response = command(
+        &server,
+        "catchup-linked",
+        json!({"action":"catch-up","through":"2026-11-09"}),
+    );
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    assert_eq!(response.json::<Value>().unwrap()["data"]["posted_count"], 0);
+    let rows: Value = server
+        .get(&format!("/api/v1/budgets/{B}/transactions"))
+        .json()
+        .unwrap();
+    assert_eq!(rows["data"].as_array().unwrap().len(), 1);
+    assert_eq!(rows["data"][0]["id"], id);
+    assert_eq!(rows["balances"]["total"], -1234);
+}
+
+#[test]
+fn explicit_rule_application_persists_schedule_only_changes_and_keeps_linked_rules_coherent() {
+    let server = Server::start();
+    setup(&server);
+    let created = command(
+        &server,
+        "create-link-rule",
+        json!({"action":"create","id":S,"name":"Bill","conditions":[{"field":"account","op":"is","value":A},{"field":"amount","op":"is","value":-1234},{"field":"date","op":"is","value":"2026-11-09"}]}),
+    );
+    assert_eq!(created.status(), 201);
+    let schedule: Value = created.json().unwrap();
+    let rule = schedule["data"]["rule_id"].as_str().unwrap();
+    let id = "21220000-0000-4000-8000-000000000198";
+    assert_eq!(
+        server
+            .post(
+                &format!("/api/v1/budgets/{B}/transactions"),
+                "payment",
+                json!({"id":id,"account_id":A,"date":"2026-11-09","amount":-1234})
+            )
+            .status(),
+        201
+    );
+    let cp = checkpoint(&server);
+    let response = server.post(
+        &format!("/api/v1/budgets/{B}/rules/apply"),
+        "link-payment",
+        json!({"snapshot":cp["snapshot"],"ids":[id],"rule_ids":[rule]}),
+    );
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    assert_eq!(
+        response.json::<Value>().unwrap()["data"]["affected_count"],
+        1
+    );
+    let rows: Value = server
+        .get(&format!("/api/v1/budgets/{B}/transactions"))
+        .json()
+        .unwrap();
+    assert_eq!(rows["data"][0]["schedule_id"], S);
+    assert_eq!(rows["balances"]["total"], -1234);
+    let cp = checkpoint(&server);
+    let response = server
+        .client
+        .delete(format!("{}/api/v1/budgets/{B}/rules/{rule}", server.url))
+        .header("Idempotency-Key", "delete-linked-rule")
+        .json(&json!({"snapshot":cp["snapshot"]}))
+        .send()
+        .unwrap();
+    assert_eq!(
+        response.status(),
+        409,
+        "Deleting a linked rule must retain a usable schedule"
+    );
+    assert_eq!(
+        server
+            .get(&format!("/api/v1/budgets/{B}/schedules"))
+            .status(),
+        200
+    );
+}

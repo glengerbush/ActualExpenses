@@ -23,6 +23,8 @@ Commands use the existing durable receipt, cancellation, epoch, history-owner an
 
 Matching and discovery require a snapshot and bounded pagination. Discovery preserves source pattern/ranking behavior, including its current-weekday and eight-month quirks. The public tests compare full original ledgers before reading, reject stale/invalid continuations and verify restart stability.
 
+An additional pinned deleted-schedule probe found that source raw links survive deletion but public transactions project null and become eligible for discovery. `112ae5d` and the discovery correction join only live schedules for those reads, retaining raw history. Genuine imported-source and native delete/undo tests failed before the changes and pass afterward, including restored links and unchanged payments after restart. Logs: `/tmp/schedules-deleted-discovery-red.log`, `/tmp/schedules-deleted-projection-red.log`, `/tmp/schedules-deleted-links-final.log` (five discovery cases pass). An intermediate harness assertion used the wrong schedules response envelope; only that assertion was corrected. The two added cases bring combined HTTP coverage to225; earlier full-run evidence remains valid outside these focused reads.
+
 Future conversion previews every affected row and protection state without creating references or reserving an ID. Commit checks future date, snapshot, locks and affected field clocks, then creates the schedule and removes the original graph atomically. New drafts reserve their original UUID with only final deleted state in the change feed; a delayed old Save refuses. Owned undo/redo works initially, but refuses after a new linked/scheduled payment would make restoration duplicate money.
 
 Two intentional integrity corrections are explicit:

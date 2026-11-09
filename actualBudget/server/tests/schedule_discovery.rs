@@ -146,6 +146,210 @@ fn normalized(value: &Value, ids: &BTreeMap<String, String>) -> Value {
 }
 
 #[test]
+fn deleted_schedule_returns_history_to_discovery_and_undo_restores_links() {
+    let manifest: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/schedule-discovery/manifest.json"
+    ))
+    .unwrap();
+    let oracle: Value =
+        serde_json::from_str(include_str!("../../tests/fixtures/schedule-matching.json")).unwrap();
+    let archive = &manifest["archives"][0];
+    assert_eq!(archive["name"], "weekly exact");
+    let server = Server::start(tempfile::tempdir().unwrap());
+    let root = import(&server, archive);
+    let ids: BTreeMap<String, String> = serde_json::from_value(archive["ids"].clone()).unwrap();
+    let ledger = server.get(&format!("{root}/transactions"));
+    let discover = |server: &Server| {
+        let cp = server.get(&format!("{root}/checkpoint"));
+        server
+            .client
+            .get(format!("{}{root}/schedules/discovery", server.url))
+            .query(&[
+                ("snapshot", cp["data"]["snapshot"].as_str().unwrap()),
+                ("as_of", "2026-11-09"),
+            ])
+            .send()
+            .unwrap()
+            .error_for_status()
+            .unwrap()
+            .json::<Value>()
+            .unwrap()["data"]["suggestions"]
+            .clone()
+    };
+    let before = discover(&server);
+    let expected = &oracle["discovery"][0]["suggestions"];
+    assert_eq!(before.as_array().unwrap().len(), 1);
+    let v = &before[0];
+    assert_eq!(
+        normalized(
+            &json!({"account":v["account_id"],"payee":v["payee_id"],"date":v["date"],"amount":v["amount"],"_conditions":v["conditions"]}),
+            &ids
+        ),
+        expected[0]
+    );
+    let schedule = uuid::Uuid::new_v4().to_string();
+    let owner = uuid::Uuid::new_v4().to_string();
+    let command = |key: &str, mut body: Value| {
+        let cp = server.get(&format!("{root}/checkpoint"));
+        body["snapshot"] = cp["data"]["snapshot"].clone();
+        server
+            .client
+            .post(format!("{}{root}/schedules/commands", server.url))
+            .header("Idempotency-Key", key)
+            .header("X-Actual-History-Owner", &owner)
+            .header(
+                "X-Actual-Budget-Epoch",
+                cp["data"]["epoch"].as_str().unwrap(),
+            )
+            .json(&body)
+            .send()
+            .unwrap()
+    };
+    let created = command(
+        "link-history",
+        json!({"action":"create","id":schedule,"conditions":v["conditions"],"transaction_ids":ledger["data"].as_array().unwrap().iter().map(|r|r["id"].clone()).collect::<Vec<_>>()}),
+    );
+    assert_eq!(created.status(), 201, "{}", created.text().unwrap());
+    assert_eq!(discover(&server), json!([]));
+    let linked = server.get(&format!("{root}/transactions"));
+    assert!(
+        linked["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|r| r["schedule_id"] == schedule)
+    );
+    let deleted = command("delete-schedule", json!({"action":"delete","id":schedule}));
+    assert_eq!(deleted.status(), 200, "{}", deleted.text().unwrap());
+    assert_eq!(
+        discover(&server),
+        before,
+        "Deleted schedules must not exclude otherwise eligible history"
+    );
+    let after = server.get(&format!("{root}/transactions"));
+    assert_eq!(after["balances"], ledger["balances"]);
+    let project = |rows: &Value| {
+        rows.as_array()
+            .unwrap()
+            .iter()
+            .map(|r| projection(r, &ids))
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(project(&after["data"]), project(&ledger["data"]));
+    let cp = server.get(&format!("{root}/checkpoint"));
+    let history = server
+        .client
+        .get(format!("{}{root}/history", server.url))
+        .header("X-Actual-History-Owner", &owner)
+        .header(
+            "X-Actual-Budget-Epoch",
+            cp["data"]["epoch"].as_str().unwrap(),
+        )
+        .send()
+        .unwrap()
+        .error_for_status()
+        .unwrap()
+        .json::<Value>()
+        .unwrap();
+    let undone = server
+        .client
+        .post(format!("{}{root}/history/undo", server.url))
+        .header("Idempotency-Key", "undo-delete")
+        .header("X-Actual-History-Owner", &owner)
+        .header(
+            "X-Actual-Budget-Epoch",
+            cp["data"]["epoch"].as_str().unwrap(),
+        )
+        .json(&json!({"action_id":history["data"]["undo"]["id"]}))
+        .send()
+        .unwrap();
+    assert_eq!(undone.status(), 200, "{}", undone.text().unwrap());
+    let restored = server.get(&format!("{root}/transactions"));
+    assert_eq!(restored["balances"], ledger["balances"]);
+    assert!(
+        restored["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|r| r["schedule_id"] == schedule)
+    );
+    assert_eq!(discover(&server), json!([]));
+    let server = server.restart();
+    assert_eq!(server.get(&format!("{root}/transactions")), restored);
+    assert_eq!(discover(&server), json!([]));
+}
+
+#[test]
+fn imported_deleted_schedule_hides_link_without_changing_original_payment() {
+    use sha2::{Digest, Sha256};
+    let oracle: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/schedule-deleted-link.json"
+    ))
+    .unwrap();
+    let bytes = include_bytes!("../../tests/fixtures/schedule-deleted-link-26.10.zip");
+    assert_eq!(
+        format!("{:x}", Sha256::digest(bytes)),
+        oracle["archive_sha256"]
+    );
+    let server = Server::start(tempfile::tempdir().unwrap());
+    let stage: Value = server
+        .client
+        .post(format!("{}/api/v1/imports/actual", server.url))
+        .header("Idempotency-Key", "deleted-source")
+        .header("Content-Type", "application/zip")
+        .body(bytes.to_vec())
+        .send()
+        .unwrap()
+        .error_for_status()
+        .unwrap()
+        .json()
+        .unwrap();
+    assert_eq!(stage["data"]["status"], "ready");
+    server
+        .client
+        .post(format!(
+            "{}/api/v1/imports/{}/activate",
+            server.url,
+            stage["data"]["id"].as_str().unwrap()
+        ))
+        .header("Idempotency-Key", "activate-deleted")
+        .json(&json!({}))
+        .send()
+        .unwrap()
+        .error_for_status()
+        .unwrap();
+    let root = format!(
+        "/api/v1/budgets/{}",
+        stage["data"]["budget_id"].as_str().unwrap()
+    );
+    let ledger = server.get(&format!("{root}/transactions"));
+    let expected = &oracle["snapshots"][1];
+    assert_eq!(ledger["data"].as_array().unwrap().len(), 1);
+    let row = &ledger["data"][0];
+    assert_eq!(row["id"], "22220000-0000-4000-8000-000000000981");
+    for field in ["amount", "date", "notes", "cleared", "reconciled"] {
+        assert_eq!(row[field], expected["rows"][0][field], "{field}");
+    }
+    assert!(row["category_id"].is_null());
+    assert_eq!(row["account_name"], "Spending");
+    assert_eq!(row["payee_name"], "Bill");
+    assert!(!row["is_parent"].as_bool().unwrap_or(false));
+    assert!(row["parent_id"].is_null());
+    assert!(row["transfer_id"].is_null());
+    assert!(
+        row["schedule_id"].is_null(),
+        "Deleted source link must project null: {row}"
+    );
+    assert_eq!(ledger["balances"]["total"], expected["balance"]);
+    assert_eq!(
+        server.get(&format!("{root}/schedules"))["data"]["schedules"],
+        json!([])
+    );
+    let server = server.restart();
+    assert_eq!(server.get(&format!("{root}/transactions")), ledger);
+}
+
+#[test]
 fn discovery_matches_all_pinned_histories_and_preserves_imported_ledgers() {
     let oracle: Value =
         serde_json::from_str(include_str!("../../tests/fixtures/schedule-matching.json")).unwrap();

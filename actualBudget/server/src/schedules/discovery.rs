@@ -234,7 +234,7 @@ fn discover(db: &Connection, b: &str, query: &Request, as_of: &str) -> Result<Va
     let today = date(as_of)?;
     for account in accounts {
         let sql = format!(
-            "SELECT t.date,t.amount,t.payee_id,t.is_parent,t.parent_id IS NOT NULL,EXISTS(SELECT 1 FROM schedule_links l WHERE l.budget_id=t.budget_id AND l.id=t.id AND l.tombstone=0),p.transfer_account_id IS NOT NULL FROM transactions t LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id WHERE t.budget_id=?1 AND t.account_id=?2 AND t.tombstone=0 ORDER BY t.date DESC,t.starting_balance ASC,{} DESC,t.id LIMIT ?3",
+            "SELECT t.date,t.amount,t.payee_id,t.is_parent,t.parent_id IS NOT NULL,EXISTS(SELECT 1 FROM schedule_links l JOIN schedules s ON s.budget_id=l.budget_id AND s.id=l.schedule_id AND s.tombstone=0 WHERE l.budget_id=t.budget_id AND l.id=t.id AND l.tombstone=0),p.transfer_account_id IS NOT NULL FROM transactions t LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id WHERE t.budget_id=?1 AND t.account_id=?2 AND t.tombstone=0 ORDER BY t.date DESC,t.starting_balance ASC,{} DESC,t.id LIMIT ?3",
             crate::android_upgrade::order::SQL
         );
         let values = db

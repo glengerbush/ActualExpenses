@@ -87,6 +87,15 @@ pub fn cancel_header(headers: &HeaderMap) -> Result<bool, Error> {
         )),
     }
 }
+pub fn receipt_only_header(headers: &HeaderMap) -> Result<bool, Error> {
+    match headers.get("X-Actual-Receipt-Only") {
+        None => Ok(false),
+        Some(value) if value == "true" => Ok(true),
+        Some(_) => Err(Error::invalid(
+            "X-Actual-Receipt-Only must be true when supplied",
+        )),
+    }
+}
 pub fn header(headers: &HeaderMap) -> Result<Option<String>, Error> {
     headers
         .get("X-Actual-Edit-Clock")
@@ -399,11 +408,38 @@ pub fn write(
     legacy_status: StatusCode,
     operation: impl FnOnce(&Connection) -> Result<Value, Error>,
 ) -> Result<(StatusCode, Json<Value>), Error> {
-    // Keep old headerless payload bytes so pre-upgrade pending receipts still replay.
-    let payload = clock
-        .map(|clock| json!({"payload":payload,"edit_clock":clock}).to_string())
-        .unwrap_or_else(|| payload.to_owned());
+    let payload = receipt_payload(payload, clock);
     let result = store::write(db, scope, key, &payload, operation)?;
+    receipt_response(result, legacy_status)
+}
+fn receipt_payload(payload: &str, clock: Option<&str>) -> String {
+    // Keep old headerless payload bytes so pre-upgrade pending receipts still replay.
+    clock
+        .map(|clock| json!({"payload":payload,"edit_clock":clock}).to_string())
+        .unwrap_or_else(|| payload.to_owned())
+}
+pub fn receipt(
+    db: &Connection,
+    scope: &str,
+    key: &str,
+    payload: &str,
+    clock: Option<&str>,
+    legacy_status: StatusCode,
+) -> Result<(StatusCode, Json<Value>), Error> {
+    let result =
+        store::receipt(db, scope, key, &receipt_payload(payload, clock))?.ok_or_else(|| {
+            Error::new(
+                StatusCode::NOT_FOUND,
+                "operation_uncommitted",
+                "No committed outcome exists for this request.",
+            )
+        })?;
+    receipt_response(result, legacy_status)
+}
+fn receipt_response(
+    result: Value,
+    legacy_status: StatusCode,
+) -> Result<(StatusCode, Json<Value>), Error> {
     if let (Some(status), Some(body)) = (
         result["response_status"].as_u64(),
         result.get("response_body"),

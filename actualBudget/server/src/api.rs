@@ -70,6 +70,33 @@ async fn cancellation_scope(
     request: axum::extract::Request,
     next: axum::middleware::Next,
 ) -> axum::response::Response {
+    if request.headers().contains_key("X-Actual-Receipt-Only") {
+        if let Err(error) = concurrency::receipt_only_header(request.headers()) {
+            return error.into_response();
+        }
+        let path = request
+            .extensions()
+            .get::<axum::extract::MatchedPath>()
+            .map(|path| path.as_str())
+            .unwrap_or("");
+        if request
+            .headers()
+            .contains_key("X-Actual-Cancel-If-Uncommitted")
+        {
+            return Error::invalid("Receipt lookup cannot also cancel a request").into_response();
+        }
+        if !matches!(
+            (request.method().as_str(), path),
+            ("POST", "/api/v1/budgets/{budget}/transactions")
+                | (
+                    "PATCH" | "DELETE",
+                    "/api/v1/budgets/{budget}/transactions/{id}"
+                )
+        ) {
+            return Error::invalid("Receipt lookup is unsupported for this operation")
+                .into_response();
+        }
+    }
     if request
         .headers()
         .contains_key("X-Actual-Cancel-If-Uncommitted")
@@ -117,7 +144,7 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["budgets", "accounts", "account_lifecycle", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports"],
+        "capabilities": ["budgets", "accounts", "account_lifecycle", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports"],
         "openapi": "/api/v1/openapi.json"
     }))
 }
@@ -305,6 +332,16 @@ async fn create_transaction(
     let payload = serde_json::to_string(&input).map_err(Error::internal)?;
     store
         .run(move |db| {
+            if headers.contains_key("X-Actual-Receipt-Only") {
+                return concurrency::receipt(
+                    db,
+                    &format!("POST /budgets/{budget}/transactions"),
+                    &key,
+                    &payload,
+                    clock.as_deref(),
+                    StatusCode::CREATED,
+                );
+            }
             concurrency::write(
                 db,
                 &format!("POST /budgets/{budget}/transactions"),
@@ -359,6 +396,16 @@ async fn update_transaction(
     let payload = input.to_string();
     store
         .run(move |db| {
+            if headers.contains_key("X-Actual-Receipt-Only") {
+                return concurrency::receipt(
+                    db,
+                    &format!("PATCH /budgets/{budget}/transactions/{id}"),
+                    &key,
+                    &payload,
+                    clock.as_deref(),
+                    StatusCode::OK,
+                );
+            }
             concurrency::write(
                 db,
                 &format!("PATCH /budgets/{budget}/transactions/{id}"),
@@ -392,6 +439,16 @@ async fn delete_transaction(
     let epoch = crate::lifecycle::epoch_header(&headers)?;
     store
         .run(move |db| {
+            if headers.contains_key("X-Actual-Receipt-Only") {
+                return concurrency::receipt(
+                    db,
+                    &format!("DELETE /budgets/{budget}/transactions/{id}"),
+                    &key,
+                    "null",
+                    clock.as_deref(),
+                    StatusCode::OK,
+                );
+            }
             concurrency::write(
                 db,
                 &format!("DELETE /budgets/{budget}/transactions/{id}"),

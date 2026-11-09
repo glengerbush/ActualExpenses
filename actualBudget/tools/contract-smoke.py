@@ -127,7 +127,10 @@ def main():
                 "amount": -123, "cleared": True, "notes": "Contract expense",
                 "payee_id": references["payees"], "category_id": references["categories"],
             }
-            check(entries, entries_template, "POST", transaction, {"Idempotency-Key": "entry"}, 201)
+            miss = check(entries, entries_template, "POST", transaction, {"Idempotency-Key": "entry", "X-Actual-Receipt-Only": "true"}, 404)
+            assert miss["error"]["code"] == "operation_uncommitted"
+            created = check(entries, entries_template, "POST", transaction, {"Idempotency-Key": "entry"}, 201)
+            assert check(entries, entries_template, "POST", transaction, {"Idempotency-Key": "entry", "X-Actual-Receipt-Only": "true"}, 201) == created
             entry = entries + "/" + transaction["id"]
             entry_template = entries_template + "/{id}"
             check(entry, entry_template)

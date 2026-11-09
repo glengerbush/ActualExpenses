@@ -89,6 +89,153 @@ const C0: &str = "2026-01-01T00:00:00.000Z-0000-0000000000000001";
 const C1: &str = "2026-01-02T00:00:00.000Z-0000-0000000000000001";
 const C2: &str = "2026-01-03T00:00:00.000Z-0000-0000000000000001";
 const C3: &str = "2026-01-04T00:00:00.000Z-0000-0000000000000001";
+#[test]
+fn receipt_only_reconciles_original_outcomes_without_applying_unknown_work() {
+    let s = Server::start();
+    let path = setup(&s);
+    let base = format!("/api/v1/budgets/{B}");
+    let probe = |method: &str, path: &str, key: &str, clock: &str, body: Value| {
+        let request = s
+            .client
+            .request(method.parse().unwrap(), format!("{}{path}", s.url))
+            .header("Idempotency-Key", key)
+            .header("X-Actual-Edit-Clock", clock)
+            .header("X-Actual-Receipt-Only", "true");
+        (if body.is_null() {
+            request
+        } else {
+            request.json(&body)
+        })
+        .send()
+        .unwrap()
+    };
+    let checkpoint = s.get(&format!("{base}/checkpoint"));
+    let unknown_body = json!({"id":"30000000-0000-4000-8000-000000000004","account_id":A,"amount":-200,"date":"2026-01-01"});
+    let unknown = probe(
+        "POST",
+        &format!("{base}/transactions"),
+        "unknown",
+        C1,
+        unknown_body.clone(),
+    );
+    assert_eq!(unknown.status(), 404);
+    assert_eq!(
+        unknown.json::<Value>().unwrap()["error"]["code"],
+        "operation_uncommitted"
+    );
+    assert_eq!(s.get(&format!("{base}/checkpoint")), checkpoint);
+    // A read-only miss must not cancel, claim or otherwise consume the identity.
+    assert_eq!(
+        s.write(
+            "POST",
+            &format!("{base}/transactions"),
+            "unknown",
+            Some(C1),
+            unknown_body
+        )
+        .status(),
+        201
+    );
+    let backup = s
+        .write(
+            "POST",
+            &format!("{base}/backups"),
+            "backup",
+            None,
+            json!({"label":"Before edit"}),
+        )
+        .json::<Value>()
+        .unwrap();
+    let patch = json!({"notes":"Committed before lost acknowledgement"});
+    let edited = s
+        .write("PATCH", &path, "edit", Some(C1), patch.clone())
+        .json::<Value>()
+        .unwrap();
+    let deleted = s
+        .write("DELETE", &path, "delete", Some(C2), Value::Null)
+        .json::<Value>()
+        .unwrap();
+    assert_eq!(
+        s.write(
+            "POST",
+            &format!(
+                "{base}/backups/{}/restore",
+                backup["data"]["id"].as_str().unwrap()
+            ),
+            "restore",
+            None,
+            json!({"confirm_name":"Concurrent"})
+        )
+        .status(),
+        200
+    );
+    // Restore changes the cursor, but retained receipts still replay before epoch gates.
+    assert_eq!(
+        probe("PATCH", &path, "edit", C1, patch.clone())
+            .json::<Value>()
+            .unwrap(),
+        edited
+    );
+    assert_eq!(
+        probe("DELETE", &path, "delete", C2, Value::Null)
+            .json::<Value>()
+            .unwrap(),
+        deleted
+    );
+    let epoch = s.get(&format!("{base}/checkpoint"))["data"]["epoch"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let response = s
+        .client
+        .delete(format!("{}{base}/accounts/{A}", s.url))
+        .header("Idempotency-Key", "remove-account")
+        .header("X-Actual-Budget-Epoch", &epoch)
+        .json(&json!({"confirm_name":"Spending"}))
+        .send()
+        .unwrap();
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    assert_eq!(
+        probe("PATCH", &path, "edit", C1, patch.clone())
+            .json::<Value>()
+            .unwrap(),
+        edited
+    );
+    assert_eq!(
+        probe("PATCH", &path, "edit", C1, json!({"notes":"Different"})).status(),
+        409
+    );
+    let original = probe(
+        "POST",
+        &format!("{base}/transactions"),
+        "create",
+        C0,
+        json!({"id":T,"account_id":A,"amount":-100,"date":"2026-01-01"}),
+    );
+    assert_eq!(original.status(), 201);
+    assert_eq!(original.json::<Value>().unwrap()["data"]["amount"], -100);
+    let rejected = s
+        .client
+        .patch(format!("{}{path}", s.url))
+        .header("Idempotency-Key", "bad-flags")
+        .header("X-Actual-Receipt-Only", "true")
+        .header("X-Actual-Cancel-If-Uncommitted", "true")
+        .json(&patch)
+        .send()
+        .unwrap();
+    assert_eq!(rejected.status(), 400);
+    assert_eq!(
+        probe(
+            "POST",
+            "/api/v1/budgets",
+            "unsupported",
+            C0,
+            json!({"id":B,"name":"Forbidden probe"})
+        )
+        .status(),
+        400
+    );
+}
 fn setup(s: &Server) -> String {
     assert_eq!(
         s.write(

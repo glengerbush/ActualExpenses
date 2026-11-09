@@ -140,15 +140,13 @@ pub fn create_account(db: &Connection, budget: &str, input: NewAccount) -> Resul
     crate::accounts::get(db, budget, &input.id)
 }
 
-pub fn write(
-    db: &mut Connection,
+pub fn receipt(
+    db: &Connection,
     scope: &str,
     key: &str,
     payload: &str,
-    operation: impl FnOnce(&Connection) -> Result<Value, Error>,
-) -> Result<Value, Error> {
-    let tx = db.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
-    let existing: Option<(String, String)> = tx
+) -> Result<Option<Value>, Error> {
+    let existing: Option<(String, String)> = db
         .query_row(
             "SELECT payload,response FROM operations WHERE scope=?1 AND operation_id=?2",
             params![scope, key],
@@ -163,7 +161,22 @@ pub fn write(
                 "Idempotency-Key was already used with a different payload",
             ));
         }
-        return serde_json::from_str(&response).map_err(Error::internal);
+        return serde_json::from_str(&response)
+            .map(Some)
+            .map_err(Error::internal);
+    }
+    Ok(None)
+}
+pub fn write(
+    db: &mut Connection,
+    scope: &str,
+    key: &str,
+    payload: &str,
+    operation: impl FnOnce(&Connection) -> Result<Value, Error>,
+) -> Result<Value, Error> {
+    let tx = db.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    if let Some(result) = receipt(&tx, scope, key, payload)? {
+        return Ok(result);
     }
     let result = operation(&tx)?;
     tx.execute(

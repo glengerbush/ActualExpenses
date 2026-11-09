@@ -61,6 +61,22 @@ retries cancellation after reload. Only an authoritative receipt or cancellation
 fence permits clearing matching saved work. A confirmed clock rejection alone
 cannot prove another in-flight attempt will not commit.
 
+### Read-only receipt reconciliation
+
+When the server advertises `transaction_receipt_lookup`, clients may send the original
+transaction POST/PATCH/DELETE with `X-Actual-Receipt-Only: true`. Preserve method,
+path, key, body, edit clock and epoch. A known identity returns its exact stored
+status/body before budget generation, account availability or change-cursor checks.
+Changed payload/clock returns409 `idempotency_conflict`. An unknown identity returns
+404 `operation_uncommitted`; it does not mutate records, advance clocks/cursors,
+consume the key or cancel work. This header cannot combine with cancellation and
+is rejected on other endpoints. Negotiate the capability before using it.
+
+Use this to reconcile attempted requests after restore, closure or deletion before
+refreshing unavailable views. A miss is only a snapshot of current receipt state:
+an earlier in-flight request may still commit later. Keep the immutable request
+until an authoritative outcome arrives; never treat a lookup miss as cancellation.
+
 ## Deletion boundary
 
 Before publishing a deletion, compare its original clock with every known field

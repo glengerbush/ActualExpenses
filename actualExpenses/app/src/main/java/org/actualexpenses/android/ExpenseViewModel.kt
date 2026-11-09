@@ -90,6 +90,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
             }
         }
     }
+    override fun discardRejectedSplitEdit() = task { graph.access { it.discardRejectedSplitEdit() }; withContext(Dispatchers.Main) { refresh() } }
     override fun dismissMessage() {
         localError.value = null
         viewModelScope.launch(Dispatchers.IO) { runCatching { graph.access { it.dismissNotice() } } }
@@ -111,6 +112,6 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         associations = payeeCategoryAssociations, currency = currency, decimalPlaces = decimalPlaces,
         online = online, busy = busy, pendingCount = pendingCount, error = if (legacyRecovery) null else localError ?: error, notice = notice,
         recoveryMessage = if (legacyRecovery) error else null,
-        canCancelConnection = budgetId != null, expenseContext=expenseContext,
+        canCancelConnection = budgetId != null, expenseContext=expenseContext, splitRecovery=splitRecovery,
     )
 }

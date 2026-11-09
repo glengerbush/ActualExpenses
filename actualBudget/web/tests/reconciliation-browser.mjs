@@ -309,8 +309,156 @@ try {
   await expect(
     page.locator("tbody tr").filter({ hasText: "Starting Balance" }),
   ).toContainText("Cleared");
+  // A hidden register must not hide settled split members from reconciliation.
+  const splitBudget = randomUUID(),
+    splitAccount = randomUUID(),
+    splitParent = randomUUID();
+  const splitRoot = `/budgets/${splitBudget}`;
+  await write("/budgets", {
+    id: splitBudget,
+    name: "Settled split acceptance",
+  });
+  await write(splitRoot + "/accounts", {
+    id: splitAccount,
+    name: "Checking",
+    opening_balance: 0,
+    opening_date: "2026-01-01",
+  });
+  await write(splitRoot + "/transactions", {
+    id: splitParent,
+    account_id: splitAccount,
+    amount: -300,
+    date: "2026-02-28",
+    cleared: true,
+    notes: "Settled split",
+  });
+  const splitPath = splitRoot + `/transactions/${splitParent}/splits`;
+  const splitCurrent = await (await fetch(api + "/api/v1" + splitPath)).json();
+  await write(splitPath, {
+    snapshot: splitCurrent.snapshot,
+    children: [
+      { id: randomUUID(), amount: -100, notes: "First allocation" },
+      { id: randomUUID(), amount: -200, notes: "Second allocation" },
+    ],
+  });
+  await page.goto(server.url);
+  await page.getByRole("button", { name: "All budgets", exact: true }).click();
+  await page
+    .locator(".budget-list button")
+    .filter({ hasText: "Settled split acceptance" })
+    .click();
+  await page.getByRole("button", { name: "Checking", exact: true }).click();
+  await page.getByText("Filters and columns", { exact: true }).click();
+  await page.getByLabel("Hide cleared transactions", { exact: true }).check();
+  await page
+    .getByRole("button", { name: "Find transactions", exact: true })
+    .click();
+  await expect(page.locator("tbody tr")).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Reconcile account", exact: true })
+    .click();
+  await expect(page.getByTestId("reconciliation-difference")).toHaveText(
+    "0.00",
+  );
+  await expect(page.locator(".reconciliation")).toContainText(
+    "1 cleared entries ready to lock",
+  );
+  await page
+    .getByRole("button", { name: "Lock transactions", exact: true })
+    .click();
+  await expect(page.locator(".reconciliation")).toContainText(
+    "1 already locked",
+  );
+  await page.getByLabel("Hide cleared transactions", { exact: true }).uncheck();
+  await page
+    .getByLabel("Hide reconciled transactions", { exact: true })
+    .check();
+  await page
+    .getByRole("button", { name: "Find transactions", exact: true })
+    .click();
+  await expect(page.locator("tbody tr")).toHaveCount(0);
+  await page
+    .getByLabel("Hide reconciled transactions", { exact: true })
+    .uncheck();
+  await page
+    .getByRole("button", { name: "Find transactions", exact: true })
+    .click();
+  await expect(page.locator("tbody tr")).toHaveCount(1);
+  await page.getByRole("button", { name: "Edit splits", exact: true }).click();
+  await page
+    .getByLabel("Split 1 notes", { exact: true })
+    .fill("Confirmed settled allocation");
+  await page.getByRole("button", { name: "Save splits", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText(
+    "Confirm editing this reconciled split",
+  );
+  await page
+    .getByLabel("Confirm editing this reconciled split", { exact: true })
+    .check();
+  await page.screenshot({
+    path: "test-results/reconciliation-split-confirmation.png",
+    fullPage: true,
+  });
+  let splitAttempt;
+  await page.route("**/transactions/*/splits", async (route) => {
+    if (route.request().method() === "POST" && !splitAttempt) {
+      splitAttempt = {
+        body: route.request().postData(),
+        key: route.request().headers()["idempotency-key"],
+        clock: route.request().headers()["x-actual-edit-clock"],
+      };
+      const url = new URL(route.request().url());
+      url.hostname = "127.0.0.1";
+      await route.fetch({ url: url.href });
+      await route.abort("failed");
+    } else await route.continue();
+  });
+  await page.getByRole("button", { name: "Save splits", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Retry saved split", exact: true }),
+  ).toBeVisible();
+  expect(
+    Object.keys(JSON.parse(splitAttempt.body).reconciled_versions),
+  ).toHaveLength(3);
+  await page.reload();
+  const splitRetry = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().endsWith("/splits"),
+  );
+  await page
+    .getByRole("button", { name: "Retry saved split", exact: true })
+    .click();
+  const retriedSplit = await splitRetry;
+  expect(retriedSplit.postData()).toBe(splitAttempt.body);
+  expect(retriedSplit.headers()["idempotency-key"]).toBe(splitAttempt.key);
+  expect(retriedSplit.headers()["x-actual-edit-clock"]).toBe(
+    splitAttempt.clock,
+  );
+  await expect(page.locator("tbody tr")).toContainText("Reconciled");
+  const protectedSplit = (
+    await (await fetch(api + "/api/v1" + splitPath)).json()
+  ).data;
+  expect(protectedSplit.children.every((row) => row.reconciled)).toBe(true);
+  await expect(page.getByRole("button", { name: /^Unlock / })).toBeEnabled();
+  await page.screenshot({
+    path: "test-results/reconciliation-splits.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: /^Unlock / }).click();
+  await expect(page.locator(".reconciliation")).toContainText("all its splits");
+  await page
+    .getByRole("button", { name: "Confirm unlock", exact: true })
+    .click();
+  await expect(page.locator("tbody tr")).toContainText("Cleared");
+  const unlockedSplit = (
+    await (await fetch(api + "/api/v1" + splitPath)).json()
+  ).data;
+  expect(
+    [unlockedSplit, ...unlockedSplit.children].every(
+      (row) => row.cleared && !row.reconciled,
+    ),
+  ).toBe(true);
   console.log(
-    "PASS reconciliation browser: plain HTTP, captured date preference/recovery, immutable replay/cancel, quota failure, corrected clock recovery, confirmed edit, unlock, keyboard, mobile/dark/large text, offline boundary",
+    "PASS reconciliation browser: plain HTTP, captured date preference/recovery, protected split/filter/retry integration, immutable replay/cancel, quota failure, corrected clock recovery, confirmed edit, unlock, keyboard, mobile/dark/large text, offline boundary",
   );
 } finally {
   await browser?.close();

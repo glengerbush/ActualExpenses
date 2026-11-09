@@ -45,7 +45,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 20 | 13 | Transactions, payees and categories | Pending feature acceptance |
 | 21 | 12 | Transactions, payees and categories | Pending feature acceptance |
 | 22 | 12, 16 | Transactions, payees and categories | Pending feature acceptance |
-| 23 | 14 | Transactions, payees and categories | Pending feature acceptance |
+| 23 | 14 | Transactions, payees and categories | [14: split allocations, unsplit/recombine, pinned fixtures and recovery](splits-validation.md); register12/undo13 integration and root review pending |
 | 24 | 15 | Transactions, payees and categories | Pending feature acceptance |
 | 25 | 15 | Transactions, payees and categories | Pending feature acceptance |
 | 26 | 25 | Transactions, payees and categories | Pending feature acceptance |
@@ -117,7 +117,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 92 | 06 | Android and offline expense capture | [06: pending/latest-backdated retention](android-api-validation.md) |
 | 93 | 06 | Android and offline expense capture | [06: amount-only, optional fields and automatic clearing](android-api-validation.md) |
 | 94 | 19, 20 | Android and offline expense capture | Pending feature acceptance |
-| 95 | 06, 14, 15 | Android and offline expense capture | [06: current eligibility filters and unsupported-feature activation guards](android-api-validation.md); split/transfer predicates must extend before14/15 activation |
+| 95 | 06, 14, 15 | Android and offline expense capture | [06: current eligibility filters and unsupported-feature activation guards](android-api-validation.md); [14: split parent/child exclusion and pending recovery](splits-validation.md); transfer predicate must extend before15 activation |
 | 96 | 20 | Android and offline expense capture | Pending feature acceptance |
 | 97 | 20 | Android and offline expense capture | Pending feature acceptance |
 | 98 | 20, 50 | Android and offline expense capture | Pending feature acceptance |

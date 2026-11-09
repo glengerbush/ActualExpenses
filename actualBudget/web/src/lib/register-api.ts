@@ -1,5 +1,9 @@
+import type { RegisterQuery } from "./register-query";
 import { request } from "./api";
 export interface Transaction {
+  is_parent?: boolean;
+  parent_id?: string | null;
+  children?: Transaction[];
   id: string;
   field_versions?: Record<string, string>;
   deleted?: boolean;
@@ -17,8 +21,10 @@ export interface Transaction {
   retained_payee_id?: string | null;
   category_id: string | null;
   category_name: string | null;
+  category_group_name?: string | null;
   category_is_income: boolean | null;
   running_balance?: number | null;
+  running_balance_error?: "exact_money_range";
 }
 export interface Reference {
   id: string;
@@ -26,11 +32,14 @@ export interface Reference {
   is_income?: boolean;
   hidden?: boolean;
   group_hidden?: boolean;
+  group_id?: string | null;
   deleted?: boolean;
 }
 export interface RegisterPage {
   data: Transaction[];
   balances: { total: number; cleared: number; uncleared: number };
+  filtered_balances?: { total: number; cleared: number; uncleared: number };
+  filtered_count?: number;
   as_of: string | null;
   next_offset: number | null;
   snapshot: string;
@@ -66,20 +75,18 @@ export function registerPage(
   offset = 0,
   asOf = "",
   snapshot?: string,
-  payeeId = "",
-  tag = "",
+  query?: RegisterQuery,
 ) {
   const params = new URLSearchParams({ limit: "100", offset: String(offset) });
+  if (query) params.set("query", JSON.stringify(query));
   if (accountId) params.set("account_id", accountId);
   if (asOf) params.set("as_of", asOf);
   if (snapshot) params.set("snapshot", snapshot);
-  if (payeeId) params.set("payee_id", payeeId);
-  if (tag) params.set("tag", tag);
   return request<RegisterPage>(`/budgets/${budgetId}/transactions?${params}`);
 }
 export async function references(
   budgetId: string,
-  kind: "payees" | "categories",
+  kind: "payees" | "categories" | "category-groups",
 ): Promise<Reference[]> {
   const items: Reference[] = [];
   let offset: number | null = 0;

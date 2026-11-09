@@ -25,6 +25,7 @@ private data class NativeOperation(
     val deletes: Boolean = false,
     val createdOffline: Boolean = false,
     var attempted: Boolean = false,
+    var splitRejected: Boolean = false,
 )
 
 private data class NativeState(
@@ -178,6 +179,7 @@ class ApiExpenseService(
             notice = saved.notice,
             error = pendingAccountError() ?: error,
             syncBlocked = blocked || pendingAccountError() != null,
+            splitRecovery = saved.pending.firstOrNull()?.splitRejected == true,
         )
     }
 
@@ -524,7 +526,10 @@ class ApiExpenseService(
                             it.pending.removeAll { pending -> pending.id == op.id }
                             it.notice = "Deletion cancelled: a newer edit kept this expense."
                         }
-                    } else throw failure
+                    } else {
+                        if (failure.code == "split_transaction") change { it.pending.first { pending -> pending.id == op.id }.splitRejected = true }
+                        throw failure
+                    }
                 }
                 delivered = true
             }
@@ -566,10 +571,33 @@ class ApiExpenseService(
                             it.pending.removeAll { pending -> pending.id == op.id }
                             it.notice = "Deletion cancelled: a newer edit kept this expense."
                         }
-                    else -> throw failure
+                    else -> {
+                        if (failure.code == "split_transaction") change { it.pending.first { pending -> pending.id == op.id }.splitRejected = true }
+                        throw failure
+                    }
                 }
             }
         }
+    }
+
+    /** Only a durable refusal for this exact original request permits discarding it. */
+    fun discardRejectedSplitEdit() = syncLock.withLock {
+        ready()
+        val op = saved.pending.firstOrNull() ?: return@withLock
+        require(op.splitRejected) { "Refresh to verify the rejected split edit first." }
+        val api = BudgetApi(saved.server, transport)
+        try {
+            acknowledge(op, api.request(op.path, op.method, op.body, op.id, op.clock, op.epoch, receiptOnly = true))
+        } catch (failure: BudgetApiException) {
+            if (failure.code != "split_transaction") throw failure
+            change {
+                it.pending.removeAll { pending -> pending.id == op.id }
+                it.rows.remove(op.transactionId)
+                it.notice = "Rejected expense edit discarded. Review the split in actualBudget."
+            }
+        }
+        blocked = false
+        error = null
     }
 
     private fun refreshBudget(api: BudgetApi, budget: String, includeView: Boolean = true) {
@@ -939,6 +967,8 @@ class ApiExpenseService(
 
     private fun eligible(row: JsonObject) =
         row.long("amount") < 0 &&
+            row["is_parent"]?.asBoolean != true &&
+            row.text("parent_id") == null &&
             row["reconciled"]?.asBoolean != true &&
             row["deleted"]?.asBoolean != true
 

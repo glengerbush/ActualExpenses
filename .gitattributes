@@ -1,2 +1,5 @@
 # Reference provenance hashes describe original bytes, including financial-file CRLF.
 actualBudget/reference/** -text
+
+# Unified-diff context lines require their leading space, including empty lines.
+actualBudget/server/vendor/jlens-regress/actualbudget.patch whitespace=-blank-at-eol

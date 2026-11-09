@@ -119,6 +119,10 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
             Column(Modifier.widthIn(max = 640.dp).fillMaxWidth()) {
                 if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+                if (state.splitRecovery) Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("This expense became a split. The rejected edit remains saved on this phone. Review the split in actualBudget, then discard the rejected edit to resume syncing.")
+                    OutlinedButton(onClick = actions::discardRejectedSplitEdit, enabled = !state.busy, modifier = Modifier.heightIn(min = 48.dp)) { Text("Discard rejected expense edit") }
+                }
                 when (state.screen) {
                     Screen.SERVER -> ServerSelection(state, actions)
                     Screen.RECOVERY -> Column(Modifier.verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {

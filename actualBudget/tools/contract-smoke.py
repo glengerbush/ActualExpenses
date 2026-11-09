@@ -91,6 +91,11 @@ def main():
             entry = check(f"{budgets}/{budget_id}/transactions?account_id={account_id}", budgets + "/{budget}/transactions")["data"][0]
             unlock_path = f"{budgets}/{budget_id}/transactions/{entry['id']}/unlock"
             check(unlock_path, budgets + "/{budget}/transactions/{id}/unlock", "POST", {"reconciled_version":entry["field_versions"]["reconciled"]}, {"Idempotency-Key":"unlock"})
+            register_settings_path=f"{budgets}/{budget_id}/register-settings"
+            register_settings_template=budgets+"/{budget}/register-settings"
+            register_settings=check(register_settings_path,register_settings_template)["data"]
+            check(register_settings_path,register_settings_template,"PATCH",{"revision":0,"settings":{"views":{},"saved_filters":[]}}, {"Idempotency-Key":"register-settings","X-Actual-Budget-Epoch":register_settings["epoch"]})
+            check(register_settings_path,register_settings_template,"PATCH",{"revision":0,"settings":{"views":{},"saved_filters":[]}}, {"Idempotency-Key":"stale-register-settings","X-Actual-Budget-Epoch":register_settings["epoch"]},409)
             group_path = f"{budgets}/{budget_id}/account-groups"
             group_template = budgets + "/{budget}/account-groups"
             group_id = str(uuid.uuid4())

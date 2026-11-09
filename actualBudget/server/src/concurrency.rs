@@ -260,6 +260,7 @@ pub enum Mutation {
     Patch(String, Value),
     Delete(String),
     Duplicate(String, String),
+    Split(String, crate::splits::Change),
 }
 /// Called only inside a receipt transaction, after exact original-receipt lookup.
 pub fn canceled(db: &Connection, budget: &str) -> Result<Value, Error> {
@@ -285,6 +286,10 @@ pub fn execute(
     crate::lifecycle::require_epoch(db, budget, expected_epoch)?;
     let edit_clock = clock(db, budget, proposed)?;
     match mutation {
+        Mutation::Split(id, input) => {
+            let data = crate::splits::apply(db, budget, &id, input, &edit_clock)?;
+            success(db, budget, data, &edit_clock, vec![], StatusCode::OK)
+        }
         Mutation::Create(input) => {
             let id = input.id.clone();
             let new_payee = input.new_payee.as_ref().map(|p| p.id.clone());
@@ -306,7 +311,12 @@ pub fn execute(
             )
         }
         Mutation::Duplicate(source, id) => {
-            ledger::duplicate(db, budget, &source, &id)?;
+            let duplicate = ledger::duplicate(db, budget, &source, &id)?;
+            if let Some(children) = duplicate["children"].as_array() {
+                for child in children {
+                    crate::splits::stamp(db, budget, child["id"].as_str().unwrap(), &edit_clock)?;
+                }
+            }
             for field in FIELDS {
                 seed_field_version(db, budget, "transactions", &id, field, &edit_clock)?;
             }
@@ -347,6 +357,15 @@ pub fn execute(
             } else {
                 ledger::get(db, budget, &id)?
             };
+            if !hidden && (previous["is_parent"] == true || !previous["parent_id"].is_null()) {
+                return refusal(
+                    db,
+                    budget,
+                    previous,
+                    "split_transaction",
+                    "This expense is now part of a split. Your pending edit is retained; cancel it or review the split in actualBudget.",
+                );
+            }
             ledger::validate_patch(&previous, &patch)?;
             let fields = patch.as_object().unwrap();
             let old = versions(db, budget, &id)?;
@@ -419,11 +438,14 @@ pub fn execute(
                 );
             }
             let known = versions(db, budget, &id)?;
-            if known.as_object().unwrap().values().any(|clock| {
-                clock
-                    .as_str()
-                    .is_some_and(|clock| clock > edit_clock.as_str())
-            }) {
+            let newer_child:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM transactions c JOIN field_versions v ON v.budget_id=c.budget_id AND v.entity='transactions' AND v.entity_id=c.id WHERE c.budget_id=?1 AND c.parent_id=?2 AND c.tombstone=0 AND v.clock>?3)",params![budget,id,edit_clock],|r|r.get(0))?;
+            if newer_child
+                || known.as_object().unwrap().values().any(|clock| {
+                    clock
+                        .as_str()
+                        .is_some_and(|clock| clock > edit_clock.as_str())
+                })
+            {
                 return refusal(
                     db,
                     budget,
@@ -432,7 +454,18 @@ pub fn execute(
                     "A newer edit kept this transaction. The pending deletion was canceled.",
                 );
             }
+            let previous = ledger::get(db, budget, &id)?;
             ledger::delete(db, budget, &id)?;
+            if let Some(children) = previous["children"].as_array() {
+                for child in children {
+                    let cid = child["id"].as_str().unwrap();
+                    db.execute(
+                        "UPDATE transactions SET tombstone=1 WHERE budget_id=?1 AND id=?2",
+                        params![budget, cid],
+                    )?;
+                    crate::splits::stamp(db, budget, cid, &edit_clock)?;
+                }
+            }
             seed_field_version(db, budget, "transactions", &id, "tombstone", &edit_clock)?;
             mark(db, budget, "transactions", &id)?;
             success(
@@ -511,14 +544,14 @@ fn limit() -> u32 {
 }
 pub fn check_snapshot(db: &Connection, budget: &str, expected: Option<&str>) -> Result<(), Error> {
     store::require_budget(db, budget)?;
-    if let Some(expected) = expected {
-        if cursor(db, budget)? != expected {
-            return Err(Error::new(
-                StatusCode::CONFLICT,
-                "snapshot_changed",
-                "Budget data changed while loading. Start a fresh snapshot.",
-            ));
-        }
+    if let Some(expected) = expected
+        && cursor(db, budget)? != expected
+    {
+        return Err(Error::new(
+            StatusCode::CONFLICT,
+            "snapshot_changed",
+            "Budget data changed while loading. Start a fresh snapshot.",
+        ));
     }
     Ok(())
 }
@@ -604,10 +637,52 @@ pub fn read_changes(
             "account_groups" => crate::accounts::get_group(db, budget, &id)?,
             "preferences" => crate::preferences::get_preferences(db, budget)?,
             "payees" | "tags" => crate::payees_tags::record(db, budget, &entity, &id)?,
+            "register_settings" => crate::register_settings::read_settings(db, budget)?,
             "categories" | "category_groups" => crate::categories::get(db, budget, &entity, &id)?,
             _ => return Err(Error::internal("Unknown change entity")),
         };
         data.push(json!({"entity":entity,"id":id,"data":value}));
     }
     Ok(json!({"data":data,"next_cursor":next,"has_more":more}))
+}
+
+pub(crate) fn decorate_many(
+    db: &Connection,
+    budget: &str,
+    rows: &mut [Value],
+) -> Result<(), Error> {
+    if rows.is_empty() {
+        return Ok(());
+    }
+    let positions = rows
+        .iter()
+        .enumerate()
+        .map(|(index, row)| (row["id"].as_str().unwrap().to_string(), index))
+        .collect::<std::collections::HashMap<_, _>>();
+    let mut parameters = vec![budget.to_string()];
+    parameters.extend(rows.iter().map(|r| r["id"].as_str().unwrap().to_string()));
+    for row in rows.iter_mut() {
+        row["field_versions"] = json!(
+            FIELDS
+                .iter()
+                .map(|field| (field.to_string(), json!(ZERO)))
+                .collect::<serde_json::Map<_, _>>()
+        );
+    }
+    let placeholders = (2..=rows.len() + 1)
+        .map(|n| format!("?{n}"))
+        .collect::<Vec<_>>()
+        .join(",");
+    let mut statement=db.prepare(&format!("SELECT entity_id,field,clock FROM field_versions WHERE budget_id=?1 AND entity='transactions' AND entity_id IN ({placeholders})"))?;
+    for row in statement.query_map(rusqlite::params_from_iter(parameters.iter()), |r| {
+        Ok((
+            r.get::<_, String>(0)?,
+            r.get::<_, String>(1)?,
+            r.get::<_, String>(2)?,
+        ))
+    })? {
+        let (id, field, clock) = row?;
+        rows[positions[&id]]["field_versions"][field] = json!(clock);
+    }
+    Ok(())
 }

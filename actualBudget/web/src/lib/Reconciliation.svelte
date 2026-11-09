@@ -196,7 +196,18 @@
         if (action === "unlock") {
           if (!unlocking) return;
           observeVersions(unlocking.field_versions);
-          body = { reconciled_version: unlocking.field_versions?.reconciled };
+          for (const child of unlocking.children ?? [])
+            observeVersions(child.field_versions);
+          body = unlocking.children?.length
+            ? {
+                reconciled_versions: Object.fromEntries(
+                  [unlocking, ...unlocking.children].map((row) => [
+                    row.id,
+                    row.field_versions?.reconciled,
+                  ]),
+                ),
+              }
+            : { reconciled_version: unlocking.field_versions?.reconciled };
           path = `/budgets/${budgetId}/transactions/${unlocking.id}/unlock`;
         } else {
           if (!draft || !progress)
@@ -341,7 +352,9 @@
   {#if unlocking && !draft?.pending}
     <div class="unlock-confirmation">
       <p>
-        {t("Unlock this reconciled transaction?")}
+        {unlocking.is_parent
+          ? t("Unlock this reconciled transaction and all its splits?")
+          : t("Unlock this reconciled transaction?")}
         {formatAmount(unlocking.amount)} · {unlocking.payee_name ??
           t("No payee")} · {formatDate(unlocking.date)}
       </p>

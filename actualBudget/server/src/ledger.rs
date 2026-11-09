@@ -108,7 +108,7 @@ pub fn account_exists(db: &Connection, budget: &str, account: &str) -> Result<()
     }
     Ok(())
 }
-fn validate_references(
+pub(crate) fn validate_references(
     db: &Connection,
     budget: &str,
     input: &NewTransaction,
@@ -132,16 +132,16 @@ fn validate_references(
         ("payees", &input.payee_id),
         ("categories", &input.category_id),
     ] {
-        if let Some(id) = id {
-            if !db.query_row(
+        if let Some(id) = id
+            && !db.query_row(
                 &format!("SELECT EXISTS(SELECT 1 FROM {table} WHERE budget_id=?1 AND id=?2)"),
                 params![budget, id],
                 |r| r.get::<_, bool>(0),
-            )? {
-                return Err(Error::invalid(format!(
-                    "Unknown {table} reference in this budget"
-                )));
-            }
+            )?
+        {
+            return Err(Error::invalid(format!(
+                "Unknown {table} reference in this budget"
+            )));
         }
     }
     Ok(())
@@ -181,7 +181,7 @@ fn budget_balances(db: &Connection, budget: &str) -> Result<Balances, Error> {
 }
 pub fn refresh_account(db: &Connection, budget: &str, account: &str) -> Result<(), Error> {
     let mut balances = Balances::default();
-    let mut query=db.prepare("SELECT amount,cleared FROM transactions WHERE budget_id=?1 AND account_id=?2 AND tombstone=0 ORDER BY date ASC,starting_balance DESC,sort_order ASC,id DESC")?;
+    let mut query=db.prepare("SELECT amount,cleared FROM transactions WHERE budget_id=?1 AND account_id=?2 AND tombstone=0 AND parent_id IS NULL ORDER BY date ASC,starting_balance DESC,sort_order ASC,id DESC")?;
     for row in query.query_map(params![budget, account], |r| {
         Ok((r.get::<_, i64>(0)?, r.get::<_, bool>(1)?))
     })? {
@@ -243,10 +243,10 @@ fn insert(
     apply_addition(db, budget, &input)?;
     get(db, budget, &input.id)
 }
-const SELECT: &str = "SELECT t.id,t.account_id,t.amount,t.date,t.cleared,t.reconciled,t.starting_balance,CASE WHEN p.tombstone=0 THEN t.payee_id END,CASE WHEN p.tombstone=0 THEN p.name END,t.category_id,c.name,c.is_income,t.notes,a.name,t.sort_order,t.imported_payee,t.payee_id FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id";
+const SELECT: &str = "SELECT t.id,t.account_id,t.amount,t.date,t.cleared,t.reconciled,t.starting_balance,CASE WHEN p.tombstone=0 THEN t.payee_id END,CASE WHEN p.tombstone=0 THEN p.name END,t.category_id,c.name,c.is_income,t.notes,a.name,t.sort_order,t.imported_payee,t.payee_id,t.is_parent,t.parent_id FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id";
 fn row(r: &rusqlite::Row) -> rusqlite::Result<Value> {
     Ok(
-        json!({"id":r.get::<_,String>(0)?,"account_id":r.get::<_,String>(1)?,"amount":r.get::<_,i64>(2)?,"date":r.get::<_,String>(3)?,"cleared":r.get::<_,bool>(4)?,"reconciled":r.get::<_,bool>(5)?,"starting_balance":r.get::<_,bool>(6)?,"payee_id":r.get::<_,Option<String>>(7)?,"payee_name":r.get::<_,Option<String>>(8)?,"category_id":r.get::<_,Option<String>>(9)?,"category_name":r.get::<_,Option<String>>(10)?,"category_is_income":r.get::<_,Option<bool>>(11)?,"notes":r.get::<_,String>(12)?,"account_name":r.get::<_,String>(13)?,"sort_order":r.get::<_,i64>(14)?,"imported_payee":r.get::<_,Option<String>>(15)?,"retained_payee_id":r.get::<_,Option<String>>(16)?}),
+        json!({"id":r.get::<_,String>(0)?,"account_id":r.get::<_,String>(1)?,"amount":r.get::<_,i64>(2)?,"date":r.get::<_,String>(3)?,"cleared":r.get::<_,bool>(4)?,"reconciled":r.get::<_,bool>(5)?,"starting_balance":r.get::<_,bool>(6)?,"payee_id":r.get::<_,Option<String>>(7)?,"payee_name":r.get::<_,Option<String>>(8)?,"category_id":r.get::<_,Option<String>>(9)?,"category_name":r.get::<_,Option<String>>(10)?,"category_is_income":r.get::<_,Option<bool>>(11)?,"notes":r.get::<_,String>(12)?,"account_name":r.get::<_,String>(13)?,"sort_order":r.get::<_,i64>(14)?,"imported_payee":r.get::<_,Option<String>>(15)?,"retained_payee_id":r.get::<_,Option<String>>(16)?,"is_parent":r.get::<_,bool>(17)?,"parent_id":r.get::<_,Option<String>>(18)?}),
     )
 }
 pub fn get(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
@@ -269,7 +269,7 @@ pub fn get_any(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> 
         )
         .optional()?
         .ok_or_else(Error::missing)?;
-    crate::concurrency::decorate(db, budget, row)
+    crate::splits::decorate(db, budget, crate::concurrency::decorate(db, budget, row)?)
 }
 pub struct RegisterFilters<'a> {
     pub account: Option<&'a str>,
@@ -277,136 +277,6 @@ pub struct RegisterFilters<'a> {
     pub payee: Option<&'a str>,
     pub tag: Option<&'a str>,
 }
-pub fn list(
-    db: &Connection,
-    budget: &str,
-    filters: RegisterFilters<'_>,
-    limit: u32,
-    offset: u32,
-    expected_snapshot: Option<&str>,
-) -> Result<Value, Error> {
-    let RegisterFilters {
-        account,
-        as_of,
-        payee,
-        tag,
-    } = filters;
-    store::require_budget(db, budget)?;
-    if let Some(account) = account {
-        account_exists(db, budget, account)?;
-    }
-    let snapshot = crate::concurrency::cursor(db, budget)?;
-    if expected_snapshot.is_some_and(|expected| expected != snapshot) {
-        return Err(Error::new(
-            axum::http::StatusCode::CONFLICT,
-            "register_changed",
-            "Register changed; reload the first page",
-        ));
-    }
-    let summary = if as_of.is_none() {
-        match account {
-            Some(account) => cached_balances(db, budget, account)?,
-            None => budget_balances(db, budget)?,
-        }
-    } else {
-        let mut sums = [0_i128; 3];
-        let mut statement=db.prepare("SELECT amount,cleared FROM transactions WHERE budget_id=?1 AND tombstone=0 AND (?2 IS NULL OR account_id=?2) AND date<=?3")?;
-        for row in statement.query_map(params![budget, account, as_of], |r| {
-            Ok((r.get::<_, i64>(0)?, r.get::<_, bool>(1)?))
-        })? {
-            let (amount, cleared) = row?;
-            sums[0] += amount as i128;
-            sums[if cleared { 1 } else { 2 }] += amount as i128;
-        }
-        Balances {
-            total: checked(sums[0])?,
-            cleared: checked(sums[1])?,
-            uncleared: checked(sums[2])?,
-        }
-    };
-    let account_filter = if account.is_some() {
-        " AND t.account_id=?2"
-    } else {
-        ""
-    };
-    let date_filter = if as_of.is_some() {
-        " AND t.date<=?3"
-    } else {
-        ""
-    };
-    let filter = format!("WHERE t.budget_id=?1 AND t.tombstone=0{account_filter}{date_filter}");
-    // Keep parameter slots stable while allowing SQLite to use the account/date indexes.
-    let matched = if let Some(tag) = tag {
-        let mut q=db.prepare("SELECT id,notes FROM transactions WHERE budget_id=?1 AND tombstone=0 AND (?2 IS NULL OR account_id=?2)")?;
-        let ids = q
-            .query_map(params![budget, account], |r| {
-                Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
-            })?
-            .collect::<Result<Vec<_>, _>>()?
-            .into_iter()
-            .filter(|(_, notes)| {
-                crate::payees_tags::tags_in(notes)
-                    .iter()
-                    .any(|(_, _, value)| *value == tag)
-            })
-            .map(|(id, _)| id)
-            .collect::<Vec<_>>();
-        Some(serde_json::to_string(&ids).map_err(Error::internal)?)
-    } else {
-        None
-    };
-    let payee = payee
-        .map(|p| crate::payees_tags::canonical(db, budget, p))
-        .transpose()?;
-    let filter = format!(
-        "{filter} AND (?2 IS NULL OR 1=1) AND (?3 IS NULL OR 1=1) AND (?6 IS NULL OR t.id IN (SELECT value FROM json_each(?6))) AND (?7 IS NULL OR t.payee_id=?7)"
-    );
-    let sql = format!(
-        "{SELECT} {filter} ORDER BY t.date DESC,t.starting_balance ASC,t.sort_order DESC,t.id ASC LIMIT ?4 OFFSET ?5"
-    );
-    let mut statement = db.prepare(&sql)?;
-    let rows = statement.query_map(
-        params![budget, account, as_of, limit + 1, offset, matched, payee],
-        row,
-    )?;
-    let mut rows = rows.collect::<Result<Vec<_>, _>>()?;
-    let more = rows.len() > limit as usize;
-    rows.truncate(limit as usize);
-    let mut running = summary.total as i128;
-    if account.is_some() && offset > 0 && tag.is_none() && payee.is_none() {
-        let mut preceding=db.prepare(&format!("SELECT t.amount FROM transactions t {filter} ORDER BY t.date DESC,t.starting_balance ASC,t.sort_order DESC,t.id ASC LIMIT ?4"))?;
-        for amount in preceding.query_map(
-            params![
-                budget,
-                account,
-                as_of,
-                offset,
-                Option::<i64>::None,
-                matched,
-                payee
-            ],
-            |r| r.get::<_, i64>(0),
-        )? {
-            running -= amount? as i128;
-        }
-    }
-    for entry in &mut rows {
-        *entry = crate::concurrency::decorate(db, budget, entry.take())?;
-        entry["running_balance"] = if account.is_some() && tag.is_none() && payee.is_none() {
-            json!(checked(running)?)
-        } else {
-            Value::Null
-        };
-        if account.is_some() {
-            running -= entry["amount"].as_i64().unwrap() as i128;
-        }
-    }
-
-    Ok(
-        json!({"data":rows,"balances":summary,"as_of":as_of,"snapshot":snapshot,"next_offset":if more {Some(offset+limit)} else {None}}),
-    )
-}
-
 pub fn validate_patch(previous: &Value, patch: &Value) -> Result<NewTransaction, Error> {
     let id = previous["id"]
         .as_str()
@@ -523,11 +393,16 @@ fn update_row(
 }
 pub fn delete(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
     let previous = get(db, budget, id)?;
-    if previous["reconciled"] == true {
-        return Err(Error::conflict(
-            "Unlock the reconciled transaction before deleting",
+    if !previous["parent_id"].is_null() {
+        return Err(Error::invalid(
+            "Delete a child through its parent split and allocate the remainder",
         ));
     }
+    crate::reconciliation::protect_members(
+        &crate::reconciliation::members(db, budget, id)?,
+        None,
+        crate::concurrency::ZERO,
+    )?;
     db.execute(
         "UPDATE transactions SET tombstone=1 WHERE budget_id=?1 AND id=?2",
         params![budget, id],
@@ -546,6 +421,16 @@ pub fn duplicate(db: &Connection, budget: &str, source: &str, id: &str) -> Resul
         "UPDATE transactions SET imported_payee=?3 WHERE budget_id=?1 AND id=?2",
         params![budget, id, previous["imported_payee"].as_str()],
     )?;
+    if previous["is_parent"] == true {
+        db.execute(
+            "UPDATE transactions SET is_parent=1 WHERE budget_id=?1 AND id=?2",
+            params![budget, id],
+        )?;
+        for child in previous["children"].as_array().unwrap() {
+            let child_id = uuid::Uuid::new_v4().to_string();
+            db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,notes,payee_id,category_id,sort_order,parent_id,imported_payee) VALUES(?1,?2,?3,?4,?5,0,?6,?7,?8,?9,?10,?11)",params![budget,child_id,child["account_id"].as_str(),child["amount"].as_i64(),child["date"].as_str(),child["notes"].as_str(),child["payee_id"].as_str(),child["category_id"].as_str(),child["sort_order"].as_i64(),id,child["imported_payee"].as_str()])?;
+        }
+    }
     get(db, budget, id)
 }
 
@@ -600,7 +485,7 @@ fn resolve_new_references(
     Ok(())
 }
 
-fn validate_payee_selection(
+pub(crate) fn validate_payee_selection(
     db: &Connection,
     budget: &str,
     id: Option<&str>,
@@ -620,4 +505,62 @@ fn validate_payee_selection(
         }
     }
     Ok(())
+}
+
+/// Bounded register hydration. Keep row joins and version retrieval batched so
+/// a page does not prepare several SQL statements per transaction.
+pub(crate) fn get_many(db: &Connection, budget: &str, ids: &[String]) -> Result<Vec<Value>, Error> {
+    // At most 501 parameters per statement, including when a 1000-parent page
+    // contains 100,000 children. Version lookups use the same fixed-size batches.
+    const BATCH: usize = 500;
+    let mut parents = Vec::with_capacity(ids.len());
+    let mut children = Vec::new();
+    for batch in ids.chunks(BATCH) {
+        let placeholders = (2..=batch.len() + 1)
+            .map(|n| format!("?{n}"))
+            .collect::<Vec<_>>()
+            .join(",");
+        let mut parameters = vec![budget.to_string()];
+        parameters.extend(batch.iter().cloned());
+        let mut statement = db.prepare(&format!(
+            "{SELECT} WHERE t.budget_id=?1 AND t.id IN ({placeholders})"
+        ))?;
+        parents.extend(
+            statement
+                .query_map(rusqlite::params_from_iter(parameters.iter()), row)?
+                .collect::<Result<Vec<_>, _>>()?,
+        );
+        let mut statement = db.prepare(&format!(
+            "{SELECT} WHERE t.budget_id=?1 AND t.parent_id IN ({placeholders}) AND t.tombstone=0 ORDER BY t.sort_order DESC,t.id ASC"
+        ))?;
+        children.extend(
+            statement
+                .query_map(rusqlite::params_from_iter(parameters.iter()), row)?
+                .collect::<Result<Vec<_>, _>>()?,
+        );
+    }
+    for batch in parents.chunks_mut(BATCH).chain(children.chunks_mut(BATCH)) {
+        crate::concurrency::decorate_many(db, budget, batch)?;
+    }
+    let mut grouped = std::collections::HashMap::<String, Vec<Value>>::new();
+    for child in children {
+        grouped
+            .entry(child["parent_id"].as_str().unwrap().to_owned())
+            .or_default()
+            .push(child);
+    }
+    for parent in &mut parents {
+        if parent["is_parent"] == true && parent["parent_id"].is_null() {
+            parent["children"] = json!(
+                grouped
+                    .remove(parent["id"].as_str().unwrap())
+                    .unwrap_or_default()
+            );
+        } else if parent["is_parent"] == false && parent["parent_id"].is_null() {
+            let object = parent.as_object_mut().unwrap();
+            object.remove("is_parent");
+            object.remove("parent_id");
+        }
+    }
+    Ok(parents)
 }

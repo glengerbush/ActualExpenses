@@ -1,0 +1,159 @@
+--- a/src/api.rs
++++ b/src/api.rs
+@@ -46,6 +46,9 @@
+     /// If set, disable regex IR passes.
+     pub no_opt: bool,
+ 
++    /// ActualBudget: preserve escaped surrogate halves for UCS2 input (non-u only).
++    pub ucs2: bool,
++
+     /// If set, the regex is interpreted as a Unicode regex.
+     /// Equivalent to the 'u' flag in JavaScript.
+     pub unicode: bool,
+@@ -107,6 +110,7 @@
+             multiline,
+             dot_all,
+             no_opt: _,
++            ucs2: _,
+             unicode,
+             unicode_sets,
+         } = *self;
+@@ -658,6 +662,22 @@
+         )
+     }
+ 
++    /// ActualBudget extension: interruptible JavaScript non-Unicode code-unit search.
++    #[cfg(feature = "utf16")]
++    pub fn find_from_ucs2_interruptible<I: crate::Interrupt>(
++        &self, text: &[u16], start: usize, interrupt: I,
++    ) -> Result<Option<Match>, crate::Interrupted> {
++        use exec::MatchProducer;
++        let input = Ucs2Input::new(text, self.cr.flags.unicode);
++        let matcher = MatchAttempter::with_interrupt(
++            &self.cr, input.left_end(), crate::interrupt::Callback(interrupt),
++        );
++        let mut executor = classicalbacktrack::BacktrackExecutor::new(input, matcher);
++        let Some(pos) = executor.initial_position(start) else { return Ok(None); };
++        let found = executor.next_match(pos, &mut None);
++        if executor.interrupted() { Err(crate::Interrupted) } else { Ok(found) }
++    }
++
+     /// Returns an iterator for matches found in 'text' starting at index `start`.
+     #[cfg(feature = "utf16")]
+     pub fn find_from_ucs2<'r, 't>(
+--- a/src/classicalbacktrack.rs
++++ b/src/classicalbacktrack.rs
+@@ -728,6 +728,12 @@
+         // to.
+         #[allow(clippy::never_loop)]
+         'nextinsn: loop {
++            // ActualBudget: UCS2 accounting includes every dispatched instruction,
++            // not just failures/loops (long literal near-misses otherwise escape).
++            if I::ENABLED && re.flags.ucs2 && self.poll.tick(countdown) {
++                self.bts.truncate(1);
++                return None;
++            }
+             'backtrack: loop {
+                 // Helper macro to either increment ip and go to the next insn, or backtrack.
+                 macro_rules! next_or_bt {
+@@ -949,6 +955,14 @@
+                         // Note we may be in the capture group we are examining, e.g. /(abc\1)/.
+                         let matched;
+                         if let Some(orig_range) = cg.as_range() {
++                            // Charge variable-length comparisons before entering the
++                            // backreference helper, which does not itself poll.
++                            let units = input.pos_to_offset(orig_range.end)
++                                - input.pos_to_offset(orig_range.start);
++                            if I::ENABLED && re.flags.ucs2 && self.poll.spend(countdown, units) {
++                                self.bts.truncate(1);
++                                return None;
++                            }
+                             if icase {
+                                 matched = matchers::backref_icase(input, dir, orig_range, &mut pos);
+                             } else {
+@@ -1137,10 +1151,6 @@
+         }
+     }
+ 
+-    /// Whether the interrupt stopped the last match.
+-    pub(crate) fn interrupted(&self) -> bool {
+-        self.matcher.poll.interrupted
+-    }
+ 
+     /// jlens-regress: an executor that searches with the storage a completed search of the same
+     /// text left, instead of allocating its own.
+@@ -1184,13 +1194,18 @@
+ }
+ 
+ #[cfg(feature = "utf16")]
+-impl<'r, Input: InputIndexer> BacktrackExecutor<'r, Input> {
+-    pub(crate) fn new(input: Input, matcher: MatchAttempter<'r, Input>) -> Self {
++impl<'r, Input: InputIndexer, I: Interrupt> BacktrackExecutor<'r, Input, I> {
++    pub(crate) fn new(input: Input, matcher: MatchAttempter<'r, Input, I>) -> Self {
+         Self { input, matcher }
+     }
+ }
+ 
+ impl<Input: InputIndexer, I: Interrupt> BacktrackExecutor<'_, Input, I> {
++    /// Whether the interrupt stopped the last match.
++    pub(crate) fn interrupted(&self) -> bool {
++        self.matcher.poll.interrupted
++    }
++
+     fn successful_match(&mut self, start: Input::Position, end: Input::Position) -> Match {
+         // We want to simultaneously map our groups to offsets, and clear the groups.
+         // A for loop is the easiest way to do this while satisfying the borrow checker.
+@@ -1217,7 +1232,6 @@
+ 
+     /// \return the next match for an anchored regex that only matches at the start.
+     /// This avoids any string searching and only tries matching at the given position.
+-    #[cfg(not(feature = "utf16"))]
+     fn next_match_anchored(
+         &mut self,
+         pos: Input::Position,
+@@ -1289,7 +1303,13 @@
+     ) -> Option<Match> {
+         // When UTF-16 support is active prefix search is not used due to the different encoding.
+         #[cfg(feature = "utf16")]
+-        return self.next_match_with_prefix_search(pos, next_start, &bytesearch::EmptyString {});
++        return if matches!(self.matcher.re.start_pred, crate::insn::StartPredicate::StartAnchored) {
++            // Start anchoring is encoding-independent; avoid retrying ^ at each
++            // subsequent code unit when byte-prefix acceleration is disabled.
++            self.next_match_anchored(pos, next_start)
++        } else {
++            self.next_match_with_prefix_search(pos, next_start, &bytesearch::EmptyString {})
++        };
+ 
+         #[cfg(not(feature = "utf16"))]
+         match &self.matcher.re.start_pred {
+--- a/src/parse.rs
++++ b/src/parse.rs
+@@ -1951,7 +1951,7 @@
+             }
+             match u16::from_str_radix(&s, 16) {
+                 Ok(u) => {
+-                    if (0xD800..=0xDBFF).contains(&u) {
++                    if (0xD800..=0xDBFF).contains(&u) && !(self.flags.ucs2 && !self.flags.unicode) {
+                         // Found a high surrogate. Try to parse a low surrogate next
+                         // to see if we can rebuild the original `char`
+ 
+--- a/src/interrupt.rs
++++ b/src/interrupt.rs
+@@ -109,6 +109,17 @@
+         }
+     }
+ 
++    /// ActualBudget: account for a bounded variable-size comparison before it runs.
++    pub(crate) fn spend(&mut self, countdown: &mut u32, mut units: usize) -> bool {
++        while units >= *countdown as usize {
++            units -= *countdown as usize;
++            *countdown = INTERRUPT_INTERVAL;
++            if self.check() { return true; }
++        }
++        *countdown -= units as u32;
++        false
++    }
++
+     #[cold]
+     #[inline(never)]
+     fn check(&mut self) -> bool {

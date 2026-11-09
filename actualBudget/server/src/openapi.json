@@ -525,7 +525,7 @@
     },
     "/api/v1/budgets/{budget}/transactions": {
       "get": {
-        "description": "Ordinary ledger entries ordered by date descending, creation order descending, then ID. With account_id, running_balance includes all preceding entries and does not reset per page; all-account rows return null. Default totals include future dates. Explicit as_of limits balances and entries inclusively to that calendar date. Newest account page uses cached totals and an indexed bounded row read. Tombstoned entries are excluded. Every response includes an opaque snapshot token. Send it unchanged on subsequent pages with the same filters. Any committed server mutation may conservatively invalidate it (including writes in another budget); a 409 register_changed requires discarding accumulated pages and reloading from offset zero. Unchanged reads and idempotent mutation replays preserve the token. Rows, totals and token share one read-only database snapshot. Raw offset without snapshot remains supported but does not guarantee consistency across requests.",
+        "description": "Bounded account/all-account register. JSON query validates up to 20 AND/OR conditions; account, as_of and visibility intersect the result. Sorting has stable date/creation/identity ties. balances covers full scope, filtered_balances/count all matching history; running_balance is chronological full-scope balance independent of filtering/sorting. Exact integer aggregates stream on server; only the bounded page is downloaded. Continue using same query and snapshot; 409 register_changed requires starting over. No snapshot means no consistency guarantee. Patterns use ECMAScript non-u UTF-16 code-unit semantics. Compilation permits 2048 UTF-16 units, 64 nested groups and 256 structural tokens, with optimizer expansion disabled. Matching permits 20000 input code units and 10 interruption quanta of 1024 VM instructions, backtracker/loop steps and precharged backreference comparison units per invocation. Every invocation charges 1024 plus pattern/input code units against a shared 67108864-work-unit request budget; each additional interruption quantum charges 1024. Exceeding limits returns HTTP400 regex_complexity_limit or regex_work_limit, never partial rows/totals. Invalid syntax returns invalid_regex. Narrow account/date scope or simplify the pattern before retrying. Recurring date filters inspect first 100 occurrences, matching Actual 26.10 conditionsToAQL; weekend posting adjustments do not alter filter dates. Unfiltered newest-first reads retain cached financial totals and indexed row retrieval; count uses an index scan, later pages sum only preceding amounts. Filtered totals and arbitrary sorting may scan the selected scope. Search also recognizes absolute amounts and dates in the budget date format.",
         "parameters": [
           {
             "name": "budget",
@@ -604,6 +604,17 @@
               "pattern": "^[^#\\s]+$"
             },
             "description": "Exact case-sensitive unescaped note token, without #. Visibility metadata does not change note membership. Filtered lists retain full ledger balances and return null running_balance."
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterQuery"
+                }
+              }
+            }
           }
         ],
         "responses": {
@@ -11533,17 +11544,523 @@
                 "properties": {
                   "reconciled_version": {
                     "$ref": "#/components/schemas/EditClock"
+                  },
+                  "reconciled_versions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "maxProperties": 101,
+                    "description": "Captured reconciled field version per affected parent/child ID. Every protected member must match, and request intent clock must be newer; never reuse another member proof."
                   }
                 },
-                "required": [
-                  "reconciled_version"
+                "additionalProperties": false,
+                "anyOf": [
+                  {
+                    "required": [
+                      "reconciled_version"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "reconciled_versions"
+                    ]
+                  }
                 ],
-                "additionalProperties": false
+                "description": "Ordinary unlock accepts reconciled_version. A split parent or child unlock requires all parent/child versions in reconciled_versions and clears protection atomically for the entire split, preserving cleared flags."
               }
             }
           }
         },
         "description": "Explicitly remove reconciliation protection while retaining cleared status. Expected reconciled field version must match, and intent clock must exceed it. Keeps account last_reconciled history."
+      }
+    },
+    "/api/v1/budgets/{budget}/transactions/{id}/splits": {
+      "post": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Atomically return the original receipt or record terminal operation_canceled409 before any edit. Keep original method/path/body/idempotency key/edit clock unchanged. The cancellation header is excluded from the operation fingerprint; delayed original attempts replay the cancellation. Lost acknowledgement requires unchanged retry. Supported only on transaction mutation routes."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SplitChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MutationConflict"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Committed or replayed original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Transaction"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "conflicts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldConflict"
+                      }
+                    },
+                    "cursor": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "description": "Online-only aggregate edit. Original snapshot, payload, idempotency key, edit clock and budget epoch stay unchanged on retry. Replacement preserves supplied child IDs; omitted children become tombstones. Exact sums required; even targets zero children, proportional uses signed child weights, auto selects even when zeros exist. Recombine preserves parent ID and total; unsplit detaches selected children (empty detach means all) with Actual 26.10 one-child collapse behavior. All changes, versions and receipt commit atomically. Generic PATCH of split records is refused; generic DELETE of parent cascades, child deletion requires replacement and remainder allocation.",
+        "summary": "Atomically replace split allocations, recombine, or detach children"
+      },
+      "get": {
+        "summary": "Read a split and its current snapshot atomically",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Parent with child allocations, snapshot and budget epoch; compare field versions before refreshing a draft snapshot.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "snapshot",
+                    "epoch"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Transaction"
+                    },
+                    "snapshot": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    },
+                    "epoch": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/register-settings": {
+      "get": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authoritative register settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/RegisterSettingsState"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "register_settings_changed, budget_epoch_mismatch or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "description": "Online-only document CAS. Required revision prevents stale tab overwrites; budget epoch fences restored datasets. Exact idempotent retries replay original receipt; altered body/epoch conflicts. Settings survive native archives and duplication. Legacy Actual preferences/filters convert from retained source.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "revision",
+                  "settings"
+                ],
+                "properties": {
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "settings": {
+                    "$ref": "#/components/schemas/RegisterSettings"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authoritative register settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/RegisterSettingsState"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "register_settings_changed, budget_epoch_mismatch or idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -11846,17 +12363,8 @@
             "type": "string"
           },
           "running_balance": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": -9007199254740991,
-                "maximum": 9007199254740991,
-                "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": "integer",
+            "description": "Chronological balance across this register scope; null if the intermediate amount exceeds exact JSON monetary range."
           },
           "field_versions": {
             "$ref": "#/components/schemas/FieldVersions"
@@ -11891,6 +12399,36 @@
               }
             ],
             "description": "Retained identity for history, including removed payees. payee_id is null after removal; imported_payee never changes during payee management."
+          },
+          "is_parent": {
+            "type": "boolean"
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            },
+            "description": "Active child allocations in stable split order. Parent totals count once in registers; reports use children instead of the parent."
+          },
+          "category_group_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "running_balance_error": {
+            "type": "string",
+            "enum": [
+              "exact_money_range"
+            ],
+            "description": "Present only when an intermediate running balance cannot be represented as an exact safe JSON integer; page and final totals remain available."
           }
         },
         "required": [
@@ -12396,6 +12934,13 @@
           },
           "snapshot": {
             "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "filtered_balances": {
+            "$ref": "#/components/schemas/Balances"
+          },
+          "filtered_count": {
+            "type": "integer",
+            "minimum": 0
           }
         },
         "required": [
@@ -12403,7 +12948,9 @@
           "balances",
           "as_of",
           "next_offset",
-          "snapshot"
+          "snapshot",
+          "filtered_balances",
+          "filtered_count"
         ],
         "additionalProperties": false
       },
@@ -13711,7 +14258,9 @@
                   7,
                   8,
                   9,
-                  10
+                  10,
+                  11,
+                  12
                 ]
               },
               "domains": {
@@ -14134,6 +14683,393 @@
           "edit_clock"
         ],
         "additionalProperties": false
+      },
+      "SplitChild": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "amount"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+          },
+          "payee_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 10000
+          }
+        }
+      },
+      "SplitChange": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "snapshot"
+        ],
+        "properties": {
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "replace",
+              "recombine",
+              "unsplit"
+            ],
+            "default": "replace"
+          },
+          "allocation": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "even",
+              "proportional",
+              "auto"
+            ],
+            "default": "exact"
+          },
+          "children": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/SplitChild"
+            }
+          },
+          "detach": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          "fields": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TransactionPatch"
+              },
+              {
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "confirm_reconciled"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "reconciled_version"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "description": "Parent ledger fields only. Aggregate confirmation belongs at the outer SplitChange level."
+          },
+          "confirm_reconciled": {
+            "type": "boolean",
+            "default": false
+          },
+          "reconciled_versions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "maxProperties": 101,
+            "description": "Captured reconciled field version per affected parent/child ID. Every protected member must match, and request intent clock must be newer; never reuse another member proof."
+          }
+        },
+        "dependentRequired": {
+          "reconciled_versions": [
+            "confirm_reconciled"
+          ]
+        },
+        "dependentSchemas": {
+          "reconciled_versions": {
+            "properties": {
+              "confirm_reconciled": {
+                "const": true
+              }
+            }
+          }
+        }
+      },
+      "RegisterCondition": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "field",
+          "op",
+          "value"
+        ],
+        "properties": {
+          "field": {
+            "enum": [
+              "account",
+              "payee",
+              "category",
+              "category_group",
+              "account_name",
+              "payee_name",
+              "category_name",
+              "category_group_name",
+              "notes",
+              "date",
+              "amount",
+              "cleared",
+              "reconciled",
+              "transfer",
+              "parent"
+            ]
+          },
+          "op": {
+            "enum": [
+              "eq",
+              "ne",
+              "lt",
+              "lte",
+              "gt",
+              "gte",
+              "in",
+              "not_in",
+              "contains",
+              "not_contains",
+              "matches",
+              "isapprox",
+              "isbetween",
+              "hasTags",
+              "hasAnyTag",
+              "onBudget",
+              "offBudget"
+            ]
+          },
+          "value": {
+            "description": "Typed value: exact integer minor units for amounts, boolean status, canonical UUID for references (nullable), text, YYYY[-MM[-DD]] date, recurrence object, between {num1,num2}, or membership array of up to 100 values. Only meaningful field/operator combinations accepted."
+          },
+          "options": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "inflow": {
+                "type": "boolean",
+                "default": false
+              },
+              "outflow": {
+                "type": "boolean",
+                "default": false
+              },
+              "month": {
+                "type": "boolean",
+                "default": false
+              },
+              "year": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          }
+        }
+      },
+      "RegisterQuery": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "search": {
+            "type": "string",
+            "maxLength": 500,
+            "default": ""
+          },
+          "sort": {
+            "enum": [
+              "date",
+              "amount",
+              "payee",
+              "category",
+              "account",
+              "notes",
+              "cleared",
+              "reconciled"
+            ],
+            "default": "date"
+          },
+          "direction": {
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "default": "desc"
+          },
+          "hide_cleared": {
+            "type": "boolean",
+            "default": false
+          },
+          "hide_reconciled": {
+            "type": "boolean",
+            "default": false
+          },
+          "filter": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "op": {
+                "enum": [
+                  "and",
+                  "or"
+                ],
+                "default": "and"
+              },
+              "conditions": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "$ref": "#/components/schemas/RegisterCondition"
+                }
+              }
+            }
+          },
+          "account_scope": {
+            "enum": [
+              "all",
+              "onbudget",
+              "offbudget",
+              "closed",
+              "uncategorized"
+            ],
+            "default": "all"
+          }
+        }
+      },
+      "RegisterSettings": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "views": {
+            "type": "object",
+            "maxProperties": 1000,
+            "description": "Scope keys: all, onbudget, offbudget, closed, uncategorized, or account UUID.",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "query": {
+                  "$ref": "#/components/schemas/RegisterQuery"
+                },
+                "columns": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "enum": [
+                      "date",
+                      "account",
+                      "payee",
+                      "notes",
+                      "group",
+                      "category",
+                      "amount",
+                      "payment",
+                      "deposit",
+                      "status",
+                      "balance"
+                    ]
+                  }
+                },
+                "as_of": {
+                  "type": "string",
+                  "description": "Empty or YYYY-MM-DD"
+                },
+                "show_extra_balances": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            }
+          },
+          "saved_filters": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "name",
+                "query"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "query": {
+                  "$ref": "#/components/schemas/RegisterQuery"
+                }
+              }
+            }
+          }
+        }
+      },
+      "RegisterSettingsState": {
+        "type": "object",
+        "required": [
+          "settings",
+          "revision",
+          "epoch"
+        ],
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/RegisterSettings"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          }
+        }
       }
     }
   }

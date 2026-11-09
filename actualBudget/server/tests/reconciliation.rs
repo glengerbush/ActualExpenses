@@ -511,3 +511,368 @@ fn confirmation_cannot_cross_a_new_lock_but_committed_receipts_still_replay() {
     assert_eq!(fresh["data"]["amount"], -12000);
     assert_eq!(fresh["data"]["reconciled"], true);
 }
+
+fn split_proofs(row: &Value) -> Value {
+    std::iter::once(row)
+        .chain(row["children"].as_array().unwrap().iter())
+        .map(|r| {
+            (
+                r["id"].as_str().unwrap().to_owned(),
+                r["field_versions"]["reconciled"].clone(),
+            )
+        })
+        .collect::<serde_json::Map<_, _>>()
+        .into()
+}
+fn split_oracle(s: &Server, root: &str, account: &str, parent: &str, step: &str) {
+    let row = s.get(&format!("{root}/transactions/{parent}"))["data"].clone();
+    let mut entries:Vec<Value>=std::iter::once(&row).chain(row["children"].as_array().unwrap().iter()).map(|r|json!({"amount":r["amount"],"notes":r["notes"],"cleared":r["cleared"],"reconciled":r["reconciled"],"parent":r["is_parent"]==true,"child":!r["parent_id"].is_null()})).collect();
+    entries.sort_by_key(|r| r["amount"].as_i64().unwrap());
+    let fixture: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/reconciliation-splits.json"
+    ))
+    .unwrap();
+    let expected = fixture["steps"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["step"] == step)
+        .unwrap();
+    assert_eq!(json!(entries), expected["entries"], "{step}");
+    let preview = s.get(&format!("{root}/accounts/{account}/reconciliation"));
+    assert_eq!(preview["data"]["balances"]["cleared"], expected["cleared"]);
+}
+#[test]
+fn split_reconciliation_proofs_filters_restart_and_portable_archive() {
+    let (s, root, _) = setup();
+    let a = id(60);
+    let parent = id(61);
+    let c1 = id(62);
+    let c2 = id(63);
+    ok(s.write(
+        "POST",
+        &format!("{root}/accounts"),
+        "split-account",
+        None,
+        json!({"id":a,"name":"Split account","opening_balance":0,"opening_date":"2026-01-01"}),
+    ));
+    ok(s.write("POST",&format!("{root}/transactions"),"split-parent",None,json!({"id":parent,"account_id":a,"amount":-300,"date":"2026-02-28","cleared":true,"notes":"Settled split"})));
+    let split = format!("{root}/transactions/{parent}/splits");
+    let mut children = json!([{"id":c1,"amount":-100,"notes":"First allocation"},{"id":c2,"amount":-200,"notes":"Second allocation"}]);
+    let current = s.get(&split);
+    ok(s.write(
+        "POST",
+        &split,
+        "split",
+        None,
+        json!({"snapshot":current["snapshot"],"children":children}),
+    ));
+    split_oracle(&s, &root, &a, &parent, "initial");
+    let path = format!("{root}/accounts/{a}/reconciliation");
+    let p = s.get(&path)["data"].clone();
+    assert_eq!(p["ready_count"], 1);
+    assert_eq!(p["locked_count"], 0);
+    let lock = json!({"action":"lock","statement_balance":-300,"snapshot":p["snapshot"],"date":"2026-02-28"});
+    let locked = ok(s.write("POST", &path, "split-lock", None, lock));
+    assert_eq!(locked["data"]["locked_count"], 1);
+    split_oracle(&s, &root, &a, &parent, "locked");
+    let current = s.get(&split);
+    let row = &current["data"];
+    let proofs = split_proofs(row);
+    for child in row["children"].as_array().unwrap() {
+        assert_eq!(
+            child["field_versions"]["reconciled"],
+            row["field_versions"]["reconciled"]
+        );
+    }
+    children[0]["notes"] = json!("Confirmed allocation");
+    let mut change = json!({"snapshot":current["snapshot"],"children":children,"confirm_reconciled":true,"reconciled_versions":proofs});
+    let mut missing = change.clone();
+    missing["reconciled_versions"]
+        .as_object_mut()
+        .unwrap()
+        .remove(&c2);
+    assert_eq!(
+        s.write("POST", &split, "missing-child-proof", None, missing)
+            .status(),
+        409
+    );
+    let mut stale = change.clone();
+    stale["reconciled_versions"][&c2] = json!("0000000000000-000000-0000000000000000");
+    assert_eq!(
+        s.write("POST", &split, "wrong-child-proof", None, stale)
+            .status(),
+        409
+    );
+    assert_eq!(s.get(&split), current);
+    assert_eq!(
+        s.write(
+            "PATCH",
+            &format!("{root}/transactions/{c1}"),
+            "direct-child",
+            None,
+            json!({"notes":"Unsafe","confirm_reconciled":true,"reconciled_version":proofs[&c1]})
+        )
+        .status(),
+        409
+    );
+    assert_eq!(
+        s.write(
+            "DELETE",
+            &format!("{root}/transactions/{parent}"),
+            "delete-settled",
+            None,
+            Value::Null
+        )
+        .status(),
+        409
+    );
+    let confirmed_input = change.clone();
+    let confirmed = ok(s.write(
+        "POST",
+        &split,
+        "confirmed-split",
+        None,
+        confirmed_input.clone(),
+    ));
+    split_oracle(&s, &root, &a, &parent, "confirmed");
+    let current = s.get(&split);
+    let new_proofs = split_proofs(&current["data"]);
+    let unlock = format!("{root}/transactions/{c1}/unlock");
+    assert_eq!(
+        s.write(
+            "POST",
+            &unlock,
+            "single-proof-child",
+            None,
+            json!({"reconciled_version":new_proofs[&c1]})
+        )
+        .status(),
+        400
+    );
+    ok(s.write(
+        "POST",
+        &unlock,
+        "unlock-aggregate",
+        None,
+        json!({"reconciled_versions":new_proofs}),
+    ));
+    split_oracle(&s, &root, &a, &parent, "unlocked");
+    let p = s.get(&path)["data"].clone();
+    ok(s.write("POST",&path,"relock-aggregate",None,json!({"action":"lock","statement_balance":-300,"snapshot":p["snapshot"],"date":"2026-02-28"})));
+    let p = s.get(&split);
+    change["snapshot"] = p["snapshot"].clone();
+    assert_eq!(
+        s.write("POST", &split, "old-proof-new-snapshot", None, change)
+            .status(),
+        409
+    );
+    let s = s.restart();
+    // A committed split receipt must replay despite current protection/snapshot changes.
+    assert_eq!(
+        ok(s.write("POST", &split, "confirmed-split", None, confirmed_input)),
+        confirmed
+    );
+    for flag in ["hide_cleared", "hide_reconciled"] {
+        let query = json!({flag:true});
+        let response = s
+            .client
+            .get(format!("{}{root}/transactions", s.url))
+            .query(&[("account_id", a.as_str()), ("query", &query.to_string())])
+            .send()
+            .unwrap();
+        let filtered = ok(response);
+        assert_eq!(filtered["data"], json!([]));
+        assert_eq!(filtered["balances"]["total"], -300);
+    }
+    let settings = format!("{root}/register-settings");
+    let state = s.get(&settings)["data"].clone();
+    let settings_body = json!({"revision":state["revision"],"settings":{"views":{"all":{"query":{"hide_reconciled":true}}},"saved_filters":[]}});
+    ok(s.client
+        .patch(format!("{}{}", s.url, settings))
+        .header("Idempotency-Key", "settings")
+        .header("X-Actual-Budget-Epoch", state["epoch"].as_str().unwrap())
+        .json(&settings_body)
+        .send()
+        .unwrap());
+    let backup = ok(s.write(
+        "POST",
+        &format!("{root}/backups"),
+        "split-backup",
+        None,
+        json!({"label":"Reconciled split"}),
+    ));
+    let bytes = s
+        .client
+        .get(format!(
+            "{}{root}/backups/{}/download",
+            s.url,
+            backup["data"]["id"].as_str().unwrap()
+        ))
+        .send()
+        .unwrap()
+        .bytes()
+        .unwrap();
+    let target = Server::start();
+    let staged = ok(target
+        .client
+        .post(format!("{}/api/v1/restores", target.url))
+        .header("Idempotency-Key", "split-portable")
+        .header("Content-Type", "application/zip")
+        .body(bytes.to_vec())
+        .send()
+        .unwrap());
+    assert_eq!(staged["data"]["report"]["schema_version"], 12);
+    ok(target.write(
+        "POST",
+        &format!(
+            "{root}/restores/{}/activate",
+            staged["data"]["id"].as_str().unwrap()
+        ),
+        "split-restore",
+        None,
+        json!({"confirm_name":"Reconcile"}),
+    ));
+    let target = target.restart();
+    assert_eq!(
+        target.get(&format!("{root}/transactions/{parent}"))["data"],
+        s.get(&format!("{root}/transactions/{parent}"))["data"]
+    );
+    assert_eq!(
+        target.get(&settings)["data"]["settings"],
+        s.get(&settings)["data"]["settings"]
+    );
+    assert_eq!(
+        target.get(&format!("{root}/accounts/{a}"))["data"]["last_reconciled"],
+        s.get(&format!("{root}/accounts/{a}"))["data"]["last_reconciled"]
+    );
+}
+
+#[test]
+fn genuine_schema11_upgrade_preserves_split_receipts_settings_and_retained_source() {
+    let fixture: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/reconciliation-schema11.json"
+    ))
+    .unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    std::fs::write(
+        directory.path().join("actualbudget.sqlite3"),
+        include_bytes!("../../tests/fixtures/reconciliation-schema11.sqlite3"),
+    )
+    .unwrap();
+    let s = Server::open(directory);
+    let root = format!("/api/v1/budgets/{}", fixture["budget"].as_str().unwrap());
+    let account = fixture["account"].as_str().unwrap();
+    let parent = fixture["parent"].as_str().unwrap();
+    let split = format!("{root}/transactions/{parent}/splits");
+    assert_eq!(
+        s.get(&format!("{root}/accounts/{account}"))["data"]["last_reconciled"],
+        Value::Null
+    );
+    assert_eq!(
+        ok(s.write(
+            "POST",
+            &format!("{root}/accounts"),
+            "account",
+            None,
+            fixture["account_body"].clone()
+        )),
+        fixture["account_receipt"]
+    );
+    assert_eq!(
+        ok(s.write("POST", &split, "split", None, fixture["split_body"].clone())),
+        fixture["split_receipt"]
+    );
+    assert_eq!(
+        s.get(&format!("{root}/register-settings"))["data"]["settings"],
+        fixture["settings"]
+    );
+    assert_eq!(
+        s.get(&format!(
+            "/api/v1/budgets/{}/transactions",
+            fixture["active_budget"].as_str().unwrap()
+        )),
+        fixture["active_register"]
+    );
+    let path = format!("{root}/accounts/{account}/reconciliation");
+    let progress = s.get(&path)["data"].clone();
+    assert_eq!(progress["ready_count"], 1);
+    assert_eq!(progress["balances"]["cleared"], -300);
+    ok(s.write("POST",&path,"upgrade-lock",None,json!({"action":"lock","statement_balance":-300,"snapshot":progress["snapshot"],"date":"2026-02-28"})));
+    let locked = s.get(&split)["data"].clone();
+    assert!(
+        locked["children"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|c| c["reconciled"] == true)
+    );
+    let upload = |key: &str| {
+        ok(s.client
+            .post(format!("{}/api/v1/imports/actual", s.url))
+            .header("Idempotency-Key", key)
+            .header("Content-Type", "application/zip")
+            .body(include_bytes!("../../tests/fixtures/reconciliation-import.zip").to_vec())
+            .send()
+            .unwrap())
+    };
+    assert_eq!(upload("blocked-source"), fixture["blocked_receipt"]);
+    let reviewed = upload("review-retained-date");
+    assert_eq!(reviewed["data"]["status"], "ready");
+    ok(s.write(
+        "POST",
+        &format!(
+            "/api/v1/imports/{}/activate",
+            reviewed["data"]["id"].as_str().unwrap()
+        ),
+        "activate-retained-date",
+        None,
+        json!({}),
+    ));
+    let source: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/reconciliation-import.json"
+    ))
+    .unwrap();
+    assert_eq!(
+        s.get(&format!(
+            "/api/v1/budgets/{}/accounts/{}",
+            reviewed["data"]["budget_id"].as_str().unwrap(),
+            source["debt"].as_str().unwrap()
+        ))["data"]["last_reconciled"],
+        source["last_reconciled"]
+    );
+    let target = Server::start();
+    let staged = ok(target
+        .client
+        .post(format!("{}/api/v1/restores", target.url))
+        .header("Idempotency-Key", "old-schema11-archive")
+        .header("Content-Type", "application/zip")
+        .body(include_bytes!("../../tests/fixtures/reconciliation-schema11.zip").to_vec())
+        .send()
+        .unwrap());
+    assert_eq!(staged["data"]["report"]["schema_version"], 12);
+    ok(target.write(
+        "POST",
+        &format!(
+            "{root}/restores/{}/activate",
+            staged["data"]["id"].as_str().unwrap()
+        ),
+        "restore-schema11",
+        None,
+        json!({"confirm_name":"Schema11 reconciliation"}),
+    ));
+    let target = target.restart();
+    assert_eq!(
+        target.get(&format!("{root}/accounts/{account}"))["data"]["last_reconciled"],
+        Value::Null
+    );
+    assert_eq!(
+        target.get(&format!("{root}/register-settings"))["data"]["settings"],
+        fixture["settings"]
+    );
+    assert_eq!(target.get(&split)["data"], fixture["split_receipt"]["data"]);
+    assert_eq!(
+        ok(target.write("POST", &split, "split", None, fixture["split_body"].clone())),
+        fixture["split_receipt"]
+    );
+}

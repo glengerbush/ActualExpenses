@@ -1,0 +1,452 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "description": "Grouped executor matches complete predicate on one parent or child. Totals sum returned parent amounts exactly once, per register API contract; not the separate inline AQL aggregate mode.",
+  "groups": [
+    {
+      "id": "12140000-0000-4000-8000-000000000001",
+      "name": "First group"
+    },
+    {
+      "id": "12140000-0000-4000-8000-000000000002",
+      "name": "Second group"
+    }
+  ],
+  "categories": [
+    {
+      "id": "12140000-0000-4000-8000-000000000003",
+      "name": "First category",
+      "group_id": "12140000-0000-4000-8000-000000000001"
+    },
+    {
+      "id": "12140000-0000-4000-8000-000000000004",
+      "name": "Second category",
+      "group_id": "12140000-0000-4000-8000-000000000002"
+    }
+  ],
+  "payees": [
+    {
+      "id": "12140000-0000-4000-8000-000000000005",
+      "name": "First payee"
+    },
+    {
+      "id": "12140000-0000-4000-8000-000000000006",
+      "name": "Second payee"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "12140000-0000-4000-8000-000000000010",
+      "amount": -300,
+      "notes": "Parent marker",
+      "children": [
+        {
+          "id": "12140000-0000-4000-8000-000000000011",
+          "amount": -100,
+          "category_id": "12140000-0000-4000-8000-000000000003",
+          "payee_id": "12140000-0000-4000-8000-000000000005",
+          "notes": "First allocation #First"
+        },
+        {
+          "id": "12140000-0000-4000-8000-000000000012",
+          "amount": -200,
+          "category_id": "12140000-0000-4000-8000-000000000004",
+          "payee_id": "12140000-0000-4000-8000-000000000006",
+          "notes": "Second allocation #Second"
+        }
+      ]
+    },
+    {
+      "id": "12140000-0000-4000-8000-000000000020",
+      "amount": -40,
+      "notes": "Null ordinary"
+    },
+    {
+      "id": "12140000-0000-4000-8000-000000000021",
+      "amount": -50,
+      "notes": "First ordinary #First",
+      "category_id": "12140000-0000-4000-8000-000000000003",
+      "payee_id": "12140000-0000-4000-8000-000000000005"
+    },
+    {
+      "id": "12140000-0000-4000-8000-000000000022",
+      "amount": -60,
+      "notes": "Second ordinary #Second",
+      "category_id": "12140000-0000-4000-8000-000000000004",
+      "payee_id": "12140000-0000-4000-8000-000000000006"
+    }
+  ],
+  "cases": [
+    {
+      "name": "category not equal includes null",
+      "query": {
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "ne",
+              "value": "12140000-0000-4000-8000-000000000003"
+            }
+          ]
+        }
+      },
+      "ids": [
+        "12140000-0000-4000-8000-000000000010",
+        "12140000-0000-4000-8000-000000000020",
+        "12140000-0000-4000-8000-000000000022"
+      ],
+      "total": -400
+    },
+    {
+      "name": "payee not equal includes null",
+      "query": {
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "payee",
+              "op": "ne",
+              "value": "12140000-0000-4000-8000-000000000005"
+            }
+          ]
+        }
+      },
+      "ids": [
+        "12140000-0000-4000-8000-000000000010",
+        "12140000-0000-4000-8000-000000000020",
+        "12140000-0000-4000-8000-000000000022"
+      ],
+      "total": -400
+    },
+    {
+      "name": "category_group not equal includes null",
+      "query": {
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "category_group",
+              "op": "ne",
+              "value": "12140000-0000-4000-8000-000000000001"
+            }
+          ]
+        }
+      },
+      "ids": [
+        "12140000-0000-4000-8000-000000000010",
+        "12140000-0000-4000-8000-000000000020",
+        "12140000-0000-4000-8000-000000000022"
+      ],
+      "total": -400
+    },
+    {
+      "name": "same child AND",
+      "query": {
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "eq",
+              "value": "12140000-0000-4000-8000-000000000003"
+            },
+            {
+              "field": "payee",
+              "op": "eq",
+              "value": "12140000-0000-4000-8000-000000000005"
+            }
+          ]
+        }
+      },
+      "ids": [
+        "12140000-0000-4000-8000-000000000010",
+        "12140000-0000-4000-8000-000000000021"
+      ],
+      "total": -350
+    },
+    {
+      "name": "different children AND fails",
+      "query": {
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "eq",
+              "value": "12140000-0000-4000-8000-000000000003"
+            },
+            {
+              "field": "payee",
+              "op": "eq",
+              "value": "12140000-0000-4000-8000-000000000006"
+            }
+          ]
+        }
+      },
+      "ids": [],
+      "total": 0
+    },
+    {
+      "name": "parent and child AND fails",
+      "query": {
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "contains",
+              "value": "Parent marker"
+            },
+            {
+              "field": "category",
+              "op": "eq",
+              "value": "12140000-0000-4000-8000-000000000003"
+            }
+          ]
+        }
+      },
+      "ids": [],
+      "total": 0
+    },
+    {
+      "name": "different children OR",
+      "query": {
+        "filter": {
+          "op": "or",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "eq",
+              "value": "12140000-0000-4000-8000-000000000003"
+            },
+            {
+              "field": "payee",
+              "op": "eq",
+              "value": "12140000-0000-4000-8000-000000000006"
+            }
+          ]
+        }
+      },
+      "ids": [
+        "12140000-0000-4000-8000-000000000010",
+        "12140000-0000-4000-8000-000000000021",
+        "12140000-0000-4000-8000-000000000022"
+      ],
+      "total": -410
+    },
+    {
+      "name": "child amount",
+      "query": {
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "eq",
+              "value": -200
+            }
+          ]
+        }
+      },
+      "ids": [
+        "12140000-0000-4000-8000-000000000010"
+      ],
+      "total": -300
+    },
+    {
+      "name": "parent true",
+      "query": {
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "parent",
+              "op": "eq",
+              "value": true
+            }
+          ]
+        }
+      },
+      "ids": [
+        "12140000-0000-4000-8000-000000000010"
+      ],
+      "total": -300
+    },
+    {
+      "name": "parent false",
+      "query": {
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "parent",
+              "op": "eq",
+              "value": false
+            }
+          ]
+        }
+      },
+      "ids": [
+        "12140000-0000-4000-8000-000000000010",
+        "12140000-0000-4000-8000-000000000020",
+        "12140000-0000-4000-8000-000000000021",
+        "12140000-0000-4000-8000-000000000022"
+      ],
+      "total": -450
+    },
+    {
+      "name": "child names AND",
+      "query": {
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "category_name",
+              "op": "eq",
+              "value": "First category"
+            },
+            {
+              "field": "payee_name",
+              "op": "eq",
+              "value": "First payee"
+            }
+          ]
+        }
+      },
+      "ids": [
+        "12140000-0000-4000-8000-000000000010",
+        "12140000-0000-4000-8000-000000000021"
+      ],
+      "total": -350
+    },
+    {
+      "name": "child category group",
+      "query": {
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "category_group",
+              "op": "eq",
+              "value": "12140000-0000-4000-8000-000000000002"
+            }
+          ]
+        }
+      },
+      "ids": [
+        "12140000-0000-4000-8000-000000000010",
+        "12140000-0000-4000-8000-000000000022"
+      ],
+      "total": -360
+    },
+    {
+      "name": "child tags",
+      "query": {
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "hasTags",
+              "value": "#Second"
+            }
+          ]
+        }
+      },
+      "ids": [
+        "12140000-0000-4000-8000-000000000010",
+        "12140000-0000-4000-8000-000000000022"
+      ],
+      "total": -360
+    },
+    {
+      "name": "child tags cross condition fails",
+      "query": {
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "hasTags",
+              "value": "#Second"
+            },
+            {
+              "field": "category",
+              "op": "eq",
+              "value": "12140000-0000-4000-8000-000000000003"
+            }
+          ]
+        }
+      },
+      "ids": [],
+      "total": 0
+    },
+    {
+      "name": "uncategorized scope",
+      "query": {
+        "account_scope": "uncategorized",
+        "filter": {
+          "op": "and",
+          "conditions": []
+        }
+      },
+      "ids": [
+        "12140000-0000-4000-8000-000000000020"
+      ],
+      "total": -40
+    },
+    {
+      "name": "search child",
+      "query": {
+        "search": "Second allocation",
+        "filter": {
+          "op": "and",
+          "conditions": []
+        }
+      },
+      "ids": [
+        "12140000-0000-4000-8000-000000000010"
+      ],
+      "total": -300
+    },
+    {
+      "name": "search and filter same child",
+      "query": {
+        "search": "Second allocation",
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "eq",
+              "value": "12140000-0000-4000-8000-000000000004"
+            }
+          ]
+        }
+      },
+      "ids": [
+        "12140000-0000-4000-8000-000000000010"
+      ],
+      "total": -300
+    },
+    {
+      "name": "search and filter different child fails",
+      "query": {
+        "search": "Second allocation",
+        "filter": {
+          "op": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "eq",
+              "value": "12140000-0000-4000-8000-000000000003"
+            }
+          ]
+        }
+      },
+      "ids": [],
+      "total": 0
+    }
+  ]
+}

@@ -54,7 +54,7 @@ The demonstrated source is the published unencrypted Actual 26.10.0 ordinary
 ledger fixture. Source schema columns are pinned in
 `server/src/imports/source-columns-26.10.json`, derived from that independent
 export inspection. Extra/missing inspected columns block activation. Rules,
-splits, transfer transactions, schedules, bank/import metadata, goals, hidden or
+transfer transactions, schedules, bank/import metadata, goals, hidden or
 deleted reference records and other unsupported populated feature tables require
 explicit later converters. Their records remain in the original ZIP. No promise
 of arbitrary existing-budget parity is made by this first importer.
@@ -126,3 +126,7 @@ chooser; uncertain outcomes retain their original recovery payload.
 Primary implementation references: [zip-rs 6 archive API](https://docs.rs/zip/6.0.0/zip/read/struct.ZipArchive.html),
 [SQLite limits](https://www.sqlite.org/limits.html),
 [SQLite trusted schema](https://www.sqlite.org/pragma.html#pragma_trusted_schema).
+
+Ticket14 adds qualified split import, category allocations and native archive
+round-trip evidence in [split validation](splits-validation.md). Full migration
+qualification remains ticket50.

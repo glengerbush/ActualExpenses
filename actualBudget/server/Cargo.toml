@@ -2,13 +2,14 @@
 name = "actualbudget-server"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.88"
 publish = false
 
 [dependencies]
+regress = { package = "jlens-regress", version = "=0.31.0", path = "vendor/jlens-regress", default-features = false, features = ["std", "utf16", "prohibit-unsafe"] }
 axum = "=0.8.9"
 chrono = { version = "=0.4.44", default-features = false, features = ["std"] }
-rusqlite = { version = "=0.38.0", features = ["bundled", "limits", "hooks"] }
+rusqlite = { version = "=0.38.0", features = ["bundled", "limits", "hooks", "functions"] }
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = "=1.0.154"
 tokio = { version = "=1.53.3", features = ["macros", "rt-multi-thread", "net", "signal"] }

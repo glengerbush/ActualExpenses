@@ -19,6 +19,7 @@ use axum::{
 use rusqlite::{Connection, params};
 use serde::Deserialize;
 use serde_json::{Value, json};
+use std::collections::BTreeMap;
 
 pub fn router() -> Router<Store> {
     Router::new()
@@ -56,7 +57,7 @@ pub fn preview(db: &Connection, b: &str, id: &str, target: Option<i64>) -> Resul
     let balances = ledger::cached_balances(db, b, id)?;
     let target = target.unwrap_or(balances.cleared);
     money(target as i128)?;
-    let (locked,ready,uncleared):(i64,i64,i64)=db.query_row("SELECT COALESCE(SUM(reconciled=1),0),COALESCE(SUM(cleared=1 AND reconciled=0),0),COALESCE(SUM(cleared=0),0) FROM transactions WHERE budget_id=?1 AND account_id=?2 AND tombstone=0",params![b,id],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?)))?;
+    let (locked,ready,uncleared):(i64,i64,i64)=db.query_row("SELECT COALESCE(SUM(reconciled=1),0),COALESCE(SUM(cleared=1 AND reconciled=0),0),COALESCE(SUM(cleared=0),0) FROM transactions WHERE budget_id=?1 AND account_id=?2 AND tombstone=0 AND parent_id IS NULL",params![b,id],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?)))?;
     Ok(
         json!({"account_id":id,"balances":balances,"statement_balance":target,"difference":money(target as i128-balances.cleared as i128)?,"locked_count":locked,"ready_count":ready,"uncleared_count":uncleared,"snapshot":concurrency::cursor(db,b)?,"last_reconciled":crate::accounts::get(db,b,id)?["last_reconciled"],"edit_clock":db.query_row("SELECT clock FROM budget_sync WHERE budget_id=?1",[b],|r|r.get::<_,String>(0))?}),
     )
@@ -218,6 +219,7 @@ fn reconcile(
                     params![b, tid],
                 )?;
                 concurrency::seed_field_version(db, b, "transactions", &tid, "reconciled", clock)?;
+                concurrency::mark(db, b, "transactions", &tid)?;
             }
             let previous = crate::accounts::get(db, b, id)?;
             if previous["field_versions"]["last_reconciled"]
@@ -251,26 +253,70 @@ fn unlock_row(
     body: &Value,
     clock: &str,
 ) -> Result<Value, Error> {
-    fields(body, &["reconciled_version"])?;
-    let row = ledger::get(db, b, id)?;
-    let expected = required(body, "reconciled_version")?;
-    let current = row["field_versions"]["reconciled"]
-        .as_str()
-        .unwrap_or(concurrency::ZERO);
-    if expected != current || clock <= current {
-        return Err(Error::new(
-            StatusCode::CONFLICT,
-            "reconciliation_changed",
-            "The protection changed. Refresh before unlocking.",
-        ));
+    fields(body, &["reconciled_version", "reconciled_versions"])?;
+    let rows = members(db, b, id)?;
+    let versions = if rows.len() == 1 && body.get("reconciled_versions").is_none() {
+        BTreeMap::from([(
+            id.to_owned(),
+            required(body, "reconciled_version")?.to_owned(),
+        )])
+    } else {
+        serde_json::from_value::<BTreeMap<String, String>>(body["reconciled_versions"].clone())
+            .map_err(|_| Error::invalid("Supply reconciled_versions for every split member"))?
+    };
+    if versions.len() > 101 {
+        return Err(Error::invalid("Too many reconciliation proofs"));
     }
-    db.execute(
-        "UPDATE transactions SET reconciled=0 WHERE budget_id=?1 AND id=?2",
-        params![b, id],
-    )?;
-    concurrency::seed_field_version(db, b, "transactions", id, "reconciled", clock)?;
-    concurrency::mark(db, b, "transactions", id)?;
+    for row in &rows {
+        let tid = row["id"].as_str().unwrap();
+        let current = row["field_versions"]["reconciled"]
+            .as_str()
+            .unwrap_or(concurrency::ZERO);
+        if versions.get(tid).map(String::as_str) != Some(current) || clock <= current {
+            return Err(Error::new(
+                StatusCode::CONFLICT,
+                "reconciliation_changed",
+                "The protection changed. Refresh before unlocking the whole split.",
+            ));
+        }
+    }
+    for row in rows {
+        let tid = row["id"].as_str().unwrap();
+        db.execute(
+            "UPDATE transactions SET reconciled=0 WHERE budget_id=?1 AND id=?2",
+            params![b, tid],
+        )?;
+        concurrency::seed_field_version(db, b, "transactions", tid, "reconciled", clock)?;
+        concurrency::mark(db, b, "transactions", tid)?;
+    }
     ledger::get(db, b, id)
+}
+/// A split's parent and every live allocation share protection, even when the
+/// action originates from a child. Transfer callers expand both such sets.
+pub fn members(db: &Connection, budget: &str, id: &str) -> Result<Vec<Value>, Error> {
+    let row = ledger::get(db, budget, id)?;
+    let parent = match row["parent_id"].as_str() {
+        Some(parent) => ledger::get(db, budget, parent)?,
+        None => row,
+    };
+    let mut rows = parent["children"].as_array().cloned().unwrap_or_default();
+    rows.insert(0, parent);
+    Ok(rows)
+}
+pub fn protect_members(
+    rows: &[Value],
+    versions: Option<&BTreeMap<String, String>>,
+    clock: &str,
+) -> Result<(), Error> {
+    for row in rows {
+        protect(
+            row,
+            versions
+                .and_then(|versions| versions.get(row["id"].as_str().unwrap()))
+                .map(|version| Confirmation { version, clock }),
+        )?;
+    }
+    Ok(())
 }
 /// Proof captured when the user confirmed a protected edit. Aggregate callers
 /// must construct one proof per affected protected row, never reuse another leg's.

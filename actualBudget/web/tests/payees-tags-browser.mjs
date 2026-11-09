@@ -303,8 +303,16 @@ try {
   await context.setOffline(false);
   await page.reload();
   await page.getByRole("button", { name: "Done", exact: true }).click();
-  await page.getByLabel("Tag", { exact: true }).fill("Meals");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  await page.getByText("Filters and columns", { exact: true }).click();
+  await page
+    .getByRole("button", { name: "Add condition", exact: true })
+    .click();
+  await page.getByLabel("Field 1", { exact: true }).selectOption("notes");
+  await page.getByLabel("Operator 1", { exact: true }).selectOption("hasTags");
+  await page.getByLabel("Value 1", { exact: true }).fill("Meals");
+  await page
+    .getByRole("button", { name: "Apply filters and columns", exact: true })
+    .click();
   await expect(
     page.getByText("#Meals ##Food #Foodie", { exact: true }),
   ).toBeVisible();

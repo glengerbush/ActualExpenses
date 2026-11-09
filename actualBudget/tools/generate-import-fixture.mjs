@@ -13,9 +13,10 @@ import { setTimeout as delay, setImmediate as yieldLoop } from 'node:timers/prom
 const requireOracle = createRequire(new URL('../../actualExpenses/tools/compatibility/package.json', import.meta.url));
 const api = requireOracle('@actual-app/api');
 const accountFixture = process.argv.includes('--accounts');
+const splitFixture = process.argv.includes('--splits');
 let root;
-const archivePath = fileURLToPath(new URL(accountFixture ? '../tests/fixtures/import-accounts-26.10.0.zip' : '../tests/fixtures/import-26.10.0.zip', import.meta.url));
-const manifestPath = fileURLToPath(new URL(accountFixture ? '../tests/fixtures/import-accounts-26.10.0.json' : '../tests/fixtures/import-26.10.0.json', import.meta.url));
+const archivePath = fileURLToPath(new URL(splitFixture ? '../tests/fixtures/import-splits-26.10.0.zip' : accountFixture ? '../tests/fixtures/import-accounts-26.10.0.zip' : '../tests/fixtures/import-26.10.0.zip', import.meta.url));
+const manifestPath = fileURLToPath(new URL(splitFixture ? '../tests/fixtures/import-splits-26.10.0.json' : accountFixture ? '../tests/fixtures/import-accounts-26.10.0.json' : '../tests/fixtures/import-26.10.0.json', import.meta.url));
 const inspector = fileURLToPath(new URL('./inspect-actual-archive.py', import.meta.url));
 const unsupportedArchivePath = archivePath.replace('import-26', 'import-unsupported-rule-26');
 const unsupportedManifestPath = manifestPath.replace('import-26', 'import-unsupported-rule-26');
@@ -42,7 +43,7 @@ async function publicSnapshot() {
   }
   const sorted = rows => rows.sort((a, b) => a.id.localeCompare(b.id));
   return {
-    ...(accountFixture ? { account_groups: await api.getAccountGroups(), notes: await Promise.all(accounts.map(account => api.getNote(account.id))) } : {}),
+    ...((accountFixture || splitFixture) ? { account_groups: await api.getAccountGroups(), notes: await Promise.all(accounts.map(account => api.getNote(account.id))) } : {}),
     accounts, transactions: sorted(transactions), balances,
     payees: sorted(await api.getPayees()), categories: sorted(await api.getCategories()),
     category_groups: sorted(await api.getCategoryGroups()), preferences: await api.getPreferences(), rules: sorted(await api.getRules()),
@@ -103,7 +104,7 @@ async function verifyPublicImport(archive, expected) {
 }
 try {
   if (check) {
-    for (const [archive, manifest] of (accountFixture ? [[archivePath, manifestPath]] : [[archivePath, manifestPath], [unsupportedArchivePath, unsupportedManifestPath]])) {
+    for (const [archive, manifest] of ((accountFixture || splitFixture) ? [[archivePath, manifestPath]] : [[archivePath, manifestPath], [unsupportedArchivePath, unsupportedManifestPath]])) {
       const expected = JSON.parse(await readFile(manifest, 'utf8'));
       assert.deepEqual(inspect(archive), expected.inspection, 'Archive bytes, source schema, IDs, clocks or retained records changed');
       await verifyPublicImport(await readFile(archive), expected);
@@ -145,6 +146,10 @@ try {
       assert.ok(performance.now() < deadline, 'Public API mutation visibility timed out');
       await yieldLoop();
     }
+    if (splitFixture) {
+      await api.addTransactions(spending,[{id:id(50),date:'2026-02-01',amount:-5001,cleared:true,notes:'Split purchase',subtransactions:[{id:id(51),amount:-2000,category,payee,notes:'Food allocation'},{id:id(52),amount:-3001,category,payee,notes:'Supplies allocation'}]}]);
+      await api.sync();
+    }
     if (accountFixture) {
       const group = await api.createAccountGroup({ name: 'Daily accounts' });
       const removedGroup = await api.createAccountGroup({ name: 'Removed group' });
@@ -167,9 +172,9 @@ try {
     expected.inspection = inspect(generated);
     assert.ok(expected.inspection.latest_field_clocks.length > 0, 'Genuine synced field clocks required');
     assert.ok(expected.inspection.latest_field_clocks.some(row => row.row === id(4) && row.column === 'tombstone' && row.value === 'N:1'), 'Published deletion clock required');
-    assert.equal(expected.public.balances.find(row => row.account_id === spending).total, 31434);
+    assert.equal(expected.public.balances.find(row => row.account_id === spending).total, splitFixture ? 26433 : 31434);
     assert.equal(expected.public.balances.find(row => row.account_id === reserve).total, -5000);
-    if (!accountFixture) {
+    if (!accountFixture && !splitFixture) {
     // A genuine later-feature record proves the limited importer must report and
     // retain unsupported data instead of silently losing it.
     await api.createRule({ stage: null, conditionsOp: 'and', conditions: [{ field: 'payee', op: 'is', value: payee }], actions: [{ op: 'set', field: 'category', value: category }] });

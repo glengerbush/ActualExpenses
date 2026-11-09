@@ -100,6 +100,19 @@ class NativeApiIntegrationTest {
             assertEquals(200, response.statusCode(), response.body())
         }
 
+        fun delete(path: String, body: String = "{}") {
+            val response =
+                client.send(
+                    HttpRequest.newBuilder(URI("$url/api/v1$path"))
+                        .header("Content-Type", "application/json")
+                        .header("Idempotency-Key", UUID.randomUUID().toString())
+                        .method("DELETE", HttpRequest.BodyPublishers.ofString(body))
+                        .build(),
+                    HttpResponse.BodyHandlers.ofString(),
+                )
+            assertEquals(200, response.statusCode(), response.body())
+        }
+
         fun upload(bytes: ByteArray): JsonObject {
             val response =
                 client.send(
@@ -158,6 +171,228 @@ class NativeApiIntegrationTest {
             restarted.deleteExpense(restarted.beginEdit(id))
             restarted.refresh()
             assertTrue(restarted.state().expenses.isEmpty(), restarted.state().error)
+        }
+    }
+
+    @Test
+    fun `remote close and deletion refresh account choices and clear unavailable selection`() {
+        Server().use { server ->
+            for (amount in listOf(-100, 100)) server.post(
+                "/budgets/${server.budget}/transactions",
+                """{"id":"${UUID.randomUUID()}","account_id":"${server.account}","amount":$amount,"date":"2026-01-01"}""",
+            )
+            val app = ApiExpenseService(MemoryStore())
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            server.post("/budgets/${server.budget}/accounts/${server.account}/close", "{}", 200)
+            app.refresh()
+            assertTrue(app.state().online, app.state().error)
+            assertTrue(app.state().accounts.isEmpty())
+            assertNull(app.state().selectedAccountId)
+            server.post("/budgets/${server.budget}/accounts/${server.account}/reopen", "{}", 200)
+            app.refresh()
+            assertEquals(listOf(server.account), app.state().accounts.map { it.id })
+            app.chooseAccount(server.account)
+            server.delete(
+                "/budgets/${server.budget}/accounts/${server.account}",
+                """{"confirm_name":"Spending"}""",
+            )
+            app.refresh()
+            assertTrue(app.state().online, app.state().error)
+            assertTrue(app.state().accounts.isEmpty())
+            assertNull(app.state().selectedAccountId)
+        }
+    }
+
+    @Test
+    fun `closed account retains queued expense and reopens with identical delivery identity`() {
+        for (committed in listOf(false, true)) Server().use { server ->
+            for (amount in listOf(-100, 100)) server.post(
+                "/budgets/${server.budget}/transactions",
+                """{"id":"${UUID.randomUUID()}","account_id":"${server.account}","amount":$amount,"date":"2026-01-01"}""",
+            )
+            val store = MemoryStore()
+            val real = BudgetHttpTransport()
+            val requests = mutableListOf<Triple<String, Map<String, String>, String>>()
+            var fail = true
+            val network = HttpTransport { url, method, headers, body ->
+                if (method == "POST" && url.endsWith("/transactions")) {
+                    requests += Triple(url, headers, body!!.toString(Charsets.UTF_8))
+                    if (fail) {
+                        if (committed) real.request(url, method, headers, body)
+                        throw IOException("Connection lost")
+                    }
+                }
+                real.request(url, method, headers, body)
+            }
+            val app = ApiExpenseService(store, transport = network)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            app.markOffline()
+            val id = app.saveExpense(ExpenseDraft("4.56", notes = "Keep this purchase"))
+            app.refresh()
+            assertEquals(1, requests.size)
+            if (committed)
+                server.post(
+                    "/budgets/${server.budget}/transactions",
+                    """{"id":"${UUID.randomUUID()}","account_id":"${server.account}","amount":456,"date":"2026-01-01"}""",
+                )
+            server.post("/budgets/${server.budget}/accounts/${server.account}/close", "{}", 200)
+            fail = false
+            app.refresh()
+            assertEquals(1, app.state().pendingCount)
+            assertTrue(app.state().syncBlocked)
+            assertTrue(app.state().error.orEmpty().contains("closed"), app.state().error)
+            assertTrue(app.state().accounts.single().name.contains("closed; pending recovery"))
+            assertEquals(server.account, app.state().selectedAccountId)
+            assertTrue(app.state().expenses.any { it.id == id && it.pending })
+            assertEquals(1, requests.size, "Unavailable accounts must retain unsent work")
+            val restarted = ApiExpenseService(store, transport = network)
+            restarted.refresh()
+            assertEquals(1, restarted.state().pendingCount)
+            assertTrue(restarted.state().expenses.any { it.id == id && it.pending })
+            server.post("/budgets/${server.budget}/accounts/${server.account}/reopen", "{}", 200)
+            restarted.refresh()
+            assertEquals(0, restarted.state().pendingCount, restarted.state().error)
+            assertEquals(2, requests.size)
+            assertEquals(requests[0], requests[1])
+            assertEquals(
+                1,
+                server.get("/budgets/${server.budget}/transactions").getAsJsonArray("data").count {
+                    it.asJsonObject["id"].asString == id
+                },
+            )
+            assertEquals(
+                -456,
+                server
+                    .get("/budgets/${server.budget}/transactions/$id")
+                    .getAsJsonObject("data")["amount"]
+                    .asLong,
+            )
+        }
+    }
+
+    @Test
+    fun `deleted account preserves pending edit and other accounts remain selectable`() {
+        Server().use { server ->
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            val id = app.saveExpense(ExpenseDraft("7.89", notes = "Original"))
+            app.refresh()
+            val edit = app.beginEdit(id)
+            app.markOffline()
+            app.saveExpense(edit.original!!.copy(notes = "Keep pending correction"), edit)
+            val second = UUID.randomUUID().toString()
+            server.post(
+                "/budgets/${server.budget}/accounts",
+                """{"id":"$second","name":"Other","opening_balance":0,"opening_date":"2026-01-01"}""",
+            )
+            server.delete(
+                "/budgets/${server.budget}/accounts/${server.account}",
+                """{"confirm_name":"Spending"}""",
+            )
+            app.refresh()
+            assertEquals(1, app.state().pendingCount)
+            assertTrue(
+                app.state().online,
+                "Reachable recovery is distinct from network disconnection",
+            )
+            assertTrue(app.state().syncBlocked)
+            assertTrue(app.state().error.orEmpty().contains("deleted"), app.state().error)
+            assertEquals(setOf(second, server.account), app.state().accounts.map { it.id }.toSet())
+            assertTrue(
+                app.state()
+                    .accounts
+                    .single { it.id == server.account }
+                    .name
+                    .contains("deleted; pending recovery")
+            )
+            assertEquals("Keep pending correction", app.state().expenses.single().notes)
+            assertTrue(app.state().expenses.single().pending)
+            val restarted = ApiExpenseService(store)
+            restarted.refresh()
+            assertEquals(id, restarted.state().expenses.single().id)
+            restarted.chooseBudget(server.budget)
+            assertEquals(id, restarted.state().expenses.single().id)
+            restarted.chooseAccount(second)
+            assertEquals(second, restarted.state().selectedAccountId)
+            assertEquals(1, restarted.state().pendingCount)
+            restarted.refresh()
+            assertTrue(restarted.state().syncBlocked)
+            assertTrue(restarted.state().error.orEmpty().contains("Spending"))
+            restarted.chooseAccount(server.account)
+            assertEquals(id, restarted.state().expenses.single().id)
+            assertFailsWith<IllegalArgumentException> {
+                restarted.saveExpense(ExpenseDraft("1.00"))
+            }
+            assertTrue(
+                server.get("/budgets/${server.budget}/transactions").getAsJsonArray("data").isEmpty
+            )
+            assertEquals(1, restarted.state().pendingCount)
+        }
+    }
+
+    @Test
+    fun `category choices follow hidden parents category visibility and deletion`() {
+        Server().use { server ->
+            val group = UUID.randomUUID().toString()
+            val category = UUID.randomUUID().toString()
+            val base = "/budgets/${server.budget}"
+            server.post("$base/category-groups", """{"id":"$group","name":"Everyday"}""")
+            server.post(
+                "$base/categories",
+                """{"id":"$category","name":"Food","group_id":"$group"}""",
+            )
+            val app = ApiExpenseService(MemoryStore())
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            assertEquals(listOf(category), app.state().categories.map { it.id })
+            val expense = app.saveExpense(ExpenseDraft("1.23", categoryId = category))
+            app.refresh()
+            val originalEdit = app.beginEdit(expense)
+            fun clock(seconds: Long) =
+                DateTimeFormatterBuilder()
+                    .appendInstant(3)
+                    .toFormatter()
+                    .format(Instant.now().plusSeconds(seconds)) + "-0000-ffffffffffffffff"
+            server.patch("$base/category-groups/$group", """{"hidden":true}""", clock(1))
+            assertTrue(
+                server
+                    .get("$base/categories/$category")
+                    .getAsJsonObject("data")["group_hidden"]
+                    .asBoolean
+            )
+            app.refresh()
+            assertTrue(app.state().categories.isEmpty(), "Hidden group must hide category choices")
+            assertEquals("Food", app.state().expenses.single().category)
+            app.saveExpense(
+                originalEdit.original!!.copy(notes = "Keep existing category"),
+                originalEdit,
+            )
+            app.refresh()
+            assertEquals(0, app.state().pendingCount, app.state().error)
+            assertFailsWith<IllegalArgumentException> {
+                app.saveExpense(ExpenseDraft("1.00", categoryId = category))
+            }
+            server.patch("$base/category-groups/$group", """{"hidden":false}""", clock(2))
+            app.refresh()
+            assertEquals(listOf(category), app.state().categories.map { it.id })
+            server.patch("$base/categories/$category", """{"hidden":true}""", clock(3))
+            app.refresh()
+            assertTrue(app.state().categories.isEmpty())
+            server.patch("$base/categories/$category", """{"hidden":false}""", clock(4))
+            app.refresh()
+            assertEquals(listOf(category), app.state().categories.map { it.id })
+            server.delete("$base/categories/$category", """{"replacement_id":null}""")
+            app.refresh()
+            assertTrue(app.state().categories.isEmpty())
+            assertNull(app.state().expenses.single().categoryId)
         }
     }
 

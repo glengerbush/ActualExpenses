@@ -9,6 +9,8 @@ import kotlin.concurrent.withLock
 import org.actualexpenses.core.*
 import org.actualexpenses.core.protocol.*
 
+private class UnavailablePendingAccount(message: String) : IllegalArgumentException(message)
+
 private data class NativeOperation(
     val id: String = UUID.randomUUID().toString(),
     val transactionId: String = "",
@@ -132,10 +134,7 @@ class ApiExpenseService(
             expenseContext = if (saved.accountId != null) captureContext() else null,
             budgets = saved.budgets,
             budgetId = saved.budgetId,
-            accounts =
-                choices(saved.accounts).filter {
-                    saved.accounts[it.id]?.get("closed")?.asBoolean != true
-                },
+            accounts = accountChoices(),
             selectedAccountId = account,
             expenses =
                 visible.map { row ->
@@ -161,15 +160,19 @@ class ApiExpenseService(
             payees = choices(payees),
             categories =
                 choices(saved.categories).filter {
-                    saved.categories[it.id]?.get("is_income")?.asBoolean != true
+                    saved.categories[it.id]?.let { row ->
+                        listOf("is_income", "hidden", "group_hidden", "deleted").none {
+                            row[it]?.asBoolean == true
+                        }
+                    } == true
                 },
             currency = currency,
             decimalPlaces = if (currency in setOf("IRR", "JPY", "KRW")) 0 else 2,
             online = online,
             pendingCount = saved.pending.map { it.transactionId }.distinct().size,
             notice = saved.notice,
-            error = error,
-            syncBlocked = blocked,
+            error = pendingAccountError() ?: error,
+            syncBlocked = blocked || pendingAccountError() != null,
         )
     }
 
@@ -222,7 +225,13 @@ class ApiExpenseService(
         ready()
         require(state().accounts.any { it.id == id }) { "Choose an open account." }
         val budget = saved.budgetId ?: error("Choose a budget first.")
-        if (online) loadAccount(budget, id)
+        if (saved.accounts[id]?.let(::availableAccount) != true) {
+            require(saved.pending.any { it.accountId == id }) { "Choose an open account." }
+            change {
+                it.accountId = id
+                it.rememberedAccounts[scopeKey(it.server, budget)] = id
+            }
+        } else if (online) loadAccount(budget, id)
         else {
             require(saved.recent.containsKey(id)) {
                 "Connect once to load this account before selecting it offline."
@@ -331,7 +340,7 @@ class ApiExpenseService(
         val view = state()
         val account = saved.accountId ?: error("Choose an account first.")
         val budget = saved.budgetId ?: error("Choose a budget first.")
-        require(view.accounts.any { it.id == account }) {
+        require(saved.accounts[account]?.let(::availableAccount) == true) {
             "This account is unavailable. Saved work is retained."
         }
         val context =
@@ -485,6 +494,12 @@ class ApiExpenseService(
                 markOnline()
                 return
             }
+            // Refresh reference availability before delivering captured work so known
+            // closed or deleted accounts hold their expenses for explicit recovery.
+            val budget = saved.budgetId!!
+            refreshBudget(api, budget)
+            requirePendingAccounts()
+            var delivered = false
             while (true) {
                 val op =
                     synchronized(this) {
@@ -505,20 +520,12 @@ class ApiExpenseService(
                         }
                     } else throw failure
                 }
+                delivered = true
             }
-            val budget = saved.budgetId!!
-            if (saved.checkpoint == null) bootstrap(budget, saved.accountId)
-            else
-                try {
-                    refreshChanges(api, budget)
-                } catch (failure: BudgetApiException) {
-                    if (failure.code == "cursor_invalid" && saved.pending.isEmpty())
-                        bootstrap(budget, saved.accountId)
-                    else throw failure
-                }
+            if (delivered) refreshBudget(api, budget)
             markOnline()
         } catch (failure: Exception) {
-            online = false
+            online = failure is UnavailablePendingAccount
             error = failure.message ?: "Could not connect. Saved work is retained."
             blocked =
                 failure is BudgetApiException && failure.status in 400..499 ||
@@ -527,6 +534,51 @@ class ApiExpenseService(
             syncLock.unlock()
         }
     }
+
+    private fun refreshBudget(api: BudgetApi, budget: String) {
+        if (saved.checkpoint == null) bootstrap(budget, saved.accountId)
+        else
+            try {
+                refreshChanges(api, budget)
+            } catch (failure: BudgetApiException) {
+                if (failure.code == "cursor_invalid" && saved.pending.isEmpty())
+                    bootstrap(budget, saved.accountId)
+                else throw failure
+            }
+    }
+
+    private fun requirePendingAccounts() {
+        pendingAccountError()?.let { throw UnavailablePendingAccount(it) }
+    }
+
+    private fun accountChoices(): List<Choice> =
+        choices(saved.accounts).mapNotNull { choice ->
+            val row = saved.accounts.getValue(choice.id)
+            when {
+                availableAccount(row) -> choice
+                saved.pending.any { it.accountId == choice.id } ->
+                    Choice(
+                        choice.id,
+                        "${choice.name} (${if (row["deleted"]?.asBoolean == true) "deleted" else "closed"}; pending recovery)",
+                    )
+                else -> null
+            }
+        }
+
+    private fun pendingAccountError(): String? =
+        saved.pending
+            .firstOrNull { saved.accounts[it.accountId]?.let(::availableAccount) != true }
+            ?.let { op ->
+                val account = saved.accounts[op.accountId]
+                val reason =
+                    if (account?.get("deleted")?.asBoolean == true || account == null) "deleted"
+                    else "closed"
+                val recovery =
+                    if (reason == "closed") "Reopen it in actualBudget, then refresh to retry."
+                    else
+                        "Keep app data intact and reconcile this saved work with the original budget in actualBudget before continuing."
+                "Account ${account?.text("name") ?: op.accountId} is $reason. Pending expenses retain their original account and delivery identity. $recovery"
+            }
 
     private fun acknowledge(op: NativeOperation, result: JsonObject) {
         val row = result.getAsJsonObject("data")
@@ -585,7 +637,7 @@ class ApiExpenseService(
                 val prefs =
                     api.request("/budgets/$budget/preferences?$suffix").getAsJsonObject("data")
                 val selected = account?.takeIf { id ->
-                    accounts.any { it.text("id") == id && it["closed"]?.asBoolean != true }
+                    accounts.any { it.text("id") == id && availableAccount(it) }
                 }
                 val view = selected?.let { companion(api, budget, it, snapshot) }
                 change { next ->
@@ -600,11 +652,18 @@ class ApiExpenseService(
                     }
                     next.budgetId = budget
                     next.epoch = epoch
-                    next.accountId = selected
+                    next.accountId =
+                        selected
+                            ?: account?.takeIf { id -> next.pending.any { it.accountId == id } }
                     next.checkpoint = snapshot
                     if (selected != null)
                         next.rememberedAccounts[scopeKey(next.server, budget)] = selected
+                    val unavailable =
+                        next.accounts.filterKeys { id -> next.pending.any { it.accountId == id } }
                     next.accounts.clear()
+                    unavailable.forEach { (id, row) ->
+                        next.accounts[id] = row.deepCopy().apply { addProperty("deleted", true) }
+                    }
                     accounts.forEach { next.accounts[it.text("id")!!] = it }
                     next.payees.clear()
                     payees.forEach { next.payees[it.text("id")!!] = it }
@@ -637,8 +696,20 @@ class ApiExpenseService(
                 changes += result.getAsJsonArray("data").map { it.asJsonObject }
                 cursor = result["next_cursor"].asString
             } while (result["has_more"].asBoolean)
-            val account = saved.accountId
+            val accounts = saved.accounts.toMutableMap()
+            changes
+                .filter { it["entity"].asString == "accounts" }
+                .forEach {
+                    accounts[it["id"].asString] = it.getAsJsonObject("data")
+                }
+            val account = saved.accountId?.takeIf { accounts[it]?.let(::availableAccount) == true }
             try {
+                // Category responses include inherited group visibility. Refresh only
+                // this reference set at the same guarded cursor when its parent changes.
+                val categories =
+                    if (changes.any { it["entity"].asString == "category_groups" })
+                        references(api, budget, "categories", "snapshot=${BudgetApi.query(cursor)}")
+                    else null
                 val view =
                     if (
                         account != null &&
@@ -658,10 +729,20 @@ class ApiExpenseService(
                             "preferences" -> next.preferences = preferences(row)
                             "transactions" -> {
                                 observe(next, row)
-                                if (row["deleted"]?.asBoolean == true) next.rows.remove(id)
-                                else if (next.rows.containsKey(id)) next.rows[id] = row
+                                if (row["deleted"]?.asBoolean == true) {
+                                    if (next.pending.none { it.transactionId == id })
+                                        next.rows.remove(id)
+                                } else if (next.rows.containsKey(id)) next.rows[id] = row
                             }
                         }
+                    }
+                    if (categories != null) {
+                        next.categories.clear()
+                        categories.forEach { next.categories[it.text("id")!!] = it }
+                    }
+                    if (account == null && next.pending.none { it.accountId == next.accountId }) {
+                        next.accountId = null
+                        next.rememberedAccounts.remove(scopeKey(next.server, budget))
                     }
                     if (view != null) installView(next, account!!, view)
                     next.checkpoint = cursor
@@ -733,6 +814,9 @@ class ApiExpenseService(
         } while (offset >= 0)
         return rows
     }
+
+    private fun availableAccount(row: JsonObject) =
+        row["closed"]?.asBoolean != true && row["deleted"]?.asBoolean != true
 
     private fun preferences(value: JsonObject) = value.getAsJsonObject("settings") ?: value
 

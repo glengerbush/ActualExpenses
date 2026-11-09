@@ -73,7 +73,7 @@ impl Drop for Server {
 }
 
 #[test]
-fn concurrent_catch_up_clients_and_restart_keep_one_pinned_ledger_and_original_receipts() {
+fn concurrent_catch_up_and_import_retries_keep_one_pinned_ledger_and_original_receipts() {
     let server = Server::start(tempfile::tempdir().unwrap());
     let imported: Value = server
         .client
@@ -98,13 +98,32 @@ fn concurrent_catch_up_clients_and_restart_keep_one_pinned_ledger_and_original_r
         .send()
         .unwrap();
     assert_eq!(activated.status(), 201, "{}", activated.text().unwrap());
+    let activation_receipt: Value = activated.json().unwrap();
     let root = format!("/api/v1/budgets/{budget}");
     let cp = server.get(&format!("{root}/checkpoint"));
     let epoch = cp["data"]["epoch"].as_str().unwrap().to_owned();
     let body = json!({"action":"catch-up","through":"2026-11-09"});
     let url = format!("{}{root}/schedules/commands", server.url);
-    let barrier = Arc::new(Barrier::new(8));
+    let barrier = Arc::new(Barrier::new(10));
     let receipts = std::thread::scope(|scope| {
+        let import_handles = ["race-activate", "new-activation-attempt"].map(|key| {
+            let client = server.client.clone();
+            let barrier = Arc::clone(&barrier);
+            let import_url = format!("{}/api/v1/imports/{stage}/activate", server.url);
+            scope.spawn(move || {
+                barrier.wait();
+                let response = client
+                    .post(import_url)
+                    .header("Idempotency-Key", key)
+                    .json(&json!({}))
+                    .send()
+                    .unwrap();
+                (
+                    response.status().as_u16(),
+                    response.json::<Value>().unwrap(),
+                )
+            })
+        });
         let handles = (0..8)
             .map(|index| {
                 let client = server.client.clone();
@@ -126,6 +145,10 @@ fn concurrent_catch_up_clients_and_restart_keep_one_pinned_ledger_and_original_r
                 })
             })
             .collect::<Vec<_>>();
+        let [replay, new_attempt] = import_handles.map(|h| h.join().unwrap());
+        assert_eq!(replay, (201, activation_receipt.clone()));
+        // Already-activated stages also acknowledge a new key without reinstalling data.
+        assert_eq!(new_attempt, (201, activation_receipt.clone()));
         handles
             .into_iter()
             .map(|h| h.join().unwrap())
@@ -172,6 +195,20 @@ fn concurrent_catch_up_clients_and_restart_keep_one_pinned_ledger_and_original_r
     assert_eq!(ledger["balances"]["cleared"], 0);
     let checkpoint = server.get(&format!("{root}/checkpoint"));
     let server = server.restart();
+    for key in ["race-activate", "new-activation-attempt"] {
+        let activation_replay = server
+            .client
+            .post(format!("{}/api/v1/imports/{stage}/activate", server.url))
+            .header("Idempotency-Key", key)
+            .json(&json!({}))
+            .send()
+            .unwrap();
+        assert_eq!(activation_replay.status(), 201);
+        assert_eq!(
+            activation_replay.json::<Value>().unwrap(),
+            activation_receipt
+        );
+    }
     for (index, original) in receipts.iter().enumerate() {
         let replay = server
             .client

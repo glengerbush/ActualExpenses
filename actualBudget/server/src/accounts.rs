@@ -161,7 +161,8 @@ async fn create_group(
     let key = idempotency_key(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;
     let proposed = concurrency::header(&headers)?;
-    s.run(move|db|concurrency::write(db,&format!("POST /budgets/{b}/account-groups"),&key,&body.to_string(),proposed.as_deref(),StatusCode::CREATED,|db|{crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;group_name(db,&b,&id,&name)?;if db.query_row("SELECT EXISTS(SELECT 1 FROM account_groups WHERE budget_id=?1 AND id=?2)",params![b,id],|r|r.get::<_,bool>(0))?{return Err(Error::conflict("Group ID already exists"));}let clock=concurrency::clock(db,&b,proposed.as_deref())?;db.execute("INSERT INTO account_groups(budget_id,id,name,sort_order) VALUES(?1,?2,?3,(SELECT COALESCE(MAX(sort_order),-1)+1 FROM account_groups WHERE budget_id=?1))",params![b,id,name])?;for field in ["name","sort_order","tombstone"]{concurrency::seed_field_version(db,&b,"account_groups",&id,field,&clock)?;}get_group(db,&b,&id)})).await
+    let cancel = concurrency::cancel_header(&headers)?;
+    s.run(move|db|concurrency::write(db,&format!("POST /budgets/{b}/account-groups"),&key,&body.to_string(),proposed.as_deref(),StatusCode::CREATED,|db|{if cancel { return concurrency::canceled(db, &b); } crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;group_name(db,&b,&id,&name)?;if db.query_row("SELECT EXISTS(SELECT 1 FROM account_groups WHERE budget_id=?1 AND id=?2)",params![b,id],|r|r.get::<_,bool>(0))?{return Err(Error::conflict("Group ID already exists"));}let clock=concurrency::clock(db,&b,proposed.as_deref())?;db.execute("INSERT INTO account_groups(budget_id,id,name,sort_order) VALUES(?1,?2,?3,(SELECT COALESCE(MAX(sort_order),-1)+1 FROM account_groups WHERE budget_id=?1))",params![b,id,name])?;for field in ["name","sort_order","tombstone"]{concurrency::seed_field_version(db,&b,"account_groups",&id,field,&clock)?;}get_group(db,&b,&id)})).await
 }
 async fn mutate(
     State(s): State<Store>,
@@ -175,6 +176,7 @@ async fn mutate(
     let Json(body) = input.map_err(json_error)?;
     let key = idempotency_key(&headers)?;
     let proposed = concurrency::header(&headers)?;
+    let cancel = concurrency::cancel_header(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;
     let entity = if uri.path().contains("/account-groups/") {
         "account_groups"
@@ -199,6 +201,9 @@ async fn mutate(
             proposed.as_deref(),
             StatusCode::OK,
             |db| {
+                if cancel {
+                    return concurrency::canceled(db, &b);
+                }
                 crate::lifecycle::require_epoch(db, &b, epoch.as_deref())?;
                 execute(db, &b, entity, &id, &action, &body, proposed.as_deref())
             },

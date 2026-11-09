@@ -246,7 +246,6 @@ async fn create(
     let budget = budget_id(path)?;
     let Json(input) = input.map_err(json_error)?;
     let table = table(uri.path());
-    validate(&input, table, true)?;
     write(store, budget, table, None, Method::POST, headers, input).await
 }
 async fn edit(
@@ -258,7 +257,6 @@ async fn edit(
 ) -> Result<(StatusCode, Json<Value>), Error> {
     let Json(input) = input.map_err(json_error)?;
     let table = table(uri.path());
-    validate(&input, table, false)?;
     write(
         store,
         budget,
@@ -279,6 +277,18 @@ async fn remove(
 ) -> Result<(StatusCode, Json<Value>), Error> {
     let Json(input) = input.map_err(json_error)?;
     let table = table(uri.path());
+    write(
+        store,
+        budget,
+        table,
+        Some(id),
+        Method::DELETE,
+        headers,
+        input,
+    )
+    .await
+}
+fn validate_removal(input: &Value) -> Result<(), Error> {
     if input
         .as_object()
         .is_none_or(|m| m.keys().any(|k| k != "replacement_id"))
@@ -297,16 +307,7 @@ async fn remove(
     } else {
         return Err(Error::invalid("Explicit replacement_id is required"));
     }
-    write(
-        store,
-        budget,
-        table,
-        Some(id),
-        Method::DELETE,
-        headers,
-        input,
-    )
-    .await
+    Ok(())
 }
 async fn write(
     store: Store,
@@ -328,14 +329,13 @@ async fn write(
     let key = idempotency_key(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;
     let proposed = sync::header(&headers)?;
+    let cancel = sync::cancel_header(&headers)?;
     let payload = if method == Method::POST
         && table == "categories"
-        && input
-            .as_object()
-            .unwrap()
-            .keys()
-            .all(|k| ["id", "name", "is_income"].contains(&k.as_str()))
-    {
+        && input.as_object().is_some_and(|map| {
+            map.keys()
+                .all(|k| ["id", "name", "is_income"].contains(&k.as_str()))
+        }) {
         #[derive(serde::Serialize)]
         struct Legacy<'a> {
             id: &'a Value,
@@ -375,6 +375,9 @@ async fn write(
                 proposed.as_deref(),
                 status,
                 |db| {
+                    if cancel {
+                        return sync::canceled(db, &budget);
+                    }
                     execute(
                         db,
                         &budget,
@@ -411,6 +414,11 @@ fn execute(
         epoch,
         proposed,
     } = intent;
+    if method == Method::DELETE {
+        validate_removal(input)?;
+    } else {
+        validate(input, table, method == Method::POST)?;
+    }
     crate::lifecycle::require_epoch(db, budget, epoch)?;
     let clock = sync::clock(db, budget, proposed)?;
     let id = id.unwrap_or_else(|| input["id"].as_str().unwrap().to_owned());

@@ -120,6 +120,27 @@ async fn cancellation_scope(
                     "POST",
                     "/api/v1/budgets/{budget}/transactions/{id}/duplicate"
                 )
+                | (
+                    "POST",
+                    "/api/v1/budgets/{budget}/accounts"
+                        | "/api/v1/budgets/{budget}/account-groups"
+                        | "/api/v1/budgets/{budget}/categories"
+                        | "/api/v1/budgets/{budget}/category-groups"
+                )
+                | (
+                    "PATCH" | "DELETE",
+                    "/api/v1/budgets/{budget}/accounts/{id}"
+                        | "/api/v1/budgets/{budget}/account-groups/{id}"
+                        | "/api/v1/budgets/{budget}/categories/{id}"
+                        | "/api/v1/budgets/{budget}/category-groups/{id}"
+                )
+                | (
+                    "POST",
+                    "/api/v1/budgets/{budget}/accounts/{id}/close"
+                        | "/api/v1/budgets/{budget}/accounts/{id}/reopen"
+                        | "/api/v1/budgets/{budget}/accounts/{id}/move"
+                        | "/api/v1/budgets/{budget}/account-groups/{id}/move"
+                )
                 | ("PATCH" | "DELETE", "/api/v1/budgets/{budget}")
                 | (
                     "POST",
@@ -144,7 +165,7 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["budgets", "accounts", "account_lifecycle", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports"],
+        "capabilities": ["budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports"],
         "openapi": "/api/v1/openapi.json"
     }))
 }
@@ -204,25 +225,34 @@ async fn create_account(
 ) -> Result<(StatusCode, Json<Value>), Error> {
     let budget = budget_id(path)?;
     let Json(input) = input.map_err(json_error)?;
-    input.validate()?;
     let key = idempotency_key(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;
+    let proposed = concurrency::header(&headers)?;
+    let cancel = concurrency::cancel_header(&headers)?;
     let payload = serde_json::to_string(&input).map_err(Error::internal)?;
-    let result = store
+    store
         .run(move |db| {
-            store::write(
+            concurrency::write(
                 db,
                 &format!("POST /budgets/{budget}/accounts"),
                 &key,
                 &payload,
+                proposed.as_deref(),
+                StatusCode::CREATED,
                 |db| {
+                    if cancel {
+                        return concurrency::canceled(db, &budget);
+                    }
+                    input.validate()?;
                     crate::lifecycle::require_epoch(db, &budget, epoch.as_deref())?;
+                    if proposed.is_some() {
+                        concurrency::clock(db, &budget, proposed.as_deref())?;
+                    }
                     store::create_account(db, &budget, input)
                 },
             )
         })
-        .await?;
-    Ok((StatusCode::CREATED, data(result)))
+        .await
 }
 
 #[derive(serde::Deserialize)]

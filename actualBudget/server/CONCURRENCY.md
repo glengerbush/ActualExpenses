@@ -42,8 +42,9 @@ corrected device time without discarding its fields. No reset changes OS time.
 
 Clients require the `transaction_cancellation` capability before requesting
 cancellation. Send the original transaction mutation method/path/key/body/edit
-clock unchanged, adding `X-Actual-Cancel-If-Uncommitted: true`. Other header values
-and use outside transaction mutation routes fail validation. The control header
+clock unchanged, adding `X-Actual-Cancel-If-Uncommitted: true`. Account/account-group and category/category-group mutation routes use the same
+protocol with `account_cancellation` and `category_cancellation` capabilities.
+Other header values and use outside supported mutation routes fail validation. The control header
 is deliberately outside the operation fingerprint.
 
 Inside the same receipt transaction, an existing outcome wins. Otherwise record

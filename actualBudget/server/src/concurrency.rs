@@ -261,6 +261,15 @@ pub enum Mutation {
     Delete(String),
     Duplicate(String, String),
 }
+/// Called only inside a receipt transaction, after exact original-receipt lookup.
+pub fn canceled(db: &Connection, budget: &str) -> Result<Value, Error> {
+    crate::lifecycle::metadata(db, budget, true)?;
+    Ok(outcome(
+        StatusCode::CONFLICT,
+        json!({"error":{"code":"operation_canceled","message":"This change was canceled before it was saved."}}),
+    ))
+}
+
 pub fn execute(
     db: &Connection,
     budget: &str,
@@ -270,13 +279,7 @@ pub fn execute(
     mutation: Mutation,
 ) -> Result<Value, Error> {
     if cancel_if_uncommitted {
-        crate::lifecycle::metadata(db, budget, true)?;
-        // This outcome is written by the same receipt transaction as normal mutations.
-        // A delayed original request must replay this fence instead of applying its edit.
-        return Ok(outcome(
-            StatusCode::CONFLICT,
-            json!({"error":{"code":"operation_canceled","message":"This change was canceled before it was saved."}}),
-        ));
+        return canceled(db, budget);
     }
     store::require_budget(db, budget)?;
     crate::lifecycle::require_epoch(db, budget, expected_epoch)?;

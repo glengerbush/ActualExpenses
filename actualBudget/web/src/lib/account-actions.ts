@@ -71,7 +71,11 @@ export function persistAccountDraft(
   draft: AccountDraft,
   previous?: AccountDraft | null,
 ) {
-  requirePendingOwner(draft.budgetId, previous?.pending ?? draft.pending);
+  const existing = readAccountDraft(draft.budgetId);
+  if (JSON.stringify(existing) !== JSON.stringify(previous ?? null))
+    throw new Error(
+      "Another tab has a pending account change or changed this form. Reload before continuing.",
+    );
   localStorage.setItem(accountDraftKey(draft.budgetId), JSON.stringify(draft));
 }
 export function clearAccountDraft(budgetId: string) {
@@ -114,3 +118,8 @@ export function sortedGroups(groups: AccountGroup[]) {
     (a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id),
   );
 }
+
+// Monotonic per-operation intent: never erase on acknowledgement; stale tabs must
+// keep sending cancellation if they still hold the original immutable request.
+export const accountCancelKey = (intent: AccountIntent) =>
+  `actualBudget.accounts.cancel.${intent.key}`;

@@ -362,6 +362,18 @@
               ]
             },
             "description": "Requires transaction_receipt_lookup capability. Read-only reconciliation using the original method/path/body/key/edit clock/epoch. Known receipts return their original status/body before budget generation and account availability checks. Unknown requests return 404 operation_uncommitted without mutation, cancellation, clock advancement or consuming the key. Cannot combine with X-Actual-Cancel-If-Uncommitted; supported only on transaction POST/PATCH/DELETE."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "requestBody": {
@@ -425,14 +437,7 @@
             }
           },
           "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "413": {
             "description": "Body exceeds 65536 bytes",
@@ -2100,6 +2105,18 @@
               "type": "string"
             },
             "description": "Capture when intent begins. Required after restore; receipts replay before epoch fence."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised category_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "requestBody": {
@@ -2164,14 +2181,7 @@
             }
           },
           "409": {
-            "description": "Persisted state",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "410": {
             "description": "Persisted state",
@@ -5665,6 +5675,18 @@
               "format": "uuid",
               "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
             }
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "responses": {
@@ -5699,14 +5721,7 @@
             }
           },
           "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "413": {
             "description": "Body exceeds 65536 bytes",
@@ -5865,6 +5880,18 @@
               "format": "uuid",
               "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
             }
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "responses": {
@@ -5899,14 +5926,7 @@
             }
           },
           "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "413": {
             "description": "Body exceeds 65536 bytes",
@@ -6057,6 +6077,18 @@
               "format": "uuid",
               "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
             }
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "responses": {
@@ -6091,14 +6123,7 @@
             }
           },
           "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "413": {
             "description": "Body exceeds 65536 bytes",
@@ -6257,6 +6282,18 @@
               "format": "uuid",
               "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
             }
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "responses": {
@@ -6291,14 +6328,7 @@
             }
           },
           "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "413": {
             "description": "Body exceeds 65536 bytes",
@@ -6440,6 +6470,18 @@
               "format": "uuid",
               "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
             }
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "responses": {
@@ -6474,14 +6516,7 @@
             }
           },
           "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "413": {
             "description": "Body exceeds 65536 bytes",
@@ -6737,6 +6772,18 @@
               "format": "uuid",
               "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
             }
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "responses": {
@@ -6771,14 +6818,7 @@
             }
           },
           "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "413": {
             "description": "Body exceeds 65536 bytes",
@@ -6925,6 +6965,18 @@
               "format": "uuid",
               "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
             }
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "responses": {
@@ -6959,14 +7011,7 @@
             }
           },
           "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "413": {
             "description": "Body exceeds 65536 bytes",
@@ -7108,6 +7153,18 @@
               "format": "uuid",
               "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
             }
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "responses": {
@@ -7142,14 +7199,7 @@
             }
           },
           "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "413": {
             "description": "Body exceeds 65536 bytes",
@@ -7398,6 +7448,18 @@
               "type": "string"
             },
             "description": "Immutable intent HLC; stale fields retain their winning values and appear in conflicts."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "responses": {
@@ -7432,14 +7494,7 @@
             }
           },
           "409": {
-            "description": "Existing identity or idempotency payload conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "413": {
             "description": "Body exceeds 65536 bytes",
@@ -7701,6 +7756,18 @@
               "type": "string"
             },
             "description": "Capture when intent begins. Required after restore; receipts replay before epoch fence."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised category_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "requestBody": {
@@ -7765,14 +7832,7 @@
             }
           },
           "409": {
-            "description": "Persisted state",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "410": {
             "description": "Persisted state",
@@ -7861,6 +7921,18 @@
               "type": "string"
             },
             "description": "Capture when intent begins. Required after restore; receipts replay before epoch fence."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised category_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "requestBody": {
@@ -7925,14 +7997,7 @@
             }
           },
           "409": {
-            "description": "Persisted state",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "410": {
             "description": "Persisted state",
@@ -8188,6 +8253,18 @@
               "type": "string"
             },
             "description": "Capture when intent begins. Required after restore; receipts replay before epoch fence."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised category_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "requestBody": {
@@ -8252,14 +8329,7 @@
             }
           },
           "409": {
-            "description": "Persisted state",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "410": {
             "description": "Persisted state",
@@ -8474,6 +8544,18 @@
               "type": "string"
             },
             "description": "Capture when intent begins. Required after restore; receipts replay before epoch fence."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised category_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "requestBody": {
@@ -8538,14 +8620,7 @@
             }
           },
           "409": {
-            "description": "Persisted state",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "410": {
             "description": "Persisted state",
@@ -8634,6 +8709,18 @@
               "type": "string"
             },
             "description": "Capture when intent begins. Required after restore; receipts replay before epoch fence."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised category_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
           }
         ],
         "requestBody": {
@@ -8698,14 +8785,7 @@
             }
           },
           "409": {
-            "description": "Persisted state",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Identity, epoch, or durable operation_canceled conflict"
           },
           "410": {
             "description": "Persisted state",

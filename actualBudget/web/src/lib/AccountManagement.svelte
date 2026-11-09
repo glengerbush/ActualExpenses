@@ -11,8 +11,13 @@
   } from "./api";
   import { refreshBudget } from "./offline/cache";
   import { offlineStatus, subscribeOffline } from "./offline/events";
-  import { nextEditClock } from "./edit-clock";
   import {
+    nextEditClock,
+    LocalClockError,
+    resetCorrectedClock,
+  } from "./edit-clock";
+  import {
+    accountCancelKey,
     clearAccountDraft,
     readAccountDraft,
     persistAccountDraft,
@@ -45,6 +50,7 @@
     review = $state(false),
     currentEpoch = "";
   let deletedBudget = $state(false);
+  let clockRecovery = $state(false);
   let offline = $state(!offlineStatus.reachable);
   let chosen = $derived(accounts.find((a) => a.id === draft?.accountId));
   let chosenGroup = $derived(
@@ -123,7 +129,7 @@
         pending.key,
         pending.method,
         pending.clock,
-        false,
+        localStorage.getItem(accountCancelKey(pending)) === "true",
         pending.epoch,
       );
       acknowledged = true;
@@ -165,11 +171,22 @@
     } catch (e) {
       if (e instanceof RequestError && !e.uncertain && !acknowledged) {
         blocked = e.code === "budget_restored" || e.code === "budget_deleted";
-        if (!blocked && draft) {
-          const next = { ...draft, pending: null };
+        if (e.code === "operation_canceled" && draft) {
           try {
+            const next = { ...draft, pending: null };
             persistAccountDraft(next, draft);
             draft = next;
+            clockRecovery = true;
+            blocked = false;
+            review = false;
+            status = t(
+              "Request canceled. Your fields are retained. Use corrected device time before saving a new change.",
+            );
+            await snapshot();
+            const refreshed = { ...draft, epoch: currentEpoch };
+            persistAccountDraft(refreshed, draft);
+            draft = refreshed;
+            return;
           } catch (storage) {
             error = errorMessage(storage);
           }
@@ -202,6 +219,48 @@
         clock: nextEditClock(versions),
         epoch: draft.epoch,
       });
+    } catch (e) {
+      clockRecovery = e instanceof LocalClockError;
+      error = errorMessage(e);
+    }
+  }
+  async function cancel() {
+    if (!draft?.pending || busy) return;
+    const original = draft.pending;
+    busy = true;
+    try {
+      // Verify ownership before recording intent, including when another tab
+      // has already resolved this request and prepared a different one.
+      persistAccountDraft(draft, draft);
+      const { data } = await request<{ data: { capabilities: string[] } }>(
+        "/info",
+      );
+      if (!data.capabilities.includes("account_cancellation"))
+        throw new Error(
+          "This server cannot safely cancel this request. Retry it unchanged.",
+        );
+      persistAccountDraft(draft, draft);
+      if (draft.pending !== original)
+        throw new Error("The pending change changed. Reload saved work.");
+      localStorage.setItem(accountCancelKey(original), "true");
+      busy = false;
+      await send(original);
+    } catch (e) {
+      error = errorMessage(e);
+    } finally {
+      busy = false;
+    }
+  }
+  function useCorrectedTime() {
+    if (!draft || draft.pending || busy) return;
+    try {
+      persistAccountDraft(draft, draft);
+      resetCorrectedClock();
+      clockRecovery = false;
+      error = "";
+      status = t(
+        "Corrected device time is ready. Review your fields, then save a new change.",
+      );
     } catch (e) {
       error = errorMessage(e);
     }
@@ -260,28 +319,23 @@
       busy = false;
     }
   }
-  function retire(reapply: boolean) {
+  async function retire(reapply: boolean) {
     if (!draft || !blocked || !review) return;
-    try {
-      localStorage.setItem(
-        `actualBudget.retiredAccounts.v1.${draft.pending?.key ?? uuid()}`,
-        JSON.stringify(draft),
-      );
-      const next = reapply
-        ? { ...draft, epoch: currentEpoch, pending: null }
-        : newAccountDraft(budgetId, currentEpoch, accounts[0] ?? null);
-      persistAccountDraft(next, draft);
-      draft = next;
-      blocked = false;
-      review = false;
-      error = "";
-      status = t(
-        reapply
-          ? "Review the retained fields, then save a new change."
-          : "Saved change discarded.",
-      );
-    } catch (e) {
-      error = errorMessage(e);
+    await cancel();
+    if (draft.pending || error) return;
+    if (!reapply) {
+      try {
+        const next = newAccountDraft(
+          budgetId,
+          currentEpoch,
+          accounts[0] ?? null,
+        );
+        persistAccountDraft(next, draft);
+        draft = next;
+        status = t("Saved change discarded.");
+      } catch (e) {
+        error = errorMessage(e);
+      }
     }
   }
   function done() {
@@ -310,6 +364,11 @@
   </div>
   {#if error}<p class="error" role="alert">{t(error)}</p>{/if}
   {#if status}<p role="status">{status}</p>{/if}
+  {#if clockRecovery && !draft?.pending}
+    <button onclick={useCorrectedTime} disabled={busy}
+      >{t("Use corrected device time")}</button
+    >
+  {/if}
   {#if offline}<p role="status">
       {t(
         "Reconnect before changing accounts or groups. Your saved changes are kept.",
@@ -322,6 +381,9 @@
         "The outcome is unconfirmed. Retry this saved request before changing its details.",
       )}
     </p>
+    <button onclick={cancel} disabled={busy || offline}
+      >{t("Cancel pending request and keep fields")}</button
+    >
     {#if blocked}<button onclick={reviewCurrent} disabled={busy}
         >{t("Review current accounts")}</button
       >

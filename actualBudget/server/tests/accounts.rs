@@ -738,3 +738,269 @@ fn deleted_account_history_accepts_hidden_field_merges_without_resurrection() {
         404
     );
 }
+
+#[test]
+fn metadata_cancellation_fences_future_clock_and_replays_original_receipt() {
+    let s = Server::start();
+    ok(s.write(
+        "POST",
+        "/api/v1/budgets",
+        "budget",
+        None,
+        json!({"id":B,"name":"Recovery"}),
+    ));
+    let root = format!("/api/v1/budgets/{B}");
+    ok(s.write(
+        "POST",
+        &format!("{root}/accounts"),
+        "account",
+        None,
+        json!({"id":id(2),"name":"Account","opening_balance":0,"opening_date":"2026-01-01"}),
+    ));
+    let future = "2099-01-01T00:00:00.000Z-0000-0000000000000001";
+    let cases = [
+        (
+            "PATCH",
+            format!("{root}/accounts/{}", id(2)),
+            json!({"notes":"Retained account fields"}),
+        ),
+        (
+            "POST",
+            format!("{root}/account-groups"),
+            json!({"id":id(3),"name":"Account group"}),
+        ),
+        (
+            "POST",
+            format!("{root}/categories"),
+            json!({"id":id(4),"name":"Category"}),
+        ),
+        (
+            "POST",
+            format!("{root}/category-groups"),
+            json!({"id":id(5),"name":"Category group"}),
+        ),
+    ];
+    for (i, (method, path, body)) in cases.iter().enumerate() {
+        let key = format!("future{i}");
+        let response = s.write(method, path, &key, Some(future), body.clone());
+        assert_eq!(
+            response.json::<Value>().unwrap()["error"]["code"],
+            "clock_skew"
+        );
+        let cancel = |key: &str, clock: &str, body: &Value| {
+            s.client
+                .request(method.parse().unwrap(), format!("{}{path}", s.url))
+                .header("Idempotency-Key", key)
+                .header("X-Actual-Edit-Clock", clock)
+                .header("X-Actual-Budget-Epoch", "00000000000000000000000000000000")
+                .header("X-Actual-Cancel-If-Uncommitted", "true")
+                .json(body)
+                .send()
+                .unwrap()
+        };
+        let canceled: Value = cancel(&key, future, body).json().unwrap();
+        assert_eq!(canceled["error"]["code"], "operation_canceled");
+        assert_eq!(
+            s.write(method, path, &key, Some(future), body.clone())
+                .json::<Value>()
+                .unwrap(),
+            canceled
+        );
+        assert_eq!(
+            cancel(&key, future, body).json::<Value>().unwrap(),
+            canceled
+        );
+        let clock = "2026-01-01T00:00:00.000Z-0001-0000000000000001";
+        assert_eq!(
+            cancel(&key, clock, body).json::<Value>().unwrap()["error"]["code"],
+            "idempotency_conflict"
+        );
+        let new_key = format!("corrected{i}");
+        let result = ok(s.write(method, path, &new_key, Some(clock), body.clone()));
+        assert_eq!(
+            cancel(&new_key, clock, body).json::<Value>().unwrap(),
+            result
+        );
+    }
+    let info = s.get("/api/v1/info");
+    for capability in ["account_cancellation", "category_cancellation"] {
+        assert!(
+            info["data"]["capabilities"]
+                .as_array()
+                .unwrap()
+                .contains(&json!(capability))
+        );
+    }
+}
+
+#[test]
+fn every_metadata_cancellation_route_is_durable_without_advancing_snapshot() {
+    let mut s = Server::start();
+    ok(s.write(
+        "POST",
+        "/api/v1/budgets",
+        "budget",
+        None,
+        json!({"id":B,"name":"Fences"}),
+    ));
+    let root = format!("/api/v1/budgets/{B}");
+    let future = "2099-01-01T00:00:00.000Z-0000-0000000000000001";
+    let snapshot = s.get(&format!("{root}/checkpoint"));
+    let epoch = snapshot["data"]["epoch"].as_str().unwrap();
+    let mut cases = vec![
+        (
+            "POST",
+            format!("{root}/accounts"),
+            json!({"id":id(2),"name":"Not created","opening_balance":0,"opening_date":"2026-01-01"}),
+        ),
+        (
+            "POST",
+            format!("{root}/account-groups"),
+            json!({"id":id(3),"name":"Not created"}),
+        ),
+        (
+            "POST",
+            format!("{root}/categories"),
+            json!({"id":id(4),"name":"Not created"}),
+        ),
+        (
+            "POST",
+            format!("{root}/category-groups"),
+            json!({"id":id(5),"name":"Not created"}),
+        ),
+    ];
+    for resource in [
+        "accounts",
+        "account-groups",
+        "categories",
+        "category-groups",
+    ] {
+        cases.push((
+            "PATCH",
+            format!("{root}/{resource}/{}", id(6)),
+            json!({"name":"Not changed"}),
+        ));
+        cases.push((
+            "DELETE",
+            format!("{root}/{resource}/{}", id(6)),
+            if resource.starts_with("categor") {
+                json!({"replacement_id":null})
+            } else {
+                json!({})
+            },
+        ));
+    }
+    for action in ["close", "reopen", "move"] {
+        cases.push((
+            "POST",
+            format!("{root}/accounts/{}/{action}", id(6)),
+            json!({}),
+        ));
+    }
+    cases.push((
+        "POST",
+        format!("{root}/account-groups/{}/move", id(6)),
+        json!({}),
+    ));
+    for (i, (method, path, body)) in cases.iter().enumerate() {
+        let response = s
+            .client
+            .request(method.parse().unwrap(), format!("{}{path}", s.url))
+            .header("Idempotency-Key", format!("fence{i}"))
+            .header("X-Actual-Edit-Clock", future)
+            .header("X-Actual-Budget-Epoch", epoch)
+            .header("X-Actual-Cancel-If-Uncommitted", "true")
+            .json(body)
+            .send()
+            .unwrap();
+        assert_eq!(response.status(), 409, "{method} {path}");
+        assert_eq!(
+            response.json::<Value>().unwrap()["error"]["code"],
+            "operation_canceled",
+            "{method} {path}"
+        );
+        assert_eq!(s.get(&format!("{root}/checkpoint")), snapshot);
+    }
+    s = s.restart();
+    for (i, (method, path, body)) in cases.iter().enumerate() {
+        let response = s.write(
+            method,
+            path,
+            &format!("fence{i}"),
+            Some(future),
+            body.clone(),
+        );
+        assert_eq!(response.status(), 409, "{method} {path}");
+        assert_eq!(
+            response.json::<Value>().unwrap()["error"]["code"],
+            "operation_canceled"
+        );
+    }
+    assert_eq!(s.get(&format!("{root}/checkpoint")), snapshot);
+    assert_eq!(s.get(&format!("{root}/accounts"))["data"], json!([]));
+    for (method, path) in [
+        ("GET", format!("{root}/accounts")),
+        ("POST", format!("{root}/payees")),
+        ("POST", "/api/v1/budgets".to_owned()),
+    ] {
+        let response = s
+            .client
+            .request(method.parse().unwrap(), format!("{}{path}", s.url))
+            .header("Idempotency-Key", "unsupported")
+            .header("X-Actual-Cancel-If-Uncommitted", "true")
+            .json(&json!({"id":id(7),"name":"No effect"}))
+            .send()
+            .unwrap();
+        assert_eq!(
+            response.json::<Value>().unwrap()["error"]["code"],
+            "invalid_request"
+        );
+    }
+}
+
+#[test]
+fn invalid_metadata_fields_can_be_canceled_without_rewriting_request() {
+    let s = Server::start();
+    ok(s.write(
+        "POST",
+        "/api/v1/budgets",
+        "budget",
+        None,
+        json!({"id":B,"name":"Invalid recovery"}),
+    ));
+    let root = format!("/api/v1/budgets/{B}");
+    for resource in [
+        "categories",
+        "category-groups",
+        "accounts",
+        "account-groups",
+    ] {
+        let path = format!("{root}/{resource}");
+        let body = if resource == "accounts" {
+            json!({"id":id(2),"name":"   ","opening_balance":0,"opening_date":"2026-01-01"})
+        } else {
+            json!({"id":id(2),"name":"   "})
+        };
+        let rejected = s.write("POST", &path, resource, None, body.clone());
+        assert_eq!(rejected.status(), 400);
+        let canceled = s
+            .client
+            .post(format!("{}{path}", s.url))
+            .header("Idempotency-Key", resource)
+            .header("X-Actual-Cancel-If-Uncommitted", "true")
+            .json(&body)
+            .send()
+            .unwrap();
+        assert_eq!(canceled.status(), 409, "{resource}");
+        assert_eq!(
+            canceled.json::<Value>().unwrap()["error"]["code"],
+            "operation_canceled"
+        );
+        assert_eq!(
+            s.write("POST", &path, resource, None, body)
+                .json::<Value>()
+                .unwrap()["error"]["code"],
+            "operation_canceled"
+        );
+    }
+}

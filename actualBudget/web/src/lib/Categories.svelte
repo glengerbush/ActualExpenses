@@ -1,7 +1,12 @@
 <script lang="ts">
   import { onMount, tick } from "svelte";
   import { request, uuid, errorMessage, RequestError } from "./api";
-  import { nextEditClock, observeVersions } from "./edit-clock";
+  import {
+    nextEditClock,
+    observeVersions,
+    LocalClockError,
+    resetCorrectedClock,
+  } from "./edit-clock";
   import { formatAmount, formatDate } from "./money";
   import type { Transaction, PendingMutation } from "./register-api";
   import { t } from "./i18n.svelte";
@@ -58,6 +63,9 @@
   } | null>(null);
   let editor = $state<HTMLInputElement>();
   let offline = $state(!offlineStatus.reachable);
+  let clockRecovery = $state(false);
+  const cancelKey = (operation: PendingMutation) =>
+    `actualBudget.categories.cancel.${operation.key}`;
   const writer = uuid();
   let savedRaw: string | null = null;
   let savedPayload = "";
@@ -243,7 +251,7 @@
         operation.key,
         operation.method,
         operation.edit_clock,
-        false,
+        localStorage.getItem(cancelKey(operation)) === "true",
         operation.budgetEpoch,
       );
       if (!ownsSavedDraft()) return;
@@ -265,12 +273,22 @@
         retired = e.code === "budget_restored" || e.code === "budget_deleted";
         if (
           !e.uncertain &&
-          !retired &&
-          e.code !== "clock_skew" &&
+          e.code === "operation_canceled" &&
           ownsSavedDraft()
         ) {
           pending = null;
-          persist();
+          retired = false;
+          clockRecovery = true;
+          if (!persist()) return;
+          error = "";
+          notice = t(
+            "Request canceled. Your fields are retained. Use corrected device time before saving a new change.",
+          );
+          await load();
+          if (draft && epoch && ownsSavedDraft()) {
+            draft.epoch = epoch;
+            persist();
+          }
         }
       }
     } finally {
@@ -314,27 +332,48 @@
       };
       if (persist()) await send();
     } catch (e) {
+      clockRecovery = e instanceof LocalClockError;
       error = errorMessage(e);
     }
   }
-  async function recover() {
-    if (!pending || !retired || storageError || !ownsSavedDraft()) return;
+  function useCorrectedTime() {
+    if (pending || busy || storageError || !ownsSavedDraft()) return;
     try {
-      localStorage.setItem(
-        `${storageKey}.retired.${pending.key}`,
-        JSON.stringify({ draft, pending }),
-      );
-      pending = null;
-      draft = null;
-      retired = false;
-      persist();
-      await load();
+      resetCorrectedClock();
+      clockRecovery = false;
+      error = "";
       notice = t(
-        "Original request retained. Review current categories before making a new change.",
+        "Corrected device time is ready. Review your fields, then save a new change.",
       );
     } catch (e) {
-      storageError = errorMessage(e);
+      error = errorMessage(e);
     }
+  }
+  async function cancel() {
+    if (!pending || busy || storageError || !ownsSavedDraft()) return;
+    const original = pending;
+    busy = true;
+    try {
+      const { data } = await request<{ data: { capabilities: string[] } }>(
+        "/info",
+      );
+      if (!data.capabilities.includes("category_cancellation"))
+        throw new Error(
+          "This server cannot safely cancel this request. Retry it unchanged.",
+        );
+      if (pending !== original || !ownsSavedDraft()) return;
+      localStorage.setItem(cancelKey(original), "true");
+      busy = false;
+      await send();
+    } catch (e) {
+      error = errorMessage(e);
+    } finally {
+      busy = false;
+    }
+  }
+  async function recover() {
+    if (!pending || !retired) return;
+    await cancel();
   }
   async function drill(id: string, name: string, more = false) {
     loading = true;
@@ -391,6 +430,16 @@
       >{/if}
   </div>{/if}
 {#if notice}<p role="status">{notice}</p>{/if}
+{#if clockRecovery && !pending}
+  <button onclick={useCorrectedTime} disabled={busy || !!storageError}
+    >{t("Use corrected device time")}</button
+  >
+{/if}
+{#if pending}
+  <button onclick={cancel} disabled={busy || offline || !!storageError}
+    >{t("Cancel pending request and keep fields")}</button
+  >
+{/if}
 {#if pending && !error}<p role="status">
     {t("A saved request needs confirmation.")}
     <button onclick={send} disabled={busy || !!storageError}

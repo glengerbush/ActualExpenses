@@ -230,6 +230,30 @@
     };
     return labels[field] ?? t("Transaction details");
   }
+  function interpretOutcome(
+    response: { data: Transaction; conflicts?: { field: string }[] },
+    recovered = false,
+  ) {
+    const transaction = response.data;
+    observeVersions(transaction.field_versions);
+    let notice = "";
+    if (transaction.deleted)
+      notice = t(
+        "This transaction remains deleted. Its newer field edits were retained without restoring it.",
+      );
+    else if (response.conflicts?.length)
+      notice =
+        t("A newer edit replaced these fields:") +
+        " " +
+        response.conflicts
+          .map((conflict) => fieldLabel(conflict.field))
+          .join(", ");
+    else if (recovered)
+      notice = t(
+        "This change was already saved. Its saved result has been restored.",
+      );
+    return { transaction, notice };
+  }
   async function submit(event: SubmitEvent) {
     event.preventDefault();
     if (!draft) return;
@@ -254,19 +278,9 @@
       draft = submitted;
       persist(submitted);
       const response = await mutate<Transaction>(pending);
-      completed = response.data;
-      observeVersions(completed.field_versions);
-      if (completed.deleted)
-        notice = t(
-          "This transaction remains deleted. Its newer field edits were retained without restoring it.",
-        );
-      if (!completed.deleted && response.conflicts?.length)
-        notice =
-          t("A newer edit replaced these fields:") +
-          " " +
-          response.conflicts
-            .map((conflict) => fieldLabel(conflict.field))
-            .join(", ");
+      const outcome = interpretOutcome(response);
+      completed = outcome.transaction;
+      notice = outcome.notice;
       clearTransactionDraft(draft, true);
     } catch (e) {
       error = errorMessage(e);
@@ -317,10 +331,9 @@
         requestCancellation(draft.pending!);
         persist(draft);
         const response = await mutate<Transaction>(draft.pending!, true);
-        completed = response.data;
-        notice = t(
-          "This change was already saved. Its saved result has been restored.",
-        );
+        const outcome = interpretOutcome(response, true);
+        completed = outcome.transaction;
+        notice = outcome.notice;
         resolved = true;
       } catch (e) {
         if (

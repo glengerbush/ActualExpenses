@@ -4,7 +4,7 @@ import { mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 const artifacts = fileURLToPath(new URL("../test-results/", import.meta.url));
 await mkdir(artifacts, { recursive: true });
-import { startServer } from "./server.mjs";
+import { startServer, transactionCreatePattern } from "./server.mjs";
 const server = await startServer(),
   native = server.url.replace("actualbudget.test", "127.0.0.1");
 async function write(path, body, clock) {
@@ -232,7 +232,7 @@ try {
     if (
       r.method() === "POST" &&
       !r.headers()["x-actual-cancel-if-uncommitted"] &&
-      r.url().endsWith(`/budgets/${budget}/transactions`)
+      transactionCreatePattern(budget).test(r.url())
     )
       clockRequests.push({
         key: r.headers()["idempotency-key"],
@@ -372,7 +372,7 @@ try {
     let dropAcknowledgement = false;
     const pattern =
       kind === "transaction"
-        ? `**/api/v1/budgets/${budget}/transactions`
+        ? transactionCreatePattern(budget)
         : `**/api/v1/budgets/${budget}/transactions/*/duplicate`;
     await recoveryContext.route(pattern, async (route) => {
       if (route.request().method() !== "POST") return route.continue();
@@ -597,12 +597,12 @@ try {
       );
       const pattern =
         kind === "transaction"
-          ? `**/api/v1/budgets/${budget}/transactions`
+          ? transactionCreatePattern(budget)
           : `**/api/v1/budgets/${budget}/transactions/*/duplicate`;
       const matches = (request) =>
         request.method() === "POST" &&
         (kind === "transaction"
-          ? request.url().endsWith(`/budgets/${budget}/transactions`)
+          ? transactionCreatePattern(budget).test(request.url())
           : request.url().endsWith("/duplicate"));
       const firstRequest = a.waitForRequest(matches);
       const retryName =
@@ -784,7 +784,7 @@ try {
   unsupportedPage.on("request", (request) => {
     if (
       request.method() === "POST" &&
-      request.url().endsWith(`/budgets/${budget}/transactions`)
+      transactionCreatePattern(budget).test(request.url())
     )
       unsupportedWrites++;
   });

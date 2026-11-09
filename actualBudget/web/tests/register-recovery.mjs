@@ -1,6 +1,6 @@
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import { startServer } from "./server.mjs";
+import { startServer, transactionCreatePattern } from "./server.mjs";
 
 // Real HTTP and browser seams: only transport responses are interrupted.
 const server = await startServer();
@@ -245,7 +245,7 @@ try {
     await page
       .getByLabel("Notes", { exact: true })
       .fill("Recover original expense");
-    const createRoute = `**/api/v1${data.transactions}`;
+    const createRoute = transactionCreatePattern(data.budget);
     const creates = await loseCommittedResponse(page, createRoute, "POST");
     await page
       .getByRole("button", { name: "Save transaction", exact: true })

@@ -73,3 +73,8 @@ export async function startServer() {
     throw error;
   }
 }
+
+// New online entries can opt into rules; retained manual/offline entries keep their route.
+export function transactionCreatePattern(budget) {
+  return new RegExp(`/api/v1/budgets/${budget}/(?:rules/)?transactions$`);
+}

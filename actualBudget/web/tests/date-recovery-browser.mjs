@@ -1,6 +1,6 @@
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import { startServer } from "./server.mjs";
+import { startServer, transactionCreatePattern } from "./server.mjs";
 const server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1");
 async function write(path, body, method = "POST") {
@@ -38,7 +38,8 @@ try {
     async function loseFirstAck(path) {
       const attempts = [];
       if (format !== "MM/dd/yyyy") return attempts;
-      await page.route("**/api/v1" + path, async (route) => {
+      const pattern = typeof path === "string" ? "**/api/v1" + path : path;
+      await page.route(pattern, async (route) => {
         const request = route.request();
         if (request.method() !== "POST") return route.continue();
         attempts.push({
@@ -164,7 +165,7 @@ try {
     );
     await page.reload();
     const transactionAttempts = await loseFirstAck(
-      `/budgets/${budget}/transactions`,
+      transactionCreatePattern(budget),
     );
     await page
       .getByRole("button", { name: "Save transaction", exact: true })

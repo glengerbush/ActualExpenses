@@ -2,7 +2,7 @@ import { chromium, expect } from "@playwright/test";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
-import { startServer } from "./server.mjs";
+import { startServer, transactionCreatePattern } from "./server.mjs";
 const artifacts = fileURLToPath(new URL("../test-results/", import.meta.url));
 const server = await startServer();
 const api = server.url.replace("actualbudget.test", "127.0.0.1");
@@ -114,7 +114,7 @@ try {
   await page.getByLabel("Notes", { exact: true }).fill("Refund");
   let dropped = false;
   await page.route(
-    `**/api/v1/budgets/${budget}/transactions`,
+    transactionCreatePattern(budget),
     async (route) => {
       if (!dropped && route.request().method() === "POST") {
         dropped = true;

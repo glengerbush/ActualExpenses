@@ -1,7 +1,7 @@
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
-import { startServer } from "./server.mjs";
+import { startServer, transactionCreatePattern } from "./server.mjs";
 const server = await startServer();
 const api = server.url.replace("actualbudget.test", "127.0.0.1");
 const budget = randomUUID(),
@@ -136,9 +136,10 @@ try {
     "PASS offline edit/delete, backdated pending, restarted loaded page and unchanged confirmed balances",
   );
   const attempts = [];
+  const onlineCreate = transactionCreatePattern(budget);
   let lost = false;
   await context.route(
-    `**/api/v1/budgets/${budget}/transactions`,
+    onlineCreate,
     async (route) => {
       if (route.request().method() !== "POST") return route.continue();
       attempts.push({
@@ -191,7 +192,7 @@ try {
     confirmed.data.filter((row) => row.notes === "Lost acknowledgement"),
   ).toHaveLength(1);
   await second.close();
-  await context.unroute(`**/api/v1/budgets/${budget}/transactions`);
+  await context.unroute(onlineCreate);
   console.log(
     "PASS lost commit acknowledgement + two-tab replay keeps body/key/clock/epoch and one financial effect",
   );
@@ -200,7 +201,7 @@ try {
   const countWrites = (request) => {
     if (
       request.method() === "POST" &&
-      request.url().endsWith(`/budgets/${budget}/transactions`)
+      onlineCreate.test(request.url())
     )
       writes++;
   };

@@ -157,7 +157,12 @@ class ApiExpenseService(
                         canEdit(id),
                     )
                 },
-            payees = choices(payees),
+            payees =
+                choices(payees).filter {
+                    payees[it.id]?.let { row ->
+                        row["deleted"]?.asBoolean != true && row.text("transfer_account_id") == null
+                    } == true
+                },
             categories =
                 choices(saved.categories).filter {
                     saved.categories[it.id]?.let { row ->

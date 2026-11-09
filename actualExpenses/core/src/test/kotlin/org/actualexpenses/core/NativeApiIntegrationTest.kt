@@ -514,6 +514,183 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun `payee choices follow merge removal and unrelated expense edits`() {
+        Server().use { server ->
+            val base = "/budgets/${server.budget}"
+            val source = UUID.randomUUID().toString()
+            val target = UUID.randomUUID().toString()
+            server.post("$base/payees", """{"id":"$source","name":"Old merchant"}""")
+            server.post("$base/payees", """{"id":"$target","name":"Current merchant"}""")
+            val app = ApiExpenseService(MemoryStore())
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            val id = app.saveExpense(ExpenseDraft("4.56", payee = "Old merchant"))
+            app.refresh()
+            val beforeMerge = app.beginEdit(id)
+            server.post(
+                "$base/payees/batch",
+                """{"action":"merge","ids":["$source"],"target_id":"$target"}""",
+                200,
+            )
+            app.refresh()
+            assertEquals(listOf(target), app.state().payees.map { it.id })
+            assertEquals(target, app.state().expenses.single().payeeId)
+            assertEquals("Current merchant", app.state().expenses.single().payee)
+            app.saveExpense(beforeMerge.original!!.copy(notes = "Edited after merge"), beforeMerge)
+            app.refresh()
+            assertEquals(0, app.state().pendingCount, app.state().error)
+            assertEquals(
+                target,
+                server.get("$base/transactions/$id").getAsJsonObject("data")["payee_id"].asString,
+            )
+            val beforeRemoval = app.beginEdit(id)
+            server.post("$base/payees/batch", """{"action":"remove","ids":["$target"]}""", 200)
+            app.refresh()
+            assertTrue(app.state().payees.isEmpty())
+            assertNull(app.state().expenses.single().payeeId)
+            assertEquals("", app.state().expenses.single().payee)
+            app.saveExpense(
+                beforeRemoval.original!!.copy(notes = "Edited after removal"),
+                beforeRemoval,
+            )
+            app.refresh()
+            assertEquals(0, app.state().pendingCount, app.state().error)
+            val row = server.get("$base/transactions/$id").getAsJsonObject("data")
+            assertTrue(row["payee_id"].isJsonNull)
+            assertEquals("Edited after removal", row["notes"].asString)
+            val recreated = app.saveExpense(ExpenseDraft("1.00", payee = "Current merchant"))
+            app.refresh()
+            assertEquals(0, app.state().pendingCount, app.state().error)
+            val newPayee =
+                server
+                    .get("$base/transactions/$recreated")
+                    .getAsJsonObject("data")["payee_id"]
+                    .asString
+            assertNotEquals(target, newPayee)
+            assertEquals(listOf(newPayee), app.state().payees.map { it.id })
+        }
+    }
+
+    @Test
+    fun `pending merged payee alias retries original bytes and preserves inline payee dependencies`() {
+        Server().use { server ->
+            val base = "/budgets/${server.budget}"
+            val source = UUID.randomUUID().toString()
+            val target = UUID.randomUUID().toString()
+            server.post("$base/payees", """{"id":"$source","name":"Offline alias"}""")
+            server.post("$base/payees", """{"id":"$target","name":"Canonical merchant"}""")
+            val store = MemoryStore()
+            val real = BudgetHttpTransport()
+            val requests = mutableListOf<Triple<String, Map<String, String>, String>>()
+            var fail = true
+            val network = HttpTransport { url, method, headers, body ->
+                if (
+                    method == "POST" &&
+                        url.endsWith("/transactions") &&
+                        headers["X-Actual-Receipt-Only"] == null
+                ) {
+                    requests += Triple(url, headers, body!!.toString(Charsets.UTF_8))
+                    if (fail) {
+                        fail = false
+                        throw IOException("Offline before sending")
+                    }
+                }
+                real.request(url, method, headers, body)
+            }
+            val app = ApiExpenseService(store, transport = network)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            app.markOffline()
+            val aliasExpense = app.saveExpense(ExpenseDraft("1.11", payee = "Offline alias"))
+            val inlineExpense = app.saveExpense(ExpenseDraft("2.22", payee = "Queued shop"))
+            val dependentExpense = app.saveExpense(ExpenseDraft("3.33", payee = "Queued shop"))
+            assertEquals(1, app.state().payees.count { it.name == "Queued shop" })
+            app.refresh()
+            assertEquals(3, app.state().pendingCount)
+            assertEquals(
+                source,
+                JsonParser.parseString(requests.single().third).asJsonObject["payee_id"].asString,
+            )
+            server.post(
+                "$base/payees/batch",
+                """{"action":"merge","ids":["$source"],"target_id":"$target"}""",
+                200,
+            )
+            val restarted = ApiExpenseService(store, transport = network)
+            restarted.refresh()
+            assertEquals(0, restarted.state().pendingCount, restarted.state().error)
+            assertEquals(4, requests.size)
+            assertEquals(requests[0], requests[1])
+            assertEquals(
+                target,
+                server
+                    .get("$base/transactions/$aliasExpense")
+                    .getAsJsonObject("data")["payee_id"]
+                    .asString,
+            )
+            val inlinePayee =
+                server
+                    .get("$base/transactions/$inlineExpense")
+                    .getAsJsonObject("data")["payee_id"]
+                    .asString
+            assertEquals(
+                inlinePayee,
+                server
+                    .get("$base/transactions/$dependentExpense")
+                    .getAsJsonObject("data")["payee_id"]
+                    .asString,
+            )
+            assertEquals(setOf(target, inlinePayee), restarted.state().payees.map { it.id }.toSet())
+            assertEquals(
+                "Canonical merchant",
+                restarted.state().expenses.single { it.id == aliasExpense }.payee,
+            )
+            assertEquals(3, server.get("$base/transactions").getAsJsonArray("data").size())
+        }
+    }
+
+    @Test
+    fun `imported transfer payees stay outside native merchant choices`() {
+        Server().use { server ->
+            val fixtures =
+                Path.of(
+                    System.getenv("ACTUALBUDGET_FIXTURE_DIR") ?: "../../actualBudget/tests/fixtures"
+                )
+            val fixture =
+                JsonParser.parseString(
+                        Files.readString(fixtures.resolve("payees-tags-import.json"))
+                    )
+                    .asJsonObject
+            val stage =
+                server.upload(Files.readAllBytes(fixtures.resolve("payees-tags-import.zip")))
+            server.post("/imports/${stage["id"].asString}/activate", "{}")
+            val budget = stage["budget_id"].asString
+            val transfer = fixture["transfer"].asString
+            val publicPayees =
+                server
+                    .get("/budgets/$budget/payees?include_deleted=true&include_transfers=true")
+                    .getAsJsonArray("data")
+            assertTrue(
+                publicPayees.any {
+                    it.asJsonObject["id"].asString == transfer &&
+                        !it.asJsonObject["transfer_account_id"].isJsonNull
+                }
+            )
+            val app = ApiExpenseService(MemoryStore())
+            app.connect(server.url)
+            app.chooseBudget(budget)
+            app.chooseAccount(fixture["account"].asString)
+            assertEquals(3, publicPayees.size())
+            assertTrue(app.state().payees.isEmpty())
+            assertFalse(app.state().payees.any { it.id == transfer })
+            app.refresh()
+            assertTrue(app.state().payees.isEmpty())
+        }
+    }
+
+    @Test
     fun `category choices follow hidden parents category visibility and deletion`() {
         Server().use { server ->
             val group = UUID.randomUUID().toString()

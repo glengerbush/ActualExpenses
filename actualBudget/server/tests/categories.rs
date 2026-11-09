@@ -783,7 +783,18 @@ fn assert_legacy_import_metadata(s: &Server, budget: &str, post_import: Option<&
                 .iter()
                 .find(|v| v["id"] == before["id"])
                 .unwrap();
-            assert_eq!(after, before);
+            assert!(after["imported_payee"].is_null());
+            assert_eq!(after["retained_payee_id"], before["payee_id"]);
+            let mut original_shape = after.clone();
+            original_shape
+                .as_object_mut()
+                .unwrap()
+                .remove("imported_payee");
+            original_shape
+                .as_object_mut()
+                .unwrap()
+                .remove("retained_payee_id");
+            assert_eq!(&original_shape, before);
         }
     }
 }

@@ -876,3 +876,136 @@ fn genuine_schema11_upgrade_preserves_split_receipts_settings_and_retained_sourc
         fixture["split_receipt"]
     );
 }
+
+#[test]
+fn imported_large_splits_use_bounded_proofs_for_unlock_and_structural_recovery() {
+    let mut s = Server::start();
+    let uploaded = ok(s
+        .client
+        .post(format!("{}/api/v1/imports/actual", s.url))
+        .header("Idempotency-Key", "large-import")
+        .header("Content-Type", "application/zip")
+        .body(include_bytes!("../../tests/fixtures/reconciliation-large.zip").to_vec())
+        .send()
+        .unwrap());
+    assert_eq!(uploaded["data"]["status"], "ready");
+    ok(s.write(
+        "POST",
+        &format!(
+            "/api/v1/imports/{}/activate",
+            uploaded["data"]["id"].as_str().unwrap()
+        ),
+        "activate-large",
+        None,
+        json!({}),
+    ));
+    let root = format!(
+        "/api/v1/budgets/{}",
+        uploaded["data"]["budget_id"].as_str().unwrap()
+    );
+    let metadata: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/reconciliation-large.json"
+    ))
+    .unwrap();
+    for case in metadata["accounts"].as_array().unwrap() {
+        let count = case["count"].as_i64().unwrap();
+        let account = case["account"].as_str().unwrap();
+        let parent = case["parent"].as_str().unwrap();
+        let path = format!("{root}/accounts/{account}/reconciliation");
+        let split = format!("{root}/transactions/{parent}/splits");
+        let unlock = format!("{root}/transactions/{parent}/unlock");
+        let p = s.get(&path)["data"].clone();
+        assert_eq!(p["ready_count"], 1);
+        assert_eq!(p["balances"]["cleared"], -count);
+        ok(s.write("POST",&path,&format!("lock-{count}"),None,json!({"action":"lock","statement_balance":-count,"snapshot":p["snapshot"],"date":"2026-02-28"})));
+        let view = s.get(&split);
+        let token = view["reconciliation_token"].as_str().unwrap();
+        assert_eq!(token.len(), 64);
+        assert!(
+            view["data"]["children"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|c| c["reconciled"] == true)
+        );
+        let map_body = json!({"reconciled_versions":split_proofs(&view["data"])});
+        if count == 1001 {
+            assert!(map_body.to_string().len() > 65536);
+        }
+        let body = json!({"reconciliation_token":token});
+        assert!(body.to_string().len() < 128);
+        let unlocked = ok(s.write(
+            "POST",
+            &unlock,
+            &format!("unlock-{count}"),
+            None,
+            body.clone(),
+        ));
+        assert!(
+            unlocked["data"]["children"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|c| c["reconciled"] == false && c["cleared"] == true)
+        );
+        let p = s.get(&path)["data"].clone();
+        ok(s.write("POST",&path,&format!("relock-{count}"),None,json!({"action":"lock","statement_balance":-count,"snapshot":p["snapshot"],"date":"2026-02-28"})));
+        let relocked = s.get(&split);
+        assert_eq!(
+            s.write(
+                "POST",
+                &unlock,
+                &format!("stale-token-{count}"),
+                None,
+                body.clone()
+            )
+            .status(),
+            409
+        );
+        let fresh = json!({"reconciliation_token":relocked["reconciliation_token"]});
+        assert_eq!(
+            s.write(
+                "POST",
+                &unlock,
+                &format!("stale-clock-{count}"),
+                view["data"]["field_versions"]["reconciled"].as_str(),
+                fresh.clone()
+            )
+            .status(),
+            409
+        );
+        assert_eq!(s.get(&split), relocked);
+        s = s.restart();
+        // Exact committed receipt replays after restart before current proof/clock checks.
+        assert_eq!(
+            ok(s.write("POST", &unlock, &format!("unlock-{count}"), None, body)),
+            unlocked
+        );
+        let current = if count == 101 {
+            let child = relocked["data"]["children"][0]["id"].as_str().unwrap();
+            let change = json!({"snapshot":relocked["snapshot"],"action":"unsplit","detach":[child],"confirm_reconciled":true,"reconciliation_token":relocked["reconciliation_token"]});
+            ok(s.write("POST", &split, "detach-one-large", None, change));
+            let changed = s.get(&split);
+            // An aggregate membership change invalidates the old digest even with a current snapshot.
+            let stale = json!({"snapshot":changed["snapshot"],"action":"recombine","confirm_reconciled":true,"reconciliation_token":relocked["reconciliation_token"]});
+            assert_eq!(
+                s.write("POST", &split, "stale-membership", None, stale)
+                    .status(),
+                409
+            );
+            assert_eq!(s.get(&split), changed);
+            changed
+        } else {
+            relocked
+        };
+        let action = if count == 101 { "unsplit" } else { "recombine" };
+        let change = json!({"snapshot":current["snapshot"],"action":action,"confirm_reconciled":true,"reconciliation_token":current["reconciliation_token"]});
+        assert!(change.to_string().len() < 300);
+        let key = format!("recover-{count}");
+        let result = ok(s.write("POST", &split, &key, None, change.clone()));
+        assert_eq!(ok(s.write("POST", &split, &key, None, change)), result);
+        let p = s.get(&path)["data"].clone();
+        assert_eq!(p["balances"]["cleared"], -count);
+        assert_eq!(p["locked_count"], if count == 101 { 101 } else { 1 });
+    }
+}

@@ -19,6 +19,7 @@ use axum::{
 use rusqlite::{Connection, params};
 use serde::Deserialize;
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
 pub fn router() -> Router<Store> {
@@ -253,31 +254,49 @@ fn unlock_row(
     body: &Value,
     clock: &str,
 ) -> Result<Value, Error> {
-    fields(body, &["reconciled_version", "reconciled_versions"])?;
+    fields(
+        body,
+        &[
+            "reconciled_version",
+            "reconciled_versions",
+            "reconciliation_token",
+        ],
+    )?;
     let rows = members(db, b, id)?;
-    let versions = if rows.len() == 1 && body.get("reconciled_versions").is_none() {
-        BTreeMap::from([(
-            id.to_owned(),
-            required(body, "reconciled_version")?.to_owned(),
-        )])
+    if let Some(token) = body.get("reconciliation_token") {
+        verify_token(
+            b,
+            &rows,
+            token
+                .as_str()
+                .ok_or_else(|| Error::invalid("Invalid reconciliation token"))?,
+            clock,
+        )?;
     } else {
-        serde_json::from_value::<BTreeMap<String, String>>(body["reconciled_versions"].clone())
-            .map_err(|_| Error::invalid("Supply reconciled_versions for every split member"))?
-    };
-    if versions.len() > 101 {
-        return Err(Error::invalid("Too many reconciliation proofs"));
-    }
-    for row in &rows {
-        let tid = row["id"].as_str().unwrap();
-        let current = row["field_versions"]["reconciled"]
-            .as_str()
-            .unwrap_or(concurrency::ZERO);
-        if versions.get(tid).map(String::as_str) != Some(current) || clock <= current {
-            return Err(Error::new(
-                StatusCode::CONFLICT,
-                "reconciliation_changed",
-                "The protection changed. Refresh before unlocking the whole split.",
-            ));
+        let versions = if rows.len() == 1 && body.get("reconciled_versions").is_none() {
+            BTreeMap::from([(
+                id.to_owned(),
+                required(body, "reconciled_version")?.to_owned(),
+            )])
+        } else {
+            serde_json::from_value::<BTreeMap<String, String>>(body["reconciled_versions"].clone())
+                .map_err(|_| Error::invalid("Supply reconciled_versions for every split member"))?
+        };
+        if versions.len() > 101 {
+            return Err(Error::invalid("Too many reconciliation proofs"));
+        }
+        for row in &rows {
+            let tid = row["id"].as_str().unwrap();
+            let current = row["field_versions"]["reconciled"]
+                .as_str()
+                .unwrap_or(concurrency::ZERO);
+            if versions.get(tid).map(String::as_str) != Some(current) || clock <= current {
+                return Err(Error::new(
+                    StatusCode::CONFLICT,
+                    "reconciliation_changed",
+                    "The protection changed. Refresh before unlocking the whole split.",
+                ));
+            }
         }
     }
     for row in rows {
@@ -302,6 +321,56 @@ pub fn members(db: &Connection, budget: &str, id: &str) -> Result<Vec<Value>, Er
     let mut rows = parent["children"].as_array().cloned().unwrap_or_default();
     rows.insert(0, parent);
     Ok(rows)
+}
+/// Fixed-size proof of the complete logical aggregate. Never hash presentation
+/// order, caller-supplied membership, or unrelated mutable ledger fields.
+pub fn protection_token(budget: &str, rows: &[Value]) -> String {
+    let mut state: Vec<_> = rows
+        .iter()
+        .map(|row| {
+            (
+                row["id"].as_str().unwrap(),
+                row["reconciled"].as_bool().unwrap_or(false),
+                row["field_versions"]["reconciled"]
+                    .as_str()
+                    .unwrap_or(concurrency::ZERO),
+            )
+        })
+        .collect();
+    state.sort_unstable_by(|a, b| a.0.cmp(b.0));
+    let payload = json!([
+        "actualBudget.reconciliation.v1",
+        budget,
+        rows[0]["id"],
+        state
+    ]);
+    format!("{:x}", Sha256::digest(payload.to_string().as_bytes()))
+}
+/// Called only after hydrating every current member inside the receipt transaction.
+/// Fresh digest alone is insufficient: a delayed original clock must still refuse.
+pub fn verify_token(budget: &str, rows: &[Value], token: &str, clock: &str) -> Result<(), Error> {
+    if token.len() != 64
+        || !token
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    {
+        return Err(Error::invalid("Invalid reconciliation token"));
+    }
+    if token != protection_token(budget, rows)
+        || rows.iter().any(|row| {
+            clock
+                <= row["field_versions"]["reconciled"]
+                    .as_str()
+                    .unwrap_or(concurrency::ZERO)
+        })
+    {
+        return Err(Error::new(
+            StatusCode::CONFLICT,
+            "reconciliation_changed",
+            "The split membership or protection changed. Refresh and confirm the current transaction.",
+        ));
+    }
+    Ok(())
 }
 pub fn protect_members(
     rows: &[Value],

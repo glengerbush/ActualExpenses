@@ -198,16 +198,18 @@
           observeVersions(unlocking.field_versions);
           for (const child of unlocking.children ?? [])
             observeVersions(child.field_versions);
-          body = unlocking.children?.length
-            ? {
-                reconciled_versions: Object.fromEntries(
-                  [unlocking, ...unlocking.children].map((row) => [
-                    row.id,
-                    row.field_versions?.reconciled,
-                  ]),
-                ),
-              }
-            : { reconciled_version: unlocking.field_versions?.reconciled };
+          body = unlocking.reconciliation_token
+            ? { reconciliation_token: unlocking.reconciliation_token }
+            : unlocking.children?.length
+              ? {
+                  reconciled_versions: Object.fromEntries(
+                    [unlocking, ...unlocking.children].map((row) => [
+                      row.id,
+                      row.field_versions?.reconciled,
+                    ]),
+                  ),
+                }
+              : { reconciled_version: unlocking.field_versions?.reconciled };
           path = `/budgets/${budgetId}/transactions/${unlocking.id}/unlock`;
         } else {
           if (!draft || !progress)

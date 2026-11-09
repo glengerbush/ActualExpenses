@@ -11552,6 +11552,9 @@
                     },
                     "maxProperties": 101,
                     "description": "Captured reconciled field version per affected parent/child ID. Every protected member must match, and request intent clock must be newer; never reuse another member proof."
+                  },
+                  "reconciliation_token": {
+                    "$ref": "#/components/schemas/ReconciliationToken"
                   }
                 },
                 "additionalProperties": false,
@@ -11565,9 +11568,14 @@
                     "required": [
                       "reconciled_versions"
                     ]
+                  },
+                  {
+                    "required": [
+                      "reconciliation_token"
+                    ]
                   }
                 ],
-                "description": "Ordinary unlock accepts reconciled_version. A split parent or child unlock requires all parent/child versions in reconciled_versions and clears protection atomically for the entire split, preserving cleared flags."
+                "description": "Prefer reconciliation_token from the public split read for constant-size aggregate unlock. Legacy ordinary reconciled_version and maps up to101 members remain supported. Every member must still match its protection and original intent-clock fence. Clears the whole split atomically, preserving cleared flags."
               }
             }
           }
@@ -11801,7 +11809,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Parent with child allocations, snapshot and budget epoch; compare field versions before refreshing a draft snapshot.",
+            "description": "Parent with child allocations, snapshot and budget epoch; compare field versions before refreshing a draft snapshot. Includes a fixed-size reconciliation token for the complete logical aggregate, including when read by child ID.",
             "content": {
               "application/json": {
                 "schema": {
@@ -11809,7 +11817,8 @@
                   "required": [
                     "data",
                     "snapshot",
-                    "epoch"
+                    "epoch",
+                    "reconciliation_token"
                   ],
                   "properties": {
                     "data": {
@@ -11820,6 +11829,9 @@
                     },
                     "epoch": {
                       "type": "string"
+                    },
+                    "reconciliation_token": {
+                      "$ref": "#/components/schemas/ReconciliationToken"
                     }
                   }
                 }
@@ -14813,15 +14825,28 @@
             },
             "maxProperties": 101,
             "description": "Captured reconciled field version per affected parent/child ID. Every protected member must match, and request intent clock must be newer; never reuse another member proof."
+          },
+          "reconciliation_token": {
+            "$ref": "#/components/schemas/ReconciliationToken"
           }
         },
         "dependentRequired": {
           "reconciled_versions": [
             "confirm_reconciled"
+          ],
+          "reconciliation_token": [
+            "confirm_reconciled"
           ]
         },
         "dependentSchemas": {
           "reconciled_versions": {
+            "properties": {
+              "confirm_reconciled": {
+                "const": true
+              }
+            }
+          },
+          "reconciliation_token": {
             "properties": {
               "confirm_reconciled": {
                 "const": true
@@ -15070,6 +15095,11 @@
             "pattern": "^[0-9a-f]{32}$"
           }
         }
+      },
+      "ReconciliationToken": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$",
+        "description": "Fixed-size SHA256 proof from GET transaction splits. Binds budget, logical parent ID and all live member IDs, reconciled flags and reconciled field versions. Capture unchanged with the confirmed intent; server checks current membership/protection and newer original intent clock atomically. Does not replace budget epoch or split snapshot."
       }
     }
   }

@@ -68,6 +68,8 @@ pub struct Change {
     pub confirm_reconciled: bool,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub reconciled_versions: BTreeMap<String, String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reconciliation_token: Option<String>,
 }
 pub fn router() -> Router<Store> {
     Router::new().route(
@@ -81,7 +83,7 @@ async fn view(
 ) -> Result<Json<Value>, Error> {
     validate_id(&budget)?;
     validate_id(&id)?;
-    Ok(Json(store.run(move|db|{let tx=db.transaction()?;Ok(json!({"data":ledger::get(&tx,&budget,&id)?,"snapshot":concurrency::cursor(&tx,&budget)?,"epoch":crate::lifecycle::epoch(&tx,&budget)?}))}).await?))
+    Ok(Json(store.run(move|db|{let tx=db.transaction()?;Ok(json!({"data":ledger::get(&tx,&budget,&id)?,"snapshot":concurrency::cursor(&tx,&budget)?,"epoch":crate::lifecycle::epoch(&tx,&budget)?,"reconciliation_token":crate::reconciliation::protection_token(&budget,&crate::reconciliation::members(&tx,&budget,&id)?)}))}).await?))
 }
 async fn change(
     State(store): State<Store>,
@@ -263,18 +265,25 @@ pub fn apply(
     if !parent["parent_id"].is_null() {
         return Err(Error::invalid("Edit children through their parent split"));
     }
-    if !input.confirm_reconciled && !input.reconciled_versions.is_empty() {
+    if !input.confirm_reconciled
+        && (!input.reconciled_versions.is_empty() || input.reconciliation_token.is_some())
+    {
         return Err(Error::invalid(
-            "reconciled_versions requires confirm_reconciled=true",
+            "Reconciliation proof requires confirm_reconciled=true",
         ));
     }
-    crate::reconciliation::protect_members(
-        &crate::reconciliation::members(db, budget, id)?,
-        input
-            .confirm_reconciled
-            .then_some(&input.reconciled_versions),
-        clock,
-    )?;
+    let members = crate::reconciliation::members(db, budget, id)?;
+    if let Some(token) = input.reconciliation_token.as_deref() {
+        crate::reconciliation::verify_token(budget, &members, token, clock)?;
+    } else {
+        crate::reconciliation::protect_members(
+            &members,
+            input
+                .confirm_reconciled
+                .then_some(&input.reconciled_versions),
+            clock,
+        )?;
+    }
     if parent["starting_balance"] == true {
         return Err(Error::invalid("Opening balances cannot be split"));
     }
@@ -311,11 +320,10 @@ pub fn apply(
                 "Save transaction edits before unsplitting children",
             ));
         }
-        parent = if let Some(version) = input
-            .reconciled_versions
-            .get(id)
-            .filter(|_| input.confirm_reconciled)
-        {
+        parent = if input.confirm_reconciled {
+            let version = parent["field_versions"]["reconciled"]
+                .as_str()
+                .unwrap_or(concurrency::ZERO);
             ledger::update_confirmed(
                 db,
                 budget,

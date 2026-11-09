@@ -1,6 +1,6 @@
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import { startServer } from "./server.mjs";
 const server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1");
@@ -417,9 +417,10 @@ try {
   await expect(
     page.getByRole("button", { name: "Retry saved split", exact: true }),
   ).toBeVisible();
-  expect(
-    Object.keys(JSON.parse(splitAttempt.body).reconciled_versions),
-  ).toHaveLength(3);
+  expect(JSON.parse(splitAttempt.body).reconciliation_token).toMatch(
+    /^[0-9a-f]{64}$/,
+  );
+  expect(JSON.parse(splitAttempt.body).reconciled_versions).toBeUndefined();
   await page.reload();
   const splitRetry = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().endsWith("/splits"),
@@ -457,6 +458,77 @@ try {
       (row) => row.cleared && !row.reconciled,
     ),
   ).toBe(true);
+  // Accepted source aggregates beyond the editor limit must remain unlockable.
+  await page.unroute("**/transactions/*/splits");
+  const largeUpload = await fetch(api + "/api/v1/imports/actual", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/zip",
+      "Idempotency-Key": randomUUID(),
+    },
+    body: await readFile(
+      new URL("../../tests/fixtures/reconciliation-large.zip", import.meta.url),
+    ),
+  });
+  expect(largeUpload.ok).toBe(true);
+  const large = (await largeUpload.json()).data;
+  expect(large.status).toBe("ready");
+  await write(`/imports/${large.id}/activate`, {});
+  await page.getByRole("button", { name: "All budgets", exact: true }).click();
+  await page
+    .locator(".budget-list button")
+    .filter({ hasText: "Large reconciled imports" })
+    .click();
+  await page
+    .getByRole("button", { name: "101 allocations", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Reconcile account", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Lock transactions", exact: true })
+    .click();
+  await expect(page.locator("tbody tr")).toContainText("Reconciled");
+  await page.getByRole("button", { name: /^Unlock / }).click();
+  const unlockRequest = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().endsWith("/unlock"),
+  );
+  await page
+    .getByRole("button", { name: "Confirm unlock", exact: true })
+    .click();
+  const bounded = await unlockRequest;
+  expect(bounded.postData().length).toBeLessThan(128);
+  expect(JSON.parse(bounded.postData()).reconciliation_token).toMatch(
+    /^[0-9a-f]{64}$/,
+  );
+  await expect(page.locator("tbody tr")).toContainText("Cleared");
+  await page.screenshot({
+    path: "test-results/reconciliation-large-proof.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", { name: "Lock transactions", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Edit splits", exact: true }).click();
+  await page
+    .getByLabel("Confirm editing this reconciled split", { exact: true })
+    .check();
+  const recoveryRequest = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().endsWith("/splits"),
+  );
+  await page
+    .getByRole("button", { name: "Unsplit all children", exact: true })
+    .click();
+  const recovery = await recoveryRequest;
+  expect(recovery.postData().length).toBeLessThan(1024);
+  expect(JSON.parse(recovery.postData()).children).toEqual([]);
+  expect(JSON.parse(recovery.postData()).reconciliation_token).toMatch(
+    /^[0-9a-f]{64}$/,
+  );
+  await expect(
+    page.getByRole("button", { name: "Edit splits", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.locator("tbody tr")).toHaveCount(100);
   console.log(
     "PASS reconciliation browser: plain HTTP, captured date preference/recovery, protected split/filter/retry integration, immutable replay/cancel, quota failure, corrected clock recovery, confirmed edit, unlock, keyboard, mobile/dark/large text, offline boundary",
   );

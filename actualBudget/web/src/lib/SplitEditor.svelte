@@ -94,6 +94,7 @@
         data: Transaction;
         snapshot: string;
         epoch: string;
+        reconciliation_token: string;
       }>(`/budgets/${budgetId}/transactions/${parent.id}/splits`);
       parent = current.data;
       const format = captureAmountFormat();
@@ -120,6 +121,7 @@
         parent,
         snapshot: current.snapshot,
         epoch: current.epoch,
+        reconciliationToken: current.reconciliation_token,
         format,
         children,
         fields: {
@@ -258,12 +260,16 @@
             ...(protectedRows.length
               ? {
                   confirm_reconciled: true,
-                  reconciled_versions: Object.fromEntries(
-                    protectedRows.map((row) => [
-                      row.id,
-                      row.field_versions?.reconciled,
-                    ]),
-                  ),
+                  ...(draft.reconciliationToken
+                    ? { reconciliation_token: draft.reconciliationToken }
+                    : {
+                        reconciled_versions: Object.fromEntries(
+                          protectedRows.map((row) => [
+                            row.id,
+                            row.field_versions?.reconciled,
+                          ]),
+                        ),
+                      }),
                 }
               : {}),
             action,

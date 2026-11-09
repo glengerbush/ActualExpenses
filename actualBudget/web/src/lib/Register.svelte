@@ -26,7 +26,14 @@
     LocalClockError,
     resetCorrectedClock,
   } from "./edit-clock";
-  import { list, uuid, RequestError, errorMessage, type Account } from "./api";
+  import {
+    request,
+    list,
+    uuid,
+    RequestError,
+    errorMessage,
+    type Account,
+  } from "./api";
   import { t } from "./i18n.svelte";
   import { formatAmount, formatDate, formatAmountInput } from "./money";
   import { preferences } from "./preferences.svelte";
@@ -500,6 +507,27 @@
     showForm = true;
     deleting = null;
   }
+  async function beginUnlock(row: Transaction) {
+    if (busy || disconnected) return;
+    busy = true;
+    error = "";
+    try {
+      if (row.is_parent) {
+        const current = await request<{
+          data: Transaction;
+          reconciliation_token: string;
+        }>(`/budgets/${budgetId}/transactions/${row.id}/splits`);
+        unlocking = {
+          ...current.data,
+          reconciliation_token: current.reconciliation_token,
+        };
+      } else unlocking = row;
+    } catch (e) {
+      error = errorMessage(e);
+    } finally {
+      busy = false;
+    }
+  }
   function description(row: Transaction) {
     return `${formatAmount(row.amount)} · ${row.payee_name ?? t("No payee")} · ${formatDate(row.date)}`;
   }
@@ -935,7 +963,7 @@
                   >{t("Edit")}</button
                 >{#if row.reconciled}<button
                     onkeydown={navigateRow}
-                    onclick={() => (unlocking = row)}
+                    onclick={() => void beginUnlock(row)}
                     disabled={disconnected ||
                       loading ||
                       busy ||

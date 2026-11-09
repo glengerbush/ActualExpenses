@@ -4,6 +4,8 @@ The user authorized implementation of all 53 approved tickets on 2026-11-08, usi
 
 ## Review baseline
 
+- Credit preference (user-approved 2026-11-09): use cheaper models for routine implementation and review; reserve Astra/high for difficult financial, migration or conflict work. Normally run one implementer and one reviewer. Finish the current integration batch before opening more work; use compact task handoffs, focused checks during development and one full suite/container qualification after integration. Review standards and spec together where practical; reuse valid evidence instead of repeating unchanged reviews.
+
 - Branch: `main`.
 - Pre-implementation commit: `2b25b070ddee0c6bca5f2e95b11d82ddac269012`.
 - Review standards and spec separately. Review each ticket against its own start commit and acceptance scope, then review the complete replacement against this baseline.
@@ -38,5 +40,5 @@ Assignments reserve ownership, not permission to bypass blocking edges. Root coo
 - Tickets09/10 complete through `c8de872`: [acceptance](0910-validation.md), prior79 HTTP tests plus3 metadata regressions,18 native tests, full and corrective production-container/browser runs; independent corrective reviews pass.
 - Ticket11 complete through `d6a5005`: [acceptance](payees-tags-validation.md),92 HTTP and21 native tests, full production-container/browser qualification, APK/lint and independent Standards/Spec reviews pass.
 - Ticket12 complete through `5a9efa1`: [register query acceptance](register-query-validation.md),105 HTTP and22 freshly executed native tests, pinned ordinary/split predicates, bounded regex and10k resource qualification, all container/browser suites and independent reviews. Initial recovery timeout remains unexplained after successful targeted diagnosis; failure-only evidence capture added, no product or timeout change.
-- Current frontier: bulk13 implementing from `8a941e9`; splits14 integrated with undo/transfer gates pending; reviewed transfer15 corrections; reconciliation16 integration; independent payee locations46. Workers use isolated worktrees and Astra/high; root reconciles migrations and archive contracts. Fifteen of53 complete; five active,33 queued.
+- Current frontier: bulk13 implementing from `8a941e9`; splits14 integrated with undo/transfer gates pending; reviewed transfer15 corrections; reconciliation16 integration; independent payee locations46. Workers use isolated worktrees under the credit preference above; root reconciles migrations and archive contracts. Fifteen of53 complete; five active,33 queued.
 - Local Docker access restored on 2026-11-08: the user added `ggg` to the docker group; `newgrp docker` lets this existing session access Docker 29.9.2 (Linux x86_64). Tickets 02 and 48 exercised isolated test containers/volumes successfully; production storage was not used.

@@ -479,7 +479,9 @@ try {
     await delayedPage.close();
     await stalePage.close();
     await page.reload();
-    await expect(retry).toHaveCount(0);
+    // Reload can interrupt the old tab before it releases its delivery claim.
+    // Recovery must honor that 60-second lease, then replay the same request.
+    await expect(retry).toHaveCount(0, { timeout: 65_000 });
     await expect(discard).toHaveCount(0);
     await expect.poll(() => sent.length).toBeGreaterThanOrEqual(3);
     for (const attempt of sent) expect(attempt).toEqual(sent[0]);

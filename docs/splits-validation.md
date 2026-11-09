@@ -169,3 +169,18 @@ lint build successfully (`/tmp/native14-integrated.log`). This integration did
 not repeat the unchanged device flow already qualified above. Clippy, rustfmt,
 Svelte check/build/autofixer and served OpenAPI pass. Integrated independent
 review, register12 and undo13 gates remain; ticket14 is not yet accepted.
+
+Full production container qualification at `c69d215` passed all browser suites,
+read-only receipt misses/replay and persistence after container replacement:
+`.scratch/14-container-final.log`. Image
+`sha256:b67be3b87af784bbbbd8b592131975eea2c6eb9d0dbf2aabaaaa3b5896e3c7cd`,
+128,449,658 bytes, runtime user10001:10001; disposable resources removed.
+
+Integrated Spec review found one additional payee inheritance defect: a removed
+parent payee compared as display-null, so changing it reassigned blank children
+instead of children retaining that payee. Root now compares retained canonical
+identities before inheritance. Public regressions cover removed→active,
+removed→null and alias selections. Ten split tests and Clippy pass; logs
+`.scratch/14-parent-payee-{red,green,clippy}.log`. Focused integrated split browser
+passes again (`.scratch/14-parent-payee-browser.log`). Total API coverage is now102.
+Corrective independent review remains pending.

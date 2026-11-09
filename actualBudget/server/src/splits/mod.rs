@@ -277,7 +277,7 @@ pub fn apply(
         ));
     }
     let old: Vec<Value> = parent["children"].as_array().cloned().unwrap_or_default();
-    let previous_payee = parent["payee_id"].as_str().map(str::to_owned);
+    let previous_payee = parent["retained_payee_id"].as_str().map(str::to_owned);
     if let Some(fields) = input.fields.take() {
         if matches!(input.action, Action::Unsplit)
             && fields.as_object().is_none_or(|fields| {
@@ -299,6 +299,7 @@ pub fn apply(
     }
     let account = parent["account_id"].as_str().unwrap();
     let total = parent["amount"].as_i64().unwrap();
+    let current_payee = parent["retained_payee_id"].as_str().map(str::to_owned);
     match input.action {
         Action::Replace => {
             if input.children.is_empty() {
@@ -309,10 +310,13 @@ pub fn apply(
             allocate(&mut input.children, total, &input.allocation)?;
             let mut ids = BTreeSet::new();
             for (index, child) in input.children.iter_mut().enumerate() {
-                if child.payee_id == previous_payee
-                    && previous_payee.as_deref() != parent["payee_id"].as_str()
-                {
-                    child.payee_id = parent["payee_id"].as_str().map(str::to_owned);
+                child.payee_id = child
+                    .payee_id
+                    .as_deref()
+                    .map(|payee| crate::payees_tags::canonical(db, budget, payee))
+                    .transpose()?;
+                if child.payee_id == previous_payee && previous_payee != current_payee {
+                    child.payee_id = current_payee.clone();
                 }
                 validate_id(&child.id)?;
                 if child.id == id || !ids.insert(child.id.clone()) {
@@ -335,11 +339,6 @@ pub fn apply(
                 }
                 child.category_id =
                     crate::categories::resolve(db, budget, child.category_id.clone())?;
-                child.payee_id = child
-                    .payee_id
-                    .as_deref()
-                    .map(|payee| crate::payees_tags::canonical(db, budget, payee))
-                    .transpose()?;
                 let retained_payee = old
                     .iter()
                     .find(|previous| previous["id"] == child.id)

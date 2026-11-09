@@ -285,6 +285,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         "accounts",
         "transactions",
         "payees",
+        "payee_locations",
         "tags",
         "payee_mapping",
         "categories",
@@ -388,6 +389,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             "accounts",
             "transactions",
             "payees",
+            "payee_locations",
             "tags",
             "categories",
             "category_groups",
@@ -431,7 +433,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             }
         }
     }
-    let mut converted = json!({"name":name,"budget_type":"envelope","account_groups":[],"accounts":[],"payees":[],"tags":[],"categories":[],"category_groups":[],"transactions":[],"clocks":[]});
+    let mut converted = json!({"name":name,"budget_type":"envelope","account_groups":[],"accounts":[],"payees":[],"payee_locations":[],"tags":[],"categories":[],"category_groups":[],"transactions":[],"clocks":[]});
     // Actual stores fractional ordering. Preserve its order with exact integer ranks.
     let ranked = |table: &str| -> Result<BTreeMap<String, i64>, Error> {
         let mut rows = array(&source, table).iter().collect::<Vec<_>>();
@@ -613,6 +615,30 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             transfer_payees.insert(id);
         }
         converted["payees"].as_array_mut().unwrap().push(json!({"id":id,"name":name,"favorite":flag(row,"favorite")?,"tombstone":flag(row,"tombstone")?,"transfer_account_id":row["transfer_acct"],"category_id":row["category"],"merged_into":Value::Null}));
+    }
+    let mut location_ids = BTreeSet::new();
+    for row in array(&source, "payee_locations") {
+        let id = text(row, "id")?;
+        validate_id(id).map_err(|_| invalid("Invalid location identity"))?;
+        if !location_ids.insert(id) {
+            return Err(invalid("Duplicate location identity"));
+        }
+        let payee = text(row, "payee_id")?;
+        if !payee_ids.contains(payee) {
+            return Err(invalid("Location payee is missing"));
+        }
+        let latitude = row["latitude"]
+            .as_f64()
+            .ok_or_else(|| invalid("Invalid location latitude"))?;
+        let longitude = row["longitude"]
+            .as_f64()
+            .ok_or_else(|| invalid("Invalid location longitude"))?;
+        crate::payee_locations::coordinates(latitude, longitude).map_err(|e| invalid(e.message))?;
+        let created = row["created_at"]
+            .as_i64()
+            .filter(|v| (0..=9007199254740991).contains(v))
+            .ok_or_else(|| invalid("Invalid location creation time"))?;
+        converted["payee_locations"].as_array_mut().unwrap().push(json!({"id":id,"payee_id":payee,"latitude":latitude,"longitude":longitude,"created_at":created,"tombstone":flag(row,"tombstone")?}));
     }
     for row in array(&source, "tags") {
         validate_id(text(row, "id")?)?;
@@ -904,6 +930,7 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
             params![budget, row["id"].as_str(), row["name"].as_str(),row["favorite"].as_bool().unwrap_or(false),row["tombstone"].as_bool().unwrap_or(false),row["transfer_account_id"].as_str(),row["category_id"].as_str(),row["merged_into"].as_str()],
         )?;
     }
+    crate::payee_locations::install_source(db, budget, data)?;
     for row in array(data, "category_groups") {
         db.execute("INSERT INTO category_groups(budget_id,id,name,is_income,hidden,notes,sort_order,tombstone) VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",params![budget,row["id"].as_str(),row["name"].as_str(),row["is_income"].as_bool(),row["hidden"].as_bool().unwrap_or(false),row["notes"].as_str().unwrap_or(""),row["sort_order"].as_f64(),row["tombstone"].as_bool().unwrap_or(false)])?;
     }
@@ -967,6 +994,10 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
             }
         }
         let mapped = match (dataset, field) {
+            (
+                "payee_locations",
+                "payee_id" | "latitude" | "longitude" | "created_at" | "tombstone",
+            ) => Some(field),
             ("transactions", "acct") => Some("account_id"),
             ("transactions", "description") => Some("payee_id"),
             ("transactions", "transferred_id") => Some("transfer_id"),

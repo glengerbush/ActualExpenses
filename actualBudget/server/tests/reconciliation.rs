@@ -722,7 +722,7 @@ fn split_reconciliation_proofs_filters_restart_and_portable_archive() {
         .body(bytes.to_vec())
         .send()
         .unwrap());
-    assert_eq!(staged["data"]["report"]["schema_version"], 13);
+    assert_eq!(staged["data"]["report"]["schema_version"], 14);
     ok(target.write(
         "POST",
         &format!(
@@ -850,7 +850,7 @@ fn genuine_schema11_upgrade_preserves_split_receipts_settings_and_retained_sourc
         .body(include_bytes!("../../tests/fixtures/reconciliation-schema11.zip").to_vec())
         .send()
         .unwrap());
-    assert_eq!(staged["data"]["report"]["schema_version"], 13);
+    assert_eq!(staged["data"]["report"]["schema_version"], 14);
     ok(target.write(
         "POST",
         &format!(

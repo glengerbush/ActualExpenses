@@ -1,0 +1,277 @@
+{
+  "oracle": "@actual-app/api@26.10.0 init().send pinned handlers",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "snapshots": [
+    {
+      "step": "nearest-ten",
+      "position": {
+        "latitude": 40,
+        "longitude": -74
+      },
+      "nearby": [
+        {
+          "payee": "shop0",
+          "location": "location0",
+          "distance": 0.09493529796600342
+        },
+        {
+          "payee": "shop1",
+          "location": "location1",
+          "distance": 11.119999648137362
+        },
+        {
+          "payee": "shop2",
+          "location": "location2",
+          "distance": 22.238986153704882
+        },
+        {
+          "payee": "shop3",
+          "location": "location3",
+          "distance": 33.35851300274993
+        },
+        {
+          "payee": "shop4",
+          "location": "location4",
+          "distance": 44.47797230747751
+        },
+        {
+          "payee": "shop5",
+          "location": "location5",
+          "distance": 55.59740459443778
+        },
+        {
+          "payee": "shop6",
+          "location": "location6",
+          "distance": 66.71695846138562
+        },
+        {
+          "payee": "shop7",
+          "location": "location7",
+          "distance": 77.83646601220539
+        },
+        {
+          "payee": "shop8",
+          "location": "location8",
+          "distance": 88.95594461549696
+        },
+        {
+          "payee": "shop9",
+          "location": "location9",
+          "distance": 100.07549397961508
+        }
+      ]
+    },
+    {
+      "step": "500-meter-boundary",
+      "position": {
+        "latitude": 40.00898,
+        "longitude": -74
+      },
+      "nearby": [
+        {
+          "payee": "shop12",
+          "location": "outside500",
+          "distance": 498.15327187739246
+        },
+        {
+          "payee": "shop11",
+          "location": "inside500",
+          "distance": 499.26522855982796
+        }
+      ]
+    },
+    {
+      "step": "forgot-closest-retains-second",
+      "position": {
+        "latitude": 40,
+        "longitude": -74
+      },
+      "nearby": [
+        {
+          "payee": "shop0",
+          "location": "second-near-branch",
+          "distance": 5.559999824068152
+        },
+        {
+          "payee": "shop1",
+          "location": "location1",
+          "distance": 11.119999648137362
+        },
+        {
+          "payee": "shop2",
+          "location": "location2",
+          "distance": 22.238986153704882
+        },
+        {
+          "payee": "shop3",
+          "location": "location3",
+          "distance": 33.35851300274993
+        },
+        {
+          "payee": "shop4",
+          "location": "location4",
+          "distance": 44.47797230747751
+        },
+        {
+          "payee": "shop5",
+          "location": "location5",
+          "distance": 55.59740459443778
+        },
+        {
+          "payee": "shop6",
+          "location": "location6",
+          "distance": 66.71695846138562
+        },
+        {
+          "payee": "shop7",
+          "location": "location7",
+          "distance": 77.83646601220539
+        },
+        {
+          "payee": "shop8",
+          "location": "location8",
+          "distance": 88.95594461549696
+        },
+        {
+          "payee": "shop9",
+          "location": "location9",
+          "distance": 100.07549397961508
+        }
+      ]
+    },
+    {
+      "step": "merged-payee-locations-not-moved",
+      "position": {
+        "latitude": 40,
+        "longitude": -74
+      },
+      "nearby": [
+        {
+          "payee": "shop1",
+          "location": "location1",
+          "distance": 11.119999648137362
+        },
+        {
+          "payee": "shop2",
+          "location": "location2",
+          "distance": 22.238986153704882
+        },
+        {
+          "payee": "shop3",
+          "location": "location3",
+          "distance": 33.35851300274993
+        },
+        {
+          "payee": "shop4",
+          "location": "location4",
+          "distance": 44.47797230747751
+        },
+        {
+          "payee": "shop5",
+          "location": "location5",
+          "distance": 55.59740459443778
+        },
+        {
+          "payee": "shop6",
+          "location": "location6",
+          "distance": 66.71695846138562
+        },
+        {
+          "payee": "shop7",
+          "location": "location7",
+          "distance": 77.83646601220539
+        },
+        {
+          "payee": "shop8",
+          "location": "location8",
+          "distance": 88.95594461549696
+        },
+        {
+          "payee": "shop9",
+          "location": "location9",
+          "distance": 100.07549397961508
+        },
+        {
+          "payee": "shop10",
+          "location": "location10",
+          "distance": 111.19489024324562
+        }
+      ]
+    },
+    {
+      "step": "removed-payee-excluded",
+      "position": {
+        "latitude": 40,
+        "longitude": -74
+      },
+      "nearby": [
+        {
+          "payee": "shop1",
+          "location": "location1",
+          "distance": 11.119999648137362
+        },
+        {
+          "payee": "shop3",
+          "location": "location3",
+          "distance": 33.35851300274993
+        },
+        {
+          "payee": "shop4",
+          "location": "location4",
+          "distance": 44.47797230747751
+        },
+        {
+          "payee": "shop5",
+          "location": "location5",
+          "distance": 55.59740459443778
+        },
+        {
+          "payee": "shop6",
+          "location": "location6",
+          "distance": 66.71695846138562
+        },
+        {
+          "payee": "shop7",
+          "location": "location7",
+          "distance": 77.83646601220539
+        },
+        {
+          "payee": "shop8",
+          "location": "location8",
+          "distance": 88.95594461549696
+        },
+        {
+          "payee": "shop9",
+          "location": "location9",
+          "distance": 100.07549397961508
+        },
+        {
+          "payee": "shop10",
+          "location": "location10",
+          "distance": 111.19489024324562
+        },
+        {
+          "payee": "shop11",
+          "location": "inside500",
+          "distance": 499.26522855982796
+        }
+      ]
+    }
+  ],
+  "retained_locations": [
+    "far-branch",
+    "inside500",
+    "location1",
+    "location10",
+    "location2",
+    "location3",
+    "location4",
+    "location5",
+    "location6",
+    "location7",
+    "location8",
+    "location9",
+    "outside500",
+    "second-near-branch"
+  ]
+}

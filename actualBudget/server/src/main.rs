@@ -11,6 +11,7 @@ mod lifecycle;
 mod migrations;
 mod models;
 mod origin;
+mod payee_locations;
 mod payees_tags;
 mod preferences;
 mod reconciliation;

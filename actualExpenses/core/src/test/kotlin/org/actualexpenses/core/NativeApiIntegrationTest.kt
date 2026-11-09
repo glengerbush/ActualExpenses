@@ -146,6 +146,36 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun `location-only changes preserve native expense projection and pending offline edits`() {
+        Server().use { server ->
+            val base = "/budgets/${server.budget}"
+            val payee = UUID.randomUUID().toString()
+            val location = UUID.randomUUID().toString()
+            server.post("$base/payees", """{"id":"$payee","name":"Local shop"}""")
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            app.markOffline()
+            val expense = app.saveExpense(ExpenseDraft("4.56", payee = "Local shop"))
+            server.post("$base/payee-locations", """{"id":"$location","payee_id":"$payee","latitude":40.123,"longitude":-74.456}""")
+            val restarted = ApiExpenseService(store)
+            restarted.refresh()
+            assertTrue(restarted.state().online, restarted.state().error)
+            assertEquals(0, restarted.state().pendingCount)
+            assertEquals(expense, restarted.state().expenses.single().id)
+            assertEquals(listOf(payee), restarted.state().payees.map { it.id })
+            server.patch("$base/payee-locations/$location", """{"deleted":true}""", DateTimeFormatterBuilder().appendInstant(3).toFormatter().format(Instant.now().plusMillis(1)) + "-0000-0000000000000001")
+            restarted.refresh()
+            assertTrue(restarted.state().online, restarted.state().error)
+            assertEquals(456, restarted.state().expenses.single().amountMinor)
+            assertFalse(store.raw!!.contains("latitude"))
+            assertFalse(store.raw!!.contains("longitude"))
+        }
+    }
+
+    @Test
     fun `genuine incremental transfers never become merchant choices or expenses`() {
         Server().use { server ->
             val account = UUID.randomUUID().toString()

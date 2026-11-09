@@ -1,0 +1,229 @@
+{
+  "source_commit": "5a9efa1",
+  "budget": {
+    "data": {
+      "auto_due": 1794201633,
+      "backup_error": null,
+      "budget_type": "tracking",
+      "deleted": false,
+      "epoch": "f1a9c9c6c8a4676541767e74cef6db6e",
+      "generation": 0,
+      "id": "46000000-0000-4000-8000-000000000001",
+      "last_auto": null,
+      "name": "Schema11 native"
+    }
+  },
+  "account": {
+    "data": {
+      "balance": 12345,
+      "closed": false,
+      "deleted": false,
+      "field_versions": {},
+      "group_id": null,
+      "id": "46000000-0000-4000-8000-000000000002",
+      "name": "Daily",
+      "notes": "",
+      "off_budget": false,
+      "sort_order": 0
+    }
+  },
+  "account_body": {
+    "id": "46000000-0000-4000-8000-000000000002",
+    "name": "Daily",
+    "opening_balance": 12345,
+    "opening_date": "2026-01-01"
+  },
+  "stage": {
+    "data": {
+      "budget_id": "2bb22e0a-c40f-48f1-8229-d6a60b6bf876",
+      "id": "9965cc74-0ab7-4faf-98ff-615cd39a02be",
+      "report": {
+        "accounts": [
+          {
+            "closed": false,
+            "group_id": null,
+            "id": "3b4e7e5e-52ee-441f-8ee7-31b724e7a38b",
+            "name": "Daily",
+            "notes": "",
+            "off_budget": false,
+            "sort_order": 0,
+            "tombstone": false
+          }
+        ],
+        "archive_sha256": "a73d56f94b62b5de6f950b29d24fd8b07490be91dbff86f471bcbc7c4d18aa64",
+        "balances": [
+          {
+            "account_id": "3b4e7e5e-52ee-441f-8ee7-31b724e7a38b",
+            "cleared": 0,
+            "total": 0,
+            "uncleared": 0
+          }
+        ],
+        "checks": {
+          "converted_relationships": true,
+          "financial_totals": true,
+          "identifiers": true,
+          "sqlite_integrity": true
+        },
+        "counts": {
+          "__meta__": 1,
+          "__migrations__": 60,
+          "account_groups": 0,
+          "accounts": 1,
+          "banks": 0,
+          "categories": 2,
+          "category_groups": 1,
+          "category_mapping": 7,
+          "cleanup_groups": 0,
+          "created_budgets": 0,
+          "custom_reports": 0,
+          "dashboard": 12,
+          "dashboard_pages": 1,
+          "kvcache": 0,
+          "kvcache_key": 0,
+          "messages_clock": 1,
+          "messages_crdt": 0,
+          "messages_pending": 0,
+          "notes": 0,
+          "payee_locations": 15,
+          "payee_mapping": 14,
+          "payees": 14,
+          "pending_transactions": 0,
+          "preferences": 0,
+          "reflect_budgets": 0,
+          "rules": 0,
+          "schedules": 0,
+          "schedules_json_paths": 0,
+          "schedules_next_date": 0,
+          "sqlite_stat1": 4,
+          "sqlite_stat4": 31,
+          "tags": 0,
+          "transaction_filters": 0,
+          "transactions": 0,
+          "zero_budget_months": 0,
+          "zero_budgets": 0
+        },
+        "extra_archive_entries": [],
+        "preferences": {
+          "device": {
+            "language": "",
+            "preferred_dark_theme": "dark",
+            "theme": "system"
+          },
+          "shared": {
+            "currency_code": "",
+            "currency_space": false,
+            "currency_symbol_position": "before",
+            "date_format": "MM/dd/yyyy",
+            "experimental": {
+              "actionTemplating": false,
+              "akahuBankSync": false,
+              "balanceForecastReport": false,
+              "budgetAnalysisReport": false,
+              "currency": false,
+              "customThemes": false,
+              "enableBanking": false,
+              "formulaMode": false,
+              "goalTemplatesEnabled": false,
+              "goalTemplatesUIEnabled": false,
+              "mobileCalculator": false,
+              "monteCarloReport": false,
+              "newSidebarUI": false,
+              "sankeyReport": false
+            },
+            "first_day_of_week": 0,
+            "hide_fraction": false,
+            "number_format": "comma-dot"
+          },
+          "unmapped": {
+            "global": {},
+            "synced": {}
+          },
+          "warnings": []
+        },
+        "requirements": [
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "__meta__",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 60,
+            "feature": "__migrations__",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 7,
+            "feature": "category_mapping",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 12,
+            "feature": "dashboard",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "dashboard_pages",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "messages_clock",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": true,
+            "count": 15,
+            "feature": "payee_locations",
+            "reason": "A feature converter is required before activation; original records retained"
+          },
+          {
+            "blocking": false,
+            "count": 14,
+            "feature": "payee_mapping",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 4,
+            "feature": "sqlite_stat1",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 31,
+            "feature": "sqlite_stat4",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "transfer_payees",
+            "reason": "Transfer payee metadata preserved; excluded from ordinary payee selection"
+          },
+          {
+            "blocking": false,
+            "count": 5,
+            "feature": "unreferenced_category_alias",
+            "reason": "Obsolete source alias retained; converted transactions must still resolve to an existing category"
+          }
+        ],
+        "source": {
+          "budgetName": "Payee locations oracle",
+          "id": "Payee-locations-oracle-fb50eb1",
+          "resetClock": true
+        },
+        "source_field_clock_count": 0,
+        "source_preferences": []
+      },
+      "status": "blocked"
+    }
+  }
+}

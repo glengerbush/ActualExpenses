@@ -705,6 +705,7 @@ pub fn read_changes(
             "account_groups" => crate::accounts::get_group(db, budget, &id)?,
             "preferences" => crate::preferences::get_preferences(db, budget)?,
             "payees" | "tags" => crate::payees_tags::record(db, budget, &entity, &id)?,
+            "payee_locations" => crate::payee_locations::record(db, budget, &id)?,
             "register_settings" => crate::register_settings::read_settings(db, budget)?,
             "categories" | "category_groups" => crate::categories::get(db, budget, &entity, &id)?,
             _ => return Err(Error::internal("Unknown change entity")),

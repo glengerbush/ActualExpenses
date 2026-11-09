@@ -1,6 +1,6 @@
 # Android upgrade recovery qualification
 
-Ticket20 remains in progress. Backend/container qualification is through `c8456d7`; final native device/UI qualification remains open. This record does not declare the ticket or complete replacement accepted.
+Ticket20 accepted2026-11-09 through `f4b9ca0`, with backend `c8456d7`, native product `22a1f30` and independent ledger assertions `2c35335`. Independent Standards/Spec, qualification-harness and Impeccable reviews pass. Full replacement qualification remains open.
 
 ## Backend evidence
 
@@ -22,6 +22,18 @@ The later bridge response/contract and clock corrections are covered by targeted
 
 ## Native preparation and limits
 
+At native product `22a1f30`, the full integration batch passed36 cases and skipped the app-first case because the root invocation omitted its prior-executable environment variable. The isolated case then passed with the genuine preserved schema17 binary, zero skips: `/tmp/android20-native-app-first.log`. Combined coverage is37 passing native cases. Fresh debug APK assembly and lint passed with50 tasks executed: `/tmp/android20-native-all-build.log`. `2c35335` strengthens the delivered-Actual comparison for exact IDs/order, relevant financial/reference/status fields, totals and native cached order. That focused case and independent review pass: `/tmp/android20-delivered-parity.log`. Only documented omitted false/null structural fields and null notes are normalized.
+
 The released `2b25b07` source builds successfully: `/tmp/android20-legacy-apk-build.log`. Its debug APK and the current debug APK have the same application ID and test signing certificate. This enables disposable in-place upgrade/reinstall tests; it is not a production-signer release verification. Genuine legacy queue fixtures come from the unchanged released ExpenseService and pinned Actual26.10 server/API.
 
-No version bump, push, release, live budget access or production deployment is part of this qualification. Device recovery, OS-denied background execution, routing equivalence, native UI review and final container results must be recorded before acceptance.
+The API36 emulator exercised the released APK's own encrypted store, in-place upgrade, visible recovery, a real post-commit acknowledgement drop, restricted background execution, signed reinstall and foreground recovery. The force-stopped pre-install legacy ciphertext remains identical; reinstall also preserves pending API ciphertext. The old app legitimately rewrites state when dismissing its notice, so preservation is measured at the actual install boundary, with original pending messages and decrypted values checked separately. The fixture proxy needed explicit connection-close framing; its failed preflight attempts prepared no migration requests and caused no financial effects.
+
+After restricted standby and `RUN_ANY_IN_BACKGROUND=ignore`,35 seconds produced no background HTTP. Foreground recovery delivered all four original operations with original body/HLC/epoch identities, producing the independent Actual result: two rows, total and cleared−1801. With background explicitly allowed again, a35-second observation found no new HTTP, encrypted-cache rewrite, registered app jobs or periodic app jobs. Earlier still-restricted idle observation is retained separately and does not establish permitted-idle behavior.
+
+Actual native migration/replay through relays on the host's LAN and Tailscale addresses passed with identical identities, cached rows and associations; the financial oracle still matched afterward. This tests address/route independence from an emulator, not a physical handset or remote encrypted tunnel. Logs: `/tmp/android20-device-lost-ack-framed.log`, `/tmp/android20-device-foreground.log`, `/tmp/android20-device-routes.log`. Detailed reports remain under `.scratch/android20-device/`.
+
+Independent Impeccable finish disposition is ship for the recovery UI: light phone, settled dark200% phone and1066dp tablet layout. Controls remain readable/reachable; no clipping or material fixes. [Final captures](screenshots/android-upgrade) also show retained pending work after interruption and exact recovered expenses with explicit deletion-cancellation feedback. The transient loading capture03 is diagnostic only. Existing Material3 components and design guidance remain appropriate; the documenter required no changes.
+
+Independent review of `f4b9ca0` confirms genuine released-store seeding, exact install-boundary preservation, real post-commit response loss, unchanged retry identities, delivered financial parity and the stated background/routing limits. Owned proxy/backend/relay/oracle processes and emulator were stopped; retained evidence hashes are in `.scratch/android20-device/final-evidence.json`.
+
+No version bump, push, release, live budget access or production deployment occurred. Tickets50–53 retain full-replacement migration, usability/resource, parity-audit and cutover-rehearsal scope.

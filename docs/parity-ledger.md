@@ -105,22 +105,22 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 80 | 31, 32, 35, 36, 37, 39, 41, 42, 43 | Settings and accessible workflows | [43: preserved opt-in flags and currency gating](../actualBudget/web/docs/preferences-validation.md); remaining experimental features pending assigned tickets |
 | 81 | 49 | Settings and accessible workflows | Pending feature acceptance |
 | 82 | 03, 43, 49, 51 | Settings and accessible workflows | [03: retained forms and durable retry](register-validation.md); [43: settings/storage/connection recovery](../actualBudget/web/docs/preferences-validation.md); repair and whole-app qualification pending 49/51 |
-| 83 | 07, 20 | Android and offline expense capture | [07: dated cache before network and unchanged-checkpoint efficiency](offline-web-validation.md); Android upgrade qualification pending20 |
-| 84 | 07, 20 | Android and offline expense capture | [07: durable ordinary offline capture using cached references](offline-web-validation.md); Android upgrade qualification pending20 |
-| 85 | 07, 20 | Android and offline expense capture | [07: unsent editing/deletion, editor reload and replacement races](offline-web-validation.md); Android upgrade qualification pending20 |
-| 86 | 07, 20 | Android and offline expense capture | [07: interrupted online edits retained](offline-web-validation.md); Android upgrade qualification pending20 |
-| 87 | 05, 07, 20, 49 | Android and offline expense capture | [05: exact receipts](concurrency-validation.md); [07: durable outbox, restart and immutable replay](offline-web-validation.md); Android upgrade/cache repair pending20/49 |
-| 88 | 05, 07, 20 | Android and offline expense capture | [05: per-field HLC](concurrency-validation.md); [07: offline merge and superseded feedback](offline-web-validation.md); Android upgrade qualification pending20 |
-| 89 | 05, 07, 20 | Android and offline expense capture | [05: deletion ordering](concurrency-validation.md); [07: queued deletion/cancellation recovery](offline-web-validation.md); Android upgrade qualification pending20 |
+| 83 | 07, 20 | Android and offline expense capture | [07: dated cache before network and unchanged-checkpoint efficiency](offline-web-validation.md); [20: bounded native cache and no legacy reread after atomic handoff](android-upgrade-validation.md) |
+| 84 | 07, 20 | Android and offline expense capture | [07: durable ordinary offline capture using cached references](offline-web-validation.md); [20: migrated/native offline capture with original references](android-upgrade-validation.md) |
+| 85 | 07, 20 | Android and offline expense capture | [07: unsent editing/deletion, editor reload and replacement races](offline-web-validation.md); [20: offline correction and deletion restrictions](android-upgrade-validation.md) |
+| 86 | 07, 20 | Android and offline expense capture | [07: interrupted online edits retained](offline-web-validation.md); [20: interrupted native edits and immutable delivery](android-upgrade-validation.md) |
+| 87 | 05, 07, 20, 49 | Android and offline expense capture | [05: exact receipts](concurrency-validation.md); [07: durable browser outbox](offline-web-validation.md); [20: original message identities, atomic handoff, lost ACK and reinstall](android-upgrade-validation.md); cache repair49 pending |
+| 88 | 05, 07, 20 | Android and offline expense capture | [05: per-field HLC](concurrency-validation.md); [07: offline merge](offline-web-validation.md); [20: original field clocks and visible newer-edit feedback](android-upgrade-validation.md) |
+| 89 | 05, 07, 20 | Android and offline expense capture | [05: deletion ordering](concurrency-validation.md); [07: queued deletion recovery](offline-web-validation.md); [20: newer-edit deletion cancellation and published tombstones](android-upgrade-validation.md) |
 | 90 | 06 | Android and offline expense capture | [06: no-login server/budget/account selection](android-api-validation.md) |
 | 91 | 06 | Android and offline expense capture | [06: remembered account and bounded latest-ten selection](android-api-validation.md) |
 | 92 | 06 | Android and offline expense capture | [06: pending/latest-backdated retention](android-api-validation.md) |
 | 93 | 06 | Android and offline expense capture | [06: amount-only, optional fields and automatic clearing](android-api-validation.md) |
-| 94 | 19, 20 | Android and offline expense capture | [19: cached simple associations, manual overrides/clears and incremental invalidation](rules-validation.md); legacy upgrade qualification pending20 |
+| 94 | 19, 20 | Android and offline expense capture | [19: simple associations and incremental invalidation](rules-validation.md); [20: cached associations and retained manual overrides/clears across upgrade](android-upgrade-validation.md) |
 | 95 | 06, 14, 15 | Android and offline expense capture | [14/15: split/transfer exclusion and real native incremental eligibility](1314151646-validation.md) |
-| 96 | 20 | Android and offline expense capture | Pending feature acceptance |
-| 97 | 20 | Android and offline expense capture | Pending feature acceptance |
-| 98 | 20, 50 | Android and offline expense capture | Pending feature acceptance |
+| 96 | 20 | Android and offline expense capture | [20: pending-only delivery, OS-denied background and foreground recovery](android-upgrade-validation.md) |
+| 97 | 20 | Android and offline expense capture | [20: allowed-idle zero HTTP/cache writes/jobs; LAN/Tailscale-address equivalence with emulator limits](android-upgrade-validation.md) |
+| 98 | 20, 50 | Android and offline expense capture | [20: both upgrade orders, exact source mapping, genuine released state and signed debug reinstall](android-upgrade-validation.md); full replacement qualification50 pending |
 | 99 | 47, 52 | Public API, deployment and resources | Pending feature acceptance |
 | 100 | 34, 47, 52 | Public API, deployment and resources | Pending feature acceptance |
 | 101 | 05, 51 | Public API, deployment and resources | [05: independent change cursor, 95-byte unchanged refresh and measured scaling](concurrency-validation.md); whole-system qualification pending 51 |

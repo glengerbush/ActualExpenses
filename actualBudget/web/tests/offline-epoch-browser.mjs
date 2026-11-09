@@ -1,7 +1,7 @@
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
-import { startServer } from "./server.mjs";
+import { startServer, transactionCreatePattern } from "./server.mjs";
 const server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1");
 async function write(path, body, epoch, method = "POST") {
@@ -73,7 +73,7 @@ try {
   });
   const attempts = [];
   await context.unroute("**/api/v1/**");
-  await context.route(`**/api/v1${root}/transactions`, async (route) => {
+  await context.route(transactionCreatePattern(budget), async (route) => {
     if (route.request().method() === "POST")
       attempts.push({
         body: route.request().postData(),

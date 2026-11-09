@@ -1,6 +1,16 @@
 # Tickets17/18 validation
 
-Backend checkpoints1236987,3d31395; final candidate adds changefeed, in-place restore cleanup and the durable Budget pane. Prior unrelated164HTTP/34browser/native qualification remains historical evidence; this change needs one final composed qualification.
+Accepted2026-11-09 through `82c2f37` (backend `150666d`). Tickets17/18 complete; schema16. Independent Standards/Spec and Impeccable finish pass, documenter: no changes. No publication or live deployment.
+
+## Composed qualification
+
+- 174 HTTP cases verified across `/tmp/budgeting-composed-http.log`, `/tmp/budgeting-large-restore-isolated.log` and `/tmp/budgeting-composed-http-tail.log`. The composed run reached the previously observed generic5s large-restore timeout; the unchanged case passed isolated in16.81s total. Remaining themes/transfers passed. This is combined coverage, not an uninterrupted full-suite pass. Resource qualification remains ticket51; no new latency guarantee or relaxed assertion.
+- All35 browser groups and five fixture generators passed in one production-container run: `/tmp/budgeting-container-full.log`. Image `sha256:9938df273c4ec98220fdfa765634a1f1696a3c76d9a599d8ea3865c765f82149`,132448319 bytes, user10001:10001. PlainHTTP, bundled assets, read-only receipt lookup, persisted balances and exact replay after container replacement pass. Disposable resources cleaned by the smoke runner.
+- 29 native integration cases, including planning-only incremental events followed by an expense update, pass. No Android UI/device-build claim for this slice.
+- Final review corrected malformed months, older/equal clocks, zero-decimal movement notes, cancellation/receipt middleware, missing changefeed serialization, restore cleanup, draft method context and enlarged navigation. No unresolved functional finding. The independent oracle remains the financial authority; the corrected browser fixture now verifies a committed lost acknowledgement, as detailed below.
+- Production captures: [desktop](screenshots/budgeting/desktop.png), [mobile](screenshots/budgeting/mobile.png), [200% navigation](screenshots/budgeting/large-text-viewport.png). Root and independent finish review inspected current UI; the final production navigation capture is unclipped. Images are review evidence, not application assets.
+
+## Slice evidence
 
 Independent oracle: `node actualBudget/tools/generate-budgeting.mjs --check` PASS, `/tmp/budgeting-oracle-check.log`. Executes pinned `@actual-app/api@26.10.0` and desktop engine messages, then reads real spreadsheet/API values. Required cells must exist and be numeric. Genuine base/allocated exports accompany `budgeting-26.10.0.json`; expected results never call the new Rust calculator. Stable Nov/Dec2026 and Jan/Feb2027 snapshots cover both methods, signed carry, year boundary, debt, refunds, split leaves, on/off-budget transfers, hidden categories/groups, automatic/manual/reset holds, moves/covers (including an explicit amount into a positive target, as the pinned action permits), copy previous/year and retained allocations across method switching. The dynamic available horizon is checked at execution without persisting calendar-dependent snapshots.
 

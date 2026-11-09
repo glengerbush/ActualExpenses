@@ -55,14 +55,14 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 30 | 11 | Transactions, payees and categories | [11: exact tag discovery, management, visibility, filtering and migration](payees-tags-validation.md) |
 | 31 | 03, 10 | Transactions, payees and categories | [10: groups/order/hiding, notes, history-preserving merge/delete and legacy migration](0910-validation.md) |
 | 32 | 03, 10 | Transactions, payees and categories | [10: signed refunds/reimbursements, uncategorized drilldowns and exact reassignment](0910-validation.md) |
-| 33 | 17, 18 | Tracking, envelope and automation | Pending feature acceptance |
-| 34 | 18 | Tracking, envelope and automation | Pending feature acceptance |
-| 35 | 18 | Tracking, envelope and automation | Pending feature acceptance |
-| 36 | 17 | Tracking, envelope and automation | Pending feature acceptance |
-| 37 | 17 | Tracking, envelope and automation | Pending feature acceptance |
-| 38 | 17, 18 | Tracking, envelope and automation | Pending feature acceptance |
-| 39 | 15, 18 | Tracking, envelope and automation | [15: on/off-budget and credit-payment categorization](transfers-validation.md); envelope calculations pending18 |
-| 40 | 10, 17, 18 | Tracking, envelope and automation | [10: category detail/history/notes](0910-validation.md); planning behavior pending17/18 |
+| 33 | 17, 18 | Tracking, envelope and automation | [17/18: independent method allocations and retained draft intent](budgeting-validation.md) |
+| 34 | 18 | Tracking, envelope and automation | [18: availability, allocations, spending and balances](budgeting-validation.md) |
+| 35 | 18 | Tracking, envelope and automation | [18: moves, overspending, held income and signed carry](budgeting-validation.md) |
+| 36 | 17 | Tracking, envelope and automation | [17: planned income/expenses and projected/final savings](budgeting-validation.md) |
+| 37 | 17 | Tracking, envelope and automation | [17: optional tracking carry without automatic envelope carry](budgeting-validation.md) |
+| 38 | 17, 18 | Tracking, envelope and automation | [17/18: multi-month navigation, copying and year boundaries](budgeting-validation.md) |
+| 39 | 15, 18 | Tracking, envelope and automation | [15: transfer categorization](transfers-validation.md); [18: credit debt/refunds, split leaves and on/off-budget accounting](budgeting-validation.md) |
+| 40 | 10, 17, 18 | Tracking, envelope and automation | [10: category history/notes](0910-validation.md); [17/18: monthly details/notes and exact actual drilldowns](budgeting-validation.md) |
 | 41 | 23 | Tracking, envelope and automation | Pending feature acceptance |
 | 42 | 23, 24 | Tracking, envelope and automation | Pending feature acceptance |
 | 43 | 24 | Tracking, envelope and automation | Pending feature acceptance |

@@ -280,6 +280,7 @@ class NativeApiIntegrationTest {
             val actual = server.get("/budgets/$budget/transactions/$seed").getAsJsonObject("data")
             assertEquals(-1456, actual["amount"].asInt)
             assertEquals("newer remote edit", actual["notes"].asString)
+            assertTrue(app.state().notice.orEmpty().contains("Deletion cancelled"),"Superseded deletion needs explicit recovery feedback")
             assertEquals(original, legacy.raw)
             assertEquals(0, legacy.writes)
         }
@@ -541,6 +542,34 @@ class NativeApiIntegrationTest {
             assertEquals(bytes, store.raw)
             app.refresh()
             assertEquals(ids, app.state().expenses.map { it.id })
+        }
+    }
+
+    @Test
+    fun `upgrade setup without selected budget preserves settings and lets user choose API budget`() {
+        Server().use { server ->
+            val legacy =
+                MemoryStore(upgradeFixture("setup-only", "state.json").toString(Charsets.UTF_8))
+            val original = legacy.raw
+            val native = MemoryStore()
+            val app = ApiExpenseService(native, legacy)
+            app.connect(server.url)
+            assertFalse(app.state().legacyRecovery)
+            assertNull(app.state().budgetId)
+            assertTrue(app.state().serverSelected)
+            assertEquals(0, app.state().pendingCount)
+            val old = JsonParser.parseString(original).asJsonObject
+            val state = JsonParser.parseString(native.raw).asJsonObject
+            assertEquals(old["clock"], state["clock"])
+            assertEquals(old["node"], state["node"])
+            val reads = legacy.reads
+            assertFalse(ApiExpenseService(native, legacy).state().legacyRecovery)
+            assertEquals(reads, legacy.reads)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            assertEquals(server.account, app.state().selectedAccountId)
+            assertEquals(original, legacy.raw)
+            assertEquals(0, legacy.writes)
         }
     }
 

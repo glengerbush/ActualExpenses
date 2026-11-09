@@ -253,7 +253,42 @@ class ApiExpenseService(
         check(saved.pending.isEmpty() && saved.budgetId == null) {
             "Both old and API saved work exist. Keep app data intact; resolve the API queue before migrating the original installation."
         }
-        val legacy = LegacyUpgrade(requireNotNull(legacyRaw))
+        val raw = requireNotNull(legacyRaw)
+        val original = JsonParser.parseString(raw).asJsonObject
+        if (original["budget"] == null || original["budget"].isJsonNull) {
+            check(
+                requireNotNull(original.getAsJsonArray("pending")) {
+                        "Original saved work is incomplete; keep app data intact."
+                    }
+                    .isEmpty
+            ) {
+                "Saved changes have no original budget identity. Keep app data intact for recovery."
+            }
+            val normalized = BudgetApi.normalized(server)
+            val api = BudgetApi(normalized, transport)
+            val supported = api.requireSupported()
+            val available = budgets(api)
+            val originalClock = original["clock"].asString.also(LogicalClock::validate)
+            val originalNode = original["node"].asString
+            check(originalNode.matches(Regex("[A-Za-z0-9]{16}"))) {
+                "Original device identity needs recovery; keep app data intact."
+            }
+            change { next ->
+                next.server = normalized
+                next.budgets = available
+                next.clock = originalClock
+                next.node = originalNode
+                next.legacyFingerprint = LegacyUpgrade.fingerprint(raw)
+                next.notice =
+                    "Previous server settings recovered. Choose a budget and account; the original encrypted file is preserved."
+            }
+            capabilities = supported
+            online = true
+            error = null
+            blocked = false
+            return
+        }
+        val legacy = LegacyUpgrade(raw)
         val normalized = BudgetApi.normalized(server)
         val api = BudgetApi(normalized, transport)
         val supported = api.requireSupported()
@@ -838,7 +873,10 @@ class ApiExpenseService(
                 else next.rows[op.transactionId] = row.deepCopy()
                 observe(next, row)
             }
-            if (result.getAsJsonArray("conflicts")?.size()?.let { it > 0 } == true)
+            val conflicts = result.getAsJsonArray("conflicts")
+            if (conflicts?.any { it.asJsonObject["outcome"]?.asString == "deletion_superseded" } == true)
+                next.notice = "Deletion cancelled: a newer edit kept this expense."
+            else if (conflicts?.size()?.let { it > 0 } == true)
                 next.notice = "A newer edit from another device replaced a field."
             if (row?.get("deleted")?.asBoolean == true && !op.deletes)
                 next.notice = "This expense remains deleted on the server."
@@ -1189,6 +1227,6 @@ class ApiExpenseService(
 
     companion object {
         const val LEGACY_RECOVERY =
-            "Your previous Actual budget and pending changes are preserved on this phone. Import the original budget archive into actualBudget, then connect below. Original app data and message clocks remain on this phone until the handoff is safely saved."
+            "Saved work from the previous app is preserved. Import its original budget archive into actualBudget, then connect below."
     }
 }

@@ -42,7 +42,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         graph.schedulePending()
         if (graph.state.value.budgetId != null) withContext(Dispatchers.Main) { refresh() }
     }
-    override fun chooseBudget(id: String) = task { graph.access { it.chooseBudget(id) }; selection.value = if(graph.state.value.selectedAccountId==null) Screen.ACCOUNTS else null }
+    override fun chooseBudget(id: String) = task { graph.access { it.chooseBudget(id) }; selection.value = if(graph.state.value.selectedAccountId==null) Screen.ACCOUNTS else null; if(graph.state.value.pendingCount > 0) { graph.schedulePending(); withContext(Dispatchers.Main) { refresh() } } }
     override fun chooseAccount(id: String) = task { graph.access { it.chooseAccount(id) }; selection.value = null }
     override fun showBudgets() = task {graph.access{it.refreshBudgets()};selection.value=Screen.BUDGETS}
     override fun showAccounts() { selection.value = Screen.ACCOUNTS }
@@ -111,7 +111,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         payees = payees.map { Choice(it.id, it.name) }, categories = categories.map { Choice(it.id, it.name) },
         associations = payeeCategoryAssociations, currency = currency, decimalPlaces = decimalPlaces,
         online = online, busy = busy, pendingCount = pendingCount, error = if (legacyRecovery) null else localError ?: error, notice = notice,
-        recoveryMessage = if (legacyRecovery) error else null,
+        recoveryMessage = if (legacyRecovery) localError ?: error else null,
         canCancelConnection = budgetId != null, expenseContext=expenseContext, splitRecovery=splitRecovery,
     )
 }

@@ -17,6 +17,8 @@
     "lost-edit.zip": "c327149c645a0c46834918262e45603f3cec6031d54dbad7affc034672b9742d",
     "pending.oracle.json": "bba17d10094cb1f9c4a500c1d2e16b941d26ebdc9948242f63ba79883794f4ee",
     "pending.state.json": "fc5308e753f41af041a05d1cf0450a54c4a9b75a048509c0b0c8f0b24e35c1a3",
-    "pending.zip": "cc074e7a419f6e045f83a4613d8f929c31ba0c18241af4009b34fce001aeb616"
+    "pending.zip": "cc074e7a419f6e045f83a4613d8f929c31ba0c18241af4009b34fce001aeb616",
+    "setup-only.state.json": "b73c810f239253cbf2ffd8a98d4a50dc1bdf3f2fe3177f4522f97f9c66b7e6e4",
+    "pending.delivered.oracle.json": "ba330f6aa9d8dc78fb6c5d233093fda10d316a621a74a4173db3a53b829bf363"
   }
 }

@@ -125,16 +125,72 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
                 }
                 when (state.screen) {
                     Screen.SERVER -> ServerSelection(state, actions)
-                    Screen.RECOVERY -> Column(Modifier.verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text("Saved work needs migration", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
-                        Text(state.recoveryMessage.orEmpty())
-                    }
+                    Screen.RECOVERY -> LegacyRecovery(state, actions)
                     Screen.BUDGETS -> Choices("Choose a budget", "Use one budget on this phone.", "No budgets yet. Create or import one in actualBudget, then refresh this list.", state.budgets, state.busy, actions::chooseBudget, "Change server", actions::showServer, state.pendingCount==0)
                     Screen.ACCOUNTS -> Choices("Choose an account", "Where should expenses go?", "No open accounts. Add or reopen an account in actualBudget, then refresh this list.", state.accounts, state.busy, actions::chooseAccount, "Change budget", actions::showBudgets, state.pendingCount==0)
                     Screen.EXPENSES -> ExpenseList(state) { row -> actions.beginEdit(row.id) { session -> editorContext=Gson().toJson(session.context);editorSession=Gson().toJson(session);editorId = row.id } }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun LegacyRecovery(state: ExpenseUiState, actions: ExpenseUiActions) {
+    var server by rememberSaveable(state.server) { mutableStateOf(state.server) }
+    Column(
+        Modifier.verticalScroll(rememberScrollState()).imePadding().padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Text(
+            "Recover saved expenses",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.semantics { heading() },
+        )
+        Text(state.recoveryMessage.orEmpty())
+        if (state.pendingCount > 0)
+            Text(
+                "${state.pendingCount} pending ${if(state.pendingCount == 1) "expense is" else "expenses are"} preserved on this phone."
+            )
+        OutlinedTextField(
+            server,
+            { server = it },
+            label = { Text("actualBudget server address") },
+            placeholder = { Text("http://server:5006") },
+            singleLine = true,
+            enabled = !state.busy,
+            keyboardOptions =
+                KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Button(
+            onClick = { actions.connect(server.trim()) },
+            enabled = server.isNotBlank() && !state.busy,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+        ) {
+            Text(if (state.busy) "Checking original budget…" else "Find imported budget")
+        }
+        if (state.budgets.isNotEmpty() && server.trim() == state.server) {
+            Text("Choose the exact imported budget", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Check its identity in actualBudget. Saved expenses will keep their original account IDs.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            state.budgets.forEach { budget ->
+                OutlinedButton(
+                    onClick = { actions.chooseBudget(budget.id) },
+                    enabled = !state.busy,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                ) {
+                    Text(budget.name, modifier = Modifier.fillMaxWidth())
+                }
+            }
+        }
+        Text(
+            "Keep this app’s data. Your original saved work stays on this phone after recovery.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

@@ -127,4 +127,74 @@ class LegacyUpgradeFixtureGeneratorTest {
             capture("pending", store, service)
         }
     }
+
+    @Test
+    fun setupOnly() {
+        val fixturePath = System.getenv("ACTUAL_FIXTURE")
+        val outputPath = System.getenv("ACTUAL_UPGRADE_FIXTURE_OUTPUT")
+        assumeTrue(fixturePath != null && outputPath != null, "Explicit disposable oracle required")
+        val fixture = JsonParser.parseString(File(fixturePath!!).readText()).asJsonObject
+        val store =
+            object : StateStore {
+                var raw: String? = null
+
+                override fun read() = raw
+
+                override fun write(value: String) {
+                    raw = value
+                }
+            }
+        val service = ExpenseService(store, JdbcSnapshotDecoder())
+        service.login(fixture["serverUrl"].asString, fixture["password"].asString)
+        assertNull(service.state().budgetId)
+        assertEquals(0, service.state().pendingCount)
+        val output = Path.of(outputPath!!)
+        Files.createDirectories(output)
+        Files.writeString(output.resolve("setup-only.state.json"), store.raw!!)
+    }
+
+    @Test
+    fun deliverCapturedPending() {
+        val fixturePath = System.getenv("ACTUAL_FIXTURE")
+        val outputPath = System.getenv("ACTUAL_UPGRADE_FIXTURE_OUTPUT")
+        assumeTrue(fixturePath != null && outputPath != null, "Explicit disposable oracle required")
+        val fixture = JsonParser.parseString(File(fixturePath!!).readText()).asJsonObject
+        val raw =
+            Files.readString(
+                Path.of("../../actualBudget/tests/fixtures/android-upgrade/pending.state.json")
+            )
+        val original = JsonParser.parseString(raw).asJsonObject
+        require(
+            original["server"] == fixture["serverUrl"] &&
+                original.getAsJsonObject("budget")["fileId"] == fixture["budgetId"]
+        ) {
+            "Only the original disposable fixture can receive these messages"
+        }
+        val store =
+            object : StateStore {
+                var state = raw
+
+                override fun read() = state
+
+                override fun write(value: String) {
+                    state = value
+                }
+            }
+        val service = ExpenseService(store, JdbcSnapshotDecoder())
+        service.refresh()
+        assertNull(service.state().error)
+        assertEquals(0, service.state().pendingCount)
+        val response =
+            HttpClient.newHttpClient()
+                .send(
+                    HttpRequest.newBuilder(URI(fixture["oracleUrl"].asString + "/state"))
+                        .GET()
+                        .build(),
+                    HttpResponse.BodyHandlers.ofString(),
+                )
+        assertEquals(200, response.statusCode())
+        val output = Path.of(outputPath!!)
+        Files.createDirectories(output)
+        Files.writeString(output.resolve("pending.delivered.oracle.json"), response.body())
+    }
 }

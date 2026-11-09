@@ -25,12 +25,7 @@ internal class LegacyUpgrade(val raw: String) {
             add("group_id", budget["groupId"])
         }
     val operations = json.getAsJsonArray("pending") ?: JsonArray()
-    val fingerprint =
-        MessageDigest.getInstance("SHA-256").digest(raw.toByteArray(Charsets.UTF_8)).joinToString(
-            ""
-        ) {
-            "%02x".format(it.toInt() and 255)
-        }
+    val fingerprint = fingerprint(raw)
     val view: AppState by lazy {
         ExpenseService(
                 object : StateStore {
@@ -64,6 +59,11 @@ internal class LegacyUpgrade(val raw: String) {
             .toString()
 
     companion object {
+        fun fingerprint(raw: String): String =
+            MessageDigest.getInstance("SHA-256")
+                .digest(raw.toByteArray(Charsets.UTF_8))
+                .joinToString("") { "%02x".format(it.toInt() and 255) }
+
         fun cachedRow(raw: JsonObject): JsonObject =
             JsonObject().apply {
                 add("id", raw["id"])

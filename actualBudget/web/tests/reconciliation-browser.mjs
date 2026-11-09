@@ -4,12 +4,13 @@ import { mkdir, readFile } from "node:fs/promises";
 import { startServer } from "./server.mjs";
 const server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1");
-async function write(path, body, method = "POST") {
+async function write(path, body, method = "POST", headers = {}) {
   const r = await fetch(api + "/api/v1" + path, {
     method,
     headers: {
       "Content-Type": "application/json",
       "Idempotency-Key": randomUUID(),
+      ...headers,
     },
     body: JSON.stringify(body),
   });
@@ -479,12 +480,46 @@ try {
   });
   expect(largeUpload.ok).toBe(true);
   const large = (await largeUpload.json()).data;
-  expect(large.status).toBe("ready");
-  await write(`/imports/${large.id}/activate`, {});
+  expect(["ready", "activated"]).toContain(large.status);
+  const template = await write(`/imports/${large.id}/activate`, {});
+  const source = (
+    await (await fetch(api + `/api/v1/budgets/${template.id}`)).json()
+  ).data;
+  const templateBefore = (
+    await (
+      await fetch(api + `/api/v1/budgets/${template.id}/transactions`)
+    ).json()
+  ).data;
+  const copyName = "Large reconciliation workflow " + randomUUID();
+  const copy = await write(
+    `/budgets/${template.id}/duplicate`,
+    { id: randomUUID(), name: copyName },
+    "POST",
+    { "X-Actual-Budget-Epoch": source.epoch },
+  );
+  const fixture = JSON.parse(
+    await readFile(
+      new URL(
+        "../../tests/fixtures/reconciliation-large.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  const copied = (
+    await (
+      await fetch(
+        api +
+          `/api/v1/budgets/${copy.id}/transactions/${fixture.accounts[0].parent}/splits`,
+      )
+    ).json()
+  ).data;
+  expect(copied.account_id).toBe(fixture.accounts[0].account);
+  expect(copied.children).toHaveLength(101);
   await page.getByRole("button", { name: "All budgets", exact: true }).click();
   await page
     .locator(".budget-list button")
-    .filter({ hasText: "Large reconciled imports" })
+    .filter({ hasText: copyName })
     .click();
   await page
     .getByRole("button", { name: "101 allocations", exact: true })
@@ -536,6 +571,13 @@ try {
     page.getByRole("button", { name: "Edit splits", exact: true }),
   ).toHaveCount(0);
   await expect(page.locator("tbody tr")).toHaveCount(100);
+  expect(
+    (
+      await (
+        await fetch(api + `/api/v1/budgets/${template.id}/transactions`)
+      ).json()
+    ).data,
+  ).toEqual(templateBefore);
   console.log(
     "PASS reconciliation browser: plain HTTP, captured date preference/recovery, protected split/filter/retry integration, immutable replay/cancel, quota failure, corrected clock recovery, confirmed edit, unlock, keyboard, mobile/dark/large text, offline boundary",
   );

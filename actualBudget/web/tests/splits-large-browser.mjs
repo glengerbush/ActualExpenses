@@ -8,12 +8,13 @@ let browser, diagnosticPage;
 const attempts = [],
   responses = [],
   pageErrors = [];
-async function call(path, body) {
+async function call(path, body, headers = {}) {
   const response = await fetch(api + path, {
     method: body ? "POST" : "GET",
     headers: {
       "Content-Type": "application/json",
       "Idempotency-Key": randomUUID(),
+      ...headers,
     },
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -34,7 +35,20 @@ try {
   });
   expect(upload.ok).toBe(true);
   const imported = (await upload.json()).data;
-  await call(`/imports/${imported.id}/activate`, {});
+  // Shared-server imports deduplicate; keep their activated budget pristine.
+  expect(["ready", "activated"]).toContain(imported.status);
+  const template = (await call(`/imports/${imported.id}/activate`, {})).data;
+  const source = (await call(`/budgets/${template.id}`)).data;
+  const templateBefore = (await call(`/budgets/${template.id}/transactions`))
+    .data;
+  const copyName = "Large split workflow " + randomUUID();
+  const copy = (
+    await call(
+      `/budgets/${template.id}/duplicate`,
+      { id: randomUUID(), name: copyName },
+      { "X-Actual-Budget-Epoch": source.epoch },
+    )
+  ).data;
   const fixture = JSON.parse(
     await readFile(
       new URL(
@@ -45,7 +59,7 @@ try {
     ),
   );
   const large = fixture.accounts[1],
-    base = `/budgets/${imported.budget_id}`,
+    base = `/budgets/${copy.id}`,
     path = `${base}/transactions/${large.parent}/splits`;
   browser = await chromium.launch({
     executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
@@ -76,7 +90,7 @@ try {
   await page.goto(server.url);
   await page
     .locator(".budget-list button")
-    .filter({ hasText: "Large reconciled imports" })
+    .filter({ hasText: copyName })
     .click();
   await page
     .getByRole("button", { name: "1001 allocations", exact: true })
@@ -212,6 +226,9 @@ try {
   await page
     .getByRole("button", { name: "Discard split draft", exact: true })
     .click();
+  expect((await call(`/budgets/${template.id}/transactions`)).data).toEqual(
+    templateBefore,
+  );
   console.log(
     "PASS large split browser: 1001 imported allocations, bounded rendering, last-child edit, sparse immutable retry/reload, add/distribute, keyboard and mobile",
   );

@@ -167,3 +167,24 @@ verified persistence across container replacement plus receipt replay. All
 financial/retry assertions remain unchanged. Owned resources and diagnosis
 image alias were removed. Root's independent remaining12 production groups
 also passed; the initial unexplained failure remains recorded honestly.
+
+## Shared large-fixture isolation
+
+Exact shared replay exposed a second, concrete harness error after large splits
+passed: reconciliation expected a new `ready` import, but the identical ZIP was
+already `activated` (`/tmp/batch13-16-46-container-shared-final.log`). Both suites
+now accept documented ready/activated stages, activate the shared source as a
+pristine template, and publicly duplicate it into independent named budgets before
+financial mutations. Current source epoch is read through the public budget API.
+Duplicate account/transaction identities are retained and checked; each suite
+asserts the source template's financial rows remain unchanged. Calendar, lock,
+split totals, protection and immutable replay expectations are unchanged.
+
+One shared production container passed large splits→reconciliation→paired
+protection→locations→bulk/history, including the ready and activated setup paths
+(`/tmp/shared-fixture-release.log`). Image SHA256
+`cf4944a3557895ba7d6f945991348157af58ada6a88680e244112e325277772f`,
+132015446 bytes, runtime10001:10001; persistence, receipt replay and bundled
+assets passed. Owned container/volume/image alias were removed. No product
+changes or full26-group repeat. This concrete import collision does not establish
+the cause of the earlier uncaptured30s large-split retry failure.

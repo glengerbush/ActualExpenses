@@ -405,3 +405,21 @@ async fn rename_payee(
         })
     }).await
 }
+
+/// Matching and rule entry share condition semantics and one bounded work allowance.
+pub(crate) fn match_schedule_conditions(
+    db: &Connection,
+    b: &str,
+    conditions: &[Value],
+    row: &Value,
+    account_off: Option<bool>,
+    work: &mut Work,
+) -> Result<bool, Error> {
+    let context = conditions::Context { db, b, account_off };
+    for condition in conditions {
+        if !conditions::matches(&context, condition, row, work)? {
+            return Ok(false);
+        }
+    }
+    Ok(!conditions.is_empty())
+}

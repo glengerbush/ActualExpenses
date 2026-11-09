@@ -1158,14 +1158,21 @@ fn sparse_large_protection_receipts_cancellation_and_native_epochs_stay_atomic()
         .unwrap();
     assert_eq!(upload.status(), 201, "{}", upload.text().unwrap());
     let staged: Value = upload.json().unwrap();
-    let activate = target.post(
-        &format!(
-            "{root}/restores/{}/activate",
+    // This 1001-child debug restore repeatedly exceeds the ordinary 5s client
+    // deadline under suite load, including on the unchanged baseline. Keep a
+    // bounded fixture deadline; release latency is measured separately (ticket51).
+    let activate = target
+        .client
+        .post(format!(
+            "{}{root}/restores/{}/activate",
+            target.url,
             staged["data"]["id"].as_str().unwrap()
-        ),
-        "large-native-activate",
-        json!({"confirm_name":"Large reconciled imports"}),
-    );
+        ))
+        .header("Idempotency-Key", "large-native-activate")
+        .json(&json!({"confirm_name":"Large reconciled imports"}))
+        .timeout(Duration::from_secs(30))
+        .send()
+        .unwrap();
     assert_eq!(activate.status(), 200, "{}", activate.text().unwrap());
     let target = target.restart();
     let restored: Value = target.get(&path).json().unwrap();

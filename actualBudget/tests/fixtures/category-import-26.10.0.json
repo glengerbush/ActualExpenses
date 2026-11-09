@@ -1,0 +1,74 @@
+{
+  "aliases": {
+    "3c06709e-9699-4ea2-b3c4-d243c585a976": "daily",
+    "f47bfda1-b152-4578-bfb5-4692720da9fb": "other",
+    "d712ae4b-7cce-4f31-b20d-e70191ef4192": "income",
+    "be833cb3-8f8c-40ab-9ee4-8783473103c9": "food",
+    "584b9c20-dee3-4d28-9a83-0a9c03db4dec": "dining",
+    "44027016-2305-47f2-beb6-099fe9c374d0": "salary",
+    "10000000-0000-4000-8000-000000000001": "transaction-1",
+    "10000000-0000-4000-8000-000000000002": "transaction-2",
+    "10000000-0000-4000-8000-000000000003": "transaction-3",
+    "10000000-0000-4000-8000-000000000004": "transaction-4",
+    "10000000-0000-4000-8000-000000000005": "transaction-5"
+  },
+  "snapshot": {
+    "step": "renamed-moved-hidden-noted",
+    "categories": [
+      {
+        "id": "dining",
+        "name": "Dining",
+        "group": "other",
+        "income": false,
+        "hidden": false
+      },
+      {
+        "id": "food",
+        "name": "Meals",
+        "group": "other",
+        "income": false,
+        "hidden": true
+      },
+      {
+        "id": "salary",
+        "name": "Salary",
+        "group": "income",
+        "income": true,
+        "hidden": false
+      }
+    ],
+    "transactions": [
+      {
+        "id": "transaction-1",
+        "amount": -1250,
+        "category": "food",
+        "notes": "purchase"
+      },
+      {
+        "id": "transaction-2",
+        "amount": 250,
+        "category": "food",
+        "notes": "refund"
+      },
+      {
+        "id": "transaction-3",
+        "amount": 400,
+        "category": "food",
+        "notes": "reimbursement"
+      },
+      {
+        "id": "transaction-4",
+        "amount": 10000,
+        "category": "salary",
+        "notes": "income"
+      },
+      {
+        "id": "transaction-5",
+        "amount": -99,
+        "category": null,
+        "notes": "uncategorized"
+      }
+    ],
+    "note": "Keep receipts\nReimbursements stay here"
+  }
+}

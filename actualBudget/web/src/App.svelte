@@ -32,6 +32,7 @@
   import AccountNavigation from "./lib/AccountNavigation.svelte";
   import { readAccountDraft, sortedAccounts } from "./lib/account-actions";
   import Register from "./lib/Register.svelte";
+  import Categories from "./lib/Categories.svelte";
   import Settings from "./lib/Settings.svelte";
   import ThemeRecovery from "./lib/themes/ThemeRecovery.svelte";
   import PendingRecovery from "./lib/offline/PendingRecovery.svelte";
@@ -59,6 +60,7 @@
     | "budget"
     | "account"
     | "settings"
+    | "categories"
     | "import"
     | "manage"
     | "restore"
@@ -258,6 +260,7 @@
       | "budget"
       | "account"
       | "settings"
+      | "categories"
       | "import"
       | "manage"
       | "restore"
@@ -363,6 +366,10 @@
         />{/key}
 
       <button
+        onclick={() => showForm("categories")}
+        disabled={!!form || loading || disconnected}>{t("Categories")}</button
+      >
+      <button
         class={{ current: form === "settings" }}
         aria-current={form === "settings" ? "page" : undefined}
         onclick={() => showForm("settings")}
@@ -465,6 +472,10 @@
         budgetId={budget.id}
         oncreated={accountCreated}
         oncancel={() => showForm(null)}
+      />
+    {:else if form === "categories" && budget}<Categories
+        budgetId={budget.id}
+        onclose={() => openBudget(budget!, account?.id)}
       />
     {:else if form === "settings" && budget}<Settings
         budgetId={budget.id}

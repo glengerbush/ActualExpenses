@@ -215,6 +215,7 @@ fn insert(
     preserve_latent_category: bool,
 ) -> Result<Value, Error> {
     resolve_new_references(db, budget, &mut input)?;
+    input.category_id = crate::categories::resolve(db, budget, input.category_id)?;
     validate_references(db, budget, &input, None)?;
     if !preserve_latent_category
         && input.category_id.is_some()
@@ -428,6 +429,7 @@ fn update_row(
     }
     let mut input = validate_patch(&previous, &patch)?;
     resolve_new_references(db, budget, &mut input)?;
+    input.category_id = crate::categories::resolve(db, budget, input.category_id)?;
     // Keep independent winning fields, including latent off-budget categories.
     validate_references(
         db,
@@ -513,6 +515,7 @@ fn resolve_new_references(
                         reference.is_income.unwrap_or(false)
                     ],
                 )?;
+                crate::categories::stamp_new(db, budget, &reference.id)?;
             }
             *selected = Some(reference.id.clone());
         }

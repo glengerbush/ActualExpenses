@@ -22,6 +22,9 @@ export interface Reference {
   id: string;
   name: string;
   is_income?: boolean;
+  hidden?: boolean;
+  group_hidden?: boolean;
+  deleted?: boolean;
 }
 export interface RegisterPage {
   data: Transaction[];

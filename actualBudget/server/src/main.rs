@@ -1,6 +1,7 @@
 mod accounts;
 mod api;
 mod calculator;
+mod categories;
 mod companion;
 mod concurrency;
 mod error;

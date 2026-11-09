@@ -18,12 +18,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
 pub fn router() -> Router<Store> {
-    Router::new()
-        .route("/api/v1/budgets/{budget}/payees", get(list).post(create))
-        .route(
-            "/api/v1/budgets/{budget}/categories",
-            get(list).post(create),
-        )
+    Router::new().route("/api/v1/budgets/{budget}/payees", get(list).post(create))
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]

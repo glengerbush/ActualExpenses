@@ -91,10 +91,12 @@ pub fn create_budget(db: &Connection, input: NewBudget) -> Result<Value, Error> 
         "INSERT INTO budgets(id,name,budget_type) VALUES(?1,?2,?3)",
         params![input.id, input.name, input.budget_type],
     )?;
+    let category_id = Uuid::new_v4().to_string();
     tx.execute(
         "INSERT INTO categories(budget_id,id,name,is_income) VALUES(?1,?2,'Starting Balances',1)",
-        params![input.id, Uuid::new_v4().to_string()],
+        params![input.id, category_id],
     )?;
+    crate::categories::stamp_new(db, &input.id, &category_id)?;
     crate::lifecycle::metadata(db, &input.id, false)
 }
 pub fn create_account(db: &Connection, budget: &str, input: NewAccount) -> Result<Value, Error> {
@@ -127,7 +129,7 @@ pub fn create_account(db: &Connection, budget: &str, input: NewAccount) -> Resul
         let category: Option<String> = if input.off_budget {
             None
         } else {
-            tx.query_row("SELECT id FROM categories WHERE budget_id=?1 AND is_income=1 ORDER BY name='Starting Balances' DESC,id LIMIT 1",[budget],|r|r.get(0)).optional()?
+            tx.query_row("SELECT id FROM categories WHERE budget_id=?1 AND is_income=1 AND tombstone=0 ORDER BY name='Starting Balances' DESC,id LIMIT 1",[budget],|r|r.get(0)).optional()?
         };
         let transaction_id = Uuid::new_v4().to_string();
         tx.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,starting_balance,payee_id,category_id) VALUES(?1,?2,?3,?4,?5,1,1,?6,?7)",params![budget,transaction_id,input.id,input.opening_balance,input.opening_date,payee,category])?;

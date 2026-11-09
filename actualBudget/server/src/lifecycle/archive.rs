@@ -20,6 +20,7 @@ pub const TABLES: &[&str] = &[
     "account_groups",
     "accounts",
     "payees",
+    "category_groups",
     "categories",
     "transactions",
     "budget_preferences",
@@ -64,6 +65,7 @@ pub struct BudgetArchive {
     pub clock: String,
 }
 pub struct Validated {
+    pub legacy_category_metadata: bool,
     pub state: BudgetArchive,
     pub blobs: BTreeMap<String, Vec<u8>>,
 }
@@ -136,7 +138,7 @@ pub fn capture(db: &Connection, budget: &str) -> Result<Vec<u8>, Error> {
     let body = serde_json::to_vec(&state).map_err(Error::internal)?;
     let mut entries = BTreeMap::from([("budget.json".to_owned(), body)]);
     entries.extend(blobs);
-    let manifest = json!({"format":"actualBudget","version":1,"schema_version":7,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
+    let manifest = json!({"format":"actualBudget","version":1,"schema_version":8,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
     if entries.len() + 1 > 1000
         || entries.values().map(Vec::len).sum::<usize>() + manifest.to_string().len() > MAX_EXPANDED
     {
@@ -212,7 +214,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || !matches!(manifest["schema_version"].as_u64(), Some(6 | 7))
+        || !matches!(manifest["schema_version"].as_u64(), Some(6..=8))
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }
@@ -290,6 +292,62 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             accounts.rows[i].extend([Value::Null, json!(rank), json!(0)]);
         }
     }
+    if matches!(manifest["schema_version"].as_u64(), Some(6 | 7)) {
+        if state.tables.contains_key("category_groups") {
+            return Err(invalid("Unexpected category domain in pre-category schema"));
+        }
+        state.tables.insert(
+            "category_groups".into(),
+            Table {
+                columns: [
+                    "budget_id",
+                    "id",
+                    "name",
+                    "is_income",
+                    "hidden",
+                    "notes",
+                    "sort_order",
+                    "tombstone",
+                ]
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
+                rows: vec![],
+            },
+        );
+        let categories = state
+            .tables
+            .get_mut("categories")
+            .ok_or_else(|| invalid("Missing categories"))?;
+        if categories.columns != ["budget_id", "id", "name", "is_income"] {
+            return Err(invalid("Unsupported pre-category schema categories"));
+        }
+        categories.columns.extend(
+            [
+                "group_id",
+                "hidden",
+                "notes",
+                "sort_order",
+                "tombstone",
+                "replacement_id",
+            ]
+            .iter()
+            .map(|s| s.to_string()),
+        );
+        for row in &mut categories.rows {
+            if row.len() != 4 {
+                return Err(invalid("Invalid pre-category schema category"));
+            }
+            row.extend([
+                Value::Null,
+                json!(0),
+                json!(""),
+                json!(0),
+                json!(0),
+                Value::Null,
+            ]);
+        }
+    }
     if state.budget["id"] != manifest["budget_id"] {
         return Err(invalid("Budget identity differs from manifest"));
     }
@@ -330,7 +388,11 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
         .into_iter()
         .filter(|(name, _)| name.starts_with("blobs/"))
         .collect();
-    let validated = Validated { state, blobs };
+    let validated = Validated {
+        state,
+        blobs,
+        legacy_category_metadata: matches!(manifest["schema_version"].as_u64(), Some(6 | 7)),
+    };
     let mut staging = Connection::open_in_memory().map_err(Error::internal)?;
     staging.execute_batch("PRAGMA foreign_keys=ON;")?;
     let temp = tempfile::tempdir().map_err(Error::internal)?;
@@ -396,9 +458,19 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
             }
             let values = row
                 .iter()
-                .map(|value| match value {
+                .enumerate()
+                .map(|(index, value)| match value {
                     Value::Null => Ok(SqlValue::Null),
                     Value::String(v) => Ok(SqlValue::Text(v.clone())),
+                    Value::Number(v)
+                        if ["categories", "category_groups"].contains(table)
+                            && source.columns[index] == "sort_order" =>
+                    {
+                        v.as_f64()
+                            .filter(|n| n.is_finite() && n.abs() <= 9007199254740991.0)
+                            .map(SqlValue::Real)
+                            .ok_or_else(|| invalid("Invalid category order"))
+                    }
                     Value::Number(v) => v
                         .as_i64()
                         .map(SqlValue::Integer)
@@ -435,16 +507,30 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
             db.execute(&sql, rusqlite::params_from_iter(values))?;
         }
     }
+    if archive.legacy_category_metadata {
+        crate::categories::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
+    }
     Ok(())
 }
 pub fn validate_financial_state(db: &Connection, budget: &str) -> Result<(), Error> {
-    for table in ["accounts", "account_groups", "payees", "categories"] {
+    for table in [
+        "accounts",
+        "account_groups",
+        "payees",
+        "categories",
+        "category_groups",
+    ] {
         let mut rows = db.prepare(&format!("SELECT id,name FROM {table} WHERE budget_id=?1"))?;
         for row in rows.query_map([budget], |r| {
             Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
         })? {
             let (id, name) = row?;
-            crate::models::validate_id(&id).map_err(|e| invalid(e.message))?;
+            if table == "category_groups" {
+                crate::categories::validate_group_id(&id)
+            } else {
+                crate::models::validate_id(&id)
+            }
+            .map_err(|e| invalid(e.message))?;
             validate_name(&name).map_err(|e| invalid(e.message))?;
         }
     }
@@ -456,6 +542,7 @@ pub fn validate_financial_state(db: &Connection, budget: &str) -> Result<(), Err
     if visible_deleted {
         return Err(invalid("Deleted account has visible history"));
     }
+    crate::categories::validate_archive(db, budget).map_err(|e| invalid(e.message))?;
     let mut notes = db.prepare("SELECT notes FROM accounts WHERE budget_id=?1")?;
     for text in notes.query_map([budget], |r| r.get::<_, String>(0))? {
         if text?.chars().count() > 10000 {

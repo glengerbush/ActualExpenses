@@ -29,6 +29,17 @@ fn text<'a>(row: &'a Value, key: &str) -> Result<&'a str, Error> {
         .as_str()
         .ok_or_else(|| invalid(format!("Missing or invalid {key}")))
 }
+fn category_order(row: &Value) -> Result<Value, Error> {
+    let value = &row["sort_order"];
+    if !value.is_null()
+        && value
+            .as_f64()
+            .is_none_or(|n| !n.is_finite() || n.abs() > 9007199254740991.0)
+    {
+        return Err(invalid("Invalid category order"));
+    }
+    Ok(value.clone())
+}
 fn flag(row: &Value, key: &str) -> Result<bool, Error> {
     match row[key].as_i64() {
         Some(0) | None if row[key].is_null() || row[key] == 0 => Ok(false),
@@ -341,12 +352,42 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             }
             source.insert(table.clone(), json!(rows(&db, table)?));
         }
+        // Actual category deletion materializes zero budget cells even without allocations.
+        // Their absence has identical financial meaning; original rows remain in provenance.
+        if table == "zero_budgets" && count > 0 {
+            let rows = rows(&db, table)?;
+            let expected = accepted_columns
+                .get(table)
+                .unwrap()
+                .iter()
+                .map(String::as_str)
+                .collect::<BTreeSet<_>>();
+            let empty = rows.iter().all(|row| {
+                row.as_object().is_some_and(|r| {
+                    r.keys().map(String::as_str).collect::<BTreeSet<_>>() == expected
+                }) && row["amount"].as_i64() == Some(0)
+                    && row["carryover"].as_i64() == Some(0)
+                    && row["goal"].is_null()
+                    && row["long_goal"].is_null()
+            });
+            if empty {
+                requirement(
+                    &mut requirements,
+                    "zero_budget_defaults",
+                    count as usize,
+                    false,
+                    "Zero allocation defaults retained in original source; no amounts, carryover or goals omitted",
+                );
+                continue;
+            }
+        }
         if ![
             "account_groups",
             "accounts",
             "transactions",
             "payees",
             "categories",
+            "category_groups",
             "preferences",
             "notes",
         ]
@@ -386,7 +427,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             }
         }
     }
-    let mut converted = json!({"name":name,"budget_type":"envelope","account_groups":[],"accounts":[],"payees":[],"categories":[],"transactions":[],"clocks":[]});
+    let mut converted = json!({"name":name,"budget_type":"envelope","account_groups":[],"accounts":[],"payees":[],"categories":[],"category_groups":[],"transactions":[],"clocks":[]});
     // Actual stores fractional ordering. Preserve its order with exact integer ranks.
     let ranked = |table: &str| -> Result<BTreeMap<String, i64>, Error> {
         let mut rows = array(&source, table).iter().collect::<Vec<_>>();
@@ -477,19 +518,40 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
     }
     let other_notes = array(&source, "notes")
         .iter()
-        .filter(|row| !accounts.contains_key(row["id"].as_str().unwrap_or("")))
+        .filter(|row| {
+            !accounts.contains_key(row["id"].as_str().unwrap_or(""))
+                && !array(&source, "categories")
+                    .iter()
+                    .chain(array(&source, "category_groups"))
+                    .any(|item| item["id"] == row["id"])
+        })
         .count();
     requirement(
         &mut requirements,
         "notes",
         other_notes,
         true,
-        "Category or budget notes may contain templates and require their feature converter",
+        "Budget notes require their feature converter",
     );
     let groups = array(&source, "category_groups")
         .iter()
         .map(|row| text(row, "id"))
         .collect::<Result<BTreeSet<_>, _>>()?;
+    for row in array(&source, "category_groups") {
+        crate::categories::validate_group_id(text(row, "id")?)
+            .map_err(|_| invalid("Invalid group identity"))?;
+        validate_name(text(row, "name")?).map_err(|_| invalid("Invalid group name"))?;
+        let notes = array(&source, "notes")
+            .iter()
+            .find(|n| n["id"] == row["id"])
+            .and_then(|n| n["note"].as_str())
+            .unwrap_or("");
+        if notes.chars().count() > 10000 {
+            return Err(invalid("Category group notes exceed limit"));
+        }
+        let order = category_order(row)?;
+        converted["category_groups"].as_array_mut().unwrap().push(json!({"id":row["id"],"name":row["name"],"is_income":flag(row,"is_income")?,"hidden":flag(row,"hidden")?,"notes":notes,"sort_order":order,"tombstone":flag(row,"tombstone")?}));
+    }
     let mut category_ids = BTreeSet::new();
     for row in array(&source, "categories") {
         let id = text(row, "id")?;
@@ -501,22 +563,29 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             return Err(invalid("Category refers to a missing group"));
         }
         validate_name(text(row, "name")?).map_err(|_| invalid("Invalid source category name"))?;
-        let unsupported = flag(row, "tombstone")?
-            || flag(row, "hidden")?
-            || !row["goal_def"].is_null()
+        let unsupported = !row["goal_def"].is_null()
             || !row["cleanup_def"].is_null()
-            || row["template_settings"] != "{\"source\": \"notes\"}";
+            || (!row["template_settings"].is_null()
+                && row["template_settings"]
+                    .as_str()
+                    .and_then(|s| serde_json::from_str::<Value>(s).ok())
+                    != Some(json!({"source":"notes"})));
         requirement(
             &mut requirements,
             "category_configuration",
             usize::from(unsupported),
             true,
-            "Hidden/deleted categories, goals or templates require their converter",
+            "Goals or templates require their converter",
         );
-        converted["categories"]
-            .as_array_mut()
-            .unwrap()
-            .push(json!({"id":id,"name":row["name"],"is_income":flag(row,"is_income")?}));
+        let notes = array(&source, "notes")
+            .iter()
+            .find(|n| n["id"] == id)
+            .and_then(|n| n["note"].as_str())
+            .unwrap_or("");
+        if notes.chars().count() > 10000 {
+            return Err(invalid("Category notes exceed limit"));
+        }
+        converted["categories"].as_array_mut().unwrap().push(json!({"id":id,"name":row["name"],"is_income":flag(row,"is_income")?,"group_id":row["cat_group"],"hidden":flag(row,"hidden")?,"notes":notes,"sort_order":category_order(row)?,"tombstone":flag(row,"tombstone")?}));
     }
     let mut payee_ids = BTreeSet::new();
     let mut transfer_payees = BTreeSet::new();
@@ -602,6 +671,16 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         }
         Err(invalid("Alias chain exceeds supported depth"))
     };
+    for category in converted["categories"].as_array_mut().unwrap() {
+        if category["tombstone"] == true {
+            let target = resolve(&category["id"], &category_map, &category_ids)?;
+            category["replacement_id"] = if target == category["id"] {
+                Value::Null
+            } else {
+                target
+            };
+        }
+    }
     for id in payee_map.keys() {
         if resolve(&json!(id), &payee_map, &payee_ids).is_err() {
             requirement(
@@ -797,24 +876,22 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
             params![budget, row["id"].as_str(), row["name"].as_str()],
         )?;
     }
+    for row in array(data, "category_groups") {
+        db.execute("INSERT INTO category_groups(budget_id,id,name,is_income,hidden,notes,sort_order,tombstone) VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",params![budget,row["id"].as_str(),row["name"].as_str(),row["is_income"].as_bool(),row["hidden"].as_bool().unwrap_or(false),row["notes"].as_str().unwrap_or(""),row["sort_order"].as_f64(),row["tombstone"].as_bool().unwrap_or(false)])?;
+    }
     for row in array(data, "categories") {
-        db.execute(
-            "INSERT INTO categories(budget_id,id,name,is_income) VALUES(?1,?2,?3,?4)",
-            params![
-                budget,
-                row["id"].as_str(),
-                row["name"].as_str(),
-                row["is_income"].as_bool()
-            ],
-        )?;
+        db.execute("INSERT INTO categories(budget_id,id,name,is_income,group_id,hidden,notes,sort_order,tombstone,replacement_id) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",params![budget,row["id"].as_str(),row["name"].as_str(),row["is_income"].as_bool(),row["group_id"].as_str(),row["hidden"].as_bool().unwrap_or(false),row["notes"].as_str().unwrap_or(""),row["sort_order"].as_f64(),row["tombstone"].as_bool().unwrap_or(false),row["replacement_id"].as_str()])?;
     }
     for row in array(data, "transactions") {
-        db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,reconciled,starting_balance,payee_id,category_id,notes,tombstone,sort_order) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13)",params![budget,row["id"].as_str(),row["account_id"].as_str(),row["amount"].as_i64(),row["date"].as_str(),row["cleared"].as_bool(),row["reconciled"].as_bool(),row["starting_balance"].as_bool(),row["payee_id"].as_str(),row["category_id"].as_str(),row["notes"].as_str(),row["tombstone"].as_bool(),row["sort_order"].as_i64()])?;
+        let category =
+            crate::categories::resolve(db, budget, row["category_id"].as_str().map(str::to_owned))?;
+        db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,reconciled,starting_balance,payee_id,category_id,notes,tombstone,sort_order) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13)",params![budget,row["id"].as_str(),row["account_id"].as_str(),row["amount"].as_i64(),row["date"].as_str(),row["cleared"].as_bool(),row["reconciled"].as_bool(),row["starting_balance"].as_bool(),row["payee_id"].as_str(),category,row["notes"].as_str(),row["tombstone"].as_bool(),row["sort_order"].as_i64()])?;
     }
     for row in array(data, "accounts") {
         ledger::refresh_account(db, budget, row["id"].as_str().unwrap())?;
     }
     ledger::validate_budget_total(db, budget)?;
+    crate::categories::validate_archive(db, budget)?;
     for expected in array(data, "balances") {
         let actual = ledger::cached_balances(db, budget, expected["account_id"].as_str().unwrap())?;
         if serde_json::to_value(actual).map_err(Error::internal)?
@@ -830,6 +907,25 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
     for row in array(data, "clocks") {
         let dataset = row["dataset"].as_str().unwrap();
         let field = row["column"].as_str().unwrap();
+        if dataset == "notes" && field == "note" {
+            let id = row["row"].as_str().unwrap();
+            for entity in ["categories", "category_groups"] {
+                if db.query_row(
+                    &format!("SELECT EXISTS(SELECT 1 FROM {entity} WHERE budget_id=?1 AND id=?2)"),
+                    params![budget, id],
+                    |r| r.get::<_, bool>(0),
+                )? {
+                    crate::concurrency::seed_field_version(
+                        db,
+                        budget,
+                        entity,
+                        id,
+                        "notes",
+                        row["timestamp"].as_str().unwrap(),
+                    )?;
+                }
+            }
+        }
         let mapped = match (dataset, field) {
             ("transactions", "acct") => Some("account_id"),
             ("transactions", "description") => Some("payee_id"),
@@ -839,6 +935,7 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
                 "transactions",
                 "amount" | "date" | "notes" | "cleared" | "reconciled" | "tombstone",
             ) => Some(field),
+            ("categories", "cat_group") => Some("group_id"),
             ("accounts", "offbudget") => Some("off_budget"),
             ("accounts", "account_group_id") => Some("group_id"),
             ("notes", "note")
@@ -851,7 +948,10 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
             ("account_groups", "name" | "sort_order" | "tombstone") => Some(field),
             ("accounts", "name" | "closed" | "sort_order" | "tombstone")
             | ("payees", "name")
-            | ("categories", "name" | "is_income") => Some(field),
+            | (
+                "categories" | "category_groups",
+                "name" | "is_income" | "hidden" | "sort_order" | "tombstone",
+            ) => Some(field),
             _ => None,
         };
         if let Some(mapped) = mapped {

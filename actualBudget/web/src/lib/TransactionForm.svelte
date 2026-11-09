@@ -458,7 +458,7 @@
       payee_name: payees.find((p) => p.id === fields.payee)?.name ?? null,
       category_id: fields.category || null,
       category_name:
-        categories.find((c) => c.id === fields.category)?.name ?? null,
+        categories.find((c) => c.id === draft?.fields.category)?.name ?? null,
       category_is_income: false,
     };
   }
@@ -748,7 +748,7 @@
                 () => draft!.fields.category, (v) => update("category", v)
               }
               ><option value="">{t("Uncategorized")}</option
-              >{#each categories as category (category.id)}<option
+              >{#each categories.filter((c) => (!c.hidden && !c.group_hidden && !c.deleted) || c.id === draft?.fields.category) as category (category.id)}<option
                   value={category.id}>{category.name}</option
                 >{/each}<option value="new" disabled={disconnected}
                 >{t("Create category…")}</option

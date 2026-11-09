@@ -19,7 +19,7 @@ use rusqlite::{Connection, OptionalExtension, params};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
-mod conversion;
+pub(crate) mod conversion;
 const MAX_ARCHIVE: usize = 16 * 1024 * 1024;
 
 pub fn router() -> Router<Store> {
@@ -120,7 +120,19 @@ async fn upload(
     let hash = format!("{:x}", Sha256::digest(&bytes));
     let result=store.run(move|db|{
         store::write(db,"POST /imports/actual",&key,&hash,|db|{
-            if let Some(id)=db.query_row("SELECT id FROM staged_imports WHERE archive_sha256=?1",[&hash],|r|r.get::<_,String>(0)).optional()? {return read_import(db,&id);}
+            if let Some(id)=db.query_row("SELECT id FROM staged_imports WHERE archive_sha256=?1",[&hash],|r|r.get::<_,String>(0)).optional()? {
+                let (status,plan):(String,String)=db.query_row("SELECT status,conversion FROM staged_imports WHERE id=?1",[&id],|r|Ok((r.get(0)?,r.get(1)?)))?;
+                let plan:Value=serde_json::from_str(&plan).map_err(Error::internal)?;
+                // A new upload intent explicitly reviews a pre-category-management stage.
+                // The original upload key still replays its exact original receipt first.
+                if status!="activated" && plan.get("category_groups").is_none() {
+                    let (mut report,converted)=conversion::inspect(&bytes)?;
+                    report["archive_sha256"]=json!(hash);
+                    let status=if report["requirements"].as_array().unwrap().iter().any(|r|r["blocking"]==true){"blocked"}else{"ready"};
+                    db.execute("UPDATE staged_imports SET status=?2,report=?3,conversion=?4 WHERE id=?1",params![id,status,report.to_string(),converted.to_string()])?;
+                }
+                return read_import(db,&id);
+            }
             let (mut report,converted)=conversion::inspect(&bytes)?;
             report["archive_sha256"]=json!(hash);
             let id=Uuid::new_v4().to_string();
@@ -149,7 +161,27 @@ async fn activate(
         let budget=stage["budget_id"].as_str().unwrap();
         if stage["status"]=="blocked" {return Err(Error::new(StatusCode::CONFLICT,"import_requires_conversion","Import contains unsupported data; review its conversion requirements"));}
         let converted:String=db.query_row("SELECT conversion FROM staged_imports WHERE id=?1",[&id],|r|r.get(0))?;
-        let converted:Value=serde_json::from_str(&converted).map_err(Error::internal)?;
+        let mut converted:Value=serde_json::from_str(&converted).map_err(Error::internal)?;
+        if stage["status"]!="activated" && (converted.get("category_groups").is_none() || converted.get("account_groups").is_none()) {
+            let original:Vec<u8>=db.query_row("SELECT original FROM staged_imports WHERE id=?1",[&id],|r|r.get(0))?;
+            let (_,current)=conversion::inspect(&original)?;
+            if converted.get("account_groups").is_none() {
+                converted["account_groups"]=current["account_groups"].clone();
+                for account in converted["accounts"].as_array_mut().unwrap() {
+                    if let Some(source)=current["accounts"].as_array().unwrap().iter().find(|row|row["id"]==account["id"]) {
+                        for field in ["group_id","sort_order","tombstone"] {account[field]=source[field].clone();}
+                    }
+                }
+            }
+            if converted.get("category_groups").is_none() {
+                converted["category_groups"]=current["category_groups"].clone();
+                for category in converted["categories"].as_array_mut().unwrap() {
+                    if let Some(source)=current["categories"].as_array().unwrap().iter().find(|row|row["id"]==category["id"]) {
+                        for field in ["group_id","hidden","notes","sort_order","tombstone","replacement_id"] {category[field]=source[field].clone();}
+                    }
+                }
+            }
+        }
         if stage["status"]!="activated" {
             if db.query_row("SELECT EXISTS(SELECT 1 FROM budgets WHERE id=?1)",[budget],|row|row.get::<_,bool>(0))? {
                 return Err(Error::new(StatusCode::CONFLICT,"import_budget_conflict","Assigned budget identity already exists; this import cannot replace it"));

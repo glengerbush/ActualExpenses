@@ -1,0 +1,221 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "normalization": "Only generated IDs replaced with stable labels; financial values and references untouched.",
+  "snapshots": [
+    {
+      "step": "initial",
+      "categories": [
+        {
+          "id": "dining",
+          "name": "Dining",
+          "group": "other",
+          "income": false,
+          "hidden": false
+        },
+        {
+          "id": "food",
+          "name": "Food",
+          "group": "daily",
+          "income": false,
+          "hidden": false
+        },
+        {
+          "id": "salary",
+          "name": "Salary",
+          "group": "income",
+          "income": true,
+          "hidden": false
+        }
+      ],
+      "transactions": [
+        {
+          "id": "transaction-1",
+          "amount": -1250,
+          "category": "food",
+          "notes": "purchase"
+        },
+        {
+          "id": "transaction-2",
+          "amount": 250,
+          "category": "food",
+          "notes": "refund"
+        },
+        {
+          "id": "transaction-3",
+          "amount": 400,
+          "category": "food",
+          "notes": "reimbursement"
+        },
+        {
+          "id": "transaction-4",
+          "amount": 10000,
+          "category": "salary",
+          "notes": "income"
+        },
+        {
+          "id": "transaction-5",
+          "amount": -99,
+          "category": null,
+          "notes": "uncategorized"
+        }
+      ],
+      "note": null
+    },
+    {
+      "step": "renamed-moved-hidden-noted",
+      "categories": [
+        {
+          "id": "dining",
+          "name": "Dining",
+          "group": "other",
+          "income": false,
+          "hidden": false
+        },
+        {
+          "id": "food",
+          "name": "Meals",
+          "group": "other",
+          "income": false,
+          "hidden": true
+        },
+        {
+          "id": "salary",
+          "name": "Salary",
+          "group": "income",
+          "income": true,
+          "hidden": false
+        }
+      ],
+      "transactions": [
+        {
+          "id": "transaction-1",
+          "amount": -1250,
+          "category": "food",
+          "notes": "purchase"
+        },
+        {
+          "id": "transaction-2",
+          "amount": 250,
+          "category": "food",
+          "notes": "refund"
+        },
+        {
+          "id": "transaction-3",
+          "amount": 400,
+          "category": "food",
+          "notes": "reimbursement"
+        },
+        {
+          "id": "transaction-4",
+          "amount": 10000,
+          "category": "salary",
+          "notes": "income"
+        },
+        {
+          "id": "transaction-5",
+          "amount": -99,
+          "category": null,
+          "notes": "uncategorized"
+        }
+      ],
+      "note": "Keep receipts\nReimbursements stay here"
+    },
+    {
+      "step": "merged",
+      "categories": [
+        {
+          "id": "dining",
+          "name": "Dining",
+          "group": "other",
+          "income": false,
+          "hidden": false
+        },
+        {
+          "id": "salary",
+          "name": "Salary",
+          "group": "income",
+          "income": true,
+          "hidden": false
+        }
+      ],
+      "transactions": [
+        {
+          "id": "transaction-1",
+          "amount": -1250,
+          "category": "dining",
+          "notes": "purchase"
+        },
+        {
+          "id": "transaction-2",
+          "amount": 250,
+          "category": "dining",
+          "notes": "refund"
+        },
+        {
+          "id": "transaction-3",
+          "amount": 400,
+          "category": "dining",
+          "notes": "reimbursement"
+        },
+        {
+          "id": "transaction-4",
+          "amount": 10000,
+          "category": "salary",
+          "notes": "income"
+        },
+        {
+          "id": "transaction-5",
+          "amount": -99,
+          "category": null,
+          "notes": "uncategorized"
+        }
+      ],
+      "note": "Keep receipts\nReimbursements stay here"
+    },
+    {
+      "step": "deleted-to-uncategorized",
+      "categories": [
+        {
+          "id": "salary",
+          "name": "Salary",
+          "group": "income",
+          "income": true,
+          "hidden": false
+        }
+      ],
+      "transactions": [
+        {
+          "id": "transaction-1",
+          "amount": -1250,
+          "category": null,
+          "notes": "purchase"
+        },
+        {
+          "id": "transaction-2",
+          "amount": 250,
+          "category": null,
+          "notes": "refund"
+        },
+        {
+          "id": "transaction-3",
+          "amount": 400,
+          "category": null,
+          "notes": "reimbursement"
+        },
+        {
+          "id": "transaction-4",
+          "amount": 10000,
+          "category": "salary",
+          "notes": "income"
+        },
+        {
+          "id": "transaction-5",
+          "amount": -99,
+          "category": null,
+          "notes": "uncategorized"
+        }
+      ],
+      "note": "Keep receipts\nReimbursements stay here"
+    }
+  ]
+}

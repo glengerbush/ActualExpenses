@@ -1,0 +1,9 @@
+# Category lifecycle evidence
+
+`tools/generate-category-lifecycle.mjs` calls published `@actual-app/api@26.10.0` against a disposable directory. It creates categories/groups and signed purchase/refund/reimbursement/income/uncategorized transactions, then renames, moves, hides, annotates, merges and deletes categories. `category-lifecycle.json` normalizes IDs only. `--check` reruns all public observations.
+
+`category-import-26.10.0.zip` is the public export after category annotation/hiding. Its JSON companion maps generated IDs to aliases and records the public snapshot. `category-retired-26.10.0.zip` is the public export after merge/deletion. No original database is edited to produce these fixtures. All resources are disposable; no real user budgets or server credentials are used.
+
+`tools/generate-category-schema6.py` and `tools/generate-legacy-category-import.py` use the public HTTP API of a separately built unmodified `59345d1` server. The native ZIP and SQLite fixtures are genuine schema-6 artifacts. The active-import fixture adds a native category and edits a transaction after importing the pinned Actual archive. The tests check that upgrading/restoring adds previously omitted metadata while preserving those changes and immutable receipts. The staged fixture verifies activation of an old conversion plan. The blocked fixture verifies explicit new-upload review without changing the old blocked receipt.
+
+The public HTTP tests compare signed values/references with the independent Actual oracle; exercise per-field ordering, stale references, hidden history, invalid cross-type merges, epoch fences, native archives, legacy receipt replay, source metadata and old-import enrichment. The browser scenario verifies lost-response replay across reload, category/group forms, hidden filtering, merge drilldowns, retained notes, keyboard operation and a 390px plain-HTTP layout.

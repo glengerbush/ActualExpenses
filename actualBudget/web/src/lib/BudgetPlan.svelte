@@ -241,6 +241,10 @@
           throw new Error(
             "This budget was restored. Keep any needed values, discard this draft and reopen the current plan.",
           );
+        if (draft.action !== "method" && view.method !== draft.method)
+          throw new Error(
+            `The budgeting method changed. This draft still belongs to ${draft.method === "tracking" ? "Tracking" : "Envelope"}. Keep any needed values, discard it and reopen the current plan.`,
+          );
         let body: Record<string, unknown> = {
           snapshot: view.snapshot,
           action: draft.action,
@@ -860,26 +864,23 @@
   }
   @media (max-width: 700px) {
     .month-controls {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      display: flex;
     }
     .month-controls > label {
       min-width: 0;
-      grid-column: 1 / -1;
+      flex: 1 1 100%;
     }
     .month-controls > label:first-of-type {
-      grid-row: 1;
+      order: -1;
     }
-    .month-controls > button:first-child {
-      grid-row: 2;
-      grid-column: 1;
-    }
-    .month-controls > button:nth-child(3) {
-      grid-row: 2;
-      grid-column: 2;
+    .month-controls > button {
+      flex: 1 1 9rem;
+      min-width: 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
     .month-controls > button:last-child {
-      grid-column: 1 / -1;
+      flex-basis: 100%;
     }
     .month-controls input,
     .month-controls select {

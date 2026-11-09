@@ -74,6 +74,15 @@ try {
     { budget, account },
   );
   await page.reload();
+  async function remoteMethod(method) {
+    const current = await call(`/budgets/${budget}/budget?month=2026-01`);
+    await call(`/budgets/${budget}/budget`, {
+      action: "method",
+      month: "2026-01",
+      method,
+      snapshot: current.snapshot,
+    });
+  }
   await page.getByRole("button", { name: "Budget", exact: true }).click();
   await page.getByLabel("Budget month", { exact: true }).fill("2026-01");
   await page
@@ -111,16 +120,32 @@ try {
     .click();
   await edit().click();
   await page.getByLabel("Amount", { exact: true }).fill("150.00");
-  let captured;
+  let captured, delivered;
   await page.route("**/api/v1/budgets/*/budget", async (route) => {
     if (route.request().method() !== "POST") return route.continue();
     captured = {
       body: route.request().postData(),
       headers: route.request().headers(),
     };
-    await route.fetch({
-      url: route.request().url().replace("actualbudget.test", "127.0.0.1"),
-    });
+    // Simulate native delivery through the public seam. Preserve all receipt
+    // identity headers; browser Origin cannot accompany the IP transport URL.
+    const response = await fetch(
+      route.request().url().replace("actualbudget.test", "127.0.0.1"),
+      {
+        method: "POST",
+        headers: Object.fromEntries(
+          [
+            "content-type",
+            "idempotency-key",
+            "x-actual-edit-clock",
+            "x-actual-budget-epoch",
+            "x-actual-history-owner",
+          ].map((name) => [name, captured.headers[name]]),
+        ),
+        body: captured.body,
+      },
+    );
+    delivered = { status: response.status, body: await response.text() };
     await route.abort("failed");
     await page.unroute("**/api/v1/budgets/*/budget");
   });
@@ -131,7 +156,11 @@ try {
       exact: true,
     }),
   ).toBeVisible();
+  await expect.poll(() => delivered?.status).not.toBeUndefined();
+  expect(delivered.status, delivered.body).toBe(200);
+  await remoteMethod("tracking");
   await page.reload();
+  await expect(page.getByTestId("2026-01-real_saved")).toHaveText("400.00");
   let retry;
   await page.route("**/api/v1/budgets/*/budget", async (route) => {
     if (route.request().method() === "POST")
@@ -156,6 +185,11 @@ try {
   ])
     expect(retry.headers[h]).toBe(captured.headers[h]);
   await page.unroute("**/api/v1/budgets/*/budget");
+  await expect(page.getByTestId("2026-01-real_saved")).toHaveText("400.00");
+  await remoteMethod("envelope");
+  await page
+    .getByRole("button", { name: "Refresh budget", exact: true })
+    .click();
   await expect(page.getByTestId("2026-01-to_budget")).toHaveText("350.00");
   await page.getByRole("button", { name: /^Undo / }).click();
   await save().click();
@@ -172,14 +206,38 @@ try {
   await page.getByLabel("Amount", { exact: true }).fill("60.00");
   await save().click();
   await expect(page.getByTestId("2026-01-total_budgeted")).toHaveText("60.00");
+  await edit().click();
+  await page.getByLabel("Amount", { exact: true }).fill("123.00");
+  await remoteMethod("envelope");
   await page
-    .getByRole("button", { name: "Change budgeting method", exact: true })
+    .getByRole("button", { name: "Refresh budget", exact: true })
     .click();
-  await page
-    .getByLabel("Budgeting method", { exact: true })
-    .selectOption("envelope");
-  await save().click();
   await expect(page.getByTestId("2026-01-to_budget")).toHaveText("400.00");
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt) await page.reload();
+    await expect(page.getByLabel("Amount", { exact: true })).toHaveValue(
+      "123.00",
+    );
+    await save().click();
+    await expect(page.getByRole("alert")).toContainText(
+      "draft still belongs to Tracking",
+    );
+    const current = await call(`/budgets/${budget}/budget?month=2026-01`);
+    expect(current.method).toBe("envelope");
+    expect(
+      current.months["2026-01"].categories.find((c) => c.id === food).budgeted,
+    ).toBe(10000);
+    const saved = await page.evaluate(
+      (budget) =>
+        JSON.parse(localStorage.getItem(`actualBudget.planning.v1.${budget}`)),
+      budget,
+    );
+    expect(saved.method).toBe("tracking");
+    expect(saved.pending).toBeNull();
+  }
+  await page
+    .getByRole("button", { name: "Discard budget draft", exact: true })
+    .click();
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Retry connection", exact: true }),
@@ -280,6 +338,12 @@ try {
     fullPage: true,
   });
   await page.addStyleTag({ content: "html{font-size:200%}" });
+  for (const name of ["Previous month", "Next month"]) {
+    const size = await page
+      .getByRole("button", { name, exact: true })
+      .evaluate((el) => ({ width: el.clientWidth, content: el.scrollWidth }));
+    expect(size.content).toBeLessThanOrEqual(size.width);
+  }
   await page.screenshot({
     path: "../../test-results/budgeting/large-text.png",
     fullPage: true,

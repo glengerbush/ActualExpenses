@@ -651,7 +651,7 @@ fn latest(
     let mut running = summary["total"].as_i64().unwrap() as i128;
     if offset > 0 {
         let mut preceding = db.prepare(&format!(
-            "SELECT amount FROM transactions WHERE {filter} ORDER BY {order} LIMIT {offset}"
+            "SELECT amount FROM transactions t WHERE {filter} ORDER BY {order} LIMIT {offset}"
         ))?;
         for amount in
             preceding.query_map(params_from_iter(values.iter()), |r| r.get::<_, i64>(0))?

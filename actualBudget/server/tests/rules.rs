@@ -687,7 +687,7 @@ fn genuine_schema16_upgrade_retains_history_and_replay_while_archive_rotates_own
         .unwrap()
         .json::<Value>()
         .unwrap();
-    assert_eq!(upload["data"]["report"]["schema_version"], 17, "{upload}");
+    assert_eq!(upload["data"]["report"]["schema_version"], 18, "{upload}");
     let activate = target.post(
         &format!(
             "{root}/restores/{}/activate",
@@ -773,7 +773,7 @@ fn genuine_rule_import_and_current_native_restore_keep_execution_and_simple_asso
         .unwrap()
         .json::<Value>()
         .unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 17, "{stage}");
+    assert_eq!(stage["data"]["report"]["schema_version"], 18, "{stage}");
     let name = s.get(&root).json::<Value>().unwrap()["data"]["name"].clone();
     let r = t.post(
         &format!(

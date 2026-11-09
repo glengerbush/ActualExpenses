@@ -482,6 +482,7 @@ fn remove_active_data(db: &Connection, budget: &str) -> Result<(), Error> {
         "budget_months",
         "budget_settings",
         "ledger_totals",
+        "android_upgrade_order",
         "transactions",
         "accounts",
         "account_groups",

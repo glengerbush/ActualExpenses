@@ -1,6 +1,6 @@
 # Register queries and saved views — ticket 12
 
-Candidate `384c6bf`, based on `e689d37`, 2026-11-08. Integration onto `3bef1aa` is in progress; acceptance remains pending. Register settings are schema 11 after payees/tags (9) and splits (10). No deployment, live data or version change.
+Accepted implementation `5a9efa1`, integrating candidate `384c6bf` onto `3bef1aa`, with final browser harness corrections documented below. Register settings are schema 11 after payees/tags (9) and splits (10). No deployment, live data or version change.
 
 ## Delivered behavior
 
@@ -92,3 +92,31 @@ The 10,000-row ECMAScript probe completed **before final VM-dispatch/comparison 
 Final resource correction validation: new-build public ten-row long-prefix rejection and recovery, pathological backtracking, compilation limits and request-wide cheap-match exhaustion pass in `/tmp/ticket12-regex-instruction-budget-green.log`; full pinned/public register suite passes in `/tmp/ticket12-utf16-instruction-green.log`. Final Clippy log `/tmp/ticket12-ecma-clippy-final.log`. MSRV advancement enabled nine mechanical let-chain lints, fixed in api (1), categories (4), concurrency (1), ledger (1), register_settings (2); preserve newer domain edits when integrating these syntax-only changes.
 
 Independent engine corrective review passed `384c6bf`: the previous long-prefix reproducer now returns explicit rejection in 7.3 ms; a backreference probe rejects in 4.7 ms and subsequent valid requests work. Vendor provenance, bounds and patch were checked. Independent Spec review found nullable identity `ne` incorrectly excluded null values; root integration must correct it and verify pinned category/payee/group cases before acceptance.
+
+## Integrated qualification
+
+`5a9efa1` corrects nullable identity inequality and combines register queries with existing payee/tag and split behavior. The additional published-Actual oracle has 18 cases covering null category/payee/group exclusions, whole-row parent/child predicates, search, names, tags and uncategorized scope. Three public integration tests also cover canonical aliases, legacy AND intersection, snapshot pages, exact parent-only totals, direct-versus-batched children and a 1,202-child response. Parent/child/version hydration uses batches of at most 501 SQL parameters. Schema 11 indexes include parent identity; archives accept 6–11 and retain all existing financial metadata.
+
+Independent integrated Standards and Spec reviews report no actionable findings. The earlier nullable `ne` finding is resolved. The engine resource review remains valid. Unified filter controls replace the old duplicate quick-filter UI; public legacy payee/tag parameters retain their AND semantics and unavailable running balances.
+
+Validation: 105 public Rust tests pass across the 104-case remaining run and isolated long-category-restore run; 22 native API tests freshly executed with zero skips/failures. Clippy, Rust formatting, web typecheck/build/format, served OpenAPI and Register Svelte autofixer pass. The initial full Rust attempt hit the existing raw restore-upload client's five-second timeout during parallel compilation; the same test passed unchanged in isolation in 13.34 seconds overall. No assertions or timeouts were relaxed. Three further MSRV-enabled nested-if lints in existing payee/split code were mechanically converted to let-chains.
+
+Evidence: `.scratch/12-integrated-{rust-remaining,category-restore-isolated,native-fresh,clippy,fmt,web-build,web-format,contract,register-autofixer}.log`; new oracle/public evidence `/tmp/register-integration-{oracle-check,final}.log`.
+
+Final integrated 10,000-row probe, eight 100-row reads per query on the shared host, debug build (`.scratch/12-integrated-scaling.json`):
+
+| Query | Median / max ms | Mean process CPU ms | Response bytes |
+| --- | --- | --- | --- |
+| Unfiltered | 123.47 / 131.47 | 115.0 | 107563 |
+| Search | 306.41 / 415.43 | 308.75 | 107555 |
+| Regex | 220.17 / 345.02 | 245.0 | 107555 |
+
+RSS/high-water 23,276 KiB. This qualifies the final instruction-budget engine and split-aware query path; values are local observations, not deployment latency or energy guarantees.
+
+Production container `sha256:b3fafabbb84b2f1a2e98a075b8fc47907a5bca4e651d9484cf631f4d20a73946`, 130,145,178 bytes, runs as `10001:10001`. Plain HTTP, bundled assets, read-only receipt probes and persistence after container replacement pass (`.scratch/12-integrated-container-persistence.log`). All browser suites pass across the initial, remaining and focused runs, with the recovery qualification described below. Root inspected desktop/mobile settings and identity renders in `docs/screenshots/register12/`; responsive and keyboard checks pass.
+
+Two browser harness corrections preserve the tested behavior: payee/tag filtering now uses the existing compound filter control's full accessible label; imported-identity review accepts the documented ready/already-activated deduplication states, then duplicates the fixture budget before editing. This prevents suites sharing one container from mutating each other's imported source. Focused production runs pass in `.scratch/12-integrated-{payees-corrective,splits,query,settings,identity,regex}.log`.
+
+The first container run timed out waiting 65 seconds for a pending expense to disappear after reload. Diagnosis did not establish a product defect: the complete debug and release concurrency scripts passed, as did ten release cases preserving the original timing. Observed orphan claims recovered at 59.865 and 60.215 seconds, retaining the exact operation identity and one financial row. Evidence: `/tmp/concurrency12-{full,release-full,release-long,release-repeat,failure-only}-probe.log`. The initial failure remains unexplained; it is not claimed fixed. A failure-only bounded diagnostic now records the current test budget's claim/blocked/dependency state, clocks, request identity and pending message. Passing execution and the 65-second assertion are unchanged; no product behavior was modified to suppress the failure.
+
+Independent integrated Standards and Spec acceptance: zero remaining findings. Split14's retained-payee corrective review also passed against this integrated build. Ticket12 is complete; split/transfer/reconciliation/undo acceptance remains with their own tickets.

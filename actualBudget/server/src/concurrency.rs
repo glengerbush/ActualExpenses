@@ -248,6 +248,8 @@ fn refusal(
 pub enum Mutation {
     Create(Box<NewTransaction>),
     Patch(String, Value),
+    ExpensePatch(String, Value),
+    ExpenseDelete(String),
     Delete(String),
     Duplicate(String, String),
     Split(String, crate::splits::Change),
@@ -275,7 +277,35 @@ pub fn execute(
     store::require_budget(db, budget)?;
     crate::lifecycle::require_epoch(db, budget, expected_epoch)?;
     let edit_clock = clock(db, budget, proposed)?;
+    let mutation = match mutation {
+        Mutation::ExpensePatch(ref id, _) | Mutation::ExpenseDelete(ref id) => {
+            let row = ledger::get_any(db, budget, id)?;
+            let code = if !row["transfer_id"].is_null() {
+                Some("transfer_transaction")
+            } else if row["is_parent"] == true || !row["parent_id"].is_null() {
+                Some("split_transaction")
+            } else {
+                None
+            };
+            if let Some(code) = code {
+                return refusal(
+                    db,
+                    budget,
+                    row,
+                    code,
+                    "This expense is now part of a split or transfer. Your pending change is retained; discard it explicitly or review it in actualBudget.",
+                );
+            }
+            match mutation {
+                Mutation::ExpensePatch(id, fields) => Mutation::Patch(id, fields),
+                Mutation::ExpenseDelete(id) => Mutation::Delete(id),
+                _ => unreachable!(),
+            }
+        }
+        other => other,
+    };
     match mutation {
+        Mutation::ExpensePatch(..) | Mutation::ExpenseDelete(..) => unreachable!(),
         Mutation::Split(id, input) => {
             let data = crate::splits::apply(db, budget, &id, input, &edit_clock)?;
             success(db, budget, data, &edit_clock, vec![], StatusCode::OK)
@@ -301,8 +331,21 @@ pub fn execute(
             )
         }
         Mutation::Duplicate(source, id) => {
+            if crate::transfers::counterpart(db, budget, &source)?.is_some() {
+                return crate::transfers::duplicate(db, budget, &source, &id, &edit_clock);
+            }
+            let original = ledger::get(db, budget, &source)?;
             let duplicate = ledger::duplicate(db, budget, &source, &id)?;
             if let Some(children) = duplicate["children"].as_array() {
+                for (index, child) in children.iter().enumerate() {
+                    crate::transfers::composition::clone_child(
+                        db,
+                        budget,
+                        &original["children"][index],
+                        child["id"].as_str().unwrap(),
+                        &edit_clock,
+                    )?;
+                }
                 crate::splits::stamp_many(
                     db,
                     budget,
@@ -348,6 +391,20 @@ pub fn execute(
                 }
             };
             let hidden = deleted(db, budget, &id)?;
+            if !hidden && crate::transfers::counterpart(db, budget, &id)?.is_some() {
+                return crate::transfers::patch(db, budget, &id, patch, &edit_clock);
+            }
+            // Retired pair references are provenance, never propagation edges.
+            // Keep valid local tombstone merges; a stale date-sync choice has no
+            // effect on live rows or shared preferences.
+            if hidden
+                && let Some(sync) = patch
+                    .as_object_mut()
+                    .and_then(|p| p.remove("sync_transfer_date"))
+                && !sync.is_boolean()
+            {
+                return Err(Error::invalid("sync_transfer_date must be boolean"));
+            }
             let previous = if hidden {
                 ledger::get_any(db, budget, &id)?
             } else {
@@ -424,6 +481,9 @@ pub fn execute(
             success(db, budget, result, &edit_clock, conflicts, StatusCode::OK)
         }
         Mutation::Delete(id) => {
+            if crate::transfers::counterpart(db, budget, &id)?.is_some() {
+                return crate::transfers::delete(db, budget, &id, &edit_clock);
+            }
             if deleted(db, budget, &id)? {
                 return refusal(
                     db,
@@ -435,7 +495,18 @@ pub fn execute(
             }
             let known = versions(db, budget, &id)?;
             let newer_child:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM transactions c JOIN field_versions v ON v.budget_id=c.budget_id AND v.entity='transactions' AND v.entity_id=c.id WHERE c.budget_id=?1 AND c.parent_id=?2 AND c.tombstone=0 AND v.clock>?3)",params![budget,id,edit_clock],|r|r.get(0))?;
+            let aggregate = ledger::get(db, budget, &id)?;
+            let newer_peer = crate::transfers::composition::newer_related(
+                db,
+                budget,
+                aggregate["children"]
+                    .as_array()
+                    .map(Vec::as_slice)
+                    .unwrap_or(&[]),
+                &edit_clock,
+            )?;
             if newer_child
+                || newer_peer
                 || known.as_object().unwrap().values().any(|clock| {
                     clock
                         .as_str()
@@ -451,15 +522,14 @@ pub fn execute(
                 );
             }
             let previous = ledger::get(db, budget, &id)?;
+            if let Some(children) = previous["children"].as_array() {
+                crate::transfers::composition::guard_children(db, budget, children, &edit_clock)?;
+            }
             ledger::delete(db, budget, &id)?;
             if let Some(children) = previous["children"].as_array() {
                 for child in children {
                     let cid = child["id"].as_str().unwrap();
-                    db.execute(
-                        "UPDATE transactions SET tombstone=1 WHERE budget_id=?1 AND id=?2",
-                        params![budget, cid],
-                    )?;
-                    crate::splits::stamp(db, budget, cid, &edit_clock)?;
+                    crate::splits::remove(db, budget, cid, &edit_clock)?;
                 }
             }
             seed_field_version(db, budget, "transactions", &id, "tombstone", &edit_clock)?;

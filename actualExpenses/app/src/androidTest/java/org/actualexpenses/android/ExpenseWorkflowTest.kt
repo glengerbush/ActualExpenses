@@ -25,7 +25,7 @@ class ExpenseWorkflowTest {
 
     @Test fun rejectedSplitEditHasExplicitRecoveryOutsideExpenseList() {
         compose.setContent { ActualExpensesTheme { ExpensesScreen(state.copy(splitRecovery=true,pendingCount=1),actions) } }
-        compose.onNodeWithText("This expense became a split.",substring=true).assertIsDisplayed()
+        compose.onNodeWithText("This expense became a split or transfer.",substring=true).assertIsDisplayed()
         compose.onNodeWithText("Discard rejected expense edit").assertIsDisplayed()
         val directory=File(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null),"review").apply{mkdirs()}
         File(directory,"split-recovery.png").outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}

@@ -146,6 +146,47 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun `genuine incremental transfers never become merchant choices or expenses`() {
+        Server().use { server ->
+            val account = UUID.randomUUID().toString()
+            val first = UUID.randomUUID().toString()
+            val second = UUID.randomUUID().toString()
+            val base = "/budgets/${server.budget}"
+            server.post("$base/accounts", """{"id":"$account","name":"Credit card","opening_balance":0,"opening_date":"2026-01-01"}""")
+            val store = MemoryStore()
+            val reads = mutableListOf<String>()
+            val real = BudgetHttpTransport()
+            val network = HttpTransport { url, method, headers, body ->
+                if (method == "GET") reads += url
+                real.request(url, method, headers, body)
+            }
+            val app = ApiExpenseService(store, transport = network)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            assertTrue(app.state().payees.isEmpty())
+            reads.clear()
+            server.post("$base/transfers", """{"id":"$first","counterpart_id":"$second","account_id":"${server.account}","to_account_id":"$account","amount":-2500,"date":"2026-01-01"}""")
+            app.refresh()
+            assertTrue(app.state().online, app.state().error)
+            assertTrue(reads.any { it.contains("/changes?") })
+            assertFalse(reads.any { it.contains("/payees?") }, "Transfer identities must arrive through genuine incremental delivery")
+            assertTrue(app.state().payees.isEmpty())
+            assertTrue(app.state().expenses.isEmpty())
+            val retained = server.get("$base/companion?account_id=${server.account}&retain=$first").getAsJsonObject("data")
+            assertEquals(first, retained.getAsJsonArray("unavailable").single().asString)
+            assertTrue(retained.getAsJsonArray("retained").isEmpty)
+            val restarted = ApiExpenseService(store, transport = network)
+            assertTrue(restarted.state().payees.isEmpty())
+            restarted.refresh()
+            assertTrue(restarted.state().expenses.isEmpty())
+            val expense = restarted.saveExpense(ExpenseDraft("3.00", payee = "Merchant"))
+            assertNotNull(expense)
+            assertEquals(listOf("Merchant"), restarted.state().payees.map { it.name })
+        }
+    }
+
+    @Test
     fun `reconciliation hides settled expenses and unlocking restores native eligibility`() {
         Server().use { server ->
             val store = MemoryStore()
@@ -238,6 +279,48 @@ class NativeApiIntegrationTest {
             assertEquals(0, restarted.state().pendingCount)
             assertTrue(restarted.state().expenses.isEmpty())
             assertEquals("Original", server.get("/budgets/${server.budget}/transactions/$id").getAsJsonObject("data")["notes"].asString)
+        }
+    }
+
+    @Test
+    fun `expense edit and delete captured before transfer conversion retain exact intent until discard`() {
+        for (delete in listOf(false, true)) for (queueFirst in listOf(false, true)) Server().use { server ->
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            val id = app.saveExpense(ExpenseDraft("7.89", notes = "Original"))
+            app.refresh()
+            val edit = app.beginEdit(id)
+            app.markOffline()
+            fun queue() {
+                if (delete) app.deleteExpense(edit) else app.saveExpense(edit.original!!.copy(notes = "Pending correction"), edit)
+            }
+            if (queueFirst) queue()
+            val account = UUID.randomUUID().toString()
+            val peer = UUID.randomUUID().toString()
+            val base = "/budgets/${server.budget}"
+            server.post("$base/accounts", """{"id":"$account","name":"Other","opening_balance":0,"opening_date":"2026-01-01"}""")
+            server.post("$base/transactions", """{"id":"$peer","account_id":"$account","amount":789,"date":"2026-01-01"}""")
+            server.post("$base/transfers/link", """{"id":"$id","counterpart_id":"$peer"}""", 200)
+            if (!queueFirst) queue()
+            val pending = JsonParser.parseString(store.raw).asJsonObject.getAsJsonArray("pending")[0].asJsonObject.deepCopy()
+            app.refresh()
+            assertEquals(1, app.state().pendingCount)
+            assertTrue(app.state().splitRecovery, app.state().toString())
+            val restarted = ApiExpenseService(store)
+            assertTrue(restarted.state().splitRecovery)
+            val retained = JsonParser.parseString(store.raw).asJsonObject.getAsJsonArray("pending")[0].asJsonObject
+            for (field in listOf("id", "path", "body", "clock", "epoch")) assertEquals(pending[field], retained[field])
+            restarted.discardRejectedSplitEdit()
+            restarted.refresh()
+            assertEquals(0, restarted.state().pendingCount)
+            assertTrue(restarted.state().expenses.isEmpty())
+            val row = server.get("$base/transactions/$id").getAsJsonObject("data")
+            assertEquals("Original", row["notes"].asString)
+            assertEquals(peer, row["transfer_id"].asString)
+            assertEquals(id, server.get("$base/transactions/$peer").getAsJsonObject("data")["transfer_id"].asString)
         }
     }
 

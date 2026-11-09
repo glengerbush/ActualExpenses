@@ -247,6 +247,9 @@ fn execute(
         );
     }
     let clock = concurrency::clock(db, b, proposed)?;
+    if !group && action == "close" && body.get("to_account_id").is_some() {
+        return crate::transfers::close_account(db, b, id, body, &clock);
+    }
     let old = versions(db, b, entity, id)?;
     let mut conflicts = vec![];
     let mut changes = serde_json::Map::new();
@@ -441,6 +444,7 @@ fn execute(
                     .query_map(params![b, id], |r| r.get::<_, String>(0))?
                     .collect::<Result<Vec<_>, _>>()?;
                 for tx in ids {
+                    crate::transfers::detach_for_account_deletion(db, b, &tx, &clock)?;
                     db.execute(
                         "UPDATE transactions SET tombstone=1 WHERE budget_id=?1 AND id=?2",
                         params![b, tx],

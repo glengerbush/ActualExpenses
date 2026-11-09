@@ -45,6 +45,7 @@
     clearRegisterAction,
     type SavedAction,
   } from "./register-storage";
+  import TransferForm from "./TransferForm.svelte";
   import Reconciliation from "./Reconciliation.svelte";
   import SplitEditor from "./SplitEditor.svelte";
   import RegisterTools from "./RegisterTools.svelte";
@@ -203,7 +204,8 @@
       case "category":
         return row.is_parent
           ? `${row.children?.length ?? 0} splits`
-          : (row.category_name ?? t("Uncategorized"));
+          : (row.category_name ??
+              (row.transfer_id ? "Transfer" : t("Uncategorized")));
       case "amount":
         return formatAmount(row.amount);
       case "payment":
@@ -278,6 +280,7 @@
   let notice = $state("");
   let filterDate = $state("");
   let showForm = $state(false);
+  let transferMode = $state<"create" | "edit" | "link" | "close" | null>(null);
   let recoveredPending = $state(false);
   let editing = $state.raw<Transaction | null>(null);
   let splitEditor = $state<
@@ -388,7 +391,12 @@
     recoveryError = "";
     try {
       const saved = readTransactionDraft(budgetId);
-      showForm = !!saved;
+      transferMode = localStorage.getItem(
+        `actualBudget.transfers.v1.${budgetId}`,
+      )
+        ? "create"
+        : null;
+      showForm = !!saved || !!transferMode;
       recoveredPending = !!saved?.pending;
       pending = readRegisterAction(budgetId);
     } catch (e) {
@@ -409,6 +417,7 @@
 
   async function changed(message = "") {
     showForm = false;
+    transferMode = null;
     editing = null;
     queued = null;
     deleting = null;
@@ -504,6 +513,16 @@
     }
     queued = null;
     editing = transaction;
+    transferMode = transaction?.transfer_id ? "edit" : null;
+    showForm = true;
+    deleting = null;
+  }
+  function openTransfer(
+    mode: "create" | "link" | "close",
+    row: Transaction | null = null,
+  ) {
+    transferMode = mode;
+    editing = row;
     showForm = true;
     deleting = null;
   }
@@ -695,6 +714,36 @@
         !viewMatchesEpoch ||
         !compatible}>{t("Add transaction")}</button
     >
+    <button
+      onclick={() => openTransfer("create")}
+      disabled={disconnected ||
+        loading ||
+        busy ||
+        showForm ||
+        splitActive ||
+        !!pending ||
+        !!recoveryError ||
+        !preferences.hasUsableShared ||
+        !viewMatchesEpoch ||
+        !compatible ||
+        accounts.filter((a) => !a.closed && !a.deleted).length < 2}
+      >Move money</button
+    >
+    {#if accountId}<button
+        onclick={() => openTransfer("close")}
+        disabled={disconnected ||
+          loading ||
+          busy ||
+          showForm ||
+          splitActive ||
+          !!pending ||
+          !!recoveryError ||
+          !preferences.hasUsableShared ||
+          !viewMatchesEpoch ||
+          !compatible ||
+          accounts.filter((a) => !a.closed && !a.deleted).length < 2}
+        >Transfer balance and close</button
+      >{/if}
   </div>
   {#if register && preferences.hasUsableShared && viewMatchesEpoch}
     <dl class="register-balances">
@@ -875,22 +924,37 @@
         </div>{/each}
     </section>{/if}
   {#if showForm && (accounts.length || recoveredPending) && !recoveryError}
-    <TransactionForm
-      {budgetId}
-      {accounts}
-      {payees}
-      {categories}
-      initial={editing}
-      {queued}
-      {disconnected}
-      defaultAccountId={accountId}
-      oncomplete={(_transaction, message) => void changed(message)}
-      oncancel={() => {
-        showForm = false;
-        editing = null;
-        queued = null;
-      }}
-    />
+    {#if transferMode}<TransferForm
+        {budgetId}
+        {accounts}
+        {categories}
+        mode={transferMode}
+        initial={editing}
+        defaultAccountId={accountId}
+        oncomplete={(message) => void changed(message)}
+        oncancel={() => {
+          showForm = false;
+          transferMode = null;
+          editing = null;
+        }}
+      />
+    {:else}<TransactionForm
+        {budgetId}
+        {accounts}
+        {payees}
+        {categories}
+        initial={editing}
+        {queued}
+        {disconnected}
+        defaultAccountId={accountId}
+        oncomplete={(_transaction, message) => void changed(message)}
+        oncancel={() => {
+          showForm = false;
+          editing = null;
+          queued = null;
+        }}
+      />
+    {/if}
   {/if}
   <SplitEditor
     {budgetId}
@@ -972,22 +1036,22 @@
                       !!pending ||
                       !!recoveryError}
                     aria-label={`Unlock ${description(row)}`}>Unlock</button
+                  >{/if}{#if !row.transfer_id}<button
+                    onclick={() => {
+                      void splitEditor?.open(row);
+                    }}
+                    disabled={disconnected ||
+                      loading ||
+                      busy ||
+                      showForm ||
+                      splitActive ||
+                      !!pending ||
+                      !!recoveryError ||
+                      row.starting_balance}
+                    >{row.is_parent
+                      ? t("Edit splits")
+                      : t("Split transaction")}</button
                   >{/if}<button
-                  onclick={() => {
-                    void splitEditor?.open(row);
-                  }}
-                  disabled={disconnected ||
-                    loading ||
-                    busy ||
-                    showForm ||
-                    splitActive ||
-                    !!pending ||
-                    !!recoveryError ||
-                    row.starting_balance}
-                  >{row.is_parent
-                    ? t("Edit splits")
-                    : t("Split transaction")}</button
-                ><button
                   onkeydown={navigateRow}
                   onclick={() => void runAction("duplicate", row)}
                   disabled={disconnected ||
@@ -1017,12 +1081,28 @@
                     row.reconciled}
                   aria-label={`${t("Delete")} ${description(row)}`}
                   >{t("Delete")}</button
-                ></td
+                >{#if !row.transfer_id && !row.starting_balance && !row.is_parent}<button
+                    onkeydown={navigateRow}
+                    onclick={() => openTransfer("link", row)}
+                    disabled={disconnected ||
+                      loading ||
+                      busy ||
+                      showForm ||
+                      splitActive ||
+                      !!pending ||
+                      !!recoveryError ||
+                      row.reconciled}>Link transfer</button
+                  >{/if}</td
               >
             </tr>
             {#if deleting?.id === row.id}<tr class="delete-confirmation"
                 ><td colspan={appliedColumns.length + 1}
-                  ><p>{t("Delete this transaction?")} {description(row)}</p>
+                  ><p>
+                    {row.transfer_id
+                      ? "Delete this transfer? Its paired entry is also deleted unless it belongs to a split, in which case it stays unlinked."
+                      : t("Delete this transaction?")}
+                    {description(row)}
+                  </p>
                   <button
                     onclick={() => void runAction("delete", row)}
                     disabled={busy}>{t("Confirm delete")}</button

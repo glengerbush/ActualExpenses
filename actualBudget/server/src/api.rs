@@ -44,6 +44,7 @@ pub fn router(store: Store) -> Router {
             "/api/v1/budgets/{budget}/transactions/{id}/duplicate",
             axum::routing::post(duplicate_transaction),
         )
+        .merge(crate::transfers::router())
         .merge(crate::splits::router())
         .merge(crate::accounts::router())
         .merge(crate::reconciliation::router())
@@ -90,11 +91,15 @@ async fn cancellation_scope(
         }
         if !matches!(
             (request.method().as_str(), path),
-            ("POST", "/api/v1/budgets/{budget}/transactions")
-                | (
-                    "PATCH" | "DELETE",
-                    "/api/v1/budgets/{budget}/transactions/{id}"
-                )
+            (
+                "POST",
+                "/api/v1/budgets/{budget}/transactions"
+                    | "/api/v1/budgets/{budget}/transfers"
+                    | "/api/v1/budgets/{budget}/transfers/link"
+            ) | (
+                "PATCH" | "DELETE",
+                "/api/v1/budgets/{budget}/transactions/{id}"
+            )
         ) {
             return Error::invalid("Receipt lookup is unsupported for this operation")
                 .into_response();
@@ -114,52 +119,49 @@ async fn cancellation_scope(
             .unwrap_or("");
         if !matches!(
             (request.method().as_str(), path),
-            ("POST", "/api/v1/budgets/{budget}/transactions")
-                | (
-                    "PATCH" | "DELETE",
-                    "/api/v1/budgets/{budget}/transactions/{id}"
-                )
-                | (
-                    "POST",
-                    "/api/v1/budgets/{budget}/transactions/{id}/duplicate"
-                        | "/api/v1/budgets/{budget}/transactions/{id}/splits"
-                )
-                | (
-                    "POST",
-                    "/api/v1/budgets/{budget}/accounts"
-                        | "/api/v1/budgets/{budget}/account-groups"
-                        | "/api/v1/budgets/{budget}/categories"
-                        | "/api/v1/budgets/{budget}/category-groups"
-                )
-                | (
-                    "PATCH" | "DELETE",
-                    "/api/v1/budgets/{budget}/accounts/{id}"
-                        | "/api/v1/budgets/{budget}/account-groups/{id}"
-                        | "/api/v1/budgets/{budget}/categories/{id}"
-                        | "/api/v1/budgets/{budget}/category-groups/{id}"
-                )
-                | (
-                    "POST",
-                    "/api/v1/budgets/{budget}/accounts/{id}/reconciliation"
-                        | "/api/v1/budgets/{budget}/transactions/{id}/unlock"
-                        | "/api/v1/budgets/{budget}/accounts/{id}/close"
-                        | "/api/v1/budgets/{budget}/accounts/{id}/reopen"
-                        | "/api/v1/budgets/{budget}/accounts/{id}/move"
-                        | "/api/v1/budgets/{budget}/account-groups/{id}/move"
-                )
-                | (
-                    "POST",
-                    "/api/v1/budgets/{budget}/payees"
-                        | "/api/v1/budgets/{budget}/tags"
-                        | "/api/v1/budgets/{budget}/payees/batch"
-                        | "/api/v1/budgets/{budget}/tags/batch"
-                        | "/api/v1/budgets/{budget}/tags/discover"
-                )
-                | (
-                    "PATCH",
-                    "/api/v1/budgets/{budget}/payees/{id}" | "/api/v1/budgets/{budget}/tags/{id}"
-                )
-                | ("PATCH" | "DELETE", "/api/v1/budgets/{budget}")
+            (
+                "POST",
+                "/api/v1/budgets/{budget}/transactions"
+                    | "/api/v1/budgets/{budget}/transfers"
+                    | "/api/v1/budgets/{budget}/transfers/link"
+            ) | (
+                "PATCH" | "DELETE",
+                "/api/v1/budgets/{budget}/transactions/{id}"
+            ) | (
+                "POST",
+                "/api/v1/budgets/{budget}/transactions/{id}/duplicate"
+                    | "/api/v1/budgets/{budget}/transactions/{id}/splits"
+            ) | (
+                "POST",
+                "/api/v1/budgets/{budget}/accounts"
+                    | "/api/v1/budgets/{budget}/account-groups"
+                    | "/api/v1/budgets/{budget}/categories"
+                    | "/api/v1/budgets/{budget}/category-groups"
+            ) | (
+                "PATCH" | "DELETE",
+                "/api/v1/budgets/{budget}/accounts/{id}"
+                    | "/api/v1/budgets/{budget}/account-groups/{id}"
+                    | "/api/v1/budgets/{budget}/categories/{id}"
+                    | "/api/v1/budgets/{budget}/category-groups/{id}"
+            ) | (
+                "POST",
+                "/api/v1/budgets/{budget}/accounts/{id}/reconciliation"
+                    | "/api/v1/budgets/{budget}/transactions/{id}/unlock"
+                    | "/api/v1/budgets/{budget}/accounts/{id}/close"
+                    | "/api/v1/budgets/{budget}/accounts/{id}/reopen"
+                    | "/api/v1/budgets/{budget}/accounts/{id}/move"
+                    | "/api/v1/budgets/{budget}/account-groups/{id}/move"
+            ) | (
+                "POST",
+                "/api/v1/budgets/{budget}/payees"
+                    | "/api/v1/budgets/{budget}/tags"
+                    | "/api/v1/budgets/{budget}/payees/batch"
+                    | "/api/v1/budgets/{budget}/tags/batch"
+                    | "/api/v1/budgets/{budget}/tags/discover"
+            ) | (
+                "PATCH",
+                "/api/v1/budgets/{budget}/payees/{id}" | "/api/v1/budgets/{budget}/tags/{id}"
+            ) | ("PATCH" | "DELETE", "/api/v1/budgets/{budget}")
                 | (
                     "POST",
                     "/api/v1/budgets/{budget}/duplicate"
@@ -183,7 +185,7 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["reconciliation", "reconciled_confirmation", "reconciliation_cancellation", "budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "tags", "splits", "register_queries", "register_settings"],
+        "capabilities": ["reconciliation", "reconciled_confirmation", "reconciliation_cancellation", "expense_kind_precondition", "transfers", "transfer_cancellation", "transfer_receipt_lookup", "budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "tags", "splits", "register_queries", "register_settings"],
         "openapi": "/api/v1/openapi.json"
     }))
 }
@@ -489,7 +491,14 @@ async fn update_transaction(
                         clock.as_deref(),
                         cancel,
                         epoch.as_deref(),
-                        Mutation::Patch(id, input),
+                        if headers
+                            .get("X-Actual-Expense-Only")
+                            .is_some_and(|v| v == "true")
+                        {
+                            Mutation::ExpensePatch(id, input)
+                        } else {
+                            Mutation::Patch(id, input)
+                        },
                     )
                 },
             )
@@ -532,7 +541,14 @@ async fn delete_transaction(
                         clock.as_deref(),
                         cancel,
                         epoch.as_deref(),
-                        Mutation::Delete(id),
+                        if headers
+                            .get("X-Actual-Expense-Only")
+                            .is_some_and(|v| v == "true")
+                        {
+                            Mutation::ExpenseDelete(id)
+                        } else {
+                            Mutation::Delete(id)
+                        },
                     )
                 },
             )

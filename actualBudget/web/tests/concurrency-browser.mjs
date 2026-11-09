@@ -481,7 +481,74 @@ try {
     await page.reload();
     // Reload can interrupt the old tab before it releases its delivery claim.
     // Recovery must honor that 60-second lease, then replay the same request.
-    await expect(retry).toHaveCount(0, { timeout: 65_000 });
+    try {
+      await expect(retry).toHaveCount(0, { timeout: 65_000 });
+    } catch (error) {
+      // Failure-only evidence: do not perturb claim/reload timing on passing runs.
+      let diagnosticTimer;
+      try {
+        const state = await Promise.race([
+          page.evaluate(async (budgetId) => {
+            const db = await new Promise((resolve, reject) => {
+              const request = indexedDB.open("actualBudget.offline.v1");
+              request.onsuccess = () => resolve(request.result);
+              request.onerror = () => reject(request.error);
+              request.onblocked = () =>
+                reject(new Error("IndexedDB open blocked"));
+            });
+            let operations;
+            try {
+              operations = await new Promise((resolve, reject) => {
+                const request = db
+                  .transaction("operations")
+                  .objectStore("operations")
+                  .getAll();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+              });
+            } finally {
+              db.close();
+            }
+            return {
+              now: Date.now(),
+              clock: localStorage.getItem("actualBudget.clock.v1"),
+              online: navigator.onLine,
+              visibility: document.visibilityState,
+              pendingMessage: document.querySelector(
+                '[data-testid="pending-expenses"]',
+              )?.textContent,
+              operations: operations
+                .filter((entry) => entry.budgetId === budgetId)
+                .map((entry) => ({
+                  key: entry.key,
+                  revision: entry.revision,
+                  attempted: entry.attempted,
+                  claim: entry.claim,
+                  blocked: entry.blocked,
+                  dependsOn: entry.dependsOn,
+                  cancelRequested: entry.cancelRequested,
+                  pending: entry.pending,
+                })),
+            };
+          }, budget),
+          new Promise((_, reject) => {
+            diagnosticTimer = setTimeout(
+              () => reject(new Error("Recovery diagnostics timed out")),
+              5000,
+            );
+          }),
+        ]).catch((diagnosticError) => ({
+          diagnosticError: String(diagnosticError),
+        }));
+        console.error(
+          "Pending recovery failure",
+          JSON.stringify({ kind, hostNow: Date.now(), attempts: sent, state }),
+        );
+      } finally {
+        clearTimeout(diagnosticTimer);
+      }
+      throw error;
+    }
     await expect(discard).toHaveCount(0);
     await expect.poll(() => sent.length).toBeGreaterThanOrEqual(3);
     for (const attempt of sent) expect(attempt).toEqual(sent[0]);

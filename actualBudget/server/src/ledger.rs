@@ -243,11 +243,15 @@ fn insert(
     apply_addition(db, budget, &input)?;
     get(db, budget, &input.id)
 }
-const SELECT: &str = "SELECT t.id,t.account_id,t.amount,t.date,t.cleared,t.reconciled,t.starting_balance,CASE WHEN p.tombstone=0 THEN t.payee_id END,CASE WHEN p.tombstone=0 THEN p.name END,t.category_id,c.name,c.is_income,t.notes,a.name,t.sort_order,t.imported_payee,t.payee_id,t.is_parent,t.parent_id FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id";
+const SELECT: &str = "SELECT t.id,t.account_id,t.amount,t.date,t.cleared,t.reconciled,t.starting_balance,CASE WHEN p.tombstone=0 THEN t.payee_id END,CASE WHEN p.tombstone=0 THEN COALESCE((SELECT name FROM accounts WHERE budget_id=t.budget_id AND id=p.transfer_account_id),p.name) END,t.category_id,c.name,c.is_income,t.notes,a.name,t.sort_order,t.imported_payee,t.payee_id,t.transfer_id,t.is_parent,t.parent_id,(SELECT counterpart.account_id FROM transactions counterpart WHERE counterpart.budget_id=t.budget_id AND counterpart.id=t.transfer_id) FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id";
 fn row(r: &rusqlite::Row) -> rusqlite::Result<Value> {
-    Ok(
-        json!({"id":r.get::<_,String>(0)?,"account_id":r.get::<_,String>(1)?,"amount":r.get::<_,i64>(2)?,"date":r.get::<_,String>(3)?,"cleared":r.get::<_,bool>(4)?,"reconciled":r.get::<_,bool>(5)?,"starting_balance":r.get::<_,bool>(6)?,"payee_id":r.get::<_,Option<String>>(7)?,"payee_name":r.get::<_,Option<String>>(8)?,"category_id":r.get::<_,Option<String>>(9)?,"category_name":r.get::<_,Option<String>>(10)?,"category_is_income":r.get::<_,Option<bool>>(11)?,"notes":r.get::<_,String>(12)?,"account_name":r.get::<_,String>(13)?,"sort_order":r.get::<_,i64>(14)?,"imported_payee":r.get::<_,Option<String>>(15)?,"retained_payee_id":r.get::<_,Option<String>>(16)?,"is_parent":r.get::<_,bool>(17)?,"parent_id":r.get::<_,Option<String>>(18)?}),
-    )
+    let mut value = json!({"id":r.get::<_,String>(0)?,"account_id":r.get::<_,String>(1)?,"amount":r.get::<_,i64>(2)?,"date":r.get::<_,String>(3)?,"cleared":r.get::<_,bool>(4)?,"reconciled":r.get::<_,bool>(5)?,"starting_balance":r.get::<_,bool>(6)?,"payee_id":r.get::<_,Option<String>>(7)?,"payee_name":r.get::<_,Option<String>>(8)?,"category_id":r.get::<_,Option<String>>(9)?,"category_name":r.get::<_,Option<String>>(10)?,"category_is_income":r.get::<_,Option<bool>>(11)?,"notes":r.get::<_,String>(12)?,"account_name":r.get::<_,String>(13)?,"sort_order":r.get::<_,i64>(14)?,"imported_payee":r.get::<_,Option<String>>(15)?,"retained_payee_id":r.get::<_,Option<String>>(16)?,"transfer_id":r.get::<_,Option<String>>(17)?,"is_parent":r.get::<_,bool>(18)?,"parent_id":r.get::<_,Option<String>>(19)?});
+    if value["transfer_id"].is_null() {
+        value.as_object_mut().unwrap().remove("transfer_id");
+    } else {
+        value["transfer_account_id"] = json!(r.get::<_, Option<String>>(20)?);
+    }
+    Ok(value)
 }
 pub fn get(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
     let active: bool = db.query_row(
@@ -351,12 +355,16 @@ fn update_row(
     let mut input = validate_patch(&previous, &patch)?;
     resolve_new_references(db, budget, &mut input)?;
     input.category_id = crate::categories::resolve(db, budget, input.category_id)?;
-    validate_payee_selection(
-        db,
-        budget,
-        input.payee_id.as_deref(),
-        previous["retained_payee_id"].as_str(),
-    )?;
+    // A deleted row may retain its historical transfer payee while independently
+    // merging fields. Selecting a different transfer payee still requires a pair.
+    if !(hidden && input.payee_id.as_deref() == previous["retained_payee_id"].as_str()) {
+        validate_payee_selection(
+            db,
+            budget,
+            input.payee_id.as_deref(),
+            previous["retained_payee_id"].as_str(),
+        )?;
+    }
     // Keep independent winning fields, including latent off-budget categories.
     validate_references(
         db,

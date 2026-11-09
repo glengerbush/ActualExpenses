@@ -1,0 +1,229 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "normalization": "Generated identifiers use stable labels. Financial fields unchanged. Closing-account oracle omits current-day dates and generated transaction IDs.",
+  "snapshots": [
+    {
+      "step": "credit-card-payment",
+      "accounts": [
+        {
+          "id": "card",
+          "closed": false,
+          "off_budget": false
+        },
+        {
+          "id": "cash",
+          "closed": false,
+          "off_budget": false
+        },
+        {
+          "id": "off",
+          "closed": false,
+          "off_budget": true
+        }
+      ],
+      "transactions": [
+        {
+          "id": "payment",
+          "account_id": "cash",
+          "amount": -2500,
+          "date": "2026-01-01",
+          "cleared": true,
+          "category_id": null,
+          "notes": "Card payment",
+          "transfer_id": "payment-other"
+        },
+        {
+          "id": "payment-other",
+          "account_id": "card",
+          "amount": 2500,
+          "date": "2026-01-01",
+          "cleared": false,
+          "category_id": null,
+          "notes": "Card payment",
+          "transfer_id": "payment"
+        }
+      ]
+    },
+    {
+      "step": "amount-notes-propagate-date-independent",
+      "accounts": [
+        {
+          "id": "card",
+          "closed": false,
+          "off_budget": false
+        },
+        {
+          "id": "cash",
+          "closed": false,
+          "off_budget": false
+        },
+        {
+          "id": "off",
+          "closed": false,
+          "off_budget": true
+        }
+      ],
+      "transactions": [
+        {
+          "id": "payment",
+          "account_id": "cash",
+          "amount": -3100,
+          "date": "2026-01-02",
+          "cleared": true,
+          "category_id": null,
+          "notes": "Corrected payment",
+          "transfer_id": "payment-other"
+        },
+        {
+          "id": "payment-other",
+          "account_id": "card",
+          "amount": 3100,
+          "date": "2026-01-01",
+          "cleared": false,
+          "category_id": null,
+          "notes": "Corrected payment",
+          "transfer_id": "payment"
+        }
+      ]
+    },
+    {
+      "step": "other-leg-date-and-cleared-independent",
+      "accounts": [
+        {
+          "id": "card",
+          "closed": false,
+          "off_budget": false
+        },
+        {
+          "id": "cash",
+          "closed": false,
+          "off_budget": false
+        },
+        {
+          "id": "off",
+          "closed": false,
+          "off_budget": true
+        }
+      ],
+      "transactions": [
+        {
+          "id": "payment",
+          "account_id": "cash",
+          "amount": -3100,
+          "date": "2026-01-02",
+          "cleared": true,
+          "category_id": null,
+          "notes": "Corrected payment",
+          "transfer_id": "payment-other"
+        },
+        {
+          "id": "payment-other",
+          "account_id": "card",
+          "amount": 3100,
+          "date": "2026-01-03",
+          "cleared": true,
+          "category_id": null,
+          "notes": "Corrected payment",
+          "transfer_id": "payment"
+        }
+      ]
+    },
+    {
+      "step": "delete-removes-both",
+      "accounts": [
+        {
+          "id": "card",
+          "closed": false,
+          "off_budget": false
+        },
+        {
+          "id": "cash",
+          "closed": false,
+          "off_budget": false
+        },
+        {
+          "id": "off",
+          "closed": false,
+          "off_budget": true
+        }
+      ],
+      "transactions": []
+    },
+    {
+      "step": "on-to-off-category",
+      "accounts": [
+        {
+          "id": "card",
+          "closed": false,
+          "off_budget": false
+        },
+        {
+          "id": "cash",
+          "closed": false,
+          "off_budget": false
+        },
+        {
+          "id": "off",
+          "closed": false,
+          "off_budget": true
+        }
+      ],
+      "transactions": [
+        {
+          "id": "crossing",
+          "account_id": "cash",
+          "amount": -700,
+          "date": "2026-02-01",
+          "cleared": true,
+          "category_id": "category",
+          "notes": "",
+          "transfer_id": "crossing-other"
+        },
+        {
+          "id": "crossing-other",
+          "account_id": "off",
+          "amount": 700,
+          "date": "2026-02-01",
+          "cleared": false,
+          "category_id": null,
+          "notes": "",
+          "transfer_id": "crossing"
+        }
+      ]
+    }
+  ],
+  "closing": {
+    "accounts": [
+      {
+        "id": "card",
+        "closed": false,
+        "balance": -700
+      },
+      {
+        "id": "cash",
+        "closed": true,
+        "balance": 0
+      },
+      {
+        "id": "off",
+        "closed": false,
+        "balance": 700
+      }
+    ],
+    "rows": [
+      {
+        "account_id": "card",
+        "amount": -700,
+        "category_id": null,
+        "notes": "Closing account"
+      },
+      {
+        "account_id": "cash",
+        "amount": 700,
+        "category_id": null,
+        "notes": "Closing account"
+      }
+    ]
+  }
+}

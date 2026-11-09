@@ -125,7 +125,7 @@ async fn upload(
                 let plan:Value=serde_json::from_str(&plan).map_err(Error::internal)?;
                 // A new upload intent explicitly reviews a stage predating newer converters.
                 // The original upload key still replays its exact original receipt first.
-                if status!="activated" && (plan.get("category_groups").is_none() || plan["accounts"].as_array().is_some_and(|rows|rows.iter().any(|row|row.get("last_reconciled").is_none()))) {
+                if status!="activated" && (plan.get("category_groups").is_none() || plan["transfer_version"] != 1 || plan["accounts"].as_array().is_some_and(|rows|rows.iter().any(|row|row.get("last_reconciled").is_none()))) {
                     let (mut report,converted)=conversion::inspect(&bytes)?;
                     report["archive_sha256"]=json!(hash);
                     let status=if report["requirements"].as_array().unwrap().iter().any(|r|r["blocking"]==true){"blocked"}else{"ready"};
@@ -188,6 +188,7 @@ async fn activate(
                 return Err(Error::new(StatusCode::CONFLICT,"import_budget_conflict","Assigned budget identity already exists; this import cannot replace it"));
             }
             conversion::install(db,budget,&converted)?;
+            crate::transfers::validate(db,budget)?;
             let source=&stage["report"]["source"];
             db.execute("INSERT INTO imported_sources(budget_id,import_id,source_local_id,source_cloud_id,source_group_id,source_metadata) VALUES(?1,?2,?3,?4,?5,?6)",params![budget,id,source["id"].as_str(),source["cloudFileId"].as_str(),source["groupId"].as_str(),source.to_string()])?;
             db.execute("UPDATE staged_imports SET status='activated' WHERE id=?1",[&id])?;

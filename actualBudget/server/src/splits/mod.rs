@@ -32,6 +32,10 @@ pub struct Child {
     pub category_id: Option<String>,
     #[serde(default)]
     pub notes: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transfer_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub counterpart_id: Option<String>,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -284,6 +288,9 @@ pub fn apply(
             "Reconciliation proof requires confirm_reconciled=true",
         ));
     }
+    if !parent["transfer_id"].is_null() {
+        return Err(Error::invalid("A transfer cannot become a split parent"));
+    }
     let members = crate::reconciliation::members(db, budget, id)?;
     if let Some(token) = input.reconciliation_token.as_deref() {
         crate::reconciliation::verify_token(budget, &members, token, clock)?;
@@ -314,6 +321,7 @@ pub fn apply(
         ));
     }
     let old: Vec<Value> = parent["children"].as_array().cloned().unwrap_or_default();
+    crate::transfers::composition::guard_children(db, budget, &old, clock)?;
     if let Some(changes) = input.changes.take() {
         let old_ids: BTreeSet<&str> = old.iter().map(|c| c["id"].as_str().unwrap()).collect();
         let mut remove = BTreeSet::new();
@@ -347,6 +355,8 @@ pub fn apply(
                         payee_id: c["retained_payee_id"].as_str().map(str::to_owned),
                         category_id: c["category_id"].as_str().map(str::to_owned),
                         notes: c["notes"].as_str().unwrap().into(),
+                        transfer_account_id: c["transfer_account_id"].as_str().map(str::to_owned),
+                        counterpart_id: c["transfer_id"].as_str().map(str::to_owned),
                     })
             })
             .collect();
@@ -464,6 +474,34 @@ pub fn apply(
                 let previous = old_by_id.get(child.id.as_str());
                 let retained_payee =
                     previous.and_then(|previous| previous["retained_payee_id"].as_str());
+                let existing = previous.copied();
+                // Older clients may retain the transfer payee without the new fields.
+                if child.transfer_account_id.is_none()
+                    && existing.is_some_and(|row| {
+                        !row["transfer_id"].is_null()
+                            && row["payee_id"].as_str() == child.payee_id.as_deref()
+                    })
+                {
+                    let peer = existing.unwrap()["transfer_id"].as_str().unwrap();
+                    child.transfer_account_id = existing.unwrap()["transfer_account_id"]
+                        .as_str()
+                        .map(str::to_owned);
+                    child.counterpart_id = Some(peer.into());
+                }
+                if child.transfer_account_id.is_some() != child.counterpart_id.is_some() {
+                    return Err(Error::invalid(
+                        "A split transfer needs a destination and counterpart identity",
+                    ));
+                }
+                if child.transfer_account_id.is_none()
+                    && existing.is_some_and(|row| !row["transfer_id"].is_null())
+                {
+                    crate::transfers::composition::remove_child(db, budget, &child.id, clock)?;
+                }
+                // Transfer identities are owned by the pair operation below.
+                if child.transfer_account_id.is_some() {
+                    child.payee_id = None;
+                }
                 if selections.insert((child.payee_id.clone(), retained_payee.map(str::to_owned))) {
                     ledger::validate_payee_selection(
                         db,
@@ -498,6 +536,18 @@ pub fn apply(
                     "UPDATE transactions SET reconciled=?3 WHERE budget_id=?1 AND id=?2",
                     params![budget, child.id, parent["reconciled"].as_bool()],
                 )?;
+                if let (Some(destination), Some(peer)) =
+                    (&child.transfer_account_id, &child.counterpart_id)
+                {
+                    crate::transfers::composition::save_child(
+                        db,
+                        budget,
+                        &child.id,
+                        destination,
+                        peer,
+                        clock,
+                    )?;
+                }
             }
             stamp_many(
                 db,
@@ -544,6 +594,7 @@ pub fn apply(
             }
             if old.len() == 1 {
                 db.execute("UPDATE transactions SET is_parent=0,category_id=?3 WHERE budget_id=?1 AND id=?2",params![budget,id,old[0]["category_id"].as_str()])?;
+                crate::transfers::composition::promote_only_child(db, budget, id, &old[0], clock)?;
                 remove(db, budget, old[0]["id"].as_str().unwrap(), clock)?;
             } else {
                 let remaining: Vec<&Value> = old
@@ -584,6 +635,7 @@ pub fn apply(
     ledger::refresh_account(db, budget, account)?;
     ledger::validate_budget_total(db, budget)?;
     validate(db, budget)?;
+    crate::transfers::validate(db, budget)?;
     let deleted: bool = db.query_row(
         "SELECT tombstone FROM transactions WHERE budget_id=?1 AND id=?2",
         params![budget, id],
@@ -595,7 +647,7 @@ pub fn apply(
         ledger::get(db, budget, id)
     }
 }
-fn remove(db: &Connection, budget: &str, id: &str, clock: &str) -> Result<(), Error> {
+pub fn remove(db: &Connection, budget: &str, id: &str, clock: &str) -> Result<(), Error> {
     remove_many(db, budget, &[id], clock)
 }
 fn remove_many(db: &Connection, budget: &str, ids: &[&str], clock: &str) -> Result<(), Error> {
@@ -606,6 +658,15 @@ fn remove_many(db: &Connection, budget: &str, ids: &[&str], clock: &str) -> Resu
             .join(",");
         let mut parameters = vec![budget];
         parameters.extend(batch.iter().copied());
+        let mut query = db.prepare(&format!("SELECT id FROM transactions WHERE budget_id=?1 AND id IN ({placeholders}) AND transfer_id IS NOT NULL"))?;
+        let linked = query
+            .query_map(rusqlite::params_from_iter(parameters.iter()), |row| {
+                row.get::<_, String>(0)
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+        for id in linked {
+            crate::transfers::composition::remove_child(db, budget, &id, clock)?;
+        }
         db.execute(
             &format!(
                 "UPDATE transactions SET tombstone=1 WHERE budget_id=?1 AND id IN ({placeholders})"

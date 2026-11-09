@@ -68,7 +68,7 @@ pub fn defaults() -> Value {
     json!({"number_format":"comma-dot","date_format":"MM/dd/yyyy","hide_fraction":false,"first_day_of_week":0,"currency_code":"","currency_symbol_position":"before","currency_space":false,"experimental":flags})
 }
 pub fn validate_change(key: &str, value: &Value) -> Result<(), Error> {
-    if !defaults().as_object().unwrap().contains_key(key) {
+    if key != "sync_transfer_date" && !defaults().as_object().unwrap().contains_key(key) {
         return Err(Error::invalid(format!("Unknown preference: {key}")));
     }
     if value.is_null() {
@@ -77,7 +77,7 @@ pub fn validate_change(key: &str, value: &Value) -> Result<(), Error> {
     let valid = match key {
         "number_format" => value.as_str().is_some_and(|v| NUMBER_FORMATS.contains(&v)),
         "date_format" => value.as_str().is_some_and(|v| DATE_FORMATS.contains(&v)),
-        "hide_fraction" | "currency_space" => value.is_boolean(),
+        "sync_transfer_date" | "hide_fraction" | "currency_space" => value.is_boolean(),
         "first_day_of_week" => value.as_u64().is_some_and(|v| v <= 6),
         "currency_code" => value
             .as_str()
@@ -137,7 +137,11 @@ pub fn apply_changes(
     for (key, value) in changes {
         validate_change(key, value)?;
         if value.is_null() {
-            values[key] = defaults()[key].clone();
+            values[key] = if key == "sync_transfer_date" {
+                json!(false)
+            } else {
+                defaults()[key].clone()
+            };
         } else if key == "experimental" {
             for (name, enabled) in value.as_object().unwrap() {
                 values[key][name] = enabled.clone();

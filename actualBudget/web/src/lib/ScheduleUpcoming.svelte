@@ -16,6 +16,7 @@
         (p) =>
           !["completed", "suppressed", "matched", "posted"].includes(p.status),
       )
+      .sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id))
       .slice(0, 10) ?? [],
   );
   onMount(() => {
@@ -62,8 +63,10 @@
           >
         </li>{/each}
     </ul>
-    {#if view?.next_offset !== null && view?.next_offset !== undefined}<p>
-        More schedules are available in Manage schedules.
+    {#if view && (view.next_offset !== null || view.preview_continuations.length > 0 || view.previews.length > 10)}<p
+      >
+        Showing up to10 forecast entries from this schedule page. Manage
+        schedules to view more schedules and full occurrence calendars.
       </p>{/if}
   </section>{/if}
 

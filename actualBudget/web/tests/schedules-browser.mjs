@@ -16,7 +16,7 @@ async function call(path, body) {
   expect(r.ok, await r.clone().text()).toBe(true);
   return r.json();
 }
-let browser,page;
+let browser, page;
 try {
   const budget = randomUUID(),
     account = randomUUID();
@@ -39,7 +39,10 @@ try {
     viewport: { width: 1440, height: 1000 },
   });
   const errors = [];
-  page.on("pageerror", (e) => {errors.push(e.message);console.error("Browser error",e.message);});
+  page.on("pageerror", (e) => {
+    errors.push(e.message);
+    console.error("Browser error", e.message);
+  });
   await page.goto(server.url);
   await page.evaluate(
     ({ budget, account }) =>
@@ -100,9 +103,7 @@ try {
     .getByRole("button", { name: "Edit Monthly rent", exact: true })
     .click();
   await page.getByRole("button", { name: "Add action", exact: true }).click();
-  await page
-    .getByLabel(/^Action 1/)
-    .selectOption("append-notes");
+  await page.getByLabel(/^Action 1/).selectOption("append-notes");
   await page
     .getByLabel("Notes text 1", { exact: false })
     .fill(" / revised terms");
@@ -200,11 +201,62 @@ try {
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+  await page.evaluate(() => (document.documentElement.style.fontSize = "100%"));
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page
+    .getByRole("button", { name: "Discard draft", exact: true })
+    .click();
+  const current = (await call(`/budgets/${budget}/schedules/due`)).data;
+  const nextDay = new Date(current.today + "T12:00:00Z");
+  nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+  const tomorrow = nextDay.toISOString().slice(0, 10);
+  for (const [name, date, horizon] of [
+    [
+      "Daily forecast",
+      { start: current.today, frequency: "daily", endMode: "never" },
+      "14",
+    ],
+    ["Tomorrow forecast", tomorrow, "14"],
+  ]) {
+    const cp = (await call(`/budgets/${budget}/schedules/due`)).data;
+    await call(`/budgets/${budget}/schedules/commands`, {
+      action: "create",
+      id: randomUUID(),
+      name,
+      custom_upcoming_length: horizon,
+      snapshot: cp.snapshot,
+      conditions: [
+        { field: "account", op: "is", value: account },
+        { field: "amount", op: "is", value: -100 },
+        { field: "date", op: "is", value: date },
+      ],
+    });
+  }
+  await page.getByRole("button", { name: "Close", exact: true }).click();
+  const upcoming = page.locator(
+    'section[aria-labelledby="scheduled-preview-title"]',
+  );
+  await expect(upcoming.getByText(/Tomorrow forecast/)).toBeVisible();
+  const forecastDates = (await upcoming.locator("li").allTextContents()).map(
+    (text) => text.trim().slice(0, 10),
+  );
+  expect(forecastDates).toEqual([...forecastDates].sort());
+  expect((await call(`/budgets/${budget}/transactions`)).balances.total).toBe(
+    -1234,
+  );
   expect(errors).toEqual([]);
   console.log(
     "Schedule creation, retained drafts, posting, completion, stale review and responsive calendars: PASS",
   );
-} catch(e){console.error(await page?.locator(".schedules").innerText({timeout:1500}).catch(()=>"No schedule view"));throw e;} finally {
+} catch (e) {
+  console.error(
+    await page
+      ?.locator(".schedules")
+      .innerText({ timeout: 1500 })
+      .catch(() => "No schedule view"),
+  );
+  throw e;
+} finally {
   await browser?.close();
   await server.stop();
 }

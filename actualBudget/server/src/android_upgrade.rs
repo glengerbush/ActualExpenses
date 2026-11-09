@@ -392,9 +392,9 @@ fn apply(db: &Connection, budget: &str, key: &str, handoff: Handoff) -> Result<V
                         &m.timestamp,
                     )?;
                     concurrency::mark(db, budget, "payees", &m.row)?;
-                } else {
+                } else if let Some((_, tombstone)) = current {
                     let winning:String=db.query_row("SELECT COALESCE((SELECT clock FROM field_versions WHERE budget_id=?1 AND entity='payees' AND entity_id=?2 AND field='name'),?3)",params![budget,m.row,concurrency::ZERO],|r|r.get(0))?;
-                    if m.timestamp > winning && !current.as_ref().unwrap().1 {
+                    if m.timestamp > winning && !tombstone {
                         db.execute(
                             "UPDATE payees SET name=?3 WHERE budget_id=?1 AND id=?2",
                             params![budget, m.row, m.value.as_str()],
@@ -474,10 +474,10 @@ fn apply(db: &Connection, budget: &str, key: &str, handoff: Handoff) -> Result<V
     if !exists {
         let mut fields = serde_json::Map::new();
         for m in &op.changes {
-            if m.dataset == "transactions" {
-                if let Some((field, value)) = native_field(m)? {
-                    fields.insert(field.into(), value);
-                }
+            if m.dataset == "transactions"
+                && let Some((field, value)) = native_field(m)?
+            {
+                fields.insert(field.into(), value);
             }
         }
         for required in ["account_id", "amount", "date"] {
@@ -504,17 +504,17 @@ fn apply(db: &Connection, budget: &str, key: &str, handoff: Handoff) -> Result<V
             .ok_or_else(|| Error::invalid("Missing original transaction order"))?;
         order::insert(db, budget, &op.transaction_id, source_order)?;
         for m in &op.changes {
-            if m.dataset == "transactions" {
-                if let Some((field, _)) = native_field(m)? {
-                    concurrency::seed_field_version(
-                        db,
-                        budget,
-                        "transactions",
-                        &op.transaction_id,
-                        field,
-                        &m.timestamp,
-                    )?;
-                }
+            if m.dataset == "transactions"
+                && let Some((field, _)) = native_field(m)?
+            {
+                concurrency::seed_field_version(
+                    db,
+                    budget,
+                    "transactions",
+                    &op.transaction_id,
+                    field,
+                    &m.timestamp,
+                )?;
             }
         }
         concurrency::mark(db, budget, "transactions", &op.transaction_id)?;

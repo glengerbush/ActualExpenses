@@ -1,0 +1,119 @@
+{
+  "oracle": "@actual-app/api@26.10.0 + @actual-app/sync-server@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "schedule_id": "21220000-0000-4000-8000-000000000919",
+  "stages": [
+    {
+      "name": "created",
+      "archive": "schedules-generation-created-26.10.zip",
+      "archive_sha256": "6f749a48958978552814a62ab29ed40634469ff9c7008ef02eebae8fa9768a04",
+      "clock": "2026-11-09T12:00:01.000Z",
+      "next_date": "2026-11-09",
+      "selected_field": "local_next_date",
+      "selected_clock": "2026-11-09T12:00:01.000Z-0005-9620f34aef519607",
+      "guard_clock": "2026-11-09T12:00:01.000Z-0008-9620f34aef519607",
+      "selector_newer_than_date": true,
+      "state": {
+        "id": "6e0cefee-416a-4765-9ae7-c5f67468200b",
+        "schedule_id": "21220000-0000-4000-8000-000000000919",
+        "local_next_date": 20261109,
+        "local_next_date_ts": 1794225601000,
+        "base_next_date": 20261109,
+        "base_next_date_ts": 1794225601000,
+        "tombstone": 0
+      },
+      "clocks": {
+        "schedule_id": "2026-11-09T12:00:01.000Z-0004-9620f34aef519607",
+        "local_next_date": "2026-11-09T12:00:01.000Z-0005-9620f34aef519607",
+        "local_next_date_ts": "2026-11-09T12:00:01.000Z-0006-9620f34aef519607",
+        "base_next_date": "2026-11-09T12:00:01.000Z-0007-9620f34aef519607",
+        "base_next_date_ts": "2026-11-09T12:00:01.000Z-0008-9620f34aef519607"
+      },
+      "transaction_count": 0
+    },
+    {
+      "name": "skipped",
+      "archive": "schedules-generation-skipped-26.10.zip",
+      "archive_sha256": "084024f5aa084d909ab001211c08bc55757fb8a753f45fe5d27fdd60ef305c02",
+      "clock": "2026-11-09T12:00:02.000Z",
+      "next_date": "2026-11-10",
+      "selected_field": "local_next_date",
+      "selected_clock": "2026-11-09T12:00:02.000Z-0000-9620f34aef519607",
+      "guard_clock": "2026-11-09T12:00:02.000Z-0001-9620f34aef519607",
+      "selector_newer_than_date": true,
+      "state": {
+        "id": "6e0cefee-416a-4765-9ae7-c5f67468200b",
+        "schedule_id": "21220000-0000-4000-8000-000000000919",
+        "local_next_date": 20261110,
+        "local_next_date_ts": 1794225601000,
+        "base_next_date": 20261109,
+        "base_next_date_ts": 1794225601000,
+        "tombstone": 0
+      },
+      "clocks": {
+        "schedule_id": "2026-11-09T12:00:01.000Z-0004-9620f34aef519607",
+        "local_next_date": "2026-11-09T12:00:02.000Z-0000-9620f34aef519607",
+        "local_next_date_ts": "2026-11-09T12:00:02.000Z-0001-9620f34aef519607",
+        "base_next_date": "2026-11-09T12:00:01.000Z-0007-9620f34aef519607",
+        "base_next_date_ts": "2026-11-09T12:00:01.000Z-0008-9620f34aef519607"
+      },
+      "transaction_count": 0
+    },
+    {
+      "name": "reset",
+      "archive": "schedules-generation-reset-26.10.zip",
+      "archive_sha256": "a5a9d203ae3d50302ab4bc86ff2b3dc09fc78adcaae189899ee7f8a2e82d6a46",
+      "clock": "2026-11-09T12:00:03.000Z",
+      "next_date": "2026-11-13",
+      "selected_field": "base_next_date",
+      "selected_clock": "2026-11-09T12:00:03.000Z-0001-9620f34aef519607",
+      "guard_clock": "2026-11-09T12:00:03.000Z-0002-9620f34aef519607",
+      "selector_newer_than_date": true,
+      "state": {
+        "id": "6e0cefee-416a-4765-9ae7-c5f67468200b",
+        "schedule_id": "21220000-0000-4000-8000-000000000919",
+        "local_next_date": 20261110,
+        "local_next_date_ts": 1794225601000,
+        "base_next_date": 20261113,
+        "base_next_date_ts": 1794225603000,
+        "tombstone": 0
+      },
+      "clocks": {
+        "schedule_id": "2026-11-09T12:00:01.000Z-0004-9620f34aef519607",
+        "local_next_date": "2026-11-09T12:00:02.000Z-0000-9620f34aef519607",
+        "local_next_date_ts": "2026-11-09T12:00:02.000Z-0001-9620f34aef519607",
+        "base_next_date": "2026-11-09T12:00:03.000Z-0001-9620f34aef519607",
+        "base_next_date_ts": "2026-11-09T12:00:03.000Z-0002-9620f34aef519607"
+      },
+      "transaction_count": 0
+    },
+    {
+      "name": "skipped-after-reset",
+      "archive": "schedules-generation-skipped-after-reset-26.10.zip",
+      "archive_sha256": "17267c76f4d1b6c05652a9abda8383c4da3cf5000496b225679d532419321296",
+      "clock": "2026-11-09T12:00:04.000Z",
+      "next_date": "2026-11-14",
+      "selected_field": "local_next_date",
+      "selected_clock": "2026-11-09T12:00:04.000Z-0000-9620f34aef519607",
+      "guard_clock": "2026-11-09T12:00:04.000Z-0001-9620f34aef519607",
+      "selector_newer_than_date": true,
+      "state": {
+        "id": "6e0cefee-416a-4765-9ae7-c5f67468200b",
+        "schedule_id": "21220000-0000-4000-8000-000000000919",
+        "local_next_date": 20261114,
+        "local_next_date_ts": 1794225603000,
+        "base_next_date": 20261113,
+        "base_next_date_ts": 1794225603000,
+        "tombstone": 0
+      },
+      "clocks": {
+        "schedule_id": "2026-11-09T12:00:01.000Z-0004-9620f34aef519607",
+        "local_next_date": "2026-11-09T12:00:04.000Z-0000-9620f34aef519607",
+        "local_next_date_ts": "2026-11-09T12:00:04.000Z-0001-9620f34aef519607",
+        "base_next_date": "2026-11-09T12:00:03.000Z-0001-9620f34aef519607",
+        "base_next_date_ts": "2026-11-09T12:00:03.000Z-0002-9620f34aef519607"
+      },
+      "transaction_count": 0
+    }
+  ]
+}

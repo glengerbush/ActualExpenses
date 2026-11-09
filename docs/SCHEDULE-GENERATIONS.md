@@ -1,0 +1,9 @@
+# Source schedule generation clocks
+
+`generate-schedules-generation.mjs` runs the pinned Actual26.10.0 API against its pinned sync server on a disposable loopback port. It creates a manual daily schedule, skips an occurrence, resets its date configuration, then skips again. Every stage synchronizes and exports through the source API. No SQLite rows, wire messages or clock values are manufactured.
+
+The four committed archives retain original source identities and per-cell clocks. Metadata records each ZIP digest, the original `schedules_next_date` row, effective date observed through source AQL, and clocks read from the exported `messages_crdt` table. Read-only SQLite integrity checks pass. Their ledgers remain empty. The generator refuses to overwrite committed fixtures; `--check` independently repeats source behavior, compares semantic states, then verifies every original ZIP digest and recorded clock against the immutable archive.
+
+Fresh generation and independent check exit0 in `/tmp/schedules-generation-oracle.log` and `/tmp/schedules-generation-oracle-check.log`. The source switches between local and base dates according to equality of their generation timestamps. In every captured stage, a selector timestamp's HLC is newer than the selected date cell's HLC. For the reset stage, the effective date is2026-11-13; the selected base date clock ends `12:00:03.000Z-0001-9620f34aef519607`, while the base-generation selector ends `12:00:03.000Z-0002-9620f34aef519607`.
+
+The metadata's `guard_clock` is the maximum of the selected date clock and both selector clocks. It supplies a concrete equal-generation edit for the replacement's public API regression: a fresh snapshot alone must not make that old intent newer. Importing only the date cell's clock loses this ordering evidence. This document establishes source provenance; replacement correction and acceptance remain separate.

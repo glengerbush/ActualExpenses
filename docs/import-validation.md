@@ -1,6 +1,6 @@
 # Actual ledger import — ticket04
 
-Candidate implementation against baseline `0b66dc6`. This qualifies the bounded,
+Accepted through `8fe9b38`, against baseline `0b66dc6`. This qualifies the bounded,
 disposable ordinary-ledger slice; it does not qualify a production migration or
 cutover. Original published oracle fixtures/provenance are recorded in
 [IMPORT.md](../actualBudget/tests/fixtures/IMPORT.md).
@@ -118,8 +118,10 @@ chooser; uncertain outcomes retain their original recovery payload.
 - Final full native suite: 50 public HTTP tests pass across concurrency, ledger,
   imports, preferences, snapshots and themes; Clippy all-targets with warnings
   denied passes. Svelte check, Svelte autofixer, Impeccable detector and owned
-  frontend formatting pass. Container qualification belongs to the combined
-  frontier acceptance.
+  frontend formatting pass. The full container/browser suite passed at `8fe9b38`,
+  including populated-server import recovery, container replacement and exact
+  replay. Independent Standards and Spec reviews have zero remaining findings.
+  [Combined qualification](../actualBudget/tools/container-smoke.md).
 
 Primary implementation references: [zip-rs 6 archive API](https://docs.rs/zip/6.0.0/zip/read/struct.ZipArchive.html),
 [SQLite limits](https://www.sqlite.org/limits.html),

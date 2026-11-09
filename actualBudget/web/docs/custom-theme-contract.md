@@ -43,4 +43,4 @@ npm run format:check --prefix actualBudget/web
 
 `npm run test:browser` composes theme fixtures/workflows with the other accepted slices. Browser tests support only an explicitly isolated `ACTUALBUDGET_TEST_URL` override. The original three-glyph WOFF2 fixture contains no third-party glyph data; optional reproducibility check: `uv run actualBudget/tools/generate-theme-font.py --check` (pinned FontTools/Brotli).
 
-This slice adds no startup downloads, periodic work or frontend dependency. Locale catalogs remain lazy; new theme explanations use honest English fallback where pinned translations lack those keys. Final combined container and independent review are root-owned acceptance steps, separate from these slice-level results.
+This slice adds no startup downloads, periodic work or frontend dependency. Locale catalogs remain lazy; new theme explanations use honest English fallback where pinned translations lack those keys. Final combined container/browser qualification passed at `8fe9b38`; independent Standards and Spec reviews report zero remaining findings. [Combined evidence](../../tools/container-smoke.md).

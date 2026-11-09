@@ -27,11 +27,11 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 2 | 02, 52 | Budget files, backups and migration | [02: no app credentials, sessions or identity flows in replacement](open-budget-validation.md); Android transition/final audit pending |
 | 3 | 02, 08 | Budget files, backups and migration | [02: create/select persistent budgets](open-budget-validation.md); rename/close/delete pending 08 |
 | 4 | 02, 08, 43 | Budget files, backups and migration | [02: remembered selection/drafts](open-budget-validation.md); [43: shared/device preferences and conversion](../actualBudget/web/docs/preferences-validation.md); budget management pending 08 |
-| 5 | 04, 50 | Budget files, backups and migration | Pending feature acceptance |
+| 5 | 04, 50 | Budget files, backups and migration | [04: staged ordinary-ledger import with retained source/IDs](import-validation.md); complete migration qualification pending 50 |
 | 6 | 08, 50 | Budget files, backups and migration | Pending feature acceptance |
 | 7 | 27 | Budget files, backups and migration | Pending feature acceptance |
 | 8 | 08 | Budget files, backups and migration | Pending feature acceptance |
-| 9 | 04, 08, 50 | Budget files, backups and migration | Pending feature acceptance |
+| 9 | 04, 08, 50 | Budget files, backups and migration | [04: corrupt/encrypted rejection and retained blocked input](import-validation.md); backup/full migration pending 08/50 |
 | 10 | 02, 09 | Accounts and reconciliation | [02: on/off-budget creation, notes and seven independent opening-balance cases](open-budget-validation.md); account management pending 09 |
 | 11 | 09 | Accounts and reconciliation | Pending feature acceptance |
 | 12 | 03, 09, 12 | Accounts and reconciliation | [03: exact account and running balances](register-validation.md); organization and register customization pending 09/12 |
@@ -98,7 +98,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 73 | 33, 35, 36, 37, 38, 39, 40, 41 | Reports, dashboards and formulas | Pending feature acceptance |
 | 74 | 43, 51 | Settings and accessible workflows | [43: accessible responsive preference controls](../actualBudget/web/docs/preferences-validation.md); whole-app qualification pending 51 |
 | 75 | 43, 51 | Settings and accessible workflows | [43: number/date/currency/decimal/week-start controls](../actualBudget/web/docs/preferences-validation.md); whole-app qualification pending 51 |
-| 76 | 43, 44 | Settings and accessible workflows | [43: light/dark/midnight/system](../actualBudget/web/docs/preferences-validation.md); custom themes pending 44 |
+| 76 | 43, 44 | Settings and accessible workflows | [43: built-in appearance](../actualBudget/web/docs/preferences-validation.md); [44: catalog/custom themes, source preservation and recovery](../actualBudget/web/docs/custom-theme-contract.md) |
 | 77 | 43 | Settings and accessible workflows | [43: released language catalogs, device scope and retry](../actualBudget/web/docs/preferences-validation.md) |
 | 78 | 12, 45 | Settings and accessible workflows | Pending feature acceptance |
 | 79 | 45 | Settings and accessible workflows | Pending feature acceptance |
@@ -109,9 +109,9 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 84 | 07, 20 | Android and offline expense capture | Pending feature acceptance |
 | 85 | 07, 20 | Android and offline expense capture | Pending feature acceptance |
 | 86 | 07, 20 | Android and offline expense capture | Pending feature acceptance |
-| 87 | 05, 07, 20, 49 | Android and offline expense capture | Pending feature acceptance |
-| 88 | 05, 07, 20 | Android and offline expense capture | Pending feature acceptance |
-| 89 | 05, 07, 20 | Android and offline expense capture | Pending feature acceptance |
+| 87 | 05, 07, 20, 49 | Android and offline expense capture | [05: durable exact receipts and safe interrupted retry/cancellation](concurrency-validation.md); offline/Android/cache workflows pending 07/20/49 |
+| 88 | 05, 07, 20 | Android and offline expense capture | [05: per-field HLC convergence and superseded-field feedback](concurrency-validation.md); offline/Android integration pending 07/20 |
+| 89 | 05, 07, 20 | Android and offline expense capture | [05: unpublished deletion guard and pinned published-tombstone behavior](concurrency-validation.md); offline/Android integration pending 07/20 |
 | 90 | 06 | Android and offline expense capture | Pending feature acceptance |
 | 91 | 06 | Android and offline expense capture | Pending feature acceptance |
 | 92 | 06 | Android and offline expense capture | Pending feature acceptance |
@@ -123,12 +123,12 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 98 | 20, 50 | Android and offline expense capture | Pending feature acceptance |
 | 99 | 47, 52 | Public API, deployment and resources | Pending feature acceptance |
 | 100 | 34, 47, 52 | Public API, deployment and resources | Pending feature acceptance |
-| 101 | 05, 51 | Public API, deployment and resources | Pending feature acceptance |
+| 101 | 05, 51 | Public API, deployment and resources | [05: independent change cursor, 95-byte unchanged refresh and measured scaling](concurrency-validation.md); whole-system qualification pending 51 |
 | 102 | 02, 48, 53 | Public API, deployment and resources | [02: container persistence/replay](open-budget-validation.md); [48: signed image promotion and isolated registry rehearsal](release-validation.md); production cutover qualification pending 53 |
 | 103 | 01, 48, 53 | Public API, deployment and resources | [01: independent application layout](foundation-validation.md); [48: independent APK/container versions and release automation](release-validation.md); final deployment qualification pending 53 |
 | 104 | 01, 48, 53 | Public API, deployment and resources | [01: original Android identity preserved](foundation-validation.md); [48: original APK signer and container signature verified](release-validation.md); final deployment qualification pending 53 |
 | 105 | 48, 53 | Public API, deployment and resources | [48: manual image pull/restart release path, no automatic deployment](release-validation.md); full cutover rehearsal pending 53 |
-| 106 | 04, 08, 50, 53 | Public API, deployment and resources | Pending feature acceptance |
+| 106 | 04, 08, 50, 53 | Public API, deployment and resources | [04: staged conversion audit and byte-identical retained source](import-validation.md); backup/full migration/cutover pending 08/50/53 |
 | 107 | 51 | Public API, deployment and resources | Pending feature acceptance |
 
 ## Foundation evidence

@@ -82,3 +82,23 @@ Docker reported 124,191,107 bytes and runtime user `10001:10001`. Disposable tes
 resources were removed. Independent Standards/Spec reviews report zero remaining
 findings. [Detailed evidence](../../docs/register-validation.md). No publication
 or production cutover occurred.
+
+## Tickets 04, 05 and 44 evidence — 2026-11-08
+
+Final source: `8fe9b38444b98626f5e7670d228b2213ba3d376c`.
+The complete `--browser` suite passed against the production image after
+container replacement. It includes prior creation/register/preferences/date
+checks, staged import with existing budgets, preserved source download,
+interrupted upload/activation, per-field conflict/deletion handling, overlapping
+retry cancellation, recovered receipt notices, custom themes and font loading,
+and failed-storage recovery. Core workflows use insecure HTTP with no login.
+
+Image: `sha256:fe5b671a6f35a5a1727b94bcf043073f8551f7bee463e9fa45feb9e5e72910cf`.
+Size:125,457,314 bytes; user:`10001:10001`. Disposable image/container/volume
+removed. Native verification:50 HTTP tests, Clippy, served OpenAPI schemas and
+frontend formatting pass. Independent Standards and Spec reviews have zero
+remaining findings. No publication or production cutover occurred.
+
+Details: [import](../../docs/import-validation.md),
+[concurrency](../../docs/concurrency-validation.md),
+[custom themes](../web/docs/custom-theme-contract.md).

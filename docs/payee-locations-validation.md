@@ -1,8 +1,8 @@
 # Payee locations — ticket46
 
 Slice based on5a9efa1, committed as89560a8 and composed with1713c33.
-Independent Standards/Spec reviews pass; final Impeccable finish/documentation
-and integrated batch qualification remain gates. No release, deployment or
+Independent Standards/Spec and Impeccable finish/documentation reviews pass;
+integrated batch qualification remains a gate. No release, deployment or
 production data access.
 
 Delivered: multiple saved locations; explicit Request/Save capture; local500m
@@ -107,3 +107,4 @@ Complete focused location browser workflow, Svelte checking/build/autofixer and 
 - Location, payee/tag and reconciliation browser workflows pass. Svelte check/build, served OpenAPI, warnings-denied Clippy and Rustfmt pass. Logs `/tmp/locations46-integrated-{http,native,browser,payees-browser,reconciliation-browser,web-check,web-build,contract,clippy,fmt}.log`.
 - `tools/generate-locations-schema13.py` generates genuine SQLite/native ZIP fixtures through immutable1713c33, recording executable SHA256. Upgrade/restore preserves protected transfer rows, locked account state and exact original receipts; previously blocked location upload receipts replay unchanged while stage inspection becomes ready. No database/version rewriting. Logs `/tmp/locations46-schema13-{fixture,upgrade}.log`.
 - Full suite and production container qualification will run once after the financial integration batch; earlier baseline browser failures above are retained as historical evidence, not treated as passing.
+- Impeccable finish disposition: ship; eight supplied captures and three detail crops inspected, no material fixes. Bounded documenter: no changes required after comparing DESIGN, styles and component patterns. Neutral surfaces/green actions, system type, 700px stacking, native44px controls and inline recovery remain consistent. Existing noncanonical DESIGN headings/token frontmatter were reported without unrelated repair. No shipping rasters.

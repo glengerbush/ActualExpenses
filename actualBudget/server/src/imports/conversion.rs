@@ -577,17 +577,32 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         }
     }
     let mut transactions = array(&source, "transactions").clone();
+    if transactions
+        .iter()
+        .any(|row| !row["sort_order"].is_null() && row["sort_order"].as_f64().is_none())
+    {
+        return Err(invalid("Invalid source transaction sort order"));
+    }
     transactions.sort_by(|a, b| {
+        // SQLite sorts NULL below numeric values. Finite partial comparison
+        // also keeps -0.0 and +0.0 equal, unlike total_cmp.
         a["sort_order"]
             .as_f64()
-            .unwrap_or(0.0)
-            .total_cmp(&b["sort_order"].as_f64().unwrap_or(0.0))
+            .partial_cmp(&b["sort_order"].as_f64())
+            .expect("source numbers validated finite")
             .then_with(|| a["id"].as_str().cmp(&b["id"].as_str()))
     });
     let mut transaction_ids = BTreeSet::new();
     let mut totals: BTreeMap<String, [i128; 3]> =
         accounts.keys().map(|id| (id.clone(), [0; 3])).collect();
-    for (index, row) in transactions.iter().enumerate() {
+    let mut rank = 0_i64;
+    let mut previous_order = None;
+    for row in &transactions {
+        let order = row["sort_order"].as_f64();
+        if previous_order != Some(order) {
+            rank += 1;
+            previous_order = Some(order);
+        }
         let id = text(row, "id")?;
         validate_id(id).map_err(|_| invalid("Unsupported source transaction identity"))?;
         if !transaction_ids.insert(id) {
@@ -653,7 +668,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             true,
             "Transaction uses a transfer payee and requires transfer conversion",
         );
-        converted["transactions"].as_array_mut().unwrap().push(json!({"id":id,"account_id":account,"amount":amount,"date":date,"cleared":cleared,"reconciled":flag(row,"reconciled")?,"tombstone":tombstone,"starting_balance":flag(row,"starting_balance_flag")?,"payee_id":resolve(&row["description"],&payee_map,&payee_ids)?,"category_id":resolve(&row["category"],&category_map,&category_ids)?,"notes":row["notes"].as_str().unwrap_or(""),"sort_order":index+1}));
+        converted["transactions"].as_array_mut().unwrap().push(json!({"id":id,"account_id":account,"amount":amount,"date":date,"cleared":cleared,"reconciled":flag(row,"reconciled")?,"tombstone":tombstone,"starting_balance":flag(row,"starting_balance_flag")?,"payee_id":resolve(&row["description"],&payee_map,&payee_ids)?,"category_id":resolve(&row["category"],&category_map,&category_ids)?,"notes":row["notes"].as_str().unwrap_or(""),"sort_order":rank}));
     }
     let balances=totals.into_iter().map(|(account_id,sums)|{if sums.iter().any(|n|n.abs()>MAX_MONEY as i128){return Err(invalid("Account balance exceeds safe integer range"));}Ok(json!({"account_id":account_id,"total":sums[0] as i64,"cleared":sums[1] as i64,"uncleared":sums[2] as i64}))}).collect::<Result<Vec<_>,Error>>()?;
     let synced = array(&source, "preferences")

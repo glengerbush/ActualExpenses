@@ -367,7 +367,7 @@ fn corrupt_encrypted_and_dangling_source_inputs_leave_existing_budget_untouched(
     duplicate.push(("DB.SQLITE".into(), vec![1]));
     let mut missing = source_entries();
     missing.retain(|(name, _)| name != "metadata.json");
-    for (index,bytes) in [b"not zip".to_vec(),repack(encrypted),repack(corrupt),repack(traversal),repack(duplicate),repack(missing),alter_source("UPDATE transactions SET acct='00000000-0000-4000-8000-000000000099' WHERE notes='Corrected expense'"),alter_source("UPDATE transactions SET amount=-9223372036854775808 WHERE notes='Corrected expense'")].into_iter().enumerate(){
+    for (index,bytes) in [b"not zip".to_vec(),repack(encrypted),repack(corrupt),repack(traversal),repack(duplicate),repack(missing),alter_source("UPDATE transactions SET acct='00000000-0000-4000-8000-000000000099' WHERE notes='Corrected expense'"),alter_source("UPDATE transactions SET amount=-9223372036854775808 WHERE notes='Corrected expense'"),alter_source("UPDATE transactions SET sort_order=1e999 WHERE notes='Corrected expense'"),alter_source("UPDATE transactions SET sort_order='bad-order' WHERE notes='Corrected expense'")].into_iter().enumerate(){
         let response=upload(&server,&format!("invalid-{index}"),bytes);
         assert_eq!(response.status(),422,"case{index}:{}",response.text().unwrap());
         assert_eq!(response.json::<Value>().unwrap()["error"]["code"],"invalid_archive");
@@ -662,4 +662,220 @@ fn activation_cannot_replace_existing_budget_and_upload_keys_cannot_change_paylo
             .as_ref(),
         ARCHIVE
     );
+}
+
+#[test]
+fn imported_equal_sort_values_remain_equal_without_losing_fractional_order() {
+    let server = Server::start();
+    // Synthetic source variant: equal sort positions must remain a tie so each
+    // consumer can apply its documented ID tie-break. No destination DB access.
+    let bytes = alter_source(
+        "UPDATE transactions SET date=20260102;
+         UPDATE transactions SET sort_order=CASE id
+         WHEN '04000000-0000-4000-8000-000000000001' THEN -2.5
+         WHEN '04000000-0000-4000-8000-000000000002' THEN 0.25
+         WHEN '04000000-0000-4000-8000-000000000003' THEN 0.25
+         ELSE 1.5 END
+         WHERE id IN ('04000000-0000-4000-8000-000000000001',
+                      '04000000-0000-4000-8000-000000000002',
+                      '04000000-0000-4000-8000-000000000003',
+                      '04000000-0000-4000-8000-000000000005')",
+    );
+    let stage = upload(&server, "tied-source", bytes.clone())
+        .json::<Value>()
+        .unwrap();
+    assert_eq!(stage["data"]["status"], "ready");
+    let import = stage["data"]["id"].as_str().unwrap();
+    let budget = stage["data"]["budget_id"].as_str().unwrap();
+    assert_eq!(
+        server
+            .post(
+                &format!("/api/v1/imports/{import}/activate"),
+                "activate-ties",
+                json!({})
+            )
+            .status(),
+        201
+    );
+    let response = server
+        .get(&format!("/api/v1/budgets/{budget}/transactions"))
+        .json::<Value>()
+        .unwrap();
+    let rows = response["data"].as_array().unwrap();
+    let rank = |suffix: &str| {
+        rows.iter()
+            .find(|row| row["id"].as_str().unwrap().ends_with(suffix))
+            .unwrap()["sort_order"]
+            .as_i64()
+            .expect("public ordering rank")
+    };
+    assert_eq!(
+        rank("000000000002"),
+        rank("000000000003"),
+        "equal source sort positions must remain equal"
+    );
+    assert!(rank("000000000001") < rank("000000000002"));
+    assert!(rank("000000000003") < rank("000000000005"));
+    // Pinned AQL default: date DESC, starting_balance_flag ASC,
+    // sort_order DESC, id ASC (reference schema/index.ts transaction order).
+    // With all dates equal, the opening balance follows ordinary entries even
+    // though its source sort value is larger. Running amounts are the worked
+    // example: 12500 + 20000 - 1200 + 234 - 100 = 31434.
+    let account = rows
+        .iter()
+        .find(|row| row["id"] == "04000000-0000-4000-8000-000000000002")
+        .unwrap()["account_id"]
+        .as_str()
+        .unwrap();
+    let path = format!("/api/v1/budgets/{budget}/transactions?account_id={account}");
+    let register = server.get(&path).json::<Value>().unwrap();
+    let ordered = register["data"].as_array().unwrap();
+    assert_eq!(
+        ordered
+            .iter()
+            .map(|row| row["notes"].as_str().unwrap())
+            .collect::<Vec<_>>(),
+        vec![
+            "Future expense",
+            "Corrected expense",
+            "Refund",
+            "Income",
+            ""
+        ]
+    );
+    assert_eq!(
+        ordered
+            .iter()
+            .map(|row| row["running_balance"].as_i64().unwrap())
+            .collect::<Vec<_>>(),
+        vec![31434, 31534, 32734, 32500, 12500]
+    );
+    let page = server
+        .get(&format!(
+            "{path}&limit=2&offset=2&snapshot={}",
+            register["snapshot"].as_str().unwrap()
+        ))
+        .json::<Value>()
+        .unwrap();
+    assert_eq!(page["data"], json!(ordered[2..4]));
+    assert_eq!(
+        server
+            .get(&format!("/api/v1/imports/{import}/original.zip"))
+            .bytes()
+            .unwrap()
+            .as_ref(),
+        bytes
+    );
+}
+
+#[test]
+fn imported_tied_running_balances_use_display_order_at_the_money_boundary() {
+    for (positive_id, negative_id, expected_status) in [(2, 3, 201), (3, 2, 400)] {
+        let server = Server::start();
+        // Worked source: MAX opening, then -1 followed by +1 in chronological
+        // (reverse register) order is safe. Swapping those tied IDs exceeds MAX
+        // transiently and must reject the whole activation despite the same total.
+        let bytes = alter_source(&format!(
+            "UPDATE transactions SET date=20260102,sort_order=0,amount=0,cleared=1;
+             UPDATE transactions SET amount=9007199254740991 WHERE id='c4e26ad7-701c-483f-8e0f-2a6b8f7e3261';
+             UPDATE transactions SET amount=1 WHERE id='04000000-0000-4000-8000-{positive_id:012}';
+             UPDATE transactions SET amount=-1 WHERE id='04000000-0000-4000-8000-{negative_id:012}';"
+        ));
+        let stage = upload(&server, "boundary", bytes).json::<Value>().unwrap();
+        assert_eq!(stage["data"]["status"], "ready");
+        let id = stage["data"]["id"].as_str().unwrap();
+        let budget = stage["data"]["budget_id"].as_str().unwrap();
+        let activated = server.post(
+            &format!("/api/v1/imports/{id}/activate"),
+            "boundary-activate",
+            json!({}),
+        );
+        assert_eq!(
+            activated.status(),
+            expected_status,
+            "{}",
+            activated.text().unwrap()
+        );
+        if expected_status == 201 {
+            let register = server.get(&format!("/api/v1/budgets/{budget}/transactions?account_id=0165d0a7-99e2-4719-a102-c007b7a8daaa")).json::<Value>().unwrap();
+            assert_eq!(
+                register["data"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|row| row["running_balance"].as_i64().unwrap())
+                    .collect::<Vec<_>>(),
+                vec![
+                    9007199254740991_i64,
+                    9007199254740991,
+                    9007199254740990,
+                    9007199254740991,
+                    9007199254740991
+                ]
+            );
+        } else {
+            assert_eq!(
+                server.get("/api/v1/budgets").json::<Value>().unwrap()["data"],
+                json!([])
+            );
+            assert_eq!(
+                server
+                    .get(&format!("/api/v1/imports/{id}"))
+                    .json::<Value>()
+                    .unwrap()["data"]["status"],
+                "ready"
+            );
+        }
+    }
+}
+
+#[test]
+fn imported_null_sort_position_stays_below_negative_and_signed_zero_positions() {
+    let server = Server::start();
+    let bytes = alter_source(
+        "UPDATE transactions SET date=20260102;
+         UPDATE transactions SET sort_order=NULL WHERE id='04000000-0000-4000-8000-000000000001';
+         UPDATE transactions SET sort_order=-2.5 WHERE id='04000000-0000-4000-8000-000000000002';
+         UPDATE transactions SET sort_order=-0.0 WHERE id='04000000-0000-4000-8000-000000000003';
+         UPDATE transactions SET sort_order=0.0 WHERE id='04000000-0000-4000-8000-000000000005';",
+    );
+    let stage = upload(&server, "null-order", bytes)
+        .json::<Value>()
+        .unwrap();
+    assert_eq!(stage["data"]["status"], "ready");
+    let import = stage["data"]["id"].as_str().unwrap();
+    let budget = stage["data"]["budget_id"].as_str().unwrap();
+    assert_eq!(
+        server
+            .post(
+                &format!("/api/v1/imports/{import}/activate"),
+                "activate-null",
+                json!({})
+            )
+            .status(),
+        201
+    );
+    let register = server
+        .get(&format!(
+            "/api/v1/budgets/{budget}/transactions?account_id=0165d0a7-99e2-4719-a102-c007b7a8daaa"
+        ))
+        .json::<Value>()
+        .unwrap();
+    let rows = register["data"].as_array().unwrap();
+    // SQLite DESC puts NULL below every numeric position, including negatives.
+    assert_eq!(
+        rows.iter()
+            .map(|row| row["notes"].as_str().unwrap())
+            .collect::<Vec<_>>(),
+        vec![
+            "Refund",
+            "Future expense",
+            "Corrected expense",
+            "Income",
+            ""
+        ]
+    );
+    assert_eq!(rows[0]["sort_order"], rows[1]["sort_order"]);
+    assert!(rows[1]["sort_order"].as_i64().unwrap() > rows[2]["sort_order"].as_i64().unwrap());
+    assert!(rows[2]["sort_order"].as_i64().unwrap() > rows[3]["sort_order"].as_i64().unwrap());
 }

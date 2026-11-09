@@ -163,7 +163,7 @@ fn budget_balances(db: &Connection, budget: &str) -> Result<Balances, Error> {
 }
 pub fn refresh_account(db: &Connection, budget: &str, account: &str) -> Result<(), Error> {
     let mut balances = Balances::default();
-    let mut query=db.prepare("SELECT amount,cleared FROM transactions WHERE budget_id=?1 AND account_id=?2 AND tombstone=0 ORDER BY date,sort_order,id")?;
+    let mut query=db.prepare("SELECT amount,cleared FROM transactions WHERE budget_id=?1 AND account_id=?2 AND tombstone=0 ORDER BY date ASC,starting_balance DESC,sort_order ASC,id DESC")?;
     for row in query.query_map(params![budget, account], |r| {
         Ok((r.get::<_, i64>(0)?, r.get::<_, bool>(1)?))
     })? {
@@ -223,10 +223,10 @@ fn insert(
     apply_addition(db, budget, &input)?;
     get(db, budget, &input.id)
 }
-const SELECT: &str = "SELECT t.id,t.account_id,t.amount,t.date,t.cleared,t.reconciled,t.starting_balance,t.payee_id,p.name,t.category_id,c.name,c.is_income,t.notes,a.name FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id";
+const SELECT: &str = "SELECT t.id,t.account_id,t.amount,t.date,t.cleared,t.reconciled,t.starting_balance,t.payee_id,p.name,t.category_id,c.name,c.is_income,t.notes,a.name,t.sort_order FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id";
 fn row(r: &rusqlite::Row) -> rusqlite::Result<Value> {
     Ok(
-        json!({"id":r.get::<_,String>(0)?,"account_id":r.get::<_,String>(1)?,"amount":r.get::<_,i64>(2)?,"date":r.get::<_,String>(3)?,"cleared":r.get::<_,bool>(4)?,"reconciled":r.get::<_,bool>(5)?,"starting_balance":r.get::<_,bool>(6)?,"payee_id":r.get::<_,Option<String>>(7)?,"payee_name":r.get::<_,Option<String>>(8)?,"category_id":r.get::<_,Option<String>>(9)?,"category_name":r.get::<_,Option<String>>(10)?,"category_is_income":r.get::<_,Option<bool>>(11)?,"notes":r.get::<_,String>(12)?,"account_name":r.get::<_,String>(13)?}),
+        json!({"id":r.get::<_,String>(0)?,"account_id":r.get::<_,String>(1)?,"amount":r.get::<_,i64>(2)?,"date":r.get::<_,String>(3)?,"cleared":r.get::<_,bool>(4)?,"reconciled":r.get::<_,bool>(5)?,"starting_balance":r.get::<_,bool>(6)?,"payee_id":r.get::<_,Option<String>>(7)?,"payee_name":r.get::<_,Option<String>>(8)?,"category_id":r.get::<_,Option<String>>(9)?,"category_name":r.get::<_,Option<String>>(10)?,"category_is_income":r.get::<_,Option<bool>>(11)?,"notes":r.get::<_,String>(12)?,"account_name":r.get::<_,String>(13)?,"sort_order":r.get::<_,i64>(14)?}),
     )
 }
 pub fn get(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
@@ -307,7 +307,7 @@ pub fn list(
     // Keep parameter slots stable while allowing SQLite to use the account/date indexes.
     let filter = format!("{filter} AND (?2 IS NULL OR 1=1) AND (?3 IS NULL OR 1=1)");
     let sql = format!(
-        "{SELECT} {filter} ORDER BY t.date DESC,t.sort_order DESC,t.id DESC LIMIT ?4 OFFSET ?5"
+        "{SELECT} {filter} ORDER BY t.date DESC,t.starting_balance ASC,t.sort_order DESC,t.id ASC LIMIT ?4 OFFSET ?5"
     );
     let mut statement = db.prepare(&sql)?;
     let rows = statement.query_map(params![budget, account, as_of, limit + 1, offset], row)?;
@@ -316,7 +316,7 @@ pub fn list(
     rows.truncate(limit as usize);
     let mut running = summary.total as i128;
     if account.is_some() && offset > 0 {
-        let mut preceding=db.prepare(&format!("SELECT t.amount FROM transactions t {filter} ORDER BY t.date DESC,t.sort_order DESC,t.id DESC LIMIT ?4"))?;
+        let mut preceding=db.prepare(&format!("SELECT t.amount FROM transactions t {filter} ORDER BY t.date DESC,t.starting_balance ASC,t.sort_order DESC,t.id ASC LIMIT ?4"))?;
         for amount in preceding.query_map(params![budget, account, as_of, offset], |r| {
             r.get::<_, i64>(0)
         })? {

@@ -28,7 +28,12 @@ the same budget. An existing budget at the reserved ID is never replaced.
 
 The assigned API budget UUID is separate from source local slug, cloud file ID
 and group ID, all retained in `imported_sources` and the public source audit.
-Account/transaction/category/ordinary payee IDs are unchanged. Deleted
+Account/transaction/category/ordinary payee IDs are unchanged. Source NULL
+positions retain their lowest ordering rank; signed zero positions remain equal.
+Finite sort positions convert to integer ranks while preserving equality and
+relative order. Register order follows pinned Actual: date descending, starting
+balance last within a date, sort rank descending, then ID ascending. Reverse-order
+balance validation and paginated running balances use the same ordering. Deleted
 transactions remain tombstoned; they are not exposed in the active register.
 Per-field source HLCs seed ticket05 without migration-time replacement; missing
 field clocks retain its ZERO semantics. Original unknown history remains in the
@@ -98,19 +103,19 @@ chooser; uncertain outcomes retain their original recovery payload.
 
 ## Evidence
 
-- `cargo test --test imports`: 9 real HTTP workflows covering public oracle IDs,
+- `cargo test --test imports`: 12 real HTTP workflows covering public oracle IDs,
   counts, balances, references/preferences, original bytes, inactive staging,
   activation/restart/replay, unsupported rule blocking, corrupt/encrypted input,
   dangling references, duplicate names/unknown schema, original clocks/tombstone,
   transfer payee exclusion, upload/expansion limits, future-clock blocking and
-  nonreplacement of an existing budget.
+  nonreplacement of an existing budget, equal/fractional source ordering, pinned register/running-balance order and atomic money-boundary rejection.
 - `node tests/imports.mjs`: real plain-HTTP browser recovery, quota failure,
   competing tabs, lost upload and activation acknowledgements, reload, imported
   register, blocked source download and corrupt-input recovery.
 - Browser visual evidence in ignored `web/test-results/import-*.png`: desktop,
   390px blocked state and 320px at 200% text. Balances stack without clipping;
   activation/review buttons retain spacing. Screenshots inspected after the fix.
-- Final full native suite: 44 public HTTP tests pass across concurrency, ledger,
+- Final full native suite: 50 public HTTP tests pass across concurrency, ledger,
   imports, preferences, snapshots and themes; Clippy all-targets with warnings
   denied passes. Svelte check, Svelte autofixer, Impeccable detector and owned
   frontend formatting pass. Container qualification belongs to the combined

@@ -565,6 +565,14 @@ fn delete(
                 "Group contains different category types; reassign categories separately",
             ));
         }
+        crate::budgeting::category_deleted(
+            db,
+            budget,
+            &category,
+            replacement,
+            source["is_income"].as_bool().unwrap(),
+            clock,
+        )?;
         let mut q =
             db.prepare("SELECT id FROM transactions WHERE budget_id=?1 AND category_id=?2")?;
         let transactions = q

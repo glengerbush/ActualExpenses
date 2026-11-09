@@ -1,0 +1,5695 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "cases": [
+    {
+      "method": "tracking",
+      "ids": {
+        "cash": "c4006d4c-fb39-4c53-bff0-98feef635384",
+        "card": "70de012d-76e4-4b92-9f44-7a0208b7d993",
+        "off": "60ae6e9c-0081-4bc5-bf3e-445af888df94",
+        "expenses": "cedf1c82-a1cd-4380-ae0a-d31dfb5bb340",
+        "Food": "4196ac65-0d28-474a-8f44-03a7fd8aa2a5",
+        "Travel": "a2fa5547-7d63-41b2-b59b-d5d30affba93",
+        "Salary": "edd1bdfd-6a85-47f0-9c69-aad843b5e6c2"
+      },
+      "steps": [
+        {
+          "action": null,
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "real-saved": 8500,
+                "total-leftover": -21500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -11600,
+                  "balance": -11600,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": -9900,
+                  "balance": -9900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": -30000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "real-saved": 25000,
+                "total-leftover": -5000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -5000,
+                  "balance": -5000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": -30000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "set",
+            "month": "2026-12",
+            "category": "Food",
+            "amount": 10000
+          },
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 10000,
+                "total-budget-income": 0,
+                "total-saved": -10000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "real-saved": 8500,
+                "total-leftover": -11500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": -9900,
+                  "balance": -9900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": -30000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "real-saved": 25000,
+                "total-leftover": -5000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -5000,
+                  "balance": -5000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": -30000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "set",
+            "month": "2026-12",
+            "category": "Travel",
+            "amount": 5000
+          },
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 15000,
+                "total-budget-income": 0,
+                "total-saved": -15000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "real-saved": 8500,
+                "total-leftover": -6500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": -30000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "real-saved": 25000,
+                "total-leftover": -5000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -5000,
+                  "balance": -5000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": -30000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "set",
+            "month": "2026-12",
+            "category": "Salary",
+            "amount": 35000
+          },
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 15000,
+                "total-budget-income": 35000,
+                "total-saved": 20000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "real-saved": 8500,
+                "total-leftover": -6500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "real-saved": 25000,
+                "total-leftover": -5000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -5000,
+                  "balance": -5000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": -30000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "carryover",
+            "month": "2026-12",
+            "category": "Food",
+            "enabled": true
+          },
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 15000,
+                "total-budget-income": 35000,
+                "total-saved": 20000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "real-saved": 8500,
+                "total-leftover": -6500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "real-saved": 25000,
+                "total-leftover": -6600
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -5000,
+                  "balance": -6600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": -30000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": -6600
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": -6600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "copy_previous",
+            "month": "2027-01"
+          },
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 15000,
+                "total-budget-income": 35000,
+                "total-saved": 20000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "real-saved": 8500,
+                "total-leftover": -6500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 15000,
+                "total-budget-income": 35000,
+                "total-saved": 20000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "real-saved": 25000,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -5000,
+                  "balance": 3400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": 0,
+                  "balance": 5000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 3400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 3400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "copy_year",
+            "month": "2027-01",
+            "category": "Food"
+          },
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 15000,
+                "total-budget-income": 35000,
+                "total-saved": 20000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "real-saved": 8500,
+                "total-leftover": -6500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 15000,
+                "total-budget-income": 35000,
+                "total-saved": 20000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "real-saved": 25000,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -5000,
+                  "balance": 3400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": 0,
+                  "balance": 5000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 10000,
+                "total-budget-income": 0,
+                "total-saved": -10000,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 13400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": 0,
+                  "balance": 13400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "set",
+            "month": "2026-11",
+            "category": "Food",
+            "amount": 6000
+          },
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 6000,
+                "total-budget-income": 0,
+                "total-saved": -6000,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 6000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 15000,
+                "total-budget-income": 35000,
+                "total-saved": 20000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "real-saved": 8500,
+                "total-leftover": -6500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 15000,
+                "total-budget-income": 35000,
+                "total-saved": 20000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "real-saved": 25000,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -5000,
+                  "balance": 3400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": 0,
+                  "balance": 5000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 10000,
+                "total-budget-income": 0,
+                "total-saved": -10000,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 13400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": 0,
+                  "balance": 13400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "copy_year",
+            "month": "2026-11",
+            "category": "Food"
+          },
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 6000,
+                "total-budget-income": 0,
+                "total-saved": -6000,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 6000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 11000,
+                "total-budget-income": 35000,
+                "total-saved": 24000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "real-saved": 8500,
+                "total-leftover": -10500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": -11600,
+                  "balance": -5600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 15000,
+                "total-budget-income": 35000,
+                "total-saved": 20000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "real-saved": 25000,
+                "total-leftover": 4400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -5000,
+                  "balance": -600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": 0,
+                  "balance": 5000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 10000,
+                "total-budget-income": 0,
+                "total-saved": -10000,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 9400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": 0,
+                  "balance": 9400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "hide_category",
+            "month": "2026-12",
+            "category": "Travel",
+            "enabled": true
+          },
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 6000,
+                "total-budget-income": 0,
+                "total-saved": -6000,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 6000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 6000,
+                "total-budget-income": 35000,
+                "total-saved": 29000,
+                "total-income": 30000,
+                "total-spent": -11600,
+                "real-saved": 18400,
+                "total-leftover": -5600
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": -11600,
+                  "balance": -5600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 10000,
+                "total-budget-income": 35000,
+                "total-saved": 25000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "real-saved": 25000,
+                "total-leftover": -600
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -5000,
+                  "balance": -600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": 0,
+                  "balance": 5000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 10000,
+                "total-budget-income": 0,
+                "total-saved": -10000,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 9400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": 0,
+                  "balance": 9400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "hide_group",
+            "month": "2026-12",
+            "group": "expenses",
+            "enabled": true
+          },
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 35000,
+                "total-saved": 35000,
+                "total-income": 30000,
+                "total-spent": 0,
+                "real-saved": 30000,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": -11600,
+                  "balance": -5600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 35000,
+                "total-saved": 35000,
+                "total-income": 30000,
+                "total-spent": 0,
+                "real-saved": 30000,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -5000,
+                  "balance": -600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": 0,
+                  "balance": 5000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": 0,
+                  "balance": 9400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "hide_group",
+            "month": "2026-12",
+            "group": "expenses",
+            "enabled": false
+          },
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 6000,
+                "total-budget-income": 0,
+                "total-saved": -6000,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 6000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 6000,
+                "total-budget-income": 35000,
+                "total-saved": 29000,
+                "total-income": 30000,
+                "total-spent": -11600,
+                "real-saved": 18400,
+                "total-leftover": -5600
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": -11600,
+                  "balance": -5600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 10000,
+                "total-budget-income": 35000,
+                "total-saved": 25000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "real-saved": 25000,
+                "total-leftover": -600
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -5000,
+                  "balance": -600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": 0,
+                  "balance": 5000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 10000,
+                "total-budget-income": 0,
+                "total-saved": -10000,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 9400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": 0,
+                  "balance": 9400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "hide_category",
+            "month": "2026-12",
+            "category": "Travel",
+            "enabled": false
+          },
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 6000,
+                "total-budget-income": 0,
+                "total-saved": -6000,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 6000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 11000,
+                "total-budget-income": 35000,
+                "total-saved": 24000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "real-saved": 8500,
+                "total-leftover": -10500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": -11600,
+                  "balance": -5600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 15000,
+                "total-budget-income": 35000,
+                "total-saved": 20000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "real-saved": 25000,
+                "total-leftover": 4400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -5000,
+                  "balance": -600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": 0,
+                  "balance": 5000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 10000,
+                "total-budget-income": 0,
+                "total-saved": -10000,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 9400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": 0,
+                  "balance": 9400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "method",
+            "month": "2026-12",
+            "method": "envelope"
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 30000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -21500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -11600,
+                  "balance": -11600,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": -9900,
+                  "balance": -9900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 60000,
+                "last-month-overspent": -21500,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 38500,
+                "from-last-month": 30000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": -5000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -5000,
+                  "balance": -5000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 38500,
+                "last-month-overspent": -5000,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 33500,
+                "from-last-month": 38500,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "set",
+            "month": "2026-12",
+            "category": "Food",
+            "amount": 777
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -777,
+                "to-budget": 29223,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -20723
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 777,
+                  "actual": -11600,
+                  "balance": -10823,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": -9900,
+                  "balance": -9900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 59223,
+                "last-month-overspent": -20723,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 38500,
+                "from-last-month": 29223,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": -5000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -5000,
+                  "balance": -5000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 38500,
+                "last-month-overspent": -5000,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 33500,
+                "from-last-month": 38500,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "method",
+            "month": "2026-12",
+            "method": "tracking"
+          },
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 6000,
+                "total-budget-income": 0,
+                "total-saved": -6000,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 6000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 11000,
+                "total-budget-income": 35000,
+                "total-saved": 24000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "real-saved": 8500,
+                "total-leftover": -10500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": -11600,
+                  "balance": -5600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 15000,
+                "total-budget-income": 35000,
+                "total-saved": 20000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "real-saved": 25000,
+                "total-leftover": 4400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -5000,
+                  "balance": -600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": 0,
+                  "balance": 5000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 35000,
+                  "actual": 30000,
+                  "balance": 5000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 10000,
+                "total-budget-income": 0,
+                "total-saved": -10000,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 9400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": 0,
+                  "balance": 9400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "method": "envelope",
+      "ids": {
+        "cash": "e4cbfef6-9219-40fc-b7ca-9be71ce7ba3a",
+        "card": "6aca657e-373e-4900-b31c-fa52cb7a84db",
+        "off": "8f4f3de5-428d-4dda-8c3d-78e7b609be05",
+        "expenses": "8df19e6e-9555-4314-9a42-ba8d4086de31",
+        "Food": "7d9b26c3-44e9-4552-94a4-974e1692e5d3",
+        "Travel": "d0cdf5b9-fe85-4f7e-9c81-0606e2c12683",
+        "Salary": "7c3c3685-09ae-4713-ac1c-55804ef9c4c1"
+      },
+      "steps": [
+        {
+          "action": null,
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 30000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -21500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -11600,
+                  "balance": -11600,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": -9900,
+                  "balance": -9900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 60000,
+                "last-month-overspent": -21500,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 38500,
+                "from-last-month": 30000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": -5000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -5000,
+                  "balance": -5000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 38500,
+                "last-month-overspent": -5000,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 33500,
+                "from-last-month": 38500,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "set",
+            "month": "2026-12",
+            "category": "Food",
+            "amount": 10000
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -10000,
+                "to-budget": 20000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -11500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": -9900,
+                  "balance": -9900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 50000,
+                "last-month-overspent": -11500,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 38500,
+                "from-last-month": 20000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": -5000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -5000,
+                  "balance": -5000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 38500,
+                "last-month-overspent": -5000,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 33500,
+                "from-last-month": 38500,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "set",
+            "month": "2026-12",
+            "category": "Travel",
+            "amount": 5000
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 15000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -6500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 45000,
+                "last-month-overspent": -6500,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 38500,
+                "from-last-month": 15000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": -5000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -5000,
+                  "balance": -5000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 38500,
+                "last-month-overspent": -5000,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 33500,
+                "from-last-month": 38500,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "carryover",
+            "month": "2026-12",
+            "category": "Food",
+            "enabled": true
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 15000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -6500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 45000,
+                "last-month-overspent": -4900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 40100,
+                "from-last-month": 15000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": -6600
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -5000,
+                  "balance": -6600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 40100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 40100,
+                "from-last-month": 40100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": -6600
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": -6600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "copy_previous",
+            "month": "2027-01"
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 15000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -6500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 45000,
+                "last-month-overspent": -4900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 25100,
+                "from-last-month": 15000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -5000,
+                  "balance": 3400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": 0,
+                  "balance": 5000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 25100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 25100,
+                "from-last-month": 25100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 3400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 5000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "hold",
+            "month": "2026-12",
+            "amount": 5000
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 5000,
+                "buffered-selected": 5000,
+                "total-budgeted": -15000,
+                "to-budget": 10000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -6500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 45000,
+                "last-month-overspent": -4900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 25100,
+                "from-last-month": 15000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -5000,
+                  "balance": 3400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": 0,
+                  "balance": 5000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 25100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 25100,
+                "from-last-month": 25100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 3400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 5000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "move",
+            "month": "2027-01",
+            "from": "Food",
+            "to": "Travel",
+            "amount": 1000
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 5000,
+                "buffered-selected": 5000,
+                "total-budgeted": -15000,
+                "to-budget": 10000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -6500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 5000,
+                  "actual": -9900,
+                  "balance": -4900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 45000,
+                "last-month-overspent": -4900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 25100,
+                "from-last-month": 15000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 2400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 25100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 25100,
+                "from-last-month": 25100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 2400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "cover",
+            "month": "2026-12",
+            "from": "to-budget",
+            "to": "Travel",
+            "amount": 3000
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 5000,
+                "buffered-selected": 5000,
+                "total-budgeted": -18000,
+                "to-budget": 7000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -3500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 42000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 25100,
+                "from-last-month": 12000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 2400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 25100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 25100,
+                "from-last-month": 25100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 2400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "reset_hold",
+            "month": "2026-12"
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -18000,
+                "to-budget": 12000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -3500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 42000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 25100,
+                "from-last-month": 12000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 2400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 25100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 25100,
+                "from-last-month": 25100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 2400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "copy_year",
+            "month": "2027-01",
+            "category": "Food"
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -18000,
+                "to-budget": 12000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -3500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 42000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 25100,
+                "from-last-month": 12000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 2400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 25100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -9000,
+                "to-budget": 16100,
+                "from-last-month": 25100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 17400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": 0,
+                  "balance": 11400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "hold",
+            "month": "2026-12",
+            "amount": 1000
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 1000,
+                "buffered-selected": 1000,
+                "total-budgeted": -18000,
+                "to-budget": 11000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -3500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 42000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 25100,
+                "from-last-month": 12000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 2400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 25100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -9000,
+                "to-budget": 16100,
+                "from-last-month": 25100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 17400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": 0,
+                  "balance": 11400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "carryover",
+            "month": "2026-12",
+            "category": "Salary",
+            "enabled": true
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 1000,
+                "buffered-selected": 1000,
+                "total-budgeted": -18000,
+                "to-budget": 11000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -3500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": true
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 42000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 30000,
+                "total-budgeted": -15000,
+                "to-budget": -4900,
+                "from-last-month": 12000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 2400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": true
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 25100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -9000,
+                "to-budget": 16100,
+                "from-last-month": 25100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 17400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": 0,
+                  "balance": 11400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": true
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "reset_hold",
+            "month": "2026-12"
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 30000,
+                "total-budgeted": -18000,
+                "to-budget": -18000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -3500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": true
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 42000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 30000,
+                "total-budgeted": -15000,
+                "to-budget": -4900,
+                "from-last-month": 12000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 2400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": true
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 25100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -9000,
+                "to-budget": 16100,
+                "from-last-month": 25100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 17400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": 0,
+                  "balance": 11400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": true
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "hold",
+            "month": "2026-12",
+            "amount": -1000
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 30000,
+                "total-budgeted": -18000,
+                "to-budget": -18000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -3500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": true
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 42000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 30000,
+                "total-budgeted": -15000,
+                "to-budget": -4900,
+                "from-last-month": 12000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 2400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": true
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 25100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -9000,
+                "to-budget": 16100,
+                "from-last-month": 25100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 17400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": 0,
+                  "balance": 11400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": true
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "carryover",
+            "month": "2026-12",
+            "category": "Salary",
+            "enabled": false
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": 0,
+                "to-budget": 0,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 30000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -18000,
+                "to-budget": 12000,
+                "from-last-month": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -3500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": -1600,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 42000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 25100,
+                "from-last-month": 12000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 8400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 2400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 25100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -9000,
+                "to-budget": 16100,
+                "from-last-month": 25100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 17400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": 0,
+                  "balance": 11400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "set",
+            "month": "2026-11",
+            "category": "Food",
+            "amount": 6000
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -6000,
+                "to-budget": -6000,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 6000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 24000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -18000,
+                "to-budget": 6000,
+                "from-last-month": -6000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": 2500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 10000,
+                  "actual": -11600,
+                  "balance": 4400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 36000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 19100,
+                "from-last-month": 6000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 14400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 8400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 19100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -9000,
+                "to-budget": 10100,
+                "from-last-month": 19100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 23400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": 0,
+                  "balance": 17400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "copy_year",
+            "month": "2026-11",
+            "category": "Food"
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -6000,
+                "to-budget": -6000,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 6000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 24000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -14000,
+                "to-budget": 10000,
+                "from-last-month": -6000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -1500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": -11600,
+                  "balance": 400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 40000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 23100,
+                "from-last-month": 10000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 10400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 4400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 23100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -9000,
+                "to-budget": 14100,
+                "from-last-month": 23100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 19400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": 0,
+                  "balance": 13400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "hide_category",
+            "month": "2026-12",
+            "category": "Travel",
+            "enabled": true
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -6000,
+                "to-budget": -6000,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 6000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 24000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -14000,
+                "to-budget": 10000,
+                "from-last-month": -6000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -1500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": -11600,
+                  "balance": 400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 40000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 23100,
+                "from-last-month": 10000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 10400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 4400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 23100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -9000,
+                "to-budget": 14100,
+                "from-last-month": 23100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 19400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": 0,
+                  "balance": 13400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "hide_group",
+            "month": "2026-12",
+            "group": "expenses",
+            "enabled": true
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -6000,
+                "to-budget": -6000,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 6000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 24000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -14000,
+                "to-budget": 10000,
+                "from-last-month": -6000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -1500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": -11600,
+                  "balance": 400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 40000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 23100,
+                "from-last-month": 10000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 10400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 4400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 23100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -9000,
+                "to-budget": 14100,
+                "from-last-month": 23100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 19400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": 0,
+                  "balance": 13400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "hide_group",
+            "month": "2026-12",
+            "group": "expenses",
+            "enabled": false
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -6000,
+                "to-budget": -6000,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 6000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 24000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -14000,
+                "to-budget": 10000,
+                "from-last-month": -6000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -1500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": -11600,
+                  "balance": 400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 40000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 23100,
+                "from-last-month": 10000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 10400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 4400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 23100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -9000,
+                "to-budget": 14100,
+                "from-last-month": 23100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 19400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": 0,
+                  "balance": 13400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "hide_category",
+            "month": "2026-12",
+            "category": "Travel",
+            "enabled": false
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -6000,
+                "to-budget": -6000,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 6000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 24000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -14000,
+                "to-budget": 10000,
+                "from-last-month": -6000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -1500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": -11600,
+                  "balance": 400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 40000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 23100,
+                "from-last-month": 10000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 10400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 4400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 23100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -9000,
+                "to-budget": 14100,
+                "from-last-month": 23100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 19400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": 0,
+                  "balance": 13400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "method",
+            "month": "2026-12",
+            "method": "tracking"
+          },
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "real-saved": 8500,
+                "total-leftover": -21500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -11600,
+                  "balance": -11600,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": -9900,
+                  "balance": -9900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": -30000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "real-saved": 25000,
+                "total-leftover": -5000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -5000,
+                  "balance": -5000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": -30000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "set",
+            "month": "2026-12",
+            "category": "Food",
+            "amount": 777
+          },
+          "method": "tracking",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "total-budgeted": 777,
+                "total-budget-income": 0,
+                "total-saved": -777,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "real-saved": 8500,
+                "total-leftover": -20723
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 777,
+                  "actual": -11600,
+                  "balance": -10823,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": -9900,
+                  "balance": -9900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": -30000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "real-saved": 25000,
+                "total-leftover": -5000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": -5000,
+                  "balance": -5000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": -30000,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "total-budgeted": 0,
+                "total-budget-income": 0,
+                "total-saved": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "real-saved": 0,
+                "total-leftover": 0
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "action": {
+            "action": "method",
+            "month": "2026-12",
+            "method": "envelope"
+          },
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "summary": {
+                "available-funds": 0,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -6000,
+                "to-budget": -6000,
+                "from-last-month": 0,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 6000
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2026-12": {
+              "summary": {
+                "available-funds": 24000,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -14000,
+                "to-budget": 10000,
+                "from-last-month": -6000,
+                "total-income": 30000,
+                "total-spent": -21500,
+                "total-leftover": -1500
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 6000,
+                  "actual": -11600,
+                  "balance": 400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 8000,
+                  "actual": -9900,
+                  "balance": -1900,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-01": {
+              "summary": {
+                "available-funds": 40000,
+                "last-month-overspent": -1900,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -15000,
+                "to-budget": 23100,
+                "from-last-month": 10000,
+                "total-income": 30000,
+                "total-spent": -5000,
+                "total-leftover": 10400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": -5000,
+                  "balance": 4400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 6000,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 30000,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            },
+            "2027-02": {
+              "summary": {
+                "available-funds": 23100,
+                "last-month-overspent": 0,
+                "buffered": 0,
+                "buffered-selected": 0,
+                "total-budgeted": -9000,
+                "to-budget": 14100,
+                "from-last-month": 23100,
+                "total-income": 0,
+                "total-spent": 0,
+                "total-leftover": 19400
+              },
+              "categories": {
+                "Food": {
+                  "budgeted": 9000,
+                  "actual": 0,
+                  "balance": 13400,
+                  "carryover": true
+                },
+                "Travel": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 6000,
+                  "carryover": false
+                },
+                "Salary": {
+                  "budgeted": 0,
+                  "actual": 0,
+                  "balance": 0,
+                  "carryover": false
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

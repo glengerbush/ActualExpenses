@@ -125,7 +125,7 @@ async fn upload(
                 let plan:Value=serde_json::from_str(&plan).map_err(Error::internal)?;
                 // A new upload intent explicitly reviews a stage predating newer converters.
                 // The original upload key still replays its exact original receipt first.
-                if status!="activated" && (plan.get("category_groups").is_none() || plan["transfer_version"] != 1 || plan["accounts"].as_array().is_some_and(|rows|rows.iter().any(|row|row.get("last_reconciled").is_none()))) {
+                if status!="activated" && (plan.get("category_groups").is_none() || plan["transfer_version"] != 1 || plan["budgeting_version"] != 1 || plan["accounts"].as_array().is_some_and(|rows|rows.iter().any(|row|row.get("last_reconciled").is_none()))) {
                     let (mut report,converted)=conversion::inspect(&bytes)?;
                     report["archive_sha256"]=json!(hash);
                     let status=if report["requirements"].as_array().unwrap().iter().any(|r|r["blocking"]==true){"blocked"}else{"ready"};
@@ -162,9 +162,10 @@ async fn activate(
         if stage["status"]=="blocked" {return Err(Error::new(StatusCode::CONFLICT,"import_requires_conversion","Import contains unsupported data; review its conversion requirements"));}
         let converted:String=db.query_row("SELECT conversion FROM staged_imports WHERE id=?1",[&id],|r|r.get(0))?;
         let mut converted:Value=serde_json::from_str(&converted).map_err(Error::internal)?;
-        if stage["status"]!="activated" && (converted.get("category_groups").is_none() || converted.get("account_groups").is_none() || converted.get("register_settings").is_none()) {
+        if stage["status"]!="activated" && (converted.get("category_groups").is_none() || converted.get("account_groups").is_none() || converted.get("register_settings").is_none() || converted["budgeting_version"] != 1) {
             let original:Vec<u8>=db.query_row("SELECT original FROM staged_imports WHERE id=?1",[&id],|r|r.get(0))?;
             let (_,current)=conversion::inspect(&original)?;
+            if converted["budgeting_version"] != 1 {converted["budgeting"]=current["budgeting"].clone();converted["budgeting_version"]=json!(1);}
             if converted.get("register_settings").is_none() { converted["register_settings"]=current["register_settings"].clone(); }
             if converted.get("account_groups").is_none() {
                 converted["account_groups"]=current["account_groups"].clone();

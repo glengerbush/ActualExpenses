@@ -49,6 +49,7 @@ pub fn router(store: Store) -> Router {
         .merge(crate::history::router())
         .merge(crate::accounts::router())
         .merge(crate::reconciliation::router())
+        .merge(crate::budgeting::router())
         .merge(crate::categories::router())
         .merge(crate::payees_tags::router())
         .merge(crate::payee_locations::router())
@@ -194,7 +195,7 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["bulk_transactions", "undo_redo", "history_cancellation", "history_receipt_lookup", "payee_locations", "location_cancellation", "reconciliation", "reconciled_confirmation", "paired_reconciled_confirmation", "reconciliation_cancellation", "expense_kind_precondition", "transfers", "transfer_cancellation", "transfer_receipt_lookup", "budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "tags", "splits", "register_queries", "register_settings"],
+        "capabilities": ["budget_planning", "tracking_budget", "envelope_budget", "bulk_transactions", "undo_redo", "history_cancellation", "history_receipt_lookup", "payee_locations", "location_cancellation", "reconciliation", "reconciled_confirmation", "paired_reconciled_confirmation", "reconciliation_cancellation", "expense_kind_precondition", "transfers", "transfer_cancellation", "transfer_receipt_lookup", "budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "tags", "splits", "register_queries", "register_settings"],
         "openapi": "/api/v1/openapi.json"
     }))
 }

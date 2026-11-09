@@ -25,6 +25,9 @@ pub const TABLES: &[&str] = &[
     "tags",
     "categories",
     "transactions",
+    "budget_cells",
+    "budget_months",
+    "budget_settings",
     "budget_preferences",
     "register_settings",
     "field_versions",
@@ -72,6 +75,7 @@ pub struct BudgetArchive {
 pub struct Validated {
     pub legacy_category_metadata: bool,
     pub legacy_locations: bool,
+    pub legacy_budgeting: bool,
     pub state: BudgetArchive,
     pub blobs: BTreeMap<String, Vec<u8>>,
 }
@@ -144,7 +148,7 @@ pub fn capture(db: &Connection, budget: &str) -> Result<Vec<u8>, Error> {
     let body = serde_json::to_vec(&state).map_err(Error::internal)?;
     let mut entries = BTreeMap::from([("budget.json".to_owned(), body)]);
     entries.extend(blobs);
-    let manifest = json!({"format":"actualBudget","version":1,"schema_version":15,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
+    let manifest = json!({"format":"actualBudget","version":1,"schema_version":16,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
     if entries.len() + 1 > 1000
         || entries.values().map(Vec::len).sum::<usize>() + manifest.to_string().len() > MAX_EXPANDED
     {
@@ -220,7 +224,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || !matches!(manifest["schema_version"].as_u64(), Some(6..=15))
+        || !matches!(manifest["schema_version"].as_u64(), Some(6..=16))
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }
@@ -244,6 +248,52 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             .ok_or_else(|| invalid("Missing budget data"))?,
     )
     .map_err(|_| invalid("Invalid budget state"))?;
+    if manifest["schema_version"].as_u64().is_some_and(|v| v < 16) {
+        for (name, columns, rows) in [
+            (
+                "budget_cells",
+                vec![
+                    "budget_id",
+                    "id",
+                    "method",
+                    "month",
+                    "category_id",
+                    "amount",
+                    "carryover",
+                    "goal",
+                    "long_goal",
+                    "tombstone",
+                ],
+                vec![],
+            ),
+            (
+                "budget_months",
+                vec!["budget_id", "id", "buffered", "notes", "tombstone"],
+                vec![],
+            ),
+            (
+                "budget_settings",
+                vec!["budget_id", "id", "method", "tombstone"],
+                vec![vec![
+                    state.budget["id"].clone(),
+                    json!("method"),
+                    state.budget["budget_type"].clone(),
+                    json!(0),
+                ]],
+            ),
+        ] {
+            if state.tables.contains_key(name) {
+                return Err(invalid("Unexpected legacy budgeting domain"));
+            }
+            state.tables.insert(
+                name.into(),
+                Table {
+                    columns: columns.into_iter().map(str::to_owned).collect(),
+                    rows,
+                },
+            );
+        }
+    }
     if manifest["schema_version"].as_u64().is_some_and(|v| v < 14) {
         if state.tables.contains_key("payee_locations") {
             return Err(invalid("Unexpected legacy payee locations"));
@@ -544,6 +594,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     let mut validated = Validated {
         state,
         blobs,
+        legacy_budgeting: manifest["schema_version"].as_u64().is_some_and(|v| v < 16),
         legacy_locations: manifest["schema_version"].as_u64().is_some_and(|v| v < 14),
         legacy_category_metadata: matches!(manifest["schema_version"].as_u64(), Some(6 | 7)),
     };
@@ -653,6 +704,10 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     Ok(validated)
 }
 pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error> {
+    db.execute(
+        "DELETE FROM budget_settings WHERE budget_id=?1",
+        [archive.state.budget["id"].as_str().unwrap()],
+    )?;
     for table in TABLES {
         let source = &archive.state.tables[*table];
         let allowed = db
@@ -747,9 +802,16 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
     if archive.legacy_category_metadata {
         crate::categories::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
     }
+    if archive.legacy_budgeting {
+        crate::budgeting::enrich_legacy_imports(
+            db,
+            Some(archive.state.budget["id"].as_str().unwrap()),
+        )?;
+    }
     Ok(())
 }
 pub fn validate_financial_state(db: &Connection, budget: &str) -> Result<(), Error> {
+    crate::budgeting::validate(db, budget)?;
     crate::transfers::validate(db, budget)?;
     for table in [
         "accounts",

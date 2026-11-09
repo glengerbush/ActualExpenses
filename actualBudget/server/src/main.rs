@@ -1,5 +1,6 @@
 mod accounts;
 mod api;
+mod budgeting;
 mod calculator;
 mod categories;
 mod companion;

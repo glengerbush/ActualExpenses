@@ -16,6 +16,9 @@ const TABLES: &[&str] = &[
     "category_groups",
     "payees",
     "tags",
+    "budget_cells",
+    "budget_months",
+    "budget_settings",
 ];
 #[derive(Serialize, Deserialize)]
 pub struct Change {
@@ -553,6 +556,7 @@ pub fn apply(
             }
         }
     }
+    crate::budgeting::validate(db, budget).map_err(|_| conflict())?;
     crate::splits::validate(db, budget).map_err(|_| conflict())?;
     crate::transfers::validate(db, budget).map_err(|_| conflict())?;
     crate::categories::validate_archive(db, budget).map_err(|_| conflict())?;

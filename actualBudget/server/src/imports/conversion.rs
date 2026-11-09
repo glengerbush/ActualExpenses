@@ -293,6 +293,9 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         "category_mapping",
         "preferences",
         "transaction_filters",
+        "reflect_budgets",
+        "zero_budgets",
+        "zero_budget_months",
         "notes",
         "messages_crdt",
         "messages_pending",
@@ -355,35 +358,6 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             }
             source.insert(table.clone(), json!(rows(&db, table)?));
         }
-        // Actual category deletion materializes zero budget cells even without allocations.
-        // Their absence has identical financial meaning; original rows remain in provenance.
-        if table == "zero_budgets" && count > 0 {
-            let rows = rows(&db, table)?;
-            let expected = accepted_columns
-                .get(table)
-                .unwrap()
-                .iter()
-                .map(String::as_str)
-                .collect::<BTreeSet<_>>();
-            let empty = rows.iter().all(|row| {
-                row.as_object().is_some_and(|r| {
-                    r.keys().map(String::as_str).collect::<BTreeSet<_>>() == expected
-                }) && row["amount"].as_i64() == Some(0)
-                    && row["carryover"].as_i64() == Some(0)
-                    && row["goal"].is_null()
-                    && row["long_goal"].is_null()
-            });
-            if empty {
-                requirement(
-                    &mut requirements,
-                    "zero_budget_defaults",
-                    count as usize,
-                    false,
-                    "Zero allocation defaults retained in original source; no amounts, carryover or goals omitted",
-                );
-                continue;
-            }
-        }
         if ![
             "account_groups",
             "accounts",
@@ -395,6 +369,9 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             "category_groups",
             "preferences",
             "transaction_filters",
+            "reflect_budgets",
+            "zero_budgets",
+            "zero_budget_months",
             "notes",
         ]
         .contains(&table.as_str())
@@ -525,6 +502,9 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         .iter()
         .filter(|row| {
             !accounts.contains_key(row["id"].as_str().unwrap_or(""))
+                && !row["id"]
+                    .as_str()
+                    .is_some_and(|id| id.starts_with("budget-"))
                 && !array(&source, "categories")
                     .iter()
                     .chain(array(&source, "category_groups"))
@@ -908,6 +888,8 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             clocks.insert(key, row.clone());
         }
     }
+    converted["budgeting"] = crate::budgeting::convert_actual(&source)?;
+    converted["budgeting_version"] = json!(1);
     converted["clocks"] = json!(clocks.into_values().collect::<Vec<_>>());
     converted["balances"] = json!(balances);
     let report = json!({"source":metadata,"counts":counts,"accounts":converted["accounts"],"balances":converted["balances"],"source_field_clock_count":converted["clocks"].as_array().unwrap().len(),"requirements":requirements,"preferences":prefs,"source_preferences":source["preferences"],"extra_archive_entries":extra,"checks":{"sqlite_integrity":true,"identifiers":true,"converted_relationships":true,"financial_totals":true}});
@@ -971,7 +953,9 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
             params![budget, settings.to_string()],
         )?;
     }
+    crate::budgeting::install_actual(db, budget, &data["budgeting"])?;
     for row in array(data, "clocks") {
+        crate::budgeting::import_clock(db, budget, &data["budgeting"], row)?;
         let dataset = row["dataset"].as_str().unwrap();
         let field = row["column"].as_str().unwrap();
         if dataset == "notes" && field == "note" {

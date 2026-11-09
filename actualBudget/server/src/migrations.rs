@@ -19,6 +19,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("migrations/013_transfers.sql"),
     include_str!("migrations/014_locations.sql"),
     include_str!("migrations/015_bulk.sql"),
+    include_str!("migrations/016_budgeting.sql"),
 ];
 pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
@@ -37,6 +38,9 @@ pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     let tx = db.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     for (index, sql) in MIGRATIONS.iter().enumerate().skip(version as usize) {
         tx.execute_batch(sql)?;
+        if index == 15 {
+            crate::budgeting::enrich_legacy_imports(&tx, None)?;
+        }
         if index == 13 {
             crate::payee_locations::enrich_legacy_imports(&tx, None)?;
         }

@@ -1774,7 +1774,7 @@ fn genuine_schema12_upgrade_preserves_settled_splits_receipts_sources_and_native
             .body(archive)
             .send()
             .unwrap());
-        assert_eq!(staged["data"]["report"]["schema_version"], 15);
+        assert_eq!(staged["data"]["report"]["schema_version"], 16);
         ok(target.write(
             "POST",
             &format!(

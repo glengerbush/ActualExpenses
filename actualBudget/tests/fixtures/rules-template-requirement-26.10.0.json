@@ -1,0 +1,31 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "source_archive_sha256": "601881b204c9615ddbc9a2110396c4243cc001522585cdc5facb8f18f102d0d4",
+  "archive_sha256": "e99a9c2f07ebe9cf65498cd6075aa5ced82dcb0abdfa2133803169e8d4a41d00",
+  "requirement_ticket": 42,
+  "rule": {
+    "id": "19190000-0000-4000-8000-000000009942",
+    "stage": "post",
+    "conditionsOp": "and",
+    "conditions": [
+      {
+        "op": "contains",
+        "field": "notes",
+        "value": "template",
+        "type": "string"
+      }
+    ],
+    "actions": [
+      {
+        "op": "set",
+        "field": "notes",
+        "value": "",
+        "type": "string",
+        "options": {
+          "template": "{{payee_name}}"
+        }
+      }
+    ]
+  }
+}

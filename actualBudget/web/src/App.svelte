@@ -34,6 +34,8 @@
   import AccountNavigation from "./lib/AccountNavigation.svelte";
   import { readAccountDraft, sortedAccounts } from "./lib/account-actions";
   import BudgetPlan from "./lib/BudgetPlan.svelte";
+  import Rules from "./lib/Rules.svelte";
+  import { rulesKey } from "./lib/rules";
   import { planningKey } from "./lib/planning";
   import Register from "./lib/Register.svelte";
   import Categories from "./lib/Categories.svelte";
@@ -65,6 +67,7 @@
     | "budget"
     | "account"
     | "planning"
+    | "rules"
     | "settings"
     | "categories"
     | "import"
@@ -73,6 +76,7 @@
     | "pending"
     | null
   >(null);
+  let rulesPayee = $state("");
   let managedBudget = $state.raw<ManagedBudget | null>(null);
   let deletedBudgets = $state.raw<ManagedBudget[]>([]);
   let deletedLoaded = $state(false);
@@ -171,6 +175,7 @@
         loading = false;
       }
       saveSelection(value.id, account?.id ?? accountId);
+      if (localStorage.getItem(rulesKey(value.id)) !== null) form = "rules";
       if (localStorage.getItem(planningKey(value.id)) !== null)
         form = "planning";
       try {
@@ -274,6 +279,7 @@
       | "budget"
       | "account"
       | "planning"
+      | "rules"
       | "settings"
       | "categories"
       | "import"
@@ -394,6 +400,13 @@
         >{t("Payees and tags")}</button
       >
       <button
+        onclick={() => {
+          rulesPayee = "";
+          void showForm("rules");
+        }}
+        disabled={!!form || loading || !compatible}>Rules</button
+      >
+      <button
         class={{ current: form === "settings" }}
         aria-current={form === "settings" ? "page" : undefined}
         onclick={() => showForm("settings")}
@@ -489,7 +502,18 @@
     {:else if form === "references" && budget}{#key budget.id}<ReferenceManagement
           budgetId={budget.id}
           onchanged={refreshAccounts}
+          onrules={(id) => {
+            rulesPayee = id;
+            void showForm("rules");
+          }}
           onclose={() => showForm(null)}
+        />{/key}
+    {:else if form === "rules" && budget}{#key budget.id}<Rules
+          budgetId={budget.id}
+          {disconnected}
+          initialPayee={rulesPayee}
+          onclose={() => showForm(null)}
+          onchanged={refreshAccounts}
         />{/key}
     {:else if form === "organize" && budget}{#key budget.id}<AccountManagement
           budgetId={budget.id}

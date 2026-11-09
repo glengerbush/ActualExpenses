@@ -22,8 +22,13 @@
     budgetId,
     onchanged,
     onclose,
-  }: { budgetId: string; onchanged: () => Promise<void>; onclose: () => void } =
-    $props();
+    onrules,
+  }: {
+    budgetId: string;
+    onchanged: () => Promise<void>;
+    onclose: () => void;
+    onrules: (id: string) => void;
+  } = $props();
   interface Row {
     id: string;
     name?: string;
@@ -428,6 +433,21 @@
                   disabled={locked}
                   aria-label={`Edit ${row.name ?? row.tag}`}>{t("Edit")}</button
                 >
+                {#if kind === "payees" && !row.transfer_account_id}<button
+                    onclick={() => {
+                      try {
+                        if (draft?.editing)
+                          throw new Error(
+                            "Finish or discard the saved payee edit before opening associated rules.",
+                          );
+                        if (draft) clearReferenceDraft(draft);
+                        onrules(row.id);
+                      } catch (e) {
+                        error = errorMessage(e);
+                      }
+                    }}
+                    disabled={locked}>Associated rules</button
+                  >{/if}
               </li>{/each}
           </ul>
         {:else if !busy}<p>No {kind} match this view.</p>{/if}

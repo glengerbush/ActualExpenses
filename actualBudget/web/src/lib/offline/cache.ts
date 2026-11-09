@@ -30,6 +30,7 @@ export interface BudgetCache {
   account_groups?: AccountGroup[];
   payees: Reference[];
   categories: Reference[];
+  associations?: Record<string, string>;
   preferences: SharedPreferences;
   epoch: string;
   generation: number;
@@ -159,11 +160,19 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
       data: { snapshot: string; epoch: string; generation: number };
     }>(`/budgets/${id}/checkpoint`);
     const cached = await readBudget(id).catch(() => null);
-    if (cached?.account_groups && cached.snapshot === checkpoint.snapshot) {
+    if (
+      cached?.account_groups &&
+      cached.associations &&
+      cached.snapshot === checkpoint.snapshot
+    ) {
       setReachable(true);
       return cached;
     }
-    if (cached?.account_groups && cached.epoch === checkpoint.epoch) {
+    if (
+      cached?.account_groups &&
+      cached.associations &&
+      cached.epoch === checkpoint.epoch
+    ) {
       try {
         const next = structuredClone(cached);
         let complete = false;
@@ -219,7 +228,7 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
       }
     }
     try {
-      const [accounts, payees, categories, prefs, account_groups] =
+      const [accounts, payees, categories, prefs, account_groups, info] =
         await Promise.all([
           request<{ data: Account[] }>(
             `/budgets/${id}/accounts?${new URLSearchParams({ snapshot: checkpoint.snapshot })}`,
@@ -232,7 +241,17 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
           request<{ data: AccountGroup[] }>(
             `/budgets/${id}/account-groups?${new URLSearchParams({ snapshot: checkpoint.snapshot })}`,
           ).then((response) => response.data),
+          request<{ data: { capabilities?: string[] } }>("/info"),
         ]);
+      const associations = info.data.capabilities?.includes(
+        "category_associations",
+      )
+        ? (
+            await request<{ data: Record<string, string> }>(
+              `/budgets/${id}/rules/associations?snapshot=${checkpoint.snapshot}`,
+            )
+          ).data
+        : {};
       if (!validShared(prefs.data))
         throw new Error("The server returned invalid display preferences.");
       setReachable(true);
@@ -244,6 +263,7 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
         account_groups,
         payees,
         categories,
+        associations,
         preferences: prefs.data,
         epoch: checkpoint.epoch,
         generation: checkpoint.generation,

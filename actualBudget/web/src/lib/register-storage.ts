@@ -21,6 +21,8 @@ export interface TransactionFields {
   newPayee: string;
   newCategory: string;
   categoryIncome: boolean;
+  categoryManual?: boolean;
+  manualCategory?: string;
 }
 export interface TransactionDraft {
   version: 1;
@@ -40,6 +42,10 @@ export interface TransactionDraft {
   attemptId?: string;
   budgetEpoch?: string;
   beganOnline?: boolean;
+  automaticRules?: boolean;
+  ruleSnapshot?: string;
+  ruleChildren?: Transaction[];
+  ruleDeleted?: boolean;
   replaces?: {
     key: string;
     revision: string;
@@ -108,7 +114,11 @@ export function validPending(
   )
     return false;
   const base = `/budgets/${budget}/transactions`;
-  if (value.method === "POST" && value.path === base)
+  if (
+    value.method === "POST" &&
+    (value.path === base ||
+      value.path === `/budgets/${budget}/rules/transactions`)
+  )
     return isObject(value.body) && uuid(value.body.id);
   const match = new RegExp(`^${base}/([0-9a-f-]{36})(/duplicate)?$`).exec(
     value.path,
@@ -217,7 +227,9 @@ function validDraft(value: unknown, budget: string): value is TransactionDraft {
     return false;
   const expected = `/budgets/${budget}/transactions${value.original ? `/${value.id}` : ""}`;
   return (
-    value.pending.path === expected &&
+    (value.pending.path === expected ||
+      (!value.original &&
+        value.pending.path === `/budgets/${budget}/rules/transactions`)) &&
     value.pending.method === (value.original ? "PATCH" : "POST") &&
     (value.original !== null ||
       (isObject(value.pending.body) && value.pending.body.id === value.id))

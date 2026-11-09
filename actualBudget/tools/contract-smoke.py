@@ -242,7 +242,7 @@ def main():
             check(imports + "/actual", imports + "/actual", "POST", b"invalid zip",
                   {"Content-Type": "application/zip", "Idempotency-Key": "invalid-stage"}, 422)
             blocked = check(imports + "/actual", imports + "/actual", "POST",
-                            (project / "tests/fixtures/import-unsupported-rule-26.10.0.zip").read_bytes(),
+                            (project / "tests/fixtures/rules-template-requirement-26.10.0.zip").read_bytes(),
                             {"Content-Type": "application/zip", "Idempotency-Key": "blocked-stage"}, 201)["data"]
             check(imports + "/" + blocked["id"] + "/activate", imports + "/{id}/activate", "POST", {},
                   {"Idempotency-Key": "blocked-activate"}, 409)
@@ -339,6 +339,34 @@ def main():
             check(history_path+"/undo",history_template+"/{direction}","POST",{"action_id":history["undo"]["id"]},{"Idempotency-Key":"owned-undo","X-Actual-History-Owner":history_owner})
             history=check(history_path,history_template,headers={"X-Actual-History-Owner":history_owner})["data"]
             check(history_path+"/redo",history_template+"/{direction}","POST",{"action_id":history["redo"]["id"]},{"Idempotency-Key":"owned-redo","X-Actual-History-Owner":history_owner})
+            # Rules use a separate disposable budget, preserving earlier financial examples.
+            rb, ra, rp, rc, rid, re = (str(uuid.uuid4()) for _ in range(6))
+            rr=f"{budgets}/{rb}"
+            rt=budgets+"/{budget}/rules"
+            check(budgets,budgets,"POST",{"id":rb,"name":"Rule contract"},{"Idempotency-Key":"rule-budget"},201)
+            check(rr+"/accounts",account_template,"POST",{"id":ra,"name":"Rule cash","opening_balance":0,"opening_date":"2026-01-01"},{"Idempotency-Key":"rule-account"},201)
+            check(rr+"/payees",budgets+"/{budget}/payees","POST",{"id":rp,"name":"Rule shop"},{"Idempotency-Key":"rule-payee"},201)
+            check(rr+"/categories",categories_template,"POST",{"id":rc,"name":"Rule food","is_income":False},{"Idempotency-Key":"rule-category"},201)
+            rule={"id":rid,"stage":None,"conditionsOp":"and","conditions":[{"field":"payee","op":"is","value":rp}],"actions":[{"op":"set","field":"category","value":rc}]}
+            snapshot=check(rr+"/rules",rt)["snapshot"]
+            check(rr+"/rules",rt,"POST",{**rule,"snapshot":snapshot},{"Idempotency-Key":"create-rule"},201)
+            check(rr+"/rules/"+rid,rt+"/{id}")
+            snapshot=check(rr+"/rules",rt)["snapshot"]
+            check(rr+"/rules/"+rid,rt+"/{id}","PATCH",{"snapshot":snapshot,"actions":[{"op":"set","field":"category","value":rc},{"op":"append-notes","value":" checked"}]},{"Idempotency-Key":"edit-rule"})
+            snapshot=check(rr+"/rules",rt)["snapshot"]
+            transaction={"id":re,"account_id":ra,"date":"2026-01-01","amount":-100,"payee_id":rp,"notes":"Manual"}
+            check(rr+"/rules/preview",rt+"/preview","POST",{"snapshot":snapshot,"transaction":transaction,"manual_entry":True})
+            check(rr+"/rules/transactions",rt+"/transactions","POST",{**transaction,"snapshot":snapshot},{"Idempotency-Key":"automatic-entry"},201)
+            snapshot=check(rr+"/rules",rt)["snapshot"]
+            check(rr+"/rules/preview",rt+"/preview","POST",{"snapshot":snapshot,"ids":[re]})
+            check(rr+"/rules/apply",rt+"/apply","POST",{"snapshot":snapshot,"ids":[re]},{"Idempotency-Key":"rule-apply"})
+            check(rr+"/rules/associations",rt+"/associations")
+            snapshot=check(rr+"/rules",rt)["snapshot"]
+            check(rr+"/rules/learning",rt+"/learning","POST",{"snapshot":snapshot,"enabled":False},{"Idempotency-Key":"rule-learning"})
+            snapshot=check(rr+"/rules",rt)["snapshot"]
+            check(rr+"/rules/rename-payee",rt+"/rename-payee","POST",{"snapshot":snapshot,"payee_id":rp,"imported_payees":["RAW SHOP"]},{"Idempotency-Key":"rule-rename"})
+            snapshot=check(rr+"/rules",rt)["snapshot"]
+            check(rr+"/rules/"+rid,rt+"/{id}","DELETE",{"snapshot":snapshot},{"Idempotency-Key":"delete-rule"})
             print("PASS: served OpenAPI schemas validate real success, validation, conflict, origin and missing-resource responses")
         finally:
             process.terminate()

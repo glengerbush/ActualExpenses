@@ -1631,9 +1631,38 @@ fn genuine_schema12_upgrade_preserves_settled_splits_receipts_sources_and_native
         "/api/v1/budgets/{}",
         fixture["active_budget"].as_str().unwrap()
     );
+    let mut current = s.get(&format!("{active}/transactions"));
+    let mut original = fixture["active_register"].clone();
+    let old = original["snapshot"].as_str().unwrap();
+    let fresh = current["snapshot"].as_str().unwrap();
+    assert_eq!(&old[..34], &fresh[..34], "Upgrade retains the cursor epoch");
+    assert!(
+        u64::from_str_radix(&fresh[34..], 16).unwrap()
+            > u64::from_str_radix(&old[34..], 16).unwrap()
+    );
+    let changes = s.get(&format!("{active}/changes?cursor={old}&limit=1000"));
+    assert_eq!(changes["has_more"], false);
+    assert_eq!(changes["next_cursor"], fresh);
+    let events = changes["data"].as_array().unwrap();
+    assert!(!events.is_empty());
+    assert!(
+        events.iter().all(|r| matches!(
+            r["entity"].as_str(),
+            Some("payees" | "rules" | "rule_settings")
+        )),
+        "{changes}"
+    );
+    assert!(
+        events
+            .iter()
+            .filter(|r| r["entity"] == "payees")
+            .all(|r| r["data"]["learn_categories"].is_boolean())
+    );
+    current.as_object_mut().unwrap().remove("snapshot");
+    original.as_object_mut().unwrap().remove("snapshot");
     assert_eq!(
-        s.get(&format!("{active}/transactions")),
-        fixture["active_register"]
+        current, original,
+        "Rules upgrade preserves every financial row, balance and ordering"
     );
     assert_eq!(
         s.get(&format!("{active}/accounts")),

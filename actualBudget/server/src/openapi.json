@@ -9610,6 +9610,9 @@
                   },
                   "favorite": {
                     "type": "boolean"
+                  },
+                  "learn_categories": {
+                    "type": "boolean"
                   }
                 },
                 "required": [],
@@ -14759,6 +14762,1886 @@
           }
         }
       }
+    },
+    "/api/v1/budgets/{budget}/rules": {
+      "get": {
+        "description": "Saved active rules ordered pre/default/post, ascending pinned specificity, then ID. Includes global learning, original clock and current epoch/snapshot.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "snapshot",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ChangeCursor"
+            }
+          },
+          {
+            "name": "payee_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmed result; original receipt replays unchanged for writes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Rule"
+                      }
+                    },
+                    "snapshot": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "epoch": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{32}$"
+                    },
+                    "learning_enabled": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid rule/command or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, clock, protected graph, receipt identity, or financial invariant conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Retained action requires ticket21 or42 capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Create one saved rule with immutable receipt and optional owned history.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable original request identity. Exact original status/body replays before epoch/snapshot/clock checks. Different payload/owner/clock conflicts."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Return original receipt, or atomically record operation_canceled before any rule/financial/learning change. Keep original payload/key/clock/owner/epoch."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-Receipt-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Read exact original rule receipt; unknown operation returns operation_uncommitted without executing or consuming its key."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Confirmed result; original receipt replays unchanged for writes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Rule"
+                    },
+                    "snapshot": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "epoch": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{32}$"
+                    },
+                    "learning_enabled": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid rule/command or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, clock, protected graph, receipt identity, or financial invariant conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Retained action requires ticket21 or42 capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                  },
+                  "stage": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "pre",
+                      "post",
+                      null
+                    ]
+                  },
+                  "conditionsOp": {
+                    "type": "string",
+                    "enum": [
+                      "and",
+                      "or"
+                    ]
+                  },
+                  "conditions": {
+                    "type": "array",
+                    "maxItems": 32,
+                    "items": {
+                      "$ref": "#/components/schemas/RuleCondition"
+                    }
+                  },
+                  "actions": {
+                    "type": "array",
+                    "maxItems": 64,
+                    "items": {
+                      "$ref": "#/components/schemas/RuleAction"
+                    }
+                  },
+                  "snapshot": {
+                    "$ref": "#/components/schemas/ChangeCursor"
+                  }
+                },
+                "required": [
+                  "id",
+                  "conditionsOp",
+                  "conditions",
+                  "actions",
+                  "snapshot"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/rules/{id}": {
+      "get": {
+        "description": "Retained rule identity including tombstone and field versions.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmed result; original receipt replays unchanged for writes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/RuleRecord"
+                    },
+                    "snapshot": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "epoch": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{32}$"
+                    },
+                    "learning_enabled": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid rule/command or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, clock, protected graph, receipt identity, or financial invariant conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Retained action requires ticket21 or42 capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "description": "Patch only edited fields. Equal/older clocks refuse atomically. Client retained drafts must not replace untouched fields after refresh.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable original request identity. Exact original status/body replays before epoch/snapshot/clock checks. Different payload/owner/clock conflicts."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Return original receipt, or atomically record operation_canceled before any rule/financial/learning change. Keep original payload/key/clock/owner/epoch."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-Receipt-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Read exact original rule receipt; unknown operation returns operation_uncommitted without executing or consuming its key."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmed result; original receipt replays unchanged for writes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/RuleRecord"
+                    },
+                    "snapshot": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "epoch": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{32}$"
+                    },
+                    "learning_enabled": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid rule/command or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, clock, protected graph, receipt identity, or financial invariant conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Retained action requires ticket21 or42 capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "stage": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "pre",
+                      "post",
+                      null
+                    ]
+                  },
+                  "conditionsOp": {
+                    "type": "string",
+                    "enum": [
+                      "and",
+                      "or"
+                    ]
+                  },
+                  "conditions": {
+                    "type": "array",
+                    "maxItems": 32,
+                    "items": {
+                      "$ref": "#/components/schemas/RuleCondition"
+                    }
+                  },
+                  "actions": {
+                    "type": "array",
+                    "maxItems": 64,
+                    "items": {
+                      "$ref": "#/components/schemas/RuleAction"
+                    }
+                  },
+                  "snapshot": {
+                    "$ref": "#/components/schemas/ChangeCursor"
+                  }
+                },
+                "required": [
+                  "snapshot"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Retain a rule tombstone. Any equal/newer field version refuses deletion.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable original request identity. Exact original status/body replays before epoch/snapshot/clock checks. Different payload/owner/clock conflicts."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Return original receipt, or atomically record operation_canceled before any rule/financial/learning change. Keep original payload/key/clock/owner/epoch."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-Receipt-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Read exact original rule receipt; unknown operation returns operation_uncommitted without executing or consuming its key."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmed result; original receipt replays unchanged for writes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/RuleRecord"
+                    },
+                    "snapshot": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "epoch": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{32}$"
+                    },
+                    "learning_enabled": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid rule/command or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, clock, protected graph, receipt identity, or financial invariant conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Retained action requires ticket21 or42 capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "snapshot": {
+                    "$ref": "#/components/schemas/ChangeCursor"
+                  }
+                },
+                "required": [
+                  "snapshot"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/rules/preview": {
+      "post": {
+        "description": "Read-only exact-snapshot preview. Choose one draft transaction or ledger candidates; choose draft rule or saved rule IDs. Candidate maximum10000; one shared64MiB regex budget. manual_entry uses pinned desktop empty-field/manual-note protection. No payee creation, learning, receipts or clocks advance.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmed result; original receipt replays unchanged for writes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/RulePreview"
+                    },
+                    "snapshot": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "epoch": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{32}$"
+                    },
+                    "learning_enabled": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid rule/command or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, clock, protected graph, receipt identity, or financial invariant conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Retained action requires ticket21 or42 capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "snapshot": {
+                    "$ref": "#/components/schemas/ChangeCursor"
+                  },
+                  "rule_ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 1000,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                    }
+                  },
+                  "ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                    }
+                  },
+                  "rule": {
+                    "$ref": "#/components/schemas/Rule"
+                  },
+                  "transaction": {
+                    "type": "object"
+                  },
+                  "account_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                  },
+                  "offset": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10000
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 500,
+                    "default": 100
+                  },
+                  "manual_entry": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                },
+                "required": [
+                  "snapshot"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/rules/apply": {
+      "post": {
+        "description": "Re-evaluate selected saved rules on1\u2013100 captured ledger rows. One atomic receipt/history group covers all rows, generated peers/payees and splits; one shared work budget. Reconciled graph members require explicit unlock and a fresh preview. Never trains category defaults.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable original request identity. Exact original status/body replays before epoch/snapshot/clock checks. Different payload/owner/clock conflicts."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Return original receipt, or atomically record operation_canceled before any rule/financial/learning change. Keep original payload/key/clock/owner/epoch."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-Receipt-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Read exact original rule receipt; unknown operation returns operation_uncommitted without executing or consuming its key."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmed result; original receipt replays unchanged for writes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object"
+                    },
+                    "snapshot": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "epoch": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{32}$"
+                    },
+                    "learning_enabled": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid rule/command or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, clock, protected graph, receipt identity, or financial invariant conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Retained action requires ticket21 or42 capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "snapshot": {
+                    "$ref": "#/components/schemas/ChangeCursor"
+                  },
+                  "rule_ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 1000,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                    }
+                  },
+                  "ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                    }
+                  }
+                },
+                "required": [
+                  "snapshot",
+                  "ids"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/rules/learning": {
+      "post": {
+        "description": "Change global learning or one payee setting without removing existing defaults. Equal/older clocks refuse. Manual explicit truthy category writes can train recent majority; inferred rules/previews/native/undo/replay never teach.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable original request identity. Exact original status/body replays before epoch/snapshot/clock checks. Different payload/owner/clock conflicts."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Return original receipt, or atomically record operation_canceled before any rule/financial/learning change. Keep original payload/key/clock/owner/epoch."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-Receipt-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Read exact original rule receipt; unknown operation returns operation_uncommitted without executing or consuming its key."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmed result; original receipt replays unchanged for writes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object"
+                    },
+                    "snapshot": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "epoch": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{32}$"
+                    },
+                    "learning_enabled": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid rule/command or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, clock, protected graph, receipt identity, or financial invariant conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Retained action requires ticket21 or42 capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "snapshot": {
+                    "$ref": "#/components/schemas/ChangeCursor"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "payee_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                  }
+                },
+                "required": [
+                  "snapshot",
+                  "enabled"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/rules/rename-payee": {
+      "post": {
+        "description": "Union nonempty raw imported names into an existing pre-stage oneOf\u2192payee setter, or create one. Canonical merged payee IDs are resolved. One original receipt/history action.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable original request identity. Exact original status/body replays before epoch/snapshot/clock checks. Different payload/owner/clock conflicts."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Return original receipt, or atomically record operation_canceled before any rule/financial/learning change. Keep original payload/key/clock/owner/epoch."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-Receipt-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Read exact original rule receipt; unknown operation returns operation_uncommitted without executing or consuming its key."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmed result; original receipt replays unchanged for writes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/RuleRecord"
+                    },
+                    "snapshot": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "epoch": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{32}$"
+                    },
+                    "learning_enabled": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid rule/command or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, clock, protected graph, receipt identity, or financial invariant conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Retained action requires ticket21 or42 capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "snapshot": {
+                    "$ref": "#/components/schemas/ChangeCursor"
+                  },
+                  "payee_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                  },
+                  "imported_payees": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "items": {
+                      "type": "string",
+                      "maxLength": 10000
+                    }
+                  }
+                },
+                "required": [
+                  "snapshot",
+                  "payee_id",
+                  "imported_payees"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/rules/associations": {
+      "get": {
+        "description": "Snapshot-fenced simple native/offline projection: one default payee-is condition and one whole-transaction category-set action. Live valid visible expense categories only; ambiguous or child-only setters are excluded. This is a cache suggestion, not full rule execution.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "snapshot",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ChangeCursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmed result; original receipt replays unchanged for writes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                      }
+                    },
+                    "snapshot": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "epoch": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{32}$"
+                    },
+                    "learning_enabled": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid rule/command or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, clock, protected graph, receipt identity, or financial invariant conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Retained action requires ticket21 or42 capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/rules/transactions": {
+      "post": {
+        "description": "Opted-in automatic browser entry. Apply pinned desktop manual-value protection and save financial rows/generated counterparts/payees/splits and explicit learning in one receipt/history action. Counterparts execute the full chain but persist only notes/cleared, without recursive graph generation. Legacy/native transaction endpoints do not execute the full engine.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable original request identity. Exact original status/body replays before epoch/snapshot/clock checks. Different payload/owner/clock conflicts."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Return original receipt, or atomically record operation_canceled before any rule/financial/learning change. Keep original payload/key/clock/owner/epoch."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-Receipt-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Read exact original rule receipt; unknown operation returns operation_uncommitted without executing or consuming its key."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Confirmed result; original receipt replays unchanged for writes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/AutomaticRuleTransaction"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                            },
+                            "deleted": {
+                              "const": true
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "deleted"
+                          ],
+                          "additionalProperties": true
+                        }
+                      ]
+                    },
+                    "snapshot": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "epoch": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{32}$"
+                    },
+                    "learning_enabled": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid rule/command or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, clock, protected graph, receipt identity, or financial invariant conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Retained action requires ticket21 or42 capability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                  },
+                  "account_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                  },
+                  "amount": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+                  },
+                  "date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "cleared": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 10000,
+                    "default": ""
+                  },
+                  "payee_id": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "category_id": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "new_payee": {
+                    "$ref": "#/components/schemas/NewPayee"
+                  },
+                  "new_category": {
+                    "$ref": "#/components/schemas/NewCategory"
+                  },
+                  "learn_categories": {
+                    "type": "boolean",
+                    "description": "Explicit manual category-write evidence only; omitted/false never learns. Requires enabled global and per-payee learning. Inferred rule results must not set this flag."
+                  },
+                  "snapshot": {
+                    "$ref": "#/components/schemas/ChangeCursor"
+                  }
+                },
+                "required": [
+                  "id",
+                  "account_id",
+                  "amount",
+                  "date",
+                  "snapshot"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -15334,6 +17217,10 @@
           },
           "field_versions": {
             "$ref": "#/components/schemas/FieldVersions"
+          },
+          "learn_categories": {
+            "type": "boolean",
+            "default": true
           }
         },
         "required": [
@@ -15474,6 +17361,10 @@
           },
           "new_category": {
             "$ref": "#/components/schemas/NewCategory"
+          },
+          "learn_categories": {
+            "type": "boolean",
+            "description": "Explicit manual category-write evidence only; omitted/false never learns. Requires enabled global and per-payee learning. Inferred rule results must not set this flag."
           }
         },
         "required": [
@@ -15555,6 +17446,10 @@
           },
           "transfer_protection_token": {
             "$ref": "#/components/schemas/TransferProtectionToken"
+          },
+          "learn_categories": {
+            "type": "boolean",
+            "description": "Explicit manual category-write evidence only; omitted/false never learns. Requires enabled global and per-payee learning. Inferred rule results must not set this flag."
           }
         },
         "required": [],
@@ -16693,6 +18588,46 @@
                       }
                     }
                   }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "rules"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/RuleRecord"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "rule_settings"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/RuleSettings"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
                 }
               ]
             }
@@ -16969,7 +18904,19 @@
                     },
                     "reason": {
                       "type": "string"
-                    }
+                    },
+                    "rule_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "ticket": {
+                      "type": "integer",
+                      "enum": [
+                        21,
+                        42
+                      ]
+                    },
+                    "raw": {}
                   }
                 }
               },
@@ -17132,7 +19079,9 @@
                   12,
                   13,
                   14,
-                  15
+                  15,
+                  16,
+                  17
                 ]
               },
               "domains": {
@@ -18523,6 +20472,538 @@
             }
           }
         }
+      },
+      "RuleCondition": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "enum": [
+              "date",
+              "account",
+              "payee",
+              "category",
+              "category_group",
+              "notes",
+              "imported_payee",
+              "payee_name",
+              "amount",
+              "cleared",
+              "reconciled",
+              "transfer",
+              "parent"
+            ]
+          },
+          "op": {
+            "type": "string",
+            "enum": [
+              "is",
+              "isNot",
+              "oneOf",
+              "notOneOf",
+              "contains",
+              "doesNotContain",
+              "matches",
+              "hasTags",
+              "hasAnyTag",
+              "isapprox",
+              "isbetween",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "onBudget",
+              "offBudget"
+            ]
+          },
+          "value": {},
+          "options": {
+            "type": "object",
+            "properties": {
+              "inflow": {
+                "type": "boolean"
+              },
+              "outflow": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "type": {}
+        },
+        "required": [
+          "field",
+          "op",
+          "value"
+        ],
+        "additionalProperties": false,
+        "description": "Operators/values are checked against their field. Dates support YYYY-MM-DD/month/year and retained recurrence objects. Money uses exact minor units; ranges use num1/num2. ID operators allow null with pinned ECMAScript coercion. Empty conditions never match."
+      },
+      "RuleAction": {
+        "type": "object",
+        "properties": {
+          "op": {
+            "type": "string",
+            "enum": [
+              "set",
+              "prepend-notes",
+              "append-notes",
+              "delete-transaction",
+              "set-split-amount",
+              "link-schedule"
+            ]
+          },
+          "field": {
+            "type": "string",
+            "enum": [
+              "category",
+              "payee",
+              "payee_name",
+              "notes",
+              "cleared",
+              "account",
+              "date",
+              "amount"
+            ]
+          },
+          "value": {},
+          "options": {
+            "type": "object",
+            "properties": {
+              "splitIndex": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "fixed-amount",
+                  "fixed-percent",
+                  "remainder",
+                  "formula"
+                ]
+              },
+              "template": {
+                "type": "string"
+              },
+              "formula": {
+                "type": "string"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          },
+          "type": {}
+        },
+        "required": [
+          "op"
+        ],
+        "additionalProperties": false,
+        "description": "Normal set/notes/delete/split actions execute now. Raw templates/formulas require ticket42; schedule links require ticket21 and block activation/execution. Text joins without implicit separators. Explicit apply follows pinned action parser options; live automatic entry follows rules-run. Invalid split/paired aggregate results refuse the entire command."
+      },
+      "Rule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "stage": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "pre",
+              "post",
+              null
+            ]
+          },
+          "conditionsOp": {
+            "type": "string",
+            "enum": [
+              "and",
+              "or"
+            ]
+          },
+          "conditions": {
+            "type": "array",
+            "maxItems": 32,
+            "items": {
+              "$ref": "#/components/schemas/RuleCondition"
+            }
+          },
+          "actions": {
+            "type": "array",
+            "maxItems": 64,
+            "items": {
+              "$ref": "#/components/schemas/RuleAction"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "conditionsOp",
+          "conditions",
+          "actions"
+        ],
+        "additionalProperties": false
+      },
+      "RuleRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "stage": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "pre",
+              "post",
+              null
+            ]
+          },
+          "conditionsOp": {
+            "type": "string",
+            "enum": [
+              "and",
+              "or"
+            ]
+          },
+          "conditions": {
+            "type": "array",
+            "maxItems": 32,
+            "items": {
+              "$ref": "#/components/schemas/RuleCondition"
+            }
+          },
+          "actions": {
+            "type": "array",
+            "maxItems": 64,
+            "items": {
+              "$ref": "#/components/schemas/RuleAction"
+            }
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "field_versions": {
+            "$ref": "#/components/schemas/FieldVersions"
+          }
+        },
+        "required": [
+          "id",
+          "stage",
+          "conditionsOp",
+          "conditions",
+          "actions",
+          "deleted",
+          "field_versions"
+        ],
+        "additionalProperties": false
+      },
+      "RulePreviewEntry": {
+        "type": "object",
+        "properties": {
+          "before": {
+            "type": "object"
+          },
+          "after": {
+            "type": "object",
+            "description": "Virtual projection, including planned payees, children or deleted flag; preview never writes these resources."
+          },
+          "matched_rule_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        },
+        "required": [
+          "before",
+          "after",
+          "matched_rule_ids"
+        ],
+        "additionalProperties": false
+      },
+      "RulePreview": {
+        "type": "object",
+        "properties": {
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RulePreviewEntry"
+            }
+          },
+          "candidate_count": {
+            "type": "integer"
+          },
+          "total_count": {
+            "type": "integer"
+          },
+          "next_offset": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "transfer_protection_token": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "protected_count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "transactions",
+          "candidate_count",
+          "total_count",
+          "next_offset",
+          "snapshot",
+          "epoch",
+          "transfer_protection_token",
+          "protected_count"
+        ],
+        "additionalProperties": false
+      },
+      "AutomaticRuleTransaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "account_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "cleared": {
+            "type": "boolean"
+          },
+          "reconciled": {
+            "type": "boolean"
+          },
+          "starting_balance": {
+            "type": "boolean"
+          },
+          "payee_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "payee_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_is_income": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "account_name": {
+            "type": "string"
+          },
+          "running_balance": {
+            "type": "integer",
+            "description": "Chronological balance across this register scope; null if the intermediate amount exceeds exact JSON monetary range."
+          },
+          "field_versions": {
+            "$ref": "#/components/schemas/FieldVersions"
+          },
+          "deleted": {
+            "type": "boolean",
+            "description": "Automatic entry always reports whether the rule discarded this entry."
+          },
+          "sort_order": {
+            "type": "integer",
+            "description": "Stable display ordering on fresh reads and new mutation outcomes. Historical exact receipt replays may omit it."
+          },
+          "imported_payee": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retained_payee_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Retained identity for history, including removed payees. payee_id is null after removal; imported_payee never changes during payee management."
+          },
+          "transfer_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "is_parent": {
+            "type": "boolean"
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            },
+            "description": "Active child allocations in stable split order. Parent totals count once in registers; reports use children instead of the parent."
+          },
+          "transfer_account_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Account of the linked counterpart, when linked."
+          },
+          "category_group_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "running_balance_error": {
+            "type": "string",
+            "enum": [
+              "exact_money_range"
+            ],
+            "description": "Present only when an intermediate running balance cannot be represented as an exact safe JSON integer; page and final totals remain available."
+          }
+        },
+        "required": [
+          "id",
+          "account_id",
+          "amount",
+          "date",
+          "cleared",
+          "reconciled",
+          "starting_balance",
+          "payee_id",
+          "payee_name",
+          "category_id",
+          "category_name",
+          "category_is_income",
+          "notes",
+          "account_name"
+        ],
+        "additionalProperties": false
+      },
+      "RuleSettings": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "const": "learning"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "deleted": {
+            "const": false
+          }
+        },
+        "required": [
+          "id",
+          "enabled",
+          "deleted"
+        ],
+        "additionalProperties": false
       }
     }
   }

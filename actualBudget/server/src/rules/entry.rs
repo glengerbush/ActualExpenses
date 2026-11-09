@@ -61,7 +61,8 @@ pub(super) async fn create(
             before["is_parent"]=json!(false);before["parent_id"]=Value::Null;
             for (new,field) in [("new_payee","payee_id"),("new_category","category_id")] {if before[new].is_object(){before[field]=before[new]["id"].clone();}}
             before["payee_name"]=if before["new_payee"].is_object(){before["new_payee"]["name"].clone()}else if let Some(payee)=before["payee_id"].as_str(){json!(crate::payees_tags::record(db,&b,"payees",payee)?["name"])}else{Value::Null};
-            let (after,matched)=engine::Runner::new(load(db,&b)?).evaluate(db,&b,&before)?;
+            let mut runner=engine::Runner::new(load(db,&b)?);
+            let (after,matched)=runner.evaluate(db,&b,&before)?;
             let mut after=protect(&before,&after);
             let clock=sync::clock(db,&b,proposed.as_deref())?;
             if after["deleted"]==true{return Ok(json!({"response_status":201,"response_body":{"data":after,"snapshot":sync::cursor(db,&b)?,"edit_clock":clock}}));}
@@ -77,15 +78,48 @@ pub(super) async fn create(
             after.as_object_mut().unwrap().remove("new_payee");
             if after["is_parent"]==true {
                 let before=crate::ledger::get(db,&b,&id)?;
-                plan::commit(db,&b,&[id.clone()],vec![plan::Entry{before,after,matched_rule_ids:matched}],&clock,epoch.as_deref(),Some(&id))?;
+                plan::commit(db,&b,std::slice::from_ref(&id),vec![plan::Entry{before,after,matched_rule_ids:matched}],&clock,epoch.as_deref(),plan::Command{created:Some(&id),work:runner.into_work()})?;
             }else if let Some(destination)=transfer {
                 let peer=super::actions::identity(&["actualBudget.rule-entry-pair.v1",&b,&id]);
                 crate::transfers::composition::save_child(db,&b,&id,&destination,&peer,&clock,None)?;
+                peer_rules(db,&b,&peer,&clock,&mut runner)?;
             }
-            if learn{learning::manual(db,&b,&[id.clone()],&clock)?;}
+            if learn{learning::manual(db,&b,std::slice::from_ref(&id),&clock)?;}
             let mut saved=crate::ledger::get_any(db,&b,&id)?;
             saved["deleted"]=json!(db.query_row("SELECT tombstone FROM transactions WHERE budget_id=?1 AND id=?2",params![b,id],|r|r.get::<_,bool>(0))?);
             Ok(json!({"response_status":201,"response_body":{"data":saved,"snapshot":sync::cursor(db,&b)?,"edit_clock":clock}}))
         })
     }).await
+}
+
+/// Only newly inserted counterparts enter here. Actual transfer.addTransfer
+/// executes the whole chain, but persists only notes and cleared from it.
+pub(super) fn peer_rules(
+    db: &Connection,
+    b: &str,
+    id: &str,
+    clock: &str,
+    runner: &mut engine::Runner,
+) -> Result<(), Error> {
+    let before = crate::ledger::get(db, b, id)?;
+    let (after, _) = runner.evaluate(db, b, &before)?;
+    let notes = after["notes"].as_str().unwrap_or("");
+    if notes.chars().count() > 10000 {
+        return Err(Error::invalid("Rule notes exceed10000 characters"));
+    }
+    let cleared = after["cleared"]
+        .as_bool()
+        .ok_or_else(|| Error::invalid("Invalid counterpart cleared result"))?;
+    if before["notes"] != notes || before["cleared"] != cleared {
+        db.execute(
+            "UPDATE transactions SET notes=?3,cleared=?4 WHERE budget_id=?1 AND id=?2",
+            params![b, id, notes, cleared],
+        )?;
+        for field in ["notes", "cleared"] {
+            sync::seed_field_version(db, b, "transactions", id, field, clock)?;
+        }
+        sync::mark(db, b, "transactions", id)?;
+        crate::ledger::refresh_account(db, b, before["account_id"].as_str().unwrap())?;
+    }
+    Ok(())
 }

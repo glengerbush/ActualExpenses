@@ -33,6 +33,7 @@ export interface Reference {
   id: string;
   name: string;
   transfer_account_id?: string | null;
+  learn_categories?: boolean;
   is_income?: boolean;
   hidden?: boolean;
   group_hidden?: boolean;

@@ -151,6 +151,7 @@ try {
   {name:'parent targets child amount',actions:[{op:'set',field:'amount',value:-55,options:{splitIndex:1}}],split:true,parent:true,both:false},
   {name:'parent targets child notes',actions:[{op:'append-notes',value:' / allocation',options:{splitIndex:1}}],split:true,parent:true,both:false},
   {name:'ordinary becomes exact split',actions:[{op:'set-split-amount',value:-40,options:{splitIndex:1,method:'fixed-amount'}},{op:'set-split-amount',value:null,options:{splitIndex:2,method:'remainder'}}],both:false},
+  {name:'generated peers run their whole chain but retain financial amounts',peer_rules:true,actions:[{op:'set-split-amount',value:-40,options:{splitIndex:1,method:'fixed-amount'}},{op:'set-split-amount',value:null,options:{splitIndex:2,method:'remainder'}}],both:false},
  ];
  for(const [index,c] of financialCases.entries()) {
   let cash,other;
@@ -158,7 +159,11 @@ try {
   const payee=(await api.getPayees()).find(p=>p.transfer_acct===other).id;
   const root=identity(30000+index*100),childId=identity(30001+index*100),otherChild=identity(30002+index*100);
   await api.addTransactions(cash,[c.split?{id:root,date:'2026-11-08',amount:-200,notes:'Parent',subtransactions:[{id:childId,amount:-100,payee,notes:'Pair'},{id:otherChild,amount:-100,notes:'Other child'}]}:{id:root,date:'2026-11-08',amount:-100,payee,notes:'Pair'}],{runTransfers:true});
-  async function state(){const left=await api.getTransactions(cash),right=await api.getTransactions(other);const flat=[...left.flatMap(r=>[r,...(r.subtransactions??[])]),...right.flatMap(r=>[r,...(r.subtransactions??[])])];return {cash:left.map(r=>({amount:r.amount,date:r.date,cleared:!!r.cleared,notes:r.notes??'',children:(r.subtransactions??[]).map(c=>({amount:c.amount,date:c.date,cleared:!!c.cleared,notes:c.notes??'',paired:!!c.transfer_id}))})),other:right.map(r=>({amount:r.amount,date:r.date,cleared:!!r.cleared,notes:r.notes??'',paired:!!r.transfer_id})),balances:[await api.getAccountBalance(cash),await api.getAccountBalance(other)],reciprocal_balanced:flat.filter(r=>r.transfer_id).every(r=>flat.some(p=>p.id===r.transfer_id&&p.transfer_id===r.id&&p.amount===-r.amount))};}
+  async function state(){const left=await api.getTransactions(cash),right=await api.getTransactions(other);const flat=[...left.flatMap(r=>[r,...(r.subtransactions??[])]),...right.flatMap(r=>[r,...(r.subtransactions??[])])];return {cash:left.map(r=>({amount:r.amount,date:r.date,cleared:!!r.cleared,notes:r.notes??'',children:(r.subtransactions??[]).map(c=>({amount:c.amount,date:c.date,cleared:!!c.cleared,notes:c.notes??'',paired:!!c.transfer_id}))})),other:right.map(r=>({amount:r.amount,date:r.date,cleared:!!r.cleared,notes:r.notes??'',paired:!!r.transfer_id})).sort((a,b)=>a.amount-b.amount||a.date.localeCompare(b.date)||a.notes.localeCompare(b.notes)),balances:[await api.getAccountBalance(cash),await api.getAccountBalance(other)],reciprocal_balanced:flat.filter(r=>r.transfer_id).every(r=>flat.some(p=>p.id===r.transfer_id&&p.transfer_id===r.id&&p.amount===-r.amount))};}
+  if(c.peer_rules){
+   await engine.send('rule-add',{id:identity(40000+index*100),stage:'pre',conditionsOp:'and',conditions:[{field:'account',op:'is',value:other}],actions:[{op:'append-notes',value:' / peer'},{op:'set',field:'cleared',value:true},{op:'set',field:'amount',value:999}]});
+   await engine.send('rule-add',{id:identity(40001+index*100),stage:'post',conditionsOp:'and',conditions:[{field:'account',op:'is',value:other},{field:'amount',op:'is',value:999}],actions:[{op:'append-notes',value:' / observed'}]});
+  }
   const initial=await state();const left=await api.getTransactions(cash),right=await api.getTransactions(other);const selected=[c.split&&!c.parent?left[0].subtransactions.find(r=>r.id===childId):left[0],...(c.both?[right[0]]:[])];assert.ok(selected.every(Boolean),c.name);
   financialArchives.push(await api.exportBudget());
   const applied=await engine.send('rule-apply-actions',{transactions:selected,actions:c.actions});assert.ok(applied&&Array.isArray(applied.errors),c.name);const after=await state();

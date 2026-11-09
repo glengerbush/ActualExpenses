@@ -829,7 +829,15 @@ fn financial_state(s: &Server, root: &str) -> Value {
             flat.extend(children);
         }
     }
-    json!({"cash":left.into_iter().map(|r|json!({"amount":r["amount"],"date":r["date"],"cleared":r["cleared"],"notes":r["notes"],"children":r["children"].as_array().map(|cs|cs.iter().map(|c|json!({"amount":c["amount"],"date":c["date"],"cleared":c["cleared"],"notes":c["notes"],"paired":c["transfer_id"].is_string()})).collect::<Vec<_>>()).unwrap_or_default()})).collect::<Vec<_>>(),"other":right.into_iter().map(|r|json!({"amount":r["amount"],"date":r["date"],"cleared":r["cleared"],"notes":r["notes"],"paired":r["transfer_id"].is_string()})).collect::<Vec<_>>(),"balances":[cash["balance"].clone(),other["balance"].clone()],"reciprocal_balanced":flat.iter().filter(|r|r["transfer_id"].is_string()).all(|r|flat.iter().any(|p|p["id"]==r["transfer_id"]&&p["transfer_id"]==r["id"]&&p["amount"].as_i64()==r["amount"].as_i64().map(|v|-v)))})
+    let mut state = json!({"cash":left.into_iter().map(|r|json!({"amount":r["amount"],"date":r["date"],"cleared":r["cleared"],"notes":r["notes"],"children":r["children"].as_array().map(|cs|cs.iter().map(|c|json!({"amount":c["amount"],"date":c["date"],"cleared":c["cleared"],"notes":c["notes"],"paired":c["transfer_id"].is_string()})).collect::<Vec<_>>()).unwrap_or_default()})).collect::<Vec<_>>(),"other":right.into_iter().map(|r|json!({"amount":r["amount"],"date":r["date"],"cleared":r["cleared"],"notes":r["notes"],"paired":r["transfer_id"].is_string()})).collect::<Vec<_>>(),"balances":[cash["balance"].clone(),other["balance"].clone()],"reciprocal_balanced":flat.iter().filter(|r|r["transfer_id"].is_string()).all(|r|flat.iter().any(|p|p["id"]==r["transfer_id"]&&p["transfer_id"]==r["id"]&&p["amount"].as_i64()==r["amount"].as_i64().map(|v|-v)))});
+    state["other"].as_array_mut().unwrap().sort_by_key(|r| {
+        (
+            r["amount"].as_i64().unwrap(),
+            r["date"].as_str().unwrap().to_owned(),
+            r["notes"].as_str().unwrap().to_owned(),
+        )
+    });
+    state
 }
 #[test]
 fn persisted_transfer_rule_oracle_preserves_valid_pairs_and_refuses_contradictory_amounts_atomically()
@@ -1158,4 +1166,226 @@ fn automatic_entry_is_one_atomic_owned_action_with_manual_values_and_exact_repla
         .unwrap();
     assert_eq!(undo.status(), 200, "{}", undo.text().unwrap());
     assert_eq!(s.get(&format!("{root}/transactions/{E}")).status(), 404);
+}
+
+#[test]
+fn rules_contract_cancellation_lookup_and_field_clocks_keep_original_intent() {
+    let (s, root) = setup();
+    let spec = s.get("/api/v1/openapi.json").json::<Value>().unwrap();
+    for suffix in [
+        "",
+        "/{id}",
+        "/preview",
+        "/apply",
+        "/learning",
+        "/associations",
+        "/rename-payee",
+        "/transactions",
+    ] {
+        assert!(spec["paths"][format!("/api/v1/budgets/{{budget}}/rules{suffix}")].is_object());
+    }
+    let info = s.get("/api/v1/info").json::<Value>().unwrap();
+    assert!(
+        info["data"]["capabilities"]
+            .as_array()
+            .unwrap()
+            .contains(&json!("rule_entry"))
+    );
+    let clock = chrono::DateTime::<chrono::Utc>::from(std::time::SystemTime::now())
+        .to_rfc3339_opts(chrono::SecondsFormat::Millis, true);
+    let a = format!("{clock}-0001-0000000000000019");
+    let b = format!("{clock}-0002-0000000000000019");
+    let body = json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"amount","op":"lt","value":0}],"actions":[{"op":"append-notes","value":" original"}],"snapshot":cursor(&s,&root)});
+    let post = |key: &str, lookup: bool, cancel: bool| {
+        let mut r = s
+            .client
+            .post(format!("{}{root}/rules", s.url))
+            .header("Idempotency-Key", key)
+            .header("X-Actual-Edit-Clock", &a)
+            .header("X-Actual-History-Owner", OWNER)
+            .json(&body);
+        if lookup {
+            r = r.header("X-Actual-Receipt-Only", "true");
+        }
+        if cancel {
+            r = r.header("X-Actual-Cancel-If-Uncommitted", "true");
+        }
+        r.send().unwrap()
+    };
+    let before = cursor(&s, &root);
+    let canceled = post("cancel", false, true);
+    assert_eq!(canceled.status(), 409);
+    assert_eq!(
+        canceled.json::<Value>().unwrap()["error"]["code"],
+        "operation_canceled"
+    );
+    assert_eq!(post("cancel", false, false).status(), 409);
+    assert_eq!(cursor(&s, &root), before);
+    let absent = post("create", true, false);
+    assert_eq!(absent.status(), 404);
+    assert_eq!(
+        absent.json::<Value>().unwrap()["error"]["code"],
+        "operation_uncommitted"
+    );
+    assert_eq!(cursor(&s, &root), before);
+    let created = post("create", false, false);
+    assert_eq!(created.status(), 201, "{}", created.text().unwrap());
+    let original = created.json::<Value>().unwrap();
+    assert_eq!(
+        post("create", true, false).json::<Value>().unwrap(),
+        original
+    );
+    let newer =
+        json!({"snapshot":cursor(&s,&root),"actions":[{"op":"append-notes","value":" winning"}]});
+    let r = s
+        .client
+        .patch(format!("{}{root}/rules/{R}", s.url))
+        .header("Idempotency-Key", "winning")
+        .header("X-Actual-Edit-Clock", &b)
+        .json(&newer)
+        .send()
+        .unwrap();
+    assert_eq!(r.status(), 200);
+    for clock in [&a, &b] {
+        let before = cursor(&s, &root);
+        let r = s
+            .client
+            .patch(format!("{}{root}/rules/{R}", s.url))
+            .header("Idempotency-Key", format!("stale{clock}"))
+            .header("X-Actual-Edit-Clock", clock)
+            .json(&json!({"snapshot":before,"actions":[{"op":"append-notes","value":" stale"}]}))
+            .send()
+            .unwrap();
+        assert_eq!(r.status(), 409, "{}", r.text().unwrap());
+        assert_eq!(cursor(&s, &root), before);
+    }
+    let current = s.get(&format!("{root}/rules/{R}")).json::<Value>().unwrap();
+    assert_eq!(current["data"]["actions"][0]["value"], " winning");
+    assert_eq!(current["data"]["field_versions"]["actions"], b);
+    let malformed=s.post(&format!("{root}/rules/preview"),"bad",json!({"snapshot":cursor(&s,&root),"transaction":{"id":E,"account_id":A,"amount":"wrong","date":"2026-01-01"}}));
+    assert_eq!(malformed.status(), 400);
+    assert_eq!(
+        s.post(
+            &format!("{root}/payees"),
+            "rename-target",
+            json!({"id":F,"name":"Target"})
+        )
+        .status(),
+        201
+    );
+    let mut rename_id = Value::Null;
+    for (key, names) in [
+        ("renameA", json!(["RAW", ""])),
+        ("renameB", json!(["RAW", "OTHER"])),
+    ] {
+        let r = s.post(
+            &format!("{root}/rules/rename-payee"),
+            key,
+            json!({"snapshot":cursor(&s,&root),"payee_id":F,"imported_payees":names}),
+        );
+        assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+        let r = r.json::<Value>().unwrap();
+        if rename_id.is_null() {
+            rename_id = r["data"]["id"].clone();
+        } else {
+            assert_eq!(r["data"]["id"], rename_id);
+            assert_eq!(r["data"]["conditions"][0]["value"], json!(["RAW", "OTHER"]));
+        }
+    }
+    let associated = s
+        .get(&format!("{root}/rules?payee_id={F}"))
+        .json::<Value>()
+        .unwrap();
+    assert_eq!(associated["data"].as_array().unwrap().len(), 1);
+    for ticket in [21, 42] {
+        let action = if ticket == 21 {
+            json!({"op":"link-schedule","value":F})
+        } else {
+            json!({"op":"set","field":"notes","value":"","options":{"template":"{{payee_name}}"}})
+        };
+        let r=s.post(&format!("{root}/rules"),&format!("blocked{ticket}"),json!({"id":F,"stage":null,"conditionsOp":"and","conditions":[],"actions":[action],"snapshot":cursor(&s,&root)}));
+        assert_eq!(r.status(), 422, "{}", r.text().unwrap());
+    }
+}
+
+#[test]
+fn protected_peer_refuses_rule_apply_until_explicit_unlock_and_fresh_preview() {
+    let (s, root, id, row) = import_financial(0);
+    let peer = row["transfer_id"].as_str().unwrap();
+    let other = s
+        .get(&format!("{root}/transactions/{peer}"))
+        .json::<Value>()
+        .unwrap()["data"]["account_id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let r = s
+        .client
+        .patch(format!("{}{root}/transactions/{peer}", s.url))
+        .header("Idempotency-Key", "clear")
+        .json(&json!({"cleared":true}))
+        .send()
+        .unwrap();
+    assert_eq!(r.status(), 200);
+    let path = format!("{root}/accounts/{other}/reconciliation");
+    let review = s
+        .get(&format!("{path}?statement_balance=100"))
+        .json::<Value>()
+        .unwrap();
+    let r=s.post(&path,"lock",json!({"action":"lock","statement_balance":100,"snapshot":review["data"]["snapshot"],"date":"2026-11-08"}));
+    assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+    let r=s.post(&format!("{root}/rules"),"rule",json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"amount","op":"lt","value":0}],"actions":[{"op":"append-notes","value":" / safe"}],"snapshot":cursor(&s,&root)}));
+    assert_eq!(r.status(), 201);
+    let before = cursor(&s, &root);
+    let state = financial_state(&s, &root);
+    let r = s
+        .post(
+            &format!("{root}/rules/preview"),
+            "preview",
+            json!({"snapshot":before,"ids":[id]}),
+        )
+        .json::<Value>()
+        .unwrap();
+    assert_eq!(r["data"]["protected_count"], 1);
+    let r = s.post(
+        &format!("{root}/rules/apply"),
+        "protected",
+        json!({"snapshot":before,"ids":[id]}),
+    );
+    assert_eq!(r.status(), 409);
+    assert_eq!(cursor(&s, &root), before);
+    assert_eq!(financial_state(&s, &root), state);
+    let locked = s
+        .get(&format!("{root}/transactions/{peer}"))
+        .json::<Value>()
+        .unwrap();
+    let r = s.post(
+        &format!("{root}/transactions/{peer}/unlock"),
+        "unlock",
+        json!({"reconciled_version":locked["data"]["field_versions"]["reconciled"]}),
+    );
+    assert_eq!(r.status(), 200);
+    let preview = s
+        .post(
+            &format!("{root}/rules/preview"),
+            "new-preview",
+            json!({"snapshot":cursor(&s,&root),"ids":[id]}),
+        )
+        .json::<Value>()
+        .unwrap();
+    assert_eq!(preview["data"]["protected_count"], 0);
+    let r = s.post(
+        &format!("{root}/rules/apply"),
+        "unlocked",
+        json!({"snapshot":preview["data"]["snapshot"],"ids":[id]}),
+    );
+    assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+    for id in [&id, peer] {
+        assert_eq!(
+            s.get(&format!("{root}/transactions/{id}"))
+                .json::<Value>()
+                .unwrap()["data"]["notes"],
+            "Pair / safe"
+        );
+    }
 }

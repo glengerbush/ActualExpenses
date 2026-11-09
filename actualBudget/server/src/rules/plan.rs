@@ -34,6 +34,14 @@ pub fn validate_body(body: &Value, applying: bool) -> Result<(), Error> {
             "Preview a draft rule or saved rules, not both",
         ));
     }
+    if !body["manual_entry"].is_null() && body["manual_entry"].as_bool().is_none() {
+        return Err(Error::invalid("manual_entry must be boolean"));
+    }
+    if body["manual_entry"] == true && !body["transaction"].is_object() {
+        return Err(Error::invalid(
+            "Manual entry preview requires one draft transaction",
+        ));
+    }
     for name in ["offset", "limit"] {
         if !body[name].is_null() && body[name].as_u64().is_none() {
             return Err(Error::invalid("Invalid preview page"));
@@ -146,7 +154,11 @@ fn hydrate(db: &Connection, b: &str, ids: &[String]) -> Result<Vec<Value>, Error
         rows.remove(id).ok_or_else(Error::missing)
     }).collect()
 }
-pub fn evaluate(db: &Connection, b: &str, body: &Value) -> Result<(Vec<Entry>, usize), Error> {
+pub fn evaluate(
+    db: &Connection,
+    b: &str,
+    body: &Value,
+) -> Result<(Vec<Entry>, usize, engine::Work), Error> {
     validate_body(body, false)?;
     let rules = selected_rules(db, b, body)?;
     let direct = body["transaction"].is_object();
@@ -179,10 +191,10 @@ pub fn evaluate(db: &Connection, b: &str, body: &Value) -> Result<(Vec<Entry>, u
         }
         hydrate(db, b, &ids)?
     };
-    if let Some(ids) = &selected {
-        if inputs.len() != ids.len() {
-            return Err(Error::missing());
-        }
+    if let Some(ids) = &selected
+        && inputs.len() != ids.len()
+    {
+        return Err(Error::missing());
     }
     for input in &inputs {
         if !direct && input["deleted"] == true {
@@ -215,10 +227,10 @@ pub fn evaluate(db: &Connection, b: &str, body: &Value) -> Result<(Vec<Entry>, u
             });
         }
     }
-    Ok((entries, candidates))
+    Ok((entries, candidates, runner.into_work()))
 }
 pub fn preview(db: &Connection, b: &str, body: &Value) -> Result<Value, Error> {
-    let (entries, candidate_count) = evaluate(db, b, body)?;
+    let (entries, candidate_count, _) = evaluate(db, b, body)?;
     let total = entries.len();
     let offset = body["offset"].as_u64().unwrap_or(0) as usize;
     let limit = body["limit"].as_u64().unwrap_or(100) as usize;
@@ -269,8 +281,23 @@ pub fn apply(
 ) -> Result<Value, Error> {
     validate_body(body, true)?;
     let ids = ids(body, true)?.unwrap();
-    let (entries, _) = evaluate(db, b, body)?;
-    commit(db, b, &ids, entries, clock, epoch, None)
+    let (entries, _, work) = evaluate(db, b, body)?;
+    commit(
+        db,
+        b,
+        &ids,
+        entries,
+        clock,
+        epoch,
+        Command {
+            created: None,
+            work,
+        },
+    )
+}
+pub(super) struct Command<'a> {
+    pub created: Option<&'a str>,
+    pub work: engine::Work,
 }
 pub(super) fn commit(
     db: &Connection,
@@ -279,8 +306,11 @@ pub(super) fn commit(
     entries: Vec<Entry>,
     clock: &str,
     epoch: Option<&str>,
-    created: Option<&str>,
+    command: Command<'_>,
 ) -> Result<Value, Error> {
+    let Command { created, work } = command;
+    let mut peer_runner = engine::Runner::with_work(load(db, b)?, work);
+    let mut created_peers = std::collections::BTreeSet::new();
     let members = crate::transfers::protection::members(
         db,
         b,
@@ -297,18 +327,15 @@ pub(super) fn commit(
         if let Some(peer) = entry.before["transfer_id"]
             .as_str()
             .and_then(|id| entries.iter().find(|e| e.before["id"] == id))
+            && entry.after["deleted"] != true
+            && peer.after["deleted"] != true
+            && entry.after["amount"] != entry.before["amount"]
+            && peer.after["amount"] != peer.before["amount"]
+            && entry.after["amount"].as_i64().unwrap() != -peer.after["amount"].as_i64().unwrap()
         {
-            if entry.after["deleted"] != true
-                && peer.after["deleted"] != true
-                && entry.after["amount"] != entry.before["amount"]
-                && peer.after["amount"] != peer.before["amount"]
-                && entry.after["amount"].as_i64().unwrap()
-                    != -peer.after["amount"].as_i64().unwrap()
-            {
-                return Err(Error::conflict(
-                    "Selected rules give a transfer two contradictory amounts. No rule actions were saved.",
-                ));
-            }
+            return Err(Error::conflict(
+                "Selected rules give a transfer two contradictory amounts. No rule actions were saved.",
+            ));
         }
     }
     for entry in &entries {
@@ -486,6 +513,7 @@ pub(super) fn commit(
                     clock,
                     None,
                 )?;
+                created_peers.insert(peer);
             }
             changed.push(ledger::get(db, b, id)?);
             continue;
@@ -506,9 +534,12 @@ pub(super) fn commit(
                     } else {
                         None
                     };
-                    let peer = destination.as_ref().map(|_| {
-                        c["transfer_id"]
-                            .as_str()
+                    let peer = destination.as_ref().map(|destination| {
+                        let old = current["children"]
+                            .as_array()
+                            .and_then(|cs| cs.iter().find(|r| r["id"] == c["id"]));
+                        old.filter(|r| r["transfer_account_id"] == *destination)
+                            .and_then(|r| r["transfer_id"].as_str())
                             .map(str::to_owned)
                             .unwrap_or_else(|| {
                                 super::actions::identity(&[
@@ -530,6 +561,18 @@ pub(super) fn commit(
                     })
                 })
                 .collect::<Result<Vec<_>, Error>>()?;
+            for child in &children {
+                if let Some(peer) = &child.counterpart_id {
+                    let exists: bool = db.query_row(
+                        "SELECT EXISTS(SELECT 1 FROM transactions WHERE budget_id=?1 AND id=?2)",
+                        params![b, peer],
+                        |r| r.get(0),
+                    )?;
+                    if !exists {
+                        created_peers.insert(peer.clone());
+                    }
+                }
+            }
             let mut fields = patch(&entry.before, &entry.after);
             fields.as_object_mut().unwrap().remove("category_id");
             fields.as_object_mut().unwrap().remove("payee_id");
@@ -571,6 +614,9 @@ pub(super) fn commit(
             ));
         }
         changed.push(result["response_body"]["data"].clone());
+    }
+    for peer in created_peers {
+        super::entry::peer_rules(db, b, &peer, clock, &mut peer_runner)?;
     }
     Ok(json!({"affected_count":changed.len(),"selected_count":ids.len(),"entries":changed}))
 }

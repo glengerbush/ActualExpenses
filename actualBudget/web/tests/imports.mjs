@@ -122,7 +122,7 @@ try {
   );
   await staleChooser
     .getByLabel("Actual ZIP export")
-    .setInputFiles(`${fixtures}/import-unsupported-rule-26.10.0.zip`);
+    .setInputFiles(`${fixtures}/rules-template-requirement-26.10.0.zip`);
   await staleChooser
     .getByRole("button", { name: "Review archive", exact: true })
     .click();
@@ -213,7 +213,7 @@ try {
   await open(page);
   await page
     .getByLabel("Actual ZIP export")
-    .setInputFiles(`${fixtures}/import-unsupported-rule-26.10.0.zip`);
+    .setInputFiles(`${fixtures}/rules-template-requirement-26.10.0.zip`);
   await page
     .getByRole("button", { name: "Review archive", exact: true })
     .click();
@@ -228,7 +228,7 @@ try {
     .getAttribute("href");
   expect(
     Buffer.from(await (await fetch(`${api}${original}`)).arrayBuffer()).equals(
-      await readFile(`${fixtures}/import-unsupported-rule-26.10.0.zip`),
+      await readFile(`${fixtures}/rules-template-requirement-26.10.0.zip`),
     ),
   ).toBe(true);
   expect(byId(await read("/budgets"))).toEqual(activatedBudgets);

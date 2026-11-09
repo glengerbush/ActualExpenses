@@ -1,5 +1,11 @@
 <script lang="ts">
-  import { captureAmountFormat, parseAmount, formatAmountInput } from "./money";
+  import {
+    captureAmountFormat,
+    parseAmount,
+    formatAmountInput,
+    type AmountFormat,
+  } from "./money";
+  import DateInput from "./DateInput.svelte";
   import type { Reference } from "./register-api";
   import type { Condition } from "./register-query";
   let {
@@ -10,8 +16,12 @@
     categories,
     groups,
     onchange,
+    rules = false,
+    amountFormat,
   }: {
     condition: Condition;
+    rules?: boolean;
+    amountFormat?: AmountFormat;
     index: number;
     accounts: Reference[];
     payees: Reference[];
@@ -61,12 +71,12 @@
   );
   function displayAmount(value: unknown) {
     return typeof value === "number"
-      ? formatAmountInput(value)
+      ? formatAmountInput(value, amountFormat)
       : String(value ?? "");
   }
   function readAmount(value: string) {
     try {
-      return parseAmount(value, captureAmountFormat());
+      return parseAmount(value, amountFormat ?? captureAmountFormat());
     } catch {
       return value;
     }
@@ -78,7 +88,10 @@
       : [condition.value]) {
       if (typeof value !== "number") {
         try {
-          parseAmount(String(value ?? ""), captureAmountFormat());
+          parseAmount(
+            String(value ?? ""),
+            amountFormat ?? captureAmountFormat(),
+          );
         } catch (e) {
           return (e as Error).message;
         }
@@ -170,14 +183,16 @@
   {/if}
   {#if amountError}<p class="hint" role="alert">{amountError}</p>{/if}
 {:else if condition.field === "date"}
-  {#if ["eq", "isapprox"].includes(condition.op)}<label
+  {#if ["eq", "is", "isapprox"].includes(condition.op)}<label
       >Date matching {index + 1}<select
         value={mode()}
         onchange={(e) => dateMode(e.currentTarget.value)}
         ><option value="day">Calendar day</option
-        >{#if condition.op === "eq"}<option value="month">Month</option><option
-            value="year">Year</option
-          >{/if}<option value="recurring">Recurring dates</option></select
+        >{#if ["eq", "is"].includes(condition.op)}<option value="month"
+            >Month</option
+          ><option value="year">Year</option>{/if}<option value="recurring"
+          >Recurring dates</option
+        ></select
       ></label
     >{/if}
   {#if mode() === "recurring"}
@@ -237,9 +252,17 @@
         /></label
       >{/if}
     <p class="hint">
-      Matches the first 100 dates. Monthly dates follow the start day; imported
-      weekday patterns are preserved.
+      {rules
+        ? "Matches recurring calendar dates; weekend shifts affect posting only."
+        : "Matches the first 100 dates. Monthly dates follow the start day; imported weekday patterns are preserved."}
     </p>
+  {:else if rules && mode() === "day"}<DateInput
+      id={`rule-date-${index}`}
+      label={`Date value ${index + 1}`}
+      format="yyyy-MM-dd"
+      bind:value={() => String(condition.value), (value) => set(value)}
+      required
+    />
   {:else}<label
       >Date value {index + 1}<input
         type={mode() === "month"
@@ -251,18 +274,18 @@
         oninput={(e) => set(e.currentTarget.value)}
       /></label
     >{/if}
-{:else if ["account", "payee", "category", "category_group"].includes(condition.field)}
+{:else if ["account", "payee", "category", "category_group"].includes(condition.field) && !["contains", "doesNotContain", "matches"].includes(condition.op)}
   {#if !["onBudget", "offBudget"].includes(condition.op)}
     <label
       >Value {index + 1}<select
-        multiple={["in", "not_in"].includes(condition.op)}
+        multiple={["in", "not_in", "oneOf", "notOneOf"].includes(condition.op)}
         onchange={(e) => {
           const values = Array.from(
             e.currentTarget.selectedOptions,
             (option) => option.value || null,
           );
           set(
-            ["in", "not_in"].includes(condition.op)
+            ["in", "not_in", "oneOf", "notOneOf"].includes(condition.op)
               ? values
               : (values[0] ?? null),
           );
@@ -286,12 +309,12 @@
             value={id}
             selected>Unavailable reference ({id})</option
           >{/each}
-      </select>{#if ["in", "not_in"].includes(condition.op)}<span class="hint"
-          >Select one or more entries.</span
+      </select>{#if ["in", "not_in", "oneOf", "notOneOf"].includes(condition.op)}<span
+          class="hint">Select one or more entries.</span
         >{/if}</label
     >
   {/if}
-{:else if ["in", "not_in"].includes(condition.op)}
+{:else if ["in", "not_in", "oneOf", "notOneOf"].includes(condition.op)}
   <label
     >Values {index + 1}<textarea
       value={Array.isArray(condition.value)

@@ -239,9 +239,10 @@ fn upload(server: &Server, key: &str, bytes: Vec<u8>) -> Response {
         .unwrap()
 }
 #[test]
-fn unsupported_rule_is_retained_reported_and_cannot_activate() {
+fn template_rule_is_retained_reported_and_cannot_activate() {
     let server = Server::start();
-    let bytes = include_bytes!("../../tests/fixtures/import-unsupported-rule-26.10.0.zip").to_vec();
+    let bytes =
+        include_bytes!("../../tests/fixtures/rules-template-requirement-26.10.0.zip").to_vec();
     let response = upload(&server, "rule", bytes.clone());
     assert_eq!(response.status(), 201);
     let stage: Value = response.json().unwrap();
@@ -251,7 +252,10 @@ fn unsupported_rule_is_retained_reported_and_cannot_activate() {
             .as_array()
             .unwrap()
             .iter()
-            .any(|r| r["feature"] == "rules" && r["blocking"] == true && r["count"] == 1)
+            .any(|r| r["feature"] == "rules"
+                && r["blocking"] == true
+                && r["count"] == 1
+                && r["ticket"] == 42)
     );
     let id = stage["data"]["id"].as_str().unwrap();
     let response = server.post(

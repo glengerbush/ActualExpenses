@@ -209,6 +209,10 @@ class NativeApiIntegrationTest {
             assertEquals(0, restarted.state().pendingCount)
             assertEquals(utilities, restarted.state().payeeCategoryAssociations[payee])
             assertEquals(travel, restarted.state().expenses.single { it.id == expense }.categoryId)
+            val clearing = restarted.beginEdit(expense)
+            restarted.saveExpense(clearing.original!!.copy(categoryId = null), clearing)
+            restarted.refresh()
+            assertNull(restarted.state().expenses.single { it.id == expense }.categoryId)
             val rules = server.get("$base/rules").getAsJsonArray("data")
             assertEquals(1, rules.size())
             assertEquals(
@@ -252,6 +256,7 @@ class NativeApiIntegrationTest {
             )
             restarted.refresh()
             assertFalse(restarted.state().payeeCategoryAssociations.containsKey(payee))
+            assertNull(restarted.state().expenses.single { it.id == expense }.categoryId)
         }
     }
 

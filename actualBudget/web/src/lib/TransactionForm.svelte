@@ -12,6 +12,7 @@
     subscribeOffline,
   } from "./offline/delivery";
   import { setReachable } from "./offline/events";
+  import { readBudget } from "./offline/cache";
   import { parseAmount } from "./money";
   import PayeeLocations from "./PayeeLocations.svelte";
   import type { LocationPayee } from "./payee-locations";
@@ -25,7 +26,13 @@
   import { parseDateInput, validDate } from "./dates";
   import { preferences } from "./preferences.svelte";
   import { onMount } from "svelte";
-  import { uuid, RequestError, errorMessage, type Account } from "./api";
+  import {
+    request,
+    uuid,
+    RequestError,
+    errorMessage,
+    type Account,
+  } from "./api";
   import { t } from "./i18n.svelte";
   import { today, formatAmountInput, captureAmountFormat } from "./money";
   import { calculateAmount } from "./calculator";
@@ -68,6 +75,11 @@
     oncancel: () => void;
   } = $props();
   let draft = $state<Draft | null>(null);
+  let associations = $state.raw<Record<string, string>>({});
+  let rulesAvailable = $state(false),
+    rulesNotice = $state("");
+  let ruleTimer: ReturnType<typeof setTimeout> | undefined;
+  let lastRuleInput = "";
   let pendingLocationPayee = $state("");
   const locationDependency = $derived(
     !!pendingLocationPayee &&
@@ -246,6 +258,7 @@
             newPayee: "",
             newCategory: "",
             categoryIncome: false,
+            categoryManual: !!initial?.category_id,
           },
         };
         persist(draft);
@@ -254,14 +267,59 @@
       error = errorMessage(e);
     }
   }
+  let alive = true;
+  let rulesCapability: Promise<void> | null = null;
+  function checkRulesCapability(): Promise<void> {
+    if (rulesCapability) return rulesCapability;
+    rulesCapability = request<{ data: { capabilities?: string[] } }>("/info")
+      .then((info) => {
+        if (!alive) return;
+        rulesAvailable =
+          info.data.capabilities?.includes("rule_entry") ?? false;
+        if (
+          rulesAvailable &&
+          draft &&
+          !draft.original &&
+          !draft.pending &&
+          !draft.replaces &&
+          !restored
+        ) {
+          draft.automaticRules = true;
+          persist(draft);
+        }
+      })
+      .catch((e) => {
+        rulesCapability = null;
+        throw e;
+      });
+    return rulesCapability;
+  }
   onMount(() => {
     load();
+    void checkRulesCapability().catch(() => {});
+    void readBudget(budgetId)
+      .then((cache) => {
+        associations = cache?.associations ?? {};
+      })
+      .catch(() => {});
     void checkSharedIntent();
-    return subscribeOffline(() => void checkSharedIntent());
+    const stop = subscribeOffline(() => void checkSharedIntent());
+    return () => {
+      alive = false;
+      stop();
+      clearTimeout(ruleTimer);
+    };
   });
   function update<K extends keyof Fields>(field: K, value: Fields[K]) {
     if (!draft || draft.pending || externalChanged) return;
+    const manual = draft.fields.categoryManual ?? !!draft.fields.category;
     draft.fields[field] = value;
+    if (field === "category") {
+      draft.fields.categoryManual = true;
+      draft.fields.manualCategory = String(value);
+    }
+    if (field === "payee" && !manual && !selectedAccount?.off_budget)
+      draft.fields.category = associations[String(value)] ?? "";
     draft.editClock = undefined;
     if (field === "amount" || field === "direction") draft.amountDirty = true;
     if (
@@ -272,8 +330,119 @@
     try {
       persist(draft);
       error = "";
+      if (draft.automaticRules && !draft.original && !draft.replaces) {
+        clearTimeout(ruleTimer);
+        ruleTimer = setTimeout(() => void applyAutomaticRules(false), 250);
+      }
     } catch (e) {
       error = errorMessage(e);
+    }
+  }
+  async function applyAutomaticRules(force: boolean) {
+    if (
+      !draft ||
+      draft.pending ||
+      draft.original ||
+      draft.replaces ||
+      !draft.automaticRules ||
+      !rulesAvailable ||
+      disconnected ||
+      !offlineStatus.reachable
+    )
+      return;
+    const identity = draft.draftId;
+    const fingerprint = JSON.stringify($state.snapshot(draft.fields));
+    if (fingerprint === lastRuleInput && draft.ruleSnapshot) return;
+    const f = $state.snapshot(draft.fields);
+    try {
+      let amount = 0;
+      try {
+        amount = f.amount.trim() ? parseAmount(f.amount, draft.format) : 0;
+      } catch {
+        if (force) amount = await entryAmount(f.amount);
+        else return;
+      }
+      const date = parseDateInput(f.date, draft.dateFormat);
+      if (!validDate(date)) return;
+      const checkpoint = await request<{
+        data: { snapshot: string; epoch: string };
+      }>(`/budgets/${budgetId}/checkpoint`);
+      if (checkpoint.data.epoch !== draft.budgetEpoch)
+        throw new Error(
+          "This budget was restored. Reopen the current budget before applying rules.",
+        );
+      const transaction = {
+        id: draft.id,
+        account_id: f.account_id,
+        date,
+        amount: (f.direction === "expense" ? -1 : 1) * Math.abs(amount),
+        payee_id:
+          f.payee === "new" ? draft.referenceIds.payee : f.payee || null,
+        payee_name:
+          f.payee === "new"
+            ? f.newPayee
+            : (availablePayees.find((p) => p.id === f.payee)?.name ?? null),
+        category_id:
+          f.category === "new"
+            ? draft.referenceIds.category
+            : f.category || null,
+        notes: f.notes,
+        cleared: f.cleared,
+      };
+      const result = await request<{
+        data: {
+          snapshot: string;
+          transactions: {
+            after: Transaction & { new_payee?: { id: string; name: string } };
+            matched_rule_ids: string[];
+          }[];
+        };
+      }>(`/budgets/${budgetId}/rules/preview`, {
+        snapshot: checkpoint.data.snapshot,
+        transaction,
+        manual_entry: true,
+      });
+      if (
+        !alive ||
+        !draft ||
+        draft.draftId !== identity ||
+        draft.pending ||
+        JSON.stringify($state.snapshot(draft.fields)) !== fingerprint
+      )
+        return;
+      const entry = result.data.transactions[0];
+      if (!entry) return;
+      const after = entry.after;
+      draft.fields.category = after.category_id ?? "";
+      draft.fields.notes = after.notes ?? "";
+      draft.fields.cleared = after.cleared;
+      if (after.amount !== transaction.amount) {
+        draft.fields.amount = formatAmountInput(
+          Math.abs(after.amount),
+          draft.format,
+        );
+        draft.fields.direction = after.amount >= 0 ? "income" : "expense";
+        draft.amountDirty = true;
+      }
+      if (after.payee_id !== transaction.payee_id) {
+        if (after.new_payee) {
+          draft.fields.payee = "new";
+          draft.fields.newPayee = after.new_payee.name;
+          draft.referenceIds.payee = after.new_payee.id;
+        } else draft.fields.payee = after.payee_id ?? "";
+      }
+      draft.ruleSnapshot = result.data.snapshot;
+      draft.ruleChildren = after.children;
+      draft.ruleDeleted = after.deleted === true;
+      lastRuleInput = JSON.stringify($state.snapshot(draft.fields));
+      persist(draft);
+      rulesNotice = entry.matched_rule_ids.length
+        ? "Rules reviewed this entry. Manual values are preserved; additions and filled fields are shown below."
+        : "";
+    } catch (e) {
+      if (force) throw e;
+      rulesNotice =
+        "Automatic rules could not be reviewed. Saving online will retry the rule check.";
     }
   }
   async function entryAmount(input: string) {
@@ -319,6 +488,14 @@
   async function prepare(): Promise<PendingMutation | null> {
     if (!draft) return null;
     if (draft.pending) return draft.pending;
+    if (
+      !draft.original &&
+      !draft.replaces &&
+      !disconnected &&
+      offlineStatus.reachable
+    )
+      await checkRulesCapability();
+    await applyAutomaticRules(true);
     const saved = readTransactionDraft(budgetId);
     if (saved?.draftId === draft.draftId && saved.pending) {
       throw new Error(
@@ -439,8 +616,38 @@
         body.reconciled_version = draft.original.field_versions?.reconciled;
       }
     } else body.id = draft.id;
+    if (
+      draft.automaticRules &&
+      rulesAvailable &&
+      !draft.original &&
+      !draft.replaces &&
+      !disconnected &&
+      offlineStatus.reachable
+    ) {
+      if (!draft.ruleSnapshot)
+        throw new Error(
+          "Wait for automatic rules to finish reviewing this entry.",
+        );
+      body.snapshot = draft.ruleSnapshot;
+    }
+    if (
+      f.categoryManual === true &&
+      ((body.category_id && body.category_id === f.manualCategory) ||
+        (body.new_category && f.manualCategory === "new")) &&
+      !disconnected &&
+      offlineStatus.reachable
+    )
+      body.learn_categories = true;
     return {
-      path: `/budgets/${budgetId}/transactions${draft.original ? `/${draft.id}` : ""}`,
+      path:
+        draft.automaticRules &&
+        rulesAvailable &&
+        !draft.original &&
+        !draft.replaces &&
+        !disconnected &&
+        offlineStatus.reachable
+          ? `/budgets/${budgetId}/rules/transactions`
+          : `/budgets/${budgetId}/transactions${draft.original ? `/${draft.id}` : ""}`,
       method: draft.original ? "PATCH" : "POST",
       key: draft.draftId,
       historyOwner: await historyOwner(),
@@ -693,6 +900,22 @@
       {t("Recovered your saved draft.")}
     </p>{/if}
   {#if draft}
+    {#if rulesNotice}<p role="status">{rulesNotice}</p>{/if}
+    {#if draft?.ruleDeleted}<p role="status">
+        A matching rule will discard this transaction.
+      </p>{/if}
+    {#if draft?.ruleChildren?.length}<section
+        aria-label="Rule split allocations"
+      >
+        <h2>Rule split allocations</h2>
+        <ul>
+          {#each draft.ruleChildren as child (child.id)}<li>
+              {formatAmountInput(child.amount, draft.format)} · {categories.find(
+                (c) => c.id === child.category_id,
+              )?.name ?? "Uncategorized"} · {child.notes}
+            </li>{/each}
+        </ul>
+      </section>{/if}
     <form onsubmit={submit} aria-busy={busy}>
       <fieldset disabled={busy || !!draft.pending || externalChanged}>
         {#if draft.original?.reconciled}<p>

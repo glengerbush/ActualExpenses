@@ -100,6 +100,12 @@ impl Runner {
         }
         Self::new(rules)
     }
+    pub fn with_work(rules: Vec<Rule>, work: Work) -> Self {
+        Self { rules, work }
+    }
+    pub fn into_work(self) -> Work {
+        self.work
+    }
     pub fn new(rules: Vec<Rule>) -> Self {
         Self {
             rules,

@@ -1,6 +1,6 @@
 # Transaction rules
 
-Implementation checkpoint; ticket19 remains in progress. UI, broader action/contract edge cases, and final qualification are pending.
+Candidate implements ticket19. Final batch qualification and independent finish review are root-owned; focused evidence is in `../docs/rules-validation.md`.
 
 Rules execute pre/default/post, then ascending pinned specificity and ID. Conditions inspect the evolving transaction. Preview reads a captured snapshot and never saves ledger rows, payees, or learning. Selective apply uses one command-wide regex/recurrence work budget, one receipt, and one optional owned history action. Protected connected entries require unlock and a new preview.
 
@@ -10,7 +10,7 @@ Schema17 retains saved rules, per-payee flags, and global learning settings thro
 
 ## Financial invariant exception
 
-`tools/generate-rules.mjs` independently executes pinned `@actual-app/api@26.10.0` (source `2bebdbaae0b701120a8cad9d56aafd64fa04c577`). Financial cases use public `rule-apply-actions`, then read settled persisted transactions and balances. Original inputs are exported as `tests/fixtures/rules-financial-{0..11}-26.10.0.zip`.
+`tools/generate-rules.mjs` independently executes pinned `@actual-app/api@26.10.0` (source `2bebdbaae0b701120a8cad9d56aafd64fa04c577`). Financial cases use public `rule-apply-actions`, then read settled persisted transactions and balances. Original inputs are exported as `tests/fixtures/rules-financial-{0..12}-26.10.0.zip`.
 
 In fixture1, selecting both reciprocal transfer legs and setting each amount to -77 returns no Actual errors but persists +77/+77, violating reciprocal sum zero. Replacement refuses this contradictory command atomically: no changed rows, balances, cursor, or history. The original observed result remains in `rules-26.10.0.json`. Single-leg amounts, both-leg notes/delete, split-transfer notes, paired unlink, and conversion to two reciprocal split allocations match the persisted baseline. Existing-parent child-target amount/date/cleared cases persist an unbalanced total or a child whose date/cleared disagrees with its aggregate; replacement refuses the entire command without silently normalizing those results. Original observations remain in the fixture.
 
@@ -27,3 +27,5 @@ Automatic browser entry opts into `POST /rules/transactions`; legacy/native tran
 These are development checks, not final ticket acceptance or a full-suite claim.
 
 Second backend checkpoint (UI still in progress): 12 persisted financial cases PASS `/tmp/rules-financial-edges-http.log`; compatible selected-peer notes+cleared and one matched amount are covered. Positive splitIndex setters do not project native suggestions; focused native invalidation PASS `/tmp/rules-native-invalidation.log`. Full focused rules tracer rerun recorded separately before commit.
+
+Generated counterparts execute the complete saved-rule chain but persist only notes/cleared, matching transfer.addTransfer. They share the original command work budget and cannot recursively mutate the graph. Detailed candidate evidence: `../docs/rules-validation.md`.

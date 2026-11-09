@@ -28,6 +28,16 @@ an alternate compatibility package path), and
 `tools/generate-payees-upgrade.py --binary /path/to/isolated/ae3911b/server`.
 The public oracle supports `--check`; never regenerate from replacement output.
 
+`payees-{native,import}-schema8.{json,sqlite3,zip}` are genuine public-API snapshots
+from the combined account/category server at `c01a749`. The immutable executable
+SHA256 was `5616631a4746143813f6628957d87747611a6df1d69d00942e031db3a50b2273`.
+`tools/generate-payees-schema8.py /path/to/that/server` creates account/category
+groups, notes, null/fractional category ordering, hidden categories and post-import
+native edits. Archives are downloaded unchanged; databases copied after shutdown.
+`server/tests/payees_schema8.rs` checks both SQLite upgrade and ZIP restore:
+every prior public field/order/clock and exact receipt survives schema9. New
+payee/tag semantics are tested independently against the pinned Actual fixtures.
+
 The public HTTP source-chain stress test constructs a 140-link alias graph inside
 an input ZIP derived from the pinned fixture, and separately a real cycle. This
 is importer robustness evidence, not pinned parity: Actual public payee merges

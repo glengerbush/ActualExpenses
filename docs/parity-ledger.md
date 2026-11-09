@@ -49,10 +49,10 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 24 | 15 | Transactions, payees and categories | Pending feature acceptance |
 | 25 | 15 | Transactions, payees and categories | Pending feature acceptance |
 | 26 | 25 | Transactions, payees and categories | Pending feature acceptance |
-| 27 | 03, 11 | Transactions, payees and categories | [03: payee creation/selection and references](register-validation.md); payee management pending 11 |
-| 28 | 11, 19 | Transactions, payees and categories | Pending feature acceptance |
+| 27 | 03, 11 | Transactions, payees and categories | [11: payee management, aliases, retained references and Android choices](payees-tags-validation.md) |
+| 28 | 11, 19 | Transactions, payees and categories | [11: payee management and metadata](payees-tags-validation.md); associated rules/learning pending19 |
 | 29 | 46 | Transactions, payees and categories | Pending feature acceptance |
-| 30 | 11 | Transactions, payees and categories | Pending feature acceptance |
+| 30 | 11 | Transactions, payees and categories | [11: exact tag discovery, management, visibility, filtering and migration](payees-tags-validation.md) |
 | 31 | 03, 10 | Transactions, payees and categories | [10: groups/order/hiding, notes, history-preserving merge/delete and legacy migration](0910-validation.md) |
 | 32 | 03, 10 | Transactions, payees and categories | [10: signed refunds/reimbursements, uncategorized drilldowns and exact reassignment](0910-validation.md) |
 | 33 | 17, 18 | Tracking, envelope and automation | Pending feature acceptance |

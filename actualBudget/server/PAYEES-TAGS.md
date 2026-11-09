@@ -43,13 +43,17 @@ receipt or durably record `operation_canceled`. Browser cancellation intent stay
 saved through lost acknowledgements. Cross-tab draft revision checks also guard
 Done, so a stale tab cannot discard another tab's pending intent.
 
-Provisional schema 8 adds payee metadata, imported transaction text and tags;
-root integration assigns the next schema after categories. Native archives
-register every new column/table. Schema 6/7 defaults and genuine schema-7
+Schema9 adds payee metadata, imported transaction text and tags after category schema8. Native archives
+register every new column/table. Schema6–8 defaults and genuine schema7/schema8
 activated-import backfill preserve native edits, original field ordering and
 historical receipt response shapes. Duplicated import provenance is backfilled too. Original archives remain provenance.
 Unactivated stages are re-inspected without rewriting upload receipts; invalid
 newly supported metadata leaves the original blocked stage intact.
+
+Corrected-time recovery requires explicit action after attempted work is canceled
+or acknowledged. It resets the local clock generator while keeping form fields
+and other immutable pending operations. Capability negotiation captures the
+original operation, locks competing actions and rechecks draft ownership.
 
 Evidence: `tests/payees_tags.rs`, `web/tests/payees-tags-browser.mjs` and fixture
 provenance in `tests/fixtures/PAYEES-TAGS.md`. Tests use real HTTP/browser seams.

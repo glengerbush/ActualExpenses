@@ -657,6 +657,14 @@ pub(super) fn commit_with_work(
         let row = ledger::get(db, b, id)?;
         if row["is_parent"] != true {
             if let Some(peer) = row["transfer_id"].as_str() {
+                if schedule_links
+                    .get(peer)
+                    .is_some_and(|other| other != schedule)
+                {
+                    return Err(Error::conflict(
+                        "Selected rules link the transfer legs to different schedules. No rule actions were saved.",
+                    ));
+                }
                 expanded.insert(peer.into(), schedule.clone());
             }
         }

@@ -1229,3 +1229,48 @@ fn explicit_rule_application_persists_schedule_only_changes_and_keeps_linked_rul
         200
     );
 }
+
+#[test]
+fn contradictory_rule_schedule_links_on_a_pair_refuse_atomically() {
+    let s = Server::start();
+    setup(&s);
+    let root = format!("/api/v1/budgets/{B}");
+    assert_eq!(
+        s.post(
+            &format!("{root}/accounts"),
+            "peer-account",
+            json!({"id":P,"name":"Savings","opening_balance":0,"opening_date":"2026-01-01"})
+        )
+        .status(),
+        201
+    );
+    let peer = "21220000-0000-4000-8000-000000000991";
+    let id = "21220000-0000-4000-8000-000000000990";
+    assert_eq!(s.post(&format!("{root}/transfers"),"paired-payment",json!({"id":id,"counterpart_id":peer,"account_id":A,"to_account_id":P,"amount":-100,"date":"2026-11-09"})).status(),201);
+    for (schedule, account, amount) in [
+        (S, A, -100),
+        ("21220000-0000-4000-8000-000000000992", P, 100),
+    ] {
+        let response = command(
+            &s,
+            &format!("create-{schedule}"),
+            json!({"action":"create","id":schedule,"conditions":[{"field":"account","op":"is","value":account},{"field":"amount","op":"is","value":amount},{"field":"date","op":"is","value":"2026-11-09"}]}),
+        );
+        assert_eq!(response.status(), 201);
+    }
+    let cp = checkpoint(&s);
+    let before: Value = s.get(&format!("{root}/transactions")).json().unwrap();
+    let response = s.post(
+        &format!("{root}/rules/apply"),
+        "contradictory-pair-links",
+        json!({"snapshot":cp["snapshot"],"ids":[id,peer]}),
+    );
+    assert_eq!(response.status(), 409, "{}", response.text().unwrap());
+    assert_eq!(
+        s.get(&format!("{root}/transactions"))
+            .json::<Value>()
+            .unwrap(),
+        before
+    );
+    assert_eq!(checkpoint(&s), cp);
+}

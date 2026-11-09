@@ -10,6 +10,7 @@ from html.parser import HTMLParser
 import json
 import os
 from pathlib import Path
+import shlex
 import subprocess
 import time
 import urllib.error
@@ -115,6 +116,34 @@ def verify_receipts(base):
     print("PASS: read-only receipt miss preserves identity; committed outcome replays without writes")
 
 
+def browser_commands(project):
+    """Read the existing simple command list; never reinterpret arbitrary shell code."""
+    script = json.loads((project / "web/package.json").read_text())["scripts"]["test:browser"]
+    commands = [shlex.split(part) for part in script.split(" && ")]
+    for command in commands:
+        if (len(command) not in (2, 3) or command[0] not in ("node", "python3")
+                or (len(command) == 3 and command[2] != "--check")
+                or not (project / "web" / command[1]).resolve().is_relative_to(project.resolve())
+                or not (project / "web" / command[1]).is_file()):
+            raise ValueError("Keep-going requires explicit node/python3 script commands; "
+                             "update this runner if test:browser changes its command format")
+    return commands
+
+
+def run_browser_commands(commands, project, environment):
+    failures = []
+    for command in commands:
+        label = shlex.join(command)
+        print(f"RUN: {label}", flush=True)
+        result = subprocess.run(command, cwd=project / "web", env=environment)
+        print(f"{'PASS' if result.returncode == 0 else 'FAIL'}: {label}", flush=True)
+        if result.returncode:
+            failures.append((label, result.returncode))
+    print(f"Browser batch: {len(commands) - len(failures)}/{len(commands)} passed", flush=True)
+    if failures:
+        raise RuntimeError(f"Browser batch failures: {failures}")
+
+
 def main():
     project = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser(description=__doc__)
@@ -125,7 +154,15 @@ def main():
     browser_checks.add_argument("--browser-test", action="append",
                                 choices=sorted(path.name for path in (project / "web/tests").glob("*.mjs")),
                                 help="Run a selected browser script; repeat for related regressions")
+    parser.add_argument("--keep-going", action="store_true",
+                        help="Collect every browser-script result, then fail if any script failed")
     args = parser.parse_args()
+    if args.keep_going and not (args.browser or args.browser_test):
+        parser.error("--keep-going requires --browser or --browser-test")
+    commands = None
+    if args.keep_going:
+        commands = (browser_commands(project) if args.browser else
+                    [["node", str(project / "web/tests" / script)] for script in args.browser_test])
     prefix = "actualbudget-smoke-" + uuid.uuid4().hex
     container, volume = prefix + "-app", prefix + "-data"
     image = args.image or prefix + ":test"
@@ -170,7 +207,9 @@ def main():
         verify_receipts(base)
         if args.browser or args.browser_test:
             environment = dict(os.environ, ACTUALBUDGET_TEST_URL=f"http://actualbudget.test:{urlsplit(base).port}")
-            if args.browser:
+            if commands is not None:
+                run_browser_commands(commands, project, environment)
+            elif args.browser:
                 subprocess.run(["npm", "--prefix", str(project / "web"), "run", "test:browser"],
                                env=environment, check=True)
             else:

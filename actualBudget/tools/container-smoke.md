@@ -17,6 +17,13 @@ replacement. This additionally needs the frontend test dependencies installed
 The browser suite uses a non-localhost HTTP origin mapped to loopback, so the
 browser does not grant localhost's secure-context exception.
 
+Use `--browser --keep-going` to collect every script's result in one qualification
+run. The runner reads the existing `test:browser` list, executes each script once
+in order, and exits unsuccessfully if any failed. It does not retry tests or change
+assertions. `--keep-going` also works with repeated `--browser-test` arguments.
+Container/API setup failures still stop immediately; disposable resources are
+cleaned up in either mode. The default remains fail-fast.
+
 The test uses the running public HTTP interface to verify:
 
 - Capability discovery without application credentials.

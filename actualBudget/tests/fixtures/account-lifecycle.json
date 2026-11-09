@@ -1,0 +1,649 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "normalization": "Runtime-generated account/group IDs use stable aliases. Fixed transaction IDs use aliases. No financial values, dates, visibility or references are rewritten.",
+  "close_error": "balance is non-zero: transferAccountId is required",
+  "snapshots": [
+    {
+      "step": "initial",
+      "accounts": [
+        {
+          "id": "doomed",
+          "name": "Delete with history",
+          "offbudget": false,
+          "closed": false,
+          "group": null,
+          "note": null,
+          "transactions": [
+            {
+              "id": "transaction-4",
+              "amount": -321,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": -321
+        },
+        {
+          "id": "empty",
+          "name": "Empty",
+          "offbudget": false,
+          "closed": false,
+          "group": null,
+          "note": null,
+          "transactions": [],
+          "total": 0
+        },
+        {
+          "id": "reserve",
+          "name": "Reserve",
+          "offbudget": true,
+          "closed": false,
+          "group": null,
+          "note": null,
+          "transactions": [
+            {
+              "id": "transaction-3",
+              "amount": -5000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": -5000
+        },
+        {
+          "id": "spending",
+          "name": "Spending",
+          "offbudget": false,
+          "closed": false,
+          "group": null,
+          "note": null,
+          "transactions": [
+            {
+              "id": "transaction-1",
+              "amount": 10000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            },
+            {
+              "id": "transaction-2",
+              "amount": -1250,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": 8750
+        }
+      ],
+      "groups": [
+        {
+          "id": "daily",
+          "name": "Daily accounts"
+        }
+      ]
+    },
+    {
+      "step": "renamed-grouped-and-annotated",
+      "accounts": [
+        {
+          "id": "doomed",
+          "name": "Delete with history",
+          "offbudget": false,
+          "closed": false,
+          "group": null,
+          "note": null,
+          "transactions": [
+            {
+              "id": "transaction-4",
+              "amount": -321,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": -321
+        },
+        {
+          "id": "empty",
+          "name": "Empty",
+          "offbudget": false,
+          "closed": false,
+          "group": null,
+          "note": null,
+          "transactions": [],
+          "total": 0
+        },
+        {
+          "id": "reserve",
+          "name": "Reserve",
+          "offbudget": true,
+          "closed": false,
+          "group": "daily",
+          "note": null,
+          "transactions": [
+            {
+              "id": "transaction-3",
+              "amount": -5000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": -5000
+        },
+        {
+          "id": "spending",
+          "name": "Daily spending",
+          "offbudget": false,
+          "closed": false,
+          "group": "daily",
+          "note": {
+            "id": "spending",
+            "note": "Account note with #travel and two lines\nRetain history"
+          },
+          "transactions": [
+            {
+              "id": "transaction-1",
+              "amount": 10000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            },
+            {
+              "id": "transaction-2",
+              "amount": -1250,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": 8750
+        }
+      ],
+      "groups": [
+        {
+          "id": "daily",
+          "name": "Everyday"
+        }
+      ]
+    },
+    {
+      "step": "nonzero-close-rejected",
+      "accounts": [
+        {
+          "id": "doomed",
+          "name": "Delete with history",
+          "offbudget": false,
+          "closed": false,
+          "group": null,
+          "note": null,
+          "transactions": [
+            {
+              "id": "transaction-4",
+              "amount": -321,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": -321
+        },
+        {
+          "id": "empty",
+          "name": "Empty",
+          "offbudget": false,
+          "closed": false,
+          "group": null,
+          "note": null,
+          "transactions": [],
+          "total": 0
+        },
+        {
+          "id": "reserve",
+          "name": "Reserve",
+          "offbudget": true,
+          "closed": false,
+          "group": "daily",
+          "note": null,
+          "transactions": [
+            {
+              "id": "transaction-3",
+              "amount": -5000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": -5000
+        },
+        {
+          "id": "spending",
+          "name": "Daily spending",
+          "offbudget": false,
+          "closed": false,
+          "group": "daily",
+          "note": {
+            "id": "spending",
+            "note": "Account note with #travel and two lines\nRetain history"
+          },
+          "transactions": [
+            {
+              "id": "transaction-1",
+              "amount": 10000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            },
+            {
+              "id": "transaction-2",
+              "amount": -1250,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": 8750
+        }
+      ],
+      "groups": [
+        {
+          "id": "daily",
+          "name": "Everyday"
+        }
+      ]
+    },
+    {
+      "step": "zero-balance-with-history-closed",
+      "accounts": [
+        {
+          "id": "doomed",
+          "name": "Delete with history",
+          "offbudget": false,
+          "closed": false,
+          "group": null,
+          "note": null,
+          "transactions": [
+            {
+              "id": "transaction-4",
+              "amount": -321,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": -321
+        },
+        {
+          "id": "empty",
+          "name": "Empty",
+          "offbudget": false,
+          "closed": false,
+          "group": null,
+          "note": null,
+          "transactions": [],
+          "total": 0
+        },
+        {
+          "id": "reserve",
+          "name": "Reserve",
+          "offbudget": true,
+          "closed": false,
+          "group": "daily",
+          "note": null,
+          "transactions": [
+            {
+              "id": "transaction-3",
+              "amount": -5000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": -5000
+        },
+        {
+          "id": "spending",
+          "name": "Daily spending",
+          "offbudget": false,
+          "closed": true,
+          "group": "daily",
+          "note": {
+            "id": "spending",
+            "note": "Account note with #travel and two lines\nRetain history"
+          },
+          "transactions": [
+            {
+              "id": "transaction-1",
+              "amount": 10000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            },
+            {
+              "id": "transaction-2",
+              "amount": -1250,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            },
+            {
+              "id": "transaction-5",
+              "amount": -8750,
+              "date": "2026-01-02",
+              "cleared": false,
+              "notes": null
+            }
+          ],
+          "total": 0
+        }
+      ],
+      "groups": [
+        {
+          "id": "daily",
+          "name": "Everyday"
+        }
+      ]
+    },
+    {
+      "step": "reopened-with-history",
+      "accounts": [
+        {
+          "id": "doomed",
+          "name": "Delete with history",
+          "offbudget": false,
+          "closed": false,
+          "group": null,
+          "note": null,
+          "transactions": [
+            {
+              "id": "transaction-4",
+              "amount": -321,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": -321
+        },
+        {
+          "id": "empty",
+          "name": "Empty",
+          "offbudget": false,
+          "closed": false,
+          "group": null,
+          "note": null,
+          "transactions": [],
+          "total": 0
+        },
+        {
+          "id": "reserve",
+          "name": "Reserve",
+          "offbudget": true,
+          "closed": false,
+          "group": "daily",
+          "note": null,
+          "transactions": [
+            {
+              "id": "transaction-3",
+              "amount": -5000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": -5000
+        },
+        {
+          "id": "spending",
+          "name": "Daily spending",
+          "offbudget": false,
+          "closed": false,
+          "group": "daily",
+          "note": {
+            "id": "spending",
+            "note": "Account note with #travel and two lines\nRetain history"
+          },
+          "transactions": [
+            {
+              "id": "transaction-1",
+              "amount": 10000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            },
+            {
+              "id": "transaction-2",
+              "amount": -1250,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            },
+            {
+              "id": "transaction-5",
+              "amount": -8750,
+              "date": "2026-01-02",
+              "cleared": false,
+              "notes": null
+            }
+          ],
+          "total": 0
+        }
+      ],
+      "groups": [
+        {
+          "id": "daily",
+          "name": "Everyday"
+        }
+      ]
+    },
+    {
+      "step": "empty-close-deletes-account",
+      "accounts": [
+        {
+          "id": "doomed",
+          "name": "Delete with history",
+          "offbudget": false,
+          "closed": false,
+          "group": null,
+          "note": null,
+          "transactions": [
+            {
+              "id": "transaction-4",
+              "amount": -321,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": -321
+        },
+        {
+          "id": "reserve",
+          "name": "Reserve",
+          "offbudget": true,
+          "closed": false,
+          "group": "daily",
+          "note": null,
+          "transactions": [
+            {
+              "id": "transaction-3",
+              "amount": -5000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": -5000
+        },
+        {
+          "id": "spending",
+          "name": "Daily spending",
+          "offbudget": false,
+          "closed": false,
+          "group": "daily",
+          "note": {
+            "id": "spending",
+            "note": "Account note with #travel and two lines\nRetain history"
+          },
+          "transactions": [
+            {
+              "id": "transaction-1",
+              "amount": 10000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            },
+            {
+              "id": "transaction-2",
+              "amount": -1250,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            },
+            {
+              "id": "transaction-5",
+              "amount": -8750,
+              "date": "2026-01-02",
+              "cleared": false,
+              "notes": null
+            }
+          ],
+          "total": 0
+        }
+      ],
+      "groups": [
+        {
+          "id": "daily",
+          "name": "Everyday"
+        }
+      ]
+    },
+    {
+      "step": "forced-delete-removes-account-history",
+      "accounts": [
+        {
+          "id": "reserve",
+          "name": "Reserve",
+          "offbudget": true,
+          "closed": false,
+          "group": "daily",
+          "note": null,
+          "transactions": [
+            {
+              "id": "transaction-3",
+              "amount": -5000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": -5000
+        },
+        {
+          "id": "spending",
+          "name": "Daily spending",
+          "offbudget": false,
+          "closed": false,
+          "group": "daily",
+          "note": {
+            "id": "spending",
+            "note": "Account note with #travel and two lines\nRetain history"
+          },
+          "transactions": [
+            {
+              "id": "transaction-1",
+              "amount": 10000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            },
+            {
+              "id": "transaction-2",
+              "amount": -1250,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            },
+            {
+              "id": "transaction-5",
+              "amount": -8750,
+              "date": "2026-01-02",
+              "cleared": false,
+              "notes": null
+            }
+          ],
+          "total": 0
+        }
+      ],
+      "groups": [
+        {
+          "id": "daily",
+          "name": "Everyday"
+        }
+      ]
+    },
+    {
+      "step": "group-deletion-ungroups-accounts",
+      "accounts": [
+        {
+          "id": "reserve",
+          "name": "Reserve",
+          "offbudget": true,
+          "closed": false,
+          "group": null,
+          "note": null,
+          "transactions": [
+            {
+              "id": "transaction-3",
+              "amount": -5000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            }
+          ],
+          "total": -5000
+        },
+        {
+          "id": "spending",
+          "name": "Daily spending",
+          "offbudget": false,
+          "closed": false,
+          "group": null,
+          "note": {
+            "id": "spending",
+            "note": "Account note with #travel and two lines\nRetain history"
+          },
+          "transactions": [
+            {
+              "id": "transaction-1",
+              "amount": 10000,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            },
+            {
+              "id": "transaction-2",
+              "amount": -1250,
+              "date": "2026-01-01",
+              "cleared": true,
+              "notes": null
+            },
+            {
+              "id": "transaction-5",
+              "amount": -8750,
+              "date": "2026-01-02",
+              "cleared": false,
+              "notes": null
+            }
+          ],
+          "total": 0
+        }
+      ],
+      "groups": []
+    }
+  ]
+}

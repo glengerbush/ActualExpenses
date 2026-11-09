@@ -45,6 +45,7 @@ pub fn router(store: Store) -> Router {
             axum::routing::post(duplicate_transaction),
         )
         .merge(crate::accounts::router())
+        .merge(crate::reconciliation::router())
         .merge(crate::categories::router())
         .merge(crate::payees_tags::router())
         .merge(crate::preferences::router())
@@ -136,7 +137,9 @@ async fn cancellation_scope(
                 )
                 | (
                     "POST",
-                    "/api/v1/budgets/{budget}/accounts/{id}/close"
+                    "/api/v1/budgets/{budget}/accounts/{id}/reconciliation"
+                        | "/api/v1/budgets/{budget}/transactions/{id}/unlock"
+                        | "/api/v1/budgets/{budget}/accounts/{id}/close"
                         | "/api/v1/budgets/{budget}/accounts/{id}/reopen"
                         | "/api/v1/budgets/{budget}/accounts/{id}/move"
                         | "/api/v1/budgets/{budget}/account-groups/{id}/move"
@@ -177,7 +180,7 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "tags"],
+        "capabilities": ["reconciliation", "reconciled_confirmation", "reconciliation_cancellation", "budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "tags"],
         "openapi": "/api/v1/openapi.json"
     }))
 }

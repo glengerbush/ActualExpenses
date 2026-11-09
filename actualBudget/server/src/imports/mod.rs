@@ -123,9 +123,9 @@ async fn upload(
             if let Some(id)=db.query_row("SELECT id FROM staged_imports WHERE archive_sha256=?1",[&hash],|r|r.get::<_,String>(0)).optional()? {
                 let (status,plan):(String,String)=db.query_row("SELECT status,conversion FROM staged_imports WHERE id=?1",[&id],|r|Ok((r.get(0)?,r.get(1)?)))?;
                 let plan:Value=serde_json::from_str(&plan).map_err(Error::internal)?;
-                // A new upload intent explicitly reviews a pre-category-management stage.
+                // A new upload intent explicitly reviews a stage predating newer converters.
                 // The original upload key still replays its exact original receipt first.
-                if status!="activated" && plan.get("category_groups").is_none() {
+                if status!="activated" && (plan.get("category_groups").is_none() || plan["accounts"].as_array().is_some_and(|rows|rows.iter().any(|row|row.get("last_reconciled").is_none()))) {
                     let (mut report,converted)=conversion::inspect(&bytes)?;
                     report["archive_sha256"]=json!(hash);
                     let status=if report["requirements"].as_array().unwrap().iter().any(|r|r["blocking"]==true){"blocked"}else{"ready"};

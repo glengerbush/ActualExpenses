@@ -10997,6 +10997,554 @@
           }
         }
       }
+    },
+    "/api/v1/budgets/{budget}/accounts/{id}/reconciliation": {
+      "get": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "statement_balance",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "description": "Signed statement balance. Omitted defaults to current cleared balance."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current live entry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ReconciliationProgress"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Immutable intent HLC; stale fields retain their winning values and appear in conflicts."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised reconciliation_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Identity, epoch, or durable operation_canceled conflict"
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Committed state or exact durable receipt replay. Refresh state after a replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ReconciliationProgress"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "lock",
+                      "adjust"
+                    ]
+                  },
+                  "statement_balance": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "snapshot": {
+                    "$ref": "#/components/schemas/ChangeCursor"
+                  },
+                  "date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "transaction_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "action",
+                  "statement_balance",
+                  "snapshot",
+                  "date"
+                ],
+                "additionalProperties": false,
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "action": {
+                          "const": "adjust"
+                        }
+                      }
+                    },
+                    "then": {
+                      "required": [
+                        "transaction_id"
+                      ]
+                    },
+                    "else": {
+                      "not": {
+                        "required": [
+                          "transaction_id"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "description": "Atomically compare the current statement preview snapshot. Lock requires zero difference and marks every cleared entry reconciled, preserving uncleared rows; adjust creates one cleared ordinary entry for statement minus cleared balance. All accounts support adjustment. Negative debt signs are unchanged. Stable key, body, epoch and clock preserve exactly-once replay and cancellation."
+      }
+    },
+    "/api/v1/budgets/{budget}/transactions/{id}/unlock": {
+      "post": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Immutable intent HLC; stale fields retain their winning values and appear in conflicts."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Requires advertised reconciliation_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Identity, epoch, or durable operation_canceled conflict"
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Committed state or exact durable receipt replay. Refresh state after a replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Transaction"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reconciled_version": {
+                    "$ref": "#/components/schemas/EditClock"
+                  }
+                },
+                "required": [
+                  "reconciled_version"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "description": "Explicitly remove reconciliation protection while retaining cleared status. Expected reconciled field version must match, and intent clock must exceed it. Keeps account last_reconciled history."
+      }
     }
   },
   "components": {
@@ -11140,6 +11688,13 @@
             "additionalProperties": {
               "type": "string"
             }
+          },
+          "last_reconciled": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Original Actual millisecond timestamp text, or null. Updated on successful lock; retained through confirmed edits and unlocking."
           }
         },
         "required": [
@@ -11148,7 +11703,8 @@
           "notes",
           "off_budget",
           "closed",
-          "balance"
+          "balance",
+          "last_reconciled"
         ],
         "additionalProperties": false
       },
@@ -11729,11 +12285,52 @@
           },
           "new_category": {
             "$ref": "#/components/schemas/NewCategory"
+          },
+          "confirm_reconciled": {
+            "type": "boolean",
+            "description": "Explicit confirmation for this immutable edit; requires captured reconciled_version. Protection remains unchanged. Each affected protected aggregate member must independently pass the same freshness guard. Deletion requires explicit unlock."
+          },
+          "reconciled_version": {
+            "$ref": "#/components/schemas/EditClock",
+            "description": "Reconciled field version captured from the displayed transaction when confirming. Must exactly match current protection version; immutable intent clock must also be newer. Missing proof or a later unlock/relock rejects before mutation. Original committed receipts replay before this check."
           }
         },
         "required": [],
         "additionalProperties": false,
-        "minProperties": 1
+        "minProperties": 1,
+        "dependentRequired": {
+          "reconciled_version": [
+            "confirm_reconciled"
+          ]
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "confirm_reconciled": {
+                  "const": true
+                }
+              },
+              "required": [
+                "confirm_reconciled"
+              ]
+            },
+            "then": {
+              "required": [
+                "reconciled_version"
+              ]
+            }
+          }
+        ],
+        "dependentSchemas": {
+          "reconciled_version": {
+            "properties": {
+              "confirm_reconciled": {
+                "const": true
+              }
+            }
+          }
+        }
       },
       "Balances": {
         "type": "object",
@@ -13113,7 +13710,8 @@
                   6,
                   7,
                   8,
-                  9
+                  9,
+                  10
                 ]
               },
               "domains": {
@@ -13474,6 +14072,66 @@
           "hidden",
           "deleted",
           "field_versions"
+        ],
+        "additionalProperties": false
+      },
+      "ReconciliationProgress": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "balances": {
+            "$ref": "#/components/schemas/Balances"
+          },
+          "statement_balance": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "difference": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "locked_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "ready_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "uncleared_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "last_reconciled": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Original Actual millisecond timestamp text, or null. Updated on successful lock; retained through confirmed edits and unlocking."
+          },
+          "edit_clock": {
+            "$ref": "#/components/schemas/EditClock"
+          }
+        },
+        "required": [
+          "account_id",
+          "balances",
+          "statement_balance",
+          "difference",
+          "locked_count",
+          "ready_count",
+          "uncleared_count",
+          "snapshot",
+          "last_reconciled",
+          "edit_clock"
         ],
         "additionalProperties": false
       }

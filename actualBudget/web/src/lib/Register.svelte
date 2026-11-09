@@ -38,6 +38,7 @@
     clearRegisterAction,
     type SavedAction,
   } from "./register-storage";
+  import Reconciliation from "./Reconciliation.svelte";
   import TransactionForm from "./TransactionForm.svelte";
   import DateInput from "./DateInput.svelte";
   import {
@@ -179,6 +180,10 @@
   let showForm = $state(false);
   let recoveredPending = $state(false);
   let editing = $state.raw<Transaction | null>(null);
+  let unlocking = $state.raw<Transaction | null>(null);
+  const reconciliationAccount = $derived(
+    accounts.find((a) => a.id === (accountId ?? unlocking?.account_id)),
+  );
   let deleting = $state.raw<Transaction | null>(null);
   let deletionEpoch = $state<string | undefined>();
   let pending = $state<SavedAction | null>(null);
@@ -646,6 +651,23 @@
         >{/if}
     </form>
   {/if}
+  {#if reconciliationAccount && register}
+    {#key reconciliationAccount.id}<Reconciliation
+        {budgetId}
+        account={reconciliationAccount}
+        snapshot={register.snapshot}
+        {disconnected}
+        disabled={loading ||
+          busy ||
+          showForm ||
+          !!pending ||
+          !!recoveryError ||
+          !viewMatchesEpoch}
+        {unlocking}
+        onunlocked={() => (unlocking = null)}
+        onchanged={() => changed()}
+      />{/key}
+  {/if}
   {#if pending?.clockRejected}<p role="status">
       {t(
         "This attempt was rejected. Correct the device time before retrying. Discard asks the server to cancel it; an already saved change will be restored.",
@@ -752,102 +774,118 @@
   {/if}
   {#if loading}<p role="status">{t("Loading transactions…")}</p>{/if}
   {#if register?.data.length && preferences.hasUsableShared && viewMatchesEpoch}
-    <table class="register-table">
-      <caption class="visually-hidden"
-        >{t("Account transactions, newest first")}</caption
-      ><thead
-        ><tr
-          ><th>{t("Date")}</th>{#if !accountId}<th>{t("Account")}</th>{/if}<th
-            >{t("Payee and notes")}</th
-          ><th>{t("Category")}</th><th class="number">{t("Amount")}</th><th
-            >{t("Status")}</th
-          >{#if accountId}<th class="number">{t("Running balance")}</th>{/if}<th
-            >{t("Actions")}</th
-          ></tr
-        ></thead
-      ><tbody>
-        {#each register.data as row (row.id)}
-          <tr>
-            <td data-label={t("Date")}>{formatDate(row.date)}</td
-            >{#if !accountId}<td data-label={t("Account")}
-                >{row.account_name}</td
-              >{/if}
-            <td data-label={t("Payee and notes")}
-              ><span>{row.payee_name ?? t("No payee")}</span
-              >{#if row.notes}<span class="entry-notes">{row.notes}</span
-                >{/if}</td
-            >
-            <td data-label={t("Category")}
-              >{row.category_name ?? t("Uncategorized")}</td
-            ><td class="number amount" data-label={t("Amount")}
-              >{formatAmount(row.amount)}</td
-            >
-            <td data-label={t("Status")}
-              >{row.reconciled
-                ? t("Reconciled")
-                : row.cleared
-                  ? t("Cleared")
-                  : t("Uncleared")}</td
-            >
-            {#if accountId}<td class="number" data-label={t("Running balance")}
-                >{formatAmount(row.running_balance ?? 0)}</td
-              >{/if}
-            <td class="row-actions"
-              ><button
-                onclick={() => open(row)}
-                disabled={disconnected ||
-                  loading ||
-                  busy ||
-                  showForm ||
-                  !!pending ||
-                  !!recoveryError ||
-                  !preferences.hasUsableShared ||
-                  row.reconciled}
-                aria-label={`${t("Edit")} ${description(row)}`}
-                >{t("Edit")}</button
-              ><button
-                onclick={() => void runAction("duplicate", row)}
-                disabled={disconnected ||
-                  loading ||
-                  busy ||
-                  showForm ||
-                  !!pending ||
-                  !!recoveryError ||
-                  !preferences.hasUsableShared}
-                aria-label={`${t("Duplicate")} ${description(row)}`}
-                >{t("Duplicate")}</button
-              ><button
-                onclick={() => {
-                  deleting = row;
-                  deletionEpoch = preferences.budgetEpoch;
-                }}
-                disabled={disconnected ||
-                  loading ||
-                  busy ||
-                  showForm ||
-                  !!pending ||
-                  !!recoveryError ||
-                  !preferences.hasUsableShared ||
-                  row.reconciled}
-                aria-label={`${t("Delete")} ${description(row)}`}
-                >{t("Delete")}</button
-              ></td
-            >
-          </tr>
-          {#if deleting?.id === row.id}<tr class="delete-confirmation"
-              ><td colspan={8}
-                ><p>{t("Delete this transaction?")} {description(row)}</p>
-                <button
-                  onclick={() => void runAction("delete", row)}
-                  disabled={busy}>{t("Confirm delete")}</button
-                ><button onclick={() => (deleting = null)} disabled={busy}
-                  >{t("Keep transaction")}</button
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex (Scrollable transaction region needs keyboard access at enlarged text.) -->
+    <div
+      class="register-table-scroll"
+      tabindex="0"
+      role="region"
+      aria-label={t("Transaction table")}
+    >
+      <table class="register-table">
+        <caption class="visually-hidden"
+          >{t("Account transactions, newest first")}</caption
+        ><thead
+          ><tr
+            ><th>{t("Date")}</th>{#if !accountId}<th>{t("Account")}</th>{/if}<th
+              >{t("Payee and notes")}</th
+            ><th>{t("Category")}</th><th class="number">{t("Amount")}</th><th
+              >{t("Status")}</th
+            >{#if accountId}<th class="number">{t("Running balance")}</th
+              >{/if}<th>{t("Actions")}</th></tr
+          ></thead
+        ><tbody>
+          {#each register.data as row (row.id)}
+            <tr>
+              <td data-label={t("Date")}>{formatDate(row.date)}</td
+              >{#if !accountId}<td data-label={t("Account")}
+                  >{row.account_name}</td
+                >{/if}
+              <td data-label={t("Payee and notes")}
+                ><span>{row.payee_name ?? t("No payee")}</span
+                >{#if row.notes}<span class="entry-notes">{row.notes}</span
+                  >{/if}</td
+              >
+              <td data-label={t("Category")}
+                >{row.category_name ?? t("Uncategorized")}</td
+              ><td class="number amount" data-label={t("Amount")}
+                >{formatAmount(row.amount)}</td
+              >
+              <td data-label={t("Status")}
+                >{row.reconciled
+                  ? t("Reconciled")
+                  : row.cleared
+                    ? t("Cleared")
+                    : t("Uncleared")}</td
+              >
+              {#if accountId}<td
+                  class="number"
+                  data-label={t("Running balance")}
+                  >{formatAmount(row.running_balance ?? 0)}</td
+                >{/if}
+              <td class="row-actions"
+                ><button
+                  onclick={() => open(row)}
+                  disabled={disconnected ||
+                    loading ||
+                    busy ||
+                    showForm ||
+                    !!pending ||
+                    !!recoveryError ||
+                    !preferences.hasUsableShared}
+                  aria-label={`${t("Edit")} ${description(row)}`}
+                  >{t("Edit")}</button
+                >{#if row.reconciled}<button
+                    onclick={() => (unlocking = row)}
+                    disabled={disconnected ||
+                      loading ||
+                      busy ||
+                      showForm ||
+                      !!pending}
+                    aria-label={`Unlock ${description(row)}`}>Unlock</button
+                  >{/if}<button
+                  onclick={() => void runAction("duplicate", row)}
+                  disabled={disconnected ||
+                    loading ||
+                    busy ||
+                    showForm ||
+                    !!pending ||
+                    !!recoveryError ||
+                    !preferences.hasUsableShared}
+                  aria-label={`${t("Duplicate")} ${description(row)}`}
+                  >{t("Duplicate")}</button
+                ><button
+                  onclick={() => {
+                    deleting = row;
+                    deletionEpoch = preferences.budgetEpoch;
+                  }}
+                  disabled={disconnected ||
+                    loading ||
+                    busy ||
+                    showForm ||
+                    !!pending ||
+                    !!recoveryError ||
+                    !preferences.hasUsableShared ||
+                    row.reconciled}
+                  aria-label={`${t("Delete")} ${description(row)}`}
+                  >{t("Delete")}</button
                 ></td
-              ></tr
-            >{/if}
-        {/each}
-      </tbody>
-    </table>
+              >
+            </tr>
+            {#if deleting?.id === row.id}<tr class="delete-confirmation"
+                ><td colspan={8}
+                  ><p>{t("Delete this transaction?")} {description(row)}</p>
+                  <button
+                    onclick={() => void runAction("delete", row)}
+                    disabled={busy}>{t("Confirm delete")}</button
+                  ><button onclick={() => (deleting = null)} disabled={busy}
+                    >{t("Keep transaction")}</button
+                  ></td
+                ></tr
+              >{/if}
+          {/each}
+        </tbody>
+      </table>
+    </div>
     {#if register.next_offset !== null}<button
         onclick={more}
         disabled={loading || busy}>{t("Load more transactions")}</button
@@ -895,6 +933,10 @@
     gap: 0.75rem;
     flex-wrap: wrap;
     margin-bottom: 1rem;
+  }
+  .register-table-scroll {
+    overflow-x: auto;
+    max-width: 100%;
   }
   .register-table {
     width: 100%;

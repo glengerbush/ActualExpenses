@@ -13,6 +13,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("migrations/007_accounts.sql"),
     include_str!("categories/schema.sql"),
     include_str!("migrations/009_payees_tags.sql"),
+    include_str!("migrations/010_reconciliation.sql"),
 ];
 pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;

@@ -67,6 +67,7 @@
   let draft = $state<Draft | null>(null);
   let error = $state("");
   let busy = $state(false);
+  let confirmReconciled = $state(false);
   let restored = $state(false);
   let externalChanged = $state(false);
   async function checkSharedIntent() {
@@ -394,6 +395,12 @@
         )
           delete body[key];
       if (Object.keys(body).length === 0) return null;
+      if (draft.original.reconciled) {
+        if (!confirmReconciled)
+          throw new Error(t("Confirm editing this reconciled transaction."));
+        body.confirm_reconciled = true;
+        body.reconciled_version = draft.original.field_versions?.reconciled;
+      }
     } else body.id = draft.id;
     return {
       path: `/budgets/${budgetId}/transactions${draft.original ? `/${draft.id}` : ""}`,
@@ -451,7 +458,7 @@
       amount: body.amount ?? draft!.original?.amount ?? 0,
       date: parseDateInput(fields.date, draft!.dateFormat),
       cleared: fields.cleared,
-      reconciled: false,
+      reconciled: draft!.original?.reconciled ?? false,
       starting_balance: false,
       notes: fields.notes,
       payee_id: fields.payee || null,
@@ -649,6 +656,18 @@
   {#if draft}
     <form onsubmit={submit} aria-busy={busy}>
       <fieldset disabled={busy || !!draft.pending || externalChanged}>
+        {#if draft.original?.reconciled}<p>
+            {t(
+              "This transaction is reconciled. Confirmed edits keep it locked.",
+            )}
+          </p>
+          <label
+            ><input
+              type="checkbox"
+              bind:checked={confirmReconciled}
+              required
+            />{t("Confirm editing this reconciled transaction")}</label
+          >{/if}
         <div class="entry-pair">
           <div>
             <label for="transaction-account">{t("Account")}</label><select

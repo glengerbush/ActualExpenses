@@ -146,6 +146,33 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun `reconciliation hides settled expenses and unlocking restores native eligibility`() {
+        Server().use { server ->
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            val id = app.saveExpense(ExpenseDraft("12.34"))
+            app.refresh()
+            assertEquals(id, app.state().expenses.single().id)
+            val path = "/budgets/${server.budget}/accounts/${server.account}/reconciliation"
+            val progress = server.get(path + "?statement_balance=-1234").getAsJsonObject("data")
+            val snapshot = progress["snapshot"].asString
+            server.post(path, """{"action":"lock","statement_balance":-1234,"snapshot":"$snapshot","date":"2026-02-28"}""", 200)
+            app.refresh()
+            assertTrue(app.state().expenses.isEmpty(), app.state().error)
+            val row = server.get("/budgets/${server.budget}/transactions/$id").getAsJsonObject("data")
+            val version = row.getAsJsonObject("field_versions")["reconciled"].asString
+            server.post("/budgets/${server.budget}/transactions/$id/unlock", """{"reconciled_version":"$version"}""", 200)
+            val restarted = ApiExpenseService(store)
+            restarted.refresh()
+            assertEquals(id, restarted.state().expenses.single().id)
+            assertEquals(1234, restarted.state().expenses.single().amountMinor)
+        }
+    }
+
+    @Test
     fun `no credentials select account create edit delete through real API and preserve remembered selection`() {
         Server().use { server ->
             val store = MemoryStore()

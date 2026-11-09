@@ -146,6 +146,71 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun `reconciliation hides settled expenses and unlocking restores native eligibility`() {
+        Server().use { server ->
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            val id = app.saveExpense(ExpenseDraft("12.34"))
+            app.refresh()
+            assertEquals(id, app.state().expenses.single().id)
+            val path = "/budgets/${server.budget}/accounts/${server.account}/reconciliation"
+            val progress = server.get(path + "?statement_balance=-1234").getAsJsonObject("data")
+            val snapshot = progress["snapshot"].asString
+            server.post(path, """{"action":"lock","statement_balance":-1234,"snapshot":"$snapshot","date":"2026-02-28"}""", 200)
+            app.refresh()
+            assertTrue(app.state().expenses.isEmpty(), app.state().error)
+            val row = server.get("/budgets/${server.budget}/transactions/$id").getAsJsonObject("data")
+            val version = row.getAsJsonObject("field_versions")["reconciled"].asString
+            server.post("/budgets/${server.budget}/transactions/$id/unlock", """{"reconciled_version":"$version"}""", 200)
+            val restarted = ApiExpenseService(store)
+            restarted.refresh()
+            assertEquals(id, restarted.state().expenses.single().id)
+            assertEquals(1234, restarted.state().expenses.single().amountMinor)
+        }
+    }
+
+    @Test
+    fun `reconciled split stays ineligible through confirmed recombination until unlocked`() {
+        Server().use { server ->
+            val app = ApiExpenseService(MemoryStore())
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            val id = app.saveExpense(ExpenseDraft("3.00", notes = "Native split"))
+            app.refresh()
+            val base = "/budgets/${server.budget}"
+            val snapshot = server.get("$base/transactions")["snapshot"].asString
+            server.post("$base/transactions/$id/splits", """{"snapshot":"$snapshot","children":[{"id":"${UUID.randomUUID()}","amount":-100},{"id":"${UUID.randomUUID()}","amount":-200}]}""", 200)
+            val path = "$base/accounts/${server.account}/reconciliation"
+            val progress = server.get(path).getAsJsonObject("data")
+            assertEquals(1, progress["ready_count"].asInt)
+            server.post(path, """{"action":"lock","statement_balance":-300,"snapshot":${progress["snapshot"]},"date":"2026-02-28"}""", 200)
+            app.refresh()
+            assertTrue(app.state().expenses.isEmpty())
+            val current = server.get("$base/transactions/$id/splits")
+            val row = current.getAsJsonObject("data")
+            val proof = JsonObject()
+            proof.add(id, row.getAsJsonObject("field_versions")["reconciled"])
+            for (child in row.getAsJsonArray("children")) {
+                val value = child.asJsonObject
+                assertTrue(value["reconciled"].asBoolean)
+                proof.add(value["id"].asString, value.getAsJsonObject("field_versions")["reconciled"])
+            }
+            server.post("$base/transactions/$id/splits", """{"snapshot":${current["snapshot"]},"action":"recombine","confirm_reconciled":true,"reconciled_versions":$proof}""", 200)
+            app.refresh()
+            assertTrue(app.state().expenses.isEmpty())
+            val recombined = server.get("$base/transactions/$id").getAsJsonObject("data")
+            assertTrue(recombined["reconciled"].asBoolean)
+            server.post("$base/transactions/$id/unlock", """{"reconciled_version":${recombined.getAsJsonObject("field_versions")["reconciled"]}}""", 200)
+            app.refresh()
+            assertEquals(300, app.state().expenses.single().amountMinor)
+        }
+    }
+
+    @Test
     fun `converted split preserves pending edit across restart until confirmed discard`() {
         Server().use { server ->
             val store = MemoryStore()

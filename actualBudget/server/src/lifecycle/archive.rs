@@ -140,7 +140,7 @@ pub fn capture(db: &Connection, budget: &str) -> Result<Vec<u8>, Error> {
     let body = serde_json::to_vec(&state).map_err(Error::internal)?;
     let mut entries = BTreeMap::from([("budget.json".to_owned(), body)]);
     entries.extend(blobs);
-    let manifest = json!({"format":"actualBudget","version":1,"schema_version":11,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
+    let manifest = json!({"format":"actualBudget","version":1,"schema_version":12,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
     if entries.len() + 1 > 1000
         || entries.values().map(Vec::len).sum::<usize>() + manifest.to_string().len() > MAX_EXPANDED
     {
@@ -216,7 +216,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || !matches!(manifest["schema_version"].as_u64(), Some(6..=11))
+        || !matches!(manifest["schema_version"].as_u64(), Some(6..=12))
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }
@@ -360,6 +360,19 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
                 json!(0),
                 Value::Null,
             ]);
+        }
+    }
+    if manifest["schema_version"].as_u64().unwrap() < 12 {
+        let accounts = state
+            .tables
+            .get_mut("accounts")
+            .ok_or_else(|| invalid("Missing accounts"))?;
+        if accounts.columns.iter().any(|c| c == "last_reconciled") {
+            return Err(invalid("Unexpected legacy reconciliation column"));
+        }
+        accounts.columns.push("last_reconciled".into());
+        for row in &mut accounts.rows {
+            row.push(Value::Null);
         }
     }
     if manifest["schema_version"].as_u64().unwrap() < 9 {
@@ -680,6 +693,10 @@ pub fn validate_financial_state(db: &Connection, budget: &str) -> Result<(), Err
         return Err(invalid("Deleted account has visible history"));
     }
     crate::categories::validate_archive(db, budget).map_err(|e| invalid(e.message))?;
+    let mut dates = db.prepare("SELECT last_reconciled FROM accounts WHERE budget_id=?1")?;
+    for date in dates.query_map([budget], |r| r.get::<_, Option<String>>(0))? {
+        crate::reconciliation::source_timestamp(&json!(date?)).map_err(|e| invalid(e.message))?;
+    }
     crate::splits::validate(db, budget).map_err(|e| invalid(e.message))?;
     crate::register_settings::validate_archive(db, budget).map_err(|e| invalid(e.message))?;
     let mut notes = db.prepare("SELECT notes FROM accounts WHERE budget_id=?1")?;

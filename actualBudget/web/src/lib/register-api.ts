@@ -4,6 +4,7 @@ export interface Transaction {
   is_parent?: boolean;
   parent_id?: string | null;
   children?: Transaction[];
+  reconciliation_token?: string;
   id: string;
   field_versions?: Record<string, string>;
   deleted?: boolean;

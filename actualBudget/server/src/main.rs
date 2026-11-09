@@ -13,6 +13,7 @@ mod models;
 mod origin;
 mod payees_tags;
 mod preferences;
+mod reconciliation;
 mod register;
 mod register_recurrence;
 mod register_regex;

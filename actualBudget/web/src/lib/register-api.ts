@@ -1,5 +1,8 @@
 import { request } from "./api";
 export interface Transaction {
+  is_parent?: boolean;
+  parent_id?: string | null;
+  children?: Transaction[];
   id: string;
   field_versions?: Record<string, string>;
   deleted?: boolean;

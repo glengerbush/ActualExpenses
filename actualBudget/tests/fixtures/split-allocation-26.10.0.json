@@ -1,0 +1,89 @@
+{
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "callback_sha256": "92a82a59ba0401249a04f49e643a048d703cf7bd5d6d677bdb1c459a6f142929",
+  "cases": [
+    {
+      "total": -5001,
+      "amounts": [
+        -2000,
+        0,
+        0
+      ],
+      "expected": [
+        -2000,
+        -1500,
+        -1501
+      ]
+    },
+    {
+      "total": -4000,
+      "amounts": [
+        -2000,
+        -1000
+      ],
+      "expected": [
+        -2666,
+        -1334
+      ]
+    },
+    {
+      "total": 4000,
+      "amounts": [
+        2000,
+        1000
+      ],
+      "expected": [
+        2667,
+        1333
+      ]
+    },
+    {
+      "total": -1,
+      "amounts": [
+        0,
+        0,
+        0
+      ],
+      "expected": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "total": 1,
+      "amounts": [
+        0,
+        0,
+        0
+      ],
+      "expected": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "total": -101,
+      "amounts": [
+        -100,
+        20
+      ],
+      "expected": [
+        -126,
+        25
+      ]
+    },
+    {
+      "total": -5001,
+      "amounts": [
+        -2000,
+        0
+      ],
+      "expected": [
+        -2000,
+        -3001
+      ]
+    }
+  ]
+}

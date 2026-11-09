@@ -260,6 +260,7 @@ pub enum Mutation {
     Patch(String, Value),
     Delete(String),
     Duplicate(String, String),
+    Split(String, crate::splits::Change),
 }
 /// Called only inside a receipt transaction, after exact original-receipt lookup.
 pub fn canceled(db: &Connection, budget: &str) -> Result<Value, Error> {
@@ -285,6 +286,10 @@ pub fn execute(
     crate::lifecycle::require_epoch(db, budget, expected_epoch)?;
     let edit_clock = clock(db, budget, proposed)?;
     match mutation {
+        Mutation::Split(id, input) => {
+            let data = crate::splits::apply(db, budget, &id, input, &edit_clock)?;
+            success(db, budget, data, &edit_clock, vec![], StatusCode::OK)
+        }
         Mutation::Create(input) => {
             let id = input.id.clone();
             let new_payee = input.new_payee.as_ref().map(|p| p.id.clone());
@@ -306,7 +311,12 @@ pub fn execute(
             )
         }
         Mutation::Duplicate(source, id) => {
-            ledger::duplicate(db, budget, &source, &id)?;
+            let duplicate = ledger::duplicate(db, budget, &source, &id)?;
+            if let Some(children) = duplicate["children"].as_array() {
+                for child in children {
+                    crate::splits::stamp(db, budget, child["id"].as_str().unwrap(), &edit_clock)?;
+                }
+            }
             for field in FIELDS {
                 seed_field_version(db, budget, "transactions", &id, field, &edit_clock)?;
             }
@@ -327,6 +337,15 @@ pub fn execute(
             } else {
                 ledger::get(db, budget, &id)?
             };
+            if !hidden && (previous["is_parent"] == true || !previous["parent_id"].is_null()) {
+                return refusal(
+                    db,
+                    budget,
+                    previous,
+                    "split_transaction",
+                    "This expense is now part of a split. Your pending edit is retained; cancel it or review the split in actualBudget.",
+                );
+            }
             ledger::validate_patch(&previous, &patch)?;
             let fields = patch.as_object().unwrap();
             let old = versions(db, budget, &id)?;
@@ -386,11 +405,14 @@ pub fn execute(
                 );
             }
             let known = versions(db, budget, &id)?;
-            if known.as_object().unwrap().values().any(|clock| {
-                clock
-                    .as_str()
-                    .is_some_and(|clock| clock > edit_clock.as_str())
-            }) {
+            let newer_child:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM transactions c JOIN field_versions v ON v.budget_id=c.budget_id AND v.entity='transactions' AND v.entity_id=c.id WHERE c.budget_id=?1 AND c.parent_id=?2 AND c.tombstone=0 AND v.clock>?3)",params![budget,id,edit_clock],|r|r.get(0))?;
+            if newer_child
+                || known.as_object().unwrap().values().any(|clock| {
+                    clock
+                        .as_str()
+                        .is_some_and(|clock| clock > edit_clock.as_str())
+                })
+            {
                 return refusal(
                     db,
                     budget,
@@ -399,7 +421,18 @@ pub fn execute(
                     "A newer edit kept this transaction. The pending deletion was canceled.",
                 );
             }
+            let previous = ledger::get(db, budget, &id)?;
             ledger::delete(db, budget, &id)?;
+            if let Some(children) = previous["children"].as_array() {
+                for child in children {
+                    let cid = child["id"].as_str().unwrap();
+                    db.execute(
+                        "UPDATE transactions SET tombstone=1 WHERE budget_id=?1 AND id=?2",
+                        params![budget, cid],
+                    )?;
+                    crate::splits::stamp(db, budget, cid, &edit_clock)?;
+                }
+            }
             seed_field_version(db, budget, "transactions", &id, "tombstone", &edit_clock)?;
             mark(db, budget, "transactions", &id)?;
             success(

@@ -13,6 +13,7 @@ mod models;
 mod origin;
 mod payees_tags;
 mod preferences;
+mod splits;
 mod store;
 mod themes;
 use std::path::PathBuf;

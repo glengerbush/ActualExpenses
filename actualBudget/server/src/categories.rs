@@ -658,7 +658,7 @@ async fn transactions(
     }
     Ok(Json(store.run(move|db|{sync::check_snapshot(db,&budget,page.snapshot.as_deref())?;let category=if id=="uncategorized"{None}else{Some(id.as_str())};
  if let Some(id)=category{get(db,&budget,"categories",id)?;}
- let mut q=db.prepare("SELECT id,amount FROM transactions WHERE budget_id=?1 AND category_id IS ?2 AND tombstone=0 ORDER BY date DESC,sort_order DESC,id")?;
+ let mut q=db.prepare("SELECT id,amount FROM transactions WHERE budget_id=?1 AND category_id IS ?2 AND tombstone=0 AND is_parent=0 ORDER BY date DESC,sort_order DESC,id")?;
  let mut total=0i128;let mut data=vec![];let mut count=0;
  for row in q.query_map(params![budget,category],|r|Ok((r.get::<_,String>(0)?,r.get::<_,i64>(1)?)))?{let(id,amount)=row?;total+=amount as i128;if count>=page.offset&&count<page.offset+page.limit{data.push(crate::ledger::get(db,&budget,&id)?);}count+=1;}
  if total.abs()>9007199254740991{return Err(Error::invalid("Category total exceeds exact money range"));}

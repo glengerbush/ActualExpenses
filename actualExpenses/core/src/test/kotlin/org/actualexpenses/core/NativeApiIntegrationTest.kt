@@ -146,6 +146,37 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun `converted split preserves pending edit across restart until confirmed discard`() {
+        Server().use { server ->
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            val id = app.saveExpense(ExpenseDraft("7.89", notes = "Original"))
+            app.refresh()
+            val edit = app.beginEdit(id)
+            app.markOffline()
+            app.saveExpense(edit.original!!.copy(notes = "Pending correction"), edit)
+            val pending = JsonParser.parseString(store.raw).asJsonObject.getAsJsonArray("pending")[0].asJsonObject.deepCopy()
+            val snapshot = server.get("/budgets/${server.budget}/transactions")["snapshot"].asString
+            server.post("/budgets/${server.budget}/transactions/$id/splits", """{"snapshot":"$snapshot","children":[{"id":"${UUID.randomUUID()}","amount":-789}]}""", 200)
+            app.refresh()
+            assertEquals(1, app.state().pendingCount)
+            assertTrue(app.state().splitRecovery)
+            val restarted = ApiExpenseService(store)
+            assertTrue(restarted.state().splitRecovery)
+            val retained = JsonParser.parseString(store.raw).asJsonObject.getAsJsonArray("pending")[0].asJsonObject
+            for (field in listOf("id", "path", "body", "clock", "epoch")) assertEquals(pending[field], retained[field])
+            restarted.discardRejectedSplitEdit()
+            restarted.refresh()
+            assertEquals(0, restarted.state().pendingCount)
+            assertTrue(restarted.state().expenses.isEmpty())
+            assertEquals("Original", server.get("/budgets/${server.budget}/transactions/$id").getAsJsonObject("data")["notes"].asString)
+        }
+    }
+
+    @Test
     fun `no credentials select account create edit delete through real API and preserve remembered selection`() {
         Server().use { server ->
             val store = MemoryStore()

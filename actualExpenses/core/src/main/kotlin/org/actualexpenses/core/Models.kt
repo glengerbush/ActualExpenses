@@ -37,4 +37,5 @@ data class AppState(
     val online: Boolean = false, val pendingCount: Int = 0, val notice: String? = null,
     val error: String? = null,
     val syncBlocked: Boolean = false,
+    val splitRecovery: Boolean = false,
 )

@@ -139,7 +139,7 @@ pub fn capture(db: &Connection, budget: &str) -> Result<Vec<u8>, Error> {
     let body = serde_json::to_vec(&state).map_err(Error::internal)?;
     let mut entries = BTreeMap::from([("budget.json".to_owned(), body)]);
     entries.extend(blobs);
-    let manifest = json!({"format":"actualBudget","version":1,"schema_version":9,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
+    let manifest = json!({"format":"actualBudget","version":1,"schema_version":10,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
     if entries.len() + 1 > 1000
         || entries.values().map(Vec::len).sum::<usize>() + manifest.to_string().len() > MAX_EXPANDED
     {
@@ -215,7 +215,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || !matches!(manifest["schema_version"].as_u64(), Some(6..=9))
+        || !matches!(manifest["schema_version"].as_u64(), Some(6..=10))
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }
@@ -420,6 +420,18 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             for row in &mut table.rows {
                 row.extend(defaults.clone());
             }
+        }
+    }
+    if manifest["schema_version"].as_u64().is_some_and(|v| v < 10) {
+        let transactions = state
+            .tables
+            .get_mut("transactions")
+            .ok_or_else(|| invalid("Missing transactions"))?;
+        transactions
+            .columns
+            .extend(["is_parent".to_owned(), "parent_id".to_owned()]);
+        for row in &mut transactions.rows {
+            row.extend([json!(0), Value::Null]);
         }
     }
     if state.budget["id"] != manifest["budget_id"] {
@@ -654,6 +666,7 @@ pub fn validate_financial_state(db: &Connection, budget: &str) -> Result<(), Err
         return Err(invalid("Deleted account has visible history"));
     }
     crate::categories::validate_archive(db, budget).map_err(|e| invalid(e.message))?;
+    crate::splits::validate(db, budget).map_err(|e| invalid(e.message))?;
     let mut notes = db.prepare("SELECT notes FROM accounts WHERE budget_id=?1")?;
     for text in notes.query_map([budget], |r| r.get::<_, String>(0))? {
         if text?.chars().count() > 10000 {

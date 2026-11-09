@@ -44,6 +44,7 @@ pub fn router(store: Store) -> Router {
             "/api/v1/budgets/{budget}/transactions/{id}/duplicate",
             axum::routing::post(duplicate_transaction),
         )
+        .merge(crate::splits::router())
         .merge(crate::accounts::router())
         .merge(crate::categories::router())
         .merge(crate::payees_tags::router())
@@ -119,6 +120,7 @@ async fn cancellation_scope(
                 | (
                     "POST",
                     "/api/v1/budgets/{budget}/transactions/{id}/duplicate"
+                        | "/api/v1/budgets/{budget}/transactions/{id}/splits"
                 )
                 | (
                     "POST",
@@ -177,7 +179,7 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "tags"],
+        "capabilities": ["budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "tags", "splits"],
         "openapi": "/api/v1/openapi.json"
     }))
 }

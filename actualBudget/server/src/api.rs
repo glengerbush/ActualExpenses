@@ -50,6 +50,7 @@ pub fn router(store: Store) -> Router {
         .merge(crate::accounts::router())
         .merge(crate::reconciliation::router())
         .merge(crate::budgeting::router())
+        .merge(crate::rules::router())
         .merge(crate::categories::router())
         .merge(crate::payees_tags::router())
         .merge(crate::payee_locations::router())

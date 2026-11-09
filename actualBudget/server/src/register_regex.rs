@@ -107,7 +107,7 @@ impl Pattern {
             units: units.len() as u64,
         })
     }
-    fn matches(&self, text: &str, budget: &Budget) -> Result<bool, Failure> {
+    pub(crate) fn matches(&self, text: &str, budget: &Budget) -> Result<bool, Failure> {
         let text: Vec<u16> = text.encode_utf16().take(TEXT_UNITS + 1).collect();
         if text.len() > TEXT_UNITS {
             return Err(Failure::Budget);

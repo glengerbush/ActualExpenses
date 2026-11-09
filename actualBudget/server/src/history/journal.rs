@@ -19,6 +19,8 @@ const TABLES: &[&str] = &[
     "budget_cells",
     "budget_months",
     "budget_settings",
+    "rules",
+    "rule_settings",
 ];
 #[derive(Serialize, Deserialize)]
 pub struct Change {

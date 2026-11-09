@@ -21,6 +21,7 @@ mod register;
 mod register_recurrence;
 mod register_regex;
 mod register_settings;
+mod rules;
 mod splits;
 mod store;
 mod themes;

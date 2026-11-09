@@ -25,6 +25,35 @@ struct Pattern {
     value: i32,
 }
 pub fn dates(value: &Value) -> Result<Vec<String>, Error> {
+    {
+        let mut work = usize::MAX;
+        dates_with_limit(value, 100, None, &mut work)
+    }
+}
+/// Live rules inspect the requested date, not the register's first100 occurrences.
+pub fn rule_matches(
+    value: &Value,
+    target: &str,
+    approx: bool,
+    work: &mut usize,
+) -> Result<bool, Error> {
+    validate_date(target)?;
+    let target = NaiveDate::parse_from_str(target, "%Y-%m-%d").map_err(Error::internal)?;
+    let end = target
+        .checked_add_signed(TimeDelta::days(4))
+        .unwrap_or(target);
+    let dates = dates_with_limit(value, 120000, Some(end), work)?;
+    Ok(dates.iter().any(|date| {
+        NaiveDate::parse_from_str(date, "%Y-%m-%d")
+            .is_ok_and(|d| (d - target).num_days().abs() <= if approx { 2 } else { 0 })
+    }))
+}
+fn dates_with_limit(
+    value: &Value,
+    limit: usize,
+    target_end: Option<NaiveDate>,
+    work: &mut usize,
+) -> Result<Vec<String>, Error> {
     let config: Recurrence = serde_json::from_value(value.clone())
         .map_err(|_| Error::invalid("Invalid recurring date filter"))?;
     validate_date(&config.start)?;
@@ -42,13 +71,13 @@ pub fn dates(value: &Value) -> Result<Vec<String>, Error> {
         return Err(Error::invalid("Invalid weekend mode"));
     }
     let count = match config.end_mode.as_deref() {
-        None | Some("never") => 100,
+        None | Some("never") => limit as u32,
         Some("after_n_occurrences") => config
             .end_occurrences
             .filter(|v| *v > 0)
             .ok_or_else(|| Error::invalid("Invalid recurrence count"))?
-            .min(100),
-        Some("on_date") => 100,
+            .min(limit as u32),
+        Some("on_date") => limit as u32,
         _ => return Err(Error::invalid("Invalid recurrence end mode")),
     } as usize;
     let end = if config.end_mode.as_deref() == Some("on_date") {
@@ -61,6 +90,18 @@ pub fn dates(value: &Value) -> Result<Vec<String>, Error> {
     } else {
         NaiveDate::from_ymd_opt(9999, 12, 31).unwrap()
     };
+    let end = target_end.map_or(end, |target| target.min(end));
+    if target_end.is_some()
+        && matches!(config.frequency.as_str(), "daily" | "weekly")
+        && (end - start).num_days()
+            / (i64::from(interval) * if config.frequency == "weekly" { 7 } else { 1 })
+            >= 120000
+        && count >= limit
+    {
+        return Err(Error::invalid(
+            "Rule recurrence work limit reached; narrow the date range",
+        ));
+    }
     let mut groups = [Vec::new(), Vec::new()];
     for pattern in &config.patterns {
         if pattern.r#type == "day" {
@@ -75,6 +116,9 @@ pub fn dates(value: &Value) -> Result<Vec<String>, Error> {
         }
     }
     for n in 0u32..120000 {
+        *work = work.checked_sub(1).ok_or_else(|| {
+            Error::invalid("Rule recurrence work limit reached; narrow the preview")
+        })?;
         if groups.iter().all(|g| g.len() >= count) {
             break;
         }
@@ -168,6 +212,6 @@ pub fn dates(value: &Value) -> Result<Vec<String>, Error> {
     let mut result = groups.concat();
     result.sort();
     result.dedup();
-    result.truncate(100);
+    result.truncate(limit);
     Ok(result.iter().map(ToString::to_string).collect())
 }

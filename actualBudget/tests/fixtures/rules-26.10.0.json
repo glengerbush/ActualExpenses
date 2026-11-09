@@ -1,0 +1,2186 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "cases": [
+    {
+      "name": "pre rename then default category then post notes",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000003",
+          "stage": "post",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": "29655071-946c-41b9-89fd-ac06bee64b5f"
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / checked"
+            }
+          ]
+        },
+        {
+          "id": "19190000-0000-4000-8000-000000000002",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "payee",
+              "op": "is",
+              "value": "06898ca3-5b14-4893-9df1-4153e80063c1"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "category",
+              "value": "29655071-946c-41b9-89fd-ac06bee64b5f"
+            }
+          ]
+        },
+        {
+          "id": "19190000-0000-4000-8000-000000000001",
+          "stage": "pre",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "imported_payee",
+              "op": "contains",
+              "value": "SHOP"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "payee",
+              "value": "06898ca3-5b14-4893-9df1-4153e80063c1"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": "06898ca3-5b14-4893-9df1-4153e80063c1",
+        "category": "29655071-946c-41b9-89fd-ac06bee64b5f",
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original / checked",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "empty conditions",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000100",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "or second condition",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000101",
+          "stage": null,
+          "conditionsOp": "or",
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "is",
+              "value": 999
+            },
+            {
+              "field": "notes",
+              "op": "is",
+              "value": "original"
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "and false",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000102",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "is",
+              "value": "original"
+            },
+            {
+              "field": "cleared",
+              "op": "is",
+              "value": true
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "id null",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000103",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": null
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "id not null",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000104",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "isNot",
+              "value": null
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": "29655071-946c-41b9-89fd-ac06bee64b5f",
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": "29655071-946c-41b9-89fd-ac06bee64b5f",
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash",
+        "_category_name": "Food"
+      }
+    },
+    {
+      "name": "membership",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000105",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "payee",
+              "op": "oneOf",
+              "value": [
+                "06898ca3-5b14-4893-9df1-4153e80063c1"
+              ]
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": "06898ca3-5b14-4893-9df1-4153e80063c1",
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": "06898ca3-5b14-4893-9df1-4153e80063c1",
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "null notOneOf",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000106",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "payee",
+              "op": "notOneOf",
+              "value": [
+                "06898ca3-5b14-4893-9df1-4153e80063c1"
+              ]
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "notes empty",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000107",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "is",
+              "value": ""
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": null,
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": " / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "contains normalized",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000108",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "contains",
+              "value": "ORIG"
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "doesNotContain",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000109",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "doesNotContain",
+              "value": "other"
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "regex unicode units",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000110",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "^.$"
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "😀",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "😀",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "regex lower normalization",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000111",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "\\D"
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "7",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "7 / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "invalid regex nonmatch",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000112",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "matches",
+              "value": "["
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "tags exact boundaries",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000113",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "hasTags",
+              "value": "Food bus"
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "#food#BUS",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "#food#BUS / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "escaped tag",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000114",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "notes",
+              "op": "hasAnyTag",
+              "value": "food"
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "##food",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "##food",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "inclusive range reversed",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000115",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "isbetween",
+              "value": {
+                "num1": -1000,
+                "num2": -1500
+              }
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "approx rounding boundary",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000116",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "isapprox",
+              "value": 100
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": 108,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": 108,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "approx outside",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000117",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "isapprox",
+              "value": 100
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": 109,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": 109,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "outflow zero",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000118",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "is",
+              "value": 0,
+              "options": {
+                "outflow": true
+              }
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": 0,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": 0,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "outflow sign",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000119",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "is",
+              "value": 1234,
+              "options": {
+                "outflow": true
+              }
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "inflow rejects expense",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000120",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "gt",
+              "value": 0,
+              "options": {
+                "inflow": true
+              }
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "month date",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000121",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "date",
+              "op": "is",
+              "value": "2026-11"
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "year date",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000122",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "date",
+              "op": "is",
+              "value": "2026"
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "approx date inclusive",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000123",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "date",
+              "op": "isapprox",
+              "value": "2026-11-10"
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "approx date outside",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000124",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "date",
+              "op": "isapprox",
+              "value": "2026-11-11"
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "on budget",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000125",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "account",
+              "op": "onBudget",
+              "value": null
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "category group",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000126",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "category_group",
+              "op": "is",
+              "value": "0bc5eb03-4d7d-4bf0-980f-2a8df5a7dc7b"
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": "29655071-946c-41b9-89fd-ac06bee64b5f",
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": "29655071-946c-41b9-89fd-ac06bee64b5f",
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash",
+        "_category_name": "Food"
+      }
+    },
+    {
+      "name": "recurring beyond100",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000127",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "date",
+              "op": "is",
+              "value": {
+                "frequency": "monthly",
+                "start": "2010-01-08",
+                "interval": 1,
+                "endMode": "never"
+              }
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-08",
+        "notes": "Original / matched",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    },
+    {
+      "name": "recurring weekend shift",
+      "rules": [
+        {
+          "id": "19190000-0000-4000-8000-000000000128",
+          "stage": null,
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "date",
+              "op": "is",
+              "value": {
+                "frequency": "monthly",
+                "start": "2026-11-07",
+                "interval": 1,
+                "skipWeekend": true,
+                "weekendSolveMode": "after",
+                "endMode": "never"
+              }
+            }
+          ],
+          "actions": [
+            {
+              "op": "append-notes",
+              "value": " / matched"
+            }
+          ]
+        }
+      ],
+      "transaction": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-09",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false
+      },
+      "after": {
+        "id": "19190000-0000-4000-8000-000000000020",
+        "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+        "payee": null,
+        "category": null,
+        "amount": -1234,
+        "date": "2026-11-09",
+        "notes": "Original",
+        "imported_payee": "MY SHOP",
+        "cleared": false,
+        "_account": {
+          "id": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+          "account_id": null,
+          "name": "Cash",
+          "balance_current": null,
+          "balance_available": null,
+          "balance_limit": null,
+          "mask": null,
+          "official_name": null,
+          "subtype": null,
+          "bank": null,
+          "offbudget": 0,
+          "closed": 0,
+          "tombstone": 0,
+          "sort_order": 16384,
+          "type": null,
+          "account_sync_source": null,
+          "last_sync": null,
+          "last_reconciled": null,
+          "bank_sync_status": null,
+          "account_group_id": null,
+          "bankName": null,
+          "bankId": null
+        },
+        "_account_name": "Cash"
+      }
+    }
+  ],
+  "ids": {
+    "account": "43687fe7-f6b3-456d-8ac7-47eb509898e2",
+    "group": "0bc5eb03-4d7d-4bf0-980f-2a8df5a7dc7b",
+    "Food": "29655071-946c-41b9-89fd-ac06bee64b5f",
+    "Travel": "dc2a9d8f-09d3-45b5-8760-2d30384d674c",
+    "Shop": "06898ca3-5b14-4893-9df1-4153e80063c1"
+  }
+}

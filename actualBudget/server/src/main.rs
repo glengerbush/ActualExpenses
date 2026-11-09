@@ -1,4 +1,5 @@
 mod accounts;
+mod android_upgrade;
 mod api;
 mod budgeting;
 mod calculator;

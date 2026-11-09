@@ -1,0 +1,588 @@
+{
+  "source_commit": "150666d",
+  "executable_sha256": "896187e0e4f617c2e6815e7f5fde949220397bd0097ca0f5d8f32b5e3a3615a1",
+  "budget": {
+    "data": {
+      "auto_due": 1794238388,
+      "backup_error": null,
+      "budget_type": "tracking",
+      "deleted": false,
+      "epoch": "265c2b0dae0e2590e1216c290ad73dba",
+      "generation": 0,
+      "id": "16170000-0000-4000-8000-000000000001",
+      "last_auto": null,
+      "name": "Before rules"
+    }
+  },
+  "metadata": {
+    "auto_due": 1794238388,
+    "backup_error": null,
+    "budget_type": "tracking",
+    "deleted": false,
+    "epoch": "265c2b0dae0e2590e1216c290ad73dba",
+    "generation": 0,
+    "id": "16170000-0000-4000-8000-000000000001",
+    "last_auto": null,
+    "name": "Before rules"
+  },
+  "account": {
+    "data": {
+      "balance": 12345,
+      "closed": false,
+      "deleted": false,
+      "field_versions": {},
+      "group_id": null,
+      "id": "16170000-0000-4000-8000-000000000002",
+      "last_reconciled": null,
+      "name": "Daily",
+      "notes": "",
+      "off_budget": false,
+      "sort_order": 0
+    }
+  },
+  "owner_headers": {
+    "X-Actual-History-Owner": "16170000-0000-4000-8000-000000000009",
+    "X-Actual-Budget-Epoch": "265c2b0dae0e2590e1216c290ad73dba"
+  },
+  "creation": {
+    "id": "16170000-0000-4000-8000-000000000003",
+    "account_id": "16170000-0000-4000-8000-000000000002",
+    "amount": -345,
+    "date": "2026-01-02",
+    "cleared": true,
+    "notes": "Original notes",
+    "category_id": "16170000-0000-4000-8000-000000000004"
+  },
+  "created": {
+    "conflicts": [],
+    "cursor": "c1265c2b0dae0e2590e1216c290ad73dba000000000000000b",
+    "data": {
+      "account_id": "16170000-0000-4000-8000-000000000002",
+      "account_name": "Daily",
+      "amount": -345,
+      "category_id": "16170000-0000-4000-8000-000000000004",
+      "category_is_income": false,
+      "category_name": "Food",
+      "cleared": true,
+      "date": "2026-01-02",
+      "field_versions": {
+        "account_id": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "amount": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "category_id": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "cleared": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "date": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "notes": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "payee_id": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "reconciled": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "starting_balance": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "tombstone": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d"
+      },
+      "id": "16170000-0000-4000-8000-000000000003",
+      "imported_payee": null,
+      "notes": "Original notes",
+      "payee_id": null,
+      "payee_name": null,
+      "reconciled": false,
+      "retained_payee_id": null,
+      "sort_order": 1,
+      "starting_balance": false
+    },
+    "edit_clock": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d"
+  },
+  "edit": {
+    "notes": "Owned edit before upgrade"
+  },
+  "edited": {
+    "conflicts": [],
+    "cursor": "c1265c2b0dae0e2590e1216c290ad73dba000000000000000d",
+    "data": {
+      "account_id": "16170000-0000-4000-8000-000000000002",
+      "account_name": "Daily",
+      "amount": -345,
+      "category_id": "16170000-0000-4000-8000-000000000004",
+      "category_is_income": false,
+      "category_name": "Food",
+      "cleared": true,
+      "date": "2026-01-02",
+      "field_versions": {
+        "account_id": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "amount": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "category_id": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "cleared": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "date": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "notes": "2026-11-09T15:18:08.486Z-0000-f6de54af3fd9f65d",
+        "payee_id": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "reconciled": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "starting_balance": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+        "tombstone": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d"
+      },
+      "id": "16170000-0000-4000-8000-000000000003",
+      "imported_payee": null,
+      "notes": "Owned edit before upgrade",
+      "payee_id": null,
+      "payee_name": null,
+      "reconciled": false,
+      "retained_payee_id": null,
+      "sort_order": 1,
+      "starting_balance": false
+    },
+    "edit_clock": "2026-11-09T15:18:08.486Z-0000-f6de54af3fd9f65d"
+  },
+  "row": {
+    "account_id": "16170000-0000-4000-8000-000000000002",
+    "account_name": "Daily",
+    "amount": -345,
+    "category_id": "16170000-0000-4000-8000-000000000004",
+    "category_is_income": false,
+    "category_name": "Food",
+    "cleared": true,
+    "date": "2026-01-02",
+    "field_versions": {
+      "account_id": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+      "amount": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+      "category_id": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+      "cleared": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+      "date": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+      "notes": "2026-11-09T15:18:08.486Z-0000-f6de54af3fd9f65d",
+      "payee_id": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+      "reconciled": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+      "starting_balance": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d",
+      "tombstone": "2026-11-09T15:18:08.473Z-0000-f6de54af3fd9f65d"
+    },
+    "id": "16170000-0000-4000-8000-000000000003",
+    "imported_payee": null,
+    "notes": "Owned edit before upgrade",
+    "payee_id": null,
+    "payee_name": null,
+    "reconciled": false,
+    "retained_payee_id": null,
+    "sort_order": 1,
+    "starting_balance": false
+  },
+  "balances": {
+    "data": {
+      "balance": 12000,
+      "closed": false,
+      "deleted": false,
+      "field_versions": {},
+      "group_id": null,
+      "id": "16170000-0000-4000-8000-000000000002",
+      "last_reconciled": null,
+      "name": "Daily",
+      "notes": "",
+      "off_budget": false,
+      "sort_order": 0
+    }
+  },
+  "history": {
+    "data": {
+      "edit_clock": "2026-11-09T15:18:08.501Z-0000-f6de54af3fd9f65d",
+      "epoch": "265c2b0dae0e2590e1216c290ad73dba",
+      "limit": 20,
+      "redo": null,
+      "undo": {
+        "id": "ca464bab-f770-4655-b07f-e811d78535f0",
+        "label": "Edit budget"
+      }
+    }
+  },
+  "stage": {
+    "data": {
+      "budget_id": "585b1811-3727-472d-ba0a-8efa6ebcf9f2",
+      "id": "7ffbc22e-a557-4b30-97dc-fed228fd9d64",
+      "report": {
+        "accounts": [
+          {
+            "closed": false,
+            "group_id": null,
+            "id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+            "last_reconciled": null,
+            "name": "Spending",
+            "notes": "",
+            "off_budget": false,
+            "sort_order": 0,
+            "tombstone": false
+          },
+          {
+            "closed": false,
+            "group_id": null,
+            "id": "dbec986e-8154-43b3-86e7-8494d76ff0d3",
+            "last_reconciled": null,
+            "name": "Reserve",
+            "notes": "",
+            "off_budget": true,
+            "sort_order": 1,
+            "tombstone": false
+          }
+        ],
+        "archive_sha256": "601881b204c9615ddbc9a2110396c4243cc001522585cdc5facb8f18f102d0d4",
+        "balances": [
+          {
+            "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+            "cleared": 31534,
+            "total": 31434,
+            "uncleared": -100
+          },
+          {
+            "account_id": "dbec986e-8154-43b3-86e7-8494d76ff0d3",
+            "cleared": -5000,
+            "total": -5000,
+            "uncleared": 0
+          }
+        ],
+        "checks": {
+          "converted_relationships": true,
+          "financial_totals": true,
+          "identifiers": true,
+          "sqlite_integrity": true
+        },
+        "counts": {
+          "__meta__": 1,
+          "__migrations__": 60,
+          "account_groups": 0,
+          "accounts": 2,
+          "banks": 0,
+          "categories": 3,
+          "category_groups": 2,
+          "category_mapping": 8,
+          "cleanup_groups": 0,
+          "created_budgets": 0,
+          "custom_reports": 0,
+          "dashboard": 12,
+          "dashboard_pages": 1,
+          "kvcache": 0,
+          "kvcache_key": 0,
+          "messages_clock": 1,
+          "messages_crdt": 52,
+          "messages_pending": 0,
+          "notes": 0,
+          "payee_locations": 0,
+          "payee_mapping": 4,
+          "payees": 4,
+          "pending_transactions": 0,
+          "preferences": 5,
+          "reflect_budgets": 0,
+          "rules": 1,
+          "schedules": 0,
+          "schedules_json_paths": 0,
+          "schedules_next_date": 0,
+          "sqlite_stat1": 4,
+          "sqlite_stat4": 31,
+          "tags": 0,
+          "transaction_filters": 0,
+          "transactions": 7,
+          "zero_budget_months": 0,
+          "zero_budgets": 0
+        },
+        "extra_archive_entries": [],
+        "preferences": {
+          "device": {
+            "language": "",
+            "preferred_dark_theme": "dark",
+            "theme": "system"
+          },
+          "shared": {
+            "currency_code": "",
+            "currency_space": false,
+            "currency_symbol_position": "before",
+            "date_format": "yyyy-MM-dd",
+            "experimental": {
+              "actionTemplating": false,
+              "akahuBankSync": false,
+              "balanceForecastReport": false,
+              "budgetAnalysisReport": false,
+              "currency": false,
+              "customThemes": false,
+              "enableBanking": false,
+              "formulaMode": false,
+              "goalTemplatesEnabled": false,
+              "goalTemplatesUIEnabled": false,
+              "mobileCalculator": false,
+              "monteCarloReport": false,
+              "newSidebarUI": false,
+              "sankeyReport": false
+            },
+            "first_day_of_week": 0,
+            "hide_fraction": false,
+            "number_format": "comma-dot"
+          },
+          "unmapped": {
+            "global": {},
+            "synced": {
+              "budgetType": "tracking"
+            }
+          },
+          "warnings": [
+            {
+              "key": "budgetType",
+              "reason": "Preference belongs to another feature; retained for its importer"
+            }
+          ]
+        },
+        "requirements": [
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "__meta__",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 60,
+            "feature": "__migrations__",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 8,
+            "feature": "category_mapping",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 12,
+            "feature": "dashboard",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "dashboard_pages",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "messages_clock",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 52,
+            "feature": "messages_crdt",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 4,
+            "feature": "payee_mapping",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": true,
+            "count": 1,
+            "feature": "rules",
+            "reason": "A feature converter is required before activation; original records retained"
+          },
+          {
+            "blocking": false,
+            "count": 4,
+            "feature": "sqlite_stat1",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 31,
+            "feature": "sqlite_stat4",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 2,
+            "feature": "transfer_payees",
+            "reason": "Transfer payee metadata preserved; excluded from ordinary payee selection"
+          },
+          {
+            "blocking": false,
+            "count": 5,
+            "feature": "unreferenced_category_alias",
+            "reason": "Obsolete source alias retained; converted transactions must still resolve to an existing category"
+          }
+        ],
+        "source": {
+          "budgetName": "Disposable actualBudget migration fixture",
+          "cloudFileId": "d852ad4d-760e-458c-9aaf-ac645bb488ee",
+          "groupId": "da849069-5769-477e-a05b-33bd94830d14",
+          "id": "Disposable-actualBudget-migration-fixture-4019987",
+          "lastScheduleRun": "2026-11-08",
+          "lastSyncedTimestamp": "2026-11-08T23:27:14.191Z-0003-8e9471b631211c5d",
+          "lastUploaded": "2026-11-08",
+          "resetClock": true,
+          "userId": "55d22be7-6c98-4f43-acc2-0ecccadb923f"
+        },
+        "source_field_clock_count": 49,
+        "source_preferences": [
+          {
+            "id": "budgetType",
+            "value": "tracking"
+          },
+          {
+            "id": "numberFormat",
+            "value": "comma-dot"
+          },
+          {
+            "id": "dateFormat",
+            "value": "yyyy-MM-dd"
+          },
+          {
+            "id": "hideFraction",
+            "value": "false"
+          },
+          {
+            "id": "defaultCurrencyCode",
+            "value": "USD"
+          }
+        ]
+      },
+      "status": "blocked"
+    }
+  },
+  "category": {
+    "conflicts": [],
+    "cursor": "c1265c2b0dae0e2590e1216c290ad73dba0000000000000008",
+    "data": {
+      "deleted": false,
+      "field_versions": {
+        "group_id": "2026-11-09T15:18:08.467Z-0000-f6de54af3fd9f65d",
+        "hidden": "2026-11-09T15:18:08.467Z-0000-f6de54af3fd9f65d",
+        "is_income": "2026-11-09T15:18:08.467Z-0000-f6de54af3fd9f65d",
+        "name": "2026-11-09T15:18:08.467Z-0000-f6de54af3fd9f65d",
+        "notes": "2026-11-09T15:18:08.467Z-0000-f6de54af3fd9f65d",
+        "sort_order": "2026-11-09T15:18:08.467Z-0000-f6de54af3fd9f65d"
+      },
+      "group_hidden": false,
+      "group_id": null,
+      "hidden": false,
+      "id": "16170000-0000-4000-8000-000000000004",
+      "is_income": false,
+      "name": "Food",
+      "notes": "",
+      "replacement_id": null,
+      "sort_order": 0.0
+    },
+    "edit_clock": "2026-11-09T15:18:08.467Z-0000-f6de54af3fd9f65d"
+  },
+  "planning_body": {
+    "action": "set",
+    "month": "2026-01",
+    "category": "16170000-0000-4000-8000-000000000004",
+    "amount": 1000,
+    "snapshot": "c1265c2b0dae0e2590e1216c290ad73dba000000000000000d"
+  },
+  "planning": {
+    "cursor": "c1265c2b0dae0e2590e1216c290ad73dba000000000000000e",
+    "data": {
+      "edit_clock": "2026-11-09T15:18:08.501Z-0000-f6de54af3fd9f65d",
+      "epoch": "265c2b0dae0e2590e1216c290ad73dba",
+      "method": "tracking",
+      "months": {
+        "2026-01": {
+          "categories": [
+            {
+              "actual": -345,
+              "balance": 655,
+              "budgeted": 1000,
+              "carryover": false,
+              "goal": null,
+              "group_hidden": false,
+              "group_id": null,
+              "group_name": "Ungrouped",
+              "hidden": false,
+              "id": "16170000-0000-4000-8000-000000000004",
+              "is_income": false,
+              "long_goal": null,
+              "name": "Food",
+              "notes": ""
+            },
+            {
+              "actual": 12345,
+              "balance": -12345,
+              "budgeted": 0,
+              "carryover": false,
+              "goal": null,
+              "group_hidden": false,
+              "group_id": null,
+              "group_name": "Ungrouped",
+              "hidden": false,
+              "id": "fd05a650-560a-4e9a-9a99-00e0dde6d501",
+              "is_income": true,
+              "long_goal": null,
+              "name": "Starting Balances",
+              "notes": ""
+            }
+          ],
+          "month": "2026-01",
+          "notes": "",
+          "summary": {
+            "real_saved": 12000,
+            "total_budget_income": 0,
+            "total_budgeted": 1000,
+            "total_income": 12345,
+            "total_leftover": 655,
+            "total_saved": -1000,
+            "total_spent": -345
+          }
+        }
+      },
+      "snapshot": "c1265c2b0dae0e2590e1216c290ad73dba000000000000000e"
+    },
+    "edit_clock": "2026-11-09T15:18:08.501Z-0000-f6de54af3fd9f65d"
+  },
+  "planning_view": {
+    "data": {
+      "edit_clock": "2026-11-09T15:18:08.501Z-0000-f6de54af3fd9f65d",
+      "epoch": "265c2b0dae0e2590e1216c290ad73dba",
+      "method": "tracking",
+      "months": {
+        "2026-01": {
+          "categories": [
+            {
+              "actual": -345,
+              "balance": 655,
+              "budgeted": 1000,
+              "carryover": false,
+              "goal": null,
+              "group_hidden": false,
+              "group_id": null,
+              "group_name": "Ungrouped",
+              "hidden": false,
+              "id": "16170000-0000-4000-8000-000000000004",
+              "is_income": false,
+              "long_goal": null,
+              "name": "Food",
+              "notes": ""
+            },
+            {
+              "actual": 12345,
+              "balance": -12345,
+              "budgeted": 0,
+              "carryover": false,
+              "goal": null,
+              "group_hidden": false,
+              "group_id": null,
+              "group_name": "Ungrouped",
+              "hidden": false,
+              "id": "fd05a650-560a-4e9a-9a99-00e0dde6d501",
+              "is_income": true,
+              "long_goal": null,
+              "name": "Starting Balances",
+              "notes": ""
+            }
+          ],
+          "month": "2026-01",
+          "notes": "",
+          "summary": {
+            "real_saved": 12000,
+            "total_budget_income": 0,
+            "total_budgeted": 1000,
+            "total_income": 12345,
+            "total_leftover": 655,
+            "total_saved": -1000,
+            "total_spent": -345
+          }
+        }
+      },
+      "snapshot": "c1265c2b0dae0e2590e1216c290ad73dba000000000000000e"
+    }
+  }
+}

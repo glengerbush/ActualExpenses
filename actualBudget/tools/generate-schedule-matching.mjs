@@ -19,6 +19,8 @@ const root = await mkdtemp(`${tmpdir()}/schedule-matching-oracle-`);
 const out = { oracle: '@actual-app/api@26.10.0', source_commit: '2bebdbaae0b701120a8cad9d56aafd64fa04c577', clock, matching: [], lifecycle: [], discovery: [], conversion: [], warnings: [] };
 const discoveryArchives = [];
 const discoveryDirectory = new URL('../tests/fixtures/schedule-discovery/', import.meta.url);
+const conversionArchives = [];
+const conversionDirectory = new URL('../tests/fixtures/schedule-conversion/', import.meta.url);
 const fixed = n => `22220000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 let engine;
 let serial = 0;
@@ -280,6 +282,13 @@ async function conversionCases() {
     }
     const snapshots = [await b.snapshot('before conversion')];
     const input = b.normalize(transaction);
+    if (process.argv.includes('--export-conversion-fixtures')) {
+      const filename = `${c.name.replaceAll(' ', '-')}.zip`;
+      const archive = await api.exportBudget();
+      await writeFile(new URL(filename, conversionDirectory), archive, { flag: 'wx' });
+      conversionArchives.push({ name: c.name, filename, sha256: createHash('sha256').update(archive).digest('hex'),
+        ids: Object.fromEntries([...b.labels].map(([id, label]) => [label, id])) });
+    }
     const schedule = await helpers.createSingleTimeScheduleFromTransaction(transaction);
     b.ids.SCHEDULE = schedule; b.labels.set(schedule, 'SCHEDULE');
     const scheduleRow = (await api.aqlQuery(api.q('schedules').filter({ id: schedule }).select('*'))).data[0];
@@ -299,6 +308,7 @@ async function conversionCases() {
 
 try {
   if (process.argv.includes('--export-discovery-fixtures')) await mkdir(discoveryDirectory);
+  if (process.argv.includes('--export-conversion-fixtures')) await mkdir(conversionDirectory);
   engine = await api.init({ dataDir: root });
   await matchingCases();
   await lifecycleCases();
@@ -309,6 +319,8 @@ try {
   else await writeFile(path, `${JSON.stringify(out, null, 2)}\n`);
   if (discoveryArchives.length) await writeFile(new URL('manifest.json', discoveryDirectory),
     `${JSON.stringify({ oracle: out.oracle, source_commit: out.source_commit, clock: out.clock, archives: discoveryArchives }, null, 2)}\n`, { flag: 'wx' });
+  if (conversionArchives.length) await writeFile(new URL('manifest.json', conversionDirectory),
+    `${JSON.stringify({ oracle: out.oracle, source_commit: out.source_commit, clock: out.clock, archives: conversionArchives }, null, 2)}\n`, { flag: 'wx' });
   console.log(`PASS ${out.matching.length} matching +${out.lifecycle.length} link/unlink +${out.discovery.length} discovery +${out.conversion.length} conversion +${out.warnings.length} horizon cases`);
 } finally {
   await api.shutdown();

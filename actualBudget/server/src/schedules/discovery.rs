@@ -89,10 +89,7 @@ fn configs(latest: NaiveDate, as_of: NaiveDate) -> Result<Vec<Value>, Error> {
     }
     Ok(result)
 }
-fn window(
-    rows: &BTreeMap<NaiveDate, Vec<Row>>,
-    day: NaiveDate,
-) -> Result<Vec<&Row>, Error> {
+fn window(rows: &BTreeMap<NaiveDate, Vec<Row>>, day: NaiveDate) -> Result<Vec<&Row>, Error> {
     Ok(rows
         .range(days(day, -2)?..=days(day, 2)?)
         .rev()

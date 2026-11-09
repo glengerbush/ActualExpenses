@@ -1,0 +1,88 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "archives": [
+    {
+      "name": "new future draft",
+      "filename": "new-future-draft.zip",
+      "sha256": "4f7dce4f88f0c6180e6d0e02c1f623825bca2d0950c44dad803eb22b3ebbff9f",
+      "ids": {
+        "ACCOUNT": "0cc31b29-cf5d-4aab-8c88-1243130b19f6",
+        "PEER": "7c8a803d-c74c-4d5d-ae91-1537956b6ad6",
+        "PAYEE": "1053d332-21ae-405a-8f0a-97668160bc16",
+        "OTHER_PAYEE": "e4633dd5-f182-4fa6-8083-52fbfb789551",
+        "CATEGORY": "a754c60c-1eef-4483-9a7b-9988f0d6e885",
+        "TRANSFER": "c0c3b31d-0721-4a7b-b397-112ef33a3623",
+        "BACK_TRANSFER": "36e964bb-3231-4299-8bcb-da7c47da9e70",
+        "ORIGINAL": "22220000-0000-4000-8000-000000000109"
+      }
+    },
+    {
+      "name": "existing future expense",
+      "filename": "existing-future-expense.zip",
+      "sha256": "91277f4f184e149989b2704b981dc1a093bd2c1734a0698b5b5ed9ad60aa222d",
+      "ids": {
+        "ACCOUNT": "4ef4362f-6e90-42f8-8724-1ed9be5ee489",
+        "PEER": "f5560059-95f0-4e8c-afd0-c781f3d2c9aa",
+        "PAYEE": "0d5d04c8-e844-4bee-b11a-ac1d3d002f41",
+        "OTHER_PAYEE": "a213d40a-c968-4d7e-aba8-ce0620b111db",
+        "CATEGORY": "eb3edd26-2655-4a9b-bdf1-d64aaa84b836",
+        "TRANSFER": "6e78a4b3-bd39-45c9-ba39-c545ece4ce94",
+        "BACK_TRANSFER": "a1e87f2b-5035-4267-803d-2f1d32409626",
+        "ORIGINAL": "22220000-0000-4000-8000-000000000110"
+      }
+    },
+    {
+      "name": "existing future split",
+      "filename": "existing-future-split.zip",
+      "sha256": "bec0bb16acd212a83a14a3e84d57f3ddc911ffbb41bae5da4c03e91cf5bb96c9",
+      "ids": {
+        "ACCOUNT": "65b468da-2faa-4e5f-8d23-ef336ce62d86",
+        "PEER": "ef3daf11-f08b-4800-9113-0fe837ab501d",
+        "PAYEE": "a83c0bf3-0391-40c7-a88e-6482933764eb",
+        "OTHER_PAYEE": "646e72cb-ed4a-4023-8bbc-e4fe8c810f6c",
+        "CATEGORY": "ea71cd33-7766-4ec9-ace3-1a432f4f20a8",
+        "TRANSFER": "3cfcadd7-3ee7-4016-be4f-994deba8e6ee",
+        "BACK_TRANSFER": "3a1d958d-a7f4-4050-b997-d91f4433064a",
+        "ORIGINAL": "22220000-0000-4000-8000-000000000111",
+        "FIRST": "22220000-0000-4000-8000-000000000112",
+        "SECOND": "22220000-0000-4000-8000-000000000113"
+      }
+    },
+    {
+      "name": "existing future transfer",
+      "filename": "existing-future-transfer.zip",
+      "sha256": "8bedda5dce126a22a0d283d41b5c0545b686757483ab9c21e99fd43655806ea7",
+      "ids": {
+        "ACCOUNT": "e0f91f72-329b-4197-89b0-fa86ca60958b",
+        "PEER": "478a14c8-e8fb-4147-b985-6de8ccd6a05d",
+        "PAYEE": "cf5179d9-8fda-4327-8657-8188d8d74510",
+        "OTHER_PAYEE": "c570eb29-9cf6-4faa-94cb-68bd8ef28af7",
+        "CATEGORY": "d5c07162-28f8-4da3-9e75-2f16ceb02045",
+        "TRANSFER": "8dbbd3a0-112b-4dc8-8547-8c016833e7ed",
+        "BACK_TRANSFER": "af08daf3-1407-44c7-a3f6-9585cc38ca40",
+        "ORIGINAL": "22220000-0000-4000-8000-000000000114",
+        "generated-1": "213aa935-590d-4945-a7eb-d23e64890cc5"
+      }
+    },
+    {
+      "name": "existing future split transfer",
+      "filename": "existing-future-split-transfer.zip",
+      "sha256": "b97f912de8314b473070ae73f9051e3fbf0deaf96adb94d279da6e382638d9eb",
+      "ids": {
+        "ACCOUNT": "92a8e291-b2c7-4352-8e9d-e36d2c040225",
+        "PEER": "8a78ea1d-7e7a-4bac-892d-531d0c036dc2",
+        "PAYEE": "1a518449-1649-40e8-a097-50a6140812ba",
+        "OTHER_PAYEE": "47997374-5676-426e-8c14-bd8c5309ccd4",
+        "CATEGORY": "16db4779-0ef6-4108-8f87-a59ae65b04e9",
+        "TRANSFER": "fd1ece9b-ac17-403a-aee0-25522cc6c3c8",
+        "BACK_TRANSFER": "42dd946a-e1bf-452b-a6df-79eae9602eaf",
+        "ORIGINAL": "22220000-0000-4000-8000-000000000115",
+        "FIRST": "22220000-0000-4000-8000-000000000116",
+        "SECOND": "22220000-0000-4000-8000-000000000117",
+        "generated-1": "889087e1-6834-4ea6-bdee-6af1e0265e58"
+      }
+    }
+  ]
+}

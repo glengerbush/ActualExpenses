@@ -203,6 +203,46 @@ def main():
             check(themes + "/convert-actual", themes + "/convert-actual", "POST", {"global": {
                 "installed-custom-theme": "{bad", "custom-css-override": ":root { --color-pageText: #123456; }",
             }})
+            root = f"{budgets}/{budget_id}"
+            root_template = budgets + "/{budget}"
+            metadata = check(root, root_template)["data"]
+            check(root + "/checkpoint", root_template + "/checkpoint")
+            epoch = metadata["epoch"]
+            point = check(root + "/backups", root_template + "/backups", "POST", {"label": "Contract backup"},
+                          {"Idempotency-Key": "backup", "X-Actual-Budget-Epoch": epoch}, 201)["data"]
+            check(root + "/backups", root_template + "/backups")
+            download_path = root + "/backups/" + point["id"] + "/download"
+            assert "application/zip" in contract["paths"][root_template + "/backups/{id}/download"]["get"]["responses"]["200"]["content"]
+            with urllib.request.urlopen(base + download_path) as response:
+                assert response.headers.get_content_type() == "application/zip"
+                archive = response.read()
+            check(root, root_template, "PATCH", {"name": "Changed contract"},
+                  {"Idempotency-Key": "rename", "X-Actual-Budget-Epoch": epoch})
+            check(root + "/duplicate", root_template + "/duplicate", "POST", {"id": str(uuid.uuid4()), "name": "Contract copy"},
+                  {"Idempotency-Key": "copy", "X-Actual-Budget-Epoch": epoch}, 201)
+            canceled = check(root, root_template, "PATCH", {"name": "Never saved"},
+                             {"Idempotency-Key": "cancel-rename", "X-Actual-Budget-Epoch": epoch,
+                              "X-Actual-Cancel-If-Uncommitted": "true"}, 409)
+            assert canceled["error"]["code"] == "operation_canceled"
+            restore_path = root + "/backups/" + point["id"] + "/restore"
+            restored = check(restore_path, root_template + "/backups/{id}/restore", "POST", {"confirm_name": "Changed contract"},
+                             {"Idempotency-Key": "restore", "X-Actual-Budget-Epoch": epoch})["data"]["budget"]
+            check(root, root_template, "PATCH", {"name": "Stale rename"},
+                  {"Idempotency-Key": "stale-rename", "X-Actual-Budget-Epoch": epoch}, 409)
+            check(root, root_template, "DELETE", {"confirm_name": "Contract fixture"},
+                  {"Idempotency-Key": "delete-budget", "X-Actual-Budget-Epoch": restored["epoch"]})
+            check(root, root_template, expected=410)
+            check(root + "?include_deleted=true", root_template)
+            check(budgets + "?include_deleted=true", budgets)
+            recovered = check(restore_path, root_template + "/backups/{id}/restore", "POST", {"confirm_name": "Contract fixture"},
+                              {"Idempotency-Key": "recover-deleted", "X-Actual-Budget-Epoch": restored["epoch"]})["data"]["budget"]
+            stage = check("/api/v1/restores", "/api/v1/restores", "POST", archive,
+                          {"Content-Type": "application/zip", "Idempotency-Key": "native-stage"}, 201)["data"]
+            check("/api/v1/restores/" + stage["id"], "/api/v1/restores/{id}")
+            check(root + "/restores/" + stage["id"] + "/activate", root_template + "/restores/{id}/activate", "POST",
+                  {"confirm_name": "Contract fixture"}, {"Idempotency-Key": "native-activate", "X-Actual-Budget-Epoch": recovered["epoch"]})
+            check("/api/v1/restores", "/api/v1/restores", "POST", b"invalid ZIP",
+                  {"Content-Type": "application/zip", "Idempotency-Key": "invalid-native-stage"}, 422)
             print("PASS: served OpenAPI schemas validate real success, validation, conflict, origin and missing-resource responses")
         finally:
             process.terminate()

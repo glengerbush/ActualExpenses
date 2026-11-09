@@ -9,3 +9,14 @@ Public seams: real Rust process HTTP API, browser workflows and exported native 
 - Svelte autofixer: AccountForm no issues; Settings reports the pre-existing named `update` handler as a state-mutation suggestion (handler delegates to a session object, not a Svelte state replacement).
 
 Native archive/recovery design and future-domain registration are in `actualBudget/server/LIFECYCLE.md`. Root owns final lifecycle UI tests, cancellation tests, Docker ENOSPC/process-failure rehearsal and independent two-axis review; those outcomes must be recorded before08 completion.
+
+## Root qualification of candidate `3ee4d7d`
+
+- `lifecycle_cancellation` public HTTP test: six lifecycle mutation routes fence delayed originals; cancellation after commit returns the original backup/rename receipt. Test failed with400 before implementation, then passed.
+- `lifecycle-browser.mjs`: rename lost acknowledgement across reload with exact body/key/epoch; cancellation followed by delayed original; backup/download; independent duplicate balances; deletion and restore; native archive review/activation. Browser quota failure sends zero uploads; lost upload/activation responses retry unchanged archive hash/body/key/epoch, with one restored generation. Desktop and320px/200% management captures inspected, no overflow.
+- Expanded `contract-smoke.py`: real metadata/checkpoint, backup, rename, duplicate, cancellation, epoch conflict, deletion/recovery, native ZIP staging/activation and invalid archive responses validate against the served OpenAPI.
+- `python3 actualBudget/tools/lifecycle-container.py`: production Docker image, UID/GID10001, isolated128MiB data tmpfs filled to real ENOSPC. Restore returns failure without changing name/generation/accounts/transactions; original backup hash remains exact. Freeing the test filler permits original request retry.
+- Separate disposable Docker volume: SIGKILL while the restore request is still in flight (explicitly asserted). Restart yields whole old/new state; identical retries return one committed restore generation and preserve the original backup. This tests process interruption, not a physical power-loss guarantee.
+- Fault image:`sha256:3032faf6c7eef828e3f8ffef7ae8cd77bd8d3058a25576aa167fe311b16ca945`,126852391bytes. Test containers, image and volume removed. Logs:`.scratch/060708-container-fault-final.log`. No live volume or deployment touched.
+
+Combined06/07/08 acceptance remains pending: Standards review found an offline-editor reconnect race in07; repair and integrated qualification are required before closure.

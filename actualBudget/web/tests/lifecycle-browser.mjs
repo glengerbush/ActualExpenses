@@ -290,6 +290,13 @@ try {
   expect(uploads[0].sha).toBe(
     createHash("sha256").update(archive).digest("hex"),
   );
+  await page.screenshot({path:"test-results/native-restore-desktop.png",fullPage:true});
+  await page.setViewportSize({width:320,height:900});
+  await page.addStyleTag({content:"html{font-size:200%}"});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.screenshot({path:"test-results/native-restore-mobile.png",fullPage:true});
+  await page.addStyleTag({content:"html{font-size:100%}"});
+  await page.setViewportSize({width:1280,height:960});
   const activations = [];
   await page.route("**/api/v1/budgets/*/restores/*/activate", async (route) => {
     activations.push({

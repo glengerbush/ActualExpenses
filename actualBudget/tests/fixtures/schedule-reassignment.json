@@ -1,0 +1,1097 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "cases": [
+    {
+      "transfer": false,
+      "target_automatic": false,
+      "snapshots": [
+        {
+          "step": "A posted",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": null,
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "B created",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": null,
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": false
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "payment moved to B",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": null,
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": false
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "service after reassignment",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": null,
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            },
+            {
+              "id": "payment-2",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": null,
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": false
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        },
+        {
+          "step": "repeat service",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": null,
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            },
+            {
+              "id": "payment-2",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": null,
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": false
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "transfer": false,
+      "target_automatic": true,
+      "snapshots": [
+        {
+          "step": "A posted",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": null,
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "B created",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": null,
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "payment moved to B",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": null,
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "service after reassignment",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": null,
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            },
+            {
+              "id": "payment-2",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": null,
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        },
+        {
+          "step": "repeat service",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": null,
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            },
+            {
+              "id": "payment-2",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": null,
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "transfer": true,
+      "target_automatic": false,
+      "snapshots": [
+        {
+          "step": "A posted",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1-peer",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            },
+            {
+              "id": "payment-1-peer",
+              "account": "PEER",
+              "amount": 100,
+              "date": "2026-11-09",
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            100
+          ]
+        },
+        {
+          "step": "B created",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1-peer",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            },
+            {
+              "id": "payment-1-peer",
+              "account": "PEER",
+              "amount": 100,
+              "date": "2026-11-09",
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": false
+            }
+          ],
+          "balances": [
+            -100,
+            100
+          ]
+        },
+        {
+          "step": "payment moved to B",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1-peer",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            },
+            {
+              "id": "payment-1-peer",
+              "account": "PEER",
+              "amount": 100,
+              "date": "2026-11-09",
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": false
+            }
+          ],
+          "balances": [
+            -100,
+            100
+          ]
+        },
+        {
+          "step": "service after reassignment",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1-peer",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            },
+            {
+              "id": "payment-1-peer",
+              "account": "PEER",
+              "amount": 100,
+              "date": "2026-11-09",
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            },
+            {
+              "id": "payment-2",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-2-peer",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            },
+            {
+              "id": "payment-2-peer",
+              "account": "PEER",
+              "amount": 100,
+              "date": "2026-11-09",
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-2",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": false
+            }
+          ],
+          "balances": [
+            -200,
+            200
+          ]
+        },
+        {
+          "step": "repeat service",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1-peer",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            },
+            {
+              "id": "payment-1-peer",
+              "account": "PEER",
+              "amount": 100,
+              "date": "2026-11-09",
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            },
+            {
+              "id": "payment-2",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-2-peer",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            },
+            {
+              "id": "payment-2-peer",
+              "account": "PEER",
+              "amount": 100,
+              "date": "2026-11-09",
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-2",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": false
+            }
+          ],
+          "balances": [
+            -200,
+            200
+          ]
+        }
+      ]
+    },
+    {
+      "transfer": true,
+      "target_automatic": true,
+      "snapshots": [
+        {
+          "step": "A posted",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1-peer",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            },
+            {
+              "id": "payment-1-peer",
+              "account": "PEER",
+              "amount": 100,
+              "date": "2026-11-09",
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            100
+          ]
+        },
+        {
+          "step": "B created",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1-peer",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            },
+            {
+              "id": "payment-1-peer",
+              "account": "PEER",
+              "amount": 100,
+              "date": "2026-11-09",
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            100
+          ]
+        },
+        {
+          "step": "payment moved to B",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1-peer",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            },
+            {
+              "id": "payment-1-peer",
+              "account": "PEER",
+              "amount": 100,
+              "date": "2026-11-09",
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            100
+          ]
+        },
+        {
+          "step": "service after reassignment",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1-peer",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            },
+            {
+              "id": "payment-1-peer",
+              "account": "PEER",
+              "amount": 100,
+              "date": "2026-11-09",
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            },
+            {
+              "id": "payment-2",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-2-peer",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            },
+            {
+              "id": "payment-2-peer",
+              "account": "PEER",
+              "amount": 100,
+              "date": "2026-11-09",
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-2",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            200
+          ]
+        },
+        {
+          "step": "repeat service",
+          "ledger": [
+            {
+              "id": "payment-1",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1-peer",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            },
+            {
+              "id": "payment-1-peer",
+              "account": "PEER",
+              "amount": 100,
+              "date": "2026-11-09",
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-1",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "B"
+            },
+            {
+              "id": "payment-2",
+              "account": "ACCOUNT",
+              "amount": -100,
+              "date": "2026-11-09",
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-2-peer",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            },
+            {
+              "id": "payment-2-peer",
+              "account": "PEER",
+              "amount": 100,
+              "date": "2026-11-09",
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "transfer_id": "payment-2",
+              "parent_id": null,
+              "is_parent": false,
+              "schedule": "A"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "A",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            },
+            {
+              "id": "B",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            200
+          ]
+        }
+      ]
+    }
+  ]
+}

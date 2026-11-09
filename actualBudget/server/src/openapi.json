@@ -17800,6 +17800,94 @@
           }
         }
       }
+    },
+    "/api/v1/budgets/{budget}/schedules/convert-preview": {
+      "post": {
+        "description": "Read-only conversion preview at a captured snapshot. Exactly one existing transaction or new draft; no reference creation, row reservation, linking, receipts or clocks. Optional as_of and horizon affect preview only; mutation uses authoritative server day and budget horizon. Actions exclude the managed schedule-link action.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmed public result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ScheduleConversionPreview"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid command, unsupported header or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin request refused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Changed snapshot, retired epoch, conflicting request or canceled intent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleConversionRequest"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -22923,7 +23011,8 @@
               "catch-up",
               "settings",
               "link",
-              "unlink"
+              "unlink",
+              "convert"
             ]
           },
           "id": {
@@ -22984,7 +23073,7 @@
             "type": "string",
             "format": "uuid",
             "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-            "description": "Create/update only: resolve or create the account-managed transfer payee for this destination, atomically rewriting the core payee condition. No prior transfer transaction is required."
+            "description": "Create/update: resolve the account-managed transfer payee. Convert with a new transaction draft: optional destination account. Reference creation and graph effects are atomic."
           },
           "transaction_ids": {
             "type": "array",
@@ -22997,6 +23086,14 @@
             "maxItems": 500,
             "uniqueItems": true,
             "description": "For link/unlink, required selected rows. For create, optional selected history to link atomically with schedule creation; failure leaves neither partial schedule nor partial links."
+          },
+          "transaction_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/NewTransaction"
           }
         },
         "required": [
@@ -23136,9 +23233,49 @@
                 "transaction_ids"
               ]
             }
+          },
+          {
+            "if": {
+              "properties": {
+                "action": {
+                  "const": "convert"
+                }
+              },
+              "required": [
+                "action"
+              ]
+            },
+            "then": {
+              "required": [
+                "id",
+                "snapshot"
+              ],
+              "oneOf": [
+                {
+                  "required": [
+                    "transaction_id"
+                  ],
+                  "not": {
+                    "required": [
+                      "transaction"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "transaction"
+                  ],
+                  "not": {
+                    "required": [
+                      "transaction_id"
+                    ]
+                  }
+                }
+              ]
+            }
           }
         ],
-        "description": "Persist original body/key/clock/epoch before sending. All commands except catch-up require a captured snapshot. Catch-up uses current authoritative schedules through an optional past/server-today cutoff; atomic maximum500 occurrences and shared rule work budget. GET never posts. Update merges changed schedule conditions while retaining other linked-rule conditions; use_global_upcoming_length clears an override. Link/unlink atomically update selected transaction links and reciprocal transfer legs. Split-parent selection does not link its children. Explicit unlink releases an occurrence for a distinct future posting; original receipts remain unchanged."
+        "description": "Persist original body/key/clock/epoch before sending. All commands except catch-up require a captured snapshot. Catch-up uses current authoritative schedules through an optional past/server-today cutoff; atomic maximum500 occurrences and shared rule work budget. GET never posts. Update merges changed schedule conditions while retaining other linked-rule conditions; use_global_upcoming_length clears an override. Link/unlink atomically update selected transaction links and reciprocal transfer legs. Split-parent selection does not link its children. Explicit unlink releases an occurrence for a distinct future posting; original receipts remain unchanged. Convert accepts exactly one existing transaction_id or new transaction draft and creates a future one-time schedule atomically with removal/reservation of the original financial graph. Original draft IDs remain reserved against late saves."
       },
       "ScheduleCatchUp": {
         "type": "object",
@@ -23236,6 +23373,9 @@
               },
               {
                 "$ref": "#/components/schemas/ScheduleLinkResult"
+              },
+              {
+                "$ref": "#/components/schemas/ScheduleConversionResult"
               }
             ]
           },
@@ -23755,6 +23895,186 @@
           "snapshot",
           "epoch",
           "as_of"
+        ],
+        "additionalProperties": false
+      },
+      "ScheduleConversionRequest": {
+        "type": "object",
+        "properties": {
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "transaction_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/NewTransaction"
+          },
+          "transfer_account_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "description": "New transaction drafts only; existing graphs retain their current transfer relationships."
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "upcoming_length": {
+            "$ref": "#/components/schemas/ScheduleHorizon"
+          }
+        },
+        "required": [
+          "snapshot"
+        ],
+        "additionalProperties": false,
+        "oneOf": [
+          {
+            "required": [
+              "transaction_id"
+            ],
+            "not": {
+              "required": [
+                "transaction"
+              ]
+            }
+          },
+          {
+            "required": [
+              "transaction"
+            ],
+            "not": {
+              "required": [
+                "transaction_id"
+              ]
+            }
+          }
+        ]
+      },
+      "ScheduleConversionPreview": {
+        "type": "object",
+        "properties": {
+          "transaction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Transaction"
+              },
+              {
+                "$ref": "#/components/schemas/NewTransaction"
+              }
+            ]
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RuleCondition"
+            },
+            "maxItems": 32
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RuleAction"
+            },
+            "maxItems": 64
+          },
+          "removed_transaction_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "uniqueItems": true
+          },
+          "is_future": {
+            "type": "boolean"
+          },
+          "is_beyond_window": {
+            "type": "boolean"
+          },
+          "days_until_transaction": {
+            "type": "integer"
+          },
+          "upcoming_days": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 36600
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "affected_transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            }
+          },
+          "protected_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "transaction",
+          "conditions",
+          "actions",
+          "removed_transaction_ids",
+          "is_future",
+          "is_beyond_window",
+          "days_until_transaction",
+          "upcoming_days",
+          "as_of",
+          "snapshot",
+          "epoch",
+          "affected_transactions",
+          "protected_count"
+        ],
+        "additionalProperties": false
+      },
+      "ScheduleConversionResult": {
+        "type": "object",
+        "properties": {
+          "schedule": {
+            "$ref": "#/components/schemas/Schedule"
+          },
+          "removed_transaction_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "uniqueItems": true
+          },
+          "is_beyond_window": {
+            "type": "boolean"
+          },
+          "days_until_transaction": {
+            "type": "integer"
+          },
+          "upcoming_days": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 36600
+          }
+        },
+        "required": [
+          "schedule",
+          "removed_transaction_ids",
+          "is_beyond_window",
+          "days_until_transaction",
+          "upcoming_days"
         ],
         "additionalProperties": false
       }

@@ -9,6 +9,7 @@ Starts its own disposable server; never connects to a configured/live budget.
 Financial semantics are covered separately by the pinned Actual oracle tests.
 """
 
+import datetime
 import json
 import os
 from pathlib import Path
@@ -549,6 +550,50 @@ def main():
             assert linked["transactions"][0]["schedule_id"] == discovered_schedule
             check(linked_path, linked_template, expected=400)
             check(discovery_path + "?" + urllib.parse.urlencode(discovery_query), discovery_template, expected=409)
+
+            conversion_template = schedule_template + "/convert-preview"
+            conversion_path = schedule_path + "/convert-preview"
+            conversion_schema = contract["paths"][conversion_template]["post"]["requestBody"]["content"]["application/json"]["schema"]
+            conversion_validator = Draft202012Validator(
+                {**conversion_schema, "components": contract["components"]}, format_checker=FormatChecker())
+            future_date = (datetime.date.fromisoformat(schedule_today) + datetime.timedelta(days=8)).isoformat()
+            future_draft = {"id": str(uuid.uuid4()), "account_id": ra, "amount": -333,
+                            "date": future_date, "notes": "Future contract expense"}
+            conversion_checkpoint = check(rr + "/checkpoint", budgets + "/{budget}/checkpoint")
+            preview_body = {"snapshot": conversion_checkpoint["data"]["snapshot"], "transaction": future_draft,
+                            "as_of": schedule_today, "upcoming_length": "7"}
+            conversion_validator.validate(preview_body)
+            preview = check(conversion_path, conversion_template, "POST", preview_body)["data"]
+            assert preview["is_future"] and preview["is_beyond_window"]
+            assert preview["days_until_transaction"] == 8 and preview["upcoming_days"] == 7
+            assert preview["affected_transactions"] == [] and preview["protected_count"] == 0
+            assert check(rr + "/checkpoint", budgets + "/{budget}/checkpoint") == conversion_checkpoint
+            for invalid in ({"snapshot": preview_body["snapshot"]},
+                            {**preview_body, "transaction_id": future_draft["id"]}):
+                assert not conversion_validator.is_valid(invalid)
+                check(conversion_path, conversion_template, "POST", invalid, expected=400)
+            convert_body = {"action": "convert", "id": str(uuid.uuid4()),
+                            "snapshot": preview_body["snapshot"], "transaction": future_draft}
+            converted = schedule_command(convert_body, "convert-future-draft", 201)
+            assert schedule_command(convert_body, "convert-future-draft", 201,
+                                    extra_headers={"X-Actual-Receipt-Only": "true"}) == converted
+            assert converted["data"]["days_until_transaction"] == 8
+            after_conversion = check(rr + "/checkpoint", budgets + "/{budget}/checkpoint")
+            check(rr + "/transactions", budgets + "/{budget}/transactions", "POST", future_draft,
+                  {"Idempotency-Key": "late-original-draft-save"}, expected=409)
+            assert check(rr + "/checkpoint", budgets + "/{budget}/checkpoint") == after_conversion
+            assert future_draft["id"] not in [row["id"] for row in check(rr + "/transactions", budgets + "/{budget}/transactions")["data"]]
+            existing_future = {**future_draft, "id": str(uuid.uuid4()), "amount": -444}
+            check(rr + "/transactions", budgets + "/{budget}/transactions", "POST", existing_future,
+                  {"Idempotency-Key": "existing-future-expense"}, 201)
+            existing_checkpoint = check(rr + "/checkpoint", budgets + "/{budget}/checkpoint")
+            existing_preview = {"snapshot": existing_checkpoint["data"]["snapshot"], "transaction_id": existing_future["id"]}
+            conversion_validator.validate(existing_preview)
+            existing_preview_result = check(conversion_path, conversion_template, "POST", existing_preview)["data"]
+            assert existing_future["id"] in [row["id"] for row in existing_preview_result["affected_transactions"]]
+            existing_conversion = schedule_command({"action": "convert", "id": str(uuid.uuid4()), **existing_preview},
+                                                   "convert-existing-future", 201)
+            assert existing_future["id"] in existing_conversion["data"]["removed_transaction_ids"]
 
             # Genuine released Android work validates the public handoff contract,
             # including dense order keys returned by the ordinary companion view.

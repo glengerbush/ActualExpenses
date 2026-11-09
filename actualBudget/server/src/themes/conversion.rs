@@ -14,6 +14,7 @@ pub fn convert(input: &Value) -> Result<Value, Error> {
         ("installed-custom-theme", "installedCustomLightTheme"),
         ("installed-custom-dark-theme", "installedCustomDarkTheme"),
         ("custom-css-override", "customCssOverride"),
+        ("preferred-dark-theme", "preferredDarkTheme"),
     ] {
         if global.get(raw).is_some() && global.get(alias).is_some() && global[raw] != global[alias]
         {
@@ -45,8 +46,8 @@ pub fn convert(input: &Value) -> Result<Value, Error> {
         (
             "installed-custom-dark-theme",
             "installedCustomDarkTheme",
-            global["preferred-dark-theme"]
-                .as_str()
+            field(global, "preferred-dark-theme", "preferredDarkTheme")
+                .and_then(Value::as_str)
                 .filter(|v| ["dark", "midnight"].contains(v))
                 .unwrap_or("dark"),
         ),
@@ -131,6 +132,9 @@ pub fn convert(input: &Value) -> Result<Value, Error> {
         "installedCustomDarkTheme",
         "custom-css-override",
         "customCssOverride",
+        "theme",
+        "preferred-dark-theme",
+        "preferredDarkTheme",
     ] {
         if let Some(value) = global.get(key) {
             original.insert(key.into(), value.clone());

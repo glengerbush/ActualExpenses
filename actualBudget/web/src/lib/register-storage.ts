@@ -35,10 +35,12 @@ export interface TransactionDraft {
   pending: PendingMutation | null;
   editClock?: string;
   clockRejected?: boolean;
+  attemptId?: string;
 }
 export type SavedAction = PendingMutation & {
   description: string;
   clockRejected?: boolean;
+  attemptId?: string;
 };
 const isObject = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === "object" && !Array.isArray(value);
@@ -73,6 +75,7 @@ function validPending(
 ): value is PendingMutation {
   if (!isObject(value) || !uuid(value.key) || typeof value.path !== "string")
     return false;
+  if (value.attemptId !== undefined && !uuid(value.attemptId)) return false;
   if (value.edit_clock !== undefined && !validClock(value.edit_clock))
     return false;
   if (
@@ -155,6 +158,7 @@ function validDraft(value: unknown, budget: string): value is TransactionDraft {
       !Number.isSafeInteger(value.original.amount))
   )
     return false;
+  if (value.attemptId !== undefined && !uuid(value.attemptId)) return false;
   if (value.editClock !== undefined && !validClock(value.editClock))
     return false;
   if (
@@ -206,11 +210,16 @@ export function saveTransactionDraft(
     throw new Error(
       "An unconfirmed transaction is already saved. Reload and retry it before changing its details.",
     );
+  if (draft.clockRejected && stored?.attemptId !== draft.attemptId)
+    throw new Error(
+      "Another retry may have reached the server. Reload and retry the saved transaction.",
+    );
   localStorage.setItem(draftKey(draft.budgetId), JSON.stringify(draft));
 }
 export function clearTransactionDraft(
   draft: TransactionDraft,
   acknowledged = false,
+  rejectedOnly = false,
 ): void {
   const stored = readTransactionDraft(draft.budgetId);
   if (!stored) return;
@@ -223,6 +232,13 @@ export function clearTransactionDraft(
     (!acknowledged || !equal(stored.pending, draft.pending))
   )
     throw new Error("Retry the saved transaction before discarding its draft.");
+  if (
+    rejectedOnly &&
+    (!stored.clockRejected || stored.attemptId !== draft.attemptId)
+  )
+    throw new Error(
+      "Another retry may have reached the server. Reload and retry the saved transaction.",
+    );
   localStorage.removeItem(draftKey(draft.budgetId));
 }
 export function readRegisterAction(budget: string): SavedAction | null {
@@ -249,6 +265,10 @@ export function saveRegisterAction(budget: string, pending: SavedAction): void {
     throw new Error(
       "Another unconfirmed register action is saved. Reload and retry it first.",
     );
+  if (pending.clockRejected && stored?.attemptId !== pending.attemptId)
+    throw new Error(
+      "Another retry may have reached the server. Reload and retry the saved action.",
+    );
   localStorage.setItem(
     actionKey(budget),
     JSON.stringify({ origin: location.origin, budgetId: budget, pending }),
@@ -257,6 +277,7 @@ export function saveRegisterAction(budget: string, pending: SavedAction): void {
 export function clearRegisterAction(
   budget: string,
   pending: SavedAction,
+  rejectedOnly = false,
 ): void {
   const stored = readRegisterAction(budget);
   if (!stored) return;
@@ -264,12 +285,19 @@ export function clearRegisterAction(
     throw new Error(
       "Another register action is saved. Reload before continuing.",
     );
+  if (
+    rejectedOnly &&
+    (!stored.clockRejected || stored.attemptId !== pending.attemptId)
+  )
+    throw new Error(
+      "Another retry may have reached the server. Reload and retry the saved action.",
+    );
   localStorage.removeItem(actionKey(budget));
 }
 
 function equalAction(a: SavedAction, b: SavedAction) {
   return equal(
-    { ...a, clockRejected: undefined },
-    { ...b, clockRejected: undefined },
+    { ...a, clockRejected: undefined, attemptId: undefined },
+    { ...b, clockRejected: undefined, attemptId: undefined },
   );
 }

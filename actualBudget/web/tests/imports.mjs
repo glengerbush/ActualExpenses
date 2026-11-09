@@ -19,6 +19,9 @@ async function read(path) {
   expect(response.ok).toBe(true);
   return (await response.json()).data;
 }
+function byId(rows) {
+  return [...rows].sort((left, right) => left.id.localeCompare(right.id));
+}
 async function open(page) {
   await page
     .getByRole("button", { name: "Import Actual budget", exact: true })
@@ -53,6 +56,7 @@ async function lose(page, pattern) {
   return attempts;
 }
 try {
+  const originalBudgets = byId(await read("/budgets"));
   await mkdir(artifacts, { recursive: true });
   browser = await chromium.launch({
     executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
@@ -105,8 +109,17 @@ try {
   await expect(
     page.getByRole("button", { name: "Retry saved upload" }),
   ).toBeEnabled();
-  expect(await read("/budgets")).toHaveLength(0);
-  expect(await read("/imports")).toHaveLength(1);
+  expect(byId(await read("/budgets"))).toEqual(originalBudgets);
+  const sourceStages = (await read("/imports")).filter(
+    (stage) =>
+      stage.report.archive_sha256 === expected.inspection.archive_sha256,
+  );
+  expect(sourceStages).toHaveLength(1);
+  const staged = sourceStages[0];
+  expect(staged.status).toBe("ready");
+  expect(originalBudgets.some((budget) => budget.id === staged.budget_id)).toBe(
+    false,
+  );
   await staleChooser
     .getByLabel("Actual ZIP export")
     .setInputFiles(`${fixtures}/import-unsupported-rule-26.10.0.zip`);
@@ -174,7 +187,13 @@ try {
   expect(activations[0].sha).toBe(
     createHash("sha256").update("{}").digest("hex"),
   );
-  expect(await read("/budgets")).toHaveLength(1);
+  const activatedBudgets = byId(await read("/budgets"));
+  expect(
+    activatedBudgets.filter((budget) => budget.id !== staged.budget_id),
+  ).toEqual(originalBudgets);
+  expect(
+    activatedBudgets.filter((budget) => budget.id === staged.budget_id),
+  ).toHaveLength(1);
   await page
     .getByRole("button", { name: /^Spending 314\.34/ })
     .first()
@@ -212,7 +231,7 @@ try {
       await readFile(`${fixtures}/import-unsupported-rule-26.10.0.zip`),
     ),
   ).toBe(true);
-  expect(await read("/budgets")).toHaveLength(1);
+  expect(byId(await read("/budgets"))).toEqual(activatedBudgets);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({
     path: `${artifacts}/import-blocked-mobile.png`,
@@ -229,7 +248,7 @@ try {
     .click();
   await expect(page.getByRole("alert")).toContainText("ZIP");
   await expect(page.getByLabel("Actual ZIP export")).toBeEnabled();
-  expect(await read("/budgets")).toHaveLength(1);
+  expect(byId(await read("/budgets"))).toEqual(activatedBudgets);
   console.log(
     "PASS unsupported records retained/downloadable and blocked; corrupt source rejected with recoverable chooser",
   );

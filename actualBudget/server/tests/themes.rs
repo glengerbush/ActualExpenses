@@ -149,3 +149,30 @@ fn compiler_bounds_fonts_retains_cycles_and_resolves_override_per_base() {
     assert_eq!(compiled["valid"], false);
     assert_eq!(compiled["source"], font);
 }
+
+#[test]
+fn contextual_dark_base_converts_raw_and_parsed_preferences_without_source_loss() {
+    let server = Server::start();
+    let installed = json!({"id":"contextual","name":"Contextual","repo":"","cssContent":":root { --color-pageText: var(--color-pageBackground); }"}).to_string();
+    for (theme_key, preference_key) in [
+        ("installed-custom-dark-theme", "preferred-dark-theme"),
+        ("installedCustomDarkTheme", "preferredDarkTheme"),
+    ] {
+        let global = json!({theme_key:installed, preference_key:"midnight", "theme":"system"});
+        let converted = server.post("/api/v1/themes/convert-actual", json!({"global":global}));
+        assert_eq!(converted["dark"]["base_theme"], "midnight");
+        assert_eq!(converted["original"], global);
+        assert!(converted["warnings"].as_array().unwrap().is_empty());
+    }
+    let global = json!({"installedCustomDarkTheme":installed, "preferred-dark-theme":"dark", "preferredDarkTheme":"midnight"});
+    let converted = server.post("/api/v1/themes/convert-actual", json!({"global":global}));
+    assert_eq!(converted["dark"]["base_theme"], "dark");
+    assert_eq!(converted["original"], global);
+    assert!(
+        converted["warnings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|warning| warning["key"] == "preferred-dark-theme")
+    );
+}

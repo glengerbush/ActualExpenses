@@ -313,6 +313,168 @@ try {
   ).toBe(true);
   expect(errors).toEqual([]);
   await context.close();
+  // A rejection authorizes discard only until another attempt can reach the server.
+  for (const kind of ["transaction", "action"]) {
+    const recoveryContext = await browser.newContext();
+    const page = await recoveryContext.newPage();
+    await page.goto(server.url);
+    await page.evaluate(
+      ({ budget, account }) =>
+        localStorage.setItem(
+          "actualBudget.selection",
+          JSON.stringify({ budgetId: budget, accountId: account }),
+        ),
+      { budget, account },
+    );
+    await page.reload();
+    if (kind === "transaction") {
+      await page
+        .getByRole("button", { name: "Add transaction", exact: true })
+        .click();
+      await page.getByLabel("Amount", { exact: true }).fill("1");
+    }
+    const horizon = Date.now() + 5000;
+    await page.evaluate(
+      (horizon) =>
+        localStorage.setItem(
+          "actualBudget.clock.v1",
+          new Date(horizon).toISOString() + "-FFFE-0000000000000001",
+        ),
+      horizon,
+    );
+    const sent = [];
+    let dropAcknowledgement = false;
+    const pattern =
+      kind === "transaction"
+        ? `**/api/v1/budgets/${budget}/transactions`
+        : `**/api/v1/budgets/${budget}/transactions/*/duplicate`;
+    await page.route(pattern, async (route) => {
+      if (route.request().method() !== "POST") return route.continue();
+      const request = route.request();
+      sent.push({
+        key: request.headers()["idempotency-key"],
+        clock: request.headers()["x-actual-edit-clock"],
+        body: request.postDataJSON(),
+      });
+      const url = new URL(request.url());
+      const headers = { ...request.headers(), host: url.host };
+      url.hostname = "127.0.0.1";
+      const response = await route.fetch({ url: url.href, headers });
+      if (dropAcknowledgement) {
+        expect(response.status()).toBe(201);
+        dropAcknowledgement = false;
+        await route.abort("failed");
+      } else await route.fulfill({ response });
+    });
+    const discardName =
+      kind === "transaction"
+        ? "Discard rejected edit"
+        : "Discard rejected action";
+    const retryName =
+      kind === "transaction" ? "Retry saved transaction" : "Retry saved action";
+    const discard = page.getByRole("button", {
+      name: discardName,
+      exact: true,
+    });
+    const retry = page.getByRole("button", { name: retryName, exact: true });
+    if (kind === "transaction")
+      await page
+        .getByRole("button", { name: "Save transaction", exact: true })
+        .click();
+    else
+      await page
+        .getByRole("button", { name: /^Duplicate / })
+        .first()
+        .click();
+    await expect(discard).toBeVisible();
+    expect(sent).toHaveLength(1);
+    expect(sent[0].clock.slice(25, 29)).toBe("FFFF");
+    const storageKey = `actualBudget.${kind === "transaction" ? "transaction" : "register-action"}.v1.${budget}`;
+    // A failed durable authorization transition must prevent sending.
+    await page.evaluate((key) => {
+      const original = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (name, value) {
+        if (name === key) throw new Error("Storage write blocked for test");
+        return original.call(this, name, value);
+      };
+    }, storageKey);
+    await retry.click();
+    await expect(retry).toBeEnabled();
+    expect(sent).toHaveLength(1);
+    await page.reload();
+    await expect(discard).toBeVisible();
+    const stalePage = await recoveryContext.newPage();
+    await stalePage.goto(server.url);
+    await expect(
+      stalePage.getByRole("button", { name: discardName, exact: true }),
+    ).toBeVisible();
+    // A delayed confirmed rejection from an older attempt cannot reauthorize discard.
+    const delayedPage = await recoveryContext.newPage();
+    await delayedPage.goto(server.url);
+    let releaseRejection;
+    const holdRejection = new Promise((resolve) => {
+      releaseRejection = resolve;
+    });
+    let rejectionReceived;
+    const receivedRejection = new Promise((resolve) => {
+      rejectionReceived = resolve;
+    });
+    await delayedPage.route(pattern, async (route) => {
+      if (route.request().method() !== "POST") return route.continue();
+      const url = new URL(route.request().url());
+      const headers = { ...route.request().headers(), host: url.host };
+      url.hostname = "127.0.0.1";
+      const response = await route.fetch({ url: url.href, headers });
+      expect(response.status()).toBe(400);
+      expect((await response.json()).error.code).toBe("clock_overflow");
+      rejectionReceived();
+      await holdRejection;
+      await route.fulfill({ response });
+    });
+    await delayedPage
+      .getByRole("button", { name: retryName, exact: true })
+      .click();
+    await receivedRejection;
+    await new Promise((resolve) =>
+      setTimeout(resolve, Math.max(0, horizon + 50 - Date.now())),
+    );
+    dropAcknowledgement = true;
+    await retry.click();
+    await expect(retry).toBeEnabled();
+    await expect(discard).toHaveCount(0);
+    expect(sent).toHaveLength(2);
+    expect(sent[1]).toEqual(sent[0]);
+    releaseRejection();
+    await expect(
+      delayedPage.getByRole("button", { name: retryName, exact: true }),
+    ).toBeEnabled();
+    await expect(
+      delayedPage.getByRole("button", { name: discardName, exact: true }),
+    ).toHaveCount(0);
+    await delayedPage.close();
+    // A tab still showing the earlier rejection cannot discard the new attempt.
+    await stalePage
+      .getByRole("button", { name: discardName, exact: true })
+      .click();
+    expect(
+      await page.evaluate((key) => localStorage.getItem(key), storageKey),
+    ).not.toBeNull();
+    await stalePage.close();
+    await page.reload();
+    await expect(retry).toBeVisible();
+    await expect(discard).toHaveCount(0);
+    await retry.click();
+    await expect(retry).toHaveCount(0);
+    expect(sent).toHaveLength(3);
+    expect(sent[2]).toEqual(sent[0]);
+    const rows = (
+      await (
+        await fetch(native + `/api/v1/budgets/${budget}/transactions`)
+      ).json()
+    ).data;
+    expect(rows.filter((row) => row.id === sent[0].body.id)).toHaveLength(1);
+    await recoveryContext.close();
+  }
   console.log(
     "PASS two-client field merge, stable queued retry/delete conflict, cursor-only unchanged refresh, hidden tombstone edits and explicit clock-skew recovery",
   );

@@ -242,7 +242,12 @@
         oncancel();
         return;
       }
-      const submitted = { ...draft, pending };
+      const submitted = {
+        ...draft,
+        pending,
+        clockRejected: false,
+        attemptId: uuid(),
+      };
       draft = submitted;
       persist(submitted);
       const response = await mutate<Transaction>(pending);
@@ -266,8 +271,9 @@
       if (draft && e instanceof RequestError && !e.uncertain && draft.pending) {
         try {
           if (e.code === "clock_skew" || e.code === "clock_overflow") {
-            draft.clockRejected = true;
-            persist(draft);
+            const rejected = { ...draft, clockRejected: true };
+            persist(rejected);
+            draft = rejected;
           } else if (e.code === "transaction_deleted") {
             clearTransactionDraft(draft, true);
             deletedRemotely = true;
@@ -292,7 +298,7 @@
     try {
       resetCorrectedClock();
       if (discard && draft.clockRejected) {
-        clearTransactionDraft(draft, true);
+        clearTransactionDraft(draft, true, true);
         oncancel();
       } else if (!draft.pending) {
         draft.editClock = undefined;

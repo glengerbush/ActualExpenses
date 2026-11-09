@@ -210,6 +210,7 @@
           description: `${action === "delete" ? t("Delete") : t("Duplicate")} ${description(row)}`,
         };
       }
+      pending = { ...pending, clockRejected: false, attemptId: uuid() };
       saveRegisterAction(budgetId, pending);
       await mutate(pending);
       acknowledged = true;
@@ -221,8 +222,9 @@
       if (e instanceof RequestError && !e.uncertain && pending) {
         try {
           if (e.code === "clock_skew" || e.code === "clock_overflow") {
-            pending = { ...pending, clockRejected: true };
-            saveRegisterAction(budgetId, pending);
+            const rejected = { ...pending, clockRejected: true };
+            saveRegisterAction(budgetId, rejected);
+            pending = rejected;
           } else {
             clearRegisterAction(budgetId, pending);
             pending = null;
@@ -249,7 +251,7 @@
     try {
       resetCorrectedClock();
       if (pending) {
-        clearRegisterAction(budgetId, pending);
+        clearRegisterAction(budgetId, pending, true);
         pending = null;
       }
       localClockProblem = false;

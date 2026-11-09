@@ -336,6 +336,12 @@ pub fn patch(
     patch: Value,
     clock: &str,
 ) -> Result<Value, Error> {
+    let live:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM transactions a JOIN transactions z ON z.budget_id=a.budget_id AND z.id=a.transfer_id WHERE a.budget_id=?1 AND a.id=?2 AND a.tombstone=0 AND z.tombstone=0 AND z.transfer_id=a.id)",params![b,id],|r|r.get(0))?;
+    if !live {
+        return Err(Error::conflict(
+            "This transfer link is no longer active. Refresh both accounts.",
+        ));
+    }
     let other = counterpart(db, b, id)?.ok_or_else(Error::missing)?;
     let a = ledger::get_any(db, b, id)?;
     let z = ledger::get_any(db, b, &other)?;

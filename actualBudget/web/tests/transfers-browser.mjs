@@ -144,7 +144,11 @@ try {
     .first()
     .getByRole("button", { name: /^Delete / })
     .click();
-  await expect(page.getByText(/Delete both sides/)).toBeVisible();
+  await expect(
+    page.getByText(
+      /Delete this transfer\? Its paired entry is also deleted unless it belongs to a split/,
+    ),
+  ).toBeVisible();
   await page
     .getByRole("button", { name: "Confirm delete", exact: true })
     .click();

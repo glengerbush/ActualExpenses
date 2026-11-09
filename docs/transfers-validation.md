@@ -153,3 +153,40 @@ Still required: independent Standards/Spec and Impeccable finish review; registe
 hydration/query integration; ticket13 atomic undo; ticket16 exact lock-version
 confirmation for every affected leg/aggregate; final schema renumbering. Provisional
 schema11 is unchanged by composition. This is not whole-ticket or rewrite acceptance.
+
+## Independent review corrections on ca040e5
+
+Two confirmed P1s reproduced through public seams, then corrected:
+
+- `/tmp/ticket15-hidden-red.log`: editing a deleted ordinary transfer peer changed
+  the surviving split allocation and parent through its retired reference. Hidden
+  PATCH now uses the ordinary local tombstone merge path. Its retained historical
+  transfer payee can remain unchanged, but cannot select a new transfer identity.
+  Live transfer propagation additionally requires two active reciprocal rows.
+  Hidden date-sync metadata is validated but cannot update shared preferences.
+  Regression covers amount/date/cleared/notes/account/category, a later child
+  relink, restart, prohibited relationship editing and pairs with both rows deleted.
+  `/tmp/ticket15-hidden-green.log` records the focused green tracer.
+- `/tmp/ticket15-storage-red.log`: after quota rejection, Retry sent a pending
+  request absent from durable storage. TransferForm now advances its ownership
+  checkpoint only after successful storage and persists before every dispatch,
+  including retry/cancel. Failed cancellation cleanup preserves the original
+  pending operation. Public browser fault injection covers quota save/retry,
+  reload of unsent fields, quota cancellation, failed cancellation-draft storage
+  followed by reload/retry, and stale-tab ownership. Every observed outgoing
+  request is checked against durable body/key/clock/epoch. Green evidence:
+  `/tmp/ticket15-storage-green.log`.
+
+Related-form audit: SplitEditor awaits `writeSplit` on every send and assigns its
+saved revision only after success; AccountManagement persists before every send
+and advances its draft only after success. Neither has the reviewed send bypass.
+No sibling product changes were needed. The existing transfer deletion-copy
+assertion was updated to the already-shipped split-aware wording; financial and
+replay assertions remain unchanged.
+
+Focused validation: concurrency12 + splits10 + transfers12 all pass
+(`/tmp/ticket15-corrections-http.log`); transfer and combined browser suites pass
+(`/tmp/ticket15-corrections-transfer-browser.log`,
+`/tmp/ticket15-corrections-combined-browser.log`). Build/check/autofixer/Clippy pass
+(`/tmp/ticket15-corrections-{build,check,svelte,clippy}.log`). Broad suites were not
+repeated. Independent corrective review and root integration remain required.

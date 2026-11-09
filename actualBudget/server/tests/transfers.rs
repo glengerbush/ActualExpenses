@@ -1098,3 +1098,95 @@ fn closed_counterpart_keeps_existing_split_transfer_history_editable() {
         -1000
     );
 }
+
+#[test]
+fn deleted_transfer_peer_merges_stay_local_after_child_detach_and_relink() {
+    let s = Server::start();
+    let root = split_fixture(&s);
+    let path = format!("{root}/transactions/{}", id(12));
+    ok(s.write("DELETE", &path, "delete-peer", None, Value::Null));
+    let before = s.get(&format!("{root}/transactions"));
+    let prefs = s.get(&format!("{root}/preferences"));
+    let hidden=ok(s.write("PATCH",&path,"late-deleted-edit",None,json!({"amount":900,"date":"2026-02-02","cleared":true,"notes":"Late hidden correction","sync_transfer_date":true}))) ["data"].clone();
+    assert_eq!(hidden["deleted"], true);
+    assert_eq!(hidden["amount"], 900);
+    assert_eq!(hidden["date"], "2026-02-02");
+    assert_eq!(hidden["cleared"], true);
+    let after = s.get(&format!("{root}/transactions"));
+    assert_eq!(
+        after["data"], before["data"],
+        "Retired pair cannot alter live child/parent/siblings"
+    );
+    assert_eq!(after["balances"], before["balances"]);
+    assert_eq!(
+        s.get(&format!("{root}/preferences")),
+        prefs,
+        "A hidden date merge cannot change shared preference"
+    );
+    ok(s.write(
+        "POST",
+        &format!("{root}/transactions"),
+        "new-peer",
+        None,
+        json!({"id":id(14),"account_id":id(4),"amount":600,"date":"2026-01-01"}),
+    ));
+    ok(s.write(
+        "POST",
+        &format!("{root}/transfers/link"),
+        "relink-child",
+        None,
+        json!({"id":id(11),"counterpart_id":id(14)}),
+    ));
+    let before = s.get(&format!("{root}/transactions"));
+    let hidden=ok(s.write("PATCH",&path,"late-old-relationship",None,json!({"amount":800,"date":"2026-03-03","cleared":false,"account_id":id(4),"category_id":null,"sync_transfer_date":true}))) ["data"].clone();
+    assert_eq!(hidden["deleted"], true);
+    assert_eq!(hidden["account_id"], id(4));
+    assert_eq!(
+        s.get(&format!("{root}/transactions"))["data"],
+        before["data"]
+    );
+    assert_eq!(
+        s.write(
+            "PATCH",
+            &path,
+            "no-hidden-relink",
+            None,
+            json!({"transfer_id":id(14)})
+        )
+        .status(),
+        400
+    );
+    let s = s.restart();
+    assert_eq!(
+        s.get(&format!("{root}/transactions"))["data"],
+        before["data"]
+    );
+    // Even a pair whose two rows are both deleted has only local hidden merges.
+    ok(s.write("POST",&format!("{root}/transfers"),"ordinary-pair",None,json!({"id":id(30),"counterpart_id":id(31),"account_id":id(2),"to_account_id":id(3),"amount":-20,"date":"2026-01-01"})));
+    ok(s.write(
+        "DELETE",
+        &format!("{root}/transactions/{}", id(30)),
+        "ordinary-delete",
+        None,
+        Value::Null,
+    ));
+    ok(s.write(
+        "PATCH",
+        &format!("{root}/transactions/{}", id(30)),
+        "hidden-one",
+        None,
+        json!({"amount":-50,"date":"2026-04-04","cleared":true,"sync_transfer_date":true}),
+    ));
+    let other = ok(s.write(
+        "PATCH",
+        &format!("{root}/transactions/{}", id(31)),
+        "hidden-other",
+        None,
+        json!({"notes":"Observe other tombstone"}),
+    ))["data"]
+        .clone();
+    assert_eq!(other["deleted"], true);
+    assert_eq!(other["amount"], 20);
+    assert_eq!(other["date"], "2026-01-01");
+    assert_eq!(other["cleared"], false);
+}

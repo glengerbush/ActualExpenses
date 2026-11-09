@@ -484,12 +484,16 @@ fn update_row(
     let mut input = validate_patch(&previous, &patch)?;
     resolve_new_references(db, budget, &mut input)?;
     input.category_id = crate::categories::resolve(db, budget, input.category_id)?;
-    validate_payee_selection(
-        db,
-        budget,
-        input.payee_id.as_deref(),
-        previous["retained_payee_id"].as_str(),
-    )?;
+    // A deleted row may retain its historical transfer payee while independently
+    // merging fields. Selecting a different transfer payee still requires a pair.
+    if !(hidden && input.payee_id.as_deref() == previous["retained_payee_id"].as_str()) {
+        validate_payee_selection(
+            db,
+            budget,
+            input.payee_id.as_deref(),
+            previous["retained_payee_id"].as_str(),
+        )?;
+    }
     // Keep independent winning fields, including latent off-budget categories.
     validate_references(
         db,

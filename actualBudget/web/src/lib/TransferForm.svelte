@@ -101,8 +101,9 @@
       throw new Error(
         "Another tab changed this transfer. Reload before continuing.",
       );
-    saved = JSON.stringify($state.snapshot(draft));
-    localStorage.setItem(storageKey(), saved);
+    const next = JSON.stringify($state.snapshot(draft));
+    localStorage.setItem(storageKey(), next);
+    saved = next;
   }
   function remove() {
     if (localStorage.getItem(storageKey()) !== saved)
@@ -326,8 +327,10 @@
           edit_clock: nextEditClock(draft.original?.field_versions),
           budgetEpoch: draft.epoch,
         };
-        persist();
       }
+      // Every dispatch, including retry/cancel, requires a durable immutable intent.
+      // A failed write leaves the prior ownership checkpoint intact.
+      persist();
       const pending = draft.pending;
       cancel ||= cancellationRequested(pending);
       if (cancel) {
@@ -366,9 +369,15 @@
       );
     } catch (e) {
       if (e instanceof RequestError && e.code === "operation_canceled") {
+        const pending = draft.pending;
         draft.pending = null;
-        persist();
-        error = "Transfer request canceled. Your fields are kept for review.";
+        try {
+          persist();
+          error = "Transfer request canceled. Your fields are kept for review.";
+        } catch (failure) {
+          draft.pending = pending;
+          error = errorMessage(failure);
+        }
       } else {
         error = errorMessage(e);
         clockProblem =

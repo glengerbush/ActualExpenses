@@ -383,11 +383,24 @@ pub fn execute(
                 StatusCode::CREATED,
             )
         }
-        Mutation::Patch(id, patch) => {
-            if crate::transfers::counterpart(db, budget, &id)?.is_some() {
+        Mutation::Patch(id, mut patch) => {
+            let hidden = deleted(db, budget, &id)?;
+            if !hidden && crate::transfers::counterpart(db, budget, &id)?.is_some() {
                 return crate::transfers::patch(db, budget, &id, patch, &edit_clock);
             }
-            let hidden = deleted(db, budget, &id)?;
+            // Retired pair references are provenance, never propagation edges.
+            // Keep valid local tombstone merges; a stale date-sync choice has no
+            // effect on live rows or shared preferences.
+            if hidden {
+                if let Some(sync) = patch
+                    .as_object_mut()
+                    .and_then(|p| p.remove("sync_transfer_date"))
+                {
+                    if !sync.is_boolean() {
+                        return Err(Error::invalid("sync_transfer_date must be boolean"));
+                    }
+                }
+            }
             let previous = if hidden {
                 ledger::get_any(db, budget, &id)?
             } else {

@@ -131,9 +131,32 @@ impl Runner {
             None
         };
         let context = super::conditions::Context { db, b, account_off };
+        let attached = input["schedule_id"]
+            .as_str()
+            .map(|id| {
+                db.query_row(
+                    "SELECT rule_id FROM schedules WHERE budget_id=?1 AND id=?2 AND tombstone=0",
+                    params![b, id],
+                    |r| r.get::<_, String>(0),
+                )
+                .optional()
+            })
+            .transpose()?
+            .flatten();
+        let linked = db
+            .prepare("SELECT rule_id,completed FROM schedules WHERE budget_id=?1 AND tombstone=0")?
+            .query_map([b], |r| Ok((r.get::<_, String>(0)?, r.get::<_, bool>(1)?)))?
+            .collect::<Result<std::collections::BTreeMap<_, _>, _>>()?;
         for rule in &self.rules {
+            let forced = attached.as_deref() == Some(rule.id.as_str());
+            if linked
+                .get(&rule.id)
+                .is_some_and(|completed| *completed || attached.is_some() && !forced)
+            {
+                continue;
+            }
             let mut matches = !rule.conditions.is_empty() && rule.conditions_op == "and";
-            for c in &rule.conditions {
+            for c in rule.conditions.iter().filter(|_| !forced) {
                 let result = super::conditions::matches(&context, c, &row, &mut self.work)?;
                 if rule.conditions_op == "or" && result {
                     matches = true;
@@ -144,7 +167,7 @@ impl Runner {
                     break;
                 }
             }
-            if matches {
+            if matches || forced {
                 matched.push(rule.id.clone());
                 row = super::actions::apply(db, b, &row, rule)?;
             }

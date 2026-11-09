@@ -297,6 +297,9 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         "zero_budgets",
         "zero_budget_months",
         "rules",
+        "schedules",
+        "schedules_next_date",
+        "schedules_json_paths",
         "notes",
         "messages_crdt",
         "messages_pending",
@@ -374,6 +377,9 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             "zero_budgets",
             "zero_budget_months",
             "rules",
+            "schedules",
+            "schedules_next_date",
+            "schedules_json_paths",
             "notes",
         ]
         .contains(&table.as_str())
@@ -773,7 +779,6 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         }
         let unsupported = flag(row, "pending")?
             || [
-                "schedule",
                 "financial_id",
                 "raw_synced_data",
                 "type",
@@ -895,6 +900,8 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
     }
     converted["rules"] = crate::rules::convert_actual(&source, &payee_map, &category_map)?;
     converted["rules_version"] = json!(1);
+    converted["schedules"] = crate::schedules::convert_actual(&source, &converted["rules"])?;
+    converted["schedules_version"] = json!(1);
     requirements.extend(
         converted["rules"]["requirements"]
             .as_array()
@@ -977,9 +984,11 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
     }
     crate::budgeting::install_actual(db, budget, &data["budgeting"])?;
     crate::rules::install_actual(db, budget, &data["rules"])?;
+    crate::schedules::install_actual(db, budget, &data["schedules"])?;
     for row in array(data, "clocks") {
         crate::budgeting::import_clock(db, budget, &data["budgeting"], row)?;
         crate::rules::import_clock(db, budget, row)?;
+        crate::schedules::import_clock(db, budget, &data["schedules"], row)?;
         let dataset = row["dataset"].as_str().unwrap();
         let field = row["column"].as_str().unwrap();
         if dataset == "notes" && field == "note" {

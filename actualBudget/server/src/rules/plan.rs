@@ -308,6 +308,17 @@ pub(super) fn commit(
     epoch: Option<&str>,
     command: Command<'_>,
 ) -> Result<Value, Error> {
+    commit_with_work(db, b, ids, entries, clock, epoch, command).map(|result| result.0)
+}
+pub(super) fn commit_with_work(
+    db: &Connection,
+    b: &str,
+    ids: &[String],
+    entries: Vec<Entry>,
+    clock: &str,
+    epoch: Option<&str>,
+    command: Command<'_>,
+) -> Result<(Value, engine::Work), Error> {
     let Command { created, work } = command;
     let mut peer_runner = engine::Runner::with_work(load(db, b)?, work);
     let mut created_peers = std::collections::BTreeSet::new();
@@ -618,5 +629,8 @@ pub(super) fn commit(
     for peer in created_peers {
         super::entry::peer_rules(db, b, &peer, clock, &mut peer_runner)?;
     }
-    Ok(json!({"affected_count":changed.len(),"selected_count":ids.len(),"entries":changed}))
+    Ok((
+        json!({"affected_count":changed.len(),"selected_count":ids.len(),"entries":changed}),
+        peer_runner.into_work(),
+    ))
 }

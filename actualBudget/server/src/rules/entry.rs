@@ -123,3 +123,107 @@ pub(super) fn peer_rules(
     }
     Ok(())
 }
+
+/// Automatic posting executes the linked rule (even for a manual post-today)
+/// and the ordinary rule chain. It shares guarded split/transfer writers.
+pub(crate) fn post_schedule(
+    db: &Connection,
+    b: &str,
+    input: &Value,
+    clock: &str,
+    epoch: Option<&str>,
+    work: engine::Work,
+) -> Result<engine::Work, Error> {
+    let id = input["id"]
+        .as_str()
+        .ok_or_else(|| Error::invalid("Scheduled transaction identity required"))?;
+    let mut runner = engine::Runner::with_work(load(db, b)?, work);
+    let (mut after, matched) = runner.evaluate(db, b, input)?;
+    if after["deleted"] == true {
+        return Err(Error::conflict(
+            "The schedule's rules delete this occurrence. Review the linked rule before posting.",
+        ));
+    }
+    let schedule = input["schedule_id"]
+        .as_str()
+        .ok_or_else(|| Error::invalid("Schedule identity required"))?;
+    let mut fields = serde_json::Map::new();
+    for field in [
+        "id",
+        "account_id",
+        "amount",
+        "date",
+        "notes",
+        "cleared",
+        "payee_id",
+        "category_id",
+        "new_payee",
+    ] {
+        if let Some(value) = after.get(field) {
+            fields.insert(field.into(), value.clone());
+        }
+    }
+    if fields.get("new_payee").is_some_and(Value::is_object) {
+        fields.insert("payee_id".into(), Value::Null);
+    }
+    let transfer = if let Some(payee) = fields.get("payee_id").and_then(Value::as_str) {
+        crate::payees_tags::record(db, b, "payees", payee)?["transfer_account_id"]
+            .as_str()
+            .map(str::to_owned)
+    } else {
+        None
+    };
+    if transfer.is_some() {
+        fields.insert("payee_id".into(), Value::Null);
+    }
+    let final_input: crate::ledger::NewTransaction = serde_json::from_value(Value::Object(fields))
+        .map_err(|_| Error::invalid("Schedule rules produced invalid transaction fields"))?;
+    final_input.validate()?;
+    let result = sync::execute(
+        db,
+        b,
+        Some(clock),
+        false,
+        epoch,
+        sync::Mutation::Create(Box::new(final_input)),
+    )?;
+    if result["response_status"].as_u64().unwrap_or(500) >= 400 {
+        return Err(Error::conflict("The scheduled entry could not be saved"));
+    }
+    after.as_object_mut().unwrap().remove("new_payee");
+    if after["is_parent"] == true {
+        let before = crate::ledger::get(db, b, id)?;
+        let (_, work) = plan::commit_with_work(
+            db,
+            b,
+            &[id.to_owned()],
+            vec![plan::Entry {
+                before,
+                after,
+                matched_rule_ids: matched,
+            }],
+            clock,
+            epoch,
+            plan::Command {
+                created: Some(id),
+                work: runner.into_work(),
+            },
+        )?;
+        let row = crate::ledger::get(db, b, id)?;
+        for child in row["children"].as_array().into_iter().flatten() {
+            crate::schedules::link(db, b, child["id"].as_str().unwrap(), schedule, clock)?;
+            if let Some(peer) = child["transfer_id"].as_str() {
+                crate::schedules::link(db, b, peer, schedule, clock)?;
+            }
+        }
+        crate::schedules::link(db, b, id, schedule, clock)?;
+        return Ok(work);
+    } else if let Some(destination) = transfer {
+        let peer = super::actions::identity(&["actualBudget.schedule-pair.v1", b, id]);
+        crate::transfers::composition::save_child(db, b, id, &destination, &peer, clock, None)?;
+        peer_rules(db, b, &peer, clock, &mut runner)?;
+        crate::schedules::link(db, b, &peer, schedule, clock)?;
+    }
+    crate::schedules::link(db, b, id, schedule, clock)?;
+    Ok(runner.into_work())
+}

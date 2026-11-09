@@ -40,6 +40,7 @@ try{
  await snapshot('created');
  await send('schedule/post-transaction',{id:id(2)});await snapshot('manual post');
  await send('schedule/skip-next-date',{id:id(4)});await snapshot('weekend skipped');
+ if(!process.argv.includes('--check'))await writeFile(new URL('../tests/fixtures/schedules-missed-26.10.zip',import.meta.url),await api.exportBudget());
  asOf='2026-11-09T12:00:00Z';await send('schedule/force-run-service');await snapshot('catch up');
  await send('schedule/force-run-service');await snapshot('repeat same day');
  asOf='2026-11-10T12:00:00Z';await send('schedule/force-run-service');await snapshot('next day');

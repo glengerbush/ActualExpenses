@@ -4,9 +4,6 @@ use sha2::{Digest, Sha256};
 pub fn requirements(rule: &Rule) -> Vec<Value> {
     let mut out = vec![];
     for (index, a) in rule.actions.iter().enumerate() {
-        if a["op"] == "link-schedule" {
-            out.push(json!({"action":index,"ticket":21,"reason":"Schedule-link execution requires the scheduling capability","raw":a}));
-        }
         if a["options"]["template"].is_string()
             || a["options"]["formula"].is_string()
             || a["options"]["method"] == "formula"
@@ -83,6 +80,13 @@ pub fn validate(a: &Value) -> Result<(), Error> {
         }
         "prepend-notes" | "append-notes" => text(value, 10000)?,
         "delete-transaction" => {}
+        "link-schedule" => {
+            crate::models::validate_id(
+                value
+                    .as_str()
+                    .ok_or_else(|| Error::invalid("Schedule action requires an ID"))?,
+            )?;
+        }
         "set-split-amount" => {
             if index == 0 {
                 return Err(Error::invalid(
@@ -208,6 +212,7 @@ fn exec(a: &Value, row: &mut Value) -> Result<(), Error> {
             ))
         }
         "delete-transaction" => row["deleted"] = json!(true),
+        "link-schedule" => row["schedule_id"] = a["value"].clone(),
         "set-split-amount" if a["options"]["method"] == "fixed-amount" => {
             row["amount"] = a["value"].clone()
         }

@@ -1,0 +1,97 @@
+use super::*;
+use sha2::{Digest, Sha256};
+pub fn identity(parts: &[&str]) -> String {
+    let bytes = Sha256::digest(json!(parts).to_string().as_bytes());
+    let mut id = [0u8; 16];
+    id.copy_from_slice(&bytes[..16]);
+    id[6] = (id[6] & 15) | 64;
+    id[8] = (id[8] & 63) | 128;
+    uuid::Uuid::from_bytes(id).to_string()
+}
+pub fn stamp(
+    db: &Connection,
+    b: &str,
+    table: &str,
+    id: &str,
+    fields: &[&str],
+    clock: &str,
+) -> Result<(), Error> {
+    for field in fields {
+        sync::seed_field_version(db, b, table, id, field, clock)?;
+    }
+    sync::mark(db, b, table, id)
+}
+pub fn guard(
+    db: &Connection,
+    b: &str,
+    table: &str,
+    id: &str,
+    fields: &[&str],
+    clock: &str,
+) -> Result<(), Error> {
+    for field in fields {
+        if db.query_row("SELECT EXISTS(SELECT 1 FROM field_versions WHERE budget_id=?1 AND entity=?2 AND entity_id=?3 AND field=?4 AND clock>=?5)",params![b,table,id,field,clock],|r|r.get::<_,bool>(0))?{return Err(Error::conflict("A newer schedule change must be reviewed before saving"));}
+    }
+    Ok(())
+}
+pub fn get(db: &Connection, b: &str, id: &str) -> Result<Value, Error> {
+    let mut q=db.prepare("SELECT id,rule_id,name,posts_transaction,completed,next_date,custom_upcoming_length FROM schedules WHERE budget_id=?1 AND id=?2 AND tombstone=0")?;
+    let mut row=q.query_row(params![b,id],|r|Ok(json!({"id":r.get::<_,String>(0)?,"rule_id":r.get::<_,String>(1)?,"name":r.get::<_,Option<String>>(2)?,"posts_transaction":r.get::<_,bool>(3)?,"completed":r.get::<_,bool>(4)?,"next_date":r.get::<_,Option<String>>(5)?,"custom_upcoming_length":r.get::<_,Option<String>>(6)?}))).optional()?.ok_or_else(Error::missing)?;
+    let (conditions, actions): (String, String) = db.query_row(
+        "SELECT conditions,actions FROM rules WHERE budget_id=?1 AND id=?2 AND tombstone=0",
+        params![b, row["rule_id"].as_str()],
+        |r| Ok((r.get(0)?, r.get(1)?)),
+    )?;
+    row["conditions"] = serde_json::from_str(&conditions).map_err(Error::internal)?;
+    row["actions"] = serde_json::from_str(&actions).map_err(Error::internal)?;
+    Ok(row)
+}
+pub fn list(db: &Connection, b: &str) -> Result<Vec<Value>, Error> {
+    crate::store::require_budget(db, b)?;
+    let ids=db.prepare("SELECT id FROM schedules WHERE budget_id=?1 AND tombstone=0 ORDER BY next_date,id LIMIT 100001")?.query_map([b],|r|r.get::<_,String>(0))?.collect::<Result<Vec<_>,_>>()?;
+    if ids.len() > 100000 {
+        return Err(Error::invalid("Schedule set exceeds100000 rows"));
+    }
+    ids.iter().map(|id| get(db, b, id)).collect()
+}
+pub fn link(db: &Connection, b: &str, id: &str, schedule: &str, clock: &str) -> Result<(), Error> {
+    get(db, b, schedule)?;
+    guard(
+        db,
+        b,
+        "schedule_links",
+        id,
+        &["schedule_id", "tombstone"],
+        clock,
+    )?;
+    db.execute("INSERT INTO schedule_links(budget_id,id,schedule_id) VALUES(?1,?2,?3) ON CONFLICT(budget_id,id) DO UPDATE SET schedule_id=excluded.schedule_id,tombstone=0",params![b,id,schedule])?;
+    stamp(
+        db,
+        b,
+        "schedule_links",
+        id,
+        &["schedule_id", "tombstone"],
+        clock,
+    )?;
+    sync::mark(db, b, "transactions", id)
+}
+pub fn decorate(db: &Connection, b: &str, rows: &mut [Value]) -> Result<(), Error> {
+    for batch in rows.chunks_mut(500) {
+        if batch.is_empty() {
+            continue;
+        }
+        let placeholders = (2..=batch.len() + 1)
+            .map(|n| format!("?{n}"))
+            .collect::<Vec<_>>()
+            .join(",");
+        let mut args = vec![b.to_owned()];
+        args.extend(batch.iter().map(|r| r["id"].as_str().unwrap().to_owned()));
+        let values=db.prepare(&format!("SELECT id,schedule_id FROM schedule_links WHERE budget_id=?1 AND tombstone=0 AND id IN ({placeholders})"))?.query_map(rusqlite::params_from_iter(args.iter()),|r|Ok((r.get::<_,String>(0)?,r.get::<_,String>(1)?)))?.collect::<Result<std::collections::BTreeMap<_,_>,_>>()?;
+        for row in batch {
+            if let Some(id) = values.get(row["id"].as_str().unwrap()) {
+                row["schedule_id"] = json!(id);
+            }
+        }
+    }
+    Ok(())
+}

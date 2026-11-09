@@ -756,6 +756,9 @@ pub fn read_changes(
             "payees" | "tags" => crate::payees_tags::record(db, budget, &entity, &id)?,
             "payee_locations" => crate::payee_locations::record(db, budget, &id)?,
             "rules" => crate::rules::record(db, budget, &id)?,
+            "schedules" | "schedule_occurrences" | "schedule_links" | "schedule_settings" => {
+                crate::schedules::record_entity(db, budget, &entity, &id)?
+            }
             "rule_settings" => {
                 json!({"id":"learning","enabled":crate::rules::learning::enabled(db,budget)?,"deleted":false})
             }

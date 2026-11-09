@@ -546,6 +546,7 @@ pub(crate) fn get_many(db: &Connection, budget: &str, ids: &[String]) -> Result<
     }
     for batch in parents.chunks_mut(BATCH).chain(children.chunks_mut(BATCH)) {
         crate::concurrency::decorate_many(db, budget, batch)?;
+        crate::schedules::decorate(db, budget, batch)?;
     }
     let mut grouped = std::collections::HashMap::<String, Vec<Value>>::new();
     for child in children {

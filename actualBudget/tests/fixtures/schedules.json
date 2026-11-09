@@ -451,18 +451,6 @@
       ],
       "transactions": [
         {
-          "id": "<generated-5>",
-          "account": "<account>",
-          "payee": "<payee>",
-          "category": null,
-          "amount": -100,
-          "date": "2026-11-06",
-          "notes": null,
-          "cleared": false,
-          "schedule": "21220000-0000-4000-8000-000000000002",
-          "transfer_id": null
-        },
-        {
           "id": "<generated-6>",
           "account": "<account>",
           "payee": "<payee>",
@@ -472,6 +460,18 @@
           "notes": null,
           "cleared": false,
           "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-5>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-06",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000002",
           "transfer_id": null
         },
         {
@@ -559,18 +559,6 @@
       ],
       "transactions": [
         {
-          "id": "<generated-5>",
-          "account": "<account>",
-          "payee": "<payee>",
-          "category": null,
-          "amount": -100,
-          "date": "2026-11-06",
-          "notes": null,
-          "cleared": false,
-          "schedule": "21220000-0000-4000-8000-000000000002",
-          "transfer_id": null
-        },
-        {
           "id": "<generated-6>",
           "account": "<account>",
           "payee": "<payee>",
@@ -580,6 +568,18 @@
           "notes": null,
           "cleared": false,
           "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-5>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-06",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000002",
           "transfer_id": null
         },
         {
@@ -667,18 +667,6 @@
       ],
       "transactions": [
         {
-          "id": "<generated-5>",
-          "account": "<account>",
-          "payee": "<payee>",
-          "category": null,
-          "amount": -100,
-          "date": "2026-11-06",
-          "notes": null,
-          "cleared": false,
-          "schedule": "21220000-0000-4000-8000-000000000002",
-          "transfer_id": null
-        },
-        {
           "id": "<generated-6>",
           "account": "<account>",
           "payee": "<payee>",
@@ -688,6 +676,18 @@
           "notes": null,
           "cleared": false,
           "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-5>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-06",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000002",
           "transfer_id": null
         },
         {
@@ -787,18 +787,6 @@
       ],
       "transactions": [
         {
-          "id": "<generated-5>",
-          "account": "<account>",
-          "payee": "<payee>",
-          "category": null,
-          "amount": -100,
-          "date": "2026-11-06",
-          "notes": null,
-          "cleared": false,
-          "schedule": "21220000-0000-4000-8000-000000000002",
-          "transfer_id": null
-        },
-        {
           "id": "<generated-6>",
           "account": "<account>",
           "payee": "<payee>",
@@ -808,6 +796,18 @@
           "notes": null,
           "cleared": false,
           "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-5>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-06",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000002",
           "transfer_id": null
         },
         {

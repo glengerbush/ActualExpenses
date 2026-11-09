@@ -1,0 +1,1579 @@
+{
+  "baseline_commit": "8fe9b38444b98626f5e7670d228b2213ba3d376c",
+  "schema_version": 5,
+  "provenance": "Accepted committed binary, public HTTP only; copied after graceful shutdown",
+  "budget_id": "05800000-0000-4000-8000-000000000001",
+  "second_budget_id": "05800000-0000-4000-8000-000000000007",
+  "account_id": "05800000-0000-4000-8000-000000000002",
+  "imported_budget_id": "ff8b1217-180e-4801-8e73-c24075f88c1b",
+  "import_id": "4d5871d9-b4aa-4540-9fd9-586314cd2e26",
+  "receipts": [
+    {
+      "method": "POST",
+      "path": "/budgets",
+      "key": "v5-budget",
+      "body": {
+        "id": "05800000-0000-4000-8000-000000000001",
+        "name": "Pre-lifecycle receipts",
+        "budget_type": "tracking"
+      },
+      "status": 201,
+      "response_text": "{\"data\":{\"budget_type\":\"tracking\",\"id\":\"05800000-0000-4000-8000-000000000001\",\"name\":\"Pre-lifecycle receipts\"}}",
+      "response": {
+        "data": {
+          "budget_type": "tracking",
+          "id": "05800000-0000-4000-8000-000000000001",
+          "name": "Pre-lifecycle receipts"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/budgets",
+      "key": "v5-second",
+      "body": {
+        "id": "05800000-0000-4000-8000-000000000007",
+        "name": "Separate receipt scope",
+        "budget_type": "envelope"
+      },
+      "status": 201,
+      "response_text": "{\"data\":{\"budget_type\":\"envelope\",\"id\":\"05800000-0000-4000-8000-000000000007\",\"name\":\"Separate receipt scope\"}}",
+      "response": {
+        "data": {
+          "budget_type": "envelope",
+          "id": "05800000-0000-4000-8000-000000000007",
+          "name": "Separate receipt scope"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/budgets/05800000-0000-4000-8000-000000000001/accounts",
+      "key": "shared-reference-key",
+      "body": {
+        "id": "05800000-0000-4000-8000-000000000002",
+        "name": "Spending",
+        "opening_balance": 12500,
+        "opening_date": "2024-02-29"
+      },
+      "status": 201,
+      "response_text": "{\"data\":{\"balance\":12500,\"closed\":false,\"id\":\"05800000-0000-4000-8000-000000000002\",\"name\":\"Spending\",\"notes\":\"\",\"off_budget\":false}}",
+      "response": {
+        "data": {
+          "balance": 12500,
+          "closed": false,
+          "id": "05800000-0000-4000-8000-000000000002",
+          "name": "Spending",
+          "notes": "",
+          "off_budget": false
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/budgets/05800000-0000-4000-8000-000000000001/payees",
+      "key": "shared-reference-key",
+      "body": {
+        "id": "05800000-0000-4000-8000-000000000005",
+        "name": "Cafe"
+      },
+      "status": 201,
+      "response_text": "{\"data\":{\"id\":\"05800000-0000-4000-8000-000000000005\",\"name\":\"Cafe\"}}",
+      "response": {
+        "data": {
+          "id": "05800000-0000-4000-8000-000000000005",
+          "name": "Cafe"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/budgets/05800000-0000-4000-8000-000000000001/categories",
+      "key": "shared-reference-key",
+      "body": {
+        "id": "05800000-0000-4000-8000-000000000006",
+        "name": "Food",
+        "is_income": false
+      },
+      "status": 201,
+      "response_text": "{\"data\":{\"id\":\"05800000-0000-4000-8000-000000000006\",\"is_income\":false,\"name\":\"Food\"}}",
+      "response": {
+        "data": {
+          "id": "05800000-0000-4000-8000-000000000006",
+          "is_income": false,
+          "name": "Food"
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/budgets/05800000-0000-4000-8000-000000000001/preferences",
+      "key": "shared-preference-key",
+      "body": {
+        "number_format": "dot-comma"
+      },
+      "status": 200,
+      "response_text": "{\"data\":{\"currency_code\":\"\",\"currency_space\":false,\"currency_symbol_position\":\"before\",\"date_format\":\"MM/dd/yyyy\",\"experimental\":{\"actionTemplating\":false,\"akahuBankSync\":false,\"balanceForecastReport\":false,\"budgetAnalysisReport\":false,\"currency\":false,\"customThemes\":false,\"enableBanking\":false,\"formulaMode\":false,\"goalTemplatesEnabled\":false,\"goalTemplatesUIEnabled\":false,\"mobileCalculator\":false,\"monteCarloReport\":false,\"newSidebarUI\":false,\"sankeyReport\":false},\"first_day_of_week\":0,\"hide_fraction\":false,\"number_format\":\"dot-comma\",\"revision\":1}}",
+      "response": {
+        "data": {
+          "currency_code": "",
+          "currency_space": false,
+          "currency_symbol_position": "before",
+          "date_format": "MM/dd/yyyy",
+          "experimental": {
+            "actionTemplating": false,
+            "akahuBankSync": false,
+            "balanceForecastReport": false,
+            "budgetAnalysisReport": false,
+            "currency": false,
+            "customThemes": false,
+            "enableBanking": false,
+            "formulaMode": false,
+            "goalTemplatesEnabled": false,
+            "goalTemplatesUIEnabled": false,
+            "mobileCalculator": false,
+            "monteCarloReport": false,
+            "newSidebarUI": false,
+            "sankeyReport": false
+          },
+          "first_day_of_week": 0,
+          "hide_fraction": false,
+          "number_format": "dot-comma",
+          "revision": 1
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/budgets/05800000-0000-4000-8000-000000000007/preferences",
+      "key": "shared-preference-key",
+      "body": {
+        "number_format": "dot-comma"
+      },
+      "status": 200,
+      "response_text": "{\"data\":{\"currency_code\":\"\",\"currency_space\":false,\"currency_symbol_position\":\"before\",\"date_format\":\"MM/dd/yyyy\",\"experimental\":{\"actionTemplating\":false,\"akahuBankSync\":false,\"balanceForecastReport\":false,\"budgetAnalysisReport\":false,\"currency\":false,\"customThemes\":false,\"enableBanking\":false,\"formulaMode\":false,\"goalTemplatesEnabled\":false,\"goalTemplatesUIEnabled\":false,\"mobileCalculator\":false,\"monteCarloReport\":false,\"newSidebarUI\":false,\"sankeyReport\":false},\"first_day_of_week\":0,\"hide_fraction\":false,\"number_format\":\"dot-comma\",\"revision\":1}}",
+      "response": {
+        "data": {
+          "currency_code": "",
+          "currency_space": false,
+          "currency_symbol_position": "before",
+          "date_format": "MM/dd/yyyy",
+          "experimental": {
+            "actionTemplating": false,
+            "akahuBankSync": false,
+            "balanceForecastReport": false,
+            "budgetAnalysisReport": false,
+            "currency": false,
+            "customThemes": false,
+            "enableBanking": false,
+            "formulaMode": false,
+            "goalTemplatesEnabled": false,
+            "goalTemplatesUIEnabled": false,
+            "mobileCalculator": false,
+            "monteCarloReport": false,
+            "newSidebarUI": false,
+            "sankeyReport": false
+          },
+          "first_day_of_week": 0,
+          "hide_fraction": false,
+          "number_format": "dot-comma",
+          "revision": 1
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/budgets/05800000-0000-4000-8000-000000000001/transactions",
+      "key": "v5-create",
+      "body": {
+        "id": "05800000-0000-4000-8000-000000000003",
+        "account_id": "05800000-0000-4000-8000-000000000002",
+        "date": "2024-02-29",
+        "amount": -1234,
+        "notes": "Original",
+        "cleared": true,
+        "payee_id": "05800000-0000-4000-8000-000000000005",
+        "category_id": "05800000-0000-4000-8000-000000000006"
+      },
+      "headers": {
+        "X-Actual-Edit-Clock": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "status": 201,
+      "response_text": "{\"conflicts\":[],\"cursor\":\"c16b2f3e7f44b9086b27c5f115c9b5fd1e000000000000000c\",\"data\":{\"account_id\":\"05800000-0000-4000-8000-000000000002\",\"account_name\":\"Spending\",\"amount\":-1234,\"category_id\":\"05800000-0000-4000-8000-000000000006\",\"category_is_income\":false,\"category_name\":\"Food\",\"cleared\":true,\"date\":\"2024-02-29\",\"field_versions\":{\"account_id\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"amount\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"category_id\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"cleared\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"date\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"notes\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"payee_id\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"reconciled\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"starting_balance\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"tombstone\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\"},\"id\":\"05800000-0000-4000-8000-000000000003\",\"notes\":\"Original\",\"payee_id\":\"05800000-0000-4000-8000-000000000005\",\"payee_name\":\"Cafe\",\"reconciled\":false,\"sort_order\":1,\"starting_balance\":false},\"edit_clock\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\"}",
+      "response": {
+        "conflicts": [],
+        "cursor": "c16b2f3e7f44b9086b27c5f115c9b5fd1e000000000000000c",
+        "data": {
+          "account_id": "05800000-0000-4000-8000-000000000002",
+          "account_name": "Spending",
+          "amount": -1234,
+          "category_id": "05800000-0000-4000-8000-000000000006",
+          "category_is_income": false,
+          "category_name": "Food",
+          "cleared": true,
+          "date": "2024-02-29",
+          "field_versions": {
+            "account_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "amount": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "cleared": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "date": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "notes": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "reconciled": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+          },
+          "id": "05800000-0000-4000-8000-000000000003",
+          "notes": "Original",
+          "payee_id": "05800000-0000-4000-8000-000000000005",
+          "payee_name": "Cafe",
+          "reconciled": false,
+          "sort_order": 1,
+          "starting_balance": false
+        },
+        "edit_clock": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/budgets/05800000-0000-4000-8000-000000000001/transactions/05800000-0000-4000-8000-000000000003",
+      "key": "v5-edit",
+      "body": {
+        "amount": -234,
+        "notes": "Edited before lifecycle upgrade"
+      },
+      "headers": {
+        "X-Actual-Edit-Clock": "2026-01-01T00:00:00.000Z-0000-0000000000000001"
+      },
+      "status": 200,
+      "response_text": "{\"conflicts\":[],\"cursor\":\"c16b2f3e7f44b9086b27c5f115c9b5fd1e000000000000000f\",\"data\":{\"account_id\":\"05800000-0000-4000-8000-000000000002\",\"account_name\":\"Spending\",\"amount\":-234,\"category_id\":\"05800000-0000-4000-8000-000000000006\",\"category_is_income\":false,\"category_name\":\"Food\",\"cleared\":true,\"date\":\"2024-02-29\",\"field_versions\":{\"account_id\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"amount\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"category_id\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"cleared\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"date\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"notes\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"payee_id\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"reconciled\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"starting_balance\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\",\"tombstone\":\"1970-01-01T00:00:00.000Z-0000-0000000000000000\"},\"id\":\"05800000-0000-4000-8000-000000000003\",\"notes\":\"Edited before lifecycle upgrade\",\"payee_id\":\"05800000-0000-4000-8000-000000000005\",\"payee_name\":\"Cafe\",\"reconciled\":false,\"sort_order\":1,\"starting_balance\":false},\"edit_clock\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\"}",
+      "response": {
+        "conflicts": [],
+        "cursor": "c16b2f3e7f44b9086b27c5f115c9b5fd1e000000000000000f",
+        "data": {
+          "account_id": "05800000-0000-4000-8000-000000000002",
+          "account_name": "Spending",
+          "amount": -234,
+          "category_id": "05800000-0000-4000-8000-000000000006",
+          "category_is_income": false,
+          "category_name": "Food",
+          "cleared": true,
+          "date": "2024-02-29",
+          "field_versions": {
+            "account_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "amount": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "cleared": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "date": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "notes": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "reconciled": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+          },
+          "id": "05800000-0000-4000-8000-000000000003",
+          "notes": "Edited before lifecycle upgrade",
+          "payee_id": "05800000-0000-4000-8000-000000000005",
+          "payee_name": "Cafe",
+          "reconciled": false,
+          "sort_order": 1,
+          "starting_balance": false
+        },
+        "edit_clock": "2026-01-01T00:00:00.000Z-0000-0000000000000001"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/budgets/05800000-0000-4000-8000-000000000001/transactions/05800000-0000-4000-8000-000000000003/duplicate",
+      "key": "v5-duplicate",
+      "body": {
+        "id": "05800000-0000-4000-8000-000000000004"
+      },
+      "headers": {
+        "X-Actual-Edit-Clock": "2026-01-01T00:00:00.000Z-0000-0000000000000001"
+      },
+      "status": 201,
+      "response_text": "{\"conflicts\":[],\"cursor\":\"c16b2f3e7f44b9086b27c5f115c9b5fd1e0000000000000012\",\"data\":{\"account_id\":\"05800000-0000-4000-8000-000000000002\",\"account_name\":\"Spending\",\"amount\":-234,\"category_id\":\"05800000-0000-4000-8000-000000000006\",\"category_is_income\":false,\"category_name\":\"Food\",\"cleared\":false,\"date\":\"2024-02-29\",\"field_versions\":{\"account_id\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"amount\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"category_id\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"cleared\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"date\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"notes\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"payee_id\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"reconciled\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"starting_balance\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"tombstone\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\"},\"id\":\"05800000-0000-4000-8000-000000000004\",\"notes\":\"Edited before lifecycle upgrade\",\"payee_id\":\"05800000-0000-4000-8000-000000000005\",\"payee_name\":\"Cafe\",\"reconciled\":false,\"sort_order\":2,\"starting_balance\":false},\"edit_clock\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\"}",
+      "response": {
+        "conflicts": [],
+        "cursor": "c16b2f3e7f44b9086b27c5f115c9b5fd1e0000000000000012",
+        "data": {
+          "account_id": "05800000-0000-4000-8000-000000000002",
+          "account_name": "Spending",
+          "amount": -234,
+          "category_id": "05800000-0000-4000-8000-000000000006",
+          "category_is_income": false,
+          "category_name": "Food",
+          "cleared": false,
+          "date": "2024-02-29",
+          "field_versions": {
+            "account_id": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "amount": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "category_id": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "cleared": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "date": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "notes": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "payee_id": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "reconciled": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "starting_balance": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "tombstone": "2026-01-01T00:00:00.000Z-0000-0000000000000001"
+          },
+          "id": "05800000-0000-4000-8000-000000000004",
+          "notes": "Edited before lifecycle upgrade",
+          "payee_id": "05800000-0000-4000-8000-000000000005",
+          "payee_name": "Cafe",
+          "reconciled": false,
+          "sort_order": 2,
+          "starting_balance": false
+        },
+        "edit_clock": "2026-01-01T00:00:00.000Z-0000-0000000000000001"
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/budgets/05800000-0000-4000-8000-000000000001/transactions/05800000-0000-4000-8000-000000000004",
+      "key": "v5-delete",
+      "body": null,
+      "headers": {
+        "X-Actual-Edit-Clock": "2026-01-01T00:00:00.000Z-0000-0000000000000001"
+      },
+      "status": 200,
+      "response_text": "{\"conflicts\":[],\"cursor\":\"c16b2f3e7f44b9086b27c5f115c9b5fd1e0000000000000015\",\"data\":{\"deleted\":true,\"field_versions\":{\"account_id\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"amount\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"category_id\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"cleared\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"date\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"notes\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"payee_id\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"reconciled\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"starting_balance\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\",\"tombstone\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\"},\"id\":\"05800000-0000-4000-8000-000000000004\"},\"edit_clock\":\"2026-01-01T00:00:00.000Z-0000-0000000000000001\"}",
+      "response": {
+        "conflicts": [],
+        "cursor": "c16b2f3e7f44b9086b27c5f115c9b5fd1e0000000000000015",
+        "data": {
+          "deleted": true,
+          "field_versions": {
+            "account_id": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "amount": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "category_id": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "cleared": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "date": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "notes": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "payee_id": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "reconciled": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "starting_balance": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+            "tombstone": "2026-01-01T00:00:00.000Z-0000-0000000000000001"
+          },
+          "id": "05800000-0000-4000-8000-000000000004"
+        },
+        "edit_clock": "2026-01-01T00:00:00.000Z-0000-0000000000000001"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/budgets/05800000-0000-4000-8000-000000000001/transactions",
+      "key": "v5-canceled",
+      "body": {
+        "id": "05800000-0000-4000-8000-000000000008",
+        "account_id": "05800000-0000-4000-8000-000000000002",
+        "amount": -999,
+        "date": "2024-02-29"
+      },
+      "headers": {
+        "X-Actual-Edit-Clock": "2026-01-01T00:00:00.000Z-0000-0000000000000001"
+      },
+      "cancel_if_uncommitted": true,
+      "status": 409,
+      "response_text": "{\"error\":{\"code\":\"operation_canceled\",\"message\":\"This change was canceled before it was saved.\"}}",
+      "response": {
+        "error": {
+          "code": "operation_canceled",
+          "message": "This change was canceled before it was saved."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/imports/actual",
+      "key": "v5-stage",
+      "content_type": "application/zip",
+      "body_base64": "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",
+      "status": 201,
+      "response_text": "{\"data\":{\"budget_id\":\"ff8b1217-180e-4801-8e73-c24075f88c1b\",\"id\":\"4d5871d9-b4aa-4540-9fd9-586314cd2e26\",\"report\":{\"accounts\":[{\"closed\":false,\"id\":\"0165d0a7-99e2-4719-a102-c007b7a8daaa\",\"name\":\"Spending\",\"notes\":\"\",\"off_budget\":false},{\"closed\":false,\"id\":\"dbec986e-8154-43b3-86e7-8494d76ff0d3\",\"name\":\"Reserve\",\"notes\":\"\",\"off_budget\":true}],\"archive_sha256\":\"78c56715303eb040e3bdbf097f2dc6416715687f8de3835fbcb5895e67d9920e\",\"balances\":[{\"account_id\":\"0165d0a7-99e2-4719-a102-c007b7a8daaa\",\"cleared\":31534,\"total\":31434,\"uncleared\":-100},{\"account_id\":\"dbec986e-8154-43b3-86e7-8494d76ff0d3\",\"cleared\":-5000,\"total\":-5000,\"uncleared\":0}],\"checks\":{\"converted_relationships\":true,\"financial_totals\":true,\"identifiers\":true,\"sqlite_integrity\":true},\"counts\":{\"__meta__\":1,\"__migrations__\":60,\"account_groups\":0,\"accounts\":2,\"banks\":0,\"categories\":3,\"category_groups\":2,\"category_mapping\":8,\"cleanup_groups\":0,\"created_budgets\":0,\"custom_reports\":0,\"dashboard\":12,\"dashboard_pages\":1,\"kvcache\":0,\"kvcache_key\":0,\"messages_clock\":1,\"messages_crdt\":48,\"messages_pending\":0,\"notes\":0,\"payee_locations\":0,\"payee_mapping\":4,\"payees\":4,\"pending_transactions\":0,\"preferences\":5,\"reflect_budgets\":0,\"rules\":0,\"schedules\":0,\"schedules_json_paths\":0,\"schedules_next_date\":0,\"sqlite_stat1\":4,\"sqlite_stat4\":31,\"tags\":0,\"transaction_filters\":0,\"transactions\":7,\"zero_budget_months\":0,\"zero_budgets\":0},\"extra_archive_entries\":[],\"preferences\":{\"device\":{\"language\":\"\",\"preferred_dark_theme\":\"dark\",\"theme\":\"system\"},\"shared\":{\"currency_code\":\"\",\"currency_space\":false,\"currency_symbol_position\":\"before\",\"date_format\":\"yyyy-MM-dd\",\"experimental\":{\"actionTemplating\":false,\"akahuBankSync\":false,\"balanceForecastReport\":false,\"budgetAnalysisReport\":false,\"currency\":false,\"customThemes\":false,\"enableBanking\":false,\"formulaMode\":false,\"goalTemplatesEnabled\":false,\"goalTemplatesUIEnabled\":false,\"mobileCalculator\":false,\"monteCarloReport\":false,\"newSidebarUI\":false,\"sankeyReport\":false},\"first_day_of_week\":0,\"hide_fraction\":false,\"number_format\":\"comma-dot\"},\"unmapped\":{\"global\":{},\"synced\":{\"budgetType\":\"tracking\"}},\"warnings\":[{\"key\":\"budgetType\",\"reason\":\"Preference belongs to another feature; retained for its importer\"}]},\"requirements\":[{\"blocking\":false,\"count\":1,\"feature\":\"__meta__\",\"reason\":\"Original source records retained; feature metadata is not activated by this ledger converter\"},{\"blocking\":false,\"count\":60,\"feature\":\"__migrations__\",\"reason\":\"Original source records retained; feature metadata is not activated by this ledger converter\"},{\"blocking\":false,\"count\":2,\"feature\":\"category_groups\",\"reason\":\"Original source records retained; feature metadata is not activated by this ledger converter\"},{\"blocking\":false,\"count\":8,\"feature\":\"category_mapping\",\"reason\":\"Original source records retained; feature metadata is not activated by this ledger converter\"},{\"blocking\":false,\"count\":12,\"feature\":\"dashboard\",\"reason\":\"Original source records retained; feature metadata is not activated by this ledger converter\"},{\"blocking\":false,\"count\":1,\"feature\":\"dashboard_pages\",\"reason\":\"Original source records retained; feature metadata is not activated by this ledger converter\"},{\"blocking\":false,\"count\":1,\"feature\":\"messages_clock\",\"reason\":\"Original source records retained; feature metadata is not activated by this ledger converter\"},{\"blocking\":false,\"count\":48,\"feature\":\"messages_crdt\",\"reason\":\"Original source records retained; feature metadata is not activated by this ledger converter\"},{\"blocking\":false,\"count\":4,\"feature\":\"payee_mapping\",\"reason\":\"Original source records retained; feature metadata is not activated by this ledger converter\"},{\"blocking\":false,\"count\":4,\"feature\":\"sqlite_stat1\",\"reason\":\"Original source records retained; feature metadata is not activated by this ledger converter\"},{\"blocking\":false,\"count\":31,\"feature\":\"sqlite_stat4\",\"reason\":\"Original source records retained; feature metadata is not activated by this ledger converter\"},{\"blocking\":false,\"count\":2,\"feature\":\"transfer_payees\",\"reason\":\"Automatic transfer payees retained in original source and excluded from ordinary payee selection until transfers are supported\"},{\"blocking\":false,\"count\":5,\"feature\":\"unreferenced_category_alias\",\"reason\":\"Obsolete source alias retained; converted transactions must still resolve to an existing category\"}],\"source\":{\"budgetName\":\"Disposable actualBudget migration fixture\",\"cloudFileId\":\"d852ad4d-760e-458c-9aaf-ac645bb488ee\",\"groupId\":\"da849069-5769-477e-a05b-33bd94830d14\",\"id\":\"Disposable-actualBudget-migration-fixture-4019987\",\"lastScheduleRun\":\"2026-11-08\",\"lastSyncedTimestamp\":\"2026-11-08T23:27:13.893Z-0000-8e9471b631211c5d\",\"lastUploaded\":\"2026-11-08\",\"resetClock\":true,\"userId\":\"55d22be7-6c98-4f43-acc2-0ecccadb923f\"},\"source_field_clock_count\":45,\"source_preferences\":[{\"id\":\"budgetType\",\"value\":\"tracking\"},{\"id\":\"numberFormat\",\"value\":\"comma-dot\"},{\"id\":\"dateFormat\",\"value\":\"yyyy-MM-dd\"},{\"id\":\"hideFraction\",\"value\":\"false\"},{\"id\":\"defaultCurrencyCode\",\"value\":\"USD\"}]},\"status\":\"ready\"}}",
+      "response": {
+        "data": {
+          "budget_id": "ff8b1217-180e-4801-8e73-c24075f88c1b",
+          "id": "4d5871d9-b4aa-4540-9fd9-586314cd2e26",
+          "report": {
+            "accounts": [
+              {
+                "closed": false,
+                "id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+                "name": "Spending",
+                "notes": "",
+                "off_budget": false
+              },
+              {
+                "closed": false,
+                "id": "dbec986e-8154-43b3-86e7-8494d76ff0d3",
+                "name": "Reserve",
+                "notes": "",
+                "off_budget": true
+              }
+            ],
+            "archive_sha256": "78c56715303eb040e3bdbf097f2dc6416715687f8de3835fbcb5895e67d9920e",
+            "balances": [
+              {
+                "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+                "cleared": 31534,
+                "total": 31434,
+                "uncleared": -100
+              },
+              {
+                "account_id": "dbec986e-8154-43b3-86e7-8494d76ff0d3",
+                "cleared": -5000,
+                "total": -5000,
+                "uncleared": 0
+              }
+            ],
+            "checks": {
+              "converted_relationships": true,
+              "financial_totals": true,
+              "identifiers": true,
+              "sqlite_integrity": true
+            },
+            "counts": {
+              "__meta__": 1,
+              "__migrations__": 60,
+              "account_groups": 0,
+              "accounts": 2,
+              "banks": 0,
+              "categories": 3,
+              "category_groups": 2,
+              "category_mapping": 8,
+              "cleanup_groups": 0,
+              "created_budgets": 0,
+              "custom_reports": 0,
+              "dashboard": 12,
+              "dashboard_pages": 1,
+              "kvcache": 0,
+              "kvcache_key": 0,
+              "messages_clock": 1,
+              "messages_crdt": 48,
+              "messages_pending": 0,
+              "notes": 0,
+              "payee_locations": 0,
+              "payee_mapping": 4,
+              "payees": 4,
+              "pending_transactions": 0,
+              "preferences": 5,
+              "reflect_budgets": 0,
+              "rules": 0,
+              "schedules": 0,
+              "schedules_json_paths": 0,
+              "schedules_next_date": 0,
+              "sqlite_stat1": 4,
+              "sqlite_stat4": 31,
+              "tags": 0,
+              "transaction_filters": 0,
+              "transactions": 7,
+              "zero_budget_months": 0,
+              "zero_budgets": 0
+            },
+            "extra_archive_entries": [],
+            "preferences": {
+              "device": {
+                "language": "",
+                "preferred_dark_theme": "dark",
+                "theme": "system"
+              },
+              "shared": {
+                "currency_code": "",
+                "currency_space": false,
+                "currency_symbol_position": "before",
+                "date_format": "yyyy-MM-dd",
+                "experimental": {
+                  "actionTemplating": false,
+                  "akahuBankSync": false,
+                  "balanceForecastReport": false,
+                  "budgetAnalysisReport": false,
+                  "currency": false,
+                  "customThemes": false,
+                  "enableBanking": false,
+                  "formulaMode": false,
+                  "goalTemplatesEnabled": false,
+                  "goalTemplatesUIEnabled": false,
+                  "mobileCalculator": false,
+                  "monteCarloReport": false,
+                  "newSidebarUI": false,
+                  "sankeyReport": false
+                },
+                "first_day_of_week": 0,
+                "hide_fraction": false,
+                "number_format": "comma-dot"
+              },
+              "unmapped": {
+                "global": {},
+                "synced": {
+                  "budgetType": "tracking"
+                }
+              },
+              "warnings": [
+                {
+                  "key": "budgetType",
+                  "reason": "Preference belongs to another feature; retained for its importer"
+                }
+              ]
+            },
+            "requirements": [
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "__meta__",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 60,
+                "feature": "__migrations__",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 2,
+                "feature": "category_groups",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 8,
+                "feature": "category_mapping",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 12,
+                "feature": "dashboard",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "dashboard_pages",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "messages_clock",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 48,
+                "feature": "messages_crdt",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 4,
+                "feature": "payee_mapping",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 4,
+                "feature": "sqlite_stat1",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 31,
+                "feature": "sqlite_stat4",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 2,
+                "feature": "transfer_payees",
+                "reason": "Automatic transfer payees retained in original source and excluded from ordinary payee selection until transfers are supported"
+              },
+              {
+                "blocking": false,
+                "count": 5,
+                "feature": "unreferenced_category_alias",
+                "reason": "Obsolete source alias retained; converted transactions must still resolve to an existing category"
+              }
+            ],
+            "source": {
+              "budgetName": "Disposable actualBudget migration fixture",
+              "cloudFileId": "d852ad4d-760e-458c-9aaf-ac645bb488ee",
+              "groupId": "da849069-5769-477e-a05b-33bd94830d14",
+              "id": "Disposable-actualBudget-migration-fixture-4019987",
+              "lastScheduleRun": "2026-11-08",
+              "lastSyncedTimestamp": "2026-11-08T23:27:13.893Z-0000-8e9471b631211c5d",
+              "lastUploaded": "2026-11-08",
+              "resetClock": true,
+              "userId": "55d22be7-6c98-4f43-acc2-0ecccadb923f"
+            },
+            "source_field_clock_count": 45,
+            "source_preferences": [
+              {
+                "id": "budgetType",
+                "value": "tracking"
+              },
+              {
+                "id": "numberFormat",
+                "value": "comma-dot"
+              },
+              {
+                "id": "dateFormat",
+                "value": "yyyy-MM-dd"
+              },
+              {
+                "id": "hideFraction",
+                "value": "false"
+              },
+              {
+                "id": "defaultCurrencyCode",
+                "value": "USD"
+              }
+            ]
+          },
+          "status": "ready"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/imports/4d5871d9-b4aa-4540-9fd9-586314cd2e26/activate",
+      "key": "v5-activate",
+      "body": {},
+      "status": 201,
+      "response_text": "{\"data\":{\"budget_type\":\"tracking\",\"id\":\"ff8b1217-180e-4801-8e73-c24075f88c1b\",\"name\":\"Disposable actualBudget migration fixture\"}}",
+      "response": {
+        "data": {
+          "budget_type": "tracking",
+          "id": "ff8b1217-180e-4801-8e73-c24075f88c1b",
+          "name": "Disposable actualBudget migration fixture"
+        }
+      }
+    }
+  ],
+  "snapshots": [
+    {
+      "path": "/budgets",
+      "response": {
+        "data": [
+          {
+            "budget_type": "tracking",
+            "id": "ff8b1217-180e-4801-8e73-c24075f88c1b",
+            "name": "Disposable actualBudget migration fixture"
+          },
+          {
+            "budget_type": "tracking",
+            "id": "05800000-0000-4000-8000-000000000001",
+            "name": "Pre-lifecycle receipts"
+          },
+          {
+            "budget_type": "envelope",
+            "id": "05800000-0000-4000-8000-000000000007",
+            "name": "Separate receipt scope"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/budgets/05800000-0000-4000-8000-000000000001/accounts",
+      "response": {
+        "data": [
+          {
+            "balance": 12266,
+            "closed": false,
+            "id": "05800000-0000-4000-8000-000000000002",
+            "name": "Spending",
+            "notes": "",
+            "off_budget": false
+          }
+        ]
+      }
+    },
+    {
+      "path": "/budgets/05800000-0000-4000-8000-000000000001/transactions",
+      "response": {
+        "as_of": null,
+        "balances": {
+          "cleared": 12266,
+          "total": 12266,
+          "uncleared": 0
+        },
+        "data": [
+          {
+            "account_id": "05800000-0000-4000-8000-000000000002",
+            "account_name": "Spending",
+            "amount": -234,
+            "category_id": "05800000-0000-4000-8000-000000000006",
+            "category_is_income": false,
+            "category_name": "Food",
+            "cleared": true,
+            "date": "2024-02-29",
+            "field_versions": {
+              "account_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "amount": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+              "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "cleared": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "date": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "notes": "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+              "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "reconciled": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+            },
+            "id": "05800000-0000-4000-8000-000000000003",
+            "notes": "Edited before lifecycle upgrade",
+            "payee_id": "05800000-0000-4000-8000-000000000005",
+            "payee_name": "Cafe",
+            "reconciled": false,
+            "running_balance": null,
+            "sort_order": 1,
+            "starting_balance": false
+          },
+          {
+            "account_id": "05800000-0000-4000-8000-000000000002",
+            "account_name": "Spending",
+            "amount": 12500,
+            "category_id": "35ad8496-fe09-411d-8f7b-223157561758",
+            "category_is_income": true,
+            "category_name": "Starting Balances",
+            "cleared": true,
+            "date": "2024-02-29",
+            "field_versions": {
+              "account_id": "2026-11-09T00:49:08.696Z-0000-3267ea2650208a37",
+              "amount": "2026-11-09T00:49:08.696Z-0000-3267ea2650208a37",
+              "category_id": "2026-11-09T00:49:08.696Z-0000-3267ea2650208a37",
+              "cleared": "2026-11-09T00:49:08.696Z-0000-3267ea2650208a37",
+              "date": "2026-11-09T00:49:08.696Z-0000-3267ea2650208a37",
+              "notes": "2026-11-09T00:49:08.696Z-0000-3267ea2650208a37",
+              "payee_id": "2026-11-09T00:49:08.696Z-0000-3267ea2650208a37",
+              "reconciled": "2026-11-09T00:49:08.696Z-0000-3267ea2650208a37",
+              "starting_balance": "2026-11-09T00:49:08.696Z-0000-3267ea2650208a37",
+              "tombstone": "2026-11-09T00:49:08.696Z-0000-3267ea2650208a37"
+            },
+            "id": "81814369-899c-4ace-9496-8b4b9ebf23f2",
+            "notes": "",
+            "payee_id": "95a692d6-cc60-4798-b212-8a955c3b145c",
+            "payee_name": "Starting Balance",
+            "reconciled": false,
+            "running_balance": null,
+            "sort_order": 0,
+            "starting_balance": true
+          }
+        ],
+        "next_offset": null,
+        "snapshot": "c16b2f3e7f44b9086b27c5f115c9b5fd1e0000000000000015"
+      }
+    },
+    {
+      "path": "/budgets/05800000-0000-4000-8000-000000000001/payees",
+      "response": {
+        "data": [
+          {
+            "id": "05800000-0000-4000-8000-000000000005",
+            "name": "Cafe"
+          },
+          {
+            "id": "95a692d6-cc60-4798-b212-8a955c3b145c",
+            "name": "Starting Balance"
+          }
+        ],
+        "next_offset": null
+      }
+    },
+    {
+      "path": "/budgets/05800000-0000-4000-8000-000000000001/categories",
+      "response": {
+        "data": [
+          {
+            "id": "05800000-0000-4000-8000-000000000006",
+            "is_income": false,
+            "name": "Food"
+          },
+          {
+            "id": "35ad8496-fe09-411d-8f7b-223157561758",
+            "is_income": true,
+            "name": "Starting Balances"
+          }
+        ],
+        "next_offset": null
+      }
+    },
+    {
+      "path": "/budgets/05800000-0000-4000-8000-000000000001/preferences",
+      "response": {
+        "data": {
+          "currency_code": "",
+          "currency_space": false,
+          "currency_symbol_position": "before",
+          "date_format": "MM/dd/yyyy",
+          "experimental": {
+            "actionTemplating": false,
+            "akahuBankSync": false,
+            "balanceForecastReport": false,
+            "budgetAnalysisReport": false,
+            "currency": false,
+            "customThemes": false,
+            "enableBanking": false,
+            "formulaMode": false,
+            "goalTemplatesEnabled": false,
+            "goalTemplatesUIEnabled": false,
+            "mobileCalculator": false,
+            "monteCarloReport": false,
+            "newSidebarUI": false,
+            "sankeyReport": false
+          },
+          "first_day_of_week": 0,
+          "hide_fraction": false,
+          "number_format": "dot-comma",
+          "revision": 1
+        }
+      }
+    },
+    {
+      "path": "/budgets/05800000-0000-4000-8000-000000000007/preferences",
+      "response": {
+        "data": {
+          "currency_code": "",
+          "currency_space": false,
+          "currency_symbol_position": "before",
+          "date_format": "MM/dd/yyyy",
+          "experimental": {
+            "actionTemplating": false,
+            "akahuBankSync": false,
+            "balanceForecastReport": false,
+            "budgetAnalysisReport": false,
+            "currency": false,
+            "customThemes": false,
+            "enableBanking": false,
+            "formulaMode": false,
+            "goalTemplatesEnabled": false,
+            "goalTemplatesUIEnabled": false,
+            "mobileCalculator": false,
+            "monteCarloReport": false,
+            "newSidebarUI": false,
+            "sankeyReport": false
+          },
+          "first_day_of_week": 0,
+          "hide_fraction": false,
+          "number_format": "dot-comma",
+          "revision": 1
+        }
+      }
+    },
+    {
+      "path": "/imports",
+      "response": {
+        "data": [
+          {
+            "budget_id": "ff8b1217-180e-4801-8e73-c24075f88c1b",
+            "id": "4d5871d9-b4aa-4540-9fd9-586314cd2e26",
+            "report": {
+              "accounts": [
+                {
+                  "closed": false,
+                  "id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+                  "name": "Spending",
+                  "notes": "",
+                  "off_budget": false
+                },
+                {
+                  "closed": false,
+                  "id": "dbec986e-8154-43b3-86e7-8494d76ff0d3",
+                  "name": "Reserve",
+                  "notes": "",
+                  "off_budget": true
+                }
+              ],
+              "archive_sha256": "78c56715303eb040e3bdbf097f2dc6416715687f8de3835fbcb5895e67d9920e",
+              "balances": [
+                {
+                  "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+                  "cleared": 31534,
+                  "total": 31434,
+                  "uncleared": -100
+                },
+                {
+                  "account_id": "dbec986e-8154-43b3-86e7-8494d76ff0d3",
+                  "cleared": -5000,
+                  "total": -5000,
+                  "uncleared": 0
+                }
+              ],
+              "checks": {
+                "converted_relationships": true,
+                "financial_totals": true,
+                "identifiers": true,
+                "sqlite_integrity": true
+              },
+              "counts": {
+                "__meta__": 1,
+                "__migrations__": 60,
+                "account_groups": 0,
+                "accounts": 2,
+                "banks": 0,
+                "categories": 3,
+                "category_groups": 2,
+                "category_mapping": 8,
+                "cleanup_groups": 0,
+                "created_budgets": 0,
+                "custom_reports": 0,
+                "dashboard": 12,
+                "dashboard_pages": 1,
+                "kvcache": 0,
+                "kvcache_key": 0,
+                "messages_clock": 1,
+                "messages_crdt": 48,
+                "messages_pending": 0,
+                "notes": 0,
+                "payee_locations": 0,
+                "payee_mapping": 4,
+                "payees": 4,
+                "pending_transactions": 0,
+                "preferences": 5,
+                "reflect_budgets": 0,
+                "rules": 0,
+                "schedules": 0,
+                "schedules_json_paths": 0,
+                "schedules_next_date": 0,
+                "sqlite_stat1": 4,
+                "sqlite_stat4": 31,
+                "tags": 0,
+                "transaction_filters": 0,
+                "transactions": 7,
+                "zero_budget_months": 0,
+                "zero_budgets": 0
+              },
+              "extra_archive_entries": [],
+              "preferences": {
+                "device": {
+                  "language": "",
+                  "preferred_dark_theme": "dark",
+                  "theme": "system"
+                },
+                "shared": {
+                  "currency_code": "",
+                  "currency_space": false,
+                  "currency_symbol_position": "before",
+                  "date_format": "yyyy-MM-dd",
+                  "experimental": {
+                    "actionTemplating": false,
+                    "akahuBankSync": false,
+                    "balanceForecastReport": false,
+                    "budgetAnalysisReport": false,
+                    "currency": false,
+                    "customThemes": false,
+                    "enableBanking": false,
+                    "formulaMode": false,
+                    "goalTemplatesEnabled": false,
+                    "goalTemplatesUIEnabled": false,
+                    "mobileCalculator": false,
+                    "monteCarloReport": false,
+                    "newSidebarUI": false,
+                    "sankeyReport": false
+                  },
+                  "first_day_of_week": 0,
+                  "hide_fraction": false,
+                  "number_format": "comma-dot"
+                },
+                "unmapped": {
+                  "global": {},
+                  "synced": {
+                    "budgetType": "tracking"
+                  }
+                },
+                "warnings": [
+                  {
+                    "key": "budgetType",
+                    "reason": "Preference belongs to another feature; retained for its importer"
+                  }
+                ]
+              },
+              "requirements": [
+                {
+                  "blocking": false,
+                  "count": 1,
+                  "feature": "__meta__",
+                  "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+                },
+                {
+                  "blocking": false,
+                  "count": 60,
+                  "feature": "__migrations__",
+                  "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+                },
+                {
+                  "blocking": false,
+                  "count": 2,
+                  "feature": "category_groups",
+                  "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+                },
+                {
+                  "blocking": false,
+                  "count": 8,
+                  "feature": "category_mapping",
+                  "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+                },
+                {
+                  "blocking": false,
+                  "count": 12,
+                  "feature": "dashboard",
+                  "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+                },
+                {
+                  "blocking": false,
+                  "count": 1,
+                  "feature": "dashboard_pages",
+                  "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+                },
+                {
+                  "blocking": false,
+                  "count": 1,
+                  "feature": "messages_clock",
+                  "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+                },
+                {
+                  "blocking": false,
+                  "count": 48,
+                  "feature": "messages_crdt",
+                  "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+                },
+                {
+                  "blocking": false,
+                  "count": 4,
+                  "feature": "payee_mapping",
+                  "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+                },
+                {
+                  "blocking": false,
+                  "count": 4,
+                  "feature": "sqlite_stat1",
+                  "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+                },
+                {
+                  "blocking": false,
+                  "count": 31,
+                  "feature": "sqlite_stat4",
+                  "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+                },
+                {
+                  "blocking": false,
+                  "count": 2,
+                  "feature": "transfer_payees",
+                  "reason": "Automatic transfer payees retained in original source and excluded from ordinary payee selection until transfers are supported"
+                },
+                {
+                  "blocking": false,
+                  "count": 5,
+                  "feature": "unreferenced_category_alias",
+                  "reason": "Obsolete source alias retained; converted transactions must still resolve to an existing category"
+                }
+              ],
+              "source": {
+                "budgetName": "Disposable actualBudget migration fixture",
+                "cloudFileId": "d852ad4d-760e-458c-9aaf-ac645bb488ee",
+                "groupId": "da849069-5769-477e-a05b-33bd94830d14",
+                "id": "Disposable-actualBudget-migration-fixture-4019987",
+                "lastScheduleRun": "2026-11-08",
+                "lastSyncedTimestamp": "2026-11-08T23:27:13.893Z-0000-8e9471b631211c5d",
+                "lastUploaded": "2026-11-08",
+                "resetClock": true,
+                "userId": "55d22be7-6c98-4f43-acc2-0ecccadb923f"
+              },
+              "source_field_clock_count": 45,
+              "source_preferences": [
+                {
+                  "id": "budgetType",
+                  "value": "tracking"
+                },
+                {
+                  "id": "numberFormat",
+                  "value": "comma-dot"
+                },
+                {
+                  "id": "dateFormat",
+                  "value": "yyyy-MM-dd"
+                },
+                {
+                  "id": "hideFraction",
+                  "value": "false"
+                },
+                {
+                  "id": "defaultCurrencyCode",
+                  "value": "USD"
+                }
+              ]
+            },
+            "status": "activated"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/imports/4d5871d9-b4aa-4540-9fd9-586314cd2e26",
+      "response": {
+        "data": {
+          "budget_id": "ff8b1217-180e-4801-8e73-c24075f88c1b",
+          "id": "4d5871d9-b4aa-4540-9fd9-586314cd2e26",
+          "report": {
+            "accounts": [
+              {
+                "closed": false,
+                "id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+                "name": "Spending",
+                "notes": "",
+                "off_budget": false
+              },
+              {
+                "closed": false,
+                "id": "dbec986e-8154-43b3-86e7-8494d76ff0d3",
+                "name": "Reserve",
+                "notes": "",
+                "off_budget": true
+              }
+            ],
+            "archive_sha256": "78c56715303eb040e3bdbf097f2dc6416715687f8de3835fbcb5895e67d9920e",
+            "balances": [
+              {
+                "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+                "cleared": 31534,
+                "total": 31434,
+                "uncleared": -100
+              },
+              {
+                "account_id": "dbec986e-8154-43b3-86e7-8494d76ff0d3",
+                "cleared": -5000,
+                "total": -5000,
+                "uncleared": 0
+              }
+            ],
+            "checks": {
+              "converted_relationships": true,
+              "financial_totals": true,
+              "identifiers": true,
+              "sqlite_integrity": true
+            },
+            "counts": {
+              "__meta__": 1,
+              "__migrations__": 60,
+              "account_groups": 0,
+              "accounts": 2,
+              "banks": 0,
+              "categories": 3,
+              "category_groups": 2,
+              "category_mapping": 8,
+              "cleanup_groups": 0,
+              "created_budgets": 0,
+              "custom_reports": 0,
+              "dashboard": 12,
+              "dashboard_pages": 1,
+              "kvcache": 0,
+              "kvcache_key": 0,
+              "messages_clock": 1,
+              "messages_crdt": 48,
+              "messages_pending": 0,
+              "notes": 0,
+              "payee_locations": 0,
+              "payee_mapping": 4,
+              "payees": 4,
+              "pending_transactions": 0,
+              "preferences": 5,
+              "reflect_budgets": 0,
+              "rules": 0,
+              "schedules": 0,
+              "schedules_json_paths": 0,
+              "schedules_next_date": 0,
+              "sqlite_stat1": 4,
+              "sqlite_stat4": 31,
+              "tags": 0,
+              "transaction_filters": 0,
+              "transactions": 7,
+              "zero_budget_months": 0,
+              "zero_budgets": 0
+            },
+            "extra_archive_entries": [],
+            "preferences": {
+              "device": {
+                "language": "",
+                "preferred_dark_theme": "dark",
+                "theme": "system"
+              },
+              "shared": {
+                "currency_code": "",
+                "currency_space": false,
+                "currency_symbol_position": "before",
+                "date_format": "yyyy-MM-dd",
+                "experimental": {
+                  "actionTemplating": false,
+                  "akahuBankSync": false,
+                  "balanceForecastReport": false,
+                  "budgetAnalysisReport": false,
+                  "currency": false,
+                  "customThemes": false,
+                  "enableBanking": false,
+                  "formulaMode": false,
+                  "goalTemplatesEnabled": false,
+                  "goalTemplatesUIEnabled": false,
+                  "mobileCalculator": false,
+                  "monteCarloReport": false,
+                  "newSidebarUI": false,
+                  "sankeyReport": false
+                },
+                "first_day_of_week": 0,
+                "hide_fraction": false,
+                "number_format": "comma-dot"
+              },
+              "unmapped": {
+                "global": {},
+                "synced": {
+                  "budgetType": "tracking"
+                }
+              },
+              "warnings": [
+                {
+                  "key": "budgetType",
+                  "reason": "Preference belongs to another feature; retained for its importer"
+                }
+              ]
+            },
+            "requirements": [
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "__meta__",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 60,
+                "feature": "__migrations__",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 2,
+                "feature": "category_groups",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 8,
+                "feature": "category_mapping",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 12,
+                "feature": "dashboard",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "dashboard_pages",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "messages_clock",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 48,
+                "feature": "messages_crdt",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 4,
+                "feature": "payee_mapping",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 4,
+                "feature": "sqlite_stat1",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 31,
+                "feature": "sqlite_stat4",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 2,
+                "feature": "transfer_payees",
+                "reason": "Automatic transfer payees retained in original source and excluded from ordinary payee selection until transfers are supported"
+              },
+              {
+                "blocking": false,
+                "count": 5,
+                "feature": "unreferenced_category_alias",
+                "reason": "Obsolete source alias retained; converted transactions must still resolve to an existing category"
+              }
+            ],
+            "source": {
+              "budgetName": "Disposable actualBudget migration fixture",
+              "cloudFileId": "d852ad4d-760e-458c-9aaf-ac645bb488ee",
+              "groupId": "da849069-5769-477e-a05b-33bd94830d14",
+              "id": "Disposable-actualBudget-migration-fixture-4019987",
+              "lastScheduleRun": "2026-11-08",
+              "lastSyncedTimestamp": "2026-11-08T23:27:13.893Z-0000-8e9471b631211c5d",
+              "lastUploaded": "2026-11-08",
+              "resetClock": true,
+              "userId": "55d22be7-6c98-4f43-acc2-0ecccadb923f"
+            },
+            "source_field_clock_count": 45,
+            "source_preferences": [
+              {
+                "id": "budgetType",
+                "value": "tracking"
+              },
+              {
+                "id": "numberFormat",
+                "value": "comma-dot"
+              },
+              {
+                "id": "dateFormat",
+                "value": "yyyy-MM-dd"
+              },
+              {
+                "id": "hideFraction",
+                "value": "false"
+              },
+              {
+                "id": "defaultCurrencyCode",
+                "value": "USD"
+              }
+            ]
+          },
+          "status": "activated"
+        }
+      }
+    },
+    {
+      "path": "/budgets/ff8b1217-180e-4801-8e73-c24075f88c1b/accounts",
+      "response": {
+        "data": [
+          {
+            "balance": -5000,
+            "closed": false,
+            "id": "dbec986e-8154-43b3-86e7-8494d76ff0d3",
+            "name": "Reserve",
+            "notes": "",
+            "off_budget": true
+          },
+          {
+            "balance": 31434,
+            "closed": false,
+            "id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+            "name": "Spending",
+            "notes": "",
+            "off_budget": false
+          }
+        ]
+      }
+    },
+    {
+      "path": "/budgets/ff8b1217-180e-4801-8e73-c24075f88c1b/transactions",
+      "response": {
+        "as_of": null,
+        "balances": {
+          "cleared": 26534,
+          "total": 26434,
+          "uncleared": -100
+        },
+        "data": [
+          {
+            "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+            "account_name": "Spending",
+            "amount": -100,
+            "category_id": null,
+            "category_is_income": null,
+            "category_name": null,
+            "cleared": false,
+            "date": "2027-01-01",
+            "field_versions": {
+              "account_id": "2026-11-08T23:27:13.763Z-0024-8e9471b631211c5d",
+              "amount": "2026-11-08T23:27:13.763Z-0021-8e9471b631211c5d",
+              "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "cleared": "2026-11-08T23:27:13.763Z-0022-8e9471b631211c5d",
+              "date": "2026-11-08T23:27:13.763Z-0020-8e9471b631211c5d",
+              "notes": "2026-11-08T23:27:13.763Z-0023-8e9471b631211c5d",
+              "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "reconciled": "2026-11-08T23:27:13.763Z-0026-8e9471b631211c5d",
+              "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+            },
+            "id": "04000000-0000-4000-8000-000000000005",
+            "notes": "Future expense",
+            "payee_id": null,
+            "payee_name": null,
+            "reconciled": false,
+            "running_balance": null,
+            "sort_order": 1,
+            "starting_balance": false
+          },
+          {
+            "account_id": "dbec986e-8154-43b3-86e7-8494d76ff0d3",
+            "account_name": "Reserve",
+            "amount": -5000,
+            "category_id": null,
+            "category_is_income": null,
+            "category_name": null,
+            "cleared": true,
+            "date": "2026-11-08",
+            "field_versions": {
+              "account_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "amount": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "cleared": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "date": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "notes": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "reconciled": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+            },
+            "id": "b958973e-223a-4a68-8651-8d3d6c47c74e",
+            "notes": "",
+            "payee_id": "68d04619-f896-4db0-8aa5-ce4f066d2610",
+            "payee_name": "Starting Balance",
+            "reconciled": false,
+            "running_balance": null,
+            "sort_order": 6,
+            "starting_balance": true
+          },
+          {
+            "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+            "account_name": "Spending",
+            "amount": 12500,
+            "category_id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "category_is_income": true,
+            "category_name": "Starting Balances",
+            "cleared": true,
+            "date": "2026-11-08",
+            "field_versions": {
+              "account_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "amount": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "cleared": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "date": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "notes": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "reconciled": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+            },
+            "id": "c4e26ad7-701c-483f-8e0f-2a6b8f7e3261",
+            "notes": "",
+            "payee_id": "68d04619-f896-4db0-8aa5-ce4f066d2610",
+            "payee_name": "Starting Balance",
+            "reconciled": false,
+            "running_balance": null,
+            "sort_order": 5,
+            "starting_balance": true
+          },
+          {
+            "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+            "account_name": "Spending",
+            "amount": 234,
+            "category_id": "ca062065-44a8-4b6e-b666-89b6ba19b5ff",
+            "category_is_income": false,
+            "category_name": "Food",
+            "cleared": true,
+            "date": "2026-01-03",
+            "field_versions": {
+              "account_id": "2026-11-08T23:27:13.763Z-0016-8e9471b631211c5d",
+              "amount": "2026-11-08T23:27:13.763Z-0011-8e9471b631211c5d",
+              "category_id": "2026-11-08T23:27:13.763Z-0013-8e9471b631211c5d",
+              "cleared": "2026-11-08T23:27:13.763Z-0014-8e9471b631211c5d",
+              "date": "2026-11-08T23:27:13.763Z-0010-8e9471b631211c5d",
+              "notes": "2026-11-08T23:27:13.763Z-0015-8e9471b631211c5d",
+              "payee_id": "2026-11-08T23:27:13.763Z-0012-8e9471b631211c5d",
+              "reconciled": "2026-11-08T23:27:13.763Z-0018-8e9471b631211c5d",
+              "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+            },
+            "id": "04000000-0000-4000-8000-000000000003",
+            "notes": "Refund",
+            "payee_id": "0834e38a-14df-400a-bfd6-29df8258618b",
+            "payee_name": "Fixture shop",
+            "reconciled": false,
+            "running_balance": null,
+            "sort_order": 3,
+            "starting_balance": false
+          },
+          {
+            "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+            "account_name": "Spending",
+            "amount": -1200,
+            "category_id": "ca062065-44a8-4b6e-b666-89b6ba19b5ff",
+            "category_is_income": false,
+            "category_name": "Food",
+            "cleared": true,
+            "date": "2026-01-02",
+            "field_versions": {
+              "account_id": "2026-11-08T23:27:13.763Z-000D-8e9471b631211c5d",
+              "amount": "2026-11-08T23:27:13.822Z-0000-8e9471b631211c5d",
+              "category_id": "2026-11-08T23:27:13.763Z-000A-8e9471b631211c5d",
+              "cleared": "2026-11-08T23:27:13.823Z-0001-8e9471b631211c5d",
+              "date": "2026-11-08T23:27:13.763Z-0007-8e9471b631211c5d",
+              "notes": "2026-11-08T23:27:13.823Z-0000-8e9471b631211c5d",
+              "payee_id": "2026-11-08T23:27:13.763Z-0009-8e9471b631211c5d",
+              "reconciled": "2026-11-08T23:27:13.763Z-000F-8e9471b631211c5d",
+              "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+            },
+            "id": "04000000-0000-4000-8000-000000000002",
+            "notes": "Corrected expense",
+            "payee_id": "0834e38a-14df-400a-bfd6-29df8258618b",
+            "payee_name": "Fixture shop",
+            "reconciled": false,
+            "running_balance": null,
+            "sort_order": 4,
+            "starting_balance": false
+          },
+          {
+            "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+            "account_name": "Spending",
+            "amount": 20000,
+            "category_id": null,
+            "category_is_income": null,
+            "category_name": null,
+            "cleared": true,
+            "date": "2026-01-01",
+            "field_versions": {
+              "account_id": "2026-11-08T23:27:13.763Z-0004-8e9471b631211c5d",
+              "amount": "2026-11-08T23:27:13.763Z-0001-8e9471b631211c5d",
+              "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "cleared": "2026-11-08T23:27:13.763Z-0002-8e9471b631211c5d",
+              "date": "2026-11-08T23:27:13.763Z-0000-8e9471b631211c5d",
+              "notes": "2026-11-08T23:27:13.763Z-0003-8e9471b631211c5d",
+              "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "reconciled": "2026-11-08T23:27:13.763Z-0006-8e9471b631211c5d",
+              "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+              "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+            },
+            "id": "04000000-0000-4000-8000-000000000001",
+            "notes": "Income",
+            "payee_id": null,
+            "payee_name": null,
+            "reconciled": false,
+            "running_balance": null,
+            "sort_order": 7,
+            "starting_balance": false
+          }
+        ],
+        "next_offset": null,
+        "snapshot": "c155e6aa00510b4698894834d9333e666d0000000000000011"
+      }
+    }
+  ],
+  "sha256": "f80b28ca1a2ddbdc62cab4c6393b614fb076bf507bccc86ef309dcd2249f41b9"
+}

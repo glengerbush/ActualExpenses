@@ -50,7 +50,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 25 | 15 | Transactions, payees and categories | [15: account closure, duplicate/link handling and history](transfers-validation.md) |
 | 26 | 25 | Transactions, payees and categories | Pending feature acceptance |
 | 27 | 03, 11 | Transactions, payees and categories | [11: payee management, aliases, retained references and Android choices](payees-tags-validation.md) |
-| 28 | 11, 19 | Transactions, payees and categories | [11: payee management and metadata](payees-tags-validation.md); associated rules/learning pending19 |
+| 28 | 11, 19 | Transactions, payees and categories | [11: payee management and metadata](payees-tags-validation.md); [19: associated-rule navigation and learning controls](rules-validation.md) |
 | 29 | 46 | Transactions, payees and categories | [46: explicit locations, baseline proximity, migration and HTTP fallback](payee-locations-validation.md) |
 | 30 | 11 | Transactions, payees and categories | [11: exact tag discovery, management, visibility, filtering and migration](payees-tags-validation.md) |
 | 31 | 03, 10 | Transactions, payees and categories | [10: groups/order/hiding, notes, history-preserving merge/delete and legacy migration](0910-validation.md) |
@@ -66,9 +66,9 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 41 | 23 | Tracking, envelope and automation | Pending feature acceptance |
 | 42 | 23, 24 | Tracking, envelope and automation | Pending feature acceptance |
 | 43 | 24 | Tracking, envelope and automation | Pending feature acceptance |
-| 44 | 19 | Rules and schedules | Pending feature acceptance |
-| 45 | 19 | Rules and schedules | Pending feature acceptance |
-| 46 | 19 | Rules and schedules | Pending feature acceptance |
+| 44 | 19 | Rules and schedules | [19: pinned ordering/conditions/actions, atomic entry/application and retained imported rules; explicit invariant exceptions](rules-validation.md) |
+| 45 | 19 | Rules and schedules | [19: complete change previews, bounded account/ID selection, protected graphs and immutable retry](rules-validation.md) |
+| 46 | 19 | Rules and schedules | [19: payee renaming, opt-in learning, global/per-payee controls and replay without retraining](rules-validation.md) |
 | 47 | 42 | Rules and schedules | Pending feature acceptance |
 | 48 | 21 | Rules and schedules | Pending feature acceptance |
 | 49 | 21 | Rules and schedules | Pending feature acceptance |
@@ -116,7 +116,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 91 | 06 | Android and offline expense capture | [06: remembered account and bounded latest-ten selection](android-api-validation.md) |
 | 92 | 06 | Android and offline expense capture | [06: pending/latest-backdated retention](android-api-validation.md) |
 | 93 | 06 | Android and offline expense capture | [06: amount-only, optional fields and automatic clearing](android-api-validation.md) |
-| 94 | 19, 20 | Android and offline expense capture | Pending feature acceptance |
+| 94 | 19, 20 | Android and offline expense capture | [19: cached simple associations, manual overrides/clears and incremental invalidation](rules-validation.md); legacy upgrade qualification pending20 |
 | 95 | 06, 14, 15 | Android and offline expense capture | [14/15: split/transfer exclusion and real native incremental eligibility](1314151646-validation.md) |
 | 96 | 20 | Android and offline expense capture | Pending feature acceptance |
 | 97 | 20 | Android and offline expense capture | Pending feature acceptance |

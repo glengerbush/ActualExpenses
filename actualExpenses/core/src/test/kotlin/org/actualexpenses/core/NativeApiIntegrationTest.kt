@@ -280,7 +280,77 @@ class NativeApiIntegrationTest {
             val actual = server.get("/budgets/$budget/transactions/$seed").getAsJsonObject("data")
             assertEquals(-1456, actual["amount"].asInt)
             assertEquals("newer remote edit", actual["notes"].asString)
-            assertTrue(app.state().notice.orEmpty().contains("Deletion cancelled"),"Superseded deletion needs explicit recovery feedback")
+            val delivered =
+                JsonParser.parseString(
+                        upgradeFixture("pending", "delivered.oracle.json").toString(Charsets.UTF_8)
+                    )
+                    .asJsonObject
+                    .getAsJsonArray("transactions")
+                    .map { it.asJsonObject }
+            val register =
+                server.get(
+                    "/budgets/$budget/transactions?account_id=${app.state().selectedAccountId}&limit=1000"
+                )
+            val ledger = register.getAsJsonArray("data").map { it.asJsonObject }
+            assertEquals(
+                delivered.map { it["id"].asString },
+                ledger.map { it["id"].asString },
+                "All delivered source IDs and order, with no duplicate purchases",
+            )
+            val fields =
+                listOf(
+                    "account_id" to "account",
+                    "amount" to "amount",
+                    "date" to "date",
+                    "payee_id" to "payee",
+                    "category_id" to "category",
+                    "notes" to "notes",
+                    "cleared" to "cleared",
+                    "reconciled" to "reconciled",
+                    "starting_balance" to "starting_balance_flag",
+                    "is_parent" to "is_parent",
+                    "parent_id" to "parent_id",
+                    "transfer_id" to "transfer_id",
+                )
+            for ((wanted, listed) in delivered.zip(ledger)) {
+                val row =
+                    server
+                        .get("/budgets/$budget/transactions/${listed["id"].asString}")
+                        .getAsJsonObject("data")
+                for ((native, source) in fields) {
+                    assertTrue(wanted.has(source), "Independent oracle is missing required $source")
+                    val expectedValue =
+                        if (source == "notes" && wanted[source].isJsonNull)
+                            com.google.gson.JsonPrimitive("")
+                        else wanted[source]
+                    // Ordinary public projections intentionally omit false split
+                    // flags and null relationships; financial values remain exact.
+                    val actualValue =
+                        row[native]
+                            ?: if (native == "is_parent") com.google.gson.JsonPrimitive(false)
+                            else com.google.gson.JsonNull.INSTANCE
+                    assertEquals(expectedValue, actualValue, "${wanted["id"]} $native")
+                }
+            }
+            val balance = register.getAsJsonObject("balances")
+            assertEquals(delivered.sumOf { it["amount"].asLong }, balance["total"].asLong)
+            assertEquals(
+                delivered.filter { it["cleared"].asBoolean }.sumOf { it["amount"].asLong },
+                balance["cleared"].asLong,
+            )
+            assertEquals(
+                delivered.filter { !it["cleared"].asBoolean }.sumOf { it["amount"].asLong },
+                balance["uncleared"].asLong,
+            )
+            assertEquals(
+                delivered.map { it["id"].asString },
+                app.state().expenses.map { it.id },
+                "Native cached expense view agrees with source delivery",
+            )
+            assertTrue(
+                app.state().notice.orEmpty().contains("Deletion cancelled"),
+                "Superseded deletion needs explicit recovery feedback",
+            )
             assertEquals(original, legacy.raw)
             assertEquals(0, legacy.writes)
         }

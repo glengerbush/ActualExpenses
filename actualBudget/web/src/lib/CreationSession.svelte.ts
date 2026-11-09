@@ -63,7 +63,7 @@ export class CreationSession<D extends CreationDraft, Result> {
   async submit(): Promise<Result | undefined> {
     if (!this.draft || this.busy) return;
     this.error = "";
-    let acknowledged=false;
+    let acknowledged = false;
     try {
       if (!this.draft.pending && !offlineStatus.reachable)
         throw new Error(
@@ -86,7 +86,7 @@ export class CreationSession<D extends CreationDraft, Result> {
         false,
         submitted.kind === "account" ? submitted.budget_epoch : undefined,
       );
-      acknowledged=true;
+      acknowledged = true;
       if (submitted.kind === "account") {
         const current = await request<{ data: Account[] }>(
           `/budgets/${submitted.budget_id}/accounts`,

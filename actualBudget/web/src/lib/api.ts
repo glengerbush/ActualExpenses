@@ -52,7 +52,9 @@ export async function request<T>(
         ...(editClock === undefined
           ? {}
           : { "X-Actual-Edit-Clock": editClock }),
-        ...(budgetEpoch === undefined ? {} : { "X-Actual-Budget-Epoch": budgetEpoch }),
+        ...(budgetEpoch === undefined
+          ? {}
+          : { "X-Actual-Budget-Epoch": budgetEpoch }),
         ...(cancelIfUncommitted
           ? { "X-Actual-Cancel-If-Uncommitted": "true" }
           : {}),

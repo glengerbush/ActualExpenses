@@ -278,7 +278,7 @@ try {
   // A new browser with failed preferences must not guess currency precision.
   const unavailable = await browser.newContext();
   const blocked = await unavailable.newPage();
-  await blocked.route("**/preferences", (route) => route.abort());
+  await blocked.route("**/preferences**", (route) => route.abort());
   await blocked.goto(server.url);
   await blocked.evaluate(
     (budget) =>
@@ -308,7 +308,7 @@ try {
     };
   });
   let blockedWrites = 0;
-  await page.route("**/preferences", (route) => {
+  await page.route("**/preferences**", (route) => {
     if (route.request().method() === "PATCH") blockedWrites++;
     return route.continue();
   });
@@ -323,7 +323,7 @@ try {
   await page.evaluate(() => {
     Storage.prototype.setItem = window.savedStorageWrite;
   });
-  await page.unroute("**/preferences");
+  await page.unroute("**/preferences**");
   await page.getByRole("button", { name: "Discard changes" }).click();
   // Original account body remains retryable after reload even if preferences are unavailable.
   await api(
@@ -373,7 +373,24 @@ try {
       localStorage.removeItem(`actualBudget.preferencesCache.v1.${budget}`),
     budget,
   );
-  await page.route("**/preferences", (route) => route.abort());
+  await page.evaluate(
+    (budget) =>
+      new Promise((resolve, reject) => {
+        const open = indexedDB.open("actualBudget.offline.v1", 1);
+        open.onsuccess = () => {
+          const db = open.result;
+          const tx = db.transaction("cache", "readwrite");
+          tx.objectStore("cache").delete(`budget:${budget}`);
+          tx.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          tx.onerror = () => reject(tx.error);
+        };
+      }),
+    budget,
+  );
+  await page.route("**/preferences**", (route) => route.abort());
   await page.reload();
   await expect(
     page.getByRole("button", { name: "Retry creation" }),
@@ -389,7 +406,7 @@ try {
   expect(accountWrites.length).toBe(2);
   expect(accountWrites[1]).toEqual(accountWrites[0]);
   expect(JSON.parse(accountWrites[0].body).opening_balance).toBe(1234);
-  await page.unroute("**/preferences");
+  await page.unroute("**/preferences**");
   await page.unroute(`**/api/v1/budgets/${budget}/accounts`);
   await page.getByRole("button", { name: "Retry preferences" }).click();
   await expect(page.getByTestId("account-balance")).toHaveText("12,34");

@@ -70,13 +70,25 @@ try {
   await expect(
     page.getByText("Current accounts: none.", { exact: true }),
   ).toBeVisible();
-  await mkdir(new URL('../test-results/',import.meta.url),{recursive:true});
-  await page.setViewportSize({width:320,height:800});
-  await page.addStyleTag({content:'html {font-size:200%}'});
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
-  await page.screenshot({path:fileURLToPath(new URL('../test-results/account-generation-recovery.png',import.meta.url)),fullPage:true});
-  await page.setViewportSize({width:1280,height:900});
-  await page.addStyleTag({content:'html {font-size:100%}'});
+  await mkdir(new URL("../test-results/", import.meta.url), {
+    recursive: true,
+  });
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.addStyleTag({ content: "html {font-size:200%}" });
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(320);
+  await page.screenshot({
+    path: fileURLToPath(
+      new URL(
+        "../test-results/account-generation-recovery.png",
+        import.meta.url,
+      ),
+    ),
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.addStyleTag({ content: "html {font-size:100%}" });
   await page
     .getByRole("button", { name: "Reapply as a new account", exact: true })
     .click();
@@ -135,10 +147,16 @@ try {
   await page
     .getByRole("button", { name: "Review current budget", exact: true })
     .click();
-  await expect(
-    page.locator(".restore-comparison"),
-  ).toContainText("1,000.33");
-  await page.screenshot({path:fileURLToPath(new URL('../test-results/settings-generation-recovery.png',import.meta.url)),fullPage:true});
+  await expect(page.locator(".restore-comparison")).toContainText("1,000.33");
+  await page.screenshot({
+    path: fileURLToPath(
+      new URL(
+        "../test-results/settings-generation-recovery.png",
+        import.meta.url,
+      ),
+    ),
+    fullPage: true,
+  });
   await page
     .getByRole("button", { name: "Reapply as new settings", exact: true })
     .click();

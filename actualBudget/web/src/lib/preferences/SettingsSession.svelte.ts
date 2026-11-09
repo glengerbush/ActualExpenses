@@ -191,7 +191,7 @@ export class SettingsSession {
     if (!this.draft || this.busy) return;
     this.error = "";
     this.status = "";
-    let acknowledged=false;
+    let acknowledged = false;
     if (!this.draft.pending && !preferences.hasUsableShared) {
       this.error =
         "Load this budget’s preferences before changing shared settings.";
@@ -220,7 +220,7 @@ export class SettingsSession {
         submitted.pending.key,
         submitted.budget_epoch,
       );
-      acknowledged=true;
+      acknowledged = true;
       const checkpoint = await request<{
         data: { epoch: string; snapshot: string };
       }>(`/budgets/${this.budgetId}/checkpoint`);

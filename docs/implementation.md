@@ -4,7 +4,7 @@ The user authorized implementation of all 53 approved tickets on 2026-11-08, usi
 
 ## Review baseline
 
-- Credit preference (user-approved 2026-11-09): use cheaper models for routine implementation and review; reserve Astra/high for difficult financial, migration or conflict work. Normally run one implementer and one reviewer. Finish the current integration batch before opening more work; use compact task handoffs, focused checks during development and one full suite/container qualification after integration. Review standards and spec together where practical; reuse valid evidence instead of repeating unchanged reviews.
+- Credit preference (user-approved 2026-11-09): Standard speed only; never enable Fast, priority or Ultrafast tiers. Use cheaper models for routine implementation and review; reserve Astra/high for difficult financial, migration or conflict work. Normally run one implementer and one reviewer. Finish the current integration batch before opening more work; use compact task handoffs, focused checks during development and one full suite/container qualification after integration. Review standards and spec together where practical; reuse valid evidence instead of repeating unchanged reviews.
 
 - Branch: `main`.
 - Pre-implementation commit: `2b25b070ddee0c6bca5f2e95b11d82ddac269012`.

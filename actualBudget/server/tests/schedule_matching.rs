@@ -337,10 +337,19 @@ fn matching_pages_resume_after_restart_and_invalid_or_stale_queries_are_read_onl
         assert_eq!(page["data"]["snapshot"], cp["data"]["snapshot"]);
         assert_eq!(page["data"]["epoch"], cp["data"]["epoch"]);
         collected.extend(rows.iter().cloned());
+        let total = full["data"]["transactions"].as_array().unwrap().len();
+        assert!(
+            collected.len() <= total,
+            "Pagination repeated or invented rows"
+        );
         offset = page["data"]["next_offset"].clone();
         if offset.is_null() {
             break;
         }
+        assert!(
+            collected.len() < total,
+            "Continuation exceeds complete result"
+        );
         assert_eq!(offset, collected.len());
         if collected.len() == 2 {
             server = server.restart();

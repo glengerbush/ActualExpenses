@@ -8,6 +8,16 @@ precedes node tie-breaking. One request clock applies to its supplied fields.
 Independent fields can both win, even when an older operation arrives later.
 PATCH responses include `conflicts` with field names and both clocks.
 
+Account and category ordering are independent. Moving a transaction off budget
+can retain a newer category as latent data, matching pinned Actual in either
+arrival order. Updates and duplication preserve it; public creation still rejects
+a new off-budget transaction explicitly assigned a category. Account membership
+continues to determine balance placement. Do not erase a winning category or
+reject unrelated winning fields solely because the merged account is off budget.
+Pinned `useTransactionBatchActions.ts` lines 286–312 copies all transaction fields
+for duplication, changing only cleared/reconciled flags; the internal insertion
+path likewise preserves latent categories without relaxing public creation.
+
 Same operation/key with changed clock conflicts, just like changed payloads.
 Exact retries return their original response; never generate a new retry clock.
 Headerless historical callers and durable pre-upgrade receipts remain supported.

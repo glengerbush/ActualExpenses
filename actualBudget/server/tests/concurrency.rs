@@ -290,6 +290,20 @@ fn pinned_actual_clock_ordering_and_published_hidden_fields_match() {
         serde_json::from_str(include_str!("../../tests/fixtures/concurrency.json")).unwrap();
     let mut s = Server::start();
     setup(&s);
+    let off = "30000000-0000-4000-8000-000000000020";
+    let category = "30000000-0000-4000-8000-000000000021";
+    assert_eq!(s.write("POST", &format!("/api/v1/budgets/{B}/accounts"), "oracle-off", None, json!({"id":off,"name":"Off budget","off_budget":true,"opening_balance":0,"opening_date":"2026-01-01"})).status(),201);
+    assert_eq!(
+        s.write(
+            "POST",
+            &format!("/api/v1/budgets/{B}/categories"),
+            "oracle-category",
+            None,
+            json!({"id":category,"name":"Food","is_income":false})
+        )
+        .status(),
+        201
+    );
     let base = format!("/api/v1/budgets/{B}/transactions");
     for scenario in fixture["scenarios"].as_array().unwrap() {
         let id = scenario["id"].as_str().unwrap();
@@ -303,7 +317,23 @@ fn pinned_actual_clock_ordering_and_published_hidden_fields_match() {
             let body = if deletion {
                 Value::Null
             } else {
-                mutation["fields"].clone()
+                let mut fields = serde_json::Map::new();
+                for (field, value) in mutation["fields"].as_object().unwrap() {
+                    let target = match field.as_str() {
+                        "acct" => "account_id",
+                        "category" => "category_id",
+                        other => other,
+                    };
+                    fields.insert(
+                        target.to_owned(),
+                        match value.as_str() {
+                            Some("$off") => json!(off),
+                            Some("$category") => json!(category),
+                            _ => value.clone(),
+                        },
+                    );
+                }
+                Value::Object(fields)
             };
             let response = s.write(
                 if deletion { "DELETE" } else { "PATCH" },
@@ -325,7 +355,17 @@ fn pinned_actual_clock_ordering_and_published_hidden_fields_match() {
         let expected = &scenario["expected"];
         assert_eq!(last["data"]["amount"], expected["amount"]);
         assert_eq!(last["data"]["notes"], expected["notes"]);
+        if expected.get("account").is_some() {
+            assert_eq!(last["data"]["account_id"], off);
+            assert_eq!(last["data"]["category_id"], category);
+            assert_eq!(last["data"]["category_name"], expected["category"]);
+        }
         for (field, clock) in expected["field_versions"].as_object().unwrap() {
+            let field = match field.as_str() {
+                "acct" => "account_id",
+                "category" => "category_id",
+                other => other,
+            };
             if field == "tombstone" && scenario.get("policy").is_some() {
                 assert_eq!(last["data"]["field_versions"][field], initial["clock"]);
             } else {
@@ -628,4 +668,96 @@ fn new_opening_balance_has_creation_order_instead_of_historical_zero_floor() {
         s.get(&path)["data"]["field_versions"],
         opening["field_versions"]
     );
+}
+
+#[test]
+fn concurrent_account_and_category_edits_converge_in_both_orders() {
+    const OFF: &str = "30000000-0000-4000-8000-000000000020";
+    const CATEGORY: &str = "30000000-0000-4000-8000-000000000021";
+    const COPY: &str = "30000000-0000-4000-8000-000000000022";
+    for newer_first in [false, true] {
+        let s = Server::start();
+        let path = setup(&s);
+        assert_eq!(s.write("POST", &format!("/api/v1/budgets/{B}/accounts"), "off", None, json!({"id":OFF,"name":"Off budget","off_budget":true,"opening_balance":0,"opening_date":"2026-01-01"})).status(), 201);
+        assert_eq!(
+            s.write(
+                "POST",
+                &format!("/api/v1/budgets/{B}/categories"),
+                "category",
+                None,
+                json!({"id":CATEGORY,"name":"Food","is_income":false})
+            )
+            .status(),
+            201
+        );
+        let older = json!({"account_id":OFF,"category_id":null,"notes":"Independent older note"});
+        let newer = json!({"category_id":CATEGORY});
+        let operations = if newer_first {
+            vec![("newer", C2, newer.clone()), ("older", C1, older.clone())]
+        } else {
+            vec![("older", C1, older.clone()), ("newer", C2, newer.clone())]
+        };
+        let mut outcomes = vec![];
+        for (key, clock, body) in &operations {
+            let response = s.write("PATCH", &path, key, Some(clock), body.clone());
+            assert_eq!(
+                response.status(),
+                200,
+                "order={newer_first}, key={key}: {}",
+                response.text().unwrap()
+            );
+            // Replay is checked independently from the current merged row.
+            outcomes.push(
+                s.write("PATCH", &path, key, Some(clock), body.clone())
+                    .json::<Value>()
+                    .unwrap(),
+            );
+        }
+        let row = s.get(&path)["data"].clone();
+        assert_eq!(row["account_id"], OFF);
+        assert_eq!(row["category_id"], CATEGORY);
+        assert_eq!(row["category_name"], "Food");
+        assert_eq!(row["notes"], "Independent older note");
+        assert_eq!(row["field_versions"]["account_id"], C1);
+        assert_eq!(row["field_versions"]["category_id"], C2);
+        assert_eq!(row["field_versions"]["notes"], C1);
+        for (account, total) in [(A, 0), (OFF, -100)] {
+            let page = s.get(&format!(
+                "/api/v1/budgets/{B}/transactions?account_id={account}"
+            ));
+            assert_eq!(
+                page["balances"],
+                json!({"total":total,"cleared":0,"uncleared":total})
+            );
+        }
+        let s = s.restart();
+        assert_eq!(s.get(&path)["data"], row);
+        for ((key, clock, body), outcome) in operations.iter().zip(outcomes) {
+            assert_eq!(
+                s.write("PATCH", &path, key, Some(clock), body.clone())
+                    .json::<Value>()
+                    .unwrap(),
+                outcome
+            );
+        }
+        assert_eq!(s.write("POST", &format!("/api/v1/budgets/{B}/transactions"), "new-off-category", Some(C3), json!({"id":COPY,"account_id":OFF,"category_id":CATEGORY,"amount":-100,"date":"2026-01-01"})).status(),400);
+        let duplicate = s.write(
+            "POST",
+            &format!("{path}/duplicate"),
+            "duplicate",
+            Some(C3),
+            json!({"id":COPY}),
+        );
+        assert_eq!(duplicate.status(), 201, "{}", duplicate.text().unwrap());
+        let copied = s.get(&format!("/api/v1/budgets/{B}/transactions/{COPY}"))["data"].clone();
+        assert_eq!(copied["account_id"], OFF);
+        assert_eq!(copied["category_id"], CATEGORY);
+        assert_eq!(copied["field_versions"]["category_id"], C3);
+        assert_eq!(
+            s.get(&format!(
+                "/api/v1/budgets/{B}/transactions?account_id={OFF}"
+            ))["balances"]["total"],
+            -200
+        );
+    }
 }

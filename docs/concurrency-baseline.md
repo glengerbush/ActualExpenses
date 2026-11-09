@@ -33,7 +33,7 @@ to map explicitly to the replacement API.
 
 Two boundaries matter. Actual retains the later ordinary field inside a deleted
 row; preserving visibility alone would miss that state. Conversely, raw Actual
-accepts the older independent tombstone in the last case. The approved
+accepts the older independent tombstone in the deletion-policy case. The approved
 replacement deliberately adds a pre-publication deletion guard and must reject
 that action, retaining the newer work. The fixture labels this policy exception;
 it must not be treated as blanket server-wins or an ordinary field-order change.

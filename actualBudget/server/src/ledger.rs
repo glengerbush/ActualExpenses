@@ -126,17 +126,6 @@ fn validate_references(db: &Connection, budget: &str, input: &NewTransaction) ->
             }
         }
     }
-    if input.category_id.is_some()
-        && db.query_row(
-            "SELECT off_budget FROM accounts WHERE budget_id=?1 AND id=?2",
-            params![budget, input.account_id],
-            |r| r.get::<_, bool>(0),
-        )?
-    {
-        return Err(Error::invalid(
-            "Off-budget transactions cannot have a category",
-        ));
-    }
     Ok(())
 }
 pub fn cached_balances(db: &Connection, budget: &str, account: &str) -> Result<Balances, Error> {
@@ -198,9 +187,29 @@ fn apply_addition(db: &Connection, budget: &str, input: &NewTransaction) -> Resu
     }
     validate_budget_total(db, budget)
 }
-pub fn create(db: &Connection, budget: &str, mut input: NewTransaction) -> Result<Value, Error> {
+pub fn create(db: &Connection, budget: &str, input: NewTransaction) -> Result<Value, Error> {
+    insert(db, budget, input, false)
+}
+fn insert(
+    db: &Connection,
+    budget: &str,
+    mut input: NewTransaction,
+    preserve_latent_category: bool,
+) -> Result<Value, Error> {
     resolve_new_references(db, budget, &mut input)?;
     validate_references(db, budget, &input)?;
+    if !preserve_latent_category
+        && input.category_id.is_some()
+        && db.query_row(
+            "SELECT off_budget FROM accounts WHERE budget_id=?1 AND id=?2",
+            params![budget, input.account_id],
+            |r| r.get::<_, bool>(0),
+        )?
+    {
+        return Err(Error::invalid(
+            "Off-budget transactions cannot have a category",
+        ));
+    }
     if db.query_row(
         "SELECT EXISTS(SELECT 1 FROM transactions WHERE budget_id=?1 AND id=?2)",
         params![budget, input.id],
@@ -401,6 +410,7 @@ fn update_row(
     }
     let mut input = validate_patch(&previous, &patch)?;
     resolve_new_references(db, budget, &mut input)?;
+    // Keep independent winning fields, including latent off-budget categories.
     validate_references(db, budget, &input)?;
     db.execute("UPDATE transactions SET account_id=?3,amount=?4,date=?5,cleared=?6,notes=?7,payee_id=?8,category_id=?9 WHERE budget_id=?1 AND id=?2",params![budget,id,input.account_id,input.amount,input.date,input.cleared,input.notes,input.payee_id,input.category_id])?;
     let financial_changed = previous["account_id"] != input.account_id
@@ -439,7 +449,8 @@ pub fn duplicate(db: &Connection, budget: &str, source: &str, id: &str) -> Resul
     let previous = get(db, budget, source)?;
     let input:NewTransaction=serde_json::from_value(json!({"id":id,"account_id":previous["account_id"],"amount":previous["amount"],"date":previous["date"],"cleared":false,"notes":previous["notes"],"payee_id":previous["payee_id"],"category_id":previous["category_id"]})).map_err(Error::internal)?;
     input.validate()?;
-    create(db, budget, input)
+    // A merged off-budget row can retain independently ordered category data.
+    insert(db, budget, input, true)
 }
 
 fn resolve_new_references(

@@ -117,3 +117,19 @@ own-unlock→undo→earlier-action refusal and remote peer/relock refusal remain
 Focused19 history +23 transfer cases pass
 (`/tmp/history-safe-generation-focused.log`); Clippy warnings-as-errors passes
 (`/tmp/history-safe-generation-clippy.log`). No broad suite repeated.
+
+## Browser clock fixture isolation
+
+Container date-input qualification exposed the real five-minute device-clock
+refusal: its whole browser clock was pinned to2026-11-08 while history observed
+the current server clock. Focused failure HTML/screenshot confirms the alert
+(`/tmp/date-clock-before.{html,png}`; log `/tmp/date-clock-before.log`).
+
+The date-input harness now pins only no-argument calendar Date construction;
+Date.now and explicit timestamp constructors remain real for HLC generation and
+validation. Assertions verify both the pinned reference and current physical
+clock. All120 pinned inputs/expected dates, six formats, invalid draft recovery,
+keyboard/blur/Enter and ISO compatibility remain unchanged and pass
+(`/tmp/date-clock-green.log`). Date-recovery's year-change immutable-retry
+workflow also passes (`/tmp/date-clock-recovery.log`). Product clock guards and
+calendar expectations are unchanged; no endpoint responses are intercepted.

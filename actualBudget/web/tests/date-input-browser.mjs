@@ -37,9 +37,21 @@ try {
     const context = await browser.newContext({ timezoneId: "UTC" });
     const page = await context.newPage();
     page.on("pageerror", (e) => errors.push(e.message));
-    await page.clock.install({
-      time: new Date(fixture.reference + "T12:00:00Z"),
-    });
+    // Pin only the calendar reference used by shorthand/two-digit date parsing.
+    // Date.now and explicit Date(timestamp) remain real for observed server HLCs.
+    await page.addInitScript((reference) => {
+      const NativeDate = Date;
+      const calendar = NativeDate.parse(reference + "T12:00:00Z");
+      globalThis.Date = new Proxy(NativeDate, {
+        construct(target, args, newTarget) {
+          return Reflect.construct(
+            target,
+            args.length ? args : [calendar],
+            newTarget,
+          );
+        },
+      });
+    }, fixture.reference);
     const budget = randomUUID(),
       account = randomUUID();
     await write("/budgets", { id: budget, name: "Dates " + format });
@@ -55,6 +67,12 @@ try {
       "PATCH",
     );
     await page.goto(server.url);
+    expect(
+      await page.evaluate(() => new Date().toISOString().slice(0, 10)),
+    ).toBe(fixture.reference);
+    expect(
+      Math.abs((await page.evaluate(() => Date.now())) - Date.now()),
+    ).toBeLessThan(60_000);
     await page.evaluate(
       ({ budget, account }) =>
         localStorage.setItem(

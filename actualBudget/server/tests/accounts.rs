@@ -644,3 +644,97 @@ fn account_delete_failure_rolls_back_history_balances_and_identity_receipt() {
     assert_eq!(before, s.get(&format!("{root}/accounts")));
     assert_eq!(transactions, s.get(&format!("{root}/transactions")));
 }
+
+#[test]
+fn deleted_account_history_accepts_hidden_field_merges_without_resurrection() {
+    let s = Server::start();
+    let root = format!("/api/v1/budgets/{B}");
+    let c1 = "2026-01-01T00:00:00.000Z-0000-0000000000000001";
+    let c2 = "2026-01-02T00:00:00.000Z-0000-0000000000000001";
+    let c3 = "2026-01-03T00:00:00.000Z-0000-0000000000000001";
+    let c4 = "2026-01-04T00:00:00.000Z-0000-0000000000000001";
+    ok(s.write(
+        "POST",
+        "/api/v1/budgets",
+        "b",
+        None,
+        json!({"id":B,"name":"Hidden history"}),
+    ));
+    for n in [2, 3, 4] {
+        ok(s.write("POST", &format!("{root}/accounts"), &format!("a{n}"), None, json!({"id":id(n),"name":format!("Account {n}"),"opening_balance":0,"opening_date":"2026-01-01"})));
+    }
+    for (n, account, amount) in [(11, 2, -1250), (12, 4, 2500)] {
+        ok(s.write("POST", &format!("{root}/transactions"), &format!("tx{n}"), Some(c1), json!({"id":id(n),"account_id":id(account),"amount":amount,"date":"2026-01-01","notes":"Original"})));
+    }
+    for n in [2, 3] {
+        ok(s.write(
+            "DELETE",
+            &format!("{root}/accounts/{}", id(n)),
+            &format!("delete{n}"),
+            Some(c2),
+            json!({"confirm_name":format!("Account {n}")}),
+        ));
+    }
+    let path = format!("{root}/transactions/{}", id(11));
+    let latest = json!({"notes":"Newest hidden note"});
+    let merged = ok(s.write("PATCH", &path, "latest", Some(c4), latest.clone()));
+    assert_eq!(merged["data"]["deleted"], true);
+    assert_eq!(merged["data"]["notes"], "Newest hidden note");
+    let independent = ok(s.write(
+        "PATCH",
+        &path,
+        "independent",
+        Some(c3),
+        json!({"notes":"Older note","amount":-2500}),
+    ));
+    assert_eq!(independent["data"]["notes"], "Newest hidden note");
+    assert_eq!(independent["data"]["amount"], -2500);
+    assert_eq!(independent["data"]["deleted"], true);
+    assert_eq!(independent["conflicts"][0]["field"], "notes");
+    assert_eq!(independent["data"]["field_versions"]["notes"], c4);
+    assert_eq!(independent["data"]["field_versions"]["amount"], c3);
+    let s = s.restart();
+    assert_eq!(
+        ok(s.write("PATCH", &path, "latest", Some(c4), latest)),
+        merged
+    );
+    // Only retention of the same deleted account is permitted. Moves and new
+    // visible rows must still target an active account.
+    for (key, target) in [
+        ("hidden-move", path.clone()),
+        ("visible-move", format!("{root}/transactions/{}", id(12))),
+    ] {
+        assert_eq!(
+            s.write("PATCH", &target, key, None, json!({"account_id":id(3)}))
+                .status(),
+            404
+        );
+    }
+    assert_eq!(
+        s.write(
+            "POST",
+            &format!("{root}/transactions"),
+            "new-in-deleted",
+            None,
+            json!({"id":id(13),"account_id":id(2),"amount":100,"date":"2026-01-01"})
+        )
+        .status(),
+        404
+    );
+    let accounts = s.get(&format!("{root}/accounts"));
+    assert_eq!(accounts["data"].as_array().unwrap().len(), 1);
+    assert_eq!(accounts["data"][0]["id"], id(4));
+    assert_eq!(accounts["data"][0]["balance"], 2500);
+    let transactions = s.get(&format!("{root}/transactions"));
+    assert_eq!(transactions["data"].as_array().unwrap().len(), 1);
+    assert_eq!(transactions["data"][0]["id"], id(12));
+    assert_eq!(transactions["balances"]["total"], 2500);
+    assert_eq!(
+        s.client
+            .get(format!("{}{path}", s.url))
+            .send()
+            .unwrap()
+            .status(),
+        404
+    );
+}

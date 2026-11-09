@@ -108,8 +108,26 @@ pub fn account_exists(db: &Connection, budget: &str, account: &str) -> Result<()
     }
     Ok(())
 }
-fn validate_references(db: &Connection, budget: &str, input: &NewTransaction) -> Result<(), Error> {
-    account_exists(db, budget, &input.account_id)?;
+fn validate_references(
+    db: &Connection,
+    budget: &str,
+    input: &NewTransaction,
+    retained_hidden_account: Option<&str>,
+) -> Result<(), Error> {
+    if retained_hidden_account == Some(input.account_id.as_str()) {
+        // Hidden field merges may retain their deleted account, but moving a
+        // row or making it visible must still require an active account.
+        store::require_budget(db, budget)?;
+        if !db.query_row(
+            "SELECT EXISTS(SELECT 1 FROM accounts WHERE budget_id=?1 AND id=?2)",
+            params![budget, input.account_id],
+            |r| r.get::<_, bool>(0),
+        )? {
+            return Err(Error::missing());
+        }
+    } else {
+        account_exists(db, budget, &input.account_id)?;
+    }
     for (table, id) in [
         ("payees", &input.payee_id),
         ("categories", &input.category_id),
@@ -197,7 +215,7 @@ fn insert(
     preserve_latent_category: bool,
 ) -> Result<Value, Error> {
     resolve_new_references(db, budget, &mut input)?;
-    validate_references(db, budget, &input)?;
+    validate_references(db, budget, &input, None)?;
     if !preserve_latent_category
         && input.category_id.is_some()
         && db.query_row(
@@ -411,7 +429,16 @@ fn update_row(
     let mut input = validate_patch(&previous, &patch)?;
     resolve_new_references(db, budget, &mut input)?;
     // Keep independent winning fields, including latent off-budget categories.
-    validate_references(db, budget, &input)?;
+    validate_references(
+        db,
+        budget,
+        &input,
+        if hidden {
+            previous["account_id"].as_str()
+        } else {
+            None
+        },
+    )?;
     db.execute("UPDATE transactions SET account_id=?3,amount=?4,date=?5,cleared=?6,notes=?7,payee_id=?8,category_id=?9 WHERE budget_id=?1 AND id=?2",params![budget,id,input.account_id,input.amount,input.date,input.cleared,input.notes,input.payee_id,input.category_id])?;
     let financial_changed = previous["account_id"] != input.account_id
         || previous["amount"] != input.amount

@@ -57,20 +57,27 @@ export function readAccountDraft(budget: string): AccountDraft | null {
     );
   return d;
 }
-export function persistAccountDraft(
-  draft: AccountDraft,
-  previous?: AccountDraft | null,
-) {
-  const existing = readAccountDraft(draft.budgetId);
+function requirePendingOwner(budgetId: string, pending: AccountIntent | null) {
+  const existing = readAccountDraft(budgetId);
   if (
     existing?.pending &&
-    JSON.stringify(existing.pending) !==
-      JSON.stringify(previous?.pending ?? draft.pending)
+    JSON.stringify(existing.pending) !== JSON.stringify(pending)
   )
     throw new Error(
       "Another tab has a pending account change. Reload before continuing.",
     );
+}
+export function persistAccountDraft(
+  draft: AccountDraft,
+  previous?: AccountDraft | null,
+) {
+  requirePendingOwner(draft.budgetId, previous?.pending ?? draft.pending);
   localStorage.setItem(accountDraftKey(draft.budgetId), JSON.stringify(draft));
+}
+export function clearAccountDraft(budgetId: string) {
+  // Closing an editor can only discard an unsent draft, never a saved request.
+  requirePendingOwner(budgetId, null);
+  localStorage.removeItem(accountDraftKey(budgetId));
 }
 export function newAccountDraft(
   budgetId: string,

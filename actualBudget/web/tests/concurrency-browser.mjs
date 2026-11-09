@@ -353,7 +353,9 @@ try {
         .click();
       await page.getByLabel("Amount", { exact: true }).fill("1");
     }
-    const horizon = Date.now() + 5000;
+    // Allow the quota/reload/three-tab setup to finish before this real server
+    // clock boundary, including while other build workers contend for CPU.
+    const horizon = Date.now() + 30000;
     await page.evaluate(
       (horizon) =>
         localStorage.setItem(

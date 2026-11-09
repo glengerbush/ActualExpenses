@@ -9,9 +9,10 @@
     type AccountGroup,
   } from "./api";
   import { refreshBudget } from "./offline/cache";
+  import { offlineStatus, subscribeOffline } from "./offline/events";
   import { nextEditClock } from "./edit-clock";
   import {
-    accountDraftKey,
+    clearAccountDraft,
     readAccountDraft,
     persistAccountDraft,
     newAccountDraft,
@@ -43,6 +44,7 @@
     review = $state(false),
     currentEpoch = "";
   let deletedBudget = $state(false);
+  let offline = $state(!offlineStatus.reachable);
   let chosen = $derived(accounts.find((a) => a.id === draft?.accountId));
   let chosenGroup = $derived(
     groups.find((g) => g.id === draft?.groupSelection),
@@ -185,6 +187,10 @@
     versions?: Record<string, string>,
   ) {
     if (!draft || draft.pending || busy) return;
+    if (!offlineStatus.reachable) {
+      error = t("Reconnect before changing accounts or groups.");
+      return;
+    }
     try {
       await send({
         path: `/budgets/${budgetId}/${path}`,
@@ -280,7 +286,7 @@
   function done() {
     if (draft?.pending || busy) return;
     try {
-      localStorage.removeItem(accountDraftKey(budgetId));
+      clearAccountDraft(budgetId);
       onclose();
     } catch (e) {
       error = errorMessage(e);
@@ -288,6 +294,9 @@
   }
   onMount(() => {
     void load();
+    return subscribeOffline(() => {
+      offline = !offlineStatus.reachable;
+    });
   });
 </script>
 
@@ -300,6 +309,11 @@
   </div>
   {#if error}<p class="error" role="alert">{t(error)}</p>{/if}
   {#if status}<p role="status">{status}</p>{/if}
+  {#if offline}<p role="status">
+      {t(
+        "Reconnect before changing accounts or groups. Your saved changes are kept.",
+      )}
+    </p>{/if}
   {#if busy}<p role="status">{t("Saving or loading account changes…")}</p>{/if}
   {#if draft?.pending}
     <p>
@@ -364,7 +378,9 @@
               >{#each groups as g (g.id)}<option value={g.id}>{g.name}</option
                 >{/each}</select
             >
-            <button class="primary">{t("Save account")}</button>
+            <button class="primary" disabled={offline}
+              >{t("Save account")}</button
+            >
           </fieldset>
         </form>
         <fieldset disabled={busy || !!draft.pending}>
@@ -377,6 +393,7 @@
               >{/each}</select
           >
           <button
+            disabled={offline}
             onclick={() =>
               action(
                 `accounts/${chosen!.id}/move`,
@@ -399,7 +416,7 @@
                   )}
           </p>
           <button
-            disabled={!chosen.closed && chosen.balance !== 0}
+            disabled={offline || (!chosen.closed && chosen.balance !== 0)}
             onclick={() =>
               action(
                 `accounts/${chosen!.id}/${chosen!.closed ? "reopen" : "close"}`,
@@ -427,7 +444,7 @@
               }
             />
             <button
-              disabled={draft.confirmName !== chosen.name}
+              disabled={offline || draft.confirmName !== chosen.name}
               onclick={() =>
                 action(
                   `accounts/${chosen!.id}`,
@@ -456,7 +473,7 @@
           maxlength="120"
           bind:value={() => draft!.groupName, (v) => update({ groupName: v })}
         />
-        <button
+        <button disabled={offline}
           >{t(draft.groupSelection ? "Save group" : "Create group")}</button
         >
       </fieldset>
@@ -473,6 +490,7 @@
             >{/each}</select
         >
         <button
+          disabled={offline}
           onclick={() =>
             action(
               `account-groups/${chosenGroup!.id}/move`,
@@ -486,6 +504,7 @@
           {t("Deleting a group keeps its accounts and leaves them ungrouped.")}
         </p>
         <button
+          disabled={offline}
           onclick={() =>
             action(
               `account-groups/${chosenGroup!.id}`,

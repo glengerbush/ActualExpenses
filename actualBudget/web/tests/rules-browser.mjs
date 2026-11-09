@@ -322,6 +322,259 @@ try {
   expect((await call(root + "/payees/" + shop)).data.learn_categories).toBe(
     false,
   );
+  // Narrow through the existing register query seam; the preview carries bounded IDs.
+  const reserve = randomUUID(),
+    otherPayee = randomUUID(),
+    detailed = randomUUID(),
+    detailRule = randomUUID(),
+    splitEntry = randomUUID(),
+    splitRule = randomUUID();
+  await call(root + "/accounts", {
+    id: reserve,
+    name: "Reserve",
+    opening_balance: 0,
+    opening_date: "2026-01-01",
+  });
+  await call(root + "/payees", { id: otherPayee, name: "Other shop" });
+  await call(root + "/transactions", {
+    id: detailed,
+    account_id: account,
+    date: "2026-01-01",
+    amount: -250,
+    payee_id: otherPayee,
+    notes: "Detailed review",
+  });
+  let checkpoint = (await call(root + "/rules")).snapshot;
+  await call(root + "/rules", {
+    id: detailRule,
+    stage: null,
+    conditionsOp: "and",
+    conditions: [{ field: "notes", op: "contains", value: "Detailed review" }],
+    actions: [
+      { op: "set", field: "date", value: "2026-02-03" },
+      { op: "set", field: "account", value: reserve },
+      { op: "set", field: "payee", value: shop },
+      { op: "set", field: "cleared", value: true },
+    ],
+    snapshot: checkpoint,
+  });
+  await page
+    .getByRole("button", { name: "Refresh rules", exact: true })
+    .click();
+  await page.getByLabel(/^Preview account/).selectOption(account);
+  await page
+    .locator(`.rule-list li[data-rule-id="${detailRule}"] input[type=checkbox]`)
+    .check();
+  const accountPreview = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().endsWith(root + "/rules/preview"),
+  );
+  await page
+    .getByRole("button", { name: "Preview selected saved rules", exact: true })
+    .click();
+  expect((await accountPreview).postDataJSON().account_id).toBe(account);
+  await page
+    .getByLabel("Find transactions", { exact: true })
+    .fill("Detailed review");
+  await page
+    .getByRole("button", { name: "Find transactions", exact: true })
+    .click();
+  await expect(page.locator(".scope-list li")).toHaveCount(1);
+  await page.locator(".scope-list input[type=checkbox]").check();
+  const narrowed = page.waitForRequest(
+    (r) => r.method() === "POST" && r.url().endsWith(root + "/rules/preview"),
+  );
+  await page
+    .getByRole("button", { name: "Preview selected saved rules", exact: true })
+    .click();
+  const narrowedBody = (await narrowed).postDataJSON();
+  expect(narrowedBody.ids).toEqual([detailed]);
+  expect(narrowedBody.account_id).toBeUndefined();
+  const detail = page
+    .locator(".preview-list li")
+    .filter({ hasText: "Detailed review" });
+  await expect(detail).toContainText("Date: 2026-01-01 → 2026-02-03");
+  await expect(detail).toContainText("Account: Cash → Reserve");
+  await expect(detail).toContainText("Payee: Other shop → Shop");
+  await expect(detail).toContainText("Cleared: No → Yes");
+  expect((await call(root + "/transactions/" + detailed)).data.date).toBe(
+    "2026-01-01",
+  );
+  await page.screenshot({
+    path: output + "/preview-fields-desktop.png",
+    fullPage: true,
+  });
+  await detail.getByRole("checkbox").check();
+  await page
+    .getByRole("button", { name: "Apply rules to 1 selected", exact: true })
+    .click();
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "Selected rule actions saved." }),
+  ).toBeVisible();
+  const changed = (await call(root + "/transactions/" + detailed)).data;
+  expect(changed.account_id).toBe(reserve);
+  expect(changed.date).toBe("2026-02-03");
+  expect(changed.payee_id).toBe(shop);
+  expect(changed.cleared).toBe(true);
+  await page
+    .getByRole("button", { name: "Clear transaction selection", exact: true })
+    .click();
+  await page
+    .locator(`.rule-list li[data-rule-id="${detailRule}"] input[type=checkbox]`)
+    .uncheck();
+  // New allocations show every proposed amount/reference/status before application.
+  await call(root + "/transactions", {
+    id: splitEntry,
+    account_id: account,
+    date: "2026-01-01",
+    amount: -300,
+    payee_id: otherPayee,
+    category_id: travel,
+    notes: "Split review",
+  });
+  checkpoint = (await call(root + "/rules")).snapshot;
+  await call(root + "/rules", {
+    id: splitRule,
+    stage: null,
+    conditionsOp: "and",
+    conditions: [{ field: "notes", op: "contains", value: "Split review" }],
+    actions: [
+      {
+        op: "set-split-amount",
+        value: -100,
+        options: { splitIndex: 1, method: "fixed-amount" },
+      },
+      {
+        op: "set-split-amount",
+        value: null,
+        options: { splitIndex: 2, method: "remainder" },
+      },
+    ],
+    snapshot: checkpoint,
+  });
+  await page
+    .getByRole("button", { name: "Refresh rules", exact: true })
+    .click();
+  await page.getByLabel(/^Associated payee/).selectOption("");
+  await page
+    .locator(`.rule-list li[data-rule-id="${splitRule}"] input[type=checkbox]`)
+    .check();
+  await page
+    .getByLabel("Find transactions", { exact: true })
+    .fill("Split review");
+  await page
+    .getByRole("button", { name: "Find transactions", exact: true })
+    .click();
+  await expect(page.locator(".scope-list li")).toHaveCount(1);
+  await page.locator(".scope-list input[type=checkbox]").check();
+  await page
+    .getByRole("button", { name: "Preview selected saved rules", exact: true })
+    .click();
+  const allocations = page.getByRole("region", {
+    name: "Split allocation changes",
+  });
+  await expect(allocations).toContainText("Allocation 1 · Added");
+  await expect(allocations).toContainText("Amount: Not present → -1.00");
+  await expect(allocations).toContainText("Amount: Not present → -2.00");
+  await expect(allocations).toContainText("Category: Not present → Travel");
+  await expect(allocations).toContainText("Payee: Not present → Other shop");
+  await expect(allocations).toContainText("Cleared: Not present → No");
+  await expect(page.locator(".preview-list")).toContainText(
+    "Ordinary transaction → Split transaction",
+  );
+  const originalSplitCandidate = (
+    await call(root + "/transactions/" + splitEntry)
+  ).data;
+  expect(originalSplitCandidate.is_parent ?? false).toBe(false);
+  expect(originalSplitCandidate.children ?? []).toEqual([]);
+  expect(originalSplitCandidate.amount).toBe(-300);
+  await page.screenshot({
+    path: output + "/preview-allocations-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: output + "/preview-allocations-mobile.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page
+    .getByRole("button", { name: "Clear transaction selection", exact: true })
+    .click();
+  await page
+    .locator(`.rule-list li[data-rule-id="${splitRule}"] input[type=checkbox]`)
+    .uncheck();
+  // One protected match must not block selection of an unrelated unlocked match.
+  const lockedRow = randomUUID(),
+    unlockedRow = randomUUID();
+  await call(root + "/transactions", {
+    id: lockedRow,
+    account_id: account,
+    date: "2026-01-01",
+    amount: -10,
+    payee_id: shop,
+    notes: "Protected preview",
+    cleared: true,
+  });
+  await call(root + "/transactions", {
+    id: unlockedRow,
+    account_id: account,
+    date: "2026-01-01",
+    amount: -20,
+    payee_id: shop,
+    notes: "Unlocked preview",
+  });
+  const reconciliation = (
+    await call(root + `/accounts/${account}/reconciliation`)
+  ).data;
+  await call(root + `/accounts/${account}/reconciliation`, {
+    action: "lock",
+    statement_balance: reconciliation.balances.cleared,
+    snapshot: reconciliation.snapshot,
+    date: "2026-02-28",
+  });
+  await page
+    .getByRole("button", { name: "Refresh rules", exact: true })
+    .click();
+  await page
+    .locator(`.rule-list li[data-rule-id="${rule.id}"] input[type=checkbox]`)
+    .check();
+  await page
+    .getByRole("button", { name: "Preview selected saved rules", exact: true })
+    .click();
+  const lockedMatch = page
+      .locator(".preview-list>li")
+      .filter({ hasText: "Protected preview" }),
+    unlockedMatch = page
+      .locator(".preview-list>li")
+      .filter({ hasText: "Unlocked preview" });
+  await expect(lockedMatch.getByRole("checkbox")).toBeDisabled();
+  await expect(unlockedMatch.getByRole("checkbox")).toBeEnabled();
+  await unlockedMatch.getByRole("checkbox").check();
+  await expect(
+    page.getByRole("button", {
+      name: "Apply rules to 1 selected",
+      exact: true,
+    }),
+  ).toBeEnabled();
+  await page
+    .getByRole("button", { name: "Apply rules to 1 selected", exact: true })
+    .click();
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "Selected rule actions saved." }),
+  ).toBeVisible();
+  expect((await call(root + "/transactions/" + lockedRow)).data.notes).toBe(
+    "Protected preview",
+  );
+  expect(
+    (await call(root + "/transactions/" + lockedRow)).data.reconciled,
+  ).toBe(true);
+  expect((await call(root + "/transactions/" + unlockedRow)).data.notes).toBe(
+    "Unlocked preview / captured",
+  );
   await mkdir(output, { recursive: true });
   await expect(page.getByRole("alert")).toHaveCount(0);
   await page.screenshot({ path: output + "/desktop.png", fullPage: true });
@@ -329,6 +582,14 @@ try {
   await page.screenshot({ path: output + "/mobile.png", fullPage: true });
   await page.evaluate(() => (document.documentElement.style.fontSize = "200%"));
   await page.screenshot({ path: output + "/large-text.png", fullPage: true });
+  const headingBox = await page
+    .getByRole("heading", { name: "Rules and category learning", exact: true })
+    .boundingBox();
+  const closeBox = await page
+    .getByRole("button", { name: "Close", exact: true })
+    .boundingBox();
+  expect(headingBox.width).toBeGreaterThan(300);
+  expect(closeBox.y).toBeGreaterThanOrEqual(headingBox.y + headingBox.height);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

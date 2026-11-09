@@ -413,7 +413,12 @@
       const entry = result.data.transactions[0];
       if (!entry) return;
       const after = entry.after;
-      draft.fields.category = after.category_id ?? "";
+      // Keep the inline creation intent until its immutable request carries
+      // new_category. The preview's provisional UUID is not an existing row.
+      draft.fields.category =
+        f.category === "new" && after.category_id === transaction.category_id
+          ? "new"
+          : (after.category_id ?? "");
       draft.fields.notes = after.notes ?? "";
       draft.fields.cleared = after.cleared;
       if (after.amount !== transaction.amount) {

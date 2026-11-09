@@ -3,10 +3,12 @@
   import { request, uuid, errorMessage, type Account } from "./api";
   import {
     references,
+    registerPage,
     mutate,
     requestCancellation,
     type Reference,
     type PendingMutation,
+    type Transaction,
   } from "./register-api";
   import { historyOwner } from "./history-owner";
   import {
@@ -28,6 +30,7 @@
     type RulePreview,
   } from "./rules";
   import RegisterCondition from "./RegisterCondition.svelte";
+  import { defaultQuery } from "./register-query";
   import RuleAction from "./RuleAction.svelte";
   let {
     budgetId,
@@ -52,11 +55,18 @@
   let selectedRules = $state<string[]>([]),
     selected = $state<string[]>([]),
     payeeFilter = $state(""),
+    accountFilter = $state(""),
+    scopeSearch = $state(""),
+    scopeIds = $state<string[]>([]),
+    scopeRows = $state.raw<Transaction[]>([]),
+    scopeOffset = $state(0),
+    scopeNext = $state<number | null>(null),
     busy = $state(false),
     error = $state(""),
     notice = $state(""),
     storageBroken = $state(false),
     renameNames = $state("");
+  let allocationLimit = $state<Record<string, number>>({});
   let checkpoint: string | null = null;
   let locked = $derived(
     busy || disconnected || storageBroken || !!draft?.pending,
@@ -318,6 +328,139 @@
       error = errorMessage(e);
     }
   }
+  function resetScope() {
+    scopeIds = [];
+    scopeRows = [];
+    scopeOffset = 0;
+    scopeNext = null;
+    preview = null;
+    selected = [];
+  }
+  async function loadScope(offset = 0) {
+    if (!view || locked) return;
+    busy = true;
+    error = "";
+    try {
+      const query = defaultQuery();
+      query.search = scopeSearch;
+      const page = await registerPage(
+        budgetId,
+        accountFilter || null,
+        offset,
+        "",
+        view.snapshot,
+        query,
+      );
+      scopeRows = page.data;
+      scopeOffset = offset;
+      scopeNext = page.next_offset;
+    } catch (e) {
+      error = errorMessage(e);
+    } finally {
+      busy = false;
+    }
+  }
+  function scopeChoose(id: string, checked: boolean) {
+    if (checked && scopeIds.length >= 100) {
+      error = "Choose at most 100 transactions for one preview.";
+      return;
+    }
+    scopeIds = checked ? [...scopeIds, id] : scopeIds.filter((v) => v !== id);
+    preview = null;
+    selected = [];
+    error = "";
+  }
+  function fieldValue(field: string, row: Transaction | undefined): string {
+    if (!row) return "Not present";
+    switch (field) {
+      case "amount":
+        return formatAmount(row.amount);
+      case "account_id":
+        return (
+          accounts.find((a) => a.id === row.account_id)?.name ??
+          row.account_name ??
+          "Unavailable account"
+        );
+      case "payee_id":
+        return row.payee_id
+          ? (payees.find((p) => p.id === row.payee_id)?.name ??
+              (row as Transaction & { new_payee?: Reference }).new_payee
+                ?.name ??
+              row.payee_name ??
+              "Unavailable payee")
+          : "None";
+      case "category_id":
+        return row.category_id
+          ? (categories.find((c) => c.id === row.category_id)?.name ??
+              row.category_name ??
+              "Unavailable category")
+          : "None";
+      case "cleared":
+        return row.cleared ? "Yes" : "No";
+      case "notes":
+        return row.notes || "None";
+      case "date":
+        return row.date;
+      default:
+        return "";
+    }
+  }
+  function changes(
+    before: Transaction | undefined,
+    after: Transaction | undefined,
+  ) {
+    return Object.entries({
+      amount: "Amount",
+      date: "Date",
+      account_id: "Account",
+      payee_id: "Payee",
+      category_id: "Category",
+      notes: "Notes",
+      cleared: "Cleared",
+    })
+      .filter(
+        ([field]) =>
+          !before ||
+          !after ||
+          before[field as keyof Transaction] !==
+            after[field as keyof Transaction],
+      )
+      .map(([field, label]) => ({
+        field,
+        label,
+        before: fieldValue(field, before),
+        after: fieldValue(field, after),
+      }));
+  }
+  function allocations(before: Transaction, after: Transaction) {
+    const old = before.children ?? [],
+      next = after.deleted
+        ? []
+        : (after.children ?? []).map((row) => ({
+            ...row,
+            account_id: after.account_id,
+            date: after.date,
+            cleared: after.cleared,
+          }));
+    const oldById = new Map(old.map((row) => [row.id, row]));
+    const nextIds = new Set(next.map((row) => row.id));
+    return [
+      ...next.map((row, index) => ({
+        id: row.id,
+        index,
+        before: oldById.get(row.id),
+        after: row,
+      })),
+      ...old
+        .filter((row) => !nextIds.has(row.id))
+        .map((row, index) => ({
+          id: row.id,
+          index: next.length + index,
+          before: row,
+          after: undefined,
+        })),
+    ];
+  }
   async function runPreview(offset = 0) {
     if (!view || locked) return;
     busy = true;
@@ -328,6 +471,11 @@
         snapshot: view.snapshot,
         offset,
         limit: 100,
+        ...(scopeIds.length
+          ? { ids: $state.snapshot(scopeIds) }
+          : accountFilter
+            ? { account_id: accountFilter }
+            : {}),
         ...(draft?.intent === "edit"
           ? { rule: $state.snapshot(draft.rule) }
           : selectedRules.length
@@ -355,7 +503,7 @@
   }
   function choose(id: string, checked: boolean) {
     if (checked && selected.length >= 100) {
-      error = "Apply at most100 selected transactions per command.";
+      error = "Apply at most 100 selected transactions per command.";
       return;
     }
     selected = checked ? [...selected, id] : selected.filter((v) => v !== id);
@@ -651,12 +799,73 @@
           </div>
         </fieldset>
       </form>{/if}
+    <section aria-labelledby="scope-heading">
+      <h2 id="scope-heading">Transactions to preview</h2>
+      <label
+        >Preview account<select
+          bind:value={accountFilter}
+          disabled={locked}
+          onchange={resetScope}
+          ><option value="">All accounts</option
+          >{#each accounts as account (account.id)}<option value={account.id}
+              >{account.name}</option
+            >{/each}</select
+        ></label
+      >
+      <p class="hint">
+        Preview up to 10,000 candidates in an account, or choose up to 100
+        transactions below. Search and page through the register for larger
+        accounts.
+      </p>
+      <div class="toolbar">
+        <label
+          >Find transactions<input
+            bind:value={scopeSearch}
+            disabled={locked}
+          /></label
+        ><button onclick={() => loadScope()} disabled={locked}
+          >Find transactions</button
+        ><button onclick={resetScope} disabled={locked || !scopeIds.length}
+          >Clear transaction selection</button
+        >
+      </div>
+      <p role="status">
+        {scopeIds.length
+          ? `${scopeIds.length} transactions chosen for preview`
+          : "Preview uses all candidates in the chosen account."}
+      </p>
+      {#if scopeRows.length}<ul class="scope-list">
+          {#each scopeRows as row (row.id)}<li>
+              <label class="inline"
+                ><input
+                  type="checkbox"
+                  checked={scopeIds.includes(row.id)}
+                  disabled={locked}
+                  onchange={(e) => scopeChoose(row.id, e.currentTarget.checked)}
+                /><span
+                  >{row.date} · {row.payee_name ?? row.account_name} · {formatAmount(
+                    row.amount,
+                  )}<small>{row.notes || "No notes"}</small></span
+                ></label
+              >
+            </li>{/each}
+        </ul>{/if}
+      {#if scopeRows.length || scopeOffset}<div class="toolbar">
+          <button
+            onclick={() => loadScope(Math.max(0, scopeOffset - 100))}
+            disabled={locked || !scopeOffset}>Previous transactions</button
+          ><button
+            onclick={() => loadScope(scopeNext!)}
+            disabled={locked || scopeNext === null}>Next transactions</button
+          >
+        </div>{/if}
+    </section>
     <section aria-labelledby="saved-rules">
       <h2 id="saved-rules">
         {payeeFilter ? "Associated rules" : "Saved rules"} ({visible.length})
       </h2>
       {#if visible.length}<ul class="rule-list">
-          {#each visible as rule (rule.id)}<li>
+          {#each visible as rule (rule.id)}<li data-rule-id={rule.id}>
               <label class="inline"
                 ><input
                   type="checkbox"
@@ -721,7 +930,8 @@
           transactions.
         </p>{/if}{#if preview.protected_count}<p role="status">
           {preview.protected_count} affected reconciled entries. Unlock them, then
-          refresh and preview again before applying.
+          preview again before applying those entries. You can select unrelated unlocked
+          entries.
         </p>{/if}
       <ul class="preview-list">
         {#each preview.transactions as entry (entry.before.id)}<li>
@@ -729,31 +939,78 @@
               ><input
                 type="checkbox"
                 checked={selected.includes(entry.before.id)}
-                disabled={locked || !!draft || preview.protected_count > 0}
+                disabled={locked || !!draft || entry.before.reconciled}
                 onchange={(e) =>
                   choose(entry.before.id, e.currentTarget.checked)}
               /><span
                 ><strong
                   >{entry.before.date} · {entry.before.payee_name ??
                     entry.before.account_name}</strong
-                ><small
-                  >{formatAmount(entry.before.amount)} → {entry.after.deleted
-                    ? "Deleted"
-                    : formatAmount(entry.after.amount)}</small
-                ><small
-                  >Notes: {entry.before.notes || "None"} → {entry.after.notes ||
-                    "None"}</small
-                ><small
-                  >Category: {categories.find(
-                    (c) => c.id === entry.before.category_id,
-                  )?.name ?? "None"} → {categories.find(
-                    (c) => c.id === entry.after.category_id,
-                  )?.name ?? "None"}{entry.after.is_parent
-                    ? " · Split allocations"
-                    : ""}</small
-                ></span
-              ></label
+                >
+                <small
+                  >Current amount: {formatAmount(
+                    entry.before.amount,
+                  )}{#if entry.before.notes}
+                    · {entry.before.notes}{/if}</small
+                >
+                {#if entry.after.deleted}<strong>Delete transaction</strong
+                  >{/if}
+                {#if !!entry.before.is_parent !== !!entry.after.is_parent}<small
+                    >Structure: {entry.before.is_parent
+                      ? "Split transaction"
+                      : "Ordinary transaction"} → {entry.after.is_parent
+                      ? "Split transaction"
+                      : "Ordinary transaction"}</small
+                  >{/if}
+                {#each changes(entry.before, entry.after) as change (change.field)}<small
+                    class="field-change"
+                    >{change.label}: {change.before} → {change.after}</small
+                  >{/each}
+                {#if !entry.after.deleted && !changes(entry.before, entry.after).length && !allocations(entry.before, entry.after).length}<small
+                    >No field changes</small
+                  >{/if}
+                {#if entry.before.reconciled}<small
+                    >Reconciled: unlock before applying.</small
+                  >{/if}
+              </span></label
             >
+            {#if entry.before.children?.length || entry.after.children?.length}<section
+                class="allocations"
+                aria-label="Split allocation changes"
+              >
+                <h3>Split allocations</h3>
+                <p>
+                  Showing {Math.min(
+                    allocationLimit[entry.before.id] ?? 20,
+                    allocations(entry.before, entry.after).length,
+                  )} of {allocations(entry.before, entry.after).length} allocations.
+                </p>
+                <ol>
+                  {#each allocations(entry.before, entry.after).slice(0, allocationLimit[entry.before.id] ?? 20) as allocation (allocation.id)}<li
+                    >
+                      <strong
+                        >Allocation {allocation.index + 1} · {allocation.before
+                          ? allocation.after
+                            ? "Retained"
+                            : "Removed"
+                          : "Added"}</strong
+                      >{#each changes(allocation.before, allocation.after) as change (change.field)}<small
+                          class="field-change"
+                          >{change.label}: {change.before} → {change.after}</small
+                        >{/each}{#if allocation.before && allocation.after && !changes(allocation.before, allocation.after).length}<small
+                          >Unchanged · {formatAmount(
+                            allocation.after.amount,
+                          )}</small
+                        >{/if}
+                    </li>{/each}
+                </ol>
+                {#if (allocationLimit[entry.before.id] ?? 20) < allocations(entry.before, entry.after).length}<button
+                    onclick={() =>
+                      (allocationLimit[entry.before.id] =
+                        (allocationLimit[entry.before.id] ?? 20) + 20)}
+                    >Show more allocation changes</button
+                  >{/if}
+              </section>{/if}
           </li>{/each}
       </ul>
       <div class="toolbar">
@@ -763,10 +1020,7 @@
           >{/if}<button
           class="primary"
           onclick={apply}
-          disabled={locked ||
-            !!draft ||
-            !selected.length ||
-            preview.protected_count > 0}
+          disabled={locked || !!draft || !selected.length}
           >Apply rules to {selected.length} selected</button
         >
       </div>
@@ -779,9 +1033,41 @@
   }
   header {
     display: flex;
+    flex-wrap: wrap;
     align-items: start;
     justify-content: space-between;
     gap: 1rem;
+  }
+  header > div {
+    flex: 1 1 24rem;
+    min-width: 0;
+  }
+  @media (max-width: 40rem) {
+    header {
+      flex-direction: column;
+    }
+    header > div {
+      flex-basis: auto;
+      width: 100%;
+    }
+  }
+  .field-change {
+    white-space: pre-wrap;
+  }
+  .scope-list {
+    list-style: none;
+    padding: 0;
+  }
+  .scope-list li {
+    padding-block: 0.75rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .allocations {
+    margin-block: 0.75rem;
+    padding-inline-start: 2rem;
+  }
+  .allocations li {
+    padding-block: 0.5rem;
   }
   section,
   form {

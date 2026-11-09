@@ -163,8 +163,15 @@ class ExpenseWorkflowTest {
     }
 
     @Test fun scheduleRecoveryKeepsExpenseCaptureAndExplicitRequestControls(){
-        compose.setContent{ActualExpensesTheme{ExpensesScreen(ExpenseUiState(screen=Screen.EXPENSES,online=true,scheduledWorkPending=true,scheduledWorkError="Review older dates in actualBudget before retrying."),actions)}}
+        compose.setContent{ActualExpensesTheme{ExpensesScreen(state.copy(scheduledWorkPending=true,scheduledWorkError="Review older dates in actualBudget before retrying."),actions)}}
         compose.onNodeWithContentDescription("Add expense").assertIsDisplayed()
+        if (InstrumentationRegistry.getArguments().getString("scheduleCapture") == "true") {
+            compose.waitForIdle()
+            InstrumentationRegistry.getInstrumentation().sendStatus(2, android.os.Bundle().apply {
+                putString("stream", "SCHEDULE_CAPTURE_READY\n")
+            })
+            Thread.sleep(10_000)
+        }
         compose.onNodeWithText("Retry scheduled entries").performScrollTo().performClick()
         assertTrue(actions.retriedSchedules)
         compose.onNodeWithText("Cancel saved schedule request").performScrollTo().performClick()

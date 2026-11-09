@@ -12,17 +12,15 @@ import java.time.LocalDate
 
 class ExpenseViewModel(application: Application) : AndroidViewModel(application), ExpenseUiActions {
     private val graph = (application as ExpensesApplication).graph
-    private val pickingAccount = MutableStateFlow(false)
-    private val showingLogin = MutableStateFlow(false)
+    private val selection = MutableStateFlow<Screen?>(null)
     private val busy = MutableStateFlow(false)
     private val localError = MutableStateFlow<String?>(null)
     private data class SaveState(val saving: String? = null, val completed: String? = null)
     private val saveState = MutableStateFlow(SaveState())
-    private var editSession: EditSession? = null
     private var refreshJob: Job? = null
     private var recoveredPending = false
-    val state = combine(graph.state, pickingAccount, showingLogin, busy, localError) { state, choose, login, busy, error ->
-        state.toUi(choose, busy, error).let { if (login) it.copy(screen = Screen.LOGIN) else it }
+    val state = combine(graph.state, selection, busy, localError) { state, selection, busy, error ->
+        state.toUi(selection == Screen.ACCOUNTS, busy, error).let { if (selection != null && !state.legacyRecovery) it.copy(screen = selection) else it }
     }.combine(graph.loading) { state, loading -> state.copy(busy = state.busy || loading) }
         .combine(graph.fatalError) { state, fatal -> state.copy(error = fatal ?: state.error, busy = state.busy || fatal != null) }
         .combine(saveState) { state, operation -> state.copy(savingOperationId = operation.saving, completedOperationId = operation.completed) }
@@ -38,17 +36,18 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    override fun login(server: String, password: String) = task {
-        graph.access { it.login(server, password) }
-        showingLogin.value = false
+    override fun connect(server: String) = task {
+        graph.access { it.connect(server) }
+        selection.value = null
         graph.schedulePending()
         if (graph.state.value.budgetId != null) withContext(Dispatchers.Main) { refresh() }
     }
-    override fun chooseBudget(id: String) = task { graph.access { it.chooseBudget(id) }; pickingAccount.value = true }
-    override fun chooseAccount(id: String) = task { graph.access { it.chooseAccount(id) }; pickingAccount.value = false }
-    override fun showAccounts() { pickingAccount.value = true }
-    override fun backToLogin() { showingLogin.value = true }
-    override fun cancelSignIn() { showingLogin.value = false }
+    override fun chooseBudget(id: String) = task { graph.access { it.chooseBudget(id) }; selection.value = if(graph.state.value.selectedAccountId==null) Screen.ACCOUNTS else null }
+    override fun chooseAccount(id: String) = task { graph.access { it.chooseAccount(id) }; selection.value = null }
+    override fun showBudgets() = task {graph.access{it.refreshBudgets()};selection.value=Screen.BUDGETS}
+    override fun showAccounts() { selection.value = Screen.ACCOUNTS }
+    override fun showServer() { selection.value = Screen.SERVER }
+    override fun cancelConnection() { selection.value = null }
     override fun refresh() {
         if (refreshJob?.isActive == true) return
         refreshJob = viewModelScope.launch {
@@ -62,21 +61,18 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         }
     }
     fun markOffline() = task { graph.access { it.markOffline() } }
-    override fun beginEdit(id: String, completed: () -> Unit) = task {
-        editSession = graph.access { it.beginEdit(id) }
-        withContext(Dispatchers.Main) { completed() }
+    override fun beginEdit(id: String, completed: (EditSession) -> Unit) = task {
+        val session = graph.access { it.beginEdit(id) }
+        withContext(Dispatchers.Main) { completed(session) }
     }
     override fun save(form: ExpenseForm) = saveOperation(form.operationId) {
         graph.access { service ->
             val matchingPayee = service.state().payees.find { it.name.equals(form.payee.trim(), ignoreCase = true) }
             service.saveExpense(ExpenseDraft(form.amount, form.date.toString(), form.payee, matchingPayee?.id, form.categoryId, form.notes,
-                creationId = form.operationId.takeIf { form.id == null }),
-                if (form.id == null) null else editSession?.takeIf { it.transactionId == form.id }
-                    ?: error("Reopen this expense before editing it."))
+                creationId = form.operationId.takeIf { form.id == null },context=form.context), form.edit)
         }
     }
-    override fun delete(id: String, operationId: String) = saveOperation(operationId) {
-        val session = editSession?.takeIf { it.transactionId == id } ?: error("Reopen this expense before deleting it.")
+    override fun delete(session: EditSession, operationId: String) = saveOperation(operationId) {
         graph.access { it.deleteExpense(session) }
     }
     private fun saveOperation(id: String, action: suspend () -> Unit) {
@@ -101,7 +97,8 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
 
     private fun AppState.toUi(chooseAccount: Boolean, busy: Boolean, localError: String?): ExpenseUiState = ExpenseUiState(
         screen = when {
-            budgetId == null && !authenticated -> Screen.LOGIN
+            legacyRecovery -> Screen.RECOVERY
+            budgetId == null && !serverSelected -> Screen.SERVER
             budgetId == null -> Screen.BUDGETS
             selectedAccountId == null || chooseAccount -> Screen.ACCOUNTS
             else -> Screen.EXPENSES
@@ -112,8 +109,8 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         expenses = expenses.map { ExpenseRow(it.id, it.amountMinor, LocalDate.parse(it.date), it.payee, it.categoryId, it.category, it.notes, it.pending, it.pendingDeletion, it.editable) },
         payees = payees.map { Choice(it.id, it.name) }, categories = categories.map { Choice(it.id, it.name) },
         associations = payeeCategoryAssociations, currency = currency, decimalPlaces = decimalPlaces,
-        online = online, busy = busy, pendingCount = pendingCount, error = localError ?: error, notice = notice,
-        requiresSignIn = budgetId != null && !authenticated,
-        canCancelSignIn = budgetId != null,
+        online = online, busy = busy, pendingCount = pendingCount, error = if (legacyRecovery) null else localError ?: error, notice = notice,
+        recoveryMessage = if (legacyRecovery) error else null,
+        canCancelConnection = budgetId != null, expenseContext=expenseContext,
     )
 }

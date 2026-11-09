@@ -8,7 +8,7 @@ android
 
 ## Stack
 
-Delegated by the user: Kotlin, Jetpack Compose, native Android storage and pending-only WorkManager delivery. Direct Actual synchronization; no extra service.
+Delegated by the user: Kotlin, Jetpack Compose, native Android storage and pending-only WorkManager delivery. The versioned actualBudget HTTP API; no extra service.
 
 ## Users
 
@@ -24,7 +24,7 @@ An Android phone, at shops and on the move, reaching an existing HTTP Actual ser
 
 ## Capabilities and Constraints
 
-Setup is server/password, budget, account. Remember the account and secure session. Positive amount is required; payee, category, date and notes are optional. Cached payees and categories work offline. Preserve pending changes and show their state. Restrict offline editing to unsynced offline-created expenses, retaining an edit begun online if connectivity fails. Exclude transfers, income, splits and reconciled entries. Retain a backdated addition below the recent list. No idle background refresh.
+Setup is server address, budget, account, without login. Remember the account. Legacy encrypted data remains untouched behind an explicit recovery screen until its migration is available. Positive amount is required; payee, category, date and notes are optional. Cached payees and categories work offline. Preserve pending changes and show their state. Restrict offline editing to unsynced offline-created expenses, retaining an edit begun online if connectivity fails. Exclude transfers, income, splits and reconciled entries. Retain a backdated addition below the recent list. No idle background refresh.
 
 ## Brand Commitments
 

@@ -36,6 +36,7 @@ export interface PendingMutation {
   key: string;
   edit_clock?: string;
   cancelRequested?: boolean;
+  budgetEpoch?: string;
   body?: unknown;
 }
 export function registerPage(
@@ -114,6 +115,7 @@ export async function mutate<T>(
     pending.method,
     pending.edit_clock,
     cancelIfUncommitted,
+    pending.budgetEpoch,
   );
 }
 export function draftKey(budgetId: string) {

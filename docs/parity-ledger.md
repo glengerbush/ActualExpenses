@@ -25,7 +25,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | --- | --- | --- | --- |
 | 1 | 02, 52 | Budget files, backups and migration | [02: fresh HTTP web/API entry without login](open-budget-validation.md); final audit pending |
 | 2 | 02, 52 | Budget files, backups and migration | [02: no app credentials, sessions or identity flows in replacement](open-budget-validation.md); Android transition/final audit pending |
-| 3 | 02, 08 | Budget files, backups and migration | [02: create/select persistent budgets](open-budget-validation.md); rename/close/delete pending 08 |
+| 3 | 02, 08 | Budget files, backups and migration | [02: create/select persistent budgets](open-budget-validation.md); rename/close/delete/duplicate pending 08; duplication confirmed in pinned `budgetfiles/app.ts::duplicateBudget` and `DuplicateFileModal.tsx` |
 | 4 | 02, 08, 43 | Budget files, backups and migration | [02: remembered selection/drafts](open-budget-validation.md); [43: shared/device preferences and conversion](../actualBudget/web/docs/preferences-validation.md); budget management pending 08 |
 | 5 | 04, 50 | Budget files, backups and migration | [04: staged ordinary-ledger import with retained source/IDs](import-validation.md); complete migration qualification pending 50 |
 | 6 | 08, 50 | Budget files, backups and migration | Pending feature acceptance |

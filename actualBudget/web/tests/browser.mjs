@@ -220,23 +220,31 @@ try {
     { times: 1 },
   );
   await page.reload();
-  await expect(page.getByRole("alert")).toContainText(
-    "Cannot reach the server",
-  );
-  await page.getByRole("button", { name: "Retry", exact: true }).click();
+  await expect(
+    page
+      .getByRole("alert")
+      .filter({ hasText: "Cannot reach the server" })
+      .first(),
+  ).toContainText("Cannot reach the server");
+  await page
+    .getByRole("button", { name: "Retry connection", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Accounts", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "All budgets", exact: true }).click();
   await page.route(
-    "**/api/v1/budgets/*/accounts",
+    "**/api/v1/budgets/*/checkpoint",
     (route) => route.abort("connectionrefused"),
     { times: 1 },
   );
   await page.getByRole("button", { name: new RegExp(`${name}.*Open`) }).click();
-  await expect(page.getByRole("alert")).toContainText(
-    "Cannot reach the server",
-  );
+  await expect(
+    page
+      .getByRole("alert")
+      .filter({ hasText: "Cannot reach the server" })
+      .first(),
+  ).toContainText("Cannot reach the server");
   await page.getByRole("button", { name: "All budgets", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Your budgets", exact: true }),

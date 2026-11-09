@@ -119,7 +119,19 @@
       {#if session.error}<div class="error" role="alert">
           {t(session.error)}
         </div>{/if}
-      {#if session.draft.pending && !session.busy}<p
+      {#if session.blocked}
+        <button type="button" disabled={session.busy} onclick={() => session.reviewCurrent()}>{t("Review current budget")}</button>
+        {#if session.review}
+          <p>{t("Current budget:")} {session.review.budget.name}</p>
+          <p>{session.review.accounts.length ? `${t("Current accounts:")} ${session.review.accounts.map(account=>account.name).join(", ")}.` : t("Current accounts: none.")}</p>
+          <div class="actions">
+            <button type="button" disabled={session.busy} onclick={()=>{if(session.resolveReviewed(false)) oncancel();}}>{t("Discard saved account")}</button>
+            <button type="button" disabled={session.busy} onclick={()=>session.resolveReviewed(true)}>{t("Reapply as a new account")}</button>
+          </div>
+        {/if}
+      {/if}
+      {#if session.status}<p role="status">{t(session.status)}</p>{/if}
+      {#if session.draft.pending && !session.busy && !session.blocked}<p
           class="error"
           role="status"
         >
@@ -144,6 +156,8 @@
         >
       </div>
     </form>
+  {:else if session.status}
+    <p role="status">{t(session.status)}</p><button onclick={oncancel}>{t("Return to budget")}</button>
   {:else}
     {#if session.error}<p class="error" role="alert">{t(session.error)}</p>{/if}
     <button onclick={() => session.load()}>{t("Retry draft recovery")}</button>

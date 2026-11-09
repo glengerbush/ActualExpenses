@@ -1,4 +1,24 @@
 <script lang="ts">
+  import {
+    readBudget,
+    refreshBudget,
+    readView,
+    saveView,
+  } from "./offline/cache";
+  import {
+    entries,
+    receipts,
+    deleteOfflineExpense,
+    retryEntry,
+    enqueue,
+    type OutboxEntry,
+  } from "./offline/outbox";
+  import {
+    offlineStatus,
+    subscribeOffline,
+    deliverPending,
+  } from "./offline/delivery";
+  import { setReachable } from "./offline/events";
   import { onMount } from "svelte";
   import {
     nextEditClock,
@@ -8,10 +28,11 @@
   } from "./edit-clock";
   import { list, uuid, RequestError, errorMessage, type Account } from "./api";
   import { t } from "./i18n.svelte";
-  import { formatAmount, formatDate } from "./money";
+  import { formatAmount, formatDate, formatAmountInput } from "./money";
   import { preferences } from "./preferences.svelte";
   import {
     readTransactionDraft,
+    clearTransactionDraft,
     readRegisterAction,
     saveRegisterAction,
     clearRegisterAction,
@@ -38,6 +59,102 @@
     accountId?: string | null;
     onchanged?: () => Promise<void>;
   } = $props();
+  let disconnected = $state(!offlineStatus.reachable);
+  let compatible = $state(offlineStatus.compatible);
+  let cachedAt = $state<string | null>(null);
+  let queue = $state.raw<OutboxEntry[]>([]);
+  let queued = $state.raw<OutboxEntry | null>(null);
+  let receiptKeys: string | null = null;
+  let deliveryNotice = $state("");
+  let mounted = true;
+  async function readPending() {
+    try {
+      const [items, acknowledged] = await Promise.all([
+        entries(budgetId),
+        receipts(budgetId),
+      ]);
+      if (!mounted) return;
+      const oldDraft = readTransactionDraft(budgetId);
+      if (oldDraft?.pending && recoveredPending) {
+        const owned =
+          items.find((item) => item.key === oldDraft.draftId)?.pending ??
+          acknowledged.find((item) => item.key === oldDraft.draftId)?.pending;
+        if (
+          owned &&
+          JSON.stringify(owned) === JSON.stringify(oldDraft.pending)
+        ) {
+          clearTransactionDraft(oldDraft, true);
+          recoveredPending = false;
+          showForm = false;
+          editing = null;
+        }
+      }
+      const oldAction = readRegisterAction(budgetId);
+      if (oldAction) {
+        const owned =
+          items.find((item) => item.key === oldAction.key)?.pending ??
+          acknowledged.find((item) => item.key === oldAction.key)?.pending;
+        if (owned && JSON.stringify(owned) === JSON.stringify(oldAction)) {
+          clearRegisterAction(budgetId, oldAction);
+          pending = null;
+        }
+      }
+      queue = items.filter(
+        (item) => !accountId || item.row.account_id === accountId,
+      );
+      disconnected = !offlineStatus.reachable;
+      compatible = offlineStatus.compatible;
+      const keys = acknowledged.map((item) => item.key).join(",");
+      deliveryNotice = acknowledged.at(-1)?.message ?? "";
+      if (
+        receiptKeys !== null &&
+        keys !== receiptKeys &&
+        offlineStatus.reachable
+      ) {
+        void load();
+        void onchanged().catch(() => {});
+        notice = acknowledged.at(-1)?.message ?? "";
+      }
+      receiptKeys = keys;
+    } catch (e) {
+      recoveryError = errorMessage(e);
+    }
+  }
+  async function editQueued(item: OutboxEntry) {
+    queued = item;
+    editing = item.attempted ? item.row : null;
+    showForm = true;
+  }
+  async function deleteQueued(item: OutboxEntry) {
+    try {
+      await deleteOfflineExpense(item, {
+        path: `/budgets/${budgetId}/transactions/${item.row.id}`,
+        method: "DELETE",
+        key: uuid(),
+        edit_clock: nextEditClock(item.row.field_versions),
+        budgetEpoch: item.pending.budgetEpoch,
+      });
+      await readPending();
+      void deliverPending();
+    } catch (e) {
+      error = errorMessage(e);
+    }
+  }
+  async function retryQueued(item: OutboxEntry, cancel = false) {
+    try {
+      await retryEntry(item, cancel);
+      setReachable(navigator.onLine);
+      await deliverPending();
+      if (
+        cancel &&
+        (await receipts(budgetId)).some((receipt) => receipt.key === item.key)
+      )
+        resetCorrectedClock();
+      await readPending();
+    } catch (e) {
+      error = errorMessage(e);
+    }
+  }
   let register = $state.raw<RegisterPage | null>(null);
   let accounts = $state.raw<Account[]>([]);
   let payees = $state.raw<Reference[]>([]);
@@ -47,17 +164,28 @@
   let error = $state("");
   let recoveryError = $state("");
   let localClockProblem = $state(false);
+  let viewMatchesEpoch = $derived(
+    !register ||
+      !preferences.budgetEpoch ||
+      register.snapshot.slice(2, 34) === preferences.budgetEpoch,
+  );
   let asOf = $derived(register?.as_of ?? "");
   let retryCutoff = "";
   let loadGeneration = 0;
   let notice = $state("");
   let filterDate = $state("");
   let showForm = $state(false);
+  let recoveredPending = $state(false);
   let editing = $state.raw<Transaction | null>(null);
   let deleting = $state.raw<Transaction | null>(null);
+  let deletionEpoch = $state<string | undefined>();
   let pending = $state<SavedAction | null>(null);
   async function load() {
     return refresh(asOf);
+  }
+  async function userRefresh(cutoff: string) {
+    setReachable(navigator.onLine);
+    return refresh(cutoff);
   }
   async function refresh(cutoff: string) {
     const generation = ++loadGeneration;
@@ -66,22 +194,72 @@
     error = "";
     notice = "";
     try {
-      const [page, accountRows, payeeRows, categoryRows] = await Promise.all([
+      const [cached, cachedBudget] = await Promise.all([
+        readView(budgetId, accountId, cutoff).catch((e) => {
+          error = errorMessage(e);
+          return null;
+        }),
+        readBudget(budgetId).catch((e) => {
+          error = errorMessage(e);
+          return null;
+        }),
+      ]);
+      if (generation !== loadGeneration) return false;
+      if (cached) {
+        register = cached.page;
+        filterDate = cached.page.as_of ?? "";
+        cachedAt = cached.savedAt;
+        loading = false;
+      }
+      if (cachedBudget) {
+        accounts = cachedBudget.accounts;
+        payees = cachedBudget.payees;
+        categories = cachedBudget.categories;
+        preferences.useCachedBudget(
+          budgetId,
+          cachedBudget.preferences,
+          cachedBudget.savedAt,
+          cachedBudget.epoch,
+        );
+      }
+      if (!offlineStatus.reachable) {
+        disconnected = true;
+        return !!cached;
+      }
+      const [page, referenceData] = await Promise.all([
         registerPage(budgetId, accountId, 0, cutoff),
-        list<Account>(`/budgets/${budgetId}/accounts`),
-        references(budgetId, "payees"),
-        references(budgetId, "categories"),
+        refreshBudget(budgetId),
       ]);
       if (generation !== loadGeneration) return false;
       for (const row of page.data) observeVersions(row.field_versions);
       register = page;
+      try {
+        cachedAt = await saveView(budgetId, accountId, page);
+      } catch (e) {
+        cachedAt = null;
+        error = errorMessage(e);
+      }
+      register = page;
       filterDate = page.as_of ?? "";
-      accounts = accountRows;
-      payees = payeeRows;
-      categories = categoryRows;
+      accounts = referenceData.accounts;
+      payees = referenceData.payees;
+      categories = referenceData.categories;
+      preferences.useCachedBudget(
+        budgetId,
+        referenceData.preferences,
+        referenceData.savedAt,
+        referenceData.epoch,
+      );
+      disconnected = false;
       return true;
     } catch (e) {
-      if (generation === loadGeneration) error = errorMessage(e);
+      if (generation === loadGeneration) {
+        error = errorMessage(e);
+        if (e instanceof RequestError && !e.code) {
+          setReachable(false, error);
+          disconnected = true;
+        }
+      }
       return false;
     } finally {
       if (generation === loadGeneration) loading = false;
@@ -90,7 +268,9 @@
   function recover() {
     recoveryError = "";
     try {
-      showForm = !!readTransactionDraft(budgetId);
+      const saved = readTransactionDraft(budgetId);
+      showForm = !!saved;
+      recoveredPending = !!saved?.pending;
       pending = readRegisterAction(budgetId);
     } catch (e) {
       recoveryError = errorMessage(e);
@@ -98,13 +278,22 @@
   }
   onMount(() => {
     recover();
+    void readPending();
     void load();
+    const stop = subscribeOffline(() => void readPending());
+    return () => {
+      mounted = false;
+      loadGeneration++;
+      stop();
+    };
   });
 
   async function changed(message = "") {
     showForm = false;
     editing = null;
+    queued = null;
     deleting = null;
+    await readPending();
     await load();
     notice = message;
     try {
@@ -117,6 +306,7 @@
     }
   }
   async function refreshChanges() {
+    setReachable(navigator.onLine);
     if (!register) {
       await load();
       return;
@@ -157,6 +347,7 @@
     }
   }
   async function more() {
+    setReachable(navigator.onLine);
     if (!register || register.next_offset === null) return;
     const previous = register;
     const generation = ++loadGeneration;
@@ -186,6 +377,8 @@
     }
   }
   function open(transaction: Transaction | null) {
+    if (transaction && disconnected) return;
+    queued = null;
     editing = transaction;
     showForm = true;
     deleting = null;
@@ -207,15 +400,38 @@
           method: action === "delete" ? "DELETE" : "POST",
           key: uuid(),
           edit_clock: nextEditClock(row.field_versions),
+          budgetEpoch:
+            action === "delete" ? deletionEpoch : preferences.budgetEpoch,
           body: action === "duplicate" ? { id: uuid() } : undefined,
           description: `${action === "delete" ? t("Delete") : t("Duplicate")} ${description(row)}`,
         };
       }
       pending = { ...pending, clockRejected: false, attemptId: uuid() };
       saveRegisterAction(budgetId, pending);
-      await mutate(pending);
+      const submitted = pending;
+      if (row) {
+        const preview = {
+          ...row,
+          id:
+            action === "duplicate"
+              ? (pending.body as { id: string }).id
+              : row.id,
+        };
+        await enqueue({
+          budgetId,
+          pending: $state.snapshot(pending),
+          row: preview,
+          offlineCreated: false,
+        });
+        await deliverPending();
+        const receipt = (await receipts(budgetId)).find(
+          (r) => r.key === submitted.key,
+        );
+        terminalNotice =
+          receipt?.message ?? t("Saved on this device. Waiting to sync.");
+      } else await mutate(pending);
       acknowledged = true;
-      clearRegisterAction(budgetId, pending);
+      clearRegisterAction(budgetId, submitted);
       pending = null;
     } catch (e) {
       error = errorMessage(e);
@@ -325,10 +541,12 @@
         showForm ||
         accounts.length === 0 ||
         !!recoveryError ||
-        !preferences.hasUsableShared}>{t("Add transaction")}</button
+        !preferences.hasUsableShared ||
+        !viewMatchesEpoch ||
+        !compatible}>{t("Add transaction")}</button
     >
   </div>
-  {#if register && preferences.hasUsableShared}
+  {#if register && preferences.hasUsableShared && viewMatchesEpoch}
     <dl class="register-balances">
       <div>
         <dt>
@@ -359,7 +577,7 @@
       class="date-filter"
       onsubmit={(event) => {
         event.preventDefault();
-        void refresh(filterDate);
+        void userRefresh(filterDate);
       }}
     >
       <DateInput
@@ -372,7 +590,7 @@
       {#if asOf}<button
           type="button"
           onclick={() => {
-            void refresh("");
+            void userRefresh("");
           }}
           disabled={loading || busy}>{t("All dates")}</button
         >
@@ -394,9 +612,12 @@
     >{/if}
   {#if recoveryError}<p class="error" role="alert">{recoveryError}</p>
     <button onclick={recover}>{t("Retry saved work recovery")}</button>{/if}
+  {#if deliveryNotice && deliveryNotice !== notice}<p role="status">
+      {deliveryNotice}
+    </p>{/if}
   {#if notice}<p role="status">{notice}</p>{/if}
   {#if error}<p class="error" role="alert">{error}</p>
-    <button onclick={() => refresh(retryCutoff)} disabled={loading || busy}
+    <button onclick={() => userRefresh(retryCutoff)} disabled={loading || busy}
       >{t("Retry loading transactions")}</button
     >{/if}
   {#if pending}<div class="pending-action">
@@ -412,23 +633,77 @@
         >{t("Retry saved action")}</button
       >
     </div>{/if}
-  {#if showForm && accounts.length && !recoveryError}
+  {#if !viewMatchesEpoch}<p role="alert">
+      {t(
+        "This saved view belongs to an earlier budget restore. Refresh before using its balances. Pending work keeps its original budget generation.",
+      )}
+    </p>{/if}
+  {#if cachedAt}<p class="hint" role="status">
+      {disconnected
+        ? t("Disconnected. Cached view from")
+        : t("View saved on this device at")}
+      {new Date(cachedAt).toLocaleString()}. {t(
+        "Balances include confirmed transactions only.",
+      )}
+    </p>{/if}
+  {#if queue.length}<section
+      class="pending-action"
+      data-testid="pending-expenses"
+      aria-label={t("Pending expenses")}
+    >
+      <h3>{t("Pending expenses")}</h3>
+      {#each queue as item (item.key)}<div class="pending-expense">
+          <p>
+            {formatAmountInput(item.row.amount, item.format)} · {formatDate(
+              item.row.date,
+            )} · {item.row.notes || item.row.payee_name || t("No payee")}
+          </p>
+          <p role="status">
+            {item.blocked ||
+              (item.pending.method === "DELETE"
+                ? t("Deletion waiting to sync")
+                : t("Saved on this device. Waiting to sync."))}
+          </p>
+          {#if item.offlineCreated && item.pending.method !== "DELETE"}<button
+              onclick={() => void editQueued(item)}
+              disabled={showForm || busy || !!item.blocked}
+              >{t("Edit pending expense")}</button
+            ><button
+              onclick={() => void deleteQueued(item)}
+              disabled={showForm || busy || !!item.blocked}
+              >{t("Delete pending expense")}</button
+            >{/if}
+          <button
+            onclick={() => void retryQueued(item)}
+            disabled={showForm || busy}>{t("Retry pending expense")}</button
+          >
+          {#if item.blocked}<button
+              onclick={() => void retryQueued(item, true)}
+              disabled={showForm || busy}
+              >{t("Cancel pending change safely")}</button
+            >{/if}
+        </div>{/each}
+    </section>{/if}
+  {#if showForm && (accounts.length || recoveredPending) && !recoveryError}
     <TransactionForm
       {budgetId}
       {accounts}
       {payees}
       {categories}
       initial={editing}
+      {queued}
+      {disconnected}
       defaultAccountId={accountId}
       oncomplete={(_transaction, message) => void changed(message)}
       oncancel={() => {
         showForm = false;
         editing = null;
+        queued = null;
       }}
     />
   {/if}
   {#if loading}<p role="status">{t("Loading transactions…")}</p>{/if}
-  {#if register?.data.length && preferences.hasUsableShared}
+  {#if register?.data.length && preferences.hasUsableShared && viewMatchesEpoch}
     <table class="register-table">
       <caption class="visually-hidden"
         >{t("Account transactions, newest first")}</caption
@@ -472,7 +747,8 @@
             <td class="row-actions"
               ><button
                 onclick={() => open(row)}
-                disabled={loading ||
+                disabled={disconnected ||
+                  loading ||
                   busy ||
                   showForm ||
                   !!pending ||
@@ -483,7 +759,8 @@
                 >{t("Edit")}</button
               ><button
                 onclick={() => void runAction("duplicate", row)}
-                disabled={loading ||
+                disabled={disconnected ||
+                  loading ||
                   busy ||
                   showForm ||
                   !!pending ||
@@ -492,8 +769,12 @@
                 aria-label={`${t("Duplicate")} ${description(row)}`}
                 >{t("Duplicate")}</button
               ><button
-                onclick={() => (deleting = row)}
-                disabled={loading ||
+                onclick={() => {
+                  deleting = row;
+                  deletionEpoch = preferences.budgetEpoch;
+                }}
+                disabled={disconnected ||
+                  loading ||
                   busy ||
                   showForm ||
                   !!pending ||
@@ -610,6 +891,18 @@
   }
   .pending-action {
     padding: 1rem;
+  }
+  .pending-expense {
+    overflow-wrap: anywhere;
+  }
+  .pending-expense + .pending-expense {
+    border-top: 1px solid var(--line);
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+  .pending-expense button {
+    margin: 0 0.5rem 0.5rem 0;
+    max-width: 100%;
   }
   .delete-confirmation button {
     margin-right: 0.5rem;

@@ -1,3 +1,4 @@
+import { readBudget } from "./offline/cache";
 import { errorMessage, request } from "./api";
 import { themes } from "./themes/themes.svelte";
 import { setLanguage, languages } from "./i18n.svelte";
@@ -123,6 +124,24 @@ class Preferences {
     this.applyTheme();
     await this.retryLanguage();
   }
+  budgetEpoch = $state<string | undefined>(undefined);
+  useCachedBudget(
+    budgetId: string,
+    values: SharedPreferences,
+    savedAt: string,
+    epoch?: string,
+  ) {
+    if (!validShared(values))
+      throw new Error("Saved display preferences are invalid.");
+    this.generation++;
+    this.budgetId = budgetId;
+    this.shared = values;
+    this.cachedAt = savedAt;
+    this.budgetEpoch = epoch;
+    this.hasUsableShared = true;
+    this.loading = false;
+    this.error = "";
+  }
   async loadBudget(budgetId: string): Promise<void> {
     const generation = ++this.generation;
     this.budgetId = budgetId;
@@ -132,10 +151,19 @@ class Preferences {
     this.cachedAt = null;
     this.shared = defaultShared();
     try {
+      const offline = await readBudget(budgetId);
+      if (generation !== this.generation) return;
+      if (offline) {
+        this.shared = offline.preferences;
+        this.hasUsableShared = true;
+        this.cachedAt = offline.savedAt;
+        this.budgetEpoch = offline.epoch;
+      }
       const cache = JSON.parse(
         localStorage.getItem(cacheKey(budgetId)) ?? "null",
       );
       if (
+        !this.hasUsableShared &&
         cache?.version === 1 &&
         cache.budget_id === budgetId &&
         validShared(cache.values) &&
@@ -149,12 +177,16 @@ class Preferences {
       /* A readable server remains usable without a local cache. */
     }
     try {
+      const { data: checkpoint } = await request<{
+        data: { epoch: string; snapshot: string };
+      }>(`/budgets/${budgetId}/checkpoint`);
       const result = await request<{ data: SharedPreferences }>(
-        `/budgets/${budgetId}/preferences`,
+        `/budgets/${budgetId}/preferences?${new URLSearchParams({ snapshot: checkpoint.snapshot })}`,
       );
       if (generation !== this.generation) return;
       if (!validShared(result.data))
         throw new Error("Server returned unsupported display preferences.");
+      this.budgetEpoch = checkpoint.epoch;
       this.shared = result.data;
       this.hasUsableShared = true;
       this.cachedAt = new Date().toISOString();
@@ -181,15 +213,21 @@ class Preferences {
     budgetId: string,
     changes: Record<string, unknown>,
     key: string,
+    epoch?: string,
   ): Promise<SharedPreferences> {
     const { data } = await request<{ data: SharedPreferences }>(
       `/budgets/${budgetId}/preferences`,
       changes,
       key,
       "PATCH",
+      undefined,
+      false,
+      epoch,
     );
     if (!validShared(data))
       throw new Error("Server returned unsupported display preferences.");
+    if (epoch && budgetId === this.budgetId && epoch !== this.budgetEpoch)
+      return data; // A receipt from before restore must not replace current preferences.
     if (budgetId === this.budgetId) {
       this.shared = data;
       this.hasUsableShared = true;
@@ -215,6 +253,7 @@ class Preferences {
     this.generation++;
     this.budgetId = "";
     this.hasUsableShared = false;
+    this.budgetEpoch = undefined;
     this.shared = defaultShared();
     this.error = "";
     this.cachedAt = null;

@@ -1,7 +1,20 @@
 <script lang="ts">
+  import {
+    readCatalog,
+    saveCatalog,
+    readBudget,
+    refreshBudget,
+  } from "./lib/offline/cache";
+  import {
+    startDelivery,
+    subscribeOffline,
+    offlineStatus,
+  } from "./lib/offline/delivery";
+  import { setReachable } from "./lib/offline/events";
   import { onMount, tick } from "svelte";
   import {
     errorMessage,
+    RequestError,
     list,
     request,
     loadSelection,
@@ -18,8 +31,16 @@
   import Settings from "./lib/Settings.svelte";
   import ThemeRecovery from "./lib/themes/ThemeRecovery.svelte";
   import ImportBudget from "./lib/ImportBudget.svelte";
+  import BudgetManagement from "./lib/BudgetManagement.svelte";
+  import RestoreBudget from "./lib/RestoreBudget.svelte";
+  import type { ManagedBudget, LifecycleKind } from "./lib/lifecycle";
   import { preferences } from "./lib/preferences.svelte";
   import { t } from "./lib/i18n.svelte";
+  let disconnected = $state(!offlineStatus.reachable);
+  let offlineError = $state("");
+  let compatible = $state(true);
+  let cachedAt = $state<string | null>(null);
+  let navigation = 0;
   let budgets = $state.raw<Budget[]>([]);
   let accounts = $state.raw<Account[]>([]);
   let budget = $state.raw<Budget | null>(null);
@@ -27,7 +48,12 @@
   let loading = $state(true);
   let error = $state("");
   let recoveryError = $state("");
-  let form = $state<"budget" | "account" | "settings" | "import" | null>(null);
+  let form = $state<
+    "budget" | "account" | "settings" | "import" | "manage" | "restore" | null
+  >(null);
+  let managedBudget = $state.raw<ManagedBudget | null>(null);
+  let deletedBudgets = $state.raw<ManagedBudget[]>([]);
+  let deletedLoaded = $state(false);
   let main: HTMLElement | undefined;
   let retry = $state<() => Promise<void>>(initialize);
   async function focusContent() {
@@ -35,39 +61,66 @@
     main?.focus();
   }
   async function initialize() {
+    const generation = ++navigation;
     loading = true;
     error = "";
     retry = initialize;
     try {
+      const cached = await readCatalog().catch((e) => {
+        recoveryError = errorMessage(e);
+        return null;
+      });
+      if (generation !== navigation) return;
+      if (cached) {
+        budgets = cached.budgets;
+        cachedAt = cached.savedAt;
+        loading = false;
+      }
+      if (readDraft({ kind: "budget" })) {
+        form = "budget";
+        loading = false;
+        return;
+      }
+      const saved = loadSelection();
+      const found = budgets.find((item) => item.id === saved.budgetId);
+      if (found) {
+        await openBudget(found, saved.accountId);
+        return;
+      }
+      if (!offlineStatus.reachable) {
+        loading = false;
+        return;
+      }
       const { data: info } = await request<{ data: { api_version: number } }>(
         "/info",
       );
-      if (info.api_version !== 1)
+      if (info.api_version !== 1) {
+        offlineStatus.compatible = false;
         throw new Error(
           t(
             "This server uses an unsupported API version. Update the app and server together.",
           ),
         );
-      budgets = await list<Budget>("/budgets");
-      recoveryError = "";
-      try {
-        if (readDraft({ kind: "budget" })) {
-          form = "budget";
-          return;
-        }
-      } catch (e) {
-        recoveryError = errorMessage(e);
       }
-      const saved = loadSelection();
-      const found = budgets.find((b) => b.id === saved.budgetId);
-      if (found) await openBudget(found, saved.accountId);
+      const fresh = await list<Budget>("/budgets");
+      if (generation !== navigation) return;
+      budgets = fresh;
+      await saveCatalog(fresh);
+      cachedAt = new Date().toISOString();
+      setReachable(true);
+      const selected = fresh.find((item) => item.id === saved.budgetId);
+      if (selected) await openBudget(selected, saved.accountId);
     } catch (e) {
-      error = errorMessage(e);
+      if (generation === navigation) {
+        error = errorMessage(e);
+        if (e instanceof RequestError && !e.code) setReachable(false, error);
+      }
     } finally {
-      loading = false;
+      if (generation === navigation) loading = false;
     }
   }
   async function openBudget(value: Budget, accountId?: string) {
+    const generation = ++navigation;
     recoveryError = "";
     budget = value;
     account = null;
@@ -77,29 +130,88 @@
     form = null;
     retry = () => openBudget(value, accountId);
     try {
-      const [accountRows] = await Promise.all([
-        list<Account>(`/budgets/${value.id}/accounts`),
-        preferences.loadBudget(value.id),
-      ]);
-      accounts = accountRows;
-      account = accounts.find((a) => a.id === accountId) ?? null;
-      saveSelection(value.id, account?.id);
+      const cached = await readBudget(value.id).catch((e) => {
+        recoveryError = errorMessage(e);
+        return null;
+      });
+      if (generation !== navigation) return;
+      if (cached) {
+        accounts = cached.accounts;
+        account = accounts.find((item) => item.id === accountId) ?? null;
+        preferences.useCachedBudget(
+          value.id,
+          cached.preferences,
+          cached.savedAt,
+          cached.epoch,
+        );
+        cachedAt = cached.savedAt;
+        loading = false;
+      }
+      saveSelection(value.id, account?.id ?? accountId);
       try {
-        if (readDraft({ kind: "account", budget_id: value.id }))
+        if (readDraft({ kind: "account", budget_id: value.id })) {
           form = "account";
+          loading = false;
+          return;
+        }
       } catch (e) {
         recoveryError = errorMessage(e);
       }
+      if (!offlineStatus.reachable) return;
+      const { data: info } = await request<{ data: { api_version: number } }>(
+        "/info",
+      );
+      if (info.api_version !== 1) {
+        offlineStatus.compatible = false;
+        throw new Error(
+          t(
+            "This server uses an unsupported API version. Update the app and server together.",
+          ),
+        );
+      }
+      const fresh = await refreshBudget(value.id);
+      if (generation !== navigation) return;
+      accounts = fresh.accounts;
+      account = accounts.find((item) => item.id === accountId) ?? null;
+      preferences.useCachedBudget(
+        value.id,
+        fresh.preferences,
+        fresh.savedAt,
+        fresh.epoch,
+      );
+      cachedAt = fresh.savedAt;
+      budget = { ...value, epoch: fresh.epoch };
+      saveSelection(value.id, account?.id);
     } catch (e) {
-      error = errorMessage(e);
+      if (generation === navigation) {
+        error = errorMessage(e);
+        if (e instanceof RequestError && !e.code) setReachable(false, error);
+      }
     } finally {
-      loading = false;
-      await focusContent();
+      if (generation === navigation) {
+        loading = false;
+        await focusContent();
+      }
+    }
+  }
+  async function refreshCatalog() {
+    const generation = navigation;
+    try {
+      const fresh = await list<Budget>("/budgets");
+      await saveCatalog(fresh);
+      if (generation === navigation) {
+        budgets = fresh;
+        setReachable(true);
+      }
+    } catch (e) {
+      if (generation === navigation) error = errorMessage(e);
     }
   }
   async function showBudgets() {
+    navigation++;
     recoveryError = "";
     budget = null;
+    managedBudget = null;
     preferences.clearBudget();
     account = null;
     accounts = [];
@@ -107,19 +219,62 @@
     error = "";
     retry = initialize;
     saveSelection("");
+    if (navigator.onLine) {
+      setReachable(true);
+      void refreshCatalog();
+    }
     await focusContent();
   }
   async function selectAccount(value: Account | null) {
+    navigation++;
     account = value;
     saveSelection(budget!.id, value?.id);
     await focusContent();
   }
   async function showForm(
-    value: "budget" | "account" | "settings" | "import" | null,
+    value:
+      | "budget"
+      | "account"
+      | "settings"
+      | "import"
+      | "manage"
+      | "restore"
+      | null,
   ) {
+    navigation++;
     recoveryError = "";
     form = value;
     await focusContent();
+  }
+  async function manage(value: ManagedBudget) {
+    managedBudget = value;
+    await showForm("manage");
+  }
+  async function lifecycleChanged(value: ManagedBudget, reason: LifecycleKind) {
+    if (reason !== "duplicated") {
+      managedBudget = value;
+      if (value.deleted) {
+        budget = null;
+        account = null;
+        accounts = [];
+        preferences.clearBudget();
+        saveSelection("");
+      } else if (budget?.id === value.id) budget = value;
+    }
+    await refreshCatalog();
+  }
+  async function showDeleted() {
+    error = "";
+    try {
+      deletedBudgets = (
+        await request<{ data: ManagedBudget[] }>(
+          "/budgets?include_deleted=true",
+        )
+      ).data.filter((value) => value.deleted);
+      deletedLoaded = true;
+    } catch (e) {
+      error = errorMessage(e);
+    }
   }
   async function budgetCreated(value: Budget) {
     budgets = [...budgets.filter((b) => b.id !== value.id), value];
@@ -133,15 +288,29 @@
   async function refreshAccounts() {
     const budgetId = budget?.id;
     if (!budgetId) return;
-    const updated = await list<Account>(`/budgets/${budgetId}/accounts`);
-    if (budget?.id !== budgetId) return;
-    accounts = updated;
-    account = updated.find((item) => item.id === account?.id) ?? null;
+    if (!offlineStatus.reachable) return;
+    const generation = navigation;
+    const updated = await refreshBudget(budgetId);
+    if (budget?.id !== budgetId || generation !== navigation) return;
+    accounts = updated.accounts;
+    account = updated.accounts.find((item) => item.id === account?.id) ?? null;
+    cachedAt = updated.savedAt;
   }
   onMount(() => {
     const stopDevicePreferences = preferences.startDevice();
+    const stopDelivery = startDelivery();
+    const stopStatus = subscribeOffline(() => {
+      disconnected = !offlineStatus.reachable;
+      offlineError = offlineStatus.error;
+      compatible = offlineStatus.compatible;
+    });
     void initialize();
-    return stopDevicePreferences;
+    return () => {
+      navigation++;
+      stopStatus();
+      stopDelivery();
+      stopDevicePreferences();
+    };
   });
 </script>
 
@@ -185,6 +354,11 @@
         onclick={() => showForm("settings")}
         disabled={!!form || loading}>{t("Settings")}</button
       >
+      <button
+        onclick={() => budget && manage(budget)}
+        disabled={!!form || loading || disconnected || !compatible}
+        >{t("Manage budget")}</button
+      >
     {:else}<p class="muted sidebar-description">
         {t("Your accounts, together.")}
       </p>{/if}
@@ -200,6 +374,27 @@
     tabindex="-1"
     aria-busy={loading}
   >
+    {#if offlineError && offlineError !== error}<p role="alert" class="error">
+        {offlineError}
+      </p>{/if}
+    {#if cachedAt}<p class="hint" role="status">
+        {disconnected
+          ? t("Disconnected. Saved data from")
+          : t("Saved data from")}
+        {new Date(cachedAt).toLocaleString()}.
+      </p>{/if}
+    {#if error && (budget || budgets.length || form)}<p
+        class="error"
+        role="alert"
+      >
+        {error}
+      </p>
+      <button
+        onclick={() => {
+          setReachable(navigator.onLine);
+          void retry();
+        }}>{t("Retry connection")}</button
+      >{/if}
     {#if recoveryError && !form}<p class="error" role="alert">
         {recoveryError}
       </p>{/if}
@@ -224,11 +419,20 @@
         <div class="skeleton"></div>
         <div class="skeleton short"></div>
       </div>
-    {:else if error}<section>
+    {:else if error && !budget && !budgets.length && !form}<section>
         <h1>{t("Unable to open your data")}</h1>
         <p class="error" role="alert">{error}</p>
         <button class="primary" onclick={retry}>{t("Retry")}</button>
       </section>
+    {:else if form === "manage" && managedBudget}{#key managedBudget.id}<BudgetManagement
+          budget={managedBudget}
+          onchanged={lifecycleChanged}
+          onclose={showBudgets}
+        />{/key}
+    {:else if form === "restore"}<RestoreBudget
+        onrestored={budgetCreated}
+        onclose={showBudgets}
+      />
     {:else if form === "budget"}<BudgetForm
         oncreated={budgetCreated}
         oncancel={() => showForm(null)}
@@ -253,11 +457,19 @@
           <p class="muted">{t("Choose a budget or start a new one.")}</p>
         </div>
         <div class="budget-actions">
-          <button onclick={() => showForm("import")}
+          <button
+            onclick={() => showForm("restore")}
+            disabled={disconnected || !compatible}>{t("Restore backup")}</button
+          >
+          <button
+            onclick={() => showForm("import")}
+            disabled={disconnected || !compatible}
             >{t("Import Actual budget")}</button
           >
-          <button class="primary" onclick={() => showForm("budget")}
-            >{t("New budget")}</button
+          <button
+            class="primary"
+            onclick={() => showForm("budget")}
+            disabled={disconnected || !compatible}>{t("New budget")}</button
           >
         </div>
       </div>
@@ -280,6 +492,20 @@
             )}
           </p>
         </div>{/if}
+      <section aria-label={t("Deleted budget recovery")}>
+        <button onclick={showDeleted} disabled={disconnected || !compatible}
+          >{t("Find deleted budgets")}</button
+        >
+        {#if deletedBudgets.length}<ul class="budget-list">
+            {#each deletedBudgets as item (item.id)}<li>
+                <button onclick={() => manage(item)}
+                  ><span>{item.name}</span><span
+                    >{t("View recovery backups")}</span
+                  ></button
+                >
+              </li>{/each}
+          </ul>{:else if deletedLoaded}<p>{t("No deleted budgets.")}</p>{/if}
+      </section>
     {:else if !preferences.hasUsableShared}
       <section>
         <h1>{t("Display preferences are unavailable")}</h1>
@@ -307,8 +533,10 @@
           <h1>{t("Accounts")}</h1>
           <p class="muted">{budget.name}</p>
         </div>
-        <button class="primary" onclick={() => showForm("account")}
-          >{t("Add account")}</button
+        <button
+          class="primary"
+          onclick={() => showForm("account")}
+          disabled={disconnected || !compatible}>{t("Add account")}</button
         >
       </div>
       {#if accounts.length}<div class="table-wrap">

@@ -17,32 +17,31 @@ class ActualDeviceIntegrationTest {
     @Test fun setupAndSaveThroughTheRealAndroidAdapters() {
         val args = InstrumentationRegistry.getArguments()
         val server = args.getString("fixtureServer")
-        val password = args.getString("fixturePassword")
-        assumeTrue("Pass disposable fixtureServer/fixturePassword to run", server != null && password != null)
+        assumeTrue("Pass disposable fixtureServer to run", server != null)
         require(server!!.startsWith("http://10.0.2.2:")) { "Device test accepts only the disposable emulator-host server" }
-        compose.waitUntil(15_000) { compose.onAllNodesWithText("Connect to Actual").fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(15_000) { compose.onAllNodesWithText("Connect to actualBudget").fetchSemanticsNodes().isNotEmpty() }
         screenshot("01-setup")
         compose.onNodeWithText("Server address").performTextInput(server)
-        compose.onNodeWithText("Actual password").performTextInput(password!!)
         compose.onNodeWithText("Connect", substring = false).performScrollTo().performClick()
-        compose.waitUntil(30_000) { compose.onAllNodesWithText("ActualExpenses disposable compatibility budget").fetchSemanticsNodes().isNotEmpty() }
-        compose.onNodeWithText("ActualExpenses disposable compatibility budget").performScrollTo().performClick()
+        compose.waitUntil(30_000) { compose.onAllNodesWithText("Native device fixture").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("Native device fixture").performScrollTo().performClick()
         compose.waitUntil(30_000) { compose.onAllNodesWithText("Spending").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText("Spending").performClick()
         compose.waitUntil(15_000) { compose.onAllNodesWithContentDescription("Add expense").fetchSemanticsNodes().isNotEmpty() }
         screenshot("02-register")
+        val purchase="Device acceptance ${System.currentTimeMillis()}"
         compose.onNodeWithContentDescription("Add expense").performClick()
         compose.onNode(hasSetTextAction() and hasText("Amount", substring = true)).performTextInput("4.27")
-        compose.onNodeWithText("Payee (optional)").performTextInput("Device acceptance purchase")
+        compose.onNodeWithText("Payee (optional)").performTextInput(purchase)
         compose.onNodeWithText("Save expense").performScrollTo()
         screenshot("03-editor")
         compose.onNodeWithText("Save expense").performClick()
         val graph = (compose.activity.application as ExpensesApplication).graph
         compose.waitUntil(45_000) {
             val state = graph.state.value
-            state.pendingCount == 0 && state.expenses.any { it.payee == "Device acceptance purchase" && it.amountMinor == 427L }
+            state.pendingCount == 0 && state.expenses.any { it.payee == purchase && it.amountMinor == 427L }
         }
-        compose.onNodeWithText("Device acceptance purchase").assertExists()
+        compose.onNodeWithText(purchase).assertExists()
         screenshot("04-saved")
     }
 

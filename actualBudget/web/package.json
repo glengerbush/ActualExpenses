@@ -7,7 +7,7 @@
     "dev": "vite",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "build": "vite build",
-    "test:browser": "node tests/generate-preferences-fixture.mjs --check && node tests/generate-date-fixture.mjs --check && python3 ../tools/generate-theme-data.py --check && node tests/generate-theme-fixture.mjs --check && node tests/browser.mjs && node tests/register.mjs && node tests/date-input-browser.mjs && node tests/register-recovery.mjs && node tests/preferences-browser.mjs && node tests/date-recovery-browser.mjs && node tests/imports.mjs && node tests/concurrency-browser.mjs && node tests/receipt-feedback-browser.mjs && node tests/themes-browser.mjs",
+    "test:browser": "node tests/generate-preferences-fixture.mjs --check && node tests/generate-date-fixture.mjs --check && python3 ../tools/generate-theme-data.py --check && node tests/generate-theme-fixture.mjs --check && node tests/browser.mjs && node tests/register.mjs && node tests/date-input-browser.mjs && node tests/register-recovery.mjs && node tests/preferences-browser.mjs && node tests/date-recovery-browser.mjs && node tests/imports.mjs && node tests/concurrency-browser.mjs && node tests/receipt-feedback-browser.mjs && node tests/themes-browser.mjs && node tests/offline-browser.mjs && node tests/offline-epoch-browser.mjs && node tests/lifecycle-browser.mjs && node tests/budget-epoch-browser.mjs",
     "format:check": "prettier --plugin=prettier-plugin-svelte --check \"src/**/*.{ts,svelte,css}\" \"tests/*.mjs\" package.json tsconfig.json vite.config.ts index.html"
   },
   "dependencies": {

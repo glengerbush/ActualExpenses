@@ -1,6 +1,6 @@
 # actualBudget
 
-The replacement web/server application uses a static Svelte 5 frontend, Rust/Axum and authoritative SQLite, with no application login. The current runtime creates/selects budgets and accounts, manages ledger transactions, and retains display preferences. Other rewrite features, including limited offline expense capture, follow in later tickets; this is not yet a production cutover. See the [accepted architecture](../docs/adr/0005-server-authoritative-web-architecture.md) and [migration plan](../docs/fork-migration-plan.md).
+The replacement web/server application uses a static Svelte 5 frontend, Rust/Axum and authoritative SQLite, with no application login. The current runtime creates/selects budgets and accounts, manages ledger transactions, retains display preferences, and captures expenses during temporary disconnection. Other rewrite features follow in later tickets; this is not yet a production cutover. See the [accepted architecture](../docs/adr/0005-server-authoritative-web-architecture.md) and [migration plan](../docs/fork-migration-plan.md).
 
 ## Run locally
 
@@ -25,6 +25,10 @@ Budget creation uses an origin-scoped versioned localStorage record; account cre
 Acknowledgement or an intentional cancellation of an unsubmitted draft removes its record. A confirmed validation rejection preserves editable fields. Unknown, malformed, mismatched-origin or mismatched-budget records are retained and reported instead of being delivered or overwritten. A storage error is visible and blocks a new POST; it does not erase the current fields. Clearing browser data manually removes local drafts, so avoid doing that while a creation is unconfirmed.
 
 A draft's UUID also identifies its operation and resulting entity. Two tabs submitting the same saved draft therefore cannot create two entities. Different payloads using that identity receive a conflict rather than silently replacing the first creation; this does not provide collaborative form editing.
+
+## Offline web capture
+
+Previously opened budgets and bounded register views are cached with visible saved dates. A loaded page can record ordinary expenses while disconnected and edit/delete its own pending expenses. Confirmed balances exclude pending work. Durable queued requests resume on reconnect or foreground; interrupted edits retain their original identity and budget generation. Calculator expressions, new reference data, and beginning edits to confirmed transactions require a connection. Plain HTTP does not guarantee cold offline navigation or OS background execution. See [offline behavior and verification](../docs/offline-web-validation.md).
 
 ## Verify the runtime
 

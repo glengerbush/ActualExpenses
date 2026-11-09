@@ -11,16 +11,24 @@ data class Expense(
     val payeeId: String?, val payee: String, val categoryId: String?, val category: String,
     val notes: String, val pending: Boolean, val pendingDeletion: Boolean, val editable: Boolean,
 )
+data class ExpenseContext(
+    val server: String, val budgetId: String, val accountId: String, val epoch: String,
+    val currency: String, val decimalPlaces: Int, val numberFormat: String,
+    val apiFamily: String = "actualBudget-v1",
+)
 data class ExpenseDraft(
     val amount: String, val date: String = LocalDate.now().toString(),
     val payee: String = "", val payeeId: String? = null, val categoryId: String? = null,
     val notes: String = "",
     val creationId: String? = null,
+    val context: ExpenseContext? = null,
 )
 /** Issued when editing begins; preserves permission if the connection drops during editing. */
-data class EditSession(val transactionId: String, val beganOnline: Boolean, val original: ExpenseDraft? = null)
+data class EditSession(val transactionId: String, val beganOnline: Boolean, val original: ExpenseDraft? = null, val context: ExpenseContext? = null)
 data class AppState(
     val server: String = "", val authenticated: Boolean = false,
+    val serverSelected: Boolean = false, val legacyRecovery: Boolean = false,
+    val expenseContext: ExpenseContext? = null,
     val budgets: List<RemoteBudget> = emptyList(), val budgetId: String? = null,
     val accounts: List<Choice> = emptyList(), val selectedAccountId: String? = null,
     val expenses: List<Expense> = emptyList(), val payees: List<Choice> = emptyList(),

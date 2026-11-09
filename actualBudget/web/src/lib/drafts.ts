@@ -43,6 +43,7 @@ export interface BudgetDraft extends BaseDraft {
 export interface AccountDraft extends BaseDraft {
   kind: "account";
   budget_id: string;
+  budget_epoch?: string;
   fields: AccountFields;
   pending: { key: string; body: NewAccount } | null;
 }
@@ -84,6 +85,7 @@ export function newAccountDraft(budget_id: string): AccountDraft {
     draft_id: uuid(),
     kind: "account",
     budget_id,
+    budget_epoch: preferences.budgetEpoch,
     fields: {
       name: "",
       balance: formatAmountInput(0, amountFormat),
@@ -163,6 +165,13 @@ function validate(value: unknown, scope: DraftScope): value is CreationDraft {
   )
     return false;
   if (scope.kind === "account" && value.budget_id !== scope.budget_id)
+    return false;
+  if (
+    scope.kind === "account" &&
+    value.budget_epoch !== undefined &&
+    (typeof value.budget_epoch !== "string" ||
+      !/^[a-f0-9]{32}$/.test(value.budget_epoch))
+  )
     return false;
   const fields = value.fields;
   if (!string(fields.name, 120)) return false;
@@ -259,6 +268,14 @@ export function saveDraft(
   if (stored && stored.draft_id !== draft.draft_id)
     throw new Error(
       "Another creation draft is saved here. Reload to recover it before making changes.",
+    );
+  if (
+    stored?.kind === "account" &&
+    draft.kind === "account" &&
+    stored.budget_epoch !== draft.budget_epoch
+  )
+    throw new Error(
+      "The saved account belongs to an earlier budget version. Review it before making a new request.",
     );
   if (
     stored?.pending &&

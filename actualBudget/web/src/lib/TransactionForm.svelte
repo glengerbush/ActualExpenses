@@ -1,4 +1,17 @@
 <script lang="ts">
+  import {
+    entries,
+    enqueue,
+    receipts,
+    type OutboxEntry,
+  } from "./offline/outbox";
+  import {
+    deliverPending,
+    offlineStatus,
+    subscribeOffline,
+  } from "./offline/delivery";
+  import { setReachable } from "./offline/events";
+  import { parseAmount } from "./money";
   import DateInput from "./DateInput.svelte";
   import {
     nextEditClock,
@@ -33,6 +46,8 @@
     payees,
     categories,
     initial = null,
+    queued = null,
+    disconnected = false,
     defaultAccountId = null,
     oncomplete,
     oncancel,
@@ -42,6 +57,8 @@
     payees: Reference[];
     categories: Reference[];
     initial?: Transaction | null;
+    queued?: OutboxEntry | null;
+    disconnected?: boolean;
     defaultAccountId?: string | null;
     oncomplete: (transaction: Transaction | null, notice?: string) => void;
     oncancel: () => void;
@@ -50,6 +67,28 @@
   let error = $state("");
   let busy = $state(false);
   let restored = $state(false);
+  let externalChanged = $state(false);
+  async function checkSharedIntent() {
+    if (!draft || draft.pending || queued) return;
+    try {
+      const [pendingRows, acknowledged] = await Promise.all([
+        entries(budgetId),
+        receipts(budgetId),
+      ]);
+      if (!draft || draft.pending) return;
+      if (
+        pendingRows.some((item) => item.key === draft!.draftId) ||
+        acknowledged.some((item) => item.key === draft!.draftId)
+      ) {
+        externalChanged = true;
+        error = t(
+          "Another tab saved this draft. Reload to recover its pending or confirmed result before changing it.",
+        );
+      }
+    } catch (e) {
+      error = errorMessage(e);
+    }
+  }
   let localClockProblem = $state(false);
   let selectedAccount = $derived(
     accounts.find((a) => a.id === draft?.fields.account_id),
@@ -61,7 +100,14 @@
     error = "";
     try {
       const saved = readTransactionDraft(budgetId);
-      if (saved) {
+      if (!saved && queued?.draft && !queued.attempted) {
+        draft = {
+          ...structuredClone(queued.draft),
+          pending: null,
+          editClock: undefined,
+        };
+        persist(draft);
+      } else if (saved) {
         draft = saved;
         restored = true;
       } else {
@@ -71,7 +117,7 @@
               "Load this budget’s display preferences before entering an amount.",
             ),
           );
-        const format = captureAmountFormat();
+        const format = queued?.format ?? captureAmountFormat();
         draft = {
           version: 1,
           origin: location.origin,
@@ -81,9 +127,14 @@
           referenceIds: { payee: uuid(), category: uuid() },
           original: initial,
           format,
-          dateFormat: preferences.shared.date_format,
+          dateFormat:
+            queued?.draft?.dateFormat ?? preferences.shared.date_format,
           amountDirty: !initial,
           pending: null,
+          budgetEpoch: queued
+            ? queued.pending.budgetEpoch
+            : preferences.budgetEpoch,
+          beganOnline: !disconnected,
           fields: {
             account_id:
               initial?.account_id ?? defaultAccountId ?? accounts[0]?.id ?? "",
@@ -95,7 +146,7 @@
             payee: initial?.payee_id ?? "",
             category: initial?.category_id ?? "",
             notes: initial?.notes ?? "",
-            cleared: initial?.cleared ?? false,
+            cleared: initial?.cleared ?? disconnected,
             newPayee: "",
             newCategory: "",
             categoryIncome: false,
@@ -107,9 +158,13 @@
       error = errorMessage(e);
     }
   }
-  onMount(load);
+  onMount(() => {
+    load();
+    void checkSharedIntent();
+    return subscribeOffline(() => void checkSharedIntent());
+  });
   function update<K extends keyof Fields>(field: K, value: Fields[K]) {
-    if (!draft || draft.pending) return;
+    if (!draft || draft.pending || externalChanged) return;
     draft.fields[field] = value;
     draft.editClock = undefined;
     if (field === "amount" || field === "direction") draft.amountDirty = true;
@@ -125,12 +180,37 @@
       error = errorMessage(e);
     }
   }
+  async function entryAmount(input: string) {
+    if (!draft) throw new Error("No transaction draft.");
+    if (disconnected || !offlineStatus.reachable) {
+      try {
+        return parseAmount(input, draft.format);
+      } catch {
+        throw new Error(
+          t(
+            "Offline entry needs a plain amount in this currency. Calculator expressions require a connection.",
+          ),
+        );
+      }
+    }
+    try {
+      return await calculateAmount(input, draft.format);
+    } catch (error) {
+      if (error instanceof RequestError && !error.code) {
+        setReachable(false);
+        try {
+          return parseAmount(input, draft.format);
+        } catch {}
+      }
+      throw error;
+    }
+  }
   async function calculate() {
     if (!draft) return;
     busy = true;
     error = "";
     try {
-      const amount = await calculateAmount(draft.fields.amount, draft.format);
+      const amount = await entryAmount(draft.fields.amount);
       draft.fields.amount = formatAmountInput(Math.abs(amount), draft.format);
       draft.amountDirty = true;
       persist(draft);
@@ -167,6 +247,25 @@
       persist(draft);
     }
     const f = draft.fields;
+    if ((!offlineStatus.reachable || disconnected) && !draft.original) {
+      if (
+        f.direction !== "expense" ||
+        f.payee === "new" ||
+        f.category === "new"
+      )
+        throw new Error(
+          t(
+            "Offline capture supports ordinary expenses with existing payees and categories.",
+          ),
+        );
+    }
+    if (
+      (!offlineStatus.reachable || disconnected) &&
+      draft.original &&
+      !draft.beganOnline &&
+      !queued?.offlineCreated
+    )
+      throw new Error(t("Reconnect before editing a saved transaction."));
     const date = parseDateInput(f.date, draft.dateFormat);
     if (!validDate(date)) throw new Error(t("Enter a valid date."));
     const body: Record<string, unknown> = {
@@ -183,7 +282,7 @@
           : f.category || null,
     };
     if (!draft.original || draft.amountDirty) {
-      const amount = await calculateAmount(f.amount, draft.format);
+      const amount = await entryAmount(f.amount);
       body.amount = (f.direction === "expense" ? -1 : 1) * Math.abs(amount);
     }
     if (f.payee === "new") {
@@ -215,6 +314,7 @@
       method: draft.original ? "PATCH" : "POST",
       key: draft.draftId,
       edit_clock: draft.editClock,
+      budgetEpoch: draft.budgetEpoch,
       body,
     };
   }
@@ -254,14 +354,33 @@
       );
     return { transaction, notice };
   }
+  function preview(pending: PendingMutation): Transaction {
+    const fields = draft!.fields;
+    const body = pending.body as Partial<Transaction>;
+    return {
+      id: draft!.id,
+      account_id: fields.account_id,
+      account_name:
+        accounts.find((a) => a.id === fields.account_id)?.name ?? "",
+      amount: body.amount ?? draft!.original?.amount ?? 0,
+      date: parseDateInput(fields.date, draft!.dateFormat),
+      cleared: fields.cleared,
+      reconciled: false,
+      starting_balance: false,
+      notes: fields.notes,
+      payee_id: fields.payee || null,
+      payee_name: payees.find((p) => p.id === fields.payee)?.name ?? null,
+      category_id: fields.category || null,
+      category_name:
+        categories.find((c) => c.id === fields.category)?.name ?? null,
+      category_is_income: false,
+    };
+  }
   async function submit(event: SubmitEvent) {
     event.preventDefault();
-    if (!draft) return;
+    if (!draft || externalChanged) return;
     busy = true;
     error = "";
-    let completed: Transaction | null = null;
-    let notice = "";
-    let deletedRemotely = false;
     try {
       const pending = await prepare();
       if (!pending) {
@@ -269,49 +388,37 @@
         oncancel();
         return;
       }
-      const submitted = {
-        ...draft,
-        pending,
-        clockRejected: false,
-        attemptId: uuid(),
-      };
-      draft = submitted;
-      persist(submitted);
-      const response = await mutate<Transaction>(pending);
-      const outcome = interpretOutcome(response);
-      completed = outcome.transaction;
-      notice = outcome.notice;
+      draft = { ...draft, pending, clockRejected: false, attemptId: uuid() };
+      persist(draft);
+      await enqueue({
+        budgetId,
+        pending: $state.snapshot(pending),
+        row: preview(pending),
+        draft: $state.snapshot(draft),
+        offlineCreated:
+          queued?.offlineCreated ??
+          (!draft.original &&
+            (!draft.beganOnline || disconnected || !offlineStatus.reachable)),
+        replace: queued && !queued.attempted ? queued : undefined,
+        dependsOn: queued?.attempted ? queued.key : undefined,
+      });
+      await deliverPending();
+      const receipt = (await receipts(budgetId)).find(
+        (r) => r.key === pending.key,
+      );
+      // Ownership transfers only after the IndexedDB transaction has committed.
       clearTransactionDraft(draft, true);
+      if (receipt) {
+        oncomplete(receipt.row ?? null, receipt.message);
+      } else {
+        oncomplete(null, t("Saved on this device. Waiting to sync."));
+      }
     } catch (e) {
       error = errorMessage(e);
       if (e instanceof LocalClockError) localClockProblem = true;
-      if (draft && e instanceof RequestError && !e.uncertain && draft.pending) {
-        try {
-          if (e.code === "clock_skew" || e.code === "clock_overflow") {
-            const rejected = { ...draft, clockRejected: true };
-            persist(rejected);
-            draft = rejected;
-          } else if (
-            e.code === "transaction_deleted" ||
-            e.code === "operation_canceled"
-          ) {
-            clearTransactionDraft(draft, true);
-            deletedRemotely = true;
-            notice = error;
-          } else {
-            const editable = { ...draft, pending: null };
-            saveTransactionDraft(editable, draft.pending);
-            draft = editable;
-          }
-        } catch (storageError) {
-          error = errorMessage(storageError);
-        }
-      }
-      completed = null;
     } finally {
       busy = false;
     }
-    if (completed || deletedRemotely) oncomplete(completed, notice);
   }
   async function recoverClock(discard = false) {
     if (!draft || busy || (draft.pending && !draft.clockRejected)) return;
@@ -390,7 +497,7 @@
     </p>{/if}
   {#if draft}
     <form onsubmit={submit} aria-busy={busy}>
-      <fieldset disabled={busy || !!draft.pending}>
+      <fieldset disabled={busy || !!draft.pending || externalChanged}>
         <div class="entry-pair">
           <div>
             <label for="transaction-account">{t("Account")}</label><select
@@ -424,6 +531,7 @@
                 () => draft!.fields.direction, (v) => update("direction", v)
               }
               ><option value="expense">{t("Expense")}</option><option
+                disabled={disconnected && !draft.original}
                 value="income">{t("Income or refund")}</option
               ></select
             >
@@ -440,13 +548,17 @@
                 bind:value={
                   () => draft!.fields.amount, (v) => update("amount", v)
                 }
-              /><button type="button" onclick={calculate}
-                >{t("Calculate")}</button
+              /><button
+                type="button"
+                onclick={calculate}
+                disabled={disconnected}>{t("Calculate")}</button
               >
             </div>
             <p id="calculator-hint" class="hint">
               {t(
-                "Use +, −, *, /, ^ and parentheses. Expenses subtract; income adds.",
+                disconnected
+                  ? "Offline: enter a plain amount. Calculator expressions require a connection."
+                  : "Use +, −, *, /, ^ and parentheses. Expenses subtract; income adds.",
               )}
             </p>
           </div>
@@ -459,7 +571,8 @@
               ><option value="">{t("No payee")}</option
               >{#each payees as payee (payee.id)}<option value={payee.id}
                   >{payee.name}</option
-                >{/each}<option value="new">{t("Create payee…")}</option
+                >{/each}<option value="new" disabled={disconnected}
+                >{t("Create payee…")}</option
               ></select
             >
             {#if draft.fields.payee === "new"}<label for="new-payee-name"
@@ -483,7 +596,8 @@
               ><option value="">{t("Uncategorized")}</option
               >{#each categories as category (category.id)}<option
                   value={category.id}>{category.name}</option
-                >{/each}<option value="new">{t("Create category…")}</option
+                >{/each}<option value="new" disabled={disconnected}
+                >{t("Create category…")}</option
               ></select
             >
             {#if draft.fields.category === "new" && !selectedAccount?.off_budget}<label
@@ -544,7 +658,8 @@
       {:else if localClockProblem && !draft.pending}<button
           type="button"
           onclick={() => recoverClock()}
-          disabled={busy}>{t("Use corrected device time")}</button
+          disabled={busy || externalChanged}
+          >{t("Use corrected device time")}</button
         >{/if}
       <div class="actions">
         <button class="primary" disabled={busy}

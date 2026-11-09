@@ -40,6 +40,7 @@ struct Page {
     limit: u32,
     #[serde(default)]
     offset: u32,
+    snapshot: Option<String>,
 }
 fn default_limit() -> u32 {
     100
@@ -57,7 +58,7 @@ async fn list(
     }
     let categories = uri.path().ends_with("/categories");
     let result=store.run(move|db| {
-        store::require_budget(db,&budget)?;
+        crate::concurrency::check_snapshot(db,&budget,page.snapshot.as_deref())?;
         let sql=if categories {"SELECT id,name,is_income FROM categories WHERE budget_id=?1 ORDER BY name,id LIMIT ?2 OFFSET ?3"} else {"SELECT id,name FROM payees WHERE budget_id=?1 ORDER BY name,id LIMIT ?2 OFFSET ?3"};
         let mut query=db.prepare(sql)?;
         let rows=query.query_map(params![budget,page.limit+1,page.offset],|r| {
@@ -85,10 +86,11 @@ async fn create(
         return Err(Error::invalid("Payees cannot specify is_income"));
     }
     let key = idempotency_key(&headers)?;
+    let epoch = crate::lifecycle::epoch_header(&headers)?;
     let payload = serde_json::to_string(&input).map_err(Error::internal)?;
     let table = if categories { "categories" } else { "payees" };
     let result=store.run(move|db|store::write(db,&format!("POST /budgets/{budget}/{table}"),&key,&payload,|db| {
-        store::require_budget(db,&budget)?;
+        crate::lifecycle::require_epoch(db,&budget,epoch.as_deref())?;
         if db.query_row(&format!("SELECT EXISTS(SELECT 1 FROM {table} WHERE budget_id=?1 AND id=?2)"),params![budget,input.id],|r|r.get::<_,bool>(0))? {return Err(Error::conflict("Reference ID already exists"));}
         let mut result=json!({"id":input.id,"name":input.name});
         if categories {

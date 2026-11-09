@@ -1,9 +1,11 @@
 mod api;
 mod calculator;
+mod companion;
 mod concurrency;
 mod error;
 mod imports;
 mod ledger;
+mod lifecycle;
 mod migrations;
 mod models;
 mod origin;

@@ -52,3 +52,10 @@ Material 3 component shapes. Do not separately style controls to resemble anothe
 ## Do's and Don'ts
 
 Preserve Android familiarity. Keep actual data primary. Do not present synthetic purchases in the running app, turn sync machinery into extra navigation, add unrelated budgeting controls, or use color as the only state signal. Illustration-free screens are intentional.
+
+
+## API transition refinement (ticket 06)
+
+Preserve the existing native Material 3 Operate surface. Setup asks only for a server address, then budget/account. Account selection exposes Change budget, budget selection exposes Change server; pending work prevents crossing its original scope. Legacy state gets a plain recovery explanation with no destructive reset or competing setup action.
+
+Expense editors preserve their original financial context across screen restoration. Restored budget or incompatible server errors retain entered values. No extra navigation, auth fields or sync dashboard were introduced. Final native render evidence and qualification limits live in [Android API validation](../docs/android-api-validation.md).

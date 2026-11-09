@@ -2,6 +2,8 @@ export interface Budget {
   id: string;
   name: string;
   budget_type: "tracking" | "envelope";
+  epoch?: string;
+  generation?: number;
 }
 export interface Account {
   id: string;
@@ -37,6 +39,7 @@ export async function request<T>(
     : "POST",
   editClock?: string,
   cancelIfUncommitted = false,
+  budgetEpoch?: string,
 ): Promise<T> {
   const mutation = method !== "GET";
   let response: Response;
@@ -49,6 +52,7 @@ export async function request<T>(
         ...(editClock === undefined
           ? {}
           : { "X-Actual-Edit-Clock": editClock }),
+        ...(budgetEpoch === undefined ? {} : { "X-Actual-Budget-Epoch": budgetEpoch }),
         ...(cancelIfUncommitted
           ? { "X-Actual-Cancel-If-Uncommitted": "true" }
           : {}),

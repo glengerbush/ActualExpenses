@@ -64,7 +64,8 @@ try {
         new Date(`${currentYear + 1}-11-08T12:00:00Z`),
       );
       await page.reload();
-      await page.getByRole("button", { name: button, exact: true }).click();
+      if (button !== "Retry pending expense")
+        await page.getByRole("button", { name: button, exact: true }).click();
       await expect.poll(() => attempts.length).toBe(2);
       expect(attempts[1]).toEqual(attempts[0]);
       await page.clock.setSystemTime(new Date());
@@ -159,7 +160,7 @@ try {
     await page
       .getByRole("button", { name: "Save transaction", exact: true })
       .click();
-    await retryAfterYearChange("Retry saved transaction", transactionAttempts);
+    await retryAfterYearChange("Retry pending expense", transactionAttempts);
     await expect(
       page.getByRole("button", { name: "Add transaction", exact: true }),
     ).toBeEnabled();

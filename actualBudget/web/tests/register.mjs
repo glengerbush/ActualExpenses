@@ -131,11 +131,15 @@ try {
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Retry saved transaction" }),
+    page.getByRole("button", { name: "Retry pending expense" }),
   ).toBeVisible();
   await page.reload();
-  await expect(page.getByLabel("Amount", { exact: true })).toBeDisabled();
-  await page.getByRole("button", { name: "Retry saved transaction" }).click();
+  await expect(page.getByTestId("pending-expenses"))
+    .toHaveCount(0)
+    .catch(async (error) => {
+      console.log(await page.locator("body").innerText());
+      throw error;
+    });
   await expect(page.getByTestId("register-total")).toHaveText("990.00");
   const rows = await (
     await fetch(
@@ -155,6 +159,8 @@ try {
   await expect(second.getByLabel("Notes", { exact: true })).toHaveValue(
     "Edit survives",
   );
+  await second.route("**/api/v1/**", (route) => route.abort());
+  await second.evaluate(() => dispatchEvent(new Event("offline")));
   let editAttempts = [];
   let lostEdit = false;
   await page.route(
@@ -180,42 +186,35 @@ try {
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Retry saved transaction" }),
+    page.getByRole("button", { name: "Retry pending expense" }),
   ).toBeVisible();
-  await second.getByLabel("Notes", { exact: true }).fill("Conflicting tab");
-  await expect(second.getByRole("alert")).toContainText("unconfirmed");
-  await second
-    .getByRole("button", { name: "Save transaction", exact: true })
-    .click();
-  await expect(second.getByRole("alert")).toContainText("unconfirmed");
-  expect(
-    await second.evaluate(
-      (budget) =>
-        JSON.parse(
-          localStorage.getItem(`actualBudget.transaction.v1.${budget}`),
-        ).pending.body.notes,
-      budget,
-    ),
-  ).toBe("Edit survives");
+  await expect(second.getByLabel("Notes", { exact: true })).toBeDisabled();
+  await expect(
+    second
+      .getByRole("alert")
+      .filter({ hasText: "Another tab saved this draft" }),
+  ).toBeVisible();
   await second.close();
   await page.evaluate(() => {
-    window.originalStorageSet = Storage.prototype.setItem;
-    Storage.prototype.setItem = function (key, value) {
-      if (key.startsWith("actualBudget.transaction.v1."))
-        throw new Error("Simulated storage failure");
-      return window.originalStorageSet.call(this, key, value);
+    window.originalOfflineTransaction = IDBDatabase.prototype.transaction;
+    IDBDatabase.prototype.transaction = function (...args) {
+      if (this.name === "actualBudget.offline.v1" && args[1] === "readwrite")
+        throw new DOMException("Full", "QuotaExceededError");
+      return window.originalOfflineTransaction.apply(this, args);
     };
   });
-  await page.getByRole("button", { name: "Retry saved transaction" }).click();
-  await expect(page.getByRole("alert")).toContainText(
-    "Simulated storage failure",
-  );
+  await page
+    .getByRole("button", { name: "Retry pending expense", exact: true })
+    .click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Free device space" }).first(),
+  ).toBeVisible();
   expect(editAttempts).toHaveLength(1);
-  await page.evaluate(
-    () => (Storage.prototype.setItem = window.originalStorageSet),
-  );
+  await page.evaluate(() => {
+    IDBDatabase.prototype.transaction = window.originalOfflineTransaction;
+  });
   await page.reload();
-  await page.getByRole("button", { name: "Retry saved transaction" }).click();
+  await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
   await expect(
     page
       .locator(".register-table tbody tr")
@@ -262,12 +261,12 @@ try {
         .getByRole("button", { name: "Confirm delete", exact: true })
         .click();
     await expect(
-      page.getByRole("button", { name: "Retry saved action" }),
+      page.getByRole("button", { name: "Retry pending expense" }),
     ).toBeVisible();
     await page.reload();
-    await page.getByRole("button", { name: "Retry saved action" }).click();
+    await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
     await expect(
-      page.getByRole("button", { name: "Retry saved action" }),
+      page.getByRole("button", { name: "Retry pending expense" }),
     ).toHaveCount(0);
     expect(new Set(attempts).size).toBe(1);
     await page.unroute(predicate);

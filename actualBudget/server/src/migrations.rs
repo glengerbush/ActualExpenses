@@ -9,6 +9,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("preferences/schema.sql"),
     include_str!("migrations/004_concurrency.sql"),
     include_str!("imports/schema.sql"),
+    include_str!("lifecycle/schema.sql"),
 ];
 pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
@@ -27,7 +28,13 @@ pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     let tx = db.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     for (index, sql) in MIGRATIONS.iter().enumerate().skip(version as usize) {
         tx.execute_batch(sql)?;
+        if index == 5 {
+            crate::lifecycle::backfill_operation_links(&tx)?;
+        }
         tx.pragma_update(None, "user_version", (index + 1) as i64)?;
+    }
+    if version > 0 && (version as usize) < MIGRATIONS.len() {
+        crate::lifecycle::automatic::upgrade_points(&tx, version)?;
     }
     tx.commit()?;
     Ok(())

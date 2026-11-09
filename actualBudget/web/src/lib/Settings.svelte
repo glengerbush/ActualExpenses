@@ -22,6 +22,21 @@
     "1’000.33",
     "1,00,000.33",
   ];
+
+  function reviewValues() {
+    if (!session?.review?.values || !session.draft) return [];
+    const current=session.review.values, original=session.draft;
+    const labels:Record<string,string>={number_format:"Numbers",date_format:"Dates",hide_fraction:"Hide decimal places",first_day_of_week:"First day of the week",currency_code:"Currency",currency_symbol_position:"Currency symbol position",currency_space:"Space between amount and symbol"};
+    function shown(key:string,value:unknown):string {
+      if (typeof value==="boolean") return t(value?"On":"Off");
+      if(key==="number_format") return formatLabels[numberFormats.indexOf(value as typeof numberFormats[number])];
+      if(key==="date_format") return String(value).toUpperCase();
+      if(key==="first_day_of_week") return t(["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][Number(value)]);
+      if(key==="currency_code") return value ? String(value) : t("None");
+      return t(String(value));
+    }
+    return Object.keys(labels).filter(key=>original.base[key as keyof SharedPreferences]!==original.values[key as keyof SharedPreferences]).map(key=>({key,label:t(labels[key]),current:shown(key,current[key as keyof SharedPreferences]),requested:shown(key,original.values[key as keyof SharedPreferences])})).concat(featureNames.filter(key=>original.base.experimental[key]!==original.values.experimental[key]).map(key=>({key,label:t(featureLabels[key]),current:shown(key,current.experimental[key]),requested:shown(key,original.values.experimental[key])})));
+  }
   const featureLabels: Record<FeatureName, string> = {
     newSidebarUI: "New sidebar",
     goalTemplatesEnabled: "Goal templates",
@@ -286,7 +301,22 @@
             {t(session.error)}
           </p>{/if}
         {#if session.status}<p role="status">{t(session.status)}</p>{/if}
-        {#if session.draft.pending && !session.busy}<p
+        {#if session.blocked}
+          <button type="button" disabled={session.busy} onclick={()=>session?.reviewCurrent()}>{t("Review current budget")}</button>
+          {#if session.review}
+            <p>{t("Current budget:")} {session.review.budget.name}</p>
+            {#if session.review.values}
+              <dl class="restore-comparison">{#each reviewValues() as item (item.key)}
+                <dt>{item.label}</dt><dd>{t("Current:")} {item.current} · {t("Your change:")} {item.requested}</dd>
+              {/each}</dl>
+            {:else}<p>{t("This budget was deleted.")}</p>{/if}
+            <div class="actions">
+              <button type="button" disabled={session.busy} onclick={()=>{if(session?.resolveReviewed(false)) onclose();}}>{t("Discard saved settings")}</button>
+              <button type="button" disabled={session.busy || !session.review.values} onclick={()=>session?.resolveReviewed(true)}>{t("Reapply as new settings")}</button>
+            </div>
+          {/if}
+        {/if}
+        {#if session.draft.pending && !session.busy && !session.blocked}<p
             role="status"
             class="error"
           >

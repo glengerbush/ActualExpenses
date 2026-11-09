@@ -253,10 +253,11 @@ pub fn execute(
     budget: &str,
     proposed: Option<&str>,
     cancel_if_uncommitted: bool,
+    expected_epoch: Option<&str>,
     mutation: Mutation,
 ) -> Result<Value, Error> {
-    store::require_budget(db, budget)?;
     if cancel_if_uncommitted {
+        crate::lifecycle::metadata(db, budget, true)?;
         // This outcome is written by the same receipt transaction as normal mutations.
         // A delayed original request must replay this fence instead of applying its edit.
         return Ok(outcome(
@@ -264,6 +265,8 @@ pub fn execute(
             json!({"error":{"code":"operation_canceled","message":"This change was canceled before it was saved."}}),
         ));
     }
+    store::require_budget(db, budget)?;
+    crate::lifecycle::require_epoch(db, budget, expected_epoch)?;
     let edit_clock = clock(db, budget, proposed)?;
     match mutation {
         Mutation::Create(input) => {
@@ -418,6 +421,19 @@ struct ChangeQuery {
 }
 fn limit() -> u32 {
     100
+}
+pub fn check_snapshot(db: &Connection, budget: &str, expected: Option<&str>) -> Result<(), Error> {
+    store::require_budget(db, budget)?;
+    if let Some(expected) = expected {
+        if cursor(db, budget)? != expected {
+            return Err(Error::new(
+                StatusCode::CONFLICT,
+                "snapshot_changed",
+                "Budget data changed while loading. Start a fresh snapshot.",
+            ));
+        }
+    }
+    Ok(())
 }
 pub fn router() -> Router<store::Store> {
     Router::new().route("/api/v1/budgets/{budget}/changes", get(changes))

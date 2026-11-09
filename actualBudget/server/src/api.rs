@@ -47,11 +47,13 @@ pub fn router(store: Store) -> Router {
         .merge(crate::references::router())
         .merge(crate::preferences::router())
         .merge(concurrency::router())
+        .merge(crate::companion::router())
         .route("/api", any(|| async { Error::missing() }))
         .route("/api/{*rest}", any(|| async { Error::missing() }))
         .layer(DefaultBodyLimit::max(65536))
         .merge(crate::imports::router())
         .merge(crate::themes::router())
+        .merge(crate::lifecycle::router())
         .method_not_allowed_fallback(|| async {
             Error::new(
                 StatusCode::METHOD_NOT_ALLOWED,
@@ -89,8 +91,16 @@ async fn cancellation_scope(
                     "POST",
                     "/api/v1/budgets/{budget}/transactions/{id}/duplicate"
                 )
+                | ("PATCH" | "DELETE", "/api/v1/budgets/{budget}")
+                | (
+                    "POST",
+                    "/api/v1/budgets/{budget}/duplicate"
+                        | "/api/v1/budgets/{budget}/backups"
+                        | "/api/v1/budgets/{budget}/backups/{id}/restore"
+                        | "/api/v1/budgets/{budget}/restores/{id}/activate"
+                )
         ) {
-            return Error::invalid("Cancellation is supported only for transaction mutations")
+            return Error::invalid("Cancellation is unsupported for this operation")
                 .into_response();
         }
     }
@@ -105,23 +115,38 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["budgets", "accounts", "opening_balances", "idempotency", "transactions", "payees", "categories", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "custom_themes", "actual_imports"],
+        "capabilities": ["budgets", "accounts", "opening_balances", "idempotency", "transactions", "payees", "categories", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports"],
         "openapi": "/api/v1/openapi.json"
     }))
 }
 async fn contract() -> Json<Value> {
     Json(serde_json::from_str(include_str!("openapi.json")).expect("valid embedded OpenAPI"))
 }
-async fn list_budgets(State(store): State<Store>) -> Result<Json<Value>, Error> {
-    Ok(data(store.run(|db| store::budgets(db)).await?))
+async fn list_budgets(
+    State(store): State<Store>,
+    query: Result<Query<crate::lifecycle::BudgetQuery>, QueryRejection>,
+) -> Result<Json<Value>, Error> {
+    let query = query.map_err(|_| Error::invalid("Invalid budget query"))?.0;
+    Ok(data(
+        store
+            .run(move |db| crate::lifecycle::list(db, query.include_deleted))
+            .await?,
+    ))
 }
 async fn list_accounts(
     State(store): State<Store>,
     path: Result<Path<String>, PathRejection>,
+    query: Result<Query<crate::lifecycle::SnapshotQuery>, QueryRejection>,
 ) -> Result<Json<Value>, Error> {
     let budget = budget_id(path)?;
+    let query = crate::lifecycle::snapshot_query(query)?;
     Ok(data(
-        store.run(move |db| store::accounts(db, &budget)).await?,
+        store
+            .run(move |db| {
+                crate::concurrency::check_snapshot(db, &budget, query.snapshot.as_deref())?;
+                store::accounts(db, &budget)
+            })
+            .await?,
     ))
 }
 async fn create_budget(
@@ -152,6 +177,7 @@ async fn create_account(
     let Json(input) = input.map_err(json_error)?;
     input.validate()?;
     let key = idempotency_key(&headers)?;
+    let epoch = crate::lifecycle::epoch_header(&headers)?;
     let payload = serde_json::to_string(&input).map_err(Error::internal)?;
     let result = store
         .run(move |db| {
@@ -160,7 +186,10 @@ async fn create_account(
                 &format!("POST /budgets/{budget}/accounts"),
                 &key,
                 &payload,
-                |db| store::create_account(db, &budget, input),
+                |db| {
+                    crate::lifecycle::require_epoch(db, &budget, epoch.as_deref())?;
+                    store::create_account(db, &budget, input)
+                },
             )
         })
         .await?;
@@ -270,6 +299,7 @@ async fn create_transaction(
     let key = idempotency_key(&headers)?;
     let clock = concurrency::header(&headers)?;
     let cancel = concurrency::cancel_header(&headers)?;
+    let epoch = crate::lifecycle::epoch_header(&headers)?;
     let payload = serde_json::to_string(&input).map_err(Error::internal)?;
     store
         .run(move |db| {
@@ -286,6 +316,7 @@ async fn create_transaction(
                         &budget,
                         clock.as_deref(),
                         cancel,
+                        epoch.as_deref(),
                         Mutation::Create(Box::new(input)),
                     )
                 },
@@ -322,6 +353,7 @@ async fn update_transaction(
     let key = idempotency_key(&headers)?;
     let clock = concurrency::header(&headers)?;
     let cancel = concurrency::cancel_header(&headers)?;
+    let epoch = crate::lifecycle::epoch_header(&headers)?;
     let payload = input.to_string();
     store
         .run(move |db| {
@@ -338,6 +370,7 @@ async fn update_transaction(
                         &budget,
                         clock.as_deref(),
                         cancel,
+                        epoch.as_deref(),
                         Mutation::Patch(id, input),
                     )
                 },
@@ -354,6 +387,7 @@ async fn delete_transaction(
     let key = idempotency_key(&headers)?;
     let clock = concurrency::header(&headers)?;
     let cancel = concurrency::cancel_header(&headers)?;
+    let epoch = crate::lifecycle::epoch_header(&headers)?;
     store
         .run(move |db| {
             concurrency::write(
@@ -369,6 +403,7 @@ async fn delete_transaction(
                         &budget,
                         clock.as_deref(),
                         cancel,
+                        epoch.as_deref(),
                         Mutation::Delete(id),
                     )
                 },
@@ -393,6 +428,7 @@ async fn duplicate_transaction(
     let key = idempotency_key(&headers)?;
     let clock = concurrency::header(&headers)?;
     let cancel = concurrency::cancel_header(&headers)?;
+    let epoch = crate::lifecycle::epoch_header(&headers)?;
     let payload = serde_json::to_string(&input).map_err(Error::internal)?;
     store
         .run(move |db| {
@@ -409,6 +445,7 @@ async fn duplicate_transaction(
                         &budget,
                         clock.as_deref(),
                         cancel,
+                        epoch.as_deref(),
                         Mutation::Duplicate(source, input.id),
                     )
                 },

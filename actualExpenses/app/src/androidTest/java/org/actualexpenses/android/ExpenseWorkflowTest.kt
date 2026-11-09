@@ -8,6 +8,9 @@ import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDate
+import org.actualexpenses.core.EditSession
+import org.actualexpenses.core.ExpenseContext
+import org.actualexpenses.core.ExpenseDraft
 
 /** Test the public screen, not composition helpers or private state. Fixture data is synthetic. */
 class ExpenseWorkflowTest {
@@ -92,21 +95,78 @@ class ExpenseWorkflowTest {
         compose.runOnIdle { assertEquals(1, actions.saveCount) }
     }
 
+    @Test fun serverSelectionNeedsNoCredentials() {
+        compose.setContent { ActualExpensesTheme { ExpensesScreen(ExpenseUiState(), actions) } }
+        compose.onNodeWithText("Connect to actualBudget").assertExists()
+        compose.onNodeWithText("Actual password").assertDoesNotExist()
+        compose.onNodeWithText("Server address").performTextInput("http://budget:5006")
+        compose.onNodeWithText("Connect",substring=false).performScrollTo().performClick()
+        compose.runOnIdle { assertEquals("http://budget:5006",actions.server) }
+    }
+
+    @Test fun preservedLegacyWorkShowsRecoveryWithoutSetupOrExpenseActions() {
+        compose.setContent { ActualExpensesTheme { ExpensesScreen(ExpenseUiState(screen=Screen.RECOVERY,recoveryMessage="Previous budget and pending changes are preserved. Keep app data intact."),actions) } }
+        compose.onNodeWithText("Saved work needs migration").assertExists()
+        compose.onNodeWithText("Keep app data intact.",substring=true).assertExists()
+        compose.onNodeWithText("Connect",substring=false).assertDoesNotExist()
+        compose.onNodeWithContentDescription("Add expense").assertDoesNotExist()
+    }
+
+    @Test fun restoredFormKeepsOriginalCurrencyAndBudgetContext() {
+        val context=ExpenseContext("http://original","budget","spending","original-epoch","USD",2,"comma-dot")
+        val live=mutableStateOf(state.copy(expenseContext=context))
+        val restoration=StateRestorationTester(compose)
+        restoration.setContent {ActualExpensesTheme {ExpensesScreen(live.value,actions)}}
+        compose.onNodeWithContentDescription("Add expense").performClick()
+        compose.onNodeWithText("Amount (USD)").performTextInput("12.34")
+        compose.runOnIdle {live.value=state.copy(currency="JPY",decimalPlaces=0,expenseContext=context.copy(epoch="restored-epoch",currency="JPY",decimalPlaces=0))}
+        restoration.emulateSavedInstanceStateRestore()
+        compose.onNodeWithText("Amount (USD)").assertExists()
+        compose.onNodeWithText("Save expense").performScrollTo().performClick()
+        compose.runOnIdle {assertEquals(context,actions.saved?.context);assertEquals("12.34",actions.saved?.amount)}
+    }
+
+    @Test fun restoredEditorKeepsOriginalFieldBaselineAndDeletionContext() {
+        val context=ExpenseContext("http://original","budget","spending","original-epoch","USD",2,"comma-dot")
+        val original=ExpenseDraft("3.25","2026-10-16","Corner Coffee",notes="Original notes")
+        val session=EditSession("coffee",true,original,context)
+        actions.session=session
+        val row=ExpenseRow("coffee",325,LocalDate.of(2026,10,16),"Corner Coffee",null,"","Original notes",false,false,true)
+        val live=mutableStateOf(state.copy(expenses=listOf(row),expenseContext=context))
+        val restoration=StateRestorationTester(compose)
+        restoration.setContent {ActualExpensesTheme {ExpensesScreen(live.value,actions)}}
+        compose.onNodeWithText("Corner Coffee").performClick()
+        compose.runOnIdle {live.value=state.copy(currency="JPY",decimalPlaces=0,expenses=listOf(row.copy(amountMinor=999,notes="Remote notes")),expenseContext=context.copy(epoch="restored-epoch",currency="JPY",decimalPlaces=0))}
+        restoration.emulateSavedInstanceStateRestore()
+        compose.onNodeWithText("Amount (USD)").assertExists()
+        compose.onNodeWithText("Original notes").assertExists()
+        compose.onNodeWithText("Save expense").performScrollTo().performClick()
+        compose.runOnIdle {assertEquals(session,actions.saved?.edit);assertEquals("3.25",actions.saved?.amount)}
+        compose.onNodeWithContentDescription("Delete expense").performClick()
+        compose.onNode(hasText("Corner Coffee",substring=true) and hasText("3.25",substring=true)).assertExists()
+        compose.onNodeWithText("Delete",substring=false).performClick()
+        compose.runOnIdle {assertEquals(session,actions.deletedSession)}
+    }
+
     private class RecordingActions : ExpenseUiActions {
-        override fun backToLogin() = Unit
-        override fun cancelSignIn() = Unit
+        override fun showServer() = Unit
+        override fun cancelConnection() = Unit
         var saved: ExpenseForm? = null
         var saveCount = 0
         var editing: String? = null
         var deleted: String? = null
-        override fun beginEdit(id: String, completed: () -> Unit) { editing = id; completed() }
-        override fun login(server: String, password: String) = Unit
+        var session: EditSession? = null
+        var deletedSession: EditSession? = null
+        override fun beginEdit(id: String, completed: (EditSession) -> Unit) { editing = id; completed(session ?: EditSession(id,true)) }
+        var server: String? = null
+        override fun connect(server: String) {this.server=server}
         override fun chooseBudget(id: String) = Unit
         override fun chooseAccount(id: String) = Unit
+        override fun showBudgets() = Unit
         override fun showAccounts() = Unit
         override fun refresh() = Unit
         override fun save(form: ExpenseForm) { saved = form; saveCount++ }
-        override fun delete(id: String, operationId: String) { deleted = id }
+        override fun delete(session: EditSession, operationId: String) { deleted = session.transactionId;deletedSession=session }
         override fun dismissMessage() = Unit
     }
 }

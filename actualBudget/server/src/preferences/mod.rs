@@ -6,8 +6,8 @@ use crate::{
 use axum::{
     Json, Router,
     extract::{
-        Path, State,
-        rejection::{JsonRejection, PathRejection},
+        Path, Query, State,
+        rejection::{JsonRejection, PathRejection, QueryRejection},
     },
     http::HeaderMap,
     routing::{get, post},
@@ -157,10 +157,12 @@ pub fn apply_changes(
 async fn read(
     State(store): State<Store>,
     path: Result<Path<String>, PathRejection>,
+    query: Result<Query<crate::lifecycle::SnapshotQuery>, QueryRejection>,
 ) -> Result<Json<Value>, Error> {
     let budget = budget_id(path)?;
+    let query = crate::lifecycle::snapshot_query(query)?;
     Ok(Json(
-        json!({"data":store.run(move|db|get_preferences(db,&budget)).await?}),
+        json!({"data":store.run(move|db|{crate::concurrency::check_snapshot(db,&budget,query.snapshot.as_deref())?;get_preferences(db,&budget)}).await?}),
     ))
 }
 async fn update(
@@ -179,6 +181,7 @@ async fn update(
         validate_change(key, value)?;
     }
     let key = idempotency_key(&headers)?;
+    let epoch = crate::lifecycle::epoch_header(&headers)?;
     let payload = input.to_string();
     let result = store
         .run(move |db| {
@@ -187,7 +190,10 @@ async fn update(
                 &format!("PATCH /budgets/{budget}/preferences"),
                 &key,
                 &payload,
-                |db| apply_changes(db, &budget, &changes),
+                |db| {
+                    crate::lifecycle::require_epoch(db, &budget, epoch.as_deref())?;
+                    apply_changes(db, &budget, &changes)
+                },
             )
         })
         .await?;

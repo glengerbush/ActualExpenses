@@ -29,7 +29,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import java.math.BigDecimal
@@ -40,6 +39,9 @@ import java.time.format.FormatStyle
 import java.util.Currency
 import java.util.UUID
 import org.actualexpenses.core.parseExpenseAmount
+import org.actualexpenses.core.ExpenseContext
+import org.actualexpenses.core.EditSession
+import com.google.gson.Gson
 
 /*
  THESIS: Record a purchase, then return to a compact expense register. No dashboard.
@@ -52,6 +54,8 @@ import org.actualexpenses.core.parseExpenseAmount
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
+    var editorContext by rememberSaveable { mutableStateOf<String?>(null) }
+    var editorSession by rememberSaveable { mutableStateOf<String?>(null) }
     var editorId by rememberSaveable { mutableStateOf<String?>(null) }
     val snackbar = remember { SnackbarHostState() }
     val message = state.error ?: state.notice
@@ -64,14 +68,14 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
     BackHandler(editorId != null) { editorId = null }
     if (editorId != null) {
         val original = remember(editorId) { state.expenses.find { it.id == editorId } }
-        ExpenseEditor(state, editorId?.takeUnless { it == "new" }, original, actions, snackbar) { editorId = null }
+        ExpenseEditor(state, editorId?.takeUnless { it == "new" }, original, editorContext, editorSession, actions, snackbar) { editorId = null }
         return
     }
     BackHandler(state.screen == Screen.ACCOUNTS && state.selectedAccount != null) {
         state.selectedAccount?.let { actions.chooseAccount(it.id) }
     }
-    BackHandler(state.screen == Screen.BUDGETS) { actions.backToLogin() }
-    BackHandler(state.screen == Screen.LOGIN && state.canCancelSignIn) { actions.cancelSignIn() }
+    BackHandler(state.screen == Screen.BUDGETS) { actions.showServer() }
+    BackHandler(state.screen == Screen.SERVER && state.canCancelConnection) { actions.cancelConnection() }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -85,16 +89,16 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
                     } else Text("ActualExpenses")
                 },
                 navigationIcon = {
-                    if (state.screen == Screen.LOGIN && state.canCancelSignIn) IconButton(onClick = actions::cancelSignIn, enabled = !state.busy) {
+                    if (state.screen == Screen.SERVER && state.canCancelConnection) IconButton(onClick = actions::cancelConnection, enabled = !state.busy) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to expenses")
                     }
-                    else if (state.screen == Screen.BUDGETS) IconButton(onClick = actions::backToLogin) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to sign in") }
+                    else if (state.screen == Screen.BUDGETS) IconButton(onClick = actions::showServer) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to server selection") }
                     else if (state.screen == Screen.ACCOUNTS && state.selectedAccount != null) IconButton(onClick = { actions.chooseAccount(state.selectedAccount.id) }) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to expenses")
                     }
                 },
                 actions = {
-                    if (state.screen != Screen.LOGIN) {
+                    if (state.screen != Screen.SERVER && state.screen != Screen.RECOVERY) {
                         IconButton(onClick = actions::refresh, enabled = !state.busy) {
                             Icon(Icons.Outlined.Refresh, if (state.screen == Screen.EXPENSES) "Refresh expenses" else "Refresh list")
                         }
@@ -105,7 +109,7 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
         floatingActionButton = {
             if (state.screen == Screen.EXPENSES) ExtendedFloatingActionButton(
                 modifier = Modifier.semantics { contentDescription = "Add expense" },
-                onClick = { editorId = "new" },
+                onClick = { editorContext=Gson().toJson(state.expenseContext);editorSession=null;editorId = "new" },
                 icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
                 text = { Text("Add expense") },
             )
@@ -115,15 +119,15 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
             Column(Modifier.widthIn(max = 640.dp).fillMaxWidth()) {
                 if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-                if (state.requiresSignIn && state.screen != Screen.LOGIN) TextButton(onClick = actions::backToLogin,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 16.dp)) {
-                    Text("Sign in to sync · changes saved on this phone")
-                }
                 when (state.screen) {
-                    Screen.LOGIN -> Login(state, actions)
-                    Screen.BUDGETS -> Choices("Choose a budget", "Use one budget on this phone.", "No budgets yet. Sync a budget in Actual, then refresh this list.", state.budgets, state.busy, actions::chooseBudget)
-                    Screen.ACCOUNTS -> Choices("Choose an account", "Where should expenses go?", "No open accounts. Add or reopen an account in Actual, then refresh this list.", state.accounts, state.busy, actions::chooseAccount)
-                    Screen.EXPENSES -> ExpenseList(state) { row -> actions.beginEdit(row.id) { editorId = row.id } }
+                    Screen.SERVER -> ServerSelection(state, actions)
+                    Screen.RECOVERY -> Column(Modifier.verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Text("Saved work needs migration", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
+                        Text(state.recoveryMessage.orEmpty())
+                    }
+                    Screen.BUDGETS -> Choices("Choose a budget", "Use one budget on this phone.", "No budgets yet. Create or import one in actualBudget, then refresh this list.", state.budgets, state.busy, actions::chooseBudget, "Change server", actions::showServer, state.pendingCount==0)
+                    Screen.ACCOUNTS -> Choices("Choose an account", "Where should expenses go?", "No open accounts. Add or reopen an account in actualBudget, then refresh this list.", state.accounts, state.busy, actions::chooseAccount, "Change budget", actions::showBudgets, state.pendingCount==0)
+                    Screen.EXPENSES -> ExpenseList(state) { row -> actions.beginEdit(row.id) { session -> editorContext=Gson().toJson(session.context);editorSession=Gson().toJson(session);editorId = row.id } }
                 }
             }
         }
@@ -131,31 +135,30 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
 }
 
 @Composable
-private fun Login(state: ExpenseUiState, actions: ExpenseUiActions) {
+private fun ServerSelection(state: ExpenseUiState, actions: ExpenseUiActions) {
     var server by rememberSaveable(state.server) { mutableStateOf(state.server) }
-    // Password is never persisted in saved-instance state or app storage.
-    var password by remember { mutableStateOf("") }
     Column(Modifier.verticalScroll(rememberScrollState()).imePadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        Text(if (state.server.isEmpty()) "Connect to Actual" else "Sign in again", style = MaterialTheme.typography.headlineMedium)
-        Text("Use your Actual server address and password.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Connect to actualBudget", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
+        Text("Enter the server address. No login is needed on your trusted network.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         OutlinedTextField(server, { server = it }, label = { Text("Server address") },
             placeholder = { Text("http://server:5006") }, singleLine = true, enabled = !state.busy,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next), modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(password, { password = it }, label = { Text("Actual password") }, singleLine = true,
-            visualTransformation = PasswordVisualTransformation(), enabled = !state.busy,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done), modifier = Modifier.fillMaxWidth())
-        Button(onClick = { actions.login(server.trim(), password) }, enabled = server.isNotBlank() && password.isNotEmpty() && !state.busy,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done), modifier = Modifier.fillMaxWidth())
+        Button(onClick = { actions.connect(server.trim()) }, enabled = server.isNotBlank() && !state.busy,
             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(if (state.busy) "Connecting…" else "Connect") }
         if (state.pendingCount > 0) Text("${state.pendingCount} pending changes are saved on this phone.", style = MaterialTheme.typography.bodyMedium)
     }
 }
 
 @Composable
-private fun Choices(title: String, description: String, emptyMessage: String, choices: List<Choice>, busy: Boolean, onChoose: (String) -> Unit) {
+private fun Choices(title: String, description: String, emptyMessage: String, choices: List<Choice>, busy: Boolean, onChoose: (String) -> Unit, changeLabel: String = "", onChange: (() -> Unit)? = null, canChange: Boolean = true) {
     LazyColumn(contentPadding = PaddingValues(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
             Text(title, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
             Text(description, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp, bottom = 16.dp))
+            if(onChange!=null) {
+                TextButton(onClick=onChange,enabled=canChange && !busy) {Text(changeLabel)}
+                if(!canChange)Text("Deliver pending changes before changing selection.",style=MaterialTheme.typography.bodySmall)
+            }
         }
         if (choices.isEmpty() && !busy) item { Text(emptyMessage) }
         items(choices, key = { it.id }) { item ->
@@ -206,14 +209,21 @@ private fun ExpenseList(state: ExpenseUiState, onEdit: (ExpenseRow) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existing: ExpenseRow?, actions: ExpenseUiActions, snackbar: SnackbarHostState, close: () -> Unit) {
+private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existing: ExpenseRow?, contextJson: String?, sessionJson: String?, actions: ExpenseUiActions, snackbar: SnackbarHostState, close: () -> Unit) {
     val key = transactionId ?: "new"
+    val capturedContext = remember(contextJson) { contextJson?.let {Gson().fromJson(it,ExpenseContext::class.java)} }
+    val editSession = remember(sessionJson) {sessionJson?.let {Gson().fromJson(it,EditSession::class.java)}}
+    val original = editSession?.original
+    val currency = rememberSaveable(key) { capturedContext?.currency ?: state.currency }
+    val decimalPlaces = rememberSaveable(key) { capturedContext?.decimalPlaces ?: state.decimalPlaces }
+    val accountName = rememberSaveable(key) {state.selectedAccount?.name.orEmpty()}
+
     val operationId = rememberSaveable(key) { UUID.randomUUID().toString() }
-    var amount by rememberSaveable(key) { mutableStateOf(existing?.let { BigDecimal.valueOf(it.amountMinor).abs().movePointLeft(state.decimalPlaces).toPlainString() } ?: "") }
-    var payee by rememberSaveable(key) { mutableStateOf(existing?.payee ?: "") }
-    var categoryId by rememberSaveable(key) { mutableStateOf(existing?.categoryId) }
-    var date by rememberSaveable(key) { mutableStateOf((existing?.date ?: LocalDate.now()).toString()) }
-    var notes by rememberSaveable(key) { mutableStateOf(existing?.notes ?: "") }
+    var amount by rememberSaveable(key) { mutableStateOf(original?.amount ?: existing?.let { BigDecimal.valueOf(it.amountMinor).abs().movePointLeft(decimalPlaces).toPlainString() } ?: "") }
+    var payee by rememberSaveable(key) { mutableStateOf(original?.payee ?: existing?.payee ?: "") }
+    var categoryId by rememberSaveable(key) { mutableStateOf(original?.categoryId ?: existing?.categoryId) }
+    var date by rememberSaveable(key) { mutableStateOf(original?.date ?: (existing?.date ?: LocalDate.now()).toString()) }
+    var notes by rememberSaveable(key) { mutableStateOf(original?.notes ?: existing?.notes ?: "") }
     var showNotes by rememberSaveable(key) { mutableStateOf(!existing?.notes.isNullOrBlank()) }
     var categoryPicker by rememberSaveable { mutableStateOf(false) }
     var deleteConfirmation by rememberSaveable { mutableStateOf(false) }
@@ -226,25 +236,25 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
             (transactionId != null && state.expenses.any { it.id == transactionId && it.pendingDeletion })) close()
     }
     BackHandler(saving) { /* Finish the local atomic save before leaving this form. */ }
-    val validation = runCatching { parseExpenseAmount(amount, state.decimalPlaces) }
+    val validation = runCatching { parseExpenseAmount(amount, decimalPlaces) }
     val valid = validation.isSuccess
     val context = LocalContext.current
     val save: () -> Unit = {
         submitted = true
         if (valid && !saving) {
-            actions.save(ExpenseForm(transactionId, amount, LocalDate.parse(date), payee.trim(), categoryId, notes, operationId))
+            actions.save(ExpenseForm(transactionId, amount, LocalDate.parse(date), payee.trim(), categoryId, notes, operationId, capturedContext, editSession))
         }
     }
     Scaffold(
         topBar = { TopAppBar(title = { Text(if (transactionId == null) "Add expense" else "Edit expense") },
             navigationIcon = { IconButton(onClick = close, enabled = !saving) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back") } },
-            actions = { if (existing != null) IconButton(onClick = { deleteConfirmation = true }, enabled = !saving) { Icon(Icons.Outlined.Delete, "Delete expense") } }) },
+            actions = { if (transactionId != null && editSession != null) IconButton(onClick = { deleteConfirmation = true }, enabled = !saving) { Icon(Icons.Outlined.Delete, "Delete expense") } }) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
             Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().verticalScroll(rememberScrollState()).imePadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(state.selectedAccount?.name.orEmpty(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                OutlinedTextField(amount, { amount = it }, label = { Text(if (state.currency.isBlank()) "Amount" else "Amount (${state.currency})") },
+                Text(accountName, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedTextField(amount, { amount = it }, label = { Text(if (currency.isBlank()) "Amount" else "Amount ($currency)") },
                     textStyle = MaterialTheme.typography.headlineMedium, singleLine = true, enabled = !saving, isError = submitted && !valid,
                     supportingText = { if (submitted && !valid) Text(validation.exceptionOrNull()?.message ?: "Enter a valid expense amount.") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next), modifier = Modifier.fillMaxWidth())
@@ -279,10 +289,10 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
         }
     }
     if (categoryPicker) CategoryPicker(state.categories, categoryId, { categoryId = it; categoryPicker = false }, { categoryPicker = false })
-    if (deleteConfirmation && existing != null) AlertDialog(
+    if (deleteConfirmation && editSession != null) AlertDialog(
         onDismissRequest = { deleteConfirmation = false }, title = { Text("Delete expense?") },
-        text = { Text("${money(existing.amountMinor, state.currency, state.decimalPlaces)} · ${existing.payee.ifBlank { "No payee" }}\n${dateLabel(existing.date)}") },
-        confirmButton = { TextButton(onClick = { deleteConfirmation = false; actions.delete(existing.id, operationId) }) { Text("Delete", color = MaterialTheme.colorScheme.error) } },
+        text = { Text("${money(original?.amount?.let {parseExpenseAmount(it,decimalPlaces)} ?: existing?.amountMinor ?: 0L, currency, decimalPlaces)} · ${(original?.payee ?: existing?.payee).orEmpty().ifBlank { "No payee" }}\n${dateLabel(LocalDate.parse(original?.date ?: existing?.date?.toString() ?: date))}") },
+        confirmButton = { TextButton(onClick = { deleteConfirmation = false; actions.delete(editSession, operationId) }) { Text("Delete", color = MaterialTheme.colorScheme.error) } },
         dismissButton = { TextButton(onClick = { deleteConfirmation = false }) { Text("Keep expense") } },
     )
 }

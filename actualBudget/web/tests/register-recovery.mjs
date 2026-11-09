@@ -88,7 +88,24 @@ async function hidePreferences(page, budget) {
       localStorage.removeItem(`actualBudget.preferencesCache.v1.${budget}`),
     budget,
   );
-  await page.route("**/preferences", (route) => route.abort("failed"));
+  await page.evaluate(
+    (budget) =>
+      new Promise((resolve, reject) => {
+        const open = indexedDB.open("actualBudget.offline.v1", 1);
+        open.onsuccess = () => {
+          const db = open.result;
+          const tx = db.transaction("cache", "readwrite");
+          tx.objectStore("cache").delete(`budget:${budget}`);
+          tx.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          tx.onerror = () => reject(tx.error);
+        };
+      }),
+    budget,
+  );
+  await page.route("**/preferences?**", (route) => route.abort("failed"));
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "Display preferences are unavailable" }),
@@ -98,8 +115,8 @@ async function hidePreferences(page, budget) {
   await expect(page.locator(".register-table tbody tr")).toHaveCount(0);
 }
 async function restorePreferences(page) {
-  await page.unroute("**/preferences");
-  await page.getByRole("button", { name: "Retry preferences" }).click();
+  await page.unroute("**/preferences?**");
+  await page.getByRole("button", { name: "Retry connection" }).click();
 }
 try {
   browser = await chromium.launch({
@@ -127,10 +144,12 @@ try {
     await page.getByLabel("Show through date").fill("06/01/2026");
     await page.getByRole("button", { name: "Apply", exact: true }).click();
     await expect(
-      page.getByText(
-        "Cannot reach the server. Check your connection and retry.",
-        { exact: true },
-      ),
+      page
+        .getByText(
+          "Cannot reach the server. Check your connection and retry.",
+          { exact: true },
+        )
+        .first(),
     ).toBeVisible();
     await expect(page.getByTestId("register-total")).toHaveText("150.00");
     await expect(page.locator(".register-balances dt").first()).toHaveText(
@@ -232,17 +251,10 @@ try {
       .getByRole("button", { name: "Save transaction", exact: true })
       .click();
     await expect(
-      page.getByRole("button", { name: "Retry saved transaction" }),
+      page.getByRole("button", { name: "Retry pending expense" }),
     ).toBeVisible();
     await hidePreferences(page, data.budget);
-    await expect(page.getByLabel("Amount", { exact: true })).toHaveValue(
-      "12.34",
-    );
-    await expect(page.getByLabel("Amount", { exact: true })).toBeDisabled();
-    await page.getByRole("button", { name: "Retry saved transaction" }).click();
-    await expect(
-      page.getByRole("button", { name: "Retry saved transaction" }),
-    ).toHaveCount(0);
+    await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
     expect(creates).toHaveLength(2);
     expect(creates[1]).toEqual(creates[0]);
     await expect(page.getByTestId("register-total")).toHaveCount(0);
@@ -271,12 +283,12 @@ try {
       .getByRole("button", { name: "Confirm delete", exact: true })
       .click();
     await expect(
-      page.getByRole("button", { name: "Retry saved action" }),
+      page.getByRole("button", { name: "Retry pending expense" }),
     ).toBeVisible();
     await hidePreferences(page, data.budget);
-    await page.getByRole("button", { name: "Retry saved action" }).click();
+    await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
     await expect(
-      page.getByRole("button", { name: "Retry saved action" }),
+      page.getByRole("button", { name: "Retry pending expense" }),
     ).toHaveCount(0);
     expect(deletes).toHaveLength(2);
     expect(deletes[1]).toEqual(deletes[0]);

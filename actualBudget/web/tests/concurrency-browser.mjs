@@ -99,7 +99,7 @@ try {
     .click();
   await expect(
     a.page.getByRole("button", {
-      name: "Retry saved transaction",
+      name: "Retry pending expense",
       exact: true,
     }),
   ).toBeVisible();
@@ -112,9 +112,7 @@ try {
     "Newer client note",
   );
   await a.page.reload();
-  await a.page
-    .getByRole("button", { name: "Retry saved transaction", exact: true })
-    .click();
+  await expect(a.page.getByTestId("pending-expenses")).toHaveCount(0);
   await expect(
     a.page.getByText("A newer edit replaced these fields: Notes", {
       exact: true,
@@ -132,7 +130,7 @@ try {
     .getByRole("button", { name: "Confirm delete", exact: true })
     .click();
   await expect(
-    a.page.getByRole("button", { name: "Retry saved action", exact: true }),
+    a.page.getByRole("button", { name: "Retry pending expense", exact: true }),
   ).toBeVisible();
   await b.page
     .getByRole("button", { name: "Refresh transactions", exact: true })
@@ -147,9 +145,7 @@ try {
     "Newer than deletion",
   );
   await a.page.reload();
-  await a.page
-    .getByRole("button", { name: "Retry saved action", exact: true })
-    .click();
+  await expect(a.page.getByTestId("pending-expenses")).toHaveCount(0);
   await expect(
     a.page.getByText(
       "A newer edit kept this transaction. The pending deletion was canceled.",
@@ -244,7 +240,10 @@ try {
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Discard rejected edit", exact: true }),
+    page.getByRole("button", {
+      name: "Cancel pending change safely",
+      exact: true,
+    }),
   ).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({
@@ -254,16 +253,25 @@ try {
   await page.clock.setSystemTime(new Date());
   await page.reload();
   await page
-    .getByRole("button", { name: "Retry saved transaction", exact: true })
+    .getByRole("button", { name: "Retry pending expense", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Discard rejected edit", exact: true }),
+    page.getByRole("button", {
+      name: "Cancel pending change safely",
+      exact: true,
+    }),
   ).toBeVisible();
-  expect(clockRequests).toHaveLength(2);
+  await expect.poll(() => clockRequests.length).toBe(2);
   expect(clockRequests[1]).toEqual(clockRequests[0]);
   await page
-    .getByRole("button", { name: "Discard rejected edit", exact: true })
+    .getByRole("button", { name: "Cancel pending change safely", exact: true })
     .click();
+  await expect(page.getByTestId("pending-expenses"))
+    .toHaveCount(0)
+    .catch(async (error) => {
+      console.log(await page.locator("body").innerText());
+      throw error;
+    });
   await page
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
@@ -291,21 +299,28 @@ try {
   });
   await page.getByRole("button", { name: /^Duplicate / }).click();
   await expect(
-    page.getByRole("button", { name: "Discard rejected action", exact: true }),
+    page.getByRole("button", {
+      name: "Cancel pending change safely",
+      exact: true,
+    }),
   ).toBeVisible();
   await page.clock.setSystemTime(new Date());
   await page.reload();
   await page
-    .getByRole("button", { name: "Retry saved action", exact: true })
+    .getByRole("button", { name: "Retry pending expense", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Discard rejected action", exact: true }),
+    page.getByRole("button", {
+      name: "Cancel pending change safely",
+      exact: true,
+    }),
   ).toBeVisible();
-  expect(actionRequests).toHaveLength(2);
+  await expect.poll(() => actionRequests.length).toBe(2);
   expect(actionRequests[1]).toEqual(actionRequests[0]);
   await page
-    .getByRole("button", { name: "Discard rejected action", exact: true })
+    .getByRole("button", { name: "Cancel pending change safely", exact: true })
     .click();
+  await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
   await expect(page.getByTestId("register-total")).toHaveText("-1.00");
   await page.getByRole("button", { name: /^Duplicate / }).click();
   await expect(page.getByTestId("register-total")).toHaveText("-2.00");
@@ -353,7 +368,7 @@ try {
       kind === "transaction"
         ? `**/api/v1/budgets/${budget}/transactions`
         : `**/api/v1/budgets/${budget}/transactions/*/duplicate`;
-    await page.route(pattern, async (route) => {
+    await recoveryContext.route(pattern, async (route) => {
       if (route.request().method() !== "POST") return route.continue();
       const request = route.request();
       sent.push({
@@ -373,10 +388,12 @@ try {
     });
     const discardName =
       kind === "transaction"
-        ? "Discard rejected edit"
-        : "Discard rejected action";
+        ? "Cancel pending change safely"
+        : "Cancel pending change safely";
     const retryName =
-      kind === "transaction" ? "Retry saved transaction" : "Retry saved action";
+      kind === "transaction"
+        ? "Retry pending expense"
+        : "Retry pending expense";
     const discard = page.getByRole("button", {
       name: discardName,
       exact: true,
@@ -394,15 +411,17 @@ try {
     await expect(discard).toBeVisible();
     expect(sent).toHaveLength(1);
     expect(sent[0].clock.slice(25, 29)).toBe("FFFF");
-    const storageKey = `actualBudget.${kind === "transaction" ? "transaction" : "register-action"}.v1.${budget}`;
-    // A failed durable authorization transition must prevent sending.
-    await page.evaluate((key) => {
-      const original = Storage.prototype.setItem;
-      Storage.prototype.setItem = function (name, value) {
-        if (name === key) throw new Error("Storage write blocked for test");
-        return original.call(this, name, value);
+    await page.evaluate(() => {
+      const original = IDBDatabase.prototype.transaction;
+      IDBDatabase.prototype.transaction = function (...args) {
+        if (this.name === "actualBudget.offline.v1" && args[1] === "readwrite")
+          throw new DOMException(
+            "Storage write blocked for test",
+            "QuotaExceededError",
+          );
+        return original.apply(this, args);
       };
-    }, storageKey);
+    });
     await retry.click();
     await expect(retry).toBeEnabled();
     expect(sent).toHaveLength(1);
@@ -424,8 +443,11 @@ try {
     const receivedRejection = new Promise((resolve) => {
       rejectionReceived = resolve;
     });
-    await delayedPage.route(pattern, async (route) => {
-      if (route.request().method() !== "POST") return route.continue();
+    let holdNextRejection = true;
+    await recoveryContext.route(pattern, async (route) => {
+      if (route.request().method() !== "POST" || !holdNextRejection)
+        return route.fallback();
+      holdNextRejection = false;
       const url = new URL(route.request().url());
       const headers = { ...route.request().headers(), host: url.host };
       url.hostname = "127.0.0.1";
@@ -445,26 +467,20 @@ try {
     );
     dropAcknowledgement = true;
     await retry.click();
-    await expect(retry).toBeEnabled();
     await expect(discard).toHaveCount(0);
-    expect(sent).toHaveLength(2);
+    await expect.poll(() => sent.length).toBeGreaterThanOrEqual(2);
     expect(sent[1]).toEqual(sent[0]);
     releaseRejection();
-    await expect(
-      delayedPage.getByRole("button", { name: retryName, exact: true }),
-    ).toBeEnabled();
     await expect(
       delayedPage.getByRole("button", { name: discardName, exact: true }),
     ).toHaveCount(0);
     await delayedPage.close();
     await stalePage.close();
     await page.reload();
-    await expect(retry).toBeVisible();
-    await expect(discard).toHaveCount(0);
-    await retry.click();
     await expect(retry).toHaveCount(0);
-    expect(sent).toHaveLength(3);
-    expect(sent[2]).toEqual(sent[0]);
+    await expect(discard).toHaveCount(0);
+    await expect.poll(() => sent.length).toBeGreaterThanOrEqual(3);
+    for (const attempt of sent) expect(attempt).toEqual(sent[0]);
     const rows = (
       await (
         await fetch(native + `/api/v1/budgets/${budget}/transactions`)
@@ -516,12 +532,12 @@ try {
       const firstRequest = a.waitForRequest(matches);
       const retryName =
         kind === "transaction"
-          ? "Retry saved transaction"
-          : "Retry saved action";
+          ? "Retry pending expense"
+          : "Retry pending expense";
       const discardName =
         kind === "transaction"
-          ? "Discard rejected edit"
-          : "Discard rejected action";
+          ? "Cancel pending change safely"
+          : "Cancel pending change safely";
       if (kind === "transaction")
         await a
           .getByRole("button", { name: "Save transaction", exact: true })
@@ -557,6 +573,8 @@ try {
       }
       await a.route(pattern, async (route) => {
         if (!matches(route.request())) return route.continue();
+        if (route.request().headers()["x-actual-cancel-if-uncommitted"])
+          return route.fallback();
         held();
         await gate;
         const response = await forward(route);
@@ -580,7 +598,7 @@ try {
       }
       let cancellationStatus,
         cancelAttempts = 0;
-      await b.route(pattern, async (route) => {
+      await overlap.route(pattern, async (route) => {
         if (!route.request().headers()["x-actual-cancel-if-uncommitted"])
           return route.continue();
         cancelAttempts++;
@@ -593,13 +611,33 @@ try {
         else await route.fulfill({ response });
       });
       await b.getByRole("button", { name: discardName, exact: true }).click();
+      await expect.poll(() => cancelAttempts).toBe(1);
+      await expect(
+        b
+          .getByText(
+            "Cannot reach the server. Check your connection and retry.",
+            { exact: true },
+          )
+          .first(),
+      ).toBeVisible();
       await expect(
         b.getByRole("button", { name: retryName, exact: true }),
       ).toBeEnabled();
       if (!alreadyCommitted) {
         expect(cancellationStatus).toBeUndefined();
         await b.reload();
-        await b.getByRole("button", { name: retryName, exact: true }).click();
+        await expect
+          .poll(() => cancelAttempts)
+          .toBe(2)
+          .catch(async (error) => {
+            console.log(
+              "CANCEL",
+              kind,
+              alreadyCommitted,
+              await b.locator("body").innerText(),
+            );
+            throw error;
+          });
         await expect(
           b.getByRole("button", { name: retryName, exact: true }),
         ).toBeEnabled();
@@ -614,10 +652,7 @@ try {
         await expect.poll(() => delayedStatus).toBe(409);
       }
       await b.reload();
-      await expect(
-        b.getByRole("button", { name: retryName, exact: true }),
-      ).toBeVisible();
-      await b.getByRole("button", { name: retryName, exact: true }).click();
+      await expect(b.getByTestId("pending-expenses")).toHaveCount(0);
       await expect(
         b.getByRole("button", { name: "Add transaction", exact: true }),
       ).toBeEnabled();
@@ -663,7 +698,7 @@ try {
     .click();
   await expect(
     unsupportedPage.getByRole("button", {
-      name: "Discard rejected edit",
+      name: "Cancel pending change safely",
       exact: true,
     }),
   ).toBeVisible();
@@ -679,7 +714,7 @@ try {
       unsupportedWrites++;
   });
   await unsupportedPage
-    .getByRole("button", { name: "Discard rejected edit", exact: true })
+    .getByRole("button", { name: "Cancel pending change safely", exact: true })
     .click();
   await expect(
     unsupportedPage.getByText(
@@ -689,7 +724,7 @@ try {
   ).toBeVisible();
   await unsupportedPage.reload();
   await unsupportedPage
-    .getByRole("button", { name: "Retry saved transaction", exact: true })
+    .getByRole("button", { name: "Retry pending expense", exact: true })
     .click();
   await expect(
     unsupportedPage.getByText(

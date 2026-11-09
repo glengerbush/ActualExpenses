@@ -13,8 +13,8 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 /** Session and pending work share one encrypted, atomic durability boundary. */
-class EncryptedStateStore(context: Context) : StateStore {
-    private val file = AtomicFile(File(context.noBackupFilesDir, "expenses.state"))
+class EncryptedStateStore(context: Context, filename: String = "expenses.state") : StateStore {
+    private val file = AtomicFile(File(context.noBackupFilesDir, filename))
     private val alias = "actualexpenses.state.v1"
 
     private fun key(): SecretKey {

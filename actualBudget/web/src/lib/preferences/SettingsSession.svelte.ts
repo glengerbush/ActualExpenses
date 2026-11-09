@@ -1,4 +1,5 @@
-import { errorMessage, RequestError, uuid } from "../api";
+import { offlineStatus } from "../offline/events";
+import { errorMessage, request, RequestError, uuid, type Budget } from "../api";
 import { preferences } from "../preferences.svelte";
 import { defaultShared, type SharedPreferences } from "./types";
 import { validShared } from "./validation";
@@ -7,6 +8,7 @@ export interface PreferenceDraft {
   origin: string;
   budget_id: string;
   draft_id: string;
+  budget_epoch?: string;
   base: SharedPreferences;
   values: SharedPreferences;
   pending: { key: string; changes: Record<string, unknown> } | null;
@@ -62,6 +64,7 @@ function read(budgetId: string): PreferenceDraft | null {
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
       d.draft_id,
     ) ||
+    (d.budget_epoch !== undefined && !/^[a-f0-9]{32}$/.test(d.budget_epoch)) ||
     !validShared(d.base) ||
     !validShared(d.values) ||
     (d.pending !== null &&
@@ -81,6 +84,10 @@ function write(
   const stored = read(draft.budget_id);
   if (stored && stored.draft_id !== draft.draft_id)
     throw new Error("Another settings draft is saved. Reload to recover it.");
+  if (stored && stored.budget_epoch !== draft.budget_epoch)
+    throw new Error(
+      "These settings belong to an earlier budget version. Review them before making a new change.",
+    );
   if (
     stored?.pending &&
     !equal(stored.pending, draft.pending) &&
@@ -102,6 +109,11 @@ export class SettingsSession {
   error = $state("");
   status = $state("");
   busy = $state(false);
+  blocked = $state(false);
+  review = $state.raw<{
+    budget: Budget;
+    values: SharedPreferences | null;
+  } | null>(null);
   constructor(readonly budgetId: string) {}
   load() {
     try {
@@ -115,6 +127,7 @@ export class SettingsSession {
         origin: location.origin,
         budget_id: this.budgetId,
         draft_id: uuid(),
+        budget_epoch: preferences.budgetEpoch,
         base: structuredClone($state.snapshot(preferences.shared)),
         values: structuredClone($state.snapshot(preferences.shared)),
         pending: null,
@@ -178,12 +191,17 @@ export class SettingsSession {
     if (!this.draft || this.busy) return;
     this.error = "";
     this.status = "";
+    let acknowledged=false;
     if (!this.draft.pending && !preferences.hasUsableShared) {
       this.error =
         "Load this budget’s preferences before changing shared settings.";
       return;
     }
     try {
+      if (!this.draft.pending && !offlineStatus.reachable)
+        throw new Error(
+          "Reconnect before changing shared settings. Your changes are saved on this device.",
+        );
       const changes = changesBetween(this.draft.base, this.draft.values);
       if (!Object.keys(changes).length) {
         this.status = "No changes to save.";
@@ -200,20 +218,35 @@ export class SettingsSession {
         this.budgetId,
         submitted.pending.changes,
         submitted.pending.key,
+        submitted.budget_epoch,
       );
+      acknowledged=true;
+      const checkpoint = await request<{
+        data: { epoch: string; snapshot: string };
+      }>(`/budgets/${this.budgetId}/checkpoint`);
+      const current = await request<{ data: SharedPreferences }>(
+        `/budgets/${this.budgetId}/preferences?snapshot=${encodeURIComponent(checkpoint.data.snapshot)}`,
+      );
+      await preferences.loadBudget(this.budgetId);
       this.remove(submitted);
       this.draft = {
         ...submitted,
         draft_id: uuid(),
-        base: saved,
-        values: saved,
+        budget_epoch: checkpoint.data.epoch,
+        base: current.data,
+        values: current.data,
         pending: null,
       };
-      this.status = "Shared preferences saved.";
+      this.status = equal(saved, current.data)
+        ? "Shared preferences saved."
+        : "Earlier settings change acknowledged. Showing the current restored settings.";
     } catch (error) {
       if (
         error instanceof RequestError &&
+        !acknowledged &&
         !error.uncertain &&
+        error.code !== "budget_restored" &&
+        error.code !== "budget_deleted" &&
         this.draft.pending
       ) {
         try {
@@ -224,9 +257,77 @@ export class SettingsSession {
           this.error = errorMessage(storageError);
         }
       }
+      this.blocked =
+        error instanceof RequestError &&
+        (error.code === "budget_restored" || error.code === "budget_deleted");
       this.error ||= errorMessage(error);
     } finally {
       this.busy = false;
+    }
+  }
+  async reviewCurrent() {
+    if (!this.draft || !this.blocked || this.busy) return;
+    this.busy = true;
+    try {
+      const { data: budget } = await request<{ data: Budget }>(
+        `/budgets/${this.budgetId}?include_deleted=true`,
+      );
+      const values = (budget as Budget & { deleted?: boolean }).deleted
+        ? null
+        : (
+            await request<{ data: SharedPreferences }>(
+              `/budgets/${this.budgetId}/preferences`,
+            )
+          ).data;
+      this.review = { budget, values };
+    } catch (error) {
+      this.error = errorMessage(error);
+    } finally {
+      this.busy = false;
+    }
+  }
+  resolveReviewed(reapply: boolean): boolean {
+    const original = this.draft;
+    if (!original || !this.blocked || !this.review || this.busy) return false;
+    try {
+      if (reapply && !this.review.values)
+        throw new Error(
+          "Restore this deleted budget before changing settings.",
+        );
+      localStorage.setItem(
+        `actualBudget.retiredSettings.v1.${original.draft_id}`,
+        JSON.stringify(original),
+      );
+      this.remove(original);
+      if (reapply && this.review.values) {
+        const changes = changesBetween(original.base, original.values),
+          base = this.review.values;
+        const values = {
+          ...base,
+          ...changes,
+          experimental: {
+            ...base.experimental,
+            ...((changes.experimental as Record<string, boolean>) ?? {}),
+          },
+        };
+        this.draft = {
+          ...original,
+          draft_id: uuid(),
+          budget_epoch: this.review.budget.epoch,
+          base,
+          values,
+          pending: null,
+        };
+        write(this.draft);
+        this.error = "";
+        this.blocked = false;
+        this.review = null;
+        this.status = "Review these settings, then save them as a new change.";
+      } else this.draft = null;
+      return true;
+    } catch (error) {
+      this.error = errorMessage(error);
+      return false;
     }
   }
 }

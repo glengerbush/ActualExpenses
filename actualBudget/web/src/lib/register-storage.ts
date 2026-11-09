@@ -38,6 +38,8 @@ export interface TransactionDraft {
   editClock?: string;
   clockRejected?: boolean;
   attemptId?: string;
+  budgetEpoch?: string;
+  beganOnline?: boolean;
 }
 export type SavedAction = PendingMutation & {
   description: string;
@@ -71,7 +73,7 @@ function read(key: string): unknown {
     );
   }
 }
-function validPending(
+export function validPending(
   value: unknown,
   budget: string,
 ): value is PendingMutation {
@@ -88,6 +90,12 @@ function validPending(
   if (
     value.clockRejected !== undefined &&
     typeof value.clockRejected !== "boolean"
+  )
+    return false;
+  if (
+    value.budgetEpoch !== undefined &&
+    (typeof value.budgetEpoch !== "string" ||
+      !/^[0-9a-f]{32}$/.test(value.budgetEpoch))
   )
     return false;
   const base = `/budgets/${budget}/transactions`;

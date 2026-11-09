@@ -169,6 +169,14 @@ def main():
             check(entries, entries_template, "POST", canceled,
                   {"Idempotency-Key": "invalid-cancel", "X-Actual-Cancel-If-Uncommitted": "false"}, 400)
 
+            companion = f"{budgets}/{budget_id}/companion"
+            companion_template = budgets + "/{budget}/companion"
+            view = check(companion + f"?account_id={account_id}&retain={ordered['id']}",
+                         companion_template)["data"]
+            assert len(view["recent"]) <= 10
+            check(companion + f"?account_id={account_id}&snapshot={view['snapshot']}", companion_template)
+            check(companion + f"?account_id={account_id}&retain=invalid", companion_template, expected=400)
+
             # Import HTTP responses use the unchanged pinned public export fixture.
             imports = "/api/v1/imports"
             stage = check(imports + "/actual", imports + "/actual", "POST",

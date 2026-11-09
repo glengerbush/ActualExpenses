@@ -1,8 +1,10 @@
 package org.actualexpenses.android
 
 import java.time.LocalDate
+import org.actualexpenses.core.EditSession
+import org.actualexpenses.core.ExpenseContext
 
-enum class Screen { LOGIN, BUDGETS, ACCOUNTS, EXPENSES }
+enum class Screen { SERVER, BUDGETS, ACCOUNTS, EXPENSES, RECOVERY }
 
 data class Choice(val id: String, val name: String)
 
@@ -20,7 +22,7 @@ data class ExpenseRow(
 )
 
 data class ExpenseUiState(
-    val screen: Screen = Screen.LOGIN,
+    val screen: Screen = Screen.SERVER,
     val server: String = "",
     val budgets: List<Choice> = emptyList(),
     val accounts: List<Choice> = emptyList(),
@@ -38,8 +40,9 @@ data class ExpenseUiState(
     val notice: String? = null,
     val savingOperationId: String? = null,
     val completedOperationId: String? = null,
-    val requiresSignIn: Boolean = false,
-    val canCancelSignIn: Boolean = false,
+    val recoveryMessage: String? = null,
+    val canCancelConnection: Boolean = false,
+    val expenseContext: ExpenseContext? = null,
 )
 
 data class ExpenseForm(
@@ -50,18 +53,20 @@ data class ExpenseForm(
     val categoryId: String?,
     val notes: String,
     val operationId: String,
+    val context: ExpenseContext? = null, val edit: EditSession? = null,
 )
 
 interface ExpenseUiActions {
-    fun backToLogin()
-    fun cancelSignIn()
-    fun beginEdit(id: String, completed: () -> Unit)
-    fun login(server: String, password: String)
+    fun showServer()
+    fun cancelConnection()
+    fun beginEdit(id: String, completed: (EditSession) -> Unit)
+    fun connect(server: String)
     fun chooseBudget(id: String)
     fun chooseAccount(id: String)
+    fun showBudgets()
     fun showAccounts()
     fun refresh()
     fun save(form: ExpenseForm)
-    fun delete(id: String, operationId: String)
+    fun delete(session: EditSession, operationId: String)
     fun dismissMessage()
 }

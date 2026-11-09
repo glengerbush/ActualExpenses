@@ -9,13 +9,14 @@ use std::{
     sync::{Arc, Mutex},
     time::Duration,
 };
-use tokio::sync::Semaphore;
+use tokio::sync::{Notify, Semaphore};
 use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct Store {
     db: Arc<Mutex<Connection>>,
     worker: Arc<Semaphore>,
+    changed: Arc<Notify>,
 }
 impl Store {
     pub fn open(directory: &Path) -> Result<Self, Error> {
@@ -26,10 +27,14 @@ impl Store {
             "PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;",
         )?;
         crate::migrations::apply(&mut db, directory)?;
-        Ok(Self {
+        crate::lifecycle::automatic::configure(&db)?;
+        let store = Self {
             db: Arc::new(Mutex::new(db)),
             worker: Arc::new(Semaphore::new(1)),
-        })
+            changed: Arc::new(Notify::new()),
+        };
+        crate::lifecycle::automatic::start(store.clone(), store.changed.clone());
+        Ok(store)
     }
     pub async fn run<T: Send + 'static>(
         &self,
@@ -43,28 +48,23 @@ impl Store {
             .await
             .map_err(Error::internal)?;
         let db = self.db.clone();
+        let changed = self.changed.clone();
         tokio::task::spawn_blocking(move || {
             let _permit = permit;
-            operation(&mut *db.lock().map_err(Error::internal)?)
+            let mut db = db.lock().map_err(Error::internal)?;
+            let before = db.total_changes();
+            let result = operation(&mut db);
+            if db.total_changes() != before {
+                changed.notify_one();
+            }
+            result
         })
         .await
         .map_err(Error::internal)?
     }
 }
-pub fn budgets(db: &Connection) -> Result<Value, Error> {
-    let mut stmt = db.prepare("SELECT id,name,budget_type FROM budgets ORDER BY name,id")?;
-    let rows=stmt.query_map([],|row|Ok(json!({"id":row.get::<_,String>(0)?,"name":row.get::<_,String>(1)?,"budget_type":row.get::<_,String>(2)?})))?;
-    Ok(json!(rows.collect::<Result<Vec<_>, _>>()?))
-}
 pub fn require_budget(db: &Connection, id: &str) -> Result<(), Error> {
-    if !db.query_row(
-        "SELECT EXISTS(SELECT 1 FROM budgets WHERE id=?1)",
-        [id],
-        |row| row.get::<_, bool>(0),
-    )? {
-        return Err(Error::missing());
-    }
-    Ok(())
+    crate::lifecycle::metadata(db, id, false).map(|_| ())
 }
 pub fn accounts(db: &Connection, budget: &str) -> Result<Value, Error> {
     require_budget(db, budget)?;
@@ -89,7 +89,7 @@ pub fn create_budget(db: &Connection, input: NewBudget) -> Result<Value, Error> 
         "INSERT INTO categories(budget_id,id,name,is_income) VALUES(?1,?2,'Starting Balances',1)",
         params![input.id, Uuid::new_v4().to_string()],
     )?;
-    Ok(json!({"id":input.id,"name":input.name,"budget_type":input.budget_type}))
+    crate::lifecycle::metadata(db, &input.id, false)
 }
 pub fn create_account(db: &Connection, budget: &str, input: NewAccount) -> Result<Value, Error> {
     let tx = db;
@@ -164,6 +164,7 @@ pub fn write(
         "INSERT INTO operations(scope,operation_id,payload,response) VALUES(?1,?2,?3,?4)",
         params![scope, key, payload, result.to_string()],
     )?;
+    crate::lifecycle::link_operation(&tx, scope, key, payload, &result.to_string())?;
     tx.commit()?;
     Ok(result)
 }

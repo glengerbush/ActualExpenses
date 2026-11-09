@@ -1,0 +1,82 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "duplicate_source": "packages/desktop-client/src/hooks/useTransactionBatchActions.ts:onBatchDuplicate",
+  "steps": [
+    {
+      "step": "locked",
+      "rows": [
+        {
+          "account": "card",
+          "amount": 2500,
+          "notes": "Settled transfer",
+          "date": "2026-01-01",
+          "cleared": true,
+          "reconciled": true
+        },
+        {
+          "account": "cash",
+          "amount": -2500,
+          "notes": "Settled transfer",
+          "date": "2026-01-01",
+          "cleared": true,
+          "reconciled": true
+        }
+      ]
+    },
+    {
+      "step": "confirmed",
+      "rows": [
+        {
+          "account": "card",
+          "amount": 2700,
+          "notes": "Confirmed transfer",
+          "date": "2026-01-01",
+          "cleared": true,
+          "reconciled": true
+        },
+        {
+          "account": "cash",
+          "amount": -2700,
+          "notes": "Confirmed transfer",
+          "date": "2026-01-01",
+          "cleared": true,
+          "reconciled": true
+        }
+      ]
+    },
+    {
+      "step": "peer-unlocked",
+      "rows": [
+        {
+          "account": "card",
+          "amount": 2700,
+          "notes": "Confirmed transfer",
+          "date": "2026-01-01",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "account": "cash",
+          "amount": -2700,
+          "notes": "Confirmed transfer",
+          "date": "2026-01-01",
+          "cleared": true,
+          "reconciled": true
+        }
+      ]
+    }
+  ],
+  "deletedPayeeProjection": {
+    "parentRetains": false,
+    "childRetains": [
+      false,
+      false
+    ],
+    "parentPayee": null,
+    "childPayees": [
+      null,
+      null
+    ]
+  }
+}

@@ -204,3 +204,34 @@ All42 focused transfer/split/register/concurrency HTTP tests, served OpenAPI, Sv
 Merged reviewed main `963e893` into `da7c0a5`; migration order is register11, reconciliation12, transfers13. Native archive writer/reader and conversion reinspection retain both domains; legacy reconciliation expectations now assert the current report schema13. All35 reconciliation/split/transfer public tests, full reconciliation browser workflow, Svelte checks/autofixer, served OpenAPI, formatting and Clippy pass. Native test cases from both branches are retained.
 
 This checkpoint does not finish paired protection semantics: transfer edits currently require explicit unlock of every affected protected entry; confirmation across both legs and connected split membership needs the next integration pass. Large allocation editing and bulk-history joins remain assigned gates.
+
+## Connected reconciliation protection — 2026-11-09
+
+Transfer edits, linking and split structural recovery capture a complete active
+reciprocal-transfer/split component with a recursive CTE. Sorted member identities,
+relationships, reconciled flags and field versions form a bounded64-hex SHA256
+proof. Authorization is validated inside the receipt transaction before writes;
+protected touches require captured IDs, and original intent HLC must be newer
+than every captured reconciliation version. Membership changes and relocks reject
+stale proofs atomically. Forced account deletion cannot detach protected peers.
+Default proof fields remain omitted from old request receipt serialization.
+
+TransferForm and SplitEditor persist captured proof and clock with the immutable
+request. Confirmation never refreshes a pending retry. Native expense-only edits
+remain refused for transfer rows, even when a transfer proof is supplied.
+
+Existing public red/green evidence: `/tmp/paired15-{red,green}.log`,
+`/tmp/paired15-{split,link}-{red,green}.log`,
+`/tmp/paired15-browser-{red,green}.log`. Focused reconciliation/split/transfer
+HTTP suites pass (`/tmp/paired15-focused-http.log`); transfer suite23 includes
+connected graph changes, locked remote sibling, original-clock refusal,1001-child
+bounded proof and durable replay. Genuine pre-transfer schema12 migration,
+source retention, byte-exact old receipts and native archive roundtrip pass
+(`/tmp/paired15-schema12-{generation,test}.log`). Pinned public Actual oracle
+checks pass (`/tmp/paired15-oracle-check.log`). Native API checks pass
+(`/tmp/paired15-native.log`), including expense-only refusal with supplied proof.
+Svelte check/build, formatting, Clippy and served OpenAPI pass
+(`/tmp/paired15-{check,build,format-web,clippy,contract}.log`).
+
+Large sparse allocation composition and independent corrective review follow
+this checkpoint. Bulk/history and final root acceptance remain separate gates.

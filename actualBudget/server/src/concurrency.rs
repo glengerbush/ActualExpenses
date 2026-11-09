@@ -392,9 +392,33 @@ pub fn execute(
                     ));
                 }
             };
+            let transfer_proof = match patch
+                .as_object_mut()
+                .and_then(|p| p.remove("transfer_protection_token"))
+            {
+                None => None,
+                Some(Value::String(token)) if confirmed => Some(token),
+                _ => {
+                    return Err(Error::invalid(
+                        "transfer_protection_token requires confirm_reconciled=true",
+                    ));
+                }
+            };
             let hidden = deleted(db, budget, &id)?;
             if !hidden && crate::transfers::counterpart(db, budget, &id)?.is_some() {
-                return crate::transfers::patch(db, budget, &id, patch, &edit_clock);
+                return crate::transfers::patch(
+                    db,
+                    budget,
+                    &id,
+                    patch,
+                    &edit_clock,
+                    transfer_proof.as_deref(),
+                );
+            }
+            if transfer_proof.is_some() {
+                return Err(Error::invalid(
+                    "Transfer protection proof requires an active transfer",
+                ));
             }
             // Retired pair references are provenance, never propagation edges.
             // Keep valid local tombstone merges; a stale date-sync choice has no
@@ -525,7 +549,13 @@ pub fn execute(
             }
             let previous = ledger::get(db, budget, &id)?;
             if let Some(children) = previous["children"].as_array() {
-                crate::transfers::composition::guard_children(db, budget, children, &edit_clock)?;
+                crate::transfers::composition::guard_children(
+                    db,
+                    budget,
+                    children,
+                    &edit_clock,
+                    None,
+                )?;
             }
             ledger::delete(db, budget, &id)?;
             if let Some(children) = previous["children"].as_array() {

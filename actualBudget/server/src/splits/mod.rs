@@ -10,7 +10,7 @@ use crate::{
 use axum::{
     Json, Router,
     extract::{
-        Path, State,
+        Path, Query, State,
         rejection::{JsonRejection, PathRejection},
     },
     http::{HeaderMap, StatusCode},
@@ -74,6 +74,8 @@ pub struct Change {
     pub reconciled_versions: BTreeMap<String, String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reconciliation_token: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transfer_protection_token: Option<String>,
 }
 pub fn router() -> Router<Store> {
     Router::new().route(
@@ -81,13 +83,29 @@ pub fn router() -> Router<Store> {
         post(change).get(view),
     )
 }
+#[derive(Deserialize, Default)]
+#[serde(deny_unknown_fields)]
+struct ProtectionQuery {
+    counterpart_id: Option<String>,
+}
 async fn view(
     State(store): State<Store>,
     Path((budget, id)): Path<(String, String)>,
+    Query(query): Query<ProtectionQuery>,
 ) -> Result<Json<Value>, Error> {
     validate_id(&budget)?;
     validate_id(&id)?;
-    Ok(Json(store.run(move|db|{let tx=db.transaction()?;Ok(json!({"data":ledger::get(&tx,&budget,&id)?,"snapshot":concurrency::cursor(&tx,&budget)?,"epoch":crate::lifecycle::epoch(&tx,&budget)?,"reconciliation_token":crate::reconciliation::protection_token(&budget,&crate::reconciliation::members(&tx,&budget,&id)?)}))}).await?))
+    Ok(Json(store.run(move |db| {
+        let tx = db.transaction()?;
+        let mut ids = vec![id.as_str()];
+        if let Some(peer) = query.counterpart_id.as_deref() {
+            validate_id(peer)?;
+            ledger::get(&tx,&budget,peer)?;
+            ids.push(peer);
+        }
+        let graph = crate::transfers::protection::members(&tx, &budget, &ids)?;
+        Ok(json!({"data":ledger::get(&tx,&budget,&id)?,"snapshot":concurrency::cursor(&tx,&budget)?,"epoch":crate::lifecycle::epoch(&tx,&budget)?,"reconciliation_token":crate::reconciliation::protection_token(&budget,&crate::reconciliation::members(&tx,&budget,&id)?),"transfer_protection_token":crate::transfers::protection::token(&budget,&graph),"transfer_connected":graph.iter().any(|r| !r["transfer_id"].is_null()),"transfer_protected_count":graph.iter().filter(|r|r["reconciled"]==true).count(),"transfer_protection_clock":graph.iter().filter_map(|r|r["field_versions"]["reconciled"].as_str()).max().unwrap_or(concurrency::ZERO)}))
+    }).await?))
 }
 async fn change(
     State(store): State<Store>,
@@ -270,7 +288,9 @@ pub fn apply(
         return Err(Error::invalid("Edit children through their parent split"));
     }
     if !input.confirm_reconciled
-        && (!input.reconciled_versions.is_empty() || input.reconciliation_token.is_some())
+        && (!input.reconciled_versions.is_empty()
+            || input.reconciliation_token.is_some()
+            || input.transfer_protection_token.is_some())
     {
         return Err(Error::invalid(
             "Reconciliation proof requires confirm_reconciled=true",
@@ -279,8 +299,19 @@ pub fn apply(
     if !parent["transfer_id"].is_null() {
         return Err(Error::invalid("A transfer cannot become a split parent"));
     }
+    let authorization = crate::transfers::protection::authorize(
+        db,
+        budget,
+        &[id],
+        input.transfer_protection_token.as_deref(),
+        clock,
+    )?;
     let members = crate::reconciliation::members(db, budget, id)?;
-    if let Some(token) = input.reconciliation_token.as_deref() {
+    if let Some(auth) = authorization.as_ref() {
+        for row in &members {
+            auth.protect(row)?;
+        }
+    } else if let Some(token) = input.reconciliation_token.as_deref() {
         crate::reconciliation::verify_token(budget, &members, token, clock)?;
     } else {
         crate::reconciliation::protect_members(
@@ -309,7 +340,7 @@ pub fn apply(
         ));
     }
     let old: Vec<Value> = parent["children"].as_array().cloned().unwrap_or_default();
-    crate::transfers::composition::guard_children(db, budget, &old, clock)?;
+    crate::transfers::composition::guard_children(db, budget, &old, clock, authorization.as_ref())?;
     let previous_payee = parent["retained_payee_id"].as_str().map(str::to_owned);
     if let Some(fields) = input.fields.take() {
         if matches!(input.action, Action::Unsplit)
@@ -404,7 +435,13 @@ pub fn apply(
                 if child.transfer_account_id.is_none()
                     && existing.is_some_and(|row| !row["transfer_id"].is_null())
                 {
-                    crate::transfers::composition::remove_child(db, budget, &child.id, clock)?;
+                    crate::transfers::composition::remove_child(
+                        db,
+                        budget,
+                        &child.id,
+                        clock,
+                        authorization.as_ref(),
+                    )?;
                 }
                 // Transfer identities are owned by the pair operation below.
                 if child.transfer_account_id.is_some() {
@@ -468,13 +505,14 @@ pub fn apply(
                         destination,
                         peer,
                         clock,
+                        authorization.as_ref(),
                     )?;
                 }
             }
             for child in &old {
                 let cid = child["id"].as_str().unwrap();
                 if !ids.contains(cid) {
-                    remove(db, budget, cid, clock)?;
+                    remove_authorized(db, budget, cid, clock, authorization.as_ref())?;
                 }
             }
             db.execute(
@@ -484,7 +522,13 @@ pub fn apply(
         }
         Action::Recombine => {
             for child in &old {
-                remove(db, budget, child["id"].as_str().unwrap(), clock)?;
+                remove_authorized(
+                    db,
+                    budget,
+                    child["id"].as_str().unwrap(),
+                    clock,
+                    authorization.as_ref(),
+                )?;
             }
             db.execute(
                 "UPDATE transactions SET is_parent=0 WHERE budget_id=?1 AND id=?2",
@@ -504,8 +548,21 @@ pub fn apply(
             }
             if old.len() == 1 {
                 db.execute("UPDATE transactions SET is_parent=0,category_id=?3 WHERE budget_id=?1 AND id=?2",params![budget,id,old[0]["category_id"].as_str()])?;
-                crate::transfers::composition::promote_only_child(db, budget, id, &old[0], clock)?;
-                remove(db, budget, old[0]["id"].as_str().unwrap(), clock)?;
+                crate::transfers::composition::promote_only_child(
+                    db,
+                    budget,
+                    id,
+                    &old[0],
+                    clock,
+                    authorization.as_ref(),
+                )?;
+                remove_authorized(
+                    db,
+                    budget,
+                    old[0]["id"].as_str().unwrap(),
+                    clock,
+                    authorization.as_ref(),
+                )?;
             } else {
                 let remaining: Vec<&Value> = old
                     .iter()
@@ -520,7 +577,7 @@ pub fn apply(
                     }
                 }
                 if all {
-                    remove(db, budget, id, clock)?;
+                    remove_authorized(db, budget, id, clock, authorization.as_ref())?;
                 } else {
                     db.execute(
                         "UPDATE transactions SET amount=?3 WHERE budget_id=?1 AND id=?2",
@@ -556,7 +613,16 @@ pub fn apply(
     }
 }
 pub fn remove(db: &Connection, budget: &str, id: &str, clock: &str) -> Result<(), Error> {
-    crate::transfers::composition::remove_child(db, budget, id, clock)?;
+    remove_authorized(db, budget, id, clock, None)
+}
+fn remove_authorized(
+    db: &Connection,
+    budget: &str,
+    id: &str,
+    clock: &str,
+    authorization: Option<&crate::transfers::protection::Authorization>,
+) -> Result<(), Error> {
+    crate::transfers::composition::remove_child(db, budget, id, clock, authorization)?;
     db.execute(
         "UPDATE transactions SET tombstone=1 WHERE budget_id=?1 AND id=?2",
         params![budget, id],

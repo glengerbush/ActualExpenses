@@ -95,6 +95,10 @@
         snapshot: string;
         epoch: string;
         reconciliation_token: string;
+        transfer_protection_token: string;
+        transfer_protection_clock: string;
+        transfer_protected_count: number;
+        transfer_connected: boolean;
       }>(`/budgets/${budgetId}/transactions/${parent.id}/splits`);
       parent = current.data;
       const format = captureAmountFormat();
@@ -124,6 +128,11 @@
         snapshot: current.snapshot,
         epoch: current.epoch,
         reconciliationToken: current.reconciliation_token,
+        transferProtectionToken: current.transfer_connected
+          ? current.transfer_protection_token
+          : undefined,
+        transferProtectionClock: current.transfer_protection_clock,
+        transferProtectedCount: current.transfer_protected_count,
         format,
         children,
         fields: {
@@ -242,7 +251,10 @@
           draft.parent,
           ...(draft.parent.children ?? []),
         ].filter((row) => row.reconciled);
-        if (protectedRows.length && !draft.confirmedReconciled)
+        if (
+          (protectedRows.length || draft.transferProtectedCount) &&
+          !draft.confirmedReconciled
+        )
           throw new Error(
             "Confirm editing this reconciled split, or unlock it first.",
           );
@@ -253,6 +265,8 @@
           amount: parseAmount(draft.fields.amount, draft.format),
           payee_id: draft.fields.payee_id || null,
         };
+        if (draft.transferProtectionClock)
+          observeVersions({ reconciled: draft.transferProtectionClock });
         draft.pending = {
           path: `/budgets/${budgetId}/transactions/${draft.parent.id}/splits`,
           method: "POST",
@@ -261,19 +275,24 @@
           budgetEpoch: draft.epoch,
           body: {
             snapshot: draft.snapshot,
-            ...(protectedRows.length
+            ...(protectedRows.length || draft.transferProtectedCount
               ? {
                   confirm_reconciled: true,
-                  ...(draft.reconciliationToken
-                    ? { reconciliation_token: draft.reconciliationToken }
-                    : {
-                        reconciled_versions: Object.fromEntries(
-                          protectedRows.map((row) => [
-                            row.id,
-                            row.field_versions?.reconciled,
-                          ]),
-                        ),
-                      }),
+                  ...(draft.transferProtectionToken
+                    ? {
+                        transfer_protection_token:
+                          draft.transferProtectionToken,
+                      }
+                    : draft.reconciliationToken
+                      ? { reconciliation_token: draft.reconciliationToken }
+                      : {
+                          reconciled_versions: Object.fromEntries(
+                            protectedRows.map((row) => [
+                              row.id,
+                              row.field_versions?.reconciled,
+                            ]),
+                          ),
+                        }),
                 }
               : {}),
             action,
@@ -391,7 +410,7 @@
       oninput={() => void persist()}
       onchange={() => void persist()}
     >
-      {#if draft.parent.reconciled || draft.parent.children?.some((row) => row.reconciled)}
+      {#if draft.transferProtectedCount || draft.parent.reconciled || draft.parent.children?.some((row) => row.reconciled)}
         <label class="checkbox"
           ><input
             type="checkbox"
@@ -399,6 +418,7 @@
             disabled={busy || !!draft.pending || recovery}
           />{t("Confirm editing this reconciled split")}</label
         >
+        <p>Linked transfer entries are included. Entries remain reconciled.</p>
         <p class="hint">
           {t(
             "This changes settled entries. The transaction and its splits stay locked.",

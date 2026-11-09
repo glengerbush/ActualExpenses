@@ -1090,8 +1090,7 @@
                       showForm ||
                       splitActive ||
                       !!pending ||
-                      !!recoveryError ||
-                      row.reconciled}>Link transfer</button
+                      !!recoveryError}>Link transfer</button
                   >{/if}</td
               >
             </tr>

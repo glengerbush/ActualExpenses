@@ -1290,3 +1290,602 @@ fn deleted_transfer_peer_merges_stay_local_after_child_detach_and_relink() {
     assert_eq!(other["date"], "2026-01-01");
     assert_eq!(other["cleared"], false);
 }
+
+fn lock_account(s: &Server, root: &str, account: usize, balance: i64, key: &str) -> Value {
+    let path = format!("{root}/accounts/{}/reconciliation", id(account));
+    let view = s.get(&format!("{path}?statement_balance={balance}"));
+    ok(s.write("POST", &path, key, None, json!({"action":"lock","statement_balance":balance,"snapshot":view["data"]["snapshot"],"date":"2026-01-31"})))
+}
+
+#[test]
+fn confirmed_pair_edit_captures_both_locks_and_replays_original_receipt() {
+    let s = Server::start();
+    let root = format!("/api/v1/budgets/{B}");
+    ok(s.write(
+        "POST",
+        "/api/v1/budgets",
+        "budget",
+        None,
+        json!({"id":B,"name":"Protection"}),
+    ));
+    for n in [2, 3] {
+        ok(s.write("POST", &format!("{root}/accounts"), &format!("account-{n}"), None, json!({"id":id(n),"name":format!("Account {n}"),"opening_balance":0,"opening_date":"2026-01-01"})));
+    }
+    ok(s.write("POST", &format!("{root}/transfers"), "pair", None, json!({"id":id(11),"counterpart_id":id(12),"account_id":id(2),"to_account_id":id(3),"amount":-2500,"date":"2026-01-01","cleared":true,"notes":"Settled transfer"})));
+    let path = format!("{root}/transactions/{}", id(11));
+    let peer = format!("{root}/transactions/{}", id(12));
+    ok(s.write("PATCH", &peer, "clear-peer", None, json!({"cleared":true})));
+    lock_account(&s, &root, 2, -2500, "lock-source");
+    lock_account(&s, &root, 3, 2500, "lock-peer");
+    let proof = s.get(&format!("{path}/splits"));
+    assert_eq!(
+        proof["transfer_protection_token"].as_str().map(str::len),
+        Some(64)
+    );
+    let before = s.get(&format!("{root}/transactions"));
+    for (key, body) in [
+        ("bare", json!({"amount":-2700})),
+        (
+            "one-proof",
+            json!({"amount":-2700,"confirm_reconciled":true,"reconciled_version":proof["data"]["field_versions"]["reconciled"]}),
+        ),
+    ] {
+        assert_eq!(s.write("PATCH", &path, key, None, body).status(), 409);
+        assert_eq!(
+            s.get(&format!("{root}/transactions"))["data"],
+            before["data"]
+        );
+    }
+    let body = json!({"amount":-2700,"notes":"Confirmed transfer","confirm_reconciled":true,"transfer_protection_token":proof["transfer_protection_token"]});
+    let result = ok(s.write("PATCH", &path, "confirmed", None, body.clone()));
+    let oracle: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/paired-reconciliation.json"
+    ))
+    .unwrap();
+    for (p, amount) in [(&path, -2700), (&peer, 2700)] {
+        let row = s.get(p)["data"].clone();
+        assert_eq!(row["amount"], amount);
+        assert_eq!(row["reconciled"], true);
+        let expected = oracle["steps"][1]["rows"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["account"] == if amount < 0 { "cash" } else { "card" })
+            .unwrap();
+        for field in ["amount", "notes", "date", "cleared", "reconciled"] {
+            assert_eq!(row[field], expected[field]);
+        }
+    }
+    let peer_proof = s.get(&format!("{peer}/splits"));
+    ok(s.write(
+        "POST",
+        &format!("{peer}/unlock"),
+        "unlock-peer",
+        None,
+        json!({"reconciliation_token":peer_proof["reconciliation_token"]}),
+    ));
+    lock_account(&s, &root, 3, 2700, "relock-peer");
+    assert_eq!(
+        s.write("PATCH", &path, "stale", None, body.clone())
+            .status(),
+        409
+    );
+    assert_eq!(
+        s.write("DELETE", &path, "protected-delete", None, Value::Null)
+            .status(),
+        409
+    );
+    let s = s.restart();
+    assert_eq!(ok(s.write("PATCH", &path, "confirmed", None, body)), result);
+}
+
+#[test]
+fn protected_split_transfer_replacement_checks_peer_and_preserves_settled_totals() {
+    let s = Server::start();
+    let root = split_fixture(&s);
+    let path = format!("{root}/transactions/{}/splits", id(10));
+    let peer = format!("{root}/transactions/{}", id(12));
+    ok(s.write("PATCH", &peer, "clear-peer", None, json!({"cleared":true})));
+    let view = s.get(&path);
+    let children = json!([{"id":id(11),"amount":-600,"notes":"Transfer allocation","transfer_account_id":id(3),"counterpart_id":id(12)},{"id":id(13),"amount":-400,"notes":"Ordinary allocation"}]);
+    ok(s.write(
+        "POST",
+        &path,
+        "clear-split",
+        None,
+        json!({"snapshot":view["snapshot"],"children":children,"fields":{"cleared":true}}),
+    ));
+    lock_account(&s, &root, 2, -1000, "lock-parent");
+    lock_account(&s, &root, 3, 600, "lock-peer");
+    let view = s.get(&path);
+    let body = json!({"snapshot":view["snapshot"],"children":[{"id":id(11),"amount":-700,"notes":"Transfer allocation","transfer_account_id":id(3),"counterpart_id":id(12)},{"id":id(13),"amount":-300,"notes":"Ordinary allocation"}],"confirm_reconciled":true,"transfer_protection_token":view["transfer_protection_token"]});
+    let result = ok(s.write("POST", &path, "confirmed-replace", None, body.clone()));
+    assert_eq!(result["data"]["amount"], -1000);
+    assert_eq!(s.get(&peer)["data"]["amount"], 700);
+    for n in [10, 11, 12, 13] {
+        assert_eq!(
+            s.get(&format!("{root}/transactions/{}", id(n)))["data"]["reconciled"],
+            true
+        );
+    }
+    let fresh = s.get(&path);
+    let local_only = json!({"snapshot":fresh["snapshot"],"children":children,"confirm_reconciled":true,"reconciliation_token":fresh["reconciliation_token"]});
+    assert_eq!(
+        s.write("POST", &path, "local-proof-only", None, local_only)
+            .status(),
+        409
+    );
+    let removed = json!({"snapshot":fresh["snapshot"],"action":"recombine","confirm_reconciled":true,"transfer_protection_token":fresh["transfer_protection_token"]});
+    ok(s.write("POST", &path, "confirmed-recombine", None, removed));
+    let row = s.get(&format!("{root}/transactions/{}", id(10)))["data"].clone();
+    assert_eq!(row["amount"], -1000);
+    assert_eq!(row["reconciled"], true);
+    let s = s.restart();
+    assert_eq!(
+        ok(s.write("POST", &path, "confirmed-replace", None, body)),
+        result
+    );
+}
+
+#[test]
+fn linking_protected_splits_requires_both_candidate_components_and_account_delete_cannot_detach_locks()
+ {
+    let s = Server::start();
+    let root = split_fixture(&s);
+    ok(s.write(
+        "PATCH",
+        &format!("{root}/transactions/{}", id(12)),
+        "clear-peer",
+        None,
+        json!({"cleared":true}),
+    ));
+    lock_account(&s, &root, 3, 600, "lock-peer");
+    let before = s.get(&format!("{root}/transactions"));
+    let deleted = s.write(
+        "DELETE",
+        &format!("{root}/accounts/{}", id(2)),
+        "delete-protected-peer",
+        None,
+        json!({"confirm_name":"Account 2"}),
+    );
+    assert_eq!(deleted.status(), 409, "{}", deleted.text().unwrap());
+    assert_eq!(
+        s.get(&format!("{root}/transactions"))["data"],
+        before["data"]
+    );
+    ok(s.write(
+        "POST",
+        &format!("{root}/transactions"),
+        "candidate",
+        None,
+        json!({"id":id(20),"account_id":id(4),"amount":400,"date":"2026-01-01","cleared":true}),
+    ));
+    lock_account(&s, &root, 4, 400, "lock-candidate");
+    let path = format!("{root}/transactions/{}/splits", id(13));
+    let proof = s.get(&format!("{path}?counterpart_id={}", id(20)));
+    let body = json!({"id":id(13),"counterpart_id":id(20),"confirm_reconciled":true,"transfer_protection_token":proof["transfer_protection_token"]});
+    ok(s.write(
+        "POST",
+        &format!("{root}/transfers/link"),
+        "confirmed-link",
+        None,
+        body,
+    ));
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{}", id(20)))["data"]["reconciled"],
+        true
+    );
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{}", id(20)))["data"]["transfer_id"],
+        id(13)
+    );
+}
+
+#[test]
+fn connected_split_proof_fences_each_remote_lock_membership_and_original_intent_clock() {
+    let s = Server::start();
+    let root = split_fixture(&s);
+    ok(s.write(
+        "POST",
+        &format!("{root}/transactions"),
+        "second-parent",
+        None,
+        json!({"id":id(20),"account_id":id(4),"amount":500,"date":"2026-01-01","cleared":true}),
+    ));
+    let second = format!("{root}/transactions/{}/splits", id(20));
+    let v = s.get(&second);
+    ok(s.write("POST",&second,"second-split",None,json!({"snapshot":v["snapshot"],"children":[{"id":id(21),"amount":400},{"id":id(22),"amount":100}]})));
+    ok(s.write(
+        "POST",
+        &format!("{root}/transfers/link"),
+        "connect",
+        None,
+        json!({"id":id(13),"counterpart_id":id(21)}),
+    ));
+    let lock = lock_account(&s, &root, 4, 500, "lock-distant");
+    let path = format!("{root}/transactions/{}", id(12));
+    let proof = s.get(&format!("{path}/splits"));
+    assert_eq!(proof["transfer_protected_count"], 3);
+    let before = s.get(&format!("{root}/transactions"));
+    let body = json!({"date":"2026-02-01","sync_transfer_date":true,"confirm_reconciled":true,"transfer_protection_token":proof["transfer_protection_token"]});
+    assert_eq!(
+        s.write(
+            "PATCH",
+            &path,
+            "old-intent",
+            Some(lock["data"]["edit_clock"].as_str().unwrap()),
+            body.clone()
+        )
+        .status(),
+        409
+    );
+    assert_eq!(
+        s.write(
+            "PATCH",
+            &path,
+            "missing-distant-proof",
+            None,
+            json!({"date":"2026-02-01","sync_transfer_date":true})
+        )
+        .status(),
+        409
+    );
+    assert_eq!(
+        s.get(&format!("{root}/transactions"))["data"],
+        before["data"]
+    );
+    ok(s.write("PATCH", &path, "connected-date", None, body.clone()));
+    for n in [10, 11, 12, 13, 20, 21, 22] {
+        assert_eq!(
+            s.get(&format!("{root}/transactions/{}", id(n)))["data"]["date"],
+            "2026-02-01"
+        );
+    }
+    let u = s.get(&second);
+    ok(s.write(
+        "POST",
+        &format!("{root}/transactions/{}/unlock", id(20)),
+        "unlock-distant",
+        None,
+        json!({"reconciliation_token":u["reconciliation_token"]}),
+    ));
+    lock_account(&s, &root, 4, 500, "relock-distant");
+    assert_eq!(
+        s.write("PATCH", &path, "stale-distant", None, body)
+            .status(),
+        409
+    );
+    // Different membership invalidates the same fixed-size proof even if local lock flags remain unchanged.
+    let proof = s.get(&format!("{path}/splits"));
+    let v = s.get(&second);
+    ok(s.write("POST",&second,"change-membership",None,json!({"snapshot":v["snapshot"],"confirm_reconciled":true,"transfer_protection_token":v["transfer_protection_token"],"children":[{"id":id(21),"amount":400,"transfer_account_id":id(2),"counterpart_id":id(13)},{"id":id(22),"amount":50},{"id":id(23),"amount":50}]})));
+    assert_eq!(s.write("PATCH",&path,"stale-membership",None,json!({"date":"2026-03-01","sync_transfer_date":true,"confirm_reconciled":true,"transfer_protection_token":proof["transfer_protection_token"]})).status(),409);
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{}", id(10)))["data"]["amount"],
+        -1000
+    );
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{}", id(20)))["data"]["amount"],
+        500
+    );
+}
+
+#[test]
+fn genuine_schema12_upgrade_preserves_settled_splits_receipts_sources_and_native_archive() {
+    let fixture: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/reconciliation-schema12.json"
+    ))
+    .unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    std::fs::write(
+        directory.path().join("actualbudget.sqlite3"),
+        include_bytes!("../../tests/fixtures/reconciliation-schema12.sqlite3"),
+    )
+    .unwrap();
+    let s = Server::open(directory);
+    let root = format!("/api/v1/budgets/{}", fixture["budget"].as_str().unwrap());
+    let split = format!(
+        "{root}/transactions/{}/splits",
+        fixture["parent"].as_str().unwrap()
+    );
+    let account = format!("{root}/accounts/{}", fixture["account"].as_str().unwrap());
+    for (path, key, body, receipt) in [
+        (
+            format!("{root}/accounts"),
+            "account",
+            "account_body",
+            "account_receipt",
+        ),
+        (split.clone(), "split", "split_body", "split_receipt"),
+        (
+            format!("{account}/reconciliation"),
+            "lock",
+            "lock_body",
+            "lock_receipt",
+        ),
+    ] {
+        assert_eq!(
+            ok(s.write("POST", &path, key, None, fixture[body].clone())),
+            fixture[receipt]
+        );
+    }
+    assert_eq!(s.get(&split)["data"], fixture["locked_split"]);
+    assert_eq!(s.get(&account)["data"], fixture["account_state"]);
+    assert_eq!(
+        s.get(&format!("{root}/register-settings"))["data"]["settings"],
+        fixture["settings"]
+    );
+    let active = format!(
+        "/api/v1/budgets/{}",
+        fixture["active_budget"].as_str().unwrap()
+    );
+    assert_eq!(
+        s.get(&format!("{active}/transactions")),
+        fixture["active_register"]
+    );
+    assert_eq!(
+        s.get(&format!("{active}/accounts")),
+        fixture["active_accounts"]
+    );
+    let original = s
+        .client
+        .get(format!(
+            "{}/api/v1/imports/{}/original.zip",
+            s.url,
+            fixture["active_import"].as_str().unwrap()
+        ))
+        .send()
+        .unwrap();
+    assert_eq!(
+        original.bytes().unwrap().as_ref(),
+        include_bytes!("../../tests/fixtures/reconciliation-import.zip")
+    );
+    let upload = |key: &str| {
+        ok(s.client
+            .post(format!("{}/api/v1/imports/actual", s.url))
+            .header("Idempotency-Key", key)
+            .header("Content-Type", "application/zip")
+            .body(include_bytes!("../../tests/fixtures/import-transfers-26.10.0.zip").to_vec())
+            .send()
+            .unwrap())
+    };
+    assert_eq!(upload("blocked-source"), fixture["blocked_receipt"]);
+    let reviewed = upload("inspect-transfer-after-upgrade");
+    assert_eq!(reviewed["data"]["status"], "ready");
+    ok(s.write(
+        "POST",
+        &format!(
+            "/api/v1/imports/{}/activate",
+            reviewed["data"]["id"].as_str().unwrap()
+        ),
+        "activate-upgraded-transfer",
+        None,
+        json!({}),
+    ));
+    let imported = format!(
+        "/api/v1/budgets/{}",
+        reviewed["data"]["budget_id"].as_str().unwrap()
+    );
+    let source: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/import-transfers-26.10.0.json"
+    ))
+    .unwrap();
+    // Independent imported HLC exactness remains covered by the genuine synced source test;
+    // this upgrade must re-inspect the same retained original bytes without changing its old receipt.
+    assert!(
+        s.get(&format!("{imported}/transactions"))["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| !r["transfer_id"].is_null())
+    );
+    for expected in source["public"]["transactions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|t| !t["transfer_id"].is_null())
+    {
+        let actual = s.get(&format!(
+            "{imported}/transactions/{}",
+            expected["id"].as_str().unwrap()
+        ))["data"]
+            .clone();
+        for field in [
+            "amount",
+            "date",
+            "cleared",
+            "reconciled",
+            "notes",
+            "transfer_id",
+        ] {
+            assert_eq!(actual[field], expected[field]);
+        }
+        for clock in source["inspection"]["latest_field_clocks"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|c| c["dataset"] == "transactions" && c["row"] == expected["id"])
+        {
+            let field = match clock["column"].as_str().unwrap() {
+                "transferred_id" => "transfer_id",
+                "acct" => "account_id",
+                "description" => "payee_id",
+                "category" => "category_id",
+                other => other,
+            };
+            if [
+                "transfer_id",
+                "account_id",
+                "payee_id",
+                "category_id",
+                "amount",
+                "date",
+                "notes",
+                "cleared",
+                "reconciled",
+            ]
+            .contains(&field)
+            {
+                assert_eq!(actual["field_versions"][field], clock["timestamp"]);
+            }
+        }
+    }
+    for archive in [
+        include_bytes!("../../tests/fixtures/reconciliation-schema12.zip").to_vec(),
+        {
+            let backup = ok(s.write(
+                "POST",
+                &format!("{root}/backups"),
+                "upgraded-backup",
+                None,
+                json!({"label":"Schema13 settled split"}),
+            ));
+            s.client
+                .get(format!(
+                    "{}{root}/backups/{}/download",
+                    s.url,
+                    backup["data"]["id"].as_str().unwrap()
+                ))
+                .send()
+                .unwrap()
+                .bytes()
+                .unwrap()
+                .to_vec()
+        },
+    ] {
+        let target = Server::start();
+        let staged = ok(target
+            .client
+            .post(format!("{}/api/v1/restores", target.url))
+            .header("Idempotency-Key", "stage")
+            .header("Content-Type", "application/zip")
+            .body(archive)
+            .send()
+            .unwrap());
+        assert_eq!(staged["data"]["report"]["schema_version"], 13);
+        ok(target.write(
+            "POST",
+            &format!(
+                "{root}/restores/{}/activate",
+                staged["data"]["id"].as_str().unwrap()
+            ),
+            "activate",
+            None,
+            json!({"confirm_name":"Schema12 reconciliation"}),
+        ));
+        let target = target.restart();
+        assert_eq!(target.get(&split)["data"], fixture["locked_split"]);
+        assert_eq!(target.get(&account)["data"], fixture["account_state"]);
+        assert_eq!(
+            target.get(&format!("{root}/register-settings"))["data"]["settings"],
+            fixture["settings"]
+        );
+        for (path, key, body, receipt) in [
+            (
+                format!("{root}/accounts"),
+                "account",
+                "account_body",
+                "account_receipt",
+            ),
+            (split.clone(), "split", "split_body", "split_receipt"),
+            (
+                format!("{account}/reconciliation"),
+                "lock",
+                "lock_body",
+                "lock_receipt",
+            ),
+        ] {
+            assert_eq!(
+                ok(target.write("POST", &path, key, None, fixture[body].clone())),
+                fixture[receipt]
+            );
+        }
+    }
+}
+
+#[test]
+fn imported_thousand_member_transfer_confirmation_stays_bounded_and_exact() {
+    let mut s = Server::start();
+    s.client = Client::builder()
+        .timeout(Duration::from_secs(30))
+        .build()
+        .unwrap();
+    let uploaded = ok(s
+        .client
+        .post(format!("{}/api/v1/imports/actual", s.url))
+        .header("Idempotency-Key", "large-import")
+        .header("Content-Type", "application/zip")
+        .body(include_bytes!("../../tests/fixtures/reconciliation-large.zip").to_vec())
+        .send()
+        .unwrap());
+    ok(s.write(
+        "POST",
+        &format!(
+            "/api/v1/imports/{}/activate",
+            uploaded["data"]["id"].as_str().unwrap()
+        ),
+        "activate-large",
+        None,
+        json!({}),
+    ));
+    let root = format!(
+        "/api/v1/budgets/{}",
+        uploaded["data"]["budget_id"].as_str().unwrap()
+    );
+    let metadata: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/reconciliation-large.json"
+    ))
+    .unwrap();
+    let case = &metadata["accounts"][1];
+    let parent = case["parent"].as_str().unwrap();
+    let account = case["account"].as_str().unwrap();
+    let split = format!("{root}/transactions/{parent}/splits");
+    let view = s.get(&split);
+    let child = view["data"]["children"][0]["id"].as_str().unwrap();
+    ok(s.write(
+        "POST",
+        &format!("{root}/accounts"),
+        "other-account",
+        None,
+        json!({"id":id(2),"name":"Other","opening_balance":0,"opening_date":"2026-01-01"}),
+    ));
+    ok(s.write(
+        "POST",
+        &format!("{root}/transactions"),
+        "other-entry",
+        None,
+        json!({"id":id(3),"account_id":id(2),"amount":1,"date":"2026-01-01","cleared":true}),
+    ));
+    ok(s.write(
+        "POST",
+        &format!("{root}/transfers/link"),
+        "large-link",
+        None,
+        json!({"id":child,"counterpart_id":id(3)}),
+    ));
+    for (a, amount, key) in [
+        (account, -1001, "large-lock"),
+        (id(2).as_str(), 1, "peer-lock"),
+    ] {
+        let path = format!("{root}/accounts/{a}/reconciliation");
+        let p = s.get(&path);
+        ok(s.write("POST",&path,key,None,json!({"action":"lock","statement_balance":amount,"snapshot":p["data"]["snapshot"],"date":"2026-02-28"})));
+    }
+    let peer = format!("{root}/transactions/{}", id(3));
+    let proof = s.get(&format!("{peer}/splits"));
+    assert_eq!(proof["transfer_protected_count"], 1003);
+    let body = json!({"amount":2,"confirm_reconciled":true,"transfer_protection_token":proof["transfer_protection_token"]});
+    assert!(body.to_string().len() < 256);
+    ok(s.write("PATCH", &peer, "large-confirm", None, body));
+    let after = s.get(&split)["data"].clone();
+    assert_eq!(after["amount"], -1002);
+    assert_eq!(after["children"].as_array().unwrap().len(), 1001);
+    assert!(
+        after["children"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|r| r["reconciled"] == true)
+    );
+    assert_eq!(s.get(&peer)["data"]["amount"], 2);
+}

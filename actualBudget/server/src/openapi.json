@@ -11706,6 +11706,16 @@
               "format": "uuid",
               "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
             }
+          },
+          {
+            "name": "counterpart_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "For linking existing entries: capture proof covering both candidate connected components atomically."
           }
         ],
         "responses": {
@@ -11719,7 +11729,11 @@
                     "data",
                     "snapshot",
                     "epoch",
-                    "reconciliation_token"
+                    "reconciliation_token",
+                    "transfer_protection_token",
+                    "transfer_protected_count",
+                    "transfer_protection_clock",
+                    "transfer_connected"
                   ],
                   "properties": {
                     "data": {
@@ -11733,6 +11747,19 @@
                     },
                     "reconciliation_token": {
                       "$ref": "#/components/schemas/ReconciliationToken"
+                    },
+                    "transfer_protection_token": {
+                      "$ref": "#/components/schemas/TransferProtectionToken"
+                    },
+                    "transfer_protected_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "transfer_protection_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "transfer_connected": {
+                      "type": "boolean"
                     }
                   }
                 }
@@ -13337,11 +13364,14 @@
           },
           "confirm_reconciled": {
             "type": "boolean",
-            "description": "Explicit confirmation for this immutable edit; requires captured reconciled_version. Protection remains unchanged. Each affected protected aggregate member must independently pass the same freshness guard. Deletion requires explicit unlock."
+            "description": "Explicit confirmation preserving reconciled flags. Ordinary edits require reconciled_version; linked transfers require transfer_protection_token covering all connected affected members. DELETE requires explicit unlock."
           },
           "reconciled_version": {
             "$ref": "#/components/schemas/EditClock",
             "description": "Reconciled field version captured from the displayed transaction when confirming. Must exactly match current protection version; immutable intent clock must also be newer. Missing proof or a later unlock/relock rejects before mutation. Original committed receipts replay before this check."
+          },
+          "transfer_protection_token": {
+            "$ref": "#/components/schemas/TransferProtectionToken"
           }
         },
         "required": [],
@@ -13349,6 +13379,9 @@
         "minProperties": 1,
         "dependentRequired": {
           "reconciled_version": [
+            "confirm_reconciled"
+          ],
+          "transfer_protection_token": [
             "confirm_reconciled"
           ]
         },
@@ -13365,14 +13398,30 @@
               ]
             },
             "then": {
-              "required": [
-                "reconciled_version"
+              "anyOf": [
+                {
+                  "required": [
+                    "reconciled_version"
+                  ]
+                },
+                {
+                  "required": [
+                    "transfer_protection_token"
+                  ]
+                }
               ]
             }
           }
         ],
         "dependentSchemas": {
           "reconciled_version": {
+            "properties": {
+              "confirm_reconciled": {
+                "const": true
+              }
+            }
+          },
+          "transfer_protection_token": {
             "properties": {
               "confirm_reconciled": {
                 "const": true
@@ -15228,6 +15277,27 @@
             "type": "string",
             "format": "uuid",
             "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "transfer_protection_token": {
+            "$ref": "#/components/schemas/TransferProtectionToken"
+          },
+          "confirm_reconciled": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "dependentRequired": {
+          "transfer_protection_token": [
+            "confirm_reconciled"
+          ]
+        },
+        "dependentSchemas": {
+          "transfer_protection_token": {
+            "properties": {
+              "confirm_reconciled": {
+                "const": true
+              }
+            }
           }
         }
       },
@@ -15356,6 +15426,11 @@
                       "required": [
                         "reconciled_version"
                       ]
+                    },
+                    {
+                      "required": [
+                        "transfer_protection_token"
+                      ]
                     }
                   ]
                 }
@@ -15377,6 +15452,9 @@
           },
           "reconciliation_token": {
             "$ref": "#/components/schemas/ReconciliationToken"
+          },
+          "transfer_protection_token": {
+            "$ref": "#/components/schemas/TransferProtectionToken"
           }
         },
         "dependentRequired": {
@@ -15384,6 +15462,9 @@
             "confirm_reconciled"
           ],
           "reconciliation_token": [
+            "confirm_reconciled"
+          ],
+          "transfer_protection_token": [
             "confirm_reconciled"
           ]
         },
@@ -15396,6 +15477,13 @@
             }
           },
           "reconciliation_token": {
+            "properties": {
+              "confirm_reconciled": {
+                "const": true
+              }
+            }
+          },
+          "transfer_protection_token": {
             "properties": {
               "confirm_reconciled": {
                 "const": true
@@ -15709,6 +15797,11 @@
         "type": "string",
         "pattern": "^[0-9a-f]{64}$",
         "description": "Fixed-size SHA256 proof from GET transaction splits. Binds budget, logical parent ID and all live member IDs, reconciled flags and reconciled field versions. Capture unchanged with the confirmed intent; server checks current membership/protection and newer original intent clock atomically. Does not replace budget epoch or split snapshot."
+      },
+      "TransferProtectionToken": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$",
+        "description": "Captured fixed-size proof of complete connected live split/transfer membership, relationship edges and every member\u2019s own reconciled flag/version, bound to this budget. Capture GET /transactions/{id}/splits; for linking include counterpart_id query parameter. Verify inside the receipt transaction with the original intent clock newer than every captured protection version. Immutable retries never refresh proof."
       }
     }
   }

@@ -310,6 +310,14 @@ def main():
             check(split_path,split_template,"POST",{"snapshot":snapshot,"children":[{"id":child,"amount":-600,"transfer_account_id":cash,"counterpart_id":peer},{"id":sibling,"amount":-400}]},{"Idempotency-Key":"combined-split"})
             check(transfer_root+"/transactions/"+peer,entries_template+"/{id}","PATCH",{"amount":700},{"Idempotency-Key":"combined-pair-patch"})
             check(transfer_root+"/transactions/"+peer,entries_template+"/{id}","PATCH",{"notes":"Queued expense"},{"Idempotency-Key":"expense-only","X-Actual-Expense-Only":"true"},409)
+            check(transfer_root+"/transactions/"+peer,entries_template+"/{id}","PATCH",{"cleared":True},{"Idempotency-Key":"clear-protected-peer"})
+            reconciliation=transfer_root+"/accounts/"+cash+"/reconciliation"
+            progress=check(reconciliation,account_template+"/{id}/reconciliation")["data"]
+            check(reconciliation,account_template+"/{id}/reconciliation","POST",{"action":"lock","statement_balance":progress["balances"]["cleared"],"snapshot":progress["snapshot"],"date":"2026-02-28"},{"Idempotency-Key":"lock-protected-peer"})
+            proof=check(split_path,split_template)
+            confirmed={"amount":750,"confirm_reconciled":True,"transfer_protection_token":proof["transfer_protection_token"]}
+            Draft202012Validator({**contract["components"]["schemas"]["TransactionPatch"],"components":contract["components"]},format_checker=FormatChecker()).validate(confirmed)
+            check(transfer_root+"/transactions/"+peer,entries_template+"/{id}","PATCH",confirmed,{"Idempotency-Key":"confirmed-pair"})
             print("PASS: served OpenAPI schemas validate real success, validation, conflict, origin and missing-resource responses")
         finally:
             process.terminate()

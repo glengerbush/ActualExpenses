@@ -505,9 +505,24 @@ fn apply(db: &Connection, budget: &str, key: &str, handoff: Handoff) -> Result<V
             .ok_or_else(|| Error::invalid("Missing original transaction order"))?;
         order::insert(db, budget, &op.transaction_id, source_order)?;
         for m in &op.changes {
-            if m.dataset == "transactions"
-                && let Some((field, _)) = native_field(m)?
-            {
+            if m.dataset != "transactions" {
+                continue;
+            }
+            // These defaults were already validated as ordinary/unlocked. Seed
+            // their original order only for this absent creation; they never
+            // become patches that could unlock or restructure an existing row.
+            let field = if let Some((field, _)) = native_field(m)? {
+                Some(field)
+            } else {
+                match m.column.as_str() {
+                    "reconciled" => Some("reconciled"),
+                    "isParent" => Some("is_parent"),
+                    "parent_id" => Some("parent_id"),
+                    "transferred_id" => Some("transfer_id"),
+                    _ => None,
+                }
+            };
+            if let Some(field) = field {
                 concurrency::seed_field_version(
                     db,
                     budget,

@@ -335,6 +335,29 @@ fn late_legacy_order_matches_pinned_ties_backward_capture_and_latest_ten_without
             body.clone(),
         );
         assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+        let row = server
+            .get(&format!("{create}/{}", id(n)))
+            .json::<Value>()
+            .unwrap();
+        for (legacy, native) in [
+            ("reconciled", "reconciled"),
+            ("isParent", "is_parent"),
+            ("parent_id", "parent_id"),
+            ("transferred_id", "transfer_id"),
+        ] {
+            let clock = body["operation"]["changes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|m| m["column"] == legacy)
+                .unwrap()["timestamp"]
+                .clone();
+            assert_eq!(
+                row["data"]["field_versions"][native], clock,
+                "original {legacy} ordering must survive creation"
+            );
+        }
+
         assert_eq!(
             json!(read()),
             oracle["snapshots"][index + 2]["ids"],

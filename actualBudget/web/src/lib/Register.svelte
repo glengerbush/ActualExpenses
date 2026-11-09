@@ -27,7 +27,14 @@
     LocalClockError,
     resetCorrectedClock,
   } from "./edit-clock";
-  import { list, uuid, RequestError, errorMessage, type Account } from "./api";
+  import {
+    request,
+    list,
+    uuid,
+    RequestError,
+    errorMessage,
+    type Account,
+  } from "./api";
   import { t } from "./i18n.svelte";
   import { formatAmount, formatDate, formatAmountInput } from "./money";
   import { preferences } from "./preferences.svelte";
@@ -40,6 +47,8 @@
     type SavedAction,
   } from "./register-storage";
   import BulkActions from "./BulkActions.svelte";
+  import TransferForm from "./TransferForm.svelte";
+  import Reconciliation from "./Reconciliation.svelte";
   import SplitEditor from "./SplitEditor.svelte";
   import RegisterTools from "./RegisterTools.svelte";
   import {
@@ -197,7 +206,8 @@
       case "category":
         return row.is_parent
           ? `${row.children?.length ?? 0} splits`
-          : (row.category_name ?? t("Uncategorized"));
+          : (row.category_name ??
+              (row.transfer_id ? "Transfer" : t("Uncategorized")));
       case "amount":
         return formatAmount(row.amount);
       case "payment":
@@ -310,12 +320,17 @@
   let notice = $state("");
   let filterDate = $state("");
   let showForm = $state(false);
+  let transferMode = $state<"create" | "edit" | "link" | "close" | null>(null);
   let recoveredPending = $state(false);
   let editing = $state.raw<Transaction | null>(null);
   let splitEditor = $state<
     { open: (row: Transaction) => Promise<void> } | undefined
   >();
   let splitActive = $state(false);
+  let unlocking = $state.raw<Transaction | null>(null);
+  const reconciliationAccount = $derived(
+    accounts.find((a) => a.id === (accountId ?? unlocking?.account_id)),
+  );
   let deleting = $state.raw<Transaction | null>(null);
   let deletionEpoch = $state<string | undefined>();
   let pending = $state<SavedAction | null>(null);
@@ -420,7 +435,12 @@
     recoveryError = "";
     try {
       const saved = readTransactionDraft(budgetId);
-      showForm = !!saved;
+      transferMode = localStorage.getItem(
+        `actualBudget.transfers.v1.${budgetId}`,
+      )
+        ? "create"
+        : null;
+      showForm = !!saved || !!transferMode;
       recoveredPending = !!saved?.pending;
       pending = readRegisterAction(budgetId);
     } catch (e) {
@@ -441,6 +461,7 @@
 
   async function changed(message = "") {
     showForm = false;
+    transferMode = null;
     editing = null;
     queued = null;
     deleting = null;
@@ -542,8 +563,39 @@
     }
     queued = null;
     editing = transaction;
+    transferMode = transaction?.transfer_id ? "edit" : null;
     showForm = true;
     deleting = null;
+  }
+  function openTransfer(
+    mode: "create" | "link" | "close",
+    row: Transaction | null = null,
+  ) {
+    transferMode = mode;
+    editing = row;
+    showForm = true;
+    deleting = null;
+  }
+  async function beginUnlock(row: Transaction) {
+    if (busy || disconnected) return;
+    busy = true;
+    error = "";
+    try {
+      if (row.is_parent) {
+        const current = await request<{
+          data: Transaction;
+          reconciliation_token: string;
+        }>(`/budgets/${budgetId}/transactions/${row.id}/splits`);
+        unlocking = {
+          ...current.data,
+          reconciliation_token: current.reconciliation_token,
+        };
+      } else unlocking = row;
+    } catch (e) {
+      error = errorMessage(e);
+    } finally {
+      busy = false;
+    }
   }
   function description(row: Transaction) {
     return `${formatAmount(row.amount)} · ${row.payee_name ?? t("No payee")} · ${formatDate(row.date)}`;
@@ -715,6 +767,38 @@
         !viewMatchesEpoch ||
         !compatible}>{t("Add transaction")}</button
     >
+    <button
+      onclick={() => openTransfer("create")}
+      disabled={bulkActive ||
+        disconnected ||
+        loading ||
+        busy ||
+        showForm ||
+        splitActive ||
+        !!pending ||
+        !!recoveryError ||
+        !preferences.hasUsableShared ||
+        !viewMatchesEpoch ||
+        !compatible ||
+        accounts.filter((a) => !a.closed && !a.deleted).length < 2}
+      >Move money</button
+    >
+    {#if accountId}<button
+        onclick={() => openTransfer("close")}
+        disabled={bulkActive ||
+          disconnected ||
+          loading ||
+          busy ||
+          showForm ||
+          splitActive ||
+          !!pending ||
+          !!recoveryError ||
+          !preferences.hasUsableShared ||
+          !viewMatchesEpoch ||
+          !compatible ||
+          accounts.filter((a) => !a.closed && !a.deleted).length < 2}
+        >Transfer balance and close</button
+      >{/if}
   </div>
   {#if register && preferences.hasUsableShared && viewMatchesEpoch}
     <dl class="register-balances">
@@ -793,6 +877,25 @@
       selectedIds = [];
     }}
   />
+  {#if reconciliationAccount && register}
+    {#key reconciliationAccount.id}<Reconciliation
+        {budgetId}
+        account={reconciliationAccount}
+        snapshot={register.snapshot}
+        {disconnected}
+        disabled={loading ||
+          bulkActive ||
+          busy ||
+          showForm ||
+          splitActive ||
+          !!pending ||
+          !!recoveryError ||
+          !viewMatchesEpoch}
+        {unlocking}
+        onunlocked={() => (unlocking = null)}
+        onchanged={() => changed()}
+      />{/key}
+  {/if}
   <RegisterTools
     locked={bulkActive}
     {accounts}
@@ -901,23 +1004,39 @@
         </div>{/each}
     </section>{/if}
   {#if showForm && (accounts.length || recoveredPending) && !recoveryError}
-    <TransactionForm
-      {budgetId}
-      {accounts}
-      {payees}
-      {categories}
-      initial={editing}
-      {queued}
-      {disconnected}
-      defaultAccountId={accountId}
-      oncomplete={(_transaction, message) => void changed(message)}
-      oncancel={() => {
-        showForm = false;
-        editing = null;
-        queued = null;
-        void tick().then(() => bulkActions?.refresh());
-      }}
-    />
+    {#if transferMode}<TransferForm
+        {budgetId}
+        {accounts}
+        {categories}
+        mode={transferMode}
+        initial={editing}
+        defaultAccountId={accountId}
+        oncomplete={(message) => void changed(message)}
+        oncancel={() => {
+          showForm = false;
+          transferMode = null;
+          editing = null;
+          void tick().then(() => bulkActions?.refresh());
+        }}
+      />
+    {:else}<TransactionForm
+        {budgetId}
+        {accounts}
+        {payees}
+        {categories}
+        initial={editing}
+        {queued}
+        {disconnected}
+        defaultAccountId={accountId}
+        oncomplete={(_transaction, message) => void changed(message)}
+        oncancel={() => {
+          showForm = false;
+          editing = null;
+          queued = null;
+          void tick().then(() => bulkActions?.refresh());
+        }}
+      />
+    {/if}
   {/if}
   <SplitEditor
     {budgetId}
@@ -956,165 +1075,199 @@
         }}
       /> Select loaded entries</label
     >
-    <table class="register-table">
-      <caption class="visually-hidden"
-        >Transactions sorted by {confirmedQuery.sort}, {confirmedQuery.direction ===
-        "asc"
-          ? "ascending"
-          : "descending"}</caption
-      >
-      <thead
-        ><tr
-          ><th>Selection</th>{#each appliedColumns as column (column)}<th
-              class:number={[
-                "amount",
-                "payment",
-                "deposit",
-                "balance",
-              ].includes(column)}>{t(columnLabels[column])}</th
-            >{/each}<th>{t("Actions")}</th></tr
-        ></thead
-      >
-      <tbody>
-        {#each selectionRows as row (row.id)}
-          <tr
-            class:selected={selectedIds.includes(row.id)}
-            class:split-child={!!row.parent_id}
-          >
-            <td data-label="Select"
-              ><label class="row-selection"
-                ><input
-                  type="checkbox"
-                  aria-label={`Select ${description(row)}`}
-                  checked={selectedIds.includes(row.id)}
-                  disabled={disconnected ||
-                    loading ||
-                    busy ||
-                    bulkActive ||
-                    showForm ||
-                    splitActive}
-                  onclick={(event) => selectRow(event, row)}
-                /><span class="visually-hidden">Select entry</span></label
-              ></td
-            >
-            {#each appliedColumns as column (column)}<td
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex (Scrollable transaction region needs keyboard access at enlarged text.) -->
+    <div
+      class="register-table-scroll"
+      tabindex="0"
+      role="region"
+      aria-label={t("Transaction table")}
+    >
+      <table class="register-table">
+        <caption class="visually-hidden"
+          >Transactions sorted by {confirmedQuery.sort}, {confirmedQuery.direction ===
+          "asc"
+            ? "ascending"
+            : "descending"}</caption
+        >
+        <thead
+          ><tr
+            ><th>Selection</th>{#each appliedColumns as column (column)}<th
                 class:number={[
                   "amount",
                   "payment",
                   "deposit",
                   "balance",
-                ].includes(column)}
-                class:entry-notes={column === "notes"}
-                class:amount={column === "amount"}
-                data-label={t(columnLabels[column])}>{cell(row, column)}</td
-              >{/each}
-            <td class="row-actions"
-              >{#if row.is_parent}<button
-                  disabled={bulkActive || busy}
-                  onclick={() => {
-                    if (expandedSplits.includes(row.id)) {
-                      expandedSplits = expandedSplits.filter(
-                        (id) => id !== row.id,
-                      );
-                      selectedIds = selectedIds.filter(
-                        (id) =>
-                          !(row.children ?? []).some(
-                            (child) => child.id === id,
-                          ),
-                      );
-                    } else expandedSplits = [...expandedSplits, row.id];
-                  }}
-                  aria-expanded={expandedSplits.includes(row.id)}
-                  >{expandedSplits.includes(row.id)
-                    ? "Hide split entries"
-                    : "Select split entries"}</button
-                >{/if}<button
-                onkeydown={navigateRow}
-                onclick={() => open(row)}
-                disabled={disconnected ||
-                  loading ||
-                  busy ||
-                  showForm ||
-                  splitActive ||
-                  bulkActive ||
-                  !!pending ||
-                  !!recoveryError ||
-                  !preferences.hasUsableShared ||
-                  row.reconciled}
-                aria-label={`${t("Edit")} ${description(row)}`}
-                >{t("Edit")}</button
-              ><button
-                onclick={() => {
-                  const parent = row.parent_id
-                    ? register?.data.find((item) => item.id === row.parent_id)
-                    : row;
-                  if (parent) void splitEditor?.open(parent);
-                }}
-                disabled={disconnected ||
-                  loading ||
-                  busy ||
-                  showForm ||
-                  splitActive ||
-                  bulkActive ||
-                  !!pending ||
-                  !!recoveryError ||
-                  row.reconciled ||
-                  row.starting_balance}
-                hidden={!!row.parent_id}
-                >{row.is_parent
-                  ? t("Edit splits")
-                  : t("Split transaction")}</button
-              ><button
-                onkeydown={navigateRow}
-                onclick={() => void runAction("duplicate", row)}
-                disabled={disconnected ||
-                  loading ||
-                  busy ||
-                  showForm ||
-                  splitActive ||
-                  bulkActive ||
-                  !!pending ||
-                  !!recoveryError ||
-                  !preferences.hasUsableShared}
-                hidden={!!row.parent_id}
-                aria-label={`${t("Duplicate")} ${description(row)}`}
-                >{t("Duplicate")}</button
-              ><button
-                onkeydown={navigateRow}
-                onclick={() => {
-                  deleting = row;
-                  deletionEpoch = preferences.budgetEpoch;
-                }}
-                disabled={disconnected ||
-                  loading ||
-                  busy ||
-                  showForm ||
-                  splitActive ||
-                  bulkActive ||
-                  !!pending ||
-                  !!recoveryError ||
-                  !preferences.hasUsableShared ||
-                  row.reconciled}
-                hidden={!!row.parent_id}
-                aria-label={`${t("Delete")} ${description(row)}`}
-                >{t("Delete")}</button
-              ></td
+                ].includes(column)}>{t(columnLabels[column])}</th
+              >{/each}<th>{t("Actions")}</th></tr
+          ></thead
+        >
+        <tbody>
+          {#each selectionRows as row (row.id)}
+            <tr
+              class:selected={selectedIds.includes(row.id)}
+              class:split-child={!!row.parent_id}
             >
-          </tr>
-          {#if deleting?.id === row.id}<tr class="delete-confirmation"
-              ><td colspan={appliedColumns.length + 2}
-                ><p>{t("Delete this transaction?")} {description(row)}</p>
-                <button
-                  onclick={() => void runAction("delete", row)}
-                  disabled={busy}>{t("Confirm delete")}</button
-                ><button onclick={() => (deleting = null)} disabled={busy}
-                  >{t("Keep transaction")}</button
+              <td data-label="Select"
+                ><label class="row-selection"
+                  ><input
+                    type="checkbox"
+                    aria-label={`Select ${description(row)}`}
+                    checked={selectedIds.includes(row.id)}
+                    disabled={disconnected ||
+                      loading ||
+                      busy ||
+                      bulkActive ||
+                      showForm ||
+                      splitActive}
+                    onclick={(event) => selectRow(event, row)}
+                  /><span class="visually-hidden">Select entry</span></label
                 ></td
-              ></tr
-            >{/if}
-        {/each}
-      </tbody>
-    </table>
+              >
+              {#each appliedColumns as column (column)}<td
+                  class:number={[
+                    "amount",
+                    "payment",
+                    "deposit",
+                    "balance",
+                  ].includes(column)}
+                  class:entry-notes={column === "notes"}
+                  class:amount={column === "amount"}
+                  data-label={t(columnLabels[column])}>{cell(row, column)}</td
+                >{/each}
+              <td class="row-actions"
+                >{#if row.is_parent}<button
+                    disabled={bulkActive || busy}
+                    onclick={() => {
+                      if (expandedSplits.includes(row.id)) {
+                        expandedSplits = expandedSplits.filter(
+                          (id) => id !== row.id,
+                        );
+                        selectedIds = selectedIds.filter(
+                          (id) =>
+                            !(row.children ?? []).some(
+                              (child) => child.id === id,
+                            ),
+                        );
+                      } else expandedSplits = [...expandedSplits, row.id];
+                    }}
+                    aria-expanded={expandedSplits.includes(row.id)}
+                    >{expandedSplits.includes(row.id)
+                      ? "Hide split entries"
+                      : "Select split entries"}</button
+                  >{/if}<button
+                  onkeydown={navigateRow}
+                  onclick={() => open(row)}
+                  disabled={disconnected ||
+                    loading ||
+                    busy ||
+                    showForm ||
+                    splitActive ||
+                    bulkActive ||
+                    !!pending ||
+                    !!recoveryError ||
+                    !preferences.hasUsableShared}
+                  aria-label={`${t("Edit")} ${description(row)}`}
+                  >{t("Edit")}</button
+                >{#if row.reconciled}<button
+                    onclick={() => void beginUnlock(row)}
+                    disabled={disconnected ||
+                      loading ||
+                      busy ||
+                      showForm ||
+                      splitActive ||
+                      bulkActive ||
+                      !!pending ||
+                      !!recoveryError}
+                    aria-label={`Unlock ${description(row)}`}>Unlock</button
+                  >{/if}<button
+                  onclick={() => {
+                    const parent = row.parent_id
+                      ? register?.data.find((item) => item.id === row.parent_id)
+                      : row;
+                    if (parent) void splitEditor?.open(parent);
+                  }}
+                  disabled={disconnected ||
+                    loading ||
+                    busy ||
+                    showForm ||
+                    splitActive ||
+                    bulkActive ||
+                    !!pending ||
+                    !!recoveryError ||
+                    row.starting_balance ||
+                    !!row.transfer_id}
+                  hidden={!!row.parent_id}
+                  >{row.is_parent
+                    ? t("Edit splits")
+                    : t("Split transaction")}</button
+                ><button
+                  onkeydown={navigateRow}
+                  onclick={() => void runAction("duplicate", row)}
+                  disabled={disconnected ||
+                    loading ||
+                    busy ||
+                    showForm ||
+                    splitActive ||
+                    bulkActive ||
+                    !!pending ||
+                    !!recoveryError ||
+                    !preferences.hasUsableShared}
+                  hidden={!!row.parent_id}
+                  aria-label={`${t("Duplicate")} ${description(row)}`}
+                  >{t("Duplicate")}</button
+                ><button
+                  onkeydown={navigateRow}
+                  onclick={() => {
+                    deleting = row;
+                    deletionEpoch = preferences.budgetEpoch;
+                  }}
+                  disabled={disconnected ||
+                    loading ||
+                    busy ||
+                    showForm ||
+                    splitActive ||
+                    bulkActive ||
+                    !!pending ||
+                    !!recoveryError ||
+                    !preferences.hasUsableShared ||
+                    row.reconciled}
+                  hidden={!!row.parent_id}
+                  aria-label={`${t("Delete")} ${description(row)}`}
+                  >{t("Delete")}</button
+                >{#if !row.transfer_id && !row.starting_balance && !row.is_parent && !row.parent_id}<button
+                    onclick={() => openTransfer("link", row)}
+                    disabled={disconnected ||
+                      loading ||
+                      busy ||
+                      showForm ||
+                      splitActive ||
+                      bulkActive ||
+                      !!pending ||
+                      !!recoveryError ||
+                      row.reconciled}>Link transfer</button
+                  >{/if}</td
+              >
+            </tr>
+            {#if deleting?.id === row.id}<tr class="delete-confirmation"
+                ><td colspan={appliedColumns.length + 2}
+                  ><p>
+                    {row.transfer_id
+                      ? "Delete this transfer? Its paired entry is also deleted unless it belongs to a split, in which case it stays unlinked."
+                      : t("Delete this transaction?")}
+                    {description(row)}
+                  </p>
+                  <button
+                    onclick={() => void runAction("delete", row)}
+                    disabled={busy}>{t("Confirm delete")}</button
+                  ><button onclick={() => (deleting = null)} disabled={busy}
+                    >{t("Keep transaction")}</button
+                  ></td
+                ></tr
+              >{/if}
+          {/each}
+        </tbody>
+      </table>
+    </div>
     {#if register.next_offset !== null}<button
         onclick={more}
         disabled={loading || busy}>{t("Load more transactions")}</button
@@ -1154,6 +1307,9 @@
     min-width: 44px;
     align-items: center;
     justify-content: center;
+  }
+  .register-table-scroll {
+    overflow-x: auto;
   }
   .register {
     margin-top: 2rem;

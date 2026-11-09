@@ -134,10 +134,10 @@ try {
     page.getByRole("heading", { name: "Split transaction", exact: true }),
   ).toHaveCount(0);
   await expect(page.getByText("2 splits", { exact: true })).toBeVisible();
+  await expect.poll(() => attempts.length).toBe(2);
   await expect(
     page.getByRole("button", { name: "Retry saved split", exact: true }),
   ).toHaveCount(0);
-  expect(attempts.length).toBe(2);
   expect(attempts[1]).toEqual(attempts[0]);
   await page.unroute("**/transactions/*/splits");
   await page.getByRole("button", { name: "Edit splits", exact: true }).click();
@@ -248,6 +248,8 @@ try {
   await page.getByRole("button", { name: "Edit splits", exact: true }).click();
   await mkdir("../../.scratch/ticket14-visuals", { recursive: true });
   await page.getByLabel("Split 1 amount", { exact: true }).focus();
+  await page.keyboard.press("Tab");
+  await expect(page.getByLabel("Split 1 transfer to", { exact: true })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByLabel("Split 1 payee", { exact: true })).toBeFocused();
   await page.screenshot({

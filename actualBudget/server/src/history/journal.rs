@@ -275,6 +275,13 @@ fn conflict() -> Error {
         "A newer change overlaps this action. Nothing was changed. Refresh and review the affected entries.",
     )
 }
+fn inverse_error(error: rusqlite::Error) -> Error {
+    if error.sqlite_error_code() == Some(rusqlite::ErrorCode::ConstraintViolation) {
+        conflict()
+    } else {
+        Error::internal(error)
+    }
+}
 fn sql(value: &Value) -> Result<SqlValue, Error> {
     Ok(match value {
         Value::Null => SqlValue::Null,
@@ -415,7 +422,8 @@ pub fn apply(
                     fields.len() + 2
                 ),
                 rusqlite::params_from_iter(values),
-            )?;
+            )
+            .map_err(inverse_error)?;
         }
         // Creation redo must explicitly resurrect its retained identity.
         if redo && c.before.is_null() {
@@ -425,7 +433,8 @@ pub fn apply(
                     c.table
                 ),
                 params![budget, c.id],
-            )?;
+            )
+            .map_err(inverse_error)?;
         }
         let mut stamp_fields = fields.iter().cloned().collect::<BTreeSet<_>>();
         if c.full {
@@ -466,6 +475,26 @@ pub fn apply(
         }
     }
     // Structural safety is checked after all rows, within the receipt transaction.
+    for change in &changes {
+        if change.table == "account_groups" {
+            let restored = row(db, budget, &change.table, &change.id)?;
+            if restored["tombstone"] == 0 {
+                crate::accounts::group_name(
+                    db,
+                    budget,
+                    &change.id,
+                    restored["name"].as_str().ok_or_else(conflict)?,
+                )
+                .map_err(|error| {
+                    if error.status.is_client_error() {
+                        conflict()
+                    } else {
+                        error
+                    }
+                })?;
+            }
+        }
+    }
     crate::splits::validate(db, budget).map_err(|_| conflict())?;
     crate::categories::validate_archive(db, budget).map_err(|_| conflict())?;
     crate::payees_tags::validate_archive(db, budget).map_err(|_| conflict())?;

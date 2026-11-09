@@ -39,12 +39,28 @@
     ) => Promise<unknown>;
   } = $props();
   let groups = $state.raw<Reference[]>([]);
-  let groupsLoaded = false;
+  let transferPayees = $state.raw<Reference[]>([]);
+  let filterPayees = $derived([
+    ...payees,
+    ...transferPayees.map((payee) => ({
+      ...payee,
+      name:
+        accounts.find((account) => account.id === payee.transfer_account_id)
+          ?.name ?? payee.name,
+    })),
+  ]);
   async function loadGroups() {
-    if (disconnected || groupsLoaded) return;
+    if (disconnected) return;
     try {
-      groups = await references(budgetId, "category-groups");
-      groupsLoaded = true;
+      const [loadedGroups, loadedPayees] = await Promise.all([
+        references(budgetId, "category-groups"),
+        references(budgetId, "payees", { includeTransfers: true }),
+      ]);
+      if (!alive) return;
+      groups = loadedGroups;
+      transferPayees = loadedPayees.filter(
+        (payee) => payee.transfer_account_id,
+      );
     } catch (e) {
       error = errorMessage(e);
     }
@@ -437,7 +453,7 @@
             {condition}
             {index}
             {accounts}
-            {payees}
+            payees={filterPayees}
             {categories}
             {groups}
             onchange={(value) => Object.assign(condition, value)}

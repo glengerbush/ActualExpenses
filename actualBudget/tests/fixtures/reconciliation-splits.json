@@ -1,0 +1,126 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "steps": [
+    {
+      "step": "initial",
+      "entries": [
+        {
+          "amount": -300,
+          "notes": "Settled split",
+          "cleared": true,
+          "reconciled": false,
+          "parent": true,
+          "child": false
+        },
+        {
+          "amount": -200,
+          "notes": "Second allocation",
+          "cleared": true,
+          "reconciled": false,
+          "parent": false,
+          "child": true
+        },
+        {
+          "amount": -100,
+          "notes": "First allocation",
+          "cleared": true,
+          "reconciled": false,
+          "parent": false,
+          "child": true
+        }
+      ],
+      "cleared": -300
+    },
+    {
+      "step": "locked",
+      "entries": [
+        {
+          "amount": -300,
+          "notes": "Settled split",
+          "cleared": true,
+          "reconciled": true,
+          "parent": true,
+          "child": false
+        },
+        {
+          "amount": -200,
+          "notes": "Second allocation",
+          "cleared": true,
+          "reconciled": true,
+          "parent": false,
+          "child": true
+        },
+        {
+          "amount": -100,
+          "notes": "First allocation",
+          "cleared": true,
+          "reconciled": true,
+          "parent": false,
+          "child": true
+        }
+      ],
+      "cleared": -300
+    },
+    {
+      "step": "confirmed",
+      "entries": [
+        {
+          "amount": -300,
+          "notes": "Settled split",
+          "cleared": true,
+          "reconciled": true,
+          "parent": true,
+          "child": false
+        },
+        {
+          "amount": -200,
+          "notes": "Second allocation",
+          "cleared": true,
+          "reconciled": true,
+          "parent": false,
+          "child": true
+        },
+        {
+          "amount": -100,
+          "notes": "Confirmed allocation",
+          "cleared": true,
+          "reconciled": true,
+          "parent": false,
+          "child": true
+        }
+      ],
+      "cleared": -300
+    },
+    {
+      "step": "unlocked",
+      "entries": [
+        {
+          "amount": -300,
+          "notes": "Settled split",
+          "cleared": true,
+          "reconciled": false,
+          "parent": true,
+          "child": false
+        },
+        {
+          "amount": -200,
+          "notes": "Second allocation",
+          "cleared": true,
+          "reconciled": false,
+          "parent": false,
+          "child": true
+        },
+        {
+          "amount": -100,
+          "notes": "Confirmed allocation",
+          "cleared": true,
+          "reconciled": false,
+          "parent": false,
+          "child": true
+        }
+      ],
+      "cleared": -300
+    }
+  ]
+}

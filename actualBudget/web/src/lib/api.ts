@@ -6,6 +6,7 @@ export interface Budget {
   generation?: number;
 }
 export interface Account {
+  last_reconciled?: string | null;
   id: string;
   name: string;
   off_budget: boolean;

@@ -66,6 +66,10 @@ internal class BudgetApi(private val base: String, private val transport: HttpTr
         clock?.let { headers["X-Actual-Edit-Clock"] = it }
         epoch?.let { headers["X-Actual-Budget-Epoch"] = it }
         if (receiptOnly) headers["X-Actual-Receipt-Only"] = "true"
+        // A captured expense operation cannot gain split/transfer semantics later.
+        if (key != null && method in listOf("PATCH", "DELETE") && path.contains("/transactions/")) {
+            headers["X-Actual-Expense-Only"] = "true"
+        }
         val result =
             transport.request(
                 "$base/api/v1$path",
@@ -121,6 +125,9 @@ internal class BudgetApi(private val base: String, private val transport: HttpTr
             )
         ) {
             "This server cannot support the companion safely. Saved work is retained."
+        }
+        require("transfers" !in capabilities || "expense_kind_precondition" in capabilities) {
+            "This server needs companion transfer protection. Update actualBudget; saved work is retained."
         }
         return capabilities
     }

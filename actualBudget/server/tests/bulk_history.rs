@@ -789,3 +789,75 @@ fn account_close_and_forced_delete_restore_their_local_financial_changes() {
         json!([])
     );
 }
+
+#[test]
+fn undo_account_group_rename_refuses_a_name_claimed_by_another_device() {
+    metadata_undo_name_collision("account-groups", "Original", "Renamed");
+}
+#[test]
+fn undo_tag_rename_refuses_a_name_claimed_by_another_device() {
+    metadata_undo_name_collision("tags", "old", "new");
+}
+fn metadata_undo_name_collision(domain: &str, original: &str, renamed: &str) {
+    let server = Server::start();
+    create_budget(&server);
+    let field = if domain == "tags" { "tag" } else { "name" };
+    let root = format!("/api/v1/budgets/{BUDGET}");
+    let a = "90000000-0000-4000-8000-000000000001";
+    let b = "90000000-0000-4000-8000-000000000002";
+    let owner = "90000000-0000-4000-8000-000000000003";
+    let create = server.post(
+        &format!("{root}/{domain}"),
+        "first",
+        json!({"id":a,(field):original}),
+    );
+    assert_eq!(create.status(), 201, "{}", create.text().unwrap());
+    let rename = server
+        .client
+        .patch(format!("{}{root}/{domain}/{a}", server.url))
+        .header("Idempotency-Key", "rename")
+        .header("X-Actual-History-Owner", owner)
+        .json(&json!({(field):renamed}))
+        .send()
+        .unwrap();
+    assert_eq!(rename.status(), 200, "{}", rename.text().unwrap());
+    let create = server.post(
+        &format!("{root}/{domain}"),
+        "second",
+        json!({"id":b,(field):original}),
+    );
+    assert_eq!(create.status(), 201, "{}", create.text().unwrap());
+    let history = || {
+        server
+            .client
+            .get(format!("{}{root}/history", server.url))
+            .header("X-Actual-History-Owner", owner)
+            .send()
+            .unwrap()
+            .json::<Value>()
+            .unwrap()
+    };
+    let before = history();
+    let entries: Value = server.get(&format!("{root}/{domain}")).json().unwrap();
+    let undo = server
+        .client
+        .post(format!("{}{root}/history/undo", server.url))
+        .header("Idempotency-Key", "undo-collision")
+        .header("X-Actual-History-Owner", owner)
+        .json(&json!({"action_id":before["data"]["undo"]["id"]}))
+        .send()
+        .unwrap();
+    assert_eq!(undo.status(), 409, "{}", undo.text().unwrap());
+    assert_eq!(
+        undo.json::<Value>().unwrap()["error"]["code"],
+        "history_conflict"
+    );
+    assert_eq!(history(), before);
+    assert_eq!(
+        server
+            .get(&format!("{root}/{domain}"))
+            .json::<Value>()
+            .unwrap(),
+        entries
+    );
+}

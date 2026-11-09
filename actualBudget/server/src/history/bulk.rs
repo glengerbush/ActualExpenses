@@ -186,6 +186,9 @@ pub fn apply(
                     children,
                     allocation: splits::Allocation::Exact,
                     detach: vec![],
+                    confirm_reconciled: false,
+                    reconciled_versions: BTreeMap::new(),
+                    reconciliation_token: None,
                     fields: if fields.as_object().unwrap().is_empty() {
                         None
                     } else {

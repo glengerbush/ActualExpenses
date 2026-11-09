@@ -56,7 +56,7 @@ fn versions(db: &Connection, budget: &str, entity: &str, id: &str) -> Result<Val
     Ok(Value::Object(values))
 }
 pub fn get(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
-    let mut value=db.query_row("SELECT a.name,a.notes,a.off_budget,a.closed,COALESCE(t.total,0),a.group_id,a.sort_order,a.tombstone FROM accounts a LEFT JOIN ledger_totals t ON t.budget_id=a.budget_id AND t.account_id=a.id WHERE a.budget_id=?1 AND a.id=?2",params![budget,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?,"notes":r.get::<_,String>(1)?,"off_budget":r.get::<_,bool>(2)?,"closed":r.get::<_,bool>(3)?,"balance":r.get::<_,i64>(4)?,"group_id":r.get::<_,Option<String>>(5)?,"sort_order":r.get::<_,i64>(6)?,"deleted":r.get::<_,bool>(7)?}))).optional()?.ok_or_else(Error::missing)?;
+    let mut value=db.query_row("SELECT a.name,a.notes,a.off_budget,a.closed,COALESCE(t.total,0),a.group_id,a.sort_order,a.tombstone,a.last_reconciled FROM accounts a LEFT JOIN ledger_totals t ON t.budget_id=a.budget_id AND t.account_id=a.id WHERE a.budget_id=?1 AND a.id=?2",params![budget,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?,"notes":r.get::<_,String>(1)?,"off_budget":r.get::<_,bool>(2)?,"closed":r.get::<_,bool>(3)?,"balance":r.get::<_,i64>(4)?,"group_id":r.get::<_,Option<String>>(5)?,"sort_order":r.get::<_,i64>(6)?,"deleted":r.get::<_,bool>(7)?,"last_reconciled":r.get::<_,Option<String>>(8)?}))).optional()?.ok_or_else(Error::missing)?;
     value["field_versions"] = versions(db, budget, "accounts", id)?;
     Ok(value)
 }
@@ -108,7 +108,7 @@ fn fields(body: &Value, allowed: &[&str]) -> Result<(), Error> {
     }
     Ok(())
 }
-fn group_name(db: &Connection, b: &str, id: &str, name: &str) -> Result<(), Error> {
+pub(crate) fn group_name(db: &Connection, b: &str, id: &str, name: &str) -> Result<(), Error> {
     validate_name(name)?;
     // Match pinned Actual's SQLite UPPER(name) and JavaScript uppercase lookup.
     let duplicate:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM account_groups WHERE budget_id=?1 AND id<>?2 AND tombstone=0 AND UPPER(name)=?3)",params![b,id,name.to_uppercase()],|r|r.get(0))?;
@@ -250,6 +250,9 @@ fn execute(
         );
     }
     let clock = concurrency::clock(db, b, proposed)?;
+    if !group && action == "close" && body.get("to_account_id").is_some() {
+        return crate::transfers::close_account(db, b, id, body, &clock);
+    }
     let old = versions(db, b, entity, id)?;
     let mut conflicts = vec![];
     let mut changes = serde_json::Map::new();
@@ -444,6 +447,7 @@ fn execute(
                     .query_map(params![b, id], |r| r.get::<_, String>(0))?
                     .collect::<Result<Vec<_>, _>>()?;
                 for tx in ids {
+                    crate::transfers::detach_for_account_deletion(db, b, &tx, &clock)?;
                     db.execute(
                         "UPDATE transactions SET tombstone=1 WHERE budget_id=?1 AND id=?2",
                         params![b, tx],

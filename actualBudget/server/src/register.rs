@@ -84,10 +84,10 @@ fn column(field: &str) -> Result<(&'static str, &'static str), Error> {
         "payee" => ("t.payee_id", "id"),
         "category" => ("t.category_id", "id"),
         "account_name" => ("a.name", "name"),
-        "payee_name" => ("p.name", "name"),
+        "payee_name" => ("coalesce(y.name,p.name)", "name"),
         "category_name" => ("c.name", "name"),
         "category_group_name" => ("g.name", "name"),
-        "transfer" => ("0", "bool"),
+        "transfer" => ("(t.transfer_id IS NOT NULL)", "bool"),
         "parent" => ("t.is_parent", "bool"),
         "notes" => ("t.notes", "text"),
         "date" => ("t.date", "date"),
@@ -407,13 +407,13 @@ impl Query {
             AccountScope::Offbudget => clauses.push("a.off_budget=1 AND a.closed=0".into()),
             AccountScope::Closed => clauses.push("a.closed=1".into()),
             AccountScope::Uncategorized => {
-                clauses.push("a.off_budget=0 AND t.category_id IS NULL AND t.is_parent=0".into())
+                clauses.push("a.off_budget=0 AND t.category_id IS NULL AND t.is_parent=0 AND (p.transfer_account_id IS NULL OR y.off_budget=1)".into())
             }
         };
         if !self.search.is_empty() {
             let p = bind(values, SqlValue::Text(self.search.clone()));
             let extra = search_extras(&self.search, preferences, values);
-            clauses.push(format!("(instr(register_lower(coalesce(p.name,'')),register_lower({p}))>0 OR instr(register_lower(t.notes),register_lower({p}))>0 OR instr(register_lower(coalesce(c.name,'')),register_lower({p}))>0 OR instr(register_lower(a.name),register_lower({p}))>0 OR instr(t.date,{p})>0{extra})"));
+            clauses.push(format!("(instr(register_lower(coalesce(y.name,p.name,'')),register_lower({p}))>0 OR instr(register_lower(t.notes),register_lower({p}))>0 OR instr(register_lower(coalesce(c.name,'')),register_lower({p}))>0 OR instr(register_lower(a.name),register_lower({p}))>0 OR instr(t.date,{p})>0{extra})"));
         }
         if self.hide_cleared {
             clauses.push("t.cleared=0".into());
@@ -444,7 +444,7 @@ impl Query {
         let col = match self.sort {
             Sort::Date => "t.date",
             Sort::Amount => "t.amount",
-            Sort::Payee => "coalesce(p.name,'') COLLATE NOCASE",
+            Sort::Payee => "coalesce(y.name,p.name,'') COLLATE NOCASE",
             Sort::Category => "coalesce(c.name,'') COLLATE NOCASE",
             Sort::Account => "a.name COLLATE NOCASE",
             Sort::Notes => "t.notes COLLATE NOCASE",
@@ -777,6 +777,7 @@ fn list_inner(
         filter = format!("({filter}) AND register_has_tag(t.notes,{p})");
     }
     let child_filter = filter
+        .replace("y.", "child_destination.")
         .replace("t.", "child.")
         .replace("p.", "child_payee.")
         .replace("c.", "child_category.")
@@ -784,9 +785,9 @@ fn list_inner(
     // Actual's grouped executor applies every clause to ONE row before grouping.
     // Separate EXISTS per condition would incorrectly combine unrelated children.
     let filter = format!(
-        "(({filter}) OR (t.is_parent=1 AND EXISTS(SELECT 1 FROM transactions child LEFT JOIN payees child_payee ON child_payee.budget_id=child.budget_id AND child_payee.id=child.payee_id AND child_payee.tombstone=0 LEFT JOIN categories child_category ON child_category.budget_id=child.budget_id AND child_category.id=child.category_id LEFT JOIN category_groups child_group ON child_group.budget_id=child_category.budget_id AND child_group.id=child_category.group_id WHERE child.budget_id=t.budget_id AND child.parent_id=t.id AND child.tombstone=0 AND ({child_filter}))))"
+        "(({filter}) OR (t.is_parent=1 AND EXISTS(SELECT 1 FROM transactions child LEFT JOIN payees child_payee ON child_payee.budget_id=child.budget_id AND child_payee.id=child.payee_id AND child_payee.tombstone=0 LEFT JOIN accounts child_destination ON child_destination.budget_id=child.budget_id AND child_destination.id=child_payee.transfer_account_id LEFT JOIN categories child_category ON child_category.budget_id=child.budget_id AND child_category.id=child.category_id LEFT JOIN category_groups child_group ON child_group.budget_id=child_category.budget_id AND child_group.id=child_category.group_id WHERE child.budget_id=t.budget_id AND child.parent_id=t.id AND child.tombstone=0 AND ({child_filter}))))"
     );
-    let joins = "FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id AND p.tombstone=0 LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id";
+    let joins = "FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id AND p.tombstone=0 LEFT JOIN accounts y ON y.budget_id=t.budget_id AND y.id=p.transfer_account_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id";
     let mut stmt = db.prepare(&format!(
         "SELECT t.id {joins} WHERE {base} AND ({filter}) ORDER BY {} LIMIT {} OFFSET {}",
         query.order(),

@@ -84,6 +84,14 @@ def main():
             check(accounts, account_template)
             check(f"{budgets}/{uuid.uuid4()}/accounts", account_template, expected=404)
             check(f"{budgets}/{budget_id}/transactions?account_id={account_id}", budgets + "/{budget}/transactions")
+            reconcile_path = accounts + "/" + account_id + "/reconciliation"
+            reconcile_template = account_template + "/{id}/reconciliation"
+            progress = check(reconcile_path, reconcile_template)["data"]
+            check(reconcile_path, reconcile_template, "POST", {"action":"lock", "statement_balance":12345, "snapshot":progress["snapshot"], "date":"2026-10-15"}, {"Idempotency-Key":"reconcile"})
+            entry = check(f"{budgets}/{budget_id}/transactions?account_id={account_id}", budgets + "/{budget}/transactions")["data"][0]
+            unlock_path = f"{budgets}/{budget_id}/transactions/{entry['id']}/unlock"
+            protection = check(f"{budgets}/{budget_id}/transactions/{entry['id']}/splits", budgets + "/{budget}/transactions/{id}/splits")["reconciliation_token"]
+            check(unlock_path, budgets + "/{budget}/transactions/{id}/unlock", "POST", {"reconciliation_token":protection}, {"Idempotency-Key":"unlock"})
             register_settings_path=f"{budgets}/{budget_id}/register-settings"
             register_settings_template=budgets+"/{budget}/register-settings"
             register_settings=check(register_settings_path,register_settings_template)["data"]
@@ -110,6 +118,15 @@ def main():
                 check(path, template, "POST", reference, {"Idempotency-Key": kind}, 201)
                 check(path, template)
                 references[kind] = reference["id"]
+            locations = f"{budgets}/{budget_id}/payee-locations"
+            location_template = budgets + "/{budget}/payee-locations"
+            location = {"id": str(uuid.uuid4()), "payee_id": references["payees"], "latitude": 40.123456, "longitude": -74.123456}
+            check(locations, location_template, "POST", location, {"Idempotency-Key": "location"}, 201)
+            check(locations, location_template)
+            check(locations + "/" + location["id"], location_template + "/{id}")
+            check(locations + "/" + location["id"], location_template + "/{id}", "PATCH", {"deleted": True}, {"Idempotency-Key": "forget-location"})
+            check(locations, location_template, "POST", {**location,"latitude":91}, {"Idempotency-Key": "bad-location"}, 400)
+            check(locations, location_template, "POST", {**location,"id":str(uuid.uuid4())}, {"Idempotency-Key": "cancel-location", "X-Actual-Cancel-If-Uncommitted":"true"}, 409)
             categories = f"{budgets}/{budget_id}/categories"
             categories_template = budgets + "/{budget}/categories"
             category_groups = f"{budgets}/{budget_id}/category-groups"
@@ -173,6 +190,7 @@ def main():
             page = check(entries + "?limit=1", entries_template)
             changes_path = f"{budgets}/{budget_id}/changes"
             changes_template = budgets + "/{budget}/changes"
+            check(locations, location_template, "POST", {**location,"id":str(uuid.uuid4())}, {"Idempotency-Key":str(uuid.uuid4())}, 201)
             check(changes_path + "?cursor=" + page["snapshot"], changes_template)
             check(ordered_path, entry_template, "PATCH", {"notes": "Newer"},
                   {"Idempotency-Key": "ordered-new", "X-Actual-Edit-Clock": clock2})
@@ -277,6 +295,31 @@ def main():
                   {"confirm_name": "Contract fixture"}, {"Idempotency-Key": "native-activate", "X-Actual-Budget-Epoch": recovered["epoch"]})
             check("/api/v1/restores", "/api/v1/restores", "POST", b"invalid ZIP",
                   {"Content-Type": "application/zip", "Idempotency-Key": "invalid-native-stage"}, 422)
+            transfer_budget, cash, card = (str(uuid.uuid4()) for _ in range(3))
+            check(budgets, budgets, "POST", {"id": transfer_budget, "name": "Transfer contracts"}, {"Idempotency-Key": "transfer-budget"}, 201)
+            transfer_root = f"{budgets}/{transfer_budget}"
+            for identity, name in [(cash,"Cash"),(card,"Card")]:
+                check(transfer_root+"/accounts", account_template, "POST", {"id": identity,"name":name,"opening_balance":0,"opening_date":"2026-01-01"}, {"Idempotency-Key":identity}, 201)
+            first, second = str(uuid.uuid4()), str(uuid.uuid4())
+            pair = {"id":first,"counterpart_id":second,"account_id":cash,"to_account_id":card,"amount":-100,"date":"2026-01-01"}
+            check(transfer_root+"/transfers", root_template+"/transfers", "POST", pair, {"Idempotency-Key":"pair"}, 201)
+            check(transfer_root+"/transactions/"+first, entries_template+"/{id}", "PATCH", {"date":"2026-02-01","sync_transfer_date":True}, {"Idempotency-Key":"pair-date"})
+            check(transfer_root+"/transactions/"+first, entries_template+"/{id}", "DELETE", None, {"Idempotency-Key":"pair-delete"})
+            first, second = str(uuid.uuid4()), str(uuid.uuid4())
+            for identity, account, amount in [(first,cash,-100),(second,card,100)]:
+                check(transfer_root+"/transactions", entries_template, "POST", {"id":identity,"account_id":account,"amount":amount,"date":"2026-01-01"}, {"Idempotency-Key":identity}, 201)
+            check(transfer_root+"/transfers/link", root_template+"/transfers/link", "POST", {"id":first,"counterpart_id":second}, {"Idempotency-Key":"pair-link"})
+            check(transfer_root+"/accounts/"+cash+"/close", account_template+"/{id}/close", "POST", {"id":str(uuid.uuid4()),"counterpart_id":str(uuid.uuid4()),"to_account_id":card,"date":"2026-02-01","expected_balance":-100}, {"Idempotency-Key":"transfer-close"})
+            parent, child, peer, sibling = (str(uuid.uuid4()) for _ in range(4))
+            check(transfer_root+"/transactions", entries_template, "POST", {"id":parent,"account_id":card,"amount":-1000,"date":"2026-01-01"}, {"Idempotency-Key":"split-transfer-parent"},201)
+            # Reopen the source account for a child transfer destination.
+            check(transfer_root+"/accounts/"+cash+"/reopen",account_template+"/{id}/reopen","POST",{}, {"Idempotency-Key":"reopen-for-split"})
+            split_path=transfer_root+"/transactions/"+parent+"/splits"
+            split_template=entries_template+"/{id}/splits"
+            snapshot=check(split_path,split_template)["snapshot"]
+            check(split_path,split_template,"POST",{"snapshot":snapshot,"children":[{"id":child,"amount":-600,"transfer_account_id":cash,"counterpart_id":peer},{"id":sibling,"amount":-400}]},{"Idempotency-Key":"combined-split"})
+            check(transfer_root+"/transactions/"+peer,entries_template+"/{id}","PATCH",{"amount":700},{"Idempotency-Key":"combined-pair-patch"})
+            check(transfer_root+"/transactions/"+peer,entries_template+"/{id}","PATCH",{"notes":"Queued expense"},{"Idempotency-Key":"expense-only","X-Actual-Expense-Only":"true"},409)
             print("PASS: served OpenAPI schemas validate real success, validation, conflict, origin and missing-resource responses")
         finally:
             process.terminate()

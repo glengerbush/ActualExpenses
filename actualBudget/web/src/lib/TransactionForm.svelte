@@ -13,6 +13,8 @@
   } from "./offline/delivery";
   import { setReachable } from "./offline/events";
   import { parseAmount } from "./money";
+  import PayeeLocations from "./PayeeLocations.svelte";
+  import type { LocationPayee } from "./payee-locations";
   import DateInput from "./DateInput.svelte";
   import {
     nextEditClock,
@@ -66,8 +68,43 @@
     oncancel: () => void;
   } = $props();
   let draft = $state<Draft | null>(null);
+  let pendingLocationPayee = $state("");
+  const locationDependency = $derived(
+    !!pendingLocationPayee &&
+      draft?.fields.payee === "new" &&
+      draft.referenceIds.payee === pendingLocationPayee,
+  );
+  let addedPayees = $state.raw<LocationPayee[]>([]);
+  const availablePayees = $derived([
+    ...payees,
+    ...addedPayees.filter(
+      (p) => !payees.some((existing) => existing.id === p.id),
+    ),
+  ]);
+  function selectNearby(payee: LocationPayee) {
+    if (!availablePayees.some((p) => p.id === payee.id))
+      addedPayees = [...addedPayees, payee];
+    update("payee", payee.id);
+  }
+  function locationPayeeCreated(payee: LocationPayee) {
+    if (!availablePayees.some((p) => p.id === payee.id))
+      addedPayees = [...addedPayees, payee];
+    if (!draft || draft.referenceIds.payee !== payee.id) return;
+    // Persist identity resolution before releasing the dependent transaction.
+    const select =
+      draft.fields.payee === "new" &&
+      draft.fields.newPayee.trim() === payee.name;
+    const resolved = {
+      ...draft,
+      referenceIds: { ...draft.referenceIds, payee: uuid() },
+      fields: { ...draft.fields, ...(select ? { payee: payee.id } : {}) },
+    };
+    persist(resolved);
+    draft = resolved;
+  }
   let error = $state("");
   let busy = $state(false);
+  let confirmReconciled = $state(false);
   let restored = $state(false);
   let externalChanged = $state(false);
   async function checkSharedIntent() {
@@ -395,6 +432,12 @@
         )
           delete body[key];
       if (Object.keys(body).length === 0) return null;
+      if (draft.original.reconciled) {
+        if (!confirmReconciled)
+          throw new Error(t("Confirm editing this reconciled transaction."));
+        body.confirm_reconciled = true;
+        body.reconciled_version = draft.original.field_versions?.reconciled;
+      }
     } else body.id = draft.id;
     return {
       path: `/budgets/${budgetId}/transactions${draft.original ? `/${draft.id}` : ""}`,
@@ -453,11 +496,12 @@
       amount: body.amount ?? draft!.original?.amount ?? 0,
       date: parseDateInput(fields.date, draft!.dateFormat),
       cleared: fields.cleared,
-      reconciled: false,
+      reconciled: draft!.original?.reconciled ?? false,
       starting_balance: false,
       notes: fields.notes,
       payee_id: fields.payee || null,
-      payee_name: payees.find((p) => p.id === fields.payee)?.name ?? null,
+      payee_name:
+        availablePayees.find((p) => p.id === fields.payee)?.name ?? null,
       category_id: fields.category || null,
       category_name:
         categories.find((c) => c.id === draft?.fields.category)?.name ?? null,
@@ -466,7 +510,7 @@
   }
   async function submit(event: SubmitEvent) {
     event.preventDefault();
-    if (!draft || externalChanged) return;
+    if (!draft || externalChanged || locationDependency) return;
     busy = true;
     error = "";
     try {
@@ -651,6 +695,18 @@
   {#if draft}
     <form onsubmit={submit} aria-busy={busy}>
       <fieldset disabled={busy || !!draft.pending || externalChanged}>
+        {#if draft.original?.reconciled}<p>
+            {t(
+              "This transaction is reconciled. Confirmed edits keep it locked.",
+            )}
+          </p>
+          <label
+            ><input
+              type="checkbox"
+              bind:checked={confirmReconciled}
+              required
+            />{t("Confirm editing this reconciled transaction")}</label
+          >{/if}
         <div class="entry-pair">
           <div>
             <label for="transaction-account">{t("Account")}</label><select
@@ -725,12 +781,27 @@
               id="transaction-payee"
               bind:value={() => draft!.fields.payee, (v) => update("payee", v)}
               ><option value="">{t("No payee")}</option
-              >{#each payees as payee (payee.id)}<option value={payee.id}
-                  >{payee.name}</option
+              >{#each availablePayees as payee (payee.id)}<option
+                  value={payee.id}>{payee.name}</option
                 >{/each}<option value="new" disabled={disconnected}
                 >{t("Create payee…")}</option
               ></select
             >
+            <PayeeLocations
+              {budgetId}
+              payeeId={draft.fields.payee}
+              newPayee={{
+                id: draft.referenceIds.payee,
+                name: draft.fields.newPayee,
+              }}
+              disabled={busy ||
+                !!draft.pending ||
+                externalChanged ||
+                disconnected}
+              onselect={selectNearby}
+              oncreated={locationPayeeCreated}
+              onpendingpayee={(id) => (pendingLocationPayee = id)}
+            />
             {#if initial?.imported_payee}<p class="hint">
                 {t("Imported payee")}: {initial.imported_payee}
               </p>{/if}
@@ -820,8 +891,12 @@
           disabled={busy || externalChanged}
           >{t("Use corrected device time")}</button
         >{/if}
+      {#if locationDependency}<p role="status">
+          Finish or cancel the new payee’s location change before saving this
+          transaction. Other payees remain available.
+        </p>{/if}
       <div class="actions">
-        <button class="primary" disabled={busy}
+        <button class="primary" disabled={busy || locationDependency}
           >{busy
             ? t("Saving…")
             : draft.pending

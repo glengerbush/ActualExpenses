@@ -12,8 +12,10 @@ mod lifecycle;
 mod migrations;
 mod models;
 mod origin;
+mod payee_locations;
 mod payees_tags;
 mod preferences;
+mod reconciliation;
 mod register;
 mod register_recurrence;
 mod register_regex;
@@ -21,6 +23,7 @@ mod register_settings;
 mod splits;
 mod store;
 mod themes;
+mod transfers;
 use std::path::PathBuf;
 #[tokio::main(worker_threads = 2)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

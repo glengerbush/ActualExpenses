@@ -1,0 +1,206 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "snapshots": [
+    {
+      "step": "split-with-transfer",
+      "rows": [
+        {
+          "id": "child",
+          "account_id": "cash",
+          "amount": -600,
+          "date": "2026-01-01",
+          "notes": "Transfer allocation",
+          "transfer_id": "child-other",
+          "parent_id": "parent",
+          "is_parent": false,
+          "category_id": null,
+          "error": null
+        },
+        {
+          "id": "child-other",
+          "account_id": "card",
+          "amount": 600,
+          "date": "2026-01-01",
+          "notes": "Transfer allocation",
+          "transfer_id": "child",
+          "parent_id": null,
+          "is_parent": false,
+          "category_id": null,
+          "error": null
+        },
+        {
+          "id": "ordinary",
+          "account_id": "cash",
+          "amount": -400,
+          "date": "2026-01-01",
+          "notes": "Ordinary allocation",
+          "transfer_id": null,
+          "parent_id": "parent",
+          "is_parent": false,
+          "category_id": "category",
+          "error": null
+        },
+        {
+          "id": "parent",
+          "account_id": "cash",
+          "amount": -1000,
+          "date": "2026-01-01",
+          "notes": "Split payment",
+          "transfer_id": null,
+          "parent_id": null,
+          "is_parent": true,
+          "category_id": null,
+          "error": null
+        }
+      ]
+    },
+    {
+      "step": "edit-other-leg-amount",
+      "rows": [
+        {
+          "id": "child",
+          "account_id": "cash",
+          "amount": -700,
+          "date": "2026-01-01",
+          "notes": "Changed from other account",
+          "transfer_id": "child-other",
+          "parent_id": "parent",
+          "is_parent": false,
+          "category_id": null,
+          "error": null
+        },
+        {
+          "id": "child-other",
+          "account_id": "card",
+          "amount": 700,
+          "date": "2026-01-01",
+          "notes": "Changed from other account",
+          "transfer_id": "child",
+          "parent_id": null,
+          "is_parent": false,
+          "category_id": null,
+          "error": null
+        },
+        {
+          "id": "ordinary",
+          "account_id": "cash",
+          "amount": -400,
+          "date": "2026-01-01",
+          "notes": "Ordinary allocation",
+          "transfer_id": null,
+          "parent_id": "parent",
+          "is_parent": false,
+          "category_id": "category",
+          "error": null
+        },
+        {
+          "id": "parent",
+          "account_id": "cash",
+          "amount": -1000,
+          "date": "2026-01-01",
+          "notes": "Split payment",
+          "transfer_id": null,
+          "parent_id": null,
+          "is_parent": true,
+          "category_id": null,
+          "error": null
+        }
+      ]
+    },
+    {
+      "step": "independent-other-date",
+      "rows": [
+        {
+          "id": "child",
+          "account_id": "cash",
+          "amount": -700,
+          "date": "2026-01-01",
+          "notes": "Changed from other account",
+          "transfer_id": "child-other",
+          "parent_id": "parent",
+          "is_parent": false,
+          "category_id": null,
+          "error": null
+        },
+        {
+          "id": "child-other",
+          "account_id": "card",
+          "amount": 700,
+          "date": "2026-02-01",
+          "notes": "Changed from other account",
+          "transfer_id": "child",
+          "parent_id": null,
+          "is_parent": false,
+          "category_id": null,
+          "error": null
+        },
+        {
+          "id": "ordinary",
+          "account_id": "cash",
+          "amount": -400,
+          "date": "2026-01-01",
+          "notes": "Ordinary allocation",
+          "transfer_id": null,
+          "parent_id": "parent",
+          "is_parent": false,
+          "category_id": "category",
+          "error": null
+        },
+        {
+          "id": "parent",
+          "account_id": "cash",
+          "amount": -1000,
+          "date": "2026-01-01",
+          "notes": "Split payment",
+          "transfer_id": null,
+          "parent_id": null,
+          "is_parent": true,
+          "category_id": null,
+          "error": null
+        }
+      ]
+    },
+    {
+      "step": "delete-other-detaches-child",
+      "rows": [
+        {
+          "id": "child",
+          "account_id": "cash",
+          "amount": -700,
+          "date": "2026-01-01",
+          "notes": "Changed from other account",
+          "transfer_id": null,
+          "parent_id": "parent",
+          "is_parent": false,
+          "category_id": null,
+          "error": null
+        },
+        {
+          "id": "ordinary",
+          "account_id": "cash",
+          "amount": -400,
+          "date": "2026-01-01",
+          "notes": "Ordinary allocation",
+          "transfer_id": null,
+          "parent_id": "parent",
+          "is_parent": false,
+          "category_id": "category",
+          "error": null
+        },
+        {
+          "id": "parent",
+          "account_id": "cash",
+          "amount": -1000,
+          "date": "2026-01-01",
+          "notes": "Split payment",
+          "transfer_id": null,
+          "parent_id": null,
+          "is_parent": true,
+          "category_id": null,
+          "error": null
+        }
+      ]
+    }
+  ]
+}

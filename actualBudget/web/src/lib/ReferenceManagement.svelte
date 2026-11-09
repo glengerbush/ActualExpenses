@@ -113,6 +113,7 @@
   }
   async function chooseKind(value: "payees" | "tags") {
     if (locked) return;
+    visibility = "all";
     change({
       kind: value,
       selected: [],

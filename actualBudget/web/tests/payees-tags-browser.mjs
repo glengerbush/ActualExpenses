@@ -97,6 +97,27 @@ try {
   await page.getByRole("checkbox", { name: "#Meals", exact: true }).check();
   await page.getByRole("button", { name: "Hide selected tags" }).click();
   await expect(page.getByText("Hidden", { exact: true })).toBeVisible();
+  await page.getByLabel("Show", { exact: true }).selectOption("hidden");
+  await expect(
+    page.getByRole("button", { name: "Edit Foodie", exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Payees", exact: true }).click();
+  await expect(page.getByLabel("Show", { exact: true })).toHaveValue("all");
+  await expect(
+    page.getByRole("button", { name: "Edit Market", exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("Show", { exact: true }).selectOption("unused");
+  await expect(
+    page.getByRole("button", { name: "Edit Market", exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Tags", exact: true }).click();
+  await expect(page.getByLabel("Show", { exact: true })).toHaveValue("all");
+  await expect(
+    page.getByRole("button", { name: "Edit Meals", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Edit Foodie", exact: true }),
+  ).toBeVisible();
   await page.getByLabel("Tag name", { exact: true }).fill("Travel");
   let sent;
   await page.route(`**/api/v1${root}/tags`, async (route) => {
@@ -184,7 +205,7 @@ try {
     page.getByText("#Meals ##Food #Foodie", { exact: true }),
   ).toBeVisible();
   console.log(
-    "PASS payee/tag browser: rename merge discover hide exact tags immutable retry cross-tab Done mobile offline",
+    "PASS payee/tag browser: rename merge discover hide exact tags immutable retry cross-tab Done section filters mobile offline",
   );
 } finally {
   await browser?.close();

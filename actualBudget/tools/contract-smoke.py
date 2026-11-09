@@ -369,6 +369,83 @@ def main():
             snapshot=check(rr+"/rules",rt)["snapshot"]
             check(rr+"/rules/"+rid,rt+"/{id}","DELETE",{"snapshot":snapshot},{"Idempotency-Key":"delete-rule"})
 
+            # Schedule requests and actual responses share one served contract.
+            # Independent financial/calendar parity is qualified by source fixtures.
+            schedule_path = rr + "/schedules"
+            schedule_template = budgets + "/{budget}/schedules"
+            command_path = schedule_path + "/commands"
+            command_template = schedule_template + "/commands"
+            schedule_schema = contract["paths"][command_template]["post"]["requestBody"]["content"]["application/json"]["schema"]
+            schedule_validator = Draft202012Validator(
+                {**schedule_schema, "components": contract["components"]}, format_checker=FormatChecker())
+
+            def schedule_command(payload, key, expected=200, extra_headers=None):
+                schedule_validator.validate(payload)
+                return check(command_path, command_template, "POST", payload,
+                             {"Idempotency-Key": key, "X-Actual-Budget-Epoch": schedule_epoch,
+                              **(extra_headers or {})}, expected)
+
+            schedule_due = check(schedule_path + "/due", schedule_template + "/due")["data"]
+            schedule_epoch = schedule_due["epoch"]
+            schedule_today = schedule_due["today"]
+            schedule_cursor = schedule_due["snapshot"]
+            preview_path = "/api/v1/schedules/preview-dates"
+            preview_body = {"config": {"start": schedule_today, "frequency": "weekly", "endMode": "after_n_occurrences", "endOccurrences": 2},
+                            "from": schedule_today, "count": 2, "upcoming_length": "oneMonth"}
+            preview_schema = contract["paths"][preview_path]["post"]["requestBody"]["content"]["application/json"]["schema"]
+            Draft202012Validator({**preview_schema, "components": contract["components"]},
+                                 format_checker=FormatChecker()).validate(preview_body)
+            check(preview_path, preview_path, "POST", preview_body)
+            check(preview_path, preview_path, "POST", {**preview_body, "count": 0}, expected=400)
+            sid = str(uuid.uuid4())
+            schedule_create = {"action": "create", "id": sid, "snapshot": schedule_cursor,
+                               "name": "Contract schedule", "posts_transaction": False,
+                               "conditions": [{"field": "account", "op": "is", "value": ra},
+                                              {"field": "amount", "op": "is", "value": -100},
+                                              {"field": "date", "op": "is", "value": schedule_today}]}
+            assert not schedule_validator.is_valid({**schedule_create, "unexpected": True})
+            assert not schedule_validator.is_valid({k: v for k, v in schedule_create.items() if k != "snapshot"})
+            schedule_command(schedule_create, "schedule-create", 404, {"X-Actual-Receipt-Only": "true"})
+            created = schedule_command(schedule_create, "schedule-create", 201)
+            assert schedule_command(schedule_create, "schedule-create", 201) == created
+            schedule_page = check(schedule_path + "?limit=1&offset=0&account_id=" + ra, schedule_template)["data"]
+            occurrence_path = schedule_path + "/" + sid + "/occurrences"
+            occurrence_template = schedule_template + "/{id}/occurrences"
+            check(occurrence_path + "?" + urllib.parse.urlencode({"from": schedule_today, "through": schedule_today,
+                                                               "limit": 1, "snapshot": schedule_page["snapshot"]}), occurrence_template)
+            schedule_command({"action": "update", "id": sid, "snapshot": schedule_page["snapshot"],
+                              "custom_upcoming_length": "2-week", "name": "Edited schedule"}, "schedule-update")
+            schedule_page = check(schedule_path, schedule_template)["data"]
+            schedule_command({"action": "skip", "id": sid, "snapshot": schedule_page["snapshot"],
+                              "occurrence_date": schedule_today}, "schedule-skip")
+            schedule_page = check(schedule_path, schedule_template)["data"]
+            posted = schedule_command({"action": "post", "id": sid, "snapshot": schedule_page["snapshot"],
+                                       "occurrence_date": schedule_today}, "schedule-post")
+            assert posted["data"]["transaction"]["schedule_id"] == sid
+            occurrences = check(occurrence_path + "?from=" + schedule_today + "&through=" + schedule_today, occurrence_template)["data"]
+            assert occurrences["occurrences"][0]["status"] == "posted"
+            assert occurrences["occurrences"][0]["transaction_id"] == posted["data"]["transaction"]["id"]
+            check(occurrence_path + "?limit=0", occurrence_template, expected=400)
+            check(rr + "/transactions?account_id=" + ra, budgets + "/{budget}/transactions")
+            schedule_command({"action": "catch-up", "through": schedule_today}, "schedule-catch-up")
+            schedule_page = check(schedule_path, schedule_template)["data"]
+            schedule_command({"action": "settings", "snapshot": schedule_page["snapshot"],
+                              "upcoming_length": "14"}, "schedule-settings")
+            schedule_page = check(schedule_path, schedule_template)["data"]
+            schedule_command({"action": "update", "id": sid, "snapshot": schedule_page["snapshot"],
+                              "use_global_upcoming_length": True, "completed": True}, "schedule-complete")
+            schedule_page = check(schedule_path, schedule_template)["data"]
+            schedule_command({"action": "delete", "id": sid, "snapshot": schedule_page["snapshot"]}, "schedule-delete")
+            check(rr + "/changes?cursor=" + schedule_cursor, budgets + "/{budget}/changes")
+            check(schedule_path + "?limit=0", schedule_template, expected=400)
+            check(schedule_path + "?snapshot=" + schedule_cursor, schedule_template, expected=409)
+            check(budgets + "/" + str(uuid.uuid4()) + "/schedules/due", schedule_template + "/due", expected=404)
+            canceled = schedule_command({"action": "catch-up", "through": schedule_today}, "schedule-cancel", 409,
+                                        {"X-Actual-Cancel-If-Uncommitted": "true"})
+            assert canceled["error"]["code"] == "operation_canceled"
+            assert schedule_command({"action": "catch-up", "through": schedule_today}, "schedule-cancel", 409,
+                                    {"X-Actual-Receipt-Only": "true"}) == canceled
+
             # Genuine released Android work validates the public handoff contract,
             # including dense order keys returned by the ordinary companion view.
             legacy_dir = project / "tests/fixtures/android-upgrade"

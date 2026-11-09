@@ -16882,6 +16882,591 @@
           }
         }
       }
+    },
+    "/api/v1/budgets/{budget}/schedules": {
+      "get": {
+        "description": "Read a bounded schedule page and nonfinancial upcoming previews. Snapshot-fence subsequent pages. No writes, posting, clocks or receipts.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000,
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 100
+            }
+          },
+          {
+            "name": "account_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "snapshot",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ChangeCursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmed public result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/SchedulePage"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid command, unsupported header or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin request refused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Changed snapshot, retired epoch, conflicting request or canceled intent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/schedules/due": {
+      "get": {
+        "description": "Read whether an explicit foreground catch-up is needed. No posting, clocks or receipts. next_due_date is the earliest future automatic schedule date, not a timer or polling instruction.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmed public result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ScheduleDue"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid command, unsupported header or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin request refused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Changed snapshot, retired epoch, conflicting request or canceled intent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/schedules/commands": {
+      "post": {
+        "description": "Atomic idempotent schedule lifecycle or explicit foreground catch-up. Receipt lookup precedes epoch/snapshot validation. Native background expense delivery must not initiate or deliver schedule work.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable original request identity. Exact original status/body replays before epoch/snapshot/clock checks. Different payload/owner/clock conflicts."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Return the original receipt or atomically record operation_canceled before any schedule or financial changes. Preserve original body/key/clock/owner/epoch."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-Receipt-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Read the exact original schedule receipt; unknown operation returns operation_uncommitted without executing or consuming its key."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmed public result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleCommandResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid command, unsupported header or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin request refused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Changed snapshot, retired epoch, conflicting request or canceled intent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Schedule created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleCommandResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedules/preview-dates": {
+      "post": {
+        "description": "Read calendar dates from pinned recurrence semantics without creating a budget or schedule.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Confirmed public result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "maxItems": 1000
+                    },
+                    "upcoming_days": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 36600
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid command, unsupported header or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin request refused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Changed snapshot, retired epoch, conflicting request or canceled intent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "$ref": "#/components/schemas/ScheduleDate"
+                  },
+                  "from": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "count": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000
+                  },
+                  "upcoming_length": {
+                    "$ref": "#/components/schemas/ScheduleHorizon"
+                  }
+                },
+                "required": [
+                  "config",
+                  "from",
+                  "count"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/schedules/{id}/occurrences": {
+      "get": {
+        "description": "Read calendar occurrences and their durable outcomes without posting or advancing. Limit1\u20131000, optional inclusive from/through dates. Carry the returned snapshot and next_from for a consistent continuation.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "through",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 100
+            }
+          },
+          {
+            "name": "snapshot",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ChangeCursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirmed public result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ScheduleOccurrencePage"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid command, unsupported header or bounded-work refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin request refused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown resource or uncommitted receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Changed snapshot, retired epoch, conflicting request or canceled intent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -17274,6 +17859,11 @@
             "type": "string",
             "pattern": "^[0-9a-f]{16,4096}$",
             "description": "Optional opaque display ordering key for recovered legacy positions. Sort lexically within transaction date, falling back to signed native sort_order encoded as a 16-digit lowercase hexadecimal value with sign bit flipped. Private integer ranks and original field HLCs remain unchanged."
+          },
+          "schedule_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
           }
         },
         "required": [
@@ -18873,6 +19463,86 @@
                     "data"
                   ],
                   "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "schedules"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ScheduleRecord"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "schedule_occurrences"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ScheduleOccurrenceRecord"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "schedule_links"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ScheduleLinkRecord"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "schedule_settings"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ScheduleSettingsRecord"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
                 }
               ]
             }
@@ -19327,7 +19997,8 @@
                   15,
                   16,
                   17,
-                  18
+                  18,
+                  19
                 ]
               },
               "domains": {
@@ -20846,7 +21517,7 @@
           "op"
         ],
         "additionalProperties": false,
-        "description": "Normal set/notes/delete/split actions execute now. Raw templates/formulas require ticket42; schedule links require ticket21 and block activation/execution. Text joins without implicit separators. Explicit apply follows pinned action parser options; live automatic entry follows rules-run. Invalid split/paired aggregate results refuse the entire command."
+        "description": "Normal set/notes/delete/split actions execute now. Raw templates/formulas require ticket42; schedule links retain the referenced live schedule and run in the schedule posting pipeline. Text joins without implicit separators. Explicit apply follows pinned action parser options; live automatic entry follows rules-run. Invalid split/paired aggregate results refuse the entire command."
       },
       "Rule": {
         "type": "object",
@@ -21401,6 +22072,1109 @@
             "pattern": "^[0-9a-f]{32}$"
           }
         }
+      },
+      "ScheduleRecurrence": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date"
+          },
+          "frequency": {
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly",
+              "yearly"
+            ]
+          },
+          "interval": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000
+          },
+          "patterns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "enum": [
+                    "day",
+                    "MO",
+                    "TU",
+                    "WE",
+                    "TH",
+                    "FR",
+                    "SA",
+                    "SU"
+                  ]
+                },
+                "value": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "type",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 31
+          },
+          "endMode": {
+            "enum": [
+              "never",
+              "after_n_occurrences",
+              "on_date"
+            ]
+          },
+          "endOccurrences": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "skipWeekend": {
+            "type": "boolean"
+          },
+          "weekendSolveMode": {
+            "enum": [
+              "before",
+              "after"
+            ]
+          }
+        },
+        "required": [
+          "start",
+          "frequency"
+        ],
+        "additionalProperties": false
+      },
+      "ScheduleDate": {
+        "oneOf": [
+          {
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "$ref": "#/components/schemas/ScheduleRecurrence"
+          }
+        ]
+      },
+      "ScheduleHorizon": {
+        "type": "string",
+        "description": "Numeric day count, currentMonth, oneMonth, or N-day/N-week/N-month/N-year; evaluated against server UTC date with pinned month semantics. At most100 years."
+      },
+      "Schedule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "rule_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "posts_transaction": {
+            "type": "boolean"
+          },
+          "completed": {
+            "type": "boolean"
+          },
+          "next_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "custom_upcoming_length": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScheduleHorizon"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RuleCondition"
+            }
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RuleAction"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "rule_id",
+          "name",
+          "posts_transaction",
+          "completed",
+          "next_date",
+          "custom_upcoming_length",
+          "conditions",
+          "actions"
+        ],
+        "additionalProperties": false
+      },
+      "ScheduleView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "rule_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "posts_transaction": {
+            "type": "boolean"
+          },
+          "completed": {
+            "type": "boolean"
+          },
+          "next_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "custom_upcoming_length": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScheduleHorizon"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RuleCondition"
+            }
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RuleAction"
+            }
+          },
+          "status": {
+            "enum": [
+              "completed",
+              "paid",
+              "due",
+              "missed",
+              "upcoming",
+              "scheduled"
+            ]
+          },
+          "account_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "payee_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "num1": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+                  },
+                  "num2": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+                  }
+                },
+                "required": [
+                  "num1",
+                  "num2"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "rule_id",
+          "name",
+          "posts_transaction",
+          "completed",
+          "next_date",
+          "custom_upcoming_length",
+          "conditions",
+          "actions",
+          "status",
+          "account_id",
+          "payee_id",
+          "amount"
+        ],
+        "additionalProperties": false
+      },
+      "SchedulePreview": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schedule_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "account_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "payee_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+          },
+          "status": {
+            "enum": [
+              "completed",
+              "paid",
+              "due",
+              "missed",
+              "upcoming",
+              "scheduled"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "schedule_id",
+          "date",
+          "account_id",
+          "payee_id",
+          "amount",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "SchedulePage": {
+        "type": "object",
+        "properties": {
+          "schedules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleView"
+            },
+            "maxItems": 1000
+          },
+          "previews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SchedulePreview"
+            },
+            "maxItems": 1000
+          },
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "upcoming_length": {
+            "$ref": "#/components/schemas/ScheduleHorizon"
+          },
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "preview_continuations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "schedule_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                },
+                "from": {
+                  "type": "string",
+                  "format": "date"
+                }
+              },
+              "required": [
+                "schedule_id",
+                "from"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 1000
+          }
+        },
+        "required": [
+          "schedules",
+          "previews",
+          "next_offset",
+          "upcoming_length",
+          "today",
+          "snapshot",
+          "epoch",
+          "preview_continuations"
+        ],
+        "additionalProperties": false,
+        "description": "Summary previews are bounded to10 per schedule and1000 per page. Use preview_continuations with the paged occurrence endpoint for remaining dates."
+      },
+      "ScheduleDue": {
+        "type": "object",
+        "properties": {
+          "due": {
+            "type": "boolean"
+          },
+          "next_due_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "today": {
+            "type": "string",
+            "format": "date"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          }
+        },
+        "required": [
+          "due",
+          "next_due_date",
+          "today",
+          "snapshot",
+          "epoch"
+        ],
+        "additionalProperties": false
+      },
+      "ScheduleCommand": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "enum": [
+              "create",
+              "update",
+              "delete",
+              "post",
+              "skip",
+              "catch-up",
+              "settings"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "name": {
+            "type": "string"
+          },
+          "posts_transaction": {
+            "type": "boolean"
+          },
+          "completed": {
+            "type": "boolean"
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RuleCondition"
+            },
+            "maxItems": 32
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RuleAction"
+            },
+            "maxItems": 64
+          },
+          "occurrence_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "today": {
+            "type": "boolean"
+          },
+          "custom_upcoming_length": {
+            "$ref": "#/components/schemas/ScheduleHorizon"
+          },
+          "upcoming_length": {
+            "$ref": "#/components/schemas/ScheduleHorizon"
+          },
+          "through": {
+            "type": "string",
+            "format": "date"
+          },
+          "use_global_upcoming_length": {
+            "type": "boolean"
+          },
+          "reset_next_date": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "action": {
+                  "const": "create"
+                }
+              },
+              "required": [
+                "action"
+              ]
+            },
+            "then": {
+              "required": [
+                "id",
+                "snapshot",
+                "conditions"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "action": {
+                  "const": "update"
+                }
+              },
+              "required": [
+                "action"
+              ]
+            },
+            "then": {
+              "required": [
+                "id",
+                "snapshot"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "action": {
+                  "const": "delete"
+                }
+              },
+              "required": [
+                "action"
+              ]
+            },
+            "then": {
+              "required": [
+                "id",
+                "snapshot"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "action": {
+                  "const": "post"
+                }
+              },
+              "required": [
+                "action"
+              ]
+            },
+            "then": {
+              "required": [
+                "id",
+                "snapshot",
+                "occurrence_date"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "action": {
+                  "const": "skip"
+                }
+              },
+              "required": [
+                "action"
+              ]
+            },
+            "then": {
+              "required": [
+                "id",
+                "snapshot",
+                "occurrence_date"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "action": {
+                  "const": "settings"
+                }
+              },
+              "required": [
+                "action"
+              ]
+            },
+            "then": {
+              "required": [
+                "snapshot",
+                "upcoming_length"
+              ]
+            }
+          }
+        ],
+        "description": "Persist original body/key/clock/epoch before sending. All commands except catch-up require a captured snapshot. Catch-up uses current authoritative schedules through an optional past/server-today cutoff; atomic maximum500 occurrences and shared rule work budget. GET never posts. Update merges changed schedule conditions while retaining other linked-rule conditions; use_global_upcoming_length clears an override."
+      },
+      "ScheduleCatchUp": {
+        "type": "object",
+        "properties": {
+          "posted_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 500
+          },
+          "handled_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 500
+          },
+          "transaction_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "maxItems": 500
+          }
+        },
+        "required": [
+          "posted_count",
+          "handled_count",
+          "transaction_ids"
+        ],
+        "additionalProperties": false
+      },
+      "ScheduleCommandResult": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Schedule"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                  },
+                  "deleted": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "id",
+                  "deleted"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "schedule": {
+                    "$ref": "#/components/schemas/Schedule"
+                  },
+                  "transaction": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/Transaction"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "schedule",
+                  "transaction"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "$ref": "#/components/schemas/ScheduleCatchUp"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "upcoming_length": {
+                    "$ref": "#/components/schemas/ScheduleHorizon"
+                  }
+                },
+                "required": [
+                  "upcoming_length"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "edit_clock": {
+            "$ref": "#/components/schemas/EditClock"
+          }
+        },
+        "required": [
+          "data",
+          "snapshot",
+          "edit_clock"
+        ],
+        "additionalProperties": false
+      },
+      "ScheduleRecord": {
+        "type": "object",
+        "properties": {
+          "budget_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "tombstone": {
+            "enum": [
+              0,
+              1
+            ]
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "rule_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "posts_transaction": {
+            "enum": [
+              0,
+              1
+            ]
+          },
+          "completed": {
+            "enum": [
+              0,
+              1
+            ]
+          },
+          "next_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "custom_upcoming_length": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScheduleHorizon"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "budget_id",
+          "id",
+          "tombstone",
+          "deleted",
+          "rule_id",
+          "name",
+          "posts_transaction",
+          "completed",
+          "next_date",
+          "custom_upcoming_length"
+        ],
+        "additionalProperties": false
+      },
+      "ScheduleOccurrenceRecord": {
+        "type": "object",
+        "properties": {
+          "budget_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "tombstone": {
+            "enum": [
+              0,
+              1
+            ]
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "schedule_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "occurrence_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "enum": [
+              "posted",
+              "skipped",
+              "matched",
+              "suppressed"
+            ]
+          },
+          "transaction_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "budget_id",
+          "id",
+          "tombstone",
+          "deleted",
+          "schedule_id",
+          "occurrence_date",
+          "status",
+          "transaction_id"
+        ],
+        "additionalProperties": false
+      },
+      "ScheduleLinkRecord": {
+        "type": "object",
+        "properties": {
+          "budget_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "tombstone": {
+            "enum": [
+              0,
+              1
+            ]
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "schedule_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          }
+        },
+        "required": [
+          "budget_id",
+          "id",
+          "tombstone",
+          "deleted",
+          "schedule_id"
+        ],
+        "additionalProperties": false
+      },
+      "ScheduleSettingsRecord": {
+        "type": "object",
+        "properties": {
+          "budget_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "id": {
+            "const": "horizon"
+          },
+          "tombstone": {
+            "const": 0
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "value": {
+            "$ref": "#/components/schemas/ScheduleHorizon"
+          }
+        },
+        "required": [
+          "budget_id",
+          "id",
+          "tombstone",
+          "deleted",
+          "value"
+        ],
+        "additionalProperties": false
+      },
+      "ScheduleOccurrence": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "past",
+              "completed",
+              "posted",
+              "matched",
+              "skipped",
+              "suppressed"
+            ]
+          },
+          "transaction_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "date",
+          "status",
+          "transaction_id"
+        ],
+        "additionalProperties": false
+      },
+      "ScheduleOccurrencePage": {
+        "type": "object",
+        "properties": {
+          "schedule_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "occurrences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOccurrence"
+            },
+            "maxItems": 1000
+          },
+          "next_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          }
+        },
+        "required": [
+          "schedule_id",
+          "occurrences",
+          "next_from",
+          "snapshot",
+          "epoch"
+        ],
+        "additionalProperties": false
       }
     }
   }

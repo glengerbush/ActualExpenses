@@ -169,6 +169,110 @@ try {
     page.getByRole("button", { name: "Edit Travel", exact: true }),
   ).toBeVisible();
   expect(retried).toEqual(sent);
+  // A corrected device clock cannot rewrite an attempted request. Cancel the
+  // original safely, then explicitly reset only the local generator.
+  await page.evaluate(() => {
+    const future = Date.now() + 600_000;
+    Date.now = () => future;
+  });
+  await page.getByLabel("Tag name", { exact: true }).fill("ClockRecovery");
+  await page.getByRole("button", { name: "Add tag", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("clock");
+  const originalClockRequest = retried;
+  await page.reload();
+  let cancelRequest;
+  await page.route(`**/api/v1${root}/tags`, async (route) => {
+    if (
+      route.request().headers()["x-actual-cancel-if-uncommitted"] === "true"
+    ) {
+      cancelRequest = {
+        body: route.request().postData(),
+        key: route.request().headers()["idempotency-key"],
+        clock: route.request().headers()["x-actual-edit-clock"],
+      };
+      await route.fetch({
+        url: route.request().url().replace("actualbudget.test", "127.0.0.1"),
+        headers: {
+          ...route.request().headers(),
+          origin: api,
+          host: new URL(api).host,
+        },
+      });
+      await route.abort();
+    } else await route.continue();
+  });
+  let releaseInfo;
+  const infoHeld = new Promise((resolve) => {
+    releaseInfo = resolve;
+  });
+  let markInfo;
+  const infoRequested = new Promise((resolve) => {
+    markInfo = resolve;
+  });
+  await page.route("**/api/v1/info", async (route) => {
+    markInfo();
+    await infoHeld;
+    await route.continue();
+  });
+  await page
+    .getByRole("button", { name: "Cancel pending change", exact: true })
+    .click();
+  await infoRequested;
+  await expect(
+    page.getByRole("button", { name: "Retry pending change", exact: true }),
+  ).toBeDisabled();
+  releaseInfo();
+  await expect(page.getByRole("alert")).toContainText("Cannot reach");
+  await page.unroute("**/api/v1/info");
+  expect(cancelRequest).toEqual(originalClockRequest);
+  await page.unroute(`**/api/v1${root}/tags`);
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Retry pending change", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Pending change" }),
+  ).toHaveCount(0);
+  await expect(page.getByLabel("Tag name", { exact: true })).toHaveValue(
+    "ClockRecovery",
+  );
+  await page.getByRole("button", { name: "Add tag", exact: true }).click();
+  await expect(
+    page.getByRole("button", {
+      name: "Use corrected device time",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Use corrected device time", exact: true })
+    .focus();
+  await mkdir(evidence, { recursive: true });
+  await page.screenshot({
+    path: evidence + "payees-clock-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator("body")).toHaveJSProperty("scrollWidth", 390);
+  await page.screenshot({
+    path: evidence + "payees-clock-mobile.png",
+    fullPage: true,
+  });
+  await page.keyboard.press("Enter");
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(page.getByLabel("Tag name", { exact: true })).toHaveValue(
+    "ClockRecovery",
+  );
+  await page.getByRole("button", { name: "Add tag", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Edit ClockRecovery", exact: true }),
+  ).toBeVisible();
+  expect(retried.key).not.toBe(originalClockRequest.key);
+  const clockTags = (
+    await (await fetch(api + "/api/v1" + root + "/tags")).json()
+  ).data;
+  expect(clockTags.filter((tag) => tag.tag === "ClockRecovery")).toHaveLength(
+    1,
+  );
   await page.getByLabel("Search tags").focus();
   await page.keyboard.type("Travel");
   await expect(

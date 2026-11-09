@@ -2,7 +2,12 @@
   import { onMount } from "svelte";
   import { t } from "./i18n.svelte";
   import { request, uuid, errorMessage, RequestError } from "./api";
-  import { nextEditClock, observeVersions } from "./edit-clock";
+  import {
+    LocalClockError,
+    nextEditClock,
+    observeVersions,
+    resetCorrectedClock,
+  } from "./edit-clock";
   import { offlineStatus, subscribeOffline } from "./offline/delivery";
   import {
     readReferenceDraft,
@@ -35,6 +40,7 @@
     rows = $state.raw<Row[]>([]),
     busy = $state(false),
     error = $state(""),
+    clockRecovery = $state(false),
     notice = $state(""),
     search = $state(""),
     visibility = $state("all"),
@@ -167,7 +173,22 @@
         epoch: draft.epoch,
       };
       draft = saveReferenceDraft({ ...draft, pending: intent }, draft);
+      clockRecovery = false;
       await send();
+    } catch (e) {
+      clockRecovery = e instanceof LocalClockError;
+      error = errorMessage(e);
+    }
+  }
+  function useCorrectedTime() {
+    if (!draft || locked || !clockRecovery) return;
+    try {
+      draft = saveReferenceDraft({ ...draft }, draft);
+      resetCorrectedClock();
+      for (const row of rows) observeVersions(row.field_versions);
+      clockRecovery = false;
+      error = "";
+      notice = "Device time adopted. Review your form, then save.";
     } catch (e) {
       error = errorMessage(e);
     }
@@ -229,16 +250,25 @@
   }
   async function cancel() {
     if (!draft?.pending || busy) return;
+    const original = draft.pending;
+    busy = true;
     try {
+      draft = saveReferenceDraft({ ...draft }, draft);
       const info = await request<{ data: { capabilities: string[] } }>("/info");
       if (!info.data.capabilities.includes("reference_cancellation"))
         throw new Error(
           "This server cannot safely cancel this request. Retry it unchanged.",
         );
-      localStorage.setItem(referenceCancelKey(draft.pending), "true");
+      draft = saveReferenceDraft({ ...draft }, draft);
+      if (draft.pending !== original)
+        throw new Error("The pending change changed. Reload saved work.");
+      localStorage.setItem(referenceCancelKey(original), "true");
+      busy = false;
       await send();
     } catch (e) {
       error = errorMessage(e);
+    } finally {
+      busy = false;
     }
   }
   async function save() {
@@ -306,6 +336,15 @@
     <button onclick={load} disabled={busy}>{t("Reload saved work")}</button
     >{/if}
   {#if notice}<p role="status">{notice}</p>{/if}
+  {#if clockRecovery && !draft?.pending}
+    <p>
+      Correct your device time, then retry with a new edit clock. Your form
+      stays here.
+    </p>
+    <button onclick={useCorrectedTime} disabled={locked}
+      >{t("Use corrected device time")}</button
+    >
+  {/if}
   {#if !online}<p role="status">
       Reconnect to manage payees or tags. Your saved work stays here.
     </p>{/if}

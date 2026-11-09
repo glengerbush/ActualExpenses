@@ -84,6 +84,63 @@ impl Drop for Server {
 }
 
 const B: &str = "90000000-0000-4000-8000-000000000001";
+#[test]
+fn losing_duplicate_names_do_not_block_independent_winning_fields() {
+    let s = Server::start();
+    ok(s.write(
+        "POST",
+        "/api/v1/budgets",
+        "budget",
+        None,
+        json!({"id":B,"name":"Field ordering"}),
+    ));
+    let clocks = [
+        "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+        "2026-01-02T00:00:00.000Z-0000-0000000000000001",
+        "2026-01-03T00:00:00.000Z-0000-0000000000000001",
+    ];
+    for (entity, name, flag) in [("payees", "name", "favorite"), ("tags", "tag", "hidden")] {
+        let root = format!("/api/v1/budgets/{B}/{entity}");
+        ok(s.write(
+            "POST",
+            &root,
+            "first",
+            Some(clocks[0]),
+            json!({"id":id(2),name:"Old"}),
+        ));
+        ok(s.write(
+            "PATCH",
+            &format!("{root}/{}", id(2)),
+            "rename",
+            Some(clocks[2]),
+            json!({name:"Current"}),
+        ));
+        ok(s.write(
+            "POST",
+            &root,
+            "second",
+            Some(clocks[2]),
+            json!({"id":id(3),name:"Old"}),
+        ));
+        let response = ok(s.write(
+            "PATCH",
+            &format!("{root}/{}", id(2)),
+            "late",
+            Some(clocks[1]),
+            json!({name:"Old",flag:true}),
+        ));
+        assert_eq!(response["data"][name], "Current");
+        assert_eq!(response["data"][flag], true);
+        assert!(
+            response["conflicts"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|field| field["field"] == name)
+        );
+        assert_eq!(s.get(&format!("{root}/{}", id(2)))["data"][flag], true);
+    }
+}
 fn id(n: usize) -> String {
     format!("90000000-0000-4000-8000-{n:012}")
 }

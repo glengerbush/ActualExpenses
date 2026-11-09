@@ -374,7 +374,6 @@ fn patch(
                 } else {
                     validate_tag(v)?
                 }
-                duplicate(db, b, entity, id, v)?;
                 json!(v)
             }
             "favorite" | "hidden" => {
@@ -409,6 +408,9 @@ fn patch(
         if clock <= old {
             conflicts.push(json!({"field":field,"winning_clock":old,"submitted_clock":clock}));
             continue;
+        }
+        if matches!(field.as_str(), "name" | "tag") {
+            duplicate(db, b, entity, id, value.as_str().unwrap())?;
         }
         if field == "tag" && value != before["tag"] {
             rename_notes(

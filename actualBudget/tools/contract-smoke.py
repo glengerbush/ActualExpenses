@@ -483,7 +483,8 @@ def main():
             assert matched["snapshot"] == match_body["snapshot"]
             assert check(rr + "/checkpoint", budgets + "/{budget}/checkpoint") == match_checkpoint
             for invalid in ({**match_body, "limit": 0}, {**match_body, "limit": 1001},
-                            {**match_body, "offset": -1}, {**match_body, "snapshot": None}):
+                            {**match_body, "offset": -1}, {**match_body, "snapshot": None},
+                            {**match_body, "conditions": []}):
                 assert not match_validator.is_valid(invalid)
                 check(match_path, match_template, "POST", invalid, expected=400)
             check(match_path, match_template, "POST", {**match_body, "snapshot": schedule_cursor}, expected=409)

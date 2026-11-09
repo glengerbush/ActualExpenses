@@ -23281,7 +23281,8 @@
             "items": {
               "$ref": "#/components/schemas/RuleCondition"
             },
-            "maxItems": 32
+            "maxItems": 32,
+            "minItems": 1
           },
           "offset": {
             "type": "integer",

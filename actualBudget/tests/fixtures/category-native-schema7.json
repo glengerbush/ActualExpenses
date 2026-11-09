@@ -1,0 +1,316 @@
+{
+  "source_commit": "4772f40",
+  "mode": "native",
+  "budget": {
+    "auto_due": 1794192928,
+    "backup_error": null,
+    "budget_type": "tracking",
+    "deleted": false,
+    "epoch": "5b679dce8669fad2e7c95c055a7c6334",
+    "generation": 0,
+    "id": "17000000-0000-4000-8000-000000000001",
+    "last_auto": null,
+    "name": "Schema 7 account metadata"
+  },
+  "native_category": "17000000-0000-4000-8000-000000000002",
+  "accounts": [
+    {
+      "balance": 0,
+      "closed": false,
+      "deleted": false,
+      "field_versions": {
+        "group_id": "2026-11-09T02:40:28.987Z-0000-7d38100c98af57c8",
+        "notes": "2026-11-09T02:40:28.987Z-0000-7d38100c98af57c8",
+        "sort_order": "2026-11-09T02:40:28.992Z-0000-7d38100c98af57c8"
+      },
+      "group_id": "17000000-0000-4000-8000-000000000006",
+      "id": "17000000-0000-4000-8000-000000000004",
+      "name": "Reserve",
+      "notes": "Post-import account note\nPreserve this metadata",
+      "off_budget": false,
+      "sort_order": 0
+    },
+    {
+      "balance": -1250,
+      "closed": false,
+      "deleted": false,
+      "field_versions": {
+        "group_id": "2026-11-09T02:40:28.983Z-0000-7d38100c98af57c8",
+        "notes": "2026-11-09T02:40:28.983Z-0000-7d38100c98af57c8",
+        "sort_order": "2026-11-09T02:40:28.992Z-0000-7d38100c98af57c8"
+      },
+      "group_id": "17000000-0000-4000-8000-000000000006",
+      "id": "17000000-0000-4000-8000-000000000003",
+      "name": "Spending",
+      "notes": "Post-import account note\nPreserve this metadata",
+      "off_budget": false,
+      "sort_order": 1
+    }
+  ],
+  "account_groups": [
+    {
+      "deleted": false,
+      "field_versions": {
+        "name": "2026-11-09T02:40:28.975Z-0000-7d38100c98af57c8",
+        "sort_order": "2026-11-09T02:40:28.979Z-0000-7d38100c98af57c8",
+        "tombstone": "2026-11-09T02:40:28.975Z-0000-7d38100c98af57c8"
+      },
+      "id": "17000000-0000-4000-8000-000000000007",
+      "name": "Other accounts",
+      "sort_order": 0
+    },
+    {
+      "deleted": false,
+      "field_versions": {
+        "name": "2026-11-09T02:40:28.971Z-0000-7d38100c98af57c8",
+        "sort_order": "2026-11-09T02:40:28.979Z-0000-7d38100c98af57c8",
+        "tombstone": "2026-11-09T02:40:28.971Z-0000-7d38100c98af57c8"
+      },
+      "id": "17000000-0000-4000-8000-000000000006",
+      "name": "Everyday accounts",
+      "sort_order": 1
+    }
+  ],
+  "transactions": [
+    {
+      "account_id": "17000000-0000-4000-8000-000000000003",
+      "account_name": "Spending",
+      "amount": -1250,
+      "category_id": "17000000-0000-4000-8000-000000000002",
+      "category_is_income": false,
+      "category_name": "Native category after import",
+      "cleared": false,
+      "date": "2026-01-01",
+      "field_versions": {
+        "account_id": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+        "amount": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+        "category_id": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+        "cleared": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+        "date": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+        "notes": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+        "payee_id": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+        "reconciled": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+        "starting_balance": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+        "tombstone": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8"
+      },
+      "id": "17000000-0000-4000-8000-000000000005",
+      "notes": "Original schema 7 purchase",
+      "payee_id": null,
+      "payee_name": null,
+      "reconciled": false,
+      "running_balance": null,
+      "sort_order": 1,
+      "starting_balance": false
+    }
+  ],
+  "checkpoint": {
+    "epoch": "5b679dce8669fad2e7c95c055a7c6334",
+    "generation": 0,
+    "snapshot": "c15b679dce8669fad2e7c95c055a7c63340000000000000017"
+  },
+  "receipts": [
+    {
+      "path": "/budgets/17000000-0000-4000-8000-000000000001/categories",
+      "body": {
+        "id": "17000000-0000-4000-8000-000000000002",
+        "name": "Native category after import"
+      },
+      "key": "schema7-category",
+      "method": "POST",
+      "status": 201,
+      "response": {
+        "data": {
+          "id": "17000000-0000-4000-8000-000000000002",
+          "is_income": false,
+          "name": "Native category after import"
+        }
+      }
+    },
+    {
+      "path": "/budgets/17000000-0000-4000-8000-000000000001/transactions",
+      "body": {
+        "id": "17000000-0000-4000-8000-000000000005",
+        "account_id": "17000000-0000-4000-8000-000000000003",
+        "category_id": "17000000-0000-4000-8000-000000000002",
+        "amount": -1250,
+        "date": "2026-01-01",
+        "notes": "Original schema 7 purchase"
+      },
+      "key": "schema7-transaction",
+      "method": "POST",
+      "status": 201,
+      "response": {
+        "conflicts": [],
+        "cursor": "c15b679dce8669fad2e7c95c055a7c63340000000000000009",
+        "data": {
+          "account_id": "17000000-0000-4000-8000-000000000003",
+          "account_name": "Spending",
+          "amount": -1250,
+          "category_id": "17000000-0000-4000-8000-000000000002",
+          "category_is_income": false,
+          "category_name": "Native category after import",
+          "cleared": false,
+          "date": "2026-01-01",
+          "field_versions": {
+            "account_id": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+            "amount": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+            "category_id": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+            "cleared": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+            "date": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+            "notes": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+            "payee_id": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+            "reconciled": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+            "starting_balance": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8",
+            "tombstone": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8"
+          },
+          "id": "17000000-0000-4000-8000-000000000005",
+          "notes": "Original schema 7 purchase",
+          "payee_id": null,
+          "payee_name": null,
+          "reconciled": false,
+          "sort_order": 1,
+          "starting_balance": false
+        },
+        "edit_clock": "2026-11-09T02:40:28.962Z-0000-7d38100c98af57c8"
+      }
+    },
+    {
+      "path": "/budgets/17000000-0000-4000-8000-000000000001/account-groups",
+      "body": {
+        "id": "17000000-0000-4000-8000-000000000006",
+        "name": "Everyday accounts"
+      },
+      "key": "schema7-group",
+      "method": "POST",
+      "status": 201,
+      "response": {
+        "data": {
+          "deleted": false,
+          "field_versions": {
+            "name": "2026-11-09T02:40:28.971Z-0000-7d38100c98af57c8",
+            "sort_order": "2026-11-09T02:40:28.971Z-0000-7d38100c98af57c8",
+            "tombstone": "2026-11-09T02:40:28.971Z-0000-7d38100c98af57c8"
+          },
+          "id": "17000000-0000-4000-8000-000000000006",
+          "name": "Everyday accounts",
+          "sort_order": 0
+        }
+      }
+    },
+    {
+      "path": "/budgets/17000000-0000-4000-8000-000000000001/account-groups/17000000-0000-4000-8000-000000000006/move",
+      "body": {
+        "before_id": null
+      },
+      "key": "schema7-group-order",
+      "method": "POST",
+      "status": 200,
+      "response": {
+        "conflicts": [],
+        "cursor": "c15b679dce8669fad2e7c95c055a7c6334000000000000000d",
+        "data": {
+          "deleted": false,
+          "field_versions": {
+            "name": "2026-11-09T02:40:28.971Z-0000-7d38100c98af57c8",
+            "sort_order": "2026-11-09T02:40:28.979Z-0000-7d38100c98af57c8",
+            "tombstone": "2026-11-09T02:40:28.971Z-0000-7d38100c98af57c8"
+          },
+          "id": "17000000-0000-4000-8000-000000000006",
+          "name": "Everyday accounts",
+          "sort_order": 1
+        },
+        "edit_clock": "2026-11-09T02:40:28.979Z-0000-7d38100c98af57c8"
+      }
+    },
+    {
+      "path": "/budgets/17000000-0000-4000-8000-000000000001/accounts/17000000-0000-4000-8000-000000000003",
+      "body": {
+        "group_id": "17000000-0000-4000-8000-000000000006",
+        "notes": "Post-import account note\nPreserve this metadata"
+      },
+      "key": "schema7-account-note-17000000-0000-4000-8000-000000000003",
+      "method": "PATCH",
+      "status": 200,
+      "response": {
+        "conflicts": [],
+        "cursor": "c15b679dce8669fad2e7c95c055a7c63340000000000000011",
+        "data": {
+          "balance": -1250,
+          "closed": false,
+          "deleted": false,
+          "field_versions": {
+            "group_id": "2026-11-09T02:40:28.983Z-0000-7d38100c98af57c8",
+            "notes": "2026-11-09T02:40:28.983Z-0000-7d38100c98af57c8"
+          },
+          "group_id": "17000000-0000-4000-8000-000000000006",
+          "id": "17000000-0000-4000-8000-000000000003",
+          "name": "Spending",
+          "notes": "Post-import account note\nPreserve this metadata",
+          "off_budget": false,
+          "sort_order": 0
+        },
+        "edit_clock": "2026-11-09T02:40:28.983Z-0000-7d38100c98af57c8"
+      }
+    },
+    {
+      "path": "/budgets/17000000-0000-4000-8000-000000000001/accounts/17000000-0000-4000-8000-000000000004",
+      "body": {
+        "group_id": "17000000-0000-4000-8000-000000000006",
+        "notes": "Post-import account note\nPreserve this metadata"
+      },
+      "key": "schema7-account-note-17000000-0000-4000-8000-000000000004",
+      "method": "PATCH",
+      "status": 200,
+      "response": {
+        "conflicts": [],
+        "cursor": "c15b679dce8669fad2e7c95c055a7c63340000000000000015",
+        "data": {
+          "balance": 0,
+          "closed": false,
+          "deleted": false,
+          "field_versions": {
+            "group_id": "2026-11-09T02:40:28.987Z-0000-7d38100c98af57c8",
+            "notes": "2026-11-09T02:40:28.987Z-0000-7d38100c98af57c8"
+          },
+          "group_id": "17000000-0000-4000-8000-000000000006",
+          "id": "17000000-0000-4000-8000-000000000004",
+          "name": "Reserve",
+          "notes": "Post-import account note\nPreserve this metadata",
+          "off_budget": false,
+          "sort_order": 1
+        },
+        "edit_clock": "2026-11-09T02:40:28.987Z-0000-7d38100c98af57c8"
+      }
+    },
+    {
+      "path": "/budgets/17000000-0000-4000-8000-000000000001/accounts/17000000-0000-4000-8000-000000000003/move",
+      "body": {
+        "before_id": null
+      },
+      "key": "schema7-account-order",
+      "method": "POST",
+      "status": 200,
+      "response": {
+        "conflicts": [],
+        "cursor": "c15b679dce8669fad2e7c95c055a7c63340000000000000017",
+        "data": {
+          "balance": -1250,
+          "closed": false,
+          "deleted": false,
+          "field_versions": {
+            "group_id": "2026-11-09T02:40:28.983Z-0000-7d38100c98af57c8",
+            "notes": "2026-11-09T02:40:28.983Z-0000-7d38100c98af57c8",
+            "sort_order": "2026-11-09T02:40:28.992Z-0000-7d38100c98af57c8"
+          },
+          "group_id": "17000000-0000-4000-8000-000000000006",
+          "id": "17000000-0000-4000-8000-000000000003",
+          "name": "Spending",
+          "notes": "Post-import account note\nPreserve this metadata",
+          "off_budget": false,
+          "sort_order": 1
+        },
+        "edit_clock": "2026-11-09T02:40:28.992Z-0000-7d38100c98af57c8"
+      }
+    }
+  ]
+}

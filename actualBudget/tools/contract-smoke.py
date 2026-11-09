@@ -105,6 +105,21 @@ def main():
                 check(path, template, "POST", reference, {"Idempotency-Key": kind}, 201)
                 check(path, template)
                 references[kind] = reference["id"]
+            categories = f"{budgets}/{budget_id}/categories"
+            categories_template = budgets + "/{budget}/categories"
+            category_groups = f"{budgets}/{budget_id}/category-groups"
+            category_groups_template = budgets + "/{budget}/category-groups"
+            category_group, extra_category = str(uuid.uuid4()), str(uuid.uuid4())
+            check(category_groups, category_groups_template, "POST", {"id": category_group, "name": "Category contract"}, {"Idempotency-Key": "category-group"}, 201)
+            check(category_groups, category_groups_template)
+            check(category_groups + "/" + category_group, category_groups_template + "/{id}")
+            check(category_groups + "/" + category_group, category_groups_template + "/{id}", "PATCH", {"hidden": True}, {"Idempotency-Key": "hide-category-group"})
+            check(categories, categories_template, "POST", {"id": extra_category, "name": "Merge source", "group_id": category_group, "sort_order": None}, {"Idempotency-Key": "extra-category"}, 201)
+            check(categories + "/" + extra_category, categories_template + "/{id}")
+            check(categories + "/" + extra_category, categories_template + "/{id}", "PATCH", {"notes": "**Keep** notes"}, {"Idempotency-Key": "category-notes"})
+            check(categories + "/" + extra_category + "/transactions", categories_template + "/{id}/transactions")
+            check(categories + "/" + extra_category, categories_template + "/{id}", "DELETE", {"replacement_id": references["categories"]}, {"Idempotency-Key": "category-merge"})
+            check(category_groups + "/" + category_group, category_groups_template + "/{id}", "DELETE", {"replacement_id": None}, {"Idempotency-Key": "category-group-delete"})
             entries = f"{budgets}/{budget_id}/transactions"
             entries_template = budgets + "/{budget}/transactions"
             transaction = {

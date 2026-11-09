@@ -11610,7 +11610,7 @@
             }
           },
           "413": {
-            "description": "Body exceeds 65536 bytes",
+            "description": "Split JSON body exceeds 67108864 bytes; retain the draft and reduce the changed allocations per request.",
             "content": {
               "application/json": {
                 "schema": {
@@ -11681,7 +11681,7 @@
             }
           }
         },
-        "description": "Online-only aggregate edit. Original snapshot, payload, idempotency key, edit clock and budget epoch stay unchanged on retry. Replacement preserves supplied child IDs; omitted children become tombstones. Exact sums required; even targets zero children, proportional uses signed child weights, auto selects even when zeros exist. Recombine preserves parent ID and total; unsplit detaches selected children (empty detach means all) with Actual 26.10 one-child collapse behavior. All changes, versions and receipt commit atomically. Generic PATCH of split records is refused; generic DELETE of parent cascades, child deletion requires replacement and remainder allocation.",
+        "description": "Online-only aggregate edit. Original snapshot, payload, idempotency key, edit clock and budget epoch stay unchanged on retry. Replacement preserves supplied child IDs; omitted children become tombstones. Exact sums required; even targets zero children, proportional uses signed child weights, auto selects even when zeros exist. Recombine preserves parent ID and total; unsplit detaches selected children (empty detach means all) with Actual 26.10 one-child collapse behavior. All changes, versions and receipt commit atomically. Generic PATCH of split records is refused; generic DELETE of parent cascades, child deletion requires replacement and remainder allocation. Sparse changes preserve unspecified children and avoid retransmitting the whole allocation list. Up to 100000 live allocations match the accepted Actual import row bound. Only this mutation route accepts a 67108864-byte JSON body; ordinary JSON routes retain their 65536-byte limit. Prefer sparse edits and reconciliation_token for large aggregates.",
         "summary": "Atomically replace split allocations, recombine, or detach children"
       },
       "get": {
@@ -12772,7 +12772,7 @@
             "type": "string",
             "format": "date",
             "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
-            "description": "Calendar date YYYY-MM-DD, year 0001\u20139999."
+            "description": "Calendar date YYYY-MM-DD, year 0001–9999."
           }
         },
         "required": [
@@ -15395,14 +15395,14 @@
           },
           "children": {
             "type": "array",
-            "maxItems": 100,
+            "maxItems": 100000,
             "items": {
               "$ref": "#/components/schemas/SplitChild"
             }
           },
           "detach": {
             "type": "array",
-            "maxItems": 100,
+            "maxItems": 100000,
             "items": {
               "type": "string",
               "format": "uuid",
@@ -15455,6 +15455,29 @@
           },
           "transfer_protection_token": {
             "$ref": "#/components/schemas/TransferProtectionToken"
+          },
+          "changes": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Sparse replacement, mutually exclusive with nonempty children/detach and non-replace actions. Existing children not mentioned are preserved in their original order; upsert replaces a complete child by ID or appends a new child in supplied order. Remove lists existing IDs only. IDs across upsert/remove must be distinct. Final aggregate max100000; allocation runs once on the complete result. Absent changes retains the historical full-replacement receipt payload.",
+            "properties": {
+              "upsert": {
+                "type": "array",
+                "maxItems": 100000,
+                "items": {
+                  "$ref": "#/components/schemas/SplitChild"
+                }
+              },
+              "remove": {
+                "type": "array",
+                "maxItems": 100000,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
           }
         },
         "dependentRequired": {

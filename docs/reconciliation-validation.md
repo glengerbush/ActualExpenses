@@ -98,4 +98,3 @@ Focused eight-test public reconciliation suite passes, including genuine schema1
 # Root integration review — 2026-11-09
 
 Bounded-proof correction `57d4517` passed independent Spec and Standards reviews with no remaining findings. The Spec reviewer independently exercised eight public reconciliation tests, child-origin unlock, malformed/equal-clock refusal, atomic refusal, the complete reconciliation browser workflow and five native tests. Main integration also passed all eight reconciliation tests, Svelte checking and Rust formatting. Transfer and bulk-history composition remain acceptance gates; ticket14's large allocation replacement is being implemented separately.
-

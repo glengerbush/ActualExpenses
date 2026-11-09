@@ -235,3 +235,36 @@ Svelte check/build, formatting, Clippy and served OpenAPI pass
 
 Large sparse allocation composition and independent corrective review follow
 this checkpoint. Bulk/history and final root acceptance remain separate gates.
+
+## Large allocation composition — 2026-11-09
+
+Merged `cc19d48` into protected-graph checkpoint `0a9a767`. Sparse upsert/remove,
+100000-child ceiling,501-parameter batched stamping/removal and20-row editor
+pagination coexist with typed captured authorization. Batch removal carries the
+authorization through each linked counterpart operation. Untouched transfer
+allocations preserve destination and counterpart identities in sparse expansion.
+A public protected split-transfer regression now edits only an ordinary sibling
+through sparse upsert and checks the unchanged reciprocal amount/identity.
+
+Composition exposed a reproducible public5s split-read timeout: SQLite chose a
+budget scan before each recursive member. Connected-first CROSS JOIN preserves
+member semantics while forcing indexed traversal. Existing sparse imported
+allocation test failed before the correction (`/tmp/integrated14-15-sparse-retry.log`)
+and passed afterward (`/tmp/integrated14-15-sparse-green.log`). No timeout or
+assertion was weakened.
+
+Large allocation, split-transfer and paired-protection browser suites pass:
+`/tmp/integrated14-15-{large,split-transfer,protection}-browser.log`. Desktop/mobile
+captures under `actualBudget/web/test-results/` were inspected; existing layout
+and confirmation flow retained. Svelte check/build/autofixer, Impeccable detector
+(no findings), served OpenAPI and Clippy pass (`/tmp/integrated14-15-*`).
+All27 native public API tests pass (`/tmp/integrated14-15-native.log`).
+Final transfer23 cases, including the new protected sparse sibling check, pass
+(`/tmp/integrated14-15-transfers-final.log`). Split12 cases pass; the remaining
+large native restore activation exceeded the existing5s HTTP timeout both on
+this composition and unchanged `cc19d48` control
+(`/tmp/integrated14-15-{native-restore-retry,restore-control}.log`). The earlier
+`cc19d48` focused run passed that case (`/tmp/integrate14-15-http-pre.log`).
+No assertions or timeouts changed; stable-batch restore qualification remains
+with root. Eight reconciliation cases passed in `/tmp/integrated14-15-http.log`.
+Root owns the final stable-batch broad suite and independent review.

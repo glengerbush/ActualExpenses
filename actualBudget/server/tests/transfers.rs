@@ -1408,6 +1408,18 @@ fn protected_split_transfer_replacement_checks_peer_and_preserves_settled_totals
             true
         );
     }
+    // Sparse editing preserves an untouched protected transfer allocation and its
+    // reciprocal identity while changing only its ordinary sibling.
+    let sparse_view = s.get(&path);
+    let sparse = json!({"snapshot":sparse_view["snapshot"],"changes":{"upsert":[{"id":id(13),"amount":-300,"notes":"Sparse sibling edit"}]},"confirm_reconciled":true,"transfer_protection_token":sparse_view["transfer_protection_token"]});
+    let sparse_result = ok(s.write("POST", &path, "confirmed-sparse", None, sparse));
+    assert_eq!(sparse_result["data"]["children"][0]["transfer_id"], id(12));
+    assert_eq!(sparse_result["data"]["children"][0]["amount"], -700);
+    assert_eq!(
+        sparse_result["data"]["children"][1]["notes"],
+        "Sparse sibling edit"
+    );
+    assert_eq!(s.get(&peer)["data"]["amount"], 700);
     let fresh = s.get(&path);
     let local_only = json!({"snapshot":fresh["snapshot"],"children":children,"confirm_reconciled":true,"reconciliation_token":fresh["reconciliation_token"]});
     assert_eq!(

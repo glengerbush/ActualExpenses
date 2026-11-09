@@ -28,6 +28,10 @@ for (const [total, amounts] of [
   [1, [0, 0, 0]],
   [-101, [-100, 20]],
   [-5001, [-2000, 0]],
+  ...[101, 1001].flatMap((count) => [
+    [-count, [0, -4, ...Array(count - 2).fill(-1)]],
+    [-(count * 2 + 1), Array(count).fill(-1)],
+  ]),
 ]) {
   const children = amounts.map((amount, i) => ({
     id: `child${i}`,

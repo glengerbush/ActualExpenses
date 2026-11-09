@@ -22,12 +22,14 @@ pub fn members(db: &Connection, b: &str, ids: &[&str]) -> Result<Vec<Value>, Err
     let mut rows = BTreeMap::new();
     for id in ids {
         validate_id(id)?;
+        // Keep the recursive member outermost: SQLite otherwise may scan every
+        // budget row for each member, making large split proof reads quadratic.
         let mut query = db.prepare("WITH RECURSIVE connected(id) AS (
             SELECT id FROM transactions WHERE budget_id=?1 AND id=?2 AND tombstone=0
-            UNION SELECT t.parent_id FROM transactions t JOIN connected c ON t.id=c.id WHERE t.budget_id=?1 AND t.tombstone=0 AND t.parent_id IS NOT NULL
-            UNION SELECT t.id FROM transactions t JOIN connected c ON t.parent_id=c.id WHERE t.budget_id=?1 AND t.tombstone=0
-            UNION SELECT p.id FROM transactions t JOIN connected c ON t.id=c.id JOIN transactions p ON p.budget_id=t.budget_id AND p.id=t.transfer_id AND p.transfer_id=t.id WHERE t.budget_id=?1 AND t.tombstone=0 AND p.tombstone=0
-        ) SELECT t.id,t.parent_id,t.transfer_id,t.reconciled,v.clock FROM connected c JOIN transactions t ON t.budget_id=?1 AND t.id=c.id AND t.tombstone=0 LEFT JOIN field_versions v ON v.budget_id=t.budget_id AND v.entity='transactions' AND v.entity_id=t.id AND v.field='reconciled' ORDER BY t.id")?;
+            UNION SELECT t.parent_id FROM connected c CROSS JOIN transactions t ON t.id=c.id WHERE t.budget_id=?1 AND t.tombstone=0 AND t.parent_id IS NOT NULL
+            UNION SELECT t.id FROM connected c CROSS JOIN transactions t ON t.parent_id=c.id WHERE t.budget_id=?1 AND t.tombstone=0
+            UNION SELECT p.id FROM connected c CROSS JOIN transactions t ON t.id=c.id JOIN transactions p ON p.budget_id=t.budget_id AND p.id=t.transfer_id AND p.transfer_id=t.id WHERE t.budget_id=?1 AND t.tombstone=0 AND p.tombstone=0
+        ) SELECT t.id,t.parent_id,t.transfer_id,t.reconciled,v.clock FROM connected c CROSS JOIN transactions t ON t.budget_id=?1 AND t.id=c.id AND t.tombstone=0 LEFT JOIN field_versions v ON v.budget_id=t.budget_id AND v.entity='transactions' AND v.entity_id=t.id AND v.field='reconciled' ORDER BY t.id")?;
         for row in query.query_map(params![b,id], |r| Ok(json!({"id":r.get::<_,String>(0)?,"parent_id":r.get::<_,Option<String>>(1)?,"transfer_id":r.get::<_,Option<String>>(2)?,"reconciled":r.get::<_,bool>(3)?,"field_versions":{"reconciled":r.get::<_,Option<String>>(4)?.unwrap_or_else(||order::ZERO.into())}})))? {
             let row = row?;
             rows.insert(row["id"].as_str().unwrap().to_owned(), row);

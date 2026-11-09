@@ -58,12 +58,14 @@ internal class BudgetApi(private val base: String, private val transport: HttpTr
         key: String? = null,
         clock: String? = null,
         epoch: String? = null,
+        receiptOnly: Boolean = false,
     ): JsonObject {
         val headers = mutableMapOf("Accept" to "application/json")
         if (body != null) headers["Content-Type"] = "application/json"
         key?.let { headers["Idempotency-Key"] = it }
         clock?.let { headers["X-Actual-Edit-Clock"] = it }
         epoch?.let { headers["X-Actual-Budget-Epoch"] = it }
+        if (receiptOnly) headers["X-Actual-Receipt-Only"] = "true"
         val result =
             transport.request(
                 "$base/api/v1$path",
@@ -94,7 +96,7 @@ internal class BudgetApi(private val base: String, private val transport: HttpTr
         return json
     }
 
-    fun requireSupported() {
+    fun requireSupported(): Set<String> {
         val info =
             request("/info").getAsJsonObject("data")
                 ?: throw IllegalArgumentException(
@@ -120,6 +122,7 @@ internal class BudgetApi(private val base: String, private val transport: HttpTr
         ) {
             "This server cannot support the companion safely. Saved work is retained."
         }
+        return capabilities
     }
 
     companion object {

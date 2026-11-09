@@ -206,8 +206,188 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun `more than one hundred offline expenses drain after remote metadata changes`() {
+        Server().use { server ->
+            val app = ApiExpenseService(MemoryStore())
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            app.markOffline()
+            val ids = (1..101).map { app.saveExpense(ExpenseDraft("1.00", notes = "Offline $it")) }
+            assertEquals(101, app.state().pendingCount)
+            server.post(
+                "/budgets/${server.budget}/accounts",
+                """{"id":"${UUID.randomUUID()}","name":"Remote account","opening_balance":0,"opening_date":"2026-01-01"}""",
+            )
+            app.refresh()
+            assertEquals(0, app.state().pendingCount, app.state().error)
+            assertTrue(app.state().online, app.state().error)
+            val rows =
+                server
+                    .get("/budgets/${server.budget}/transactions?limit=1000")
+                    .getAsJsonArray("data")
+            assertEquals(ids.toSet(), rows.map { it.asJsonObject["id"].asString }.toSet())
+            assertEquals(-10100, rows.sumOf { it.asJsonObject["amount"].asLong })
+        }
+    }
+
+    @Test
+    fun `committed lost acknowledgement reconciles before restored cursor recovery`() =
+        committedReceiptSurvives("restore")
+
+    @Test
+    fun `committed lost acknowledgement reconciles while original account stays closed`() =
+        committedReceiptSurvives("close")
+
+    @Test
+    fun `committed lost acknowledgement reconciles after original account deletion`() =
+        committedReceiptSurvives("delete")
+
+    private fun committedReceiptSurvives(lifecycle: String) {
+        Server().use { server ->
+            val store = MemoryStore()
+            val real = BudgetHttpTransport()
+            val requests = mutableListOf<Triple<String, Map<String, String>, String>>()
+            var lose = true
+            val network = HttpTransport { url, method, headers, body ->
+                val response = real.request(url, method, headers, body)
+                if (method == "POST" && url.endsWith("/transactions")) {
+                    requests += Triple(url, headers, body!!.toString(Charsets.UTF_8))
+                    if (lose) {
+                        lose = false
+                        throw IOException("Committed acknowledgement lost")
+                    }
+                }
+                response
+            }
+            val app = ApiExpenseService(store, transport = network)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            val point = server.post("/budgets/${server.budget}/backups", "{}")
+            val id =
+                app.saveExpense(ExpenseDraft("8.91", notes = "Receipt survives lifecycle change"))
+            app.refresh()
+            assertEquals(1, app.state().pendingCount)
+            assertEquals(
+                -891,
+                server
+                    .get("/budgets/${server.budget}/transactions/$id")
+                    .getAsJsonObject("data")["amount"]
+                    .asLong,
+            )
+            when (lifecycle) {
+                "restore" ->
+                    server.post(
+                        "/budgets/${server.budget}/backups/${point["id"].asString}/restore",
+                        """{"confirm_name":"Native fixture"}""",
+                        200,
+                    )
+                "close" -> {
+                    server.post(
+                        "/budgets/${server.budget}/transactions",
+                        """{"id":"${UUID.randomUUID()}","account_id":"${server.account}","amount":891,"date":"2026-01-01"}""",
+                    )
+                    server.post(
+                        "/budgets/${server.budget}/accounts/${server.account}/close",
+                        "{}",
+                        200,
+                    )
+                }
+                "delete" ->
+                    server.delete(
+                        "/budgets/${server.budget}/accounts/${server.account}",
+                        """{"confirm_name":"Spending"}""",
+                    )
+            }
+            val restarted = ApiExpenseService(store, transport = network)
+            restarted.refresh()
+            assertEquals(0, restarted.state().pendingCount, restarted.state().error)
+            assertTrue(restarted.state().online, restarted.state().error)
+            assertFalse(restarted.state().syncBlocked)
+            assertEquals(2, requests.size)
+            assertEquals(requests[0].first, requests[1].first)
+            assertEquals(requests[0].second, requests[1].second - "X-Actual-Receipt-Only")
+            assertEquals("true", requests[1].second["X-Actual-Receipt-Only"])
+            assertEquals(requests[0].third, requests[1].third)
+            val current =
+                server.get("/budgets/${server.budget}/transactions").getAsJsonArray("data")
+            assertEquals(
+                if (lifecycle == "close") 1 else 0,
+                current.count { it.asJsonObject["id"].asString == id },
+            )
+            assertTrue(
+                restarted.state().expenses.isEmpty(),
+                "Historical receipt must not resurrect current expenses",
+            )
+            if (lifecycle != "restore") assertNull(restarted.state().selectedAccountId)
+            restarted.refresh()
+            assertEquals(2, requests.size, "Acknowledged receipt must leave the durable queue")
+        }
+    }
+
+    @Test
+    fun `older API without receipt lookup retains uncertain closed account work without unsafe probe`() {
+        Server().use { server ->
+            val store = MemoryStore()
+            val real = BudgetHttpTransport()
+            var advertiseReceiptLookup = false
+            var lose = true
+            var mutationRequests = 0
+            val network = HttpTransport { url, method, headers, body ->
+                if (!advertiseReceiptLookup) assertNull(headers["X-Actual-Receipt-Only"])
+                val response = real.request(url, method, headers, body)
+                if (url.endsWith("/info") && !advertiseReceiptLookup) {
+                    val info =
+                        JsonParser.parseString(response.body.toString(Charsets.UTF_8)).asJsonObject
+                    info
+                        .getAsJsonObject("data")
+                        .getAsJsonArray("capabilities")
+                        .remove(com.google.gson.JsonPrimitive("transaction_receipt_lookup"))
+                    org.actualexpenses.core.protocol.HttpResponse(
+                        response.status,
+                        response.contentType,
+                        info.toString().toByteArray(),
+                    )
+                } else {
+                    if (method == "POST" && url.endsWith("/transactions")) {
+                        mutationRequests++
+                        if (lose) {
+                            lose = false
+                            throw IOException("Committed acknowledgement lost")
+                        }
+                    }
+                    response
+                }
+            }
+            val app = ApiExpenseService(store, transport = network)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            val id = app.saveExpense(ExpenseDraft("1.00"))
+            app.refresh()
+            server.post(
+                "/budgets/${server.budget}/transactions",
+                """{"id":"${UUID.randomUUID()}","account_id":"${server.account}","amount":100,"date":"2026-01-01"}""",
+            )
+            server.post("/budgets/${server.budget}/accounts/${server.account}/close", "{}", 200)
+            val restarted = ApiExpenseService(store, transport = network)
+            restarted.refresh()
+            assertEquals(1, restarted.state().pendingCount)
+            assertTrue(restarted.state().expenses.any { it.id == id && it.pending })
+            assertTrue(restarted.state().syncBlocked)
+            assertEquals(1, mutationRequests)
+            advertiseReceiptLookup = true
+            restarted.refresh()
+            assertEquals(0, restarted.state().pendingCount, restarted.state().error)
+            assertEquals(2, mutationRequests)
+            assertNull(restarted.state().selectedAccountId)
+        }
+    }
+
+    @Test
     fun `closed account retains queued expense and reopens with identical delivery identity`() {
-        for (committed in listOf(false, true)) Server().use { server ->
+        Server().use { server ->
             for (amount in listOf(-100, 100)) server.post(
                 "/budgets/${server.budget}/transactions",
                 """{"id":"${UUID.randomUUID()}","account_id":"${server.account}","amount":$amount,"date":"2026-01-01"}""",
@@ -217,12 +397,13 @@ class NativeApiIntegrationTest {
             val requests = mutableListOf<Triple<String, Map<String, String>, String>>()
             var fail = true
             val network = HttpTransport { url, method, headers, body ->
-                if (method == "POST" && url.endsWith("/transactions")) {
+                if (
+                    method == "POST" &&
+                        url.endsWith("/transactions") &&
+                        headers["X-Actual-Receipt-Only"] == null
+                ) {
                     requests += Triple(url, headers, body!!.toString(Charsets.UTF_8))
-                    if (fail) {
-                        if (committed) real.request(url, method, headers, body)
-                        throw IOException("Connection lost")
-                    }
+                    if (fail) throw IOException("Connection lost before sending")
                 }
                 real.request(url, method, headers, body)
             }
@@ -234,11 +415,6 @@ class NativeApiIntegrationTest {
             val id = app.saveExpense(ExpenseDraft("4.56", notes = "Keep this purchase"))
             app.refresh()
             assertEquals(1, requests.size)
-            if (committed)
-                server.post(
-                    "/budgets/${server.budget}/transactions",
-                    """{"id":"${UUID.randomUUID()}","account_id":"${server.account}","amount":456,"date":"2026-01-01"}""",
-                )
             server.post("/budgets/${server.budget}/accounts/${server.account}/close", "{}", 200)
             fail = false
             app.refresh()

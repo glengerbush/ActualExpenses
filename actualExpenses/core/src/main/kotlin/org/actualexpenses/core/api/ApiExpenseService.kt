@@ -487,17 +487,18 @@ class ApiExpenseService(
             val api = client()
             // A selected compatible API is checked without login. Compatibility
             // failures never touch durable outbox contents or legacy storage.
-            api.requireSupported()
+            val capabilities = api.requireSupported()
             if (saved.budgetId == null) {
                 val list = budgets(api)
                 change { it.budgets = list }
                 markOnline()
                 return
             }
+            if ("transaction_receipt_lookup" in capabilities) reconcileReceipts(api)
             // Refresh reference availability before delivering captured work so known
             // closed or deleted accounts hold their expenses for explicit recovery.
             val budget = saved.budgetId!!
-            refreshBudget(api, budget)
+            refreshBudget(api, budget, includeView = saved.pending.isEmpty())
             requirePendingAccounts()
             var delivered = false
             while (true) {
@@ -535,14 +536,45 @@ class ApiExpenseService(
         }
     }
 
-    private fun refreshBudget(api: BudgetApi, budget: String) {
-        if (saved.checkpoint == null) bootstrap(budget, saved.accountId)
+    private fun reconcileReceipts(api: BudgetApi) {
+        // A receipt proves an earlier outcome; probing must never apply or cancel
+        // an unknown request, even if its account or generation has since changed.
+        for (op in saved.pending.filter { it.attempted }) {
+            try {
+                acknowledge(
+                    op,
+                    api.request(
+                        op.path,
+                        op.method,
+                        op.body,
+                        op.id,
+                        op.clock,
+                        op.epoch,
+                        receiptOnly = true,
+                    ),
+                )
+            } catch (failure: BudgetApiException) {
+                when {
+                    failure.status == 404 && failure.code == "operation_uncommitted" -> Unit
+                    failure.code == "deletion_superseded" ->
+                        change {
+                            it.pending.removeAll { pending -> pending.id == op.id }
+                            it.notice = "Deletion cancelled: a newer edit kept this expense."
+                        }
+                    else -> throw failure
+                }
+            }
+        }
+    }
+
+    private fun refreshBudget(api: BudgetApi, budget: String, includeView: Boolean = true) {
+        if (saved.checkpoint == null) bootstrap(budget, saved.accountId, includeView)
         else
             try {
-                refreshChanges(api, budget)
+                refreshChanges(api, budget, includeView)
             } catch (failure: BudgetApiException) {
                 if (failure.code == "cursor_invalid" && saved.pending.isEmpty())
-                    bootstrap(budget, saved.accountId)
+                    bootstrap(budget, saved.accountId, includeView)
                 else throw failure
             }
     }
@@ -620,7 +652,7 @@ class ApiExpenseService(
         throw IllegalStateException("The budget is changing. Retry account selection.")
     }
 
-    private fun bootstrap(budget: String, account: String?) {
+    private fun bootstrap(budget: String, account: String?, includeView: Boolean = true) {
         val api = client()
         repeat(3) {
             try {
@@ -639,7 +671,9 @@ class ApiExpenseService(
                 val selected = account?.takeIf { id ->
                     accounts.any { it.text("id") == id && availableAccount(it) }
                 }
-                val view = selected?.let { companion(api, budget, it, snapshot) }
+                val view =
+                    if (includeView) selected?.let { companion(api, budget, it, snapshot) }
+                    else null
                 change { next ->
                     require(
                         next.pending.isEmpty() || (next.epoch == epoch && next.budgetId == budget)
@@ -683,7 +717,7 @@ class ApiExpenseService(
         )
     }
 
-    private fun refreshChanges(api: BudgetApi, budget: String) {
+    private fun refreshChanges(api: BudgetApi, budget: String, includeView: Boolean = true) {
         repeat(3) {
             val start = saved.checkpoint!!
             var cursor = start
@@ -712,12 +746,17 @@ class ApiExpenseService(
                     else null
                 val view =
                     if (
-                        account != null &&
+                        includeView &&
+                            account != null &&
                             (changes.isNotEmpty() || !saved.recent.containsKey(account))
                     )
                         companion(api, budget, account, cursor)
                     else null
-                if (changes.isEmpty() && view == null) return
+                val clearSelection =
+                    saved.accountId != null &&
+                        account == null &&
+                        saved.pending.none { it.accountId == saved.accountId }
+                if (changes.isEmpty() && view == null && !clearSelection) return
                 change { next ->
                     changes.forEach { item ->
                         val id = item["id"].asString

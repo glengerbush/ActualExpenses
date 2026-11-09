@@ -10,6 +10,8 @@
     payees,
     categories,
     format,
+    schedules = [],
+    onmoreschedules,
     onchange,
   }: {
     action: RuleAction;
@@ -18,6 +20,8 @@
     payees: Reference[];
     categories: Reference[];
     format: AmountFormat;
+    schedules?: Reference[];
+    onmoreschedules?: () => Promise<void>;
     onchange: (a: RuleAction) => void;
   } = $props();
   const fields: Record<string, string> = {
@@ -35,6 +39,7 @@
     "prepend-notes": "Prepend notes",
     "append-notes": "Append notes",
     "delete-transaction": "Delete transaction",
+    "link-schedule": "Link schedule",
     "set-split-amount": "Allocate split",
   };
   let choices = $derived(
@@ -163,6 +168,21 @@
       >Text joins exactly as entered; include any spaces or punctuation.</span
     ></label
   >
+{:else if action.op === "link-schedule"}<label
+    >Linked schedule {index + 1}<select
+      value={String(action.value ?? "")}
+      onchange={(e) => onchange({ ...action, value: e.currentTarget.value })}
+      ><option value="">Choose schedule</option
+      >{#each schedules as schedule (schedule.id)}<option value={schedule.id}
+          >{schedule.name}</option
+        >{/each}{#if action.value && !schedules.some((s) => s.id === action.value)}<option
+          value={String(action.value)}
+          >Saved schedule ({String(action.value)})</option
+        >{/if}</select
+    ></label
+  >{#if onmoreschedules}<button onclick={onmoreschedules}
+      >Load more schedules</button
+    >{/if}
 {:else if action.op === "set-split-amount"}
   <label
     >Allocation method {index + 1}<select

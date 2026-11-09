@@ -53,6 +53,7 @@ export async function request<T>(
   cancelIfUncommitted = false,
   budgetEpoch?: string,
   historyOwner?: string,
+  receiptOnly = false,
 ): Promise<T> {
   const mutation = method !== "GET";
   let response: Response;
@@ -71,6 +72,7 @@ export async function request<T>(
         ...(historyOwner === undefined
           ? {}
           : { "X-Actual-History-Owner": historyOwner }),
+        ...(receiptOnly ? { "X-Actual-Receipt-Only": "true" } : {}),
         ...(cancelIfUncommitted
           ? { "X-Actual-Cancel-If-Uncommitted": "true" }
           : {}),

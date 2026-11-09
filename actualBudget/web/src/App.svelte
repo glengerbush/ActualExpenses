@@ -35,6 +35,12 @@
   import { readAccountDraft, sortedAccounts } from "./lib/account-actions";
   import BudgetPlan from "./lib/BudgetPlan.svelte";
   import Rules from "./lib/Rules.svelte";
+  import Schedules from "./lib/Schedules.svelte";
+  import { schedulesKey } from "./lib/schedules";
+  import {
+    foregroundSchedules,
+    readScheduleJob,
+  } from "./lib/schedule-foreground";
   import { rulesKey } from "./lib/rules";
   import { planningKey } from "./lib/planning";
   import Register from "./lib/Register.svelte";
@@ -61,6 +67,7 @@
   let loading = $state(true);
   let error = $state("");
   let recoveryError = $state("");
+  let scheduleError = $state("");
   let form = $state<
     | "references"
     | "organize"
@@ -68,6 +75,7 @@
     | "account"
     | "planning"
     | "rules"
+    | "schedules"
     | "settings"
     | "categories"
     | "import"
@@ -148,6 +156,7 @@
   async function openBudget(value: Budget, accountId?: string) {
     const generation = ++navigation;
     recoveryError = "";
+    scheduleError = "";
     budget = value;
     account = null;
     accounts = [];
@@ -175,6 +184,8 @@
         loading = false;
       }
       saveSelection(value.id, account?.id ?? accountId);
+      if (localStorage.getItem(schedulesKey(value.id)) !== null)
+        form = "schedules";
       if (localStorage.getItem(rulesKey(value.id)) !== null) form = "rules";
       if (localStorage.getItem(planningKey(value.id)) !== null)
         form = "planning";
@@ -208,6 +219,14 @@
             "This server uses an unsupported API version. Update the app and server together.",
           ),
         );
+      }
+      scheduleError = "";
+      try {
+        await foregroundSchedules(value.id);
+        const held = readScheduleJob(value.id);
+        if (held?.review) scheduleError = held.review;
+      } catch (e) {
+        scheduleError = errorMessage(e);
       }
       const fresh = await refreshBudget(value.id);
       if (generation !== navigation) return;
@@ -280,6 +299,7 @@
       | "account"
       | "planning"
       | "rules"
+      | "schedules"
       | "settings"
       | "categories"
       | "import"
@@ -407,6 +427,10 @@
         disabled={!!form || loading || !compatible}>Rules</button
       >
       <button
+        onclick={() => showForm("schedules")}
+        disabled={!!form || loading || !compatible}>Schedules</button
+      >
+      <button
         class={{ current: form === "settings" }}
         aria-current={form === "settings" ? "page" : undefined}
         onclick={() => showForm("settings")}
@@ -456,6 +480,12 @@
           void retry();
         }}>{t("Retry connection")}</button
       >{/if}
+    {#if scheduleError && budget && form !== "schedules"}<div role="status">
+        <p>Scheduled entries need attention: {scheduleError}</p>
+        <button onclick={() => showForm("schedules")}
+          >Review scheduled entries</button
+        >
+      </div>{/if}
     {#if recoveryError && !form}<p class="error" role="alert">
         {recoveryError}
       </p>{/if}
@@ -508,10 +538,20 @@
           }}
           onclose={() => showForm(null)}
         />{/key}
+    {:else if form === "schedules" && budget}{#key budget.id}<Schedules
+          budgetId={budget.id}
+          {disconnected}
+          onclose={() => showForm(null)}
+          onchanged={async () => {
+            scheduleError = "";
+            await refreshAccounts();
+          }}
+        />{/key}
     {:else if form === "rules" && budget}{#key budget.id}<Rules
           budgetId={budget.id}
           {disconnected}
           initialPayee={rulesPayee}
+          onschedules={() => showForm("schedules")}
           onclose={() => showForm(null)}
           onchanged={refreshAccounts}
         />{/key}
@@ -638,6 +678,7 @@
         budgetId={budget.id}
         onchanged={refreshAccounts}
         onorganize={() => showForm("organize")}
+        onschedules={() => showForm("schedules")}
       />
     {:else}
       <div class="page-heading">

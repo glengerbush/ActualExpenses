@@ -17,10 +17,12 @@
     groups,
     onchange,
     rules = false,
+    posting = false,
     amountFormat,
   }: {
     condition: Condition;
     rules?: boolean;
+    posting?: boolean;
     amountFormat?: AmountFormat;
     index: number;
     accounts: Reference[];
@@ -69,6 +71,18 @@
       ? condition.value
       : {},
   );
+  let patterns = $derived(
+    (Array.isArray(object.patterns) ? object.patterns : []) as {
+      type: string;
+      value: number;
+    }[],
+  );
+  function pattern(index: number, key: string, value: string | number) {
+    setObject(
+      "patterns",
+      patterns.map((p, i) => (i === index ? { ...p, [key]: value } : p)),
+    );
+  }
   function displayAmount(value: unknown) {
     return typeof value === "number"
       ? formatAmountInput(value, amountFormat)
@@ -251,6 +265,69 @@
           oninput={(e) => setObject("endDate", e.currentTarget.value)}
         /></label
       >{/if}
+    {#if posting}
+      <label class="inline"
+        ><input
+          type="checkbox"
+          checked={object.skipWeekend === true}
+          onchange={(e) =>
+            set({
+              ...object,
+              skipWeekend: e.currentTarget.checked,
+              weekendSolveMode: object.weekendSolveMode ?? "after",
+            })}
+        />Move weekend occurrences {index + 1}</label
+      >
+      {#if object.skipWeekend}<label
+          >Weekend posting {index + 1}<select
+            value={String(object.weekendSolveMode ?? "after")}
+            onchange={(e) =>
+              setObject("weekendSolveMode", e.currentTarget.value)}
+            ><option value="before">Previous weekday</option><option
+              value="after">Following weekday</option
+            ></select
+          ></label
+        >{/if}
+      {#if object.frequency === "monthly" || object.frequency === "yearly"}
+        <div class="patterns">
+          <p>
+            Specific days override the start day. Use −1 for the last day or
+            last weekday.
+          </p>
+          {#each patterns as p, position (position)}<label
+              >Day pattern {index + 1}.{position + 1}<select
+                value={p.type}
+                onchange={(e) =>
+                  pattern(position, "type", e.currentTarget.value)}
+                >{#each [["day", "Day of month"], ["MO", "Monday"], ["TU", "Tuesday"], ["WE", "Wednesday"], ["TH", "Thursday"], ["FR", "Friday"], ["SA", "Saturday"], ["SU", "Sunday"]] as [value, label] (value)}<option
+                    {value}>{label}</option
+                  >{/each}</select
+              ></label
+            ><label
+              >{p.type === "day" ? "Day number" : "Weekday occurrence"}
+              {index + 1}.{position + 1}<input
+                type="number"
+                min="-1"
+                max={p.type === "day" ? 31 : 5}
+                value={p.value}
+                oninput={(e) =>
+                  pattern(position, "value", Number(e.currentTarget.value))}
+              /></label
+            ><button
+              onclick={() =>
+                setObject(
+                  "patterns",
+                  patterns.filter((_, i) => i !== position),
+                )}>Remove day pattern {position + 1}</button
+            >{/each}
+          <button
+            onclick={() =>
+              setObject("patterns", [...patterns, { type: "day", value: 1 }])}
+            >Add specific day {index + 1}</button
+          >
+        </div>
+      {/if}
+    {/if}
     <p class="hint">
       {rules
         ? "Matches recurring calendar dates; weekend shifts affect posting only."
@@ -332,6 +409,27 @@
   >{/if}
 
 <style>
+  .inline {
+    min-height: 44px;
+  }
+  .inline input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    min-height: 1.25rem;
+    padding: 0;
+    flex: 0 0 1.25rem;
+  }
+
+  .inline {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .inline input {
+    width: auto;
+    flex: none;
+  }
+
   label {
     display: grid;
     gap: 0.25rem;

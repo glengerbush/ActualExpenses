@@ -32,16 +32,19 @@
   import RegisterCondition from "./RegisterCondition.svelte";
   import { defaultQuery } from "./register-query";
   import RuleAction from "./RuleAction.svelte";
+  import type { SchedulePage } from "./schedules";
   let {
     budgetId,
     disconnected,
     initialPayee = "",
+    onschedules,
     onclose,
     onchanged,
   }: {
     budgetId: string;
     disconnected: boolean;
     initialPayee?: string;
+    onschedules: () => void;
     onclose: () => void;
     onchanged: () => Promise<void>;
   } = $props();
@@ -52,6 +55,8 @@
     payees = $state.raw<Reference[]>([]),
     categories = $state.raw<Reference[]>([]),
     groups = $state.raw<Reference[]>([]);
+  let schedules = $state.raw<Reference[]>([]),
+    scheduleNext = $state<number | null>(null);
   let selectedRules = $state<string[]>([]),
     selected = $state<string[]>([]),
     payeeFilter = $state(""),
@@ -144,6 +149,29 @@
       error = errorMessage(e);
     }
   }
+  async function moreSchedules() {
+    if (scheduleNext === null || !view) return;
+    busy = true;
+    try {
+      const s = (
+        await request<{ data: SchedulePage }>(
+          `/budgets/${budgetId}/schedules?limit=100&offset=${scheduleNext}&snapshot=${view.snapshot}`,
+        )
+      ).data;
+      schedules = [
+        ...schedules,
+        ...s.schedules.map((row) => ({
+          id: row.id,
+          name: row.name ?? "Unnamed schedule",
+        })),
+      ];
+      scheduleNext = s.next_offset;
+    } catch (e) {
+      error = errorMessage(e);
+    } finally {
+      busy = false;
+    }
+  }
   async function refresh() {
     if (disconnected) {
       error =
@@ -154,19 +182,27 @@
     error = "";
     try {
       const loaded = await request<RulesView>(`/budgets/${budgetId}/rules`);
-      const [a, p, c, g] = await Promise.all([
+      const [a, p, c, g, s] = await Promise.all([
         request<{ data: Account[] }>(
           `/budgets/${budgetId}/accounts?snapshot=${loaded.snapshot}`,
         ),
         references(budgetId, "payees", { includeTransfers: true }),
         references(budgetId, "categories"),
         references(budgetId, "category-groups"),
+        request<{ data: SchedulePage }>(
+          `/budgets/${budgetId}/schedules?limit=100&snapshot=${loaded.snapshot}`,
+        ),
       ]);
       view = loaded;
       accounts = a.data;
       payees = p;
       categories = c;
       groups = g;
+      schedules = s.data.schedules.map((row) => ({
+        id: row.id,
+        name: row.name ?? "Unnamed schedule",
+      }));
+      scheduleNext = s.data.next_offset;
       observeVersions({ rules: loaded.edit_clock });
       preview = null;
       selected = [];
@@ -766,6 +802,10 @@
                 {accounts}
                 {payees}
                 {categories}
+                {schedules}
+                onmoreschedules={scheduleNext === null
+                  ? undefined
+                  : moreSchedules}
                 format={draft.format}
                 onchange={(a) =>
                   changeRule({
@@ -864,6 +904,11 @@
       <h2 id="saved-rules">
         {payeeFilter ? "Associated rules" : "Saved rules"} ({visible.length})
       </h2>
+      <p>
+        Rules attached to a recurring transaction are edited through its
+        schedule.
+      </p>
+      <button onclick={onschedules}>Manage scheduled rules</button>
       {#if visible.length}<ul class="rule-list">
           {#each visible as rule (rule.id)}<li data-rule-id={rule.id}>
               <label class="inline"

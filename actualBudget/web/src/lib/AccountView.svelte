@@ -1,17 +1,20 @@
 <script lang="ts">
   import type { Account } from "./api";
   import Register from "./Register.svelte";
+  import ScheduleUpcoming from "./ScheduleUpcoming.svelte";
   import { t } from "./i18n.svelte";
   let {
     account,
     budgetId,
     onchanged,
     onorganize,
+    onschedules,
   }: {
     account: Account;
     budgetId: string;
     onchanged: () => Promise<void>;
     onorganize: () => void;
+    onschedules: () => void;
   } = $props();
 </script>
 
@@ -35,4 +38,10 @@
     {budgetId}
     accountId={account.id}
     {onchanged}
+  />{/key}
+
+{#key budgetId + ":" + account.id + ":" + account.balance}<ScheduleUpcoming
+    {budgetId}
+    accountId={account.id}
+    onmanage={onschedules}
   />{/key}

@@ -93,3 +93,27 @@ pass (`/tmp/history-composed-*`). Existing bulk Impeccable finish review: ship;
 documenter found no changes, after five composed captures and two detail crops.
 Incumbent Operate design retained, no new shipping rasters. Root owns independent
 delta review and the stable-batch full suite/container qualification.
+
+## Review correction: harmless reconciliation restamps
+
+Independent review reproduced a P2 through HTTP: two same-owner split note
+replacements, undo B succeeded but undo A returned409 without any remote edit,
+lock or membership change. Exact raw-clock comparison confused structural
+restamps with new protection generations. The independent review supplies the
+valid red evidence; an initial local test attempt used an invalid spaced key and
+is not evidence of this product defect.
+
+Each new action now captures separate before/after protection generations. A
+verified inverse whose original reconciled flag was unchanged may restore that
+captured generation through a dedicated auxiliary lineage namespace. Actual
+lock/unlock inverses never emit this alias. Generic value lineage cannot authorize
+a newer lock. Graph guards and per-ID authorization remain intact; absent older
+generation evidence retains conservative refusal. No schema, receipt or public
+request shape changed.
+
+New public regression walks A/B undo/redo for both unlocked and continuously
+locked splits, preserving notes, totals, members and protection flags. Existing
+own-unlock→undo→earlier-action refusal and remote peer/relock refusal remain.
+Focused19 history +23 transfer cases pass
+(`/tmp/history-safe-generation-focused.log`); Clippy warnings-as-errors passes
+(`/tmp/history-safe-generation-clippy.log`). No broad suite repeated.

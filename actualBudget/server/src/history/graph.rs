@@ -1,11 +1,27 @@
 //! Exact history evidence for both sides of split/transfer relationship changes.
 use super::{Owner, journal};
 use crate::error::Error;
-use rusqlite::Connection;
+use rusqlite::{Connection, OptionalExtension, params};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 
+// This namespace exists only in auxiliary history_lineage, never field_versions.
+pub(super) const PROTECTION_GENERATION: &str = "$reconciled_generation";
+/// Only a verified inverse of an action that left the lock flag unchanged can
+/// alias its restamp to the captured generation. Actual lock/unlock inverses
+/// deliberately retain their new generation, even when they restore an old flag.
+pub(super) fn generation(
+    db: &Connection,
+    budget: &str,
+    owner: &Owner,
+    id: &str,
+    clock: &Value,
+) -> Result<String, Error> {
+    let clock = clock.as_str().unwrap_or(crate::concurrency::ZERO);
+    Ok(db.prepare_cached("SELECT h.lineage FROM history_lineage h JOIN budget_sync s ON s.budget_id=h.budget_id AND s.epoch=h.epoch WHERE h.budget_id=?1 AND h.owner=?2 AND h.entity='transactions' AND h.entity_id=?3 AND h.field=?4 AND h.clock=?5")?
+        .query_row(params![budget,owner.id,id,PROTECTION_GENERATION,clock],|r|r.get(0)).optional()?.unwrap_or_else(||clock.to_owned()))
+}
 pub(super) type Edges = BTreeMap<String, (Option<String>, Option<String>, bool)>;
 #[derive(Serialize, Deserialize)]
 pub(super) struct Guard {
@@ -71,8 +87,13 @@ pub(super) fn capture(
             Ok(Guard {
                 id: id.clone(),
                 row: journal::row(db, budget, "transactions", id)?,
-                protection: journal::versions(db, budget, "transactions", id, &[])?["reconciled"]
-                    .clone(),
+                protection: serde_json::json!(generation(
+                    db,
+                    budget,
+                    owner,
+                    id,
+                    &journal::versions(db, budget, "transactions", id, &[])?["reconciled"]
+                )?),
                 versions: journal::normalize(
                     db,
                     budget,
@@ -101,7 +122,11 @@ pub(super) fn verify(
     }
     for guard in guards {
         let versions = journal::versions(db, budget, "transactions", &guard.id, &[])?;
-        if versions["reconciled"] != guard.protection
+        if generation(db, budget, owner, &guard.id, &versions["reconciled"])?
+            != guard
+                .protection
+                .as_str()
+                .unwrap_or(crate::concurrency::ZERO)
             || journal::row(db, budget, "transactions", &guard.id)? != guard.row
             || versions
                 .as_object()

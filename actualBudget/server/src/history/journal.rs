@@ -30,6 +30,10 @@ pub struct Change {
     before_versions: Value,
     after_versions: Value,
     members: Option<Vec<String>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    before_protection: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    after_protection: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     graph: Vec<graph::Guard>,
 }
@@ -198,22 +202,17 @@ pub fn record(
         ))
     })? {
         let (table, id, before, before_versions) = item?;
-        let before_versions = normalize(
-            db,
-            budget,
-            owner,
-            &table,
-            &id,
-            serde_json::from_str(&before_versions).map_err(Error::internal)?,
-        )?;
-        let after_versions = normalize(
-            db,
-            budget,
-            owner,
-            &table,
-            &id,
-            versions(db, budget, &table, &id, &[])?,
-        )?;
+        let before_versions: Value =
+            serde_json::from_str(&before_versions).map_err(Error::internal)?;
+        let after_versions = versions(db, budget, &table, &id, &[])?;
+        let before_protection = (table == "transactions")
+            .then(|| graph::generation(db, budget, owner, &id, &before_versions["reconciled"]))
+            .transpose()?;
+        let after_protection = (table == "transactions")
+            .then(|| graph::generation(db, budget, owner, &id, &after_versions["reconciled"]))
+            .transpose()?;
+        let before_versions = normalize(db, budget, owner, &table, &id, before_versions)?;
+        let after_versions = normalize(db, budget, owner, &table, &id, after_versions)?;
         let before = before
             .map(|v| serde_json::from_str::<Value>(&v))
             .transpose()
@@ -255,6 +254,8 @@ pub fn record(
             before_versions,
             after_versions,
             members: None,
+            before_protection,
+            after_protection,
             graph: vec![],
         };
         capture_guard(db, budget, owner, &mut change)?;
@@ -489,6 +490,33 @@ pub fn apply(
         };
         for field in stamp_fields {
             sync::seed_field_version(db, budget, &c.table, &c.id, &field, clock)?;
+            if c.table == "transactions"
+                && field == "reconciled"
+                && c.before["reconciled"] == c.after["reconciled"]
+            {
+                // A structural inverse may restamp every field without locking
+                // anything. Restore only its captured protection generation;
+                // never use generic value lineage for real unlock/lock actions.
+                let generation = if redo {
+                    c.after_protection.as_ref()
+                } else {
+                    c.before_protection.as_ref()
+                };
+                if let Some(generation) = generation {
+                    db.prepare_cached(
+                        "INSERT INTO history_lineage VALUES(?1,?2,?3,'transactions',?4,?5,?6,?7)",
+                    )?
+                    .execute(params![
+                        budget,
+                        owner.id,
+                        epoch,
+                        c.id,
+                        graph::PROTECTION_GENERATION,
+                        clock,
+                        generation
+                    ])?;
+                }
+            }
             let lineage = target_versions[&field].as_str().unwrap_or(sync::ZERO);
             db.prepare_cached("INSERT INTO history_lineage VALUES(?1,?2,?3,?4,?5,?6,?7,?8)")?
                 .execute(params![

@@ -1298,3 +1298,62 @@ fn selecting_both_transfer_legs_matches_pinned_bulk_duplicate_and_delete() {
     assert_eq!(r.status(), 200, "{}", r.text().unwrap());
     assert_eq!(state(), oracle["duplicated"]);
 }
+
+#[test]
+fn sequential_split_history_walks_unchanged_lock_generations_without_remote_changes() {
+    for locked in [false, true] {
+        let s = Server::setup();
+        let root = format!("/api/v1/budgets/{BUDGET}");
+        assert_eq!(s.post(&format!("{root}/transactions"),"parent",json!({"id":ENTRY,"account_id":ACCOUNT,"amount":-500,"date":"2026-01-02","cleared":true})).status(),201);
+        let path = format!("{root}/transactions/{ENTRY}/splits");
+        let first = "13000000-0000-4000-8000-000000000020";
+        let second = "13000000-0000-4000-8000-000000000021";
+        let view = s.get(&path).json::<Value>().unwrap();
+        assert_eq!(s.post(&path,"split",json!({"snapshot":view["snapshot"],"children":[{"id":first,"amount":-200},{"id":second,"amount":-300}]})).status(),200);
+        if locked {
+            let reconcile = format!("{root}/accounts/{ACCOUNT}/reconciliation");
+            let view = s.get(&reconcile).json::<Value>().unwrap();
+            assert_eq!(s.post(&reconcile,"lock",json!({"action":"lock","snapshot":view["data"]["snapshot"],"statement_balance":-500,"date":"2026-01-31"})).status(),200);
+        }
+        for note in ["First edit", "Second edit"] {
+            let view = s.get(&path).json::<Value>().unwrap();
+            let mut body = json!({"snapshot":view["snapshot"],"changes":{"upsert":[{"id":first,"amount":-200,"notes":note}]}});
+            if locked {
+                body["confirm_reconciled"] = json!(true);
+                body["reconciliation_token"] = view["reconciliation_token"].clone();
+            }
+            let r = s.owned(
+                "POST",
+                &path,
+                if note == "First edit" {
+                    "first-edit"
+                } else {
+                    "second-edit"
+                },
+                body,
+            );
+            assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+        }
+        for (direction, key, note) in [
+            ("undo", "undo-second", "First edit"),
+            ("undo", "undo-first", ""),
+            ("redo", "redo-first", "First edit"),
+            ("redo", "redo-second", "Second edit"),
+        ] {
+            let r = s.step(direction, key);
+            assert_eq!(r.status(), 200, "locked={locked}: {}", r.text().unwrap());
+            let row = s.get(&path).json::<Value>().unwrap();
+            assert_eq!(row["data"]["children"][0]["notes"], note);
+            assert_eq!(row["data"]["amount"], -500);
+            assert_eq!(row["data"]["children"].as_array().unwrap().len(), 2);
+            assert_eq!(row["data"]["reconciled"], locked);
+            assert!(
+                row["data"]["children"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .all(|c| c["reconciled"] == locked)
+            );
+        }
+    }
+}

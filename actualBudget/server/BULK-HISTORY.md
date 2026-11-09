@@ -37,8 +37,11 @@ Browser bulk/history is online-only. The original request, formatting/date conte
 Schema15 follows reconciliation12, transfer13 and locations14. Reconciliation,
 unlock and transfer routes join `write_owned`; complete connected before/after
 split/reciprocal-transfer membership and exact field versions guard each inverse.
-Raw reconciliation generations remain separate from lineage normalization; a
-newer lock cannot acquire authorization from an older action. Only captured IDs
+Protection generations remain separate from generic value lineage. A verified
+inverse that did not change its original reconciled flag may alias its harmless
+restamp to the captured generation, allowing sequential structural undo/redo.
+Actual lock/unlock inverses never receive that alias; a newer lock cannot acquire
+authorization from an older action. Only captured IDs
 may touch protected rows. Inverse completion validates transfer reciprocity and
 split totals. Sparse `Change.changes` preserves existing transfer identities.
 

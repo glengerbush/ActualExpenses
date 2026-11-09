@@ -175,7 +175,9 @@
       notes: f.notes,
       payee_id: f.payee === "new" ? null : f.payee || null,
       category_id:
-        selectedAccount?.off_budget || f.category === "new"
+        (selectedAccount?.off_budget &&
+          f.account_id !== draft.original?.account_id) ||
+        f.category === "new"
           ? null
           : f.category || null,
     };

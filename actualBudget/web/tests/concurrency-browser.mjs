@@ -475,6 +475,81 @@ try {
     expect(rows.filter((row) => row.id === sent[0].body.id)).toHaveLength(1);
     await recoveryContext.close();
   }
+  // Editing unrelated fields must not erase a latent off-budget category.
+  const off = randomUUID(),
+    category = randomUUID(),
+    latent = randomUUID();
+  await write(`/budgets/${budget}/accounts`, {
+    id: off,
+    name: "Off budget",
+    off_budget: true,
+    opening_balance: 0,
+    opening_date: "2026-01-01",
+  });
+  await write(`/budgets/${budget}/categories`, {
+    id: category,
+    name: "Food",
+    is_income: false,
+  });
+  await write(
+    `/budgets/${budget}/transactions`,
+    {
+      id: latent,
+      account_id: account,
+      category_id: category,
+      amount: -100,
+      date: "2026-01-01",
+    },
+    "2026-01-01T00:00:00.000Z-0000-0000000000000001",
+  );
+  const latentPath = `/api/v1/budgets/${budget}/transactions/${latent}`;
+  expect(
+    (
+      await fetch(native + latentPath, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": randomUUID(),
+          "X-Actual-Edit-Clock":
+            "2026-01-02T00:00:00.000Z-0000-0000000000000001",
+        },
+        body: JSON.stringify({ account_id: off }),
+      })
+    ).status,
+  ).toBe(200);
+  const latentContext = await browser.newContext();
+  const latentPage = await latentContext.newPage();
+  await latentPage.goto(server.url);
+  await latentPage.evaluate(
+    ({ budget, off }) =>
+      localStorage.setItem(
+        "actualBudget.selection",
+        JSON.stringify({ budgetId: budget, accountId: off }),
+      ),
+    { budget, off },
+  );
+  await latentPage.reload();
+  await latentPage.getByRole("button", { name: /^Edit / }).click();
+  await latentPage
+    .getByLabel("Notes", { exact: true })
+    .fill("Only notes changed");
+  const sentPatch = latentPage.waitForRequest(
+    (request) =>
+      request.method() === "PATCH" && request.url().endsWith(latentPath),
+  );
+  await latentPage
+    .getByRole("button", { name: "Save transaction", exact: true })
+    .click();
+  expect((await sentPatch).postDataJSON()).toEqual({
+    notes: "Only notes changed",
+  });
+  await expect(latentPage.locator(".register-table")).toContainText(
+    "Only notes changed",
+  );
+  expect(
+    (await (await fetch(native + latentPath)).json()).data.category_id,
+  ).toBe(category);
+  await latentContext.close();
   console.log(
     "PASS two-client field merge, stable queued retry/delete conflict, cursor-only unchanged refresh, hidden tombstone edits and explicit clock-skew recovery",
   );

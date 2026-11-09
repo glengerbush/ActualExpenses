@@ -1,6 +1,7 @@
 //! Backend schedule authority. Explicit commands own all durable effects.
 mod calendar;
 mod commands;
+mod conversion;
 mod data;
 mod discovery;
 mod import;
@@ -27,6 +28,10 @@ pub fn router() -> Router<Store> {
         .route("/api/v1/schedules/preview-dates", post(preview_dates))
         .route("/api/v1/budgets/{budget}/schedules", get(list))
         .route("/api/v1/budgets/{budget}/schedules/due", get(due))
+        .route(
+            "/api/v1/budgets/{budget}/schedules/convert-preview",
+            post(conversion::preview),
+        )
         .route(
             "/api/v1/budgets/{budget}/schedules/discovery",
             get(discovery::read),
@@ -127,7 +132,7 @@ async fn command(
     let cancel = sync::cancel_header(&headers)?;
     let lookup = sync::receipt_only_header(&headers)?;
     let payload = body.to_string();
-    let status = if body["action"] == "create" {
+    let status = if matches!(body["action"].as_str(), Some("create" | "convert")) {
         StatusCode::CREATED
     } else {
         StatusCode::OK

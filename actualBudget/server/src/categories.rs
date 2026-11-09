@@ -728,3 +728,24 @@ pub fn enrich_legacy_imports(db: &Connection, only_budget: Option<&str>) -> Resu
     }
     Ok(())
 }
+
+/// Inline conversion references retain the captured command clock.
+pub(crate) fn create_inline_at(
+    db: &Connection,
+    budget: &str,
+    input: &Value,
+    clock: &str,
+) -> Result<Value, Error> {
+    execute(
+        db,
+        budget,
+        "categories",
+        None,
+        Intent {
+            method: Method::POST,
+            input,
+            epoch: None,
+            proposed: Some(clock),
+        },
+    )
+}

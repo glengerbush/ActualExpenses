@@ -6,6 +6,8 @@ pub struct Command {
     pub action: String,
     pub transfer_account_id: Option<String>,
     pub transaction_ids: Option<Vec<String>>,
+    pub transaction_id: Option<String>,
+    pub transaction: Option<Value>,
     pub id: Option<String>,
     pub snapshot: Option<String>,
     pub name: Option<String>,
@@ -127,6 +129,7 @@ pub fn apply(
             }
             return Ok(saved);
         }
+        "convert" => return super::conversion::apply(db, b, &c, clock, epoch),
         "catch-up" => return catch_up(db, b, clock, epoch, c.through.as_deref()),
         "settings" => {
             let value = required(&c.upcoming_length, "upcoming_length")?;

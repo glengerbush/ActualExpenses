@@ -1662,3 +1662,202 @@ fn reassignment_releases_original_auto_claim_and_matches_all_four_pinned_financi
         );
     }
 }
+
+#[test]
+fn future_draft_conversion_preview_is_read_only_and_final_reservation_keeps_original_clocks() {
+    let s = Server::start();
+    setup(&s);
+    let root = format!("/api/v1/budgets/{B}");
+    let original = "21220000-0000-4000-8000-000000000190";
+    let payee = "21220000-0000-4000-8000-000000000191";
+    let category = "21220000-0000-4000-8000-000000000192";
+    let today = s
+        .get(&format!("{root}/schedules/due"))
+        .json::<Value>()
+        .unwrap()["data"]["today"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let future = (chrono::NaiveDate::parse_from_str(&today, "%Y-%m-%d").unwrap()
+        + chrono::TimeDelta::days(8))
+    .to_string();
+    let draft = json!({"id":original,"account_id":A,"amount":-321,"date":future,"notes":"Original future draft","new_payee":{"id":payee,"name":"Future payee"},"new_category":{"id":category,"name":"Future category","is_income":false}});
+    let cp = checkpoint(&s);
+    let preview = s.post(
+        &format!("{root}/schedules/convert-preview"),
+        "preview-inline-draft",
+        json!({"snapshot":cp["snapshot"],"transaction":draft}),
+    );
+    assert_eq!(preview.status(), 200, "{}", preview.text().unwrap());
+    assert_eq!(checkpoint(&s), cp);
+    assert_eq!(s.get(&format!("{root}/payees/{payee}")).status(), 404);
+    assert_eq!(
+        s.get(&format!("{root}/categories/{category}")).status(),
+        404
+    );
+    let clock = format!(
+        "{}-0000-2122000000000190",
+        chrono::DateTime::<chrono::Utc>::from_timestamp_millis(
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_millis() as i64
+                + 1000
+        )
+        .unwrap()
+        .to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
+    );
+    let body = json!({"action":"convert","id":S,"transaction":draft,"snapshot":cp["snapshot"]});
+    let send = || {
+        s.client
+            .post(format!("{}{root}/schedules/commands", s.url))
+            .header("Idempotency-Key", "convert-original-draft")
+            .header("X-Actual-Edit-Clock", &clock)
+            .header("X-Actual-Budget-Epoch", cp["epoch"].as_str().unwrap())
+            .json(&body)
+            .send()
+            .unwrap()
+    };
+    let response = send();
+    assert_eq!(response.status(), 201, "{}", response.text().unwrap());
+    let receipt: Value = response.json().unwrap();
+    assert_eq!(receipt["edit_clock"], clock);
+    for (path, field) in [
+        (format!("{root}/payees/{payee}"), "name"),
+        (format!("{root}/categories/{category}"), "name"),
+    ] {
+        let row: Value = s.get(&path).json().unwrap();
+        assert_eq!(row["data"]["field_versions"][field], clock);
+    }
+    let changes: Value = s
+        .get(&format!(
+            "{root}/changes?cursor={}",
+            cp["snapshot"].as_str().unwrap()
+        ))
+        .json()
+        .unwrap();
+    let reserved = changes["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|event| event["entity"] == "transactions" && event["id"] == original)
+        .collect::<Vec<_>>();
+    assert_eq!(reserved.len(), 1);
+    assert_eq!(reserved[0]["data"]["deleted"], true);
+    for value in reserved[0]["data"]["field_versions"]
+        .as_object()
+        .unwrap()
+        .values()
+    {
+        assert_eq!(value, &json!(clock));
+    }
+    let ledger: Value = s.get(&format!("{root}/transactions")).json().unwrap();
+    assert!(ledger["data"].as_array().unwrap().is_empty());
+    assert_eq!(ledger["balances"]["total"], 0);
+    let point = checkpoint(&s);
+    assert_eq!(send().json::<Value>().unwrap(), receipt);
+    assert_eq!(checkpoint(&s), point);
+    let late=s.post(&format!("{root}/transactions"),"old-tab-original-save",json!({"id":original,"account_id":A,"amount":-321,"date":future,"notes":"Original future draft","payee_id":payee,"category_id":category}));
+    assert_eq!(late.status(), 409);
+    assert_eq!(
+        s.get(&format!("{root}/transactions"))
+            .json::<Value>()
+            .unwrap(),
+        ledger
+    );
+}
+
+#[test]
+fn conversion_history_restores_original_then_refuses_undo_after_new_scheduled_payment() {
+    let s = Server::start();
+    setup(&s);
+    let root = format!("/api/v1/budgets/{B}");
+    let original = "21220000-0000-4000-8000-000000000189";
+    let owner = "21220000-0000-4000-8000-000000000188";
+    let today = s
+        .get(&format!("{root}/schedules/due"))
+        .json::<Value>()
+        .unwrap()["data"]["today"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let future = (chrono::NaiveDate::parse_from_str(&today, "%Y-%m-%d").unwrap()
+        + chrono::TimeDelta::days(8))
+    .to_string();
+    assert_eq!(s.post(&format!("{root}/transactions"),"future-original",json!({"id":original,"account_id":A,"amount":-100,"date":future,"cleared":true,"notes":"Original purchase"})).status(),201);
+    let cp = checkpoint(&s);
+    let epoch = cp["epoch"].as_str().unwrap();
+    let body =
+        json!({"action":"convert","id":S,"transaction_id":original,"snapshot":cp["snapshot"]});
+    let send = || {
+        s.client
+            .post(format!("{}{root}/schedules/commands", s.url))
+            .header("Idempotency-Key", "owned-conversion")
+            .header("X-Actual-History-Owner", owner)
+            .header("X-Actual-Budget-Epoch", epoch)
+            .json(&body)
+            .send()
+            .unwrap()
+    };
+    let response = send();
+    assert_eq!(response.status(), 201, "{}", response.text().unwrap());
+    let receipt: Value = response.json().unwrap();
+    let inverse = |action: &str, key: &str| {
+        let history: Value = s
+            .client
+            .get(format!("{}{root}/history", s.url))
+            .header("X-Actual-History-Owner", owner)
+            .header("X-Actual-Budget-Epoch", epoch)
+            .send()
+            .unwrap()
+            .json()
+            .unwrap();
+        s.client
+            .post(format!("{}{root}/history/{action}", s.url))
+            .header("Idempotency-Key", key)
+            .header("X-Actual-History-Owner", owner)
+            .header("X-Actual-Budget-Epoch", epoch)
+            .json(&json!({"action_id":history["data"][action]["id"]}))
+            .send()
+            .unwrap()
+    };
+    let response = inverse("undo", "undo-convert");
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let restored: Value = s.get(&format!("{root}/transactions")).json().unwrap();
+    assert_eq!(restored["data"].as_array().unwrap().len(), 1);
+    assert_eq!(restored["data"][0]["id"], original);
+    assert_eq!(restored["data"][0]["cleared"], true);
+    assert_eq!(restored["data"][0]["notes"], "Original purchase");
+    let response = inverse("redo", "redo-convert");
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    assert!(
+        s.get(&format!("{root}/transactions"))
+            .json::<Value>()
+            .unwrap()["data"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    let response = command(
+        &s,
+        "new-scheduled-payment",
+        json!({"action":"post","id":S,"occurrence_date":future}),
+    );
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let before: Value = s.get(&format!("{root}/transactions")).json().unwrap();
+    assert_eq!(before["data"].as_array().unwrap().len(), 1);
+    assert_ne!(before["data"][0]["id"], original);
+    assert_eq!(send().json::<Value>().unwrap(), receipt);
+    let response = inverse("undo", "refuse-new-payment");
+    assert_eq!(
+        response.status(),
+        409,
+        "Undo conversion must not restore an old purchase beside its new scheduled payment"
+    );
+    assert_eq!(
+        s.get(&format!("{root}/transactions"))
+            .json::<Value>()
+            .unwrap(),
+        before
+    );
+}

@@ -19,7 +19,7 @@ pub fn validate(rule: &Rule) -> Result<(), Error> {
         return Err(Error::new(
             axum::http::StatusCode::UNPROCESSABLE_ENTITY,
             "rule_requirements",
-            "This rule retains template/formula42 or schedule21 actions that need their execution capability",
+            "This rule retains template or formula actions that need expression evaluation support",
         ));
     }
     for a in &rule.actions {

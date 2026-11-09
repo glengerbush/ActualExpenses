@@ -432,6 +432,36 @@ pub fn apply(
             return Err(conflict());
         }
     }
+    // Undoing creation must not restore a converted purchase alongside a newer
+    // scheduled payment. Explicit schedule deletion remains a separate action
+    // that deliberately retains its historical links.
+    if !redo {
+        let targets = changes
+            .iter()
+            .map(|c| ((c.table.as_str(), c.id.as_str()), &c.before))
+            .collect::<std::collections::BTreeMap<_, _>>();
+        for created in changes
+            .iter()
+            .filter(|c| c.table == "schedules" && c.before.is_null())
+        {
+            for table in ["schedule_links", "schedule_occurrences"] {
+                let mut query = db.prepare(&format!(
+                    "SELECT id FROM {table} WHERE budget_id=?1 AND schedule_id=?2 AND tombstone=0"
+                ))?;
+                for id in query.query_map(params![budget, created.id], |r| r.get::<_, String>(0))? {
+                    let id = id?;
+                    let removed = targets.get(&(table, id.as_str())).is_some_and(|target| {
+                        target.is_null()
+                            || target["tombstone"] == 1
+                            || target["schedule_id"] != created.id
+                    });
+                    if !removed {
+                        return Err(conflict());
+                    }
+                }
+            }
+        }
+    }
     let epoch = crate::lifecycle::epoch(db, budget)?;
     let mut accounts = BTreeSet::new();
     for c in &changes {
@@ -642,6 +672,8 @@ pub(super) fn normalize(
 fn label_for(scope: &str) -> &'static str {
     if scope.contains("/transactions/") && scope.ends_with("/bulk") {
         "Bulk transaction change"
+    } else if scope.contains("/schedules/") {
+        "Edit schedules"
     } else if scope.ends_with("/reconciliation") || scope.ends_with("/unlock") {
         "Reconcile account"
     } else if scope.contains("/transfers") {

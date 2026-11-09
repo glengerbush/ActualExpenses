@@ -1,0 +1,6371 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "matching": [
+    {
+      "name": "exact money exact date",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "PAYEE"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": -10000
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "matched_ids": [
+        "exact",
+        "reconciled",
+        "split"
+      ]
+    },
+    {
+      "name": "approx money and date boundaries",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "PAYEE"
+        },
+        {
+          "field": "amount",
+          "op": "isapprox",
+          "value": -10000
+        },
+        {
+          "field": "date",
+          "op": "isapprox",
+          "value": "2026-11-09"
+        }
+      ],
+      "matched_ids": [
+        "amount-high-edge",
+        "amount-low-edge",
+        "date-high-edge",
+        "date-low-edge",
+        "exact",
+        "reconciled",
+        "split"
+      ]
+    },
+    {
+      "name": "inclusive range",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "PAYEE"
+        },
+        {
+          "field": "amount",
+          "op": "isbetween",
+          "value": {
+            "num1": -10750,
+            "num2": -9250
+          }
+        },
+        {
+          "field": "date",
+          "op": "isapprox",
+          "value": "2026-11-09"
+        }
+      ],
+      "matched_ids": [
+        "amount-high-edge",
+        "amount-low-edge",
+        "date-high-edge",
+        "date-low-edge",
+        "exact",
+        "reconciled",
+        "split"
+      ]
+    },
+    {
+      "name": "reversed range",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "PAYEE"
+        },
+        {
+          "field": "amount",
+          "op": "isbetween",
+          "value": {
+            "num1": -9250,
+            "num2": -10750
+          }
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "matched_ids": [
+        "amount-high-edge",
+        "amount-low-edge",
+        "exact",
+        "reconciled",
+        "split"
+      ]
+    },
+    {
+      "name": "weekly approximate date",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "PAYEE"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": -10000
+        },
+        {
+          "field": "date",
+          "op": "isapprox",
+          "value": {
+            "start": "2026-11-02",
+            "frequency": "weekly",
+            "endMode": "never"
+          }
+        }
+      ],
+      "matched_ids": [
+        "date-high-edge",
+        "date-low-edge",
+        "exact",
+        "older-recurrence",
+        "reconciled",
+        "split"
+      ]
+    },
+    {
+      "name": "positive amounts",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "PAYEE"
+        },
+        {
+          "field": "amount",
+          "op": "isapprox",
+          "value": 10000
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "matched_ids": [
+        "income"
+      ]
+    },
+    {
+      "name": "zero amount",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "PAYEE"
+        },
+        {
+          "field": "amount",
+          "op": "isapprox",
+          "value": 0
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "matched_ids": [
+        "zero"
+      ]
+    },
+    {
+      "name": "parent and outgoing transfer",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": -10000
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "matched_ids": [
+        "exact",
+        "reconciled",
+        "split",
+        "transfer",
+        "wrong-payee"
+      ]
+    },
+    {
+      "name": "ordinary split child",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": -6000
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "matched_ids": [
+        "split-child"
+      ]
+    },
+    {
+      "name": "transfer split child",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": -4000
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "matched_ids": [
+        "split-transfer"
+      ]
+    },
+    {
+      "name": "reciprocal transfer leg",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "PEER"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": 10000
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "matched_ids": [
+        "generated-2"
+      ]
+    },
+    {
+      "name": "reciprocal split transfer leg",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "PEER"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": 4000
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "matched_ids": [
+        "generated-1"
+      ]
+    }
+  ],
+  "lifecycle": [
+    {
+      "name": "link then unlink before auto-post",
+      "linked_id": "ORIGINAL",
+      "snapshots": [
+        {
+          "step": "created",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "linked",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "service while linked",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "unlinked",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "service after unlink",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        },
+        {
+          "step": "repeat service",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "auto-post then link and unlink",
+      "linked_id": "ORIGINAL",
+      "snapshots": [
+        {
+          "step": "created",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "posted first",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        },
+        {
+          "step": "linked",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        },
+        {
+          "step": "service while linked",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        },
+        {
+          "step": "unlinked",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        },
+        {
+          "step": "service after unlink",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        },
+        {
+          "step": "repeat service",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "unlink the sole auto-posted row",
+      "linked_id": "generated-1",
+      "snapshots": [
+        {
+          "step": "created",
+          "rows": [],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "posted first",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "linked",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "service while linked",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "unlinked",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "service after unlink",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "generated-2",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        },
+        {
+          "step": "repeat service",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "generated-2",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "link transfer outgoing",
+      "linked_id": "ORIGINAL",
+      "snapshots": [
+        {
+          "step": "created",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 100,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "ORIGINAL",
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            100
+          ]
+        },
+        {
+          "step": "linked",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-1",
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 100,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "ORIGINAL",
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            100
+          ]
+        },
+        {
+          "step": "service while linked",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-1",
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 100,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "ORIGINAL",
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            100
+          ]
+        },
+        {
+          "step": "unlinked",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 100,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "ORIGINAL",
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            100
+          ]
+        },
+        {
+          "step": "service after unlink",
+          "rows": [
+            {
+              "id": "generated-2",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 100,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "ORIGINAL",
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            100
+          ]
+        },
+        {
+          "step": "repeat service",
+          "rows": [
+            {
+              "id": "generated-2",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 100,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "ORIGINAL",
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            100
+          ]
+        }
+      ]
+    },
+    {
+      "name": "link transfer incoming",
+      "linked_id": "generated-1",
+      "snapshots": [
+        {
+          "step": "created",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 100,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "ORIGINAL",
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            100
+          ]
+        },
+        {
+          "step": "linked",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-1",
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 100,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "ORIGINAL",
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            100
+          ]
+        },
+        {
+          "step": "service while linked",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-1",
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 100,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "ORIGINAL",
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            100
+          ]
+        },
+        {
+          "step": "unlinked",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 100,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "ORIGINAL",
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            100
+          ]
+        },
+        {
+          "step": "service after unlink",
+          "rows": [
+            {
+              "id": "generated-2",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 100,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "ORIGINAL",
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            100
+          ]
+        },
+        {
+          "step": "repeat service",
+          "rows": [
+            {
+              "id": "generated-2",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 100,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "ORIGINAL",
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            100
+          ]
+        }
+      ]
+    },
+    {
+      "name": "link split parent",
+      "linked_id": "ORIGINAL",
+      "snapshots": [
+        {
+          "step": "created",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "CHILD",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -40,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "REMAINDER",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -60,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "linked",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "CHILD",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -40,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "REMAINDER",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -60,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "service while linked",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "CHILD",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -40,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "REMAINDER",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -60,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "unlinked",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "CHILD",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -40,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "REMAINDER",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -60,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            0
+          ]
+        },
+        {
+          "step": "service after unlink",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "CHILD",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -40,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "REMAINDER",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -60,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        },
+        {
+          "step": "repeat service",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "CHILD",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -40,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "REMAINDER",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -60,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "link split transfer child",
+      "linked_id": "CHILD",
+      "snapshots": [
+        {
+          "step": "created",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "CHILD",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -40,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "REMAINDER",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -60,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 40,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "CHILD",
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            40
+          ]
+        },
+        {
+          "step": "linked",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "CHILD",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -40,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": "generated-1",
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "REMAINDER",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -60,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 40,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "CHILD",
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            40
+          ]
+        },
+        {
+          "step": "service while linked",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "CHILD",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -40,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": "generated-1",
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "REMAINDER",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -60,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 40,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "CHILD",
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            40
+          ]
+        },
+        {
+          "step": "unlinked",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "CHILD",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -40,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "REMAINDER",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -60,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 40,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "CHILD",
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -100,
+            40
+          ]
+        },
+        {
+          "step": "service after unlink",
+          "rows": [
+            {
+              "id": "generated-2",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "CHILD",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -40,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "REMAINDER",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -60,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 40,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "CHILD",
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            40
+          ]
+        },
+        {
+          "step": "repeat service",
+          "rows": [
+            {
+              "id": "generated-2",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -100,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Original purchase",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "CHILD",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -40,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "REMAINDER",
+              "account": "ACCOUNT",
+              "date": "2026-11-09",
+              "amount": -60,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-09",
+              "amount": 40,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "CHILD",
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-09",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -200,
+            40
+          ]
+        }
+      ]
+    }
+  ],
+  "discovery": [
+    {
+      "name": "weekly exact",
+      "seed": {
+        "step": "history",
+        "rows": [
+          {
+            "id": "HISTORY0",
+            "account": "ACCOUNT",
+            "date": "2026-10-19",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History0",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY1",
+            "account": "ACCOUNT",
+            "date": "2026-10-26",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History1",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY2",
+            "account": "ACCOUNT",
+            "date": "2026-11-02",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History2",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          }
+        ],
+        "schedules": [],
+        "balances": [
+          -30000,
+          0
+        ]
+      },
+      "suggestions": [
+        {
+          "account": "ACCOUNT",
+          "payee": "PAYEE",
+          "date": {
+            "frequency": "weekly",
+            "start": "2026-10-18"
+          },
+          "amount": -10000,
+          "_conditions": [
+            {
+              "op": "is",
+              "field": "account",
+              "value": "ACCOUNT"
+            },
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "PAYEE"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": {
+                "frequency": "weekly",
+                "start": "2026-10-18"
+              }
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -10000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "weekly four entries",
+      "seed": {
+        "step": "history",
+        "rows": [
+          {
+            "id": "HISTORY0",
+            "account": "ACCOUNT",
+            "date": "2026-10-12",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History0",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY1",
+            "account": "ACCOUNT",
+            "date": "2026-10-19",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History1",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY2",
+            "account": "ACCOUNT",
+            "date": "2026-10-26",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History2",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY3",
+            "account": "ACCOUNT",
+            "date": "2026-11-02",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History3",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          }
+        ],
+        "schedules": [],
+        "balances": [
+          -40000,
+          0
+        ]
+      },
+      "suggestions": [
+        {
+          "account": "ACCOUNT",
+          "payee": "PAYEE",
+          "date": {
+            "frequency": "weekly",
+            "start": "2026-10-12"
+          },
+          "amount": -10000,
+          "_conditions": [
+            {
+              "op": "is",
+              "field": "account",
+              "value": "ACCOUNT"
+            },
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "PAYEE"
+            },
+            {
+              "op": "is",
+              "field": "date",
+              "value": {
+                "frequency": "weekly",
+                "start": "2026-10-12"
+              }
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -10000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "biweekly exact",
+      "seed": {
+        "step": "history",
+        "rows": [
+          {
+            "id": "HISTORY0",
+            "account": "ACCOUNT",
+            "date": "2026-09-28",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History0",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY1",
+            "account": "ACCOUNT",
+            "date": "2026-10-12",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History1",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY2",
+            "account": "ACCOUNT",
+            "date": "2026-10-26",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History2",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          }
+        ],
+        "schedules": [],
+        "balances": [
+          -30000,
+          0
+        ]
+      },
+      "suggestions": []
+    },
+    {
+      "name": "biweekly four entries",
+      "seed": {
+        "step": "history",
+        "rows": [
+          {
+            "id": "HISTORY0",
+            "account": "ACCOUNT",
+            "date": "2026-09-14",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History0",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY1",
+            "account": "ACCOUNT",
+            "date": "2026-09-28",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History1",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY2",
+            "account": "ACCOUNT",
+            "date": "2026-10-12",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History2",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY3",
+            "account": "ACCOUNT",
+            "date": "2026-10-26",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History3",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          }
+        ],
+        "schedules": [],
+        "balances": [
+          -40000,
+          0
+        ]
+      },
+      "suggestions": [
+        {
+          "account": "ACCOUNT",
+          "payee": "PAYEE",
+          "date": {
+            "frequency": "weekly",
+            "interval": 2,
+            "start": "2026-09-14"
+          },
+          "amount": -10000,
+          "_conditions": [
+            {
+              "op": "is",
+              "field": "account",
+              "value": "ACCOUNT"
+            },
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "PAYEE"
+            },
+            {
+              "op": "is",
+              "field": "date",
+              "value": {
+                "frequency": "weekly",
+                "interval": 2,
+                "start": "2026-09-14"
+              }
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -10000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "monthly day15",
+      "seed": {
+        "step": "history",
+        "rows": [
+          {
+            "id": "HISTORY0",
+            "account": "ACCOUNT",
+            "date": "2026-08-15",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History0",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY1",
+            "account": "ACCOUNT",
+            "date": "2026-09-15",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History1",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY2",
+            "account": "ACCOUNT",
+            "date": "2026-10-15",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History2",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          }
+        ],
+        "schedules": [],
+        "balances": [
+          -30000,
+          0
+        ]
+      },
+      "suggestions": [
+        {
+          "account": "ACCOUNT",
+          "payee": "PAYEE",
+          "date": {
+            "start": "2026-08-15",
+            "frequency": "monthly"
+          },
+          "amount": -10000,
+          "_conditions": [
+            {
+              "op": "is",
+              "field": "account",
+              "value": "ACCOUNT"
+            },
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "PAYEE"
+            },
+            {
+              "op": "is",
+              "field": "date",
+              "value": {
+                "start": "2026-08-15",
+                "frequency": "monthly"
+              }
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -10000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "monthly last day",
+      "seed": {
+        "step": "history",
+        "rows": [
+          {
+            "id": "HISTORY0",
+            "account": "ACCOUNT",
+            "date": "2026-08-31",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History0",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY1",
+            "account": "ACCOUNT",
+            "date": "2026-09-30",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History1",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY2",
+            "account": "ACCOUNT",
+            "date": "2026-10-31",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History2",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          }
+        ],
+        "schedules": [],
+        "balances": [
+          -30000,
+          0
+        ]
+      },
+      "suggestions": []
+    },
+    {
+      "name": "monthly last day four entries",
+      "seed": {
+        "step": "history",
+        "rows": [
+          {
+            "id": "HISTORY0",
+            "account": "ACCOUNT",
+            "date": "2026-07-31",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History0",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY1",
+            "account": "ACCOUNT",
+            "date": "2026-08-31",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History1",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY2",
+            "account": "ACCOUNT",
+            "date": "2026-09-30",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History2",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY3",
+            "account": "ACCOUNT",
+            "date": "2026-10-31",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History3",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          }
+        ],
+        "schedules": [],
+        "balances": [
+          -40000,
+          0
+        ]
+      },
+      "suggestions": [
+        {
+          "account": "ACCOUNT",
+          "payee": "PAYEE",
+          "date": {
+            "frequency": "monthly",
+            "patterns": [
+              {
+                "type": "day",
+                "value": -1
+              }
+            ],
+            "start": "2026-07-31"
+          },
+          "amount": -10000,
+          "_conditions": [
+            {
+              "op": "is",
+              "field": "account",
+              "value": "ACCOUNT"
+            },
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "PAYEE"
+            },
+            {
+              "op": "is",
+              "field": "date",
+              "value": {
+                "frequency": "monthly",
+                "patterns": [
+                  {
+                    "type": "day",
+                    "value": -1
+                  }
+                ],
+                "start": "2026-07-31"
+              }
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -10000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "first and third Mondays",
+      "seed": {
+        "step": "history",
+        "rows": [
+          {
+            "id": "HISTORY0",
+            "account": "ACCOUNT",
+            "date": "2026-08-03",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History0",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY1",
+            "account": "ACCOUNT",
+            "date": "2026-08-17",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History1",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY2",
+            "account": "ACCOUNT",
+            "date": "2026-09-07",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History2",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY3",
+            "account": "ACCOUNT",
+            "date": "2026-09-21",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History3",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY4",
+            "account": "ACCOUNT",
+            "date": "2026-10-05",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History4",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY5",
+            "account": "ACCOUNT",
+            "date": "2026-10-19",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History5",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY6",
+            "account": "ACCOUNT",
+            "date": "2026-11-02",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History6",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          }
+        ],
+        "schedules": [],
+        "balances": [
+          -70000,
+          0
+        ]
+      },
+      "suggestions": [
+        {
+          "account": "ACCOUNT",
+          "payee": "PAYEE",
+          "date": {
+            "frequency": "weekly",
+            "interval": 2,
+            "start": "2026-09-07"
+          },
+          "amount": -10000,
+          "_conditions": [
+            {
+              "op": "is",
+              "field": "account",
+              "value": "ACCOUNT"
+            },
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "PAYEE"
+            },
+            {
+              "op": "is",
+              "field": "date",
+              "value": {
+                "frequency": "weekly",
+                "interval": 2,
+                "start": "2026-09-07"
+              }
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -10000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "second and fourth Mondays",
+      "seed": {
+        "step": "history",
+        "rows": [
+          {
+            "id": "HISTORY0",
+            "account": "ACCOUNT",
+            "date": "2026-03-09",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History0",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY1",
+            "account": "ACCOUNT",
+            "date": "2026-03-23",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History1",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY2",
+            "account": "ACCOUNT",
+            "date": "2026-04-13",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History2",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY3",
+            "account": "ACCOUNT",
+            "date": "2026-04-27",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History3",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY4",
+            "account": "ACCOUNT",
+            "date": "2026-05-11",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History4",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY5",
+            "account": "ACCOUNT",
+            "date": "2026-05-25",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History5",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY6",
+            "account": "ACCOUNT",
+            "date": "2026-06-08",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History6",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY7",
+            "account": "ACCOUNT",
+            "date": "2026-06-22",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History7",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY8",
+            "account": "ACCOUNT",
+            "date": "2026-07-13",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History8",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY9",
+            "account": "ACCOUNT",
+            "date": "2026-07-27",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History9",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY10",
+            "account": "ACCOUNT",
+            "date": "2026-08-10",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History10",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY11",
+            "account": "ACCOUNT",
+            "date": "2026-08-24",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History11",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY12",
+            "account": "ACCOUNT",
+            "date": "2026-09-14",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History12",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY13",
+            "account": "ACCOUNT",
+            "date": "2026-09-28",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History13",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY14",
+            "account": "ACCOUNT",
+            "date": "2026-10-12",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History14",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY15",
+            "account": "ACCOUNT",
+            "date": "2026-10-26",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History15",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          }
+        ],
+        "schedules": [],
+        "balances": [
+          -160000,
+          0
+        ]
+      },
+      "suggestions": [
+        {
+          "account": "ACCOUNT",
+          "payee": "PAYEE",
+          "date": {
+            "frequency": "weekly",
+            "interval": 2,
+            "start": "2026-09-14"
+          },
+          "amount": -10000,
+          "_conditions": [
+            {
+              "op": "is",
+              "field": "account",
+              "value": "ACCOUNT"
+            },
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "PAYEE"
+            },
+            {
+              "op": "is",
+              "field": "date",
+              "value": {
+                "frequency": "weekly",
+                "interval": 2,
+                "start": "2026-09-14"
+              }
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -10000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "variable weekly",
+      "seed": {
+        "step": "history",
+        "rows": [
+          {
+            "id": "HISTORY0",
+            "account": "ACCOUNT",
+            "date": "2026-10-19",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History0",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY1",
+            "account": "ACCOUNT",
+            "date": "2026-10-27",
+            "amount": -10100,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History1",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY2",
+            "account": "ACCOUNT",
+            "date": "2026-11-02",
+            "amount": -9950,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History2",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          }
+        ],
+        "schedules": [],
+        "balances": [
+          -30050,
+          0
+        ]
+      },
+      "suggestions": [
+        {
+          "account": "ACCOUNT",
+          "payee": "PAYEE",
+          "date": {
+            "frequency": "weekly",
+            "start": "2026-10-18"
+          },
+          "amount": -9950,
+          "_conditions": [
+            {
+              "op": "is",
+              "field": "account",
+              "value": "ACCOUNT"
+            },
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "PAYEE"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": {
+                "frequency": "weekly",
+                "start": "2026-10-18"
+              }
+            },
+            {
+              "op": "isapprox",
+              "field": "amount",
+              "value": -9950
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "insufficient two entries",
+      "seed": {
+        "step": "history",
+        "rows": [
+          {
+            "id": "HISTORY0",
+            "account": "ACCOUNT",
+            "date": "2026-10-26",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History0",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY1",
+            "account": "ACCOUNT",
+            "date": "2026-11-02",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History1",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          }
+        ],
+        "schedules": [],
+        "balances": [
+          -20000,
+          0
+        ]
+      },
+      "suggestions": []
+    },
+    {
+      "name": "already linked excluded",
+      "seed": {
+        "step": "history",
+        "rows": [
+          {
+            "id": "HISTORY0",
+            "account": "ACCOUNT",
+            "date": "2026-10-19",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History0",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": "EXISTING_SCHEDULE"
+          },
+          {
+            "id": "HISTORY1",
+            "account": "ACCOUNT",
+            "date": "2026-10-26",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History1",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": "EXISTING_SCHEDULE"
+          },
+          {
+            "id": "HISTORY2",
+            "account": "ACCOUNT",
+            "date": "2026-11-02",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History2",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": "EXISTING_SCHEDULE"
+          }
+        ],
+        "schedules": [
+          {
+            "id": "EXISTING_SCHEDULE",
+            "next_date": "2026-11-09",
+            "completed": false,
+            "posts_transaction": false
+          }
+        ],
+        "balances": [
+          -30000,
+          0
+        ]
+      },
+      "suggestions": []
+    },
+    {
+      "name": "closed account excluded",
+      "seed": {
+        "step": "history",
+        "rows": [],
+        "schedules": [],
+        "balances": [
+          0,
+          0
+        ]
+      },
+      "suggestions": []
+    },
+    {
+      "name": "transfers excluded",
+      "seed": {
+        "step": "history",
+        "rows": [
+          {
+            "id": "HISTORY0",
+            "account": "ACCOUNT",
+            "date": "2026-10-19",
+            "amount": -10000,
+            "payee": "TRANSFER",
+            "category": null,
+            "notes": "History0",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": "generated-1",
+            "schedule": null
+          },
+          {
+            "id": "HISTORY1",
+            "account": "ACCOUNT",
+            "date": "2026-10-26",
+            "amount": -10000,
+            "payee": "TRANSFER",
+            "category": null,
+            "notes": "History1",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": "generated-2",
+            "schedule": null
+          },
+          {
+            "id": "HISTORY2",
+            "account": "ACCOUNT",
+            "date": "2026-11-02",
+            "amount": -10000,
+            "payee": "TRANSFER",
+            "category": null,
+            "notes": "History2",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": "generated-3",
+            "schedule": null
+          },
+          {
+            "id": "generated-1",
+            "account": "PEER",
+            "date": "2026-10-19",
+            "amount": 10000,
+            "payee": "BACK_TRANSFER",
+            "category": null,
+            "notes": "History0",
+            "cleared": false,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": "HISTORY0",
+            "schedule": null
+          },
+          {
+            "id": "generated-2",
+            "account": "PEER",
+            "date": "2026-10-26",
+            "amount": 10000,
+            "payee": "BACK_TRANSFER",
+            "category": null,
+            "notes": "History1",
+            "cleared": false,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": "HISTORY1",
+            "schedule": null
+          },
+          {
+            "id": "generated-3",
+            "account": "PEER",
+            "date": "2026-11-02",
+            "amount": 10000,
+            "payee": "BACK_TRANSFER",
+            "category": null,
+            "notes": "History2",
+            "cleared": false,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": "HISTORY2",
+            "schedule": null
+          }
+        ],
+        "schedules": [],
+        "balances": [
+          -30000,
+          30000
+        ]
+      },
+      "suggestions": []
+    },
+    {
+      "name": "split history",
+      "seed": {
+        "step": "history",
+        "rows": [
+          {
+            "id": "HISTORY0",
+            "account": "ACCOUNT",
+            "date": "2026-10-19",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History0",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": true,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "ALLOCATION0",
+            "account": "ACCOUNT",
+            "date": "2026-10-19",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": "CATEGORY",
+            "notes": "",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": "HISTORY0",
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY1",
+            "account": "ACCOUNT",
+            "date": "2026-10-26",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History1",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": true,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "ALLOCATION1",
+            "account": "ACCOUNT",
+            "date": "2026-10-26",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": "CATEGORY",
+            "notes": "",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": "HISTORY1",
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY2",
+            "account": "ACCOUNT",
+            "date": "2026-11-02",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History2",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": true,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "ALLOCATION2",
+            "account": "ACCOUNT",
+            "date": "2026-11-02",
+            "amount": -10000,
+            "payee": "PAYEE",
+            "category": "CATEGORY",
+            "notes": "",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": "HISTORY2",
+            "transfer_id": null,
+            "schedule": null
+          }
+        ],
+        "schedules": [],
+        "balances": [
+          -30000,
+          0
+        ]
+      },
+      "suggestions": [
+        {
+          "account": "ACCOUNT",
+          "payee": "PAYEE",
+          "date": {
+            "frequency": "weekly",
+            "start": "2026-10-18"
+          },
+          "amount": -10000,
+          "_conditions": [
+            {
+              "op": "is",
+              "field": "account",
+              "value": "ACCOUNT"
+            },
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "PAYEE"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": {
+                "frequency": "weekly",
+                "start": "2026-10-18"
+              }
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -10000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "income history",
+      "seed": {
+        "step": "history",
+        "rows": [
+          {
+            "id": "HISTORY0",
+            "account": "ACCOUNT",
+            "date": "2026-10-19",
+            "amount": 10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History0",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY1",
+            "account": "ACCOUNT",
+            "date": "2026-10-26",
+            "amount": 10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History1",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          },
+          {
+            "id": "HISTORY2",
+            "account": "ACCOUNT",
+            "date": "2026-11-02",
+            "amount": 10000,
+            "payee": "PAYEE",
+            "category": null,
+            "notes": "History2",
+            "cleared": true,
+            "reconciled": false,
+            "is_parent": false,
+            "parent_id": null,
+            "transfer_id": null,
+            "schedule": null
+          }
+        ],
+        "schedules": [],
+        "balances": [
+          30000,
+          0
+        ]
+      },
+      "suggestions": [
+        {
+          "account": "ACCOUNT",
+          "payee": "PAYEE",
+          "date": {
+            "frequency": "weekly",
+            "start": "2026-10-18"
+          },
+          "amount": 10000,
+          "_conditions": [
+            {
+              "op": "is",
+              "field": "account",
+              "value": "ACCOUNT"
+            },
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "PAYEE"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": {
+                "frequency": "weekly",
+                "start": "2026-10-18"
+              }
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": 10000
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "conversion": [
+    {
+      "name": "new future draft",
+      "persisted": false,
+      "input": {
+        "id": "ORIGINAL",
+        "account": "ACCOUNT",
+        "date": "2026-11-17",
+        "amount": -101,
+        "payee": "PAYEE",
+        "category": "CATEGORY",
+        "notes": "Future parent note"
+      },
+      "rule": {
+        "conditions": [
+          {
+            "op": "is",
+            "field": "date",
+            "value": "2026-11-17",
+            "type": "date"
+          },
+          {
+            "op": "is",
+            "field": "amount",
+            "value": -101,
+            "type": "number"
+          },
+          {
+            "op": "is",
+            "field": "payee",
+            "value": "PAYEE",
+            "type": "id"
+          },
+          {
+            "op": "is",
+            "field": "account",
+            "value": "ACCOUNT",
+            "type": "id"
+          }
+        ],
+        "actions": [
+          {
+            "op": "link-schedule",
+            "field": null,
+            "value": "SCHEDULE",
+            "type": "id"
+          },
+          {
+            "op": "set",
+            "field": "category",
+            "value": "CATEGORY",
+            "type": "id"
+          },
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "Future parent note",
+            "type": "string"
+          }
+        ]
+      },
+      "snapshots": [
+        {
+          "step": "before conversion",
+          "rows": [],
+          "schedules": [],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "helper created schedule",
+          "rows": [],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "conversion complete",
+          "rows": [],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "due post",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "Future parent note",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -101,
+            0
+          ]
+        },
+        {
+          "step": "repeat due service",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "Future parent note",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -101,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "existing future expense",
+      "persisted": true,
+      "input": {
+        "id": "ORIGINAL",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "ACCOUNT",
+        "category": "CATEGORY",
+        "amount": -101,
+        "payee": "PAYEE",
+        "notes": "Future parent note",
+        "date": "2026-11-17",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225600000,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "subtransactions": []
+      },
+      "rule": {
+        "conditions": [
+          {
+            "op": "is",
+            "field": "date",
+            "value": "2026-11-17",
+            "type": "date"
+          },
+          {
+            "op": "is",
+            "field": "amount",
+            "value": -101,
+            "type": "number"
+          },
+          {
+            "op": "is",
+            "field": "payee",
+            "value": "PAYEE",
+            "type": "id"
+          },
+          {
+            "op": "is",
+            "field": "account",
+            "value": "ACCOUNT",
+            "type": "id"
+          }
+        ],
+        "actions": [
+          {
+            "op": "link-schedule",
+            "field": null,
+            "value": "SCHEDULE",
+            "type": "id"
+          },
+          {
+            "op": "set",
+            "field": "category",
+            "value": "CATEGORY",
+            "type": "id"
+          },
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "Future parent note",
+            "type": "string"
+          }
+        ]
+      },
+      "snapshots": [
+        {
+          "step": "before conversion",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "Future parent note",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "helper created schedule",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "Future parent note",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "conversion complete",
+          "rows": [],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "due post",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "Future parent note",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -101,
+            0
+          ]
+        },
+        {
+          "step": "repeat due service",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "Future parent note",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -101,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "existing future split",
+      "persisted": true,
+      "split": true,
+      "input": {
+        "id": "ORIGINAL",
+        "is_parent": true,
+        "is_child": false,
+        "parent_id": null,
+        "account": "ACCOUNT",
+        "category": null,
+        "amount": -101,
+        "payee": "PAYEE",
+        "notes": "Future parent note",
+        "date": "2026-11-17",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225600000,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "subtransactions": [
+          {
+            "id": "FIRST",
+            "is_parent": false,
+            "is_child": true,
+            "parent_id": "ORIGINAL",
+            "account": "ACCOUNT",
+            "category": "CATEGORY",
+            "amount": -40,
+            "payee": "PAYEE",
+            "notes": "First allocation",
+            "date": "2026-11-17",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 0,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "SECOND",
+            "is_parent": false,
+            "is_child": true,
+            "parent_id": "ORIGINAL",
+            "account": "ACCOUNT",
+            "category": "CATEGORY",
+            "amount": -61,
+            "payee": "PAYEE",
+            "notes": "Second allocation",
+            "date": "2026-11-17",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": -1,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ]
+      },
+      "rule": {
+        "conditions": [
+          {
+            "op": "is",
+            "field": "date",
+            "value": "2026-11-17",
+            "type": "date"
+          },
+          {
+            "op": "is",
+            "field": "amount",
+            "value": -101,
+            "type": "number"
+          },
+          {
+            "op": "is",
+            "field": "payee",
+            "value": "PAYEE",
+            "type": "id"
+          },
+          {
+            "op": "is",
+            "field": "account",
+            "value": "ACCOUNT",
+            "type": "id"
+          }
+        ],
+        "actions": [
+          {
+            "op": "link-schedule",
+            "field": null,
+            "value": "SCHEDULE",
+            "type": "id"
+          },
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "Future parent note",
+            "type": "string",
+            "options": {
+              "splitIndex": 0
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "field": null,
+            "value": -40,
+            "type": "number",
+            "options": {
+              "splitIndex": 1,
+              "method": "fixed-amount"
+            }
+          },
+          {
+            "op": "set",
+            "field": "category",
+            "value": "CATEGORY",
+            "type": "id",
+            "options": {
+              "splitIndex": 1
+            }
+          },
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "First allocation",
+            "type": "string",
+            "options": {
+              "splitIndex": 1
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "field": null,
+            "value": -61,
+            "type": "number",
+            "options": {
+              "splitIndex": 2,
+              "method": "fixed-amount"
+            }
+          },
+          {
+            "op": "set",
+            "field": "category",
+            "value": "CATEGORY",
+            "type": "id",
+            "options": {
+              "splitIndex": 2
+            }
+          },
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "Second allocation",
+            "type": "string",
+            "options": {
+              "splitIndex": 2
+            }
+          }
+        ]
+      },
+      "snapshots": [
+        {
+          "step": "before conversion",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "FIRST",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -40,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "First allocation",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "SECOND",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -61,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "Second allocation",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "helper created schedule",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "FIRST",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -40,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "First allocation",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "SECOND",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -61,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "Second allocation",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "conversion complete",
+          "rows": [],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "due post",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": null,
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "generated-2",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -40,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "First allocation",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "generated-1",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "generated-3",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -61,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "Second allocation",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "generated-1",
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -101,
+            0
+          ]
+        },
+        {
+          "step": "repeat due service",
+          "rows": [
+            {
+              "id": "generated-1",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": null,
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "generated-2",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -40,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "First allocation",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "generated-1",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "generated-3",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -61,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "Second allocation",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "generated-1",
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -101,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "existing future transfer",
+      "persisted": true,
+      "transfer": true,
+      "input": {
+        "id": "ORIGINAL",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "ACCOUNT",
+        "category": null,
+        "amount": -101,
+        "payee": "TRANSFER",
+        "notes": "Future parent note",
+        "date": "2026-11-17",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": "generated-1",
+        "sort_order": 1794225600000,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "subtransactions": []
+      },
+      "rule": {
+        "conditions": [
+          {
+            "op": "is",
+            "field": "date",
+            "value": "2026-11-17",
+            "type": "date"
+          },
+          {
+            "op": "is",
+            "field": "amount",
+            "value": -101,
+            "type": "number"
+          },
+          {
+            "op": "is",
+            "field": "payee",
+            "value": "TRANSFER",
+            "type": "id"
+          },
+          {
+            "op": "is",
+            "field": "account",
+            "value": "ACCOUNT",
+            "type": "id"
+          }
+        ],
+        "actions": [
+          {
+            "op": "link-schedule",
+            "field": null,
+            "value": "SCHEDULE",
+            "type": "id"
+          },
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "Future parent note",
+            "type": "string"
+          }
+        ]
+      },
+      "snapshots": [
+        {
+          "step": "before conversion",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-17",
+              "amount": 101,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "ORIGINAL",
+              "schedule": null
+            }
+          ],
+          "schedules": [],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "helper created schedule",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-17",
+              "amount": 101,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "ORIGINAL",
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "conversion complete",
+          "rows": [],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "due post",
+          "rows": [
+            {
+              "id": "generated-2",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-3",
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "generated-3",
+              "account": "PEER",
+              "date": "2026-11-17",
+              "amount": 101,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-2",
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -101,
+            101
+          ]
+        },
+        {
+          "step": "repeat due service",
+          "rows": [
+            {
+              "id": "generated-2",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-3",
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "generated-3",
+              "account": "PEER",
+              "date": "2026-11-17",
+              "amount": 101,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "generated-2",
+              "schedule": "SCHEDULE"
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -101,
+            101
+          ]
+        }
+      ]
+    },
+    {
+      "name": "existing future split transfer",
+      "persisted": true,
+      "split": true,
+      "transfer": true,
+      "input": {
+        "id": "ORIGINAL",
+        "is_parent": true,
+        "is_child": false,
+        "parent_id": null,
+        "account": "ACCOUNT",
+        "category": null,
+        "amount": -101,
+        "payee": "PAYEE",
+        "notes": "Future parent note",
+        "date": "2026-11-17",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225600000,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "subtransactions": [
+          {
+            "id": "FIRST",
+            "is_parent": false,
+            "is_child": true,
+            "parent_id": "ORIGINAL",
+            "account": "ACCOUNT",
+            "category": null,
+            "amount": -40,
+            "payee": "TRANSFER",
+            "notes": "First allocation",
+            "date": "2026-11-17",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "generated-1",
+            "sort_order": 0,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "SECOND",
+            "is_parent": false,
+            "is_child": true,
+            "parent_id": "ORIGINAL",
+            "account": "ACCOUNT",
+            "category": "CATEGORY",
+            "amount": -61,
+            "payee": "PAYEE",
+            "notes": "Second allocation",
+            "date": "2026-11-17",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": -1,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ]
+      },
+      "rule": {
+        "conditions": [
+          {
+            "op": "is",
+            "field": "date",
+            "value": "2026-11-17",
+            "type": "date"
+          },
+          {
+            "op": "is",
+            "field": "amount",
+            "value": -101,
+            "type": "number"
+          },
+          {
+            "op": "is",
+            "field": "payee",
+            "value": "PAYEE",
+            "type": "id"
+          },
+          {
+            "op": "is",
+            "field": "account",
+            "value": "ACCOUNT",
+            "type": "id"
+          }
+        ],
+        "actions": [
+          {
+            "op": "link-schedule",
+            "field": null,
+            "value": "SCHEDULE",
+            "type": "id"
+          },
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "Future parent note",
+            "type": "string",
+            "options": {
+              "splitIndex": 0
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "field": null,
+            "value": -40,
+            "type": "number",
+            "options": {
+              "splitIndex": 1,
+              "method": "fixed-amount"
+            }
+          },
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "First allocation",
+            "type": "string",
+            "options": {
+              "splitIndex": 1
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "field": null,
+            "value": -61,
+            "type": "number",
+            "options": {
+              "splitIndex": 2,
+              "method": "fixed-amount"
+            }
+          },
+          {
+            "op": "set",
+            "field": "category",
+            "value": "CATEGORY",
+            "type": "id",
+            "options": {
+              "splitIndex": 2
+            }
+          },
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "Second allocation",
+            "type": "string",
+            "options": {
+              "splitIndex": 2
+            }
+          }
+        ]
+      },
+      "snapshots": [
+        {
+          "step": "before conversion",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "FIRST",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -40,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "First allocation",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "SECOND",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -61,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "Second allocation",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-17",
+              "amount": 40,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "First allocation",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "FIRST",
+              "schedule": null
+            }
+          ],
+          "schedules": [],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "helper created schedule",
+          "rows": [
+            {
+              "id": "ORIGINAL",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "FIRST",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -40,
+              "payee": "TRANSFER",
+              "category": null,
+              "notes": "First allocation",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": "generated-1",
+              "schedule": null
+            },
+            {
+              "id": "SECOND",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -61,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "Second allocation",
+              "cleared": true,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "ORIGINAL",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "generated-1",
+              "account": "PEER",
+              "date": "2026-11-17",
+              "amount": 40,
+              "payee": "BACK_TRANSFER",
+              "category": null,
+              "notes": "First allocation",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": null,
+              "transfer_id": "FIRST",
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "conversion complete",
+          "rows": [],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            0,
+            0
+          ]
+        },
+        {
+          "step": "due post",
+          "rows": [
+            {
+              "id": "generated-2",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": null,
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "generated-3",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -40,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "First allocation",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "generated-2",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "generated-4",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -61,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "Second allocation",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "generated-2",
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -101,
+            0
+          ]
+        },
+        {
+          "step": "repeat due service",
+          "rows": [
+            {
+              "id": "generated-2",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -101,
+              "payee": null,
+              "category": null,
+              "notes": "Future parent note",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": true,
+              "parent_id": null,
+              "transfer_id": null,
+              "schedule": "SCHEDULE"
+            },
+            {
+              "id": "generated-3",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -40,
+              "payee": "PAYEE",
+              "category": null,
+              "notes": "First allocation",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "generated-2",
+              "transfer_id": null,
+              "schedule": null
+            },
+            {
+              "id": "generated-4",
+              "account": "ACCOUNT",
+              "date": "2026-11-17",
+              "amount": -61,
+              "payee": "PAYEE",
+              "category": "CATEGORY",
+              "notes": "Second allocation",
+              "cleared": false,
+              "reconciled": false,
+              "is_parent": false,
+              "parent_id": "generated-2",
+              "transfer_id": null,
+              "schedule": null
+            }
+          ],
+          "schedules": [
+            {
+              "id": "SCHEDULE",
+              "next_date": "2026-11-17",
+              "completed": false,
+              "posts_transaction": true
+            }
+          ],
+          "balances": [
+            -101,
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "warnings": [
+    {
+      "date": "2026-11-08",
+      "horizon": "7",
+      "future": false,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": -1,
+      "upcomingDays": 7
+    },
+    {
+      "date": "2026-11-08",
+      "horizon": "currentMonth",
+      "future": false,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": -1,
+      "upcomingDays": 21
+    },
+    {
+      "date": "2026-11-08",
+      "horizon": "oneMonth",
+      "future": false,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": -1,
+      "upcomingDays": 30
+    },
+    {
+      "date": "2026-11-08",
+      "horizon": "2-week",
+      "future": false,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": -1,
+      "upcomingDays": 14
+    },
+    {
+      "date": "2026-11-09",
+      "horizon": "7",
+      "future": false,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": 0,
+      "upcomingDays": 7
+    },
+    {
+      "date": "2026-11-09",
+      "horizon": "currentMonth",
+      "future": false,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": 0,
+      "upcomingDays": 21
+    },
+    {
+      "date": "2026-11-09",
+      "horizon": "oneMonth",
+      "future": false,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": 0,
+      "upcomingDays": 30
+    },
+    {
+      "date": "2026-11-09",
+      "horizon": "2-week",
+      "future": false,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": 0,
+      "upcomingDays": 14
+    },
+    {
+      "date": "2026-11-16",
+      "horizon": "7",
+      "future": true,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": 7,
+      "upcomingDays": 7
+    },
+    {
+      "date": "2026-11-16",
+      "horizon": "currentMonth",
+      "future": true,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": 7,
+      "upcomingDays": 21
+    },
+    {
+      "date": "2026-11-16",
+      "horizon": "oneMonth",
+      "future": true,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": 7,
+      "upcomingDays": 30
+    },
+    {
+      "date": "2026-11-16",
+      "horizon": "2-week",
+      "future": true,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": 7,
+      "upcomingDays": 14
+    },
+    {
+      "date": "2026-11-17",
+      "horizon": "7",
+      "future": true,
+      "isBeyondWindow": true,
+      "daysUntilTransaction": 8,
+      "upcomingDays": 7
+    },
+    {
+      "date": "2026-11-17",
+      "horizon": "currentMonth",
+      "future": true,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": 8,
+      "upcomingDays": 21
+    },
+    {
+      "date": "2026-11-17",
+      "horizon": "oneMonth",
+      "future": true,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": 8,
+      "upcomingDays": 30
+    },
+    {
+      "date": "2026-11-17",
+      "horizon": "2-week",
+      "future": true,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": 8,
+      "upcomingDays": 14
+    },
+    {
+      "date": "2026-12-01",
+      "horizon": "7",
+      "future": true,
+      "isBeyondWindow": true,
+      "daysUntilTransaction": 22,
+      "upcomingDays": 7
+    },
+    {
+      "date": "2026-12-01",
+      "horizon": "currentMonth",
+      "future": true,
+      "isBeyondWindow": true,
+      "daysUntilTransaction": 22,
+      "upcomingDays": 21
+    },
+    {
+      "date": "2026-12-01",
+      "horizon": "oneMonth",
+      "future": true,
+      "isBeyondWindow": false,
+      "daysUntilTransaction": 22,
+      "upcomingDays": 30
+    },
+    {
+      "date": "2026-12-01",
+      "horizon": "2-week",
+      "future": true,
+      "isBeyondWindow": true,
+      "daysUntilTransaction": 22,
+      "upcomingDays": 14
+    }
+  ],
+  "matching_archive_sha256": "2c247380a6a5c992ad57aa6765fd6ea6bd7f91e19a97e3ece1ed30446e2d94c0",
+  "matching_seed": {
+    "step": "seeded",
+    "rows": [
+      {
+        "id": "older-recurrence",
+        "account": "ACCOUNT",
+        "date": "2026-11-02",
+        "amount": -10000,
+        "payee": "PAYEE",
+        "category": null,
+        "notes": "older-recurrence",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": null,
+        "schedule": null
+      },
+      {
+        "id": "date-low-outside",
+        "account": "ACCOUNT",
+        "date": "2026-11-06",
+        "amount": -10000,
+        "payee": "PAYEE",
+        "category": null,
+        "notes": "date-low-outside",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": null,
+        "schedule": null
+      },
+      {
+        "id": "date-low-edge",
+        "account": "ACCOUNT",
+        "date": "2026-11-07",
+        "amount": -10000,
+        "payee": "PAYEE",
+        "category": null,
+        "notes": "date-low-edge",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": null,
+        "schedule": null
+      },
+      {
+        "id": "amount-low-outside",
+        "account": "ACCOUNT",
+        "date": "2026-11-09",
+        "amount": -10751,
+        "payee": "PAYEE",
+        "category": null,
+        "notes": "amount-low-outside",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": null,
+        "schedule": null
+      },
+      {
+        "id": "amount-low-edge",
+        "account": "ACCOUNT",
+        "date": "2026-11-09",
+        "amount": -10750,
+        "payee": "PAYEE",
+        "category": null,
+        "notes": "amount-low-edge",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": null,
+        "schedule": null
+      },
+      {
+        "id": "reconciled",
+        "account": "ACCOUNT",
+        "date": "2026-11-09",
+        "amount": -10000,
+        "payee": "PAYEE",
+        "category": null,
+        "notes": "",
+        "cleared": true,
+        "reconciled": true,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": null,
+        "schedule": null
+      },
+      {
+        "id": "wrong-payee",
+        "account": "ACCOUNT",
+        "date": "2026-11-09",
+        "amount": -10000,
+        "payee": "OTHER_PAYEE",
+        "category": null,
+        "notes": "",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": null,
+        "schedule": null
+      },
+      {
+        "id": "exact",
+        "account": "ACCOUNT",
+        "date": "2026-11-09",
+        "amount": -10000,
+        "payee": "PAYEE",
+        "category": null,
+        "notes": "exact",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": null,
+        "schedule": "OTHER_SCHEDULE"
+      },
+      {
+        "id": "split",
+        "account": "ACCOUNT",
+        "date": "2026-11-09",
+        "amount": -10000,
+        "payee": "PAYEE",
+        "category": null,
+        "notes": "Split",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": true,
+        "parent_id": null,
+        "transfer_id": null,
+        "schedule": null
+      },
+      {
+        "id": "split-child",
+        "account": "ACCOUNT",
+        "date": "2026-11-09",
+        "amount": -6000,
+        "payee": "PAYEE",
+        "category": null,
+        "notes": "",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": "split",
+        "transfer_id": null,
+        "schedule": null
+      },
+      {
+        "id": "split-transfer",
+        "account": "ACCOUNT",
+        "date": "2026-11-09",
+        "amount": -4000,
+        "payee": "TRANSFER",
+        "category": null,
+        "notes": "",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": "split",
+        "transfer_id": "generated-1",
+        "schedule": null
+      },
+      {
+        "id": "transfer",
+        "account": "ACCOUNT",
+        "date": "2026-11-09",
+        "amount": -10000,
+        "payee": "TRANSFER",
+        "category": null,
+        "notes": "Transfer",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": "generated-2",
+        "schedule": null
+      },
+      {
+        "id": "amount-high-edge",
+        "account": "ACCOUNT",
+        "date": "2026-11-09",
+        "amount": -9250,
+        "payee": "PAYEE",
+        "category": null,
+        "notes": "amount-high-edge",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": null,
+        "schedule": null
+      },
+      {
+        "id": "amount-high-outside",
+        "account": "ACCOUNT",
+        "date": "2026-11-09",
+        "amount": -9249,
+        "payee": "PAYEE",
+        "category": null,
+        "notes": "amount-high-outside",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": null,
+        "schedule": null
+      },
+      {
+        "id": "zero",
+        "account": "ACCOUNT",
+        "date": "2026-11-09",
+        "amount": 0,
+        "payee": "PAYEE",
+        "category": null,
+        "notes": "zero",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": null,
+        "schedule": null
+      },
+      {
+        "id": "income",
+        "account": "ACCOUNT",
+        "date": "2026-11-09",
+        "amount": 10000,
+        "payee": "PAYEE",
+        "category": null,
+        "notes": "income",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": null,
+        "schedule": null
+      },
+      {
+        "id": "date-high-edge",
+        "account": "ACCOUNT",
+        "date": "2026-11-11",
+        "amount": -10000,
+        "payee": "PAYEE",
+        "category": null,
+        "notes": "date-high-edge",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": null,
+        "schedule": null
+      },
+      {
+        "id": "date-high-outside",
+        "account": "ACCOUNT",
+        "date": "2026-11-12",
+        "amount": -10000,
+        "payee": "PAYEE",
+        "category": null,
+        "notes": "date-high-outside",
+        "cleared": true,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": null,
+        "schedule": null
+      },
+      {
+        "id": "generated-1",
+        "account": "PEER",
+        "date": "2026-11-09",
+        "amount": 4000,
+        "payee": "BACK_TRANSFER",
+        "category": null,
+        "notes": "",
+        "cleared": false,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": "split-transfer",
+        "schedule": null
+      },
+      {
+        "id": "generated-2",
+        "account": "PEER",
+        "date": "2026-11-09",
+        "amount": 10000,
+        "payee": "BACK_TRANSFER",
+        "category": null,
+        "notes": "Transfer",
+        "cleared": false,
+        "reconciled": false,
+        "is_parent": false,
+        "parent_id": null,
+        "transfer_id": "transfer",
+        "schedule": null
+      }
+    ],
+    "schedules": [
+      {
+        "id": "OTHER_SCHEDULE",
+        "next_date": "2026-11-09",
+        "completed": false,
+        "posts_transaction": false
+      }
+    ],
+    "balances": [
+      -110000,
+      14000
+    ]
+  },
+  "conversion_helper_sha256": "3911e4b0326b648261d7da92edd6a1e52006db4ae5bf41dbcd64ff09cb571220"
+}

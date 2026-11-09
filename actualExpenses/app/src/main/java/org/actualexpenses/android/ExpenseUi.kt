@@ -37,6 +37,8 @@ data class ExpenseUiState(
     val busy: Boolean = false,
     val pendingCount: Int = 0,
     val splitRecovery: Boolean = false,
+    val scheduledWorkPending:Boolean=false,
+    val scheduledWorkError:String?=null,
     val error: String? = null,
     val notice: String? = null,
     val savingOperationId: String? = null,
@@ -70,5 +72,7 @@ interface ExpenseUiActions {
     fun save(form: ExpenseForm)
     fun delete(session: EditSession, operationId: String)
     fun discardRejectedSplitEdit()
+    fun retryScheduledWork()
+    fun cancelScheduledWork()
     fun dismissMessage()
 }

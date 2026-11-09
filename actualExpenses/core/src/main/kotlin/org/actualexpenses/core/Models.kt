@@ -38,4 +38,5 @@ data class AppState(
     val error: String? = null,
     val syncBlocked: Boolean = false,
     val splitRecovery: Boolean = false,
+    val scheduledWorkPending:Boolean=false, val scheduledWorkError:String?=null,
 )

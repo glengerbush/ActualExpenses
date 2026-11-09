@@ -123,12 +123,13 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
                     Text("This expense became a split or transfer. The rejected change remains saved on this phone. Review the transaction in actualBudget, then discard the rejected change to resume syncing.")
                     OutlinedButton(onClick = actions::discardRejectedSplitEdit, enabled = !state.busy, modifier = Modifier.heightIn(min = 48.dp)) { Text("Discard rejected expense edit") }
                 }
+                if(state.screen!=Screen.EXPENSES&&(state.scheduledWorkPending||state.scheduledWorkError!=null))ScheduledWorkRecovery(state,actions)
                 when (state.screen) {
                     Screen.SERVER -> ServerSelection(state, actions)
                     Screen.RECOVERY -> LegacyRecovery(state, actions)
-                    Screen.BUDGETS -> Choices("Choose a budget", "Use one budget on this phone.", "No budgets yet. Create or import one in actualBudget, then refresh this list.", state.budgets, state.busy, actions::chooseBudget, "Change server", actions::showServer, state.pendingCount==0)
-                    Screen.ACCOUNTS -> Choices("Choose an account", "Where should expenses go?", "No open accounts. Add or reopen an account in actualBudget, then refresh this list.", state.accounts, state.busy, actions::chooseAccount, "Change budget", actions::showBudgets, state.pendingCount==0)
-                    Screen.EXPENSES -> ExpenseList(state) { row -> actions.beginEdit(row.id) { session -> editorContext=Gson().toJson(session.context);editorSession=Gson().toJson(session);editorId = row.id } }
+                    Screen.BUDGETS -> Choices("Choose a budget", "Use one budget on this phone.", "No budgets yet. Create or import one in actualBudget, then refresh this list.", state.budgets, state.busy, actions::chooseBudget, "Change server", actions::showServer, state.pendingCount==0&&!state.scheduledWorkPending)
+                    Screen.ACCOUNTS -> Choices("Choose an account", "Where should expenses go?", "No open accounts. Add or reopen an account in actualBudget, then refresh this list.", state.accounts, state.busy, actions::chooseAccount, "Change budget", actions::showBudgets, state.pendingCount==0&&!state.scheduledWorkPending)
+                    Screen.EXPENSES -> ExpenseList(state,actions) { row -> actions.beginEdit(row.id) { session -> editorContext=Gson().toJson(session.context);editorSession=Gson().toJson(session);editorId = row.id } }
                 }
             }
         }
@@ -230,12 +231,24 @@ private fun Choices(title: String, description: String, emptyMessage: String, ch
 }
 
 @Composable
-private fun ExpenseList(state: ExpenseUiState, onEdit: (ExpenseRow) -> Unit) {
+private fun ScheduledWorkRecovery(state:ExpenseUiState,actions:ExpenseUiActions){
+    Column(Modifier.fillMaxWidth().padding(24.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
+        Text(if(state.scheduledWorkPending)"Scheduled entries awaiting confirmation"else"Scheduled entries could not be checked",style=MaterialTheme.typography.titleMedium,modifier=Modifier.semantics{heading()})
+        Text(state.scheduledWorkError?:"The saved request remains on this phone. Refresh to confirm its original outcome.",style=MaterialTheme.typography.bodyMedium)
+        Text("Expense capture remains available. Review long catch-ups or changed schedules in actualBudget.",style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+        OutlinedButton(onClick=actions::retryScheduledWork,enabled=!state.busy,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)){Text("Retry scheduled entries")}
+        if(state.scheduledWorkPending)TextButton(onClick=actions::cancelScheduledWork,enabled=!state.busy,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)){Text("Cancel saved schedule request")}
+    }
+}
+
+@Composable
+private fun ExpenseList(state: ExpenseUiState, actions:ExpenseUiActions, onEdit: (ExpenseRow) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(bottom = 104.dp)) {
+        if(state.scheduledWorkPending||state.scheduledWorkError!=null)item{ScheduledWorkRecovery(state,actions)}
         item {
             Column(Modifier.padding(horizontal = 24.dp, vertical = 12.dp)) {
                 Text(if (state.busy) "Syncing…" else if (state.pendingCount > 0) "${state.pendingCount} pending · ${if (state.online) "Connected" else "Offline"}"
-                    else if (state.online) "Up to date" else "Offline · expenses saved on this phone",
+                    else if(state.online&&(state.scheduledWorkPending||state.scheduledWorkError!=null))"Expenses up to date · Schedules need attention" else if (state.online) "Up to date" else "Offline · expenses saved on this phone",
                     style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("Recent expenses", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 24.dp).semantics { heading() })
                 if (!state.online) Text("You can add expenses. Synced expenses can be edited when connected.", style = MaterialTheme.typography.bodySmall,

@@ -50,6 +50,7 @@ private data class NativeState(
     val recent: MutableMap<String, List<String>> = mutableMapOf(),
     val retained: MutableMap<String, String> = mutableMapOf(),
     val pending: MutableList<NativeOperation> = mutableListOf(),
+    var scheduledCommand: ScheduledCommand? = null,
     var legacyFingerprint: String? = null,
     var notice: String? = null,
 )
@@ -73,6 +74,8 @@ class ApiExpenseService(
             }
             gson.fromJson(it, NativeState::class.java)
         } ?: NativeState()
+    init { saved.scheduledCommand?.validate() }
+    @Volatile private var scheduleError:String? = null
     @Volatile private var online = false
     @Volatile private var error: String? = null
     @Volatile private var blocked = false
@@ -210,6 +213,8 @@ class ApiExpenseService(
             error = pendingAccountError() ?: error,
             syncBlocked = blocked || pendingAccountError() != null,
             splitRecovery = saved.pending.firstOrNull()?.splitRejected == true,
+            scheduledWorkPending=saved.scheduledCommand!=null,
+            scheduledWorkError=saved.scheduledCommand?.reviewMessage?:scheduleError,
         )
     }
 
@@ -217,6 +222,7 @@ class ApiExpenseService(
         if (legacyPresent) { prepareLegacy(server); return@withLock }
         ready()
         val normalized = BudgetApi.normalized(server)
+        require(saved.scheduledCommand==null||saved.scheduledCommand?.server==normalized){"Confirm or cancel saved schedule work before switching servers."}
         require(saved.pending.isEmpty() || normalized == saved.server) {
             "Keep this server address while a budget is selected. Saved work belongs to its original server."
         }
@@ -433,12 +439,14 @@ class ApiExpenseService(
         if (legacyPresent) { prepareLegacy(saved.server, id); return@withLock }
         ready()
         synchronized(this) {
+            require(saved.scheduledCommand==null||saved.scheduledCommand?.budget==id){"Confirm or cancel saved schedule work before switching budgets."}
             require(saved.pending.isEmpty() || saved.budgetId == id) {
                 "Deliver pending changes before switching budgets."
             }
             require(saved.budgets.any { it.fileId == id }) { "Choose an available budget." }
         }
         bootstrap(id, saved.rememberedAccounts[scopeKey(saved.server, id)])
+        scheduleError=null
     }
 
     fun chooseAccount(id: String) = syncLock.withLock {
@@ -699,7 +707,7 @@ class ApiExpenseService(
         }
     }
 
-    fun refresh() {
+    fun refresh(foreground: Boolean = false) {
         if (legacyPresent || saved.server.isEmpty() || !syncLock.tryLock()) return
         try {
             val api = client()
@@ -707,6 +715,10 @@ class ApiExpenseService(
             // failures never touch durable outbox contents or legacy storage.
             val capabilities = api.requireSupported()
             this.capabilities = capabilities
+            var scheduleResolved=false
+            if(foreground && saved.scheduledCommand!=null){
+                try{requireScheduleCapability();scheduleResolved=reconcileScheduledReceipt(api)}catch(failure:Exception){scheduleFailure(failure)}
+            }
             if (saved.budgetId == null) {
                 val list = budgets(api)
                 change { it.budgets = list }
@@ -746,6 +758,9 @@ class ApiExpenseService(
                 delivered = true
             }
             if (delivered) refreshBudget(api, budget)
+            if(foreground && !scheduleResolved && saved.pending.isEmpty()){
+                try{if(runScheduledForeground(api,budget))refreshBudget(api,budget)}catch(failure:Exception){scheduleFailure(failure)}
+            }
             markOnline()
         } catch (failure: Exception) {
             online = failure is UnavailablePendingAccount
@@ -756,6 +771,177 @@ class ApiExpenseService(
         } finally {
             syncLock.unlock()
         }
+    }
+
+
+    private fun requireScheduleCapability() {
+        require("schedule_catch_up" in capabilities) {
+            "This server cannot resume saved schedule work. Keep saved data and reconnect to a compatible actualBudget server."
+        }
+    }
+
+    private fun scheduledScope(command: ScheduledCommand) {
+        require(command.server == saved.server && command.budget == saved.budgetId) {
+            "Saved schedule work belongs to its original server and budget."
+        }
+    }
+
+    private fun finishScheduled(command: ScheduledCommand, cancelled: Boolean = false) {
+        change { next ->
+            check(next.scheduledCommand?.id == command.id)
+            next.scheduledCommand = null
+            if (cancelled)
+                next.notice =
+                    "The saved schedule request was cancelled. Review automatic schedules in actualBudget."
+        }
+        scheduleError = null
+    }
+
+    /** Proof lookup precedes generation bootstrap, and can never run unknown work. */
+    private fun reconcileScheduledReceipt(api: BudgetApi): Boolean {
+        val command = saved.scheduledCommand ?: return false
+        scheduledScope(command)
+        if (!command.attempted) return false
+        return try {
+            api.request(
+                command.path,
+                "POST",
+                command.body,
+                command.id,
+                command.clock,
+                command.epoch,
+                receiptOnly = true,
+            )
+            finishScheduled(command)
+            true
+        } catch (failure: BudgetApiException) {
+            when {
+                failure.status == 404 && failure.code == "operation_uncommitted" -> false
+                failure.status == 409 && failure.code == "operation_canceled" -> {
+                    finishScheduled(command, true)
+                    true
+                }
+                else -> throw failure
+            }
+        }
+    }
+
+    private fun scheduleFailure(failure: Exception) {
+        val message =
+            failure.message ?: "Scheduled entries could not be confirmed. Refresh to retry."
+        scheduleError = message
+        if (
+            failure is IllegalArgumentException ||
+                failure is BudgetApiException && failure.status in 400..499
+        ) {
+            change { next -> next.scheduledCommand?.reviewMessage = message }
+        }
+    }
+
+    /** Only explicit foreground calls may prepare or deliver this separate command. */
+    private fun runScheduledForeground(api: BudgetApi, budget: String): Boolean {
+        if (saved.scheduledCommand == null) {
+            if ("schedule_catch_up" !in capabilities) return false
+            val server = saved.server
+            val epoch = saved.epoch
+            val due = api.request("/budgets/$budget/schedules/due").getAsJsonObject("data")
+            scheduleError = null
+            if (!due["due"].asBoolean) return false
+            require(due["epoch"].asString == epoch) {
+                "The budget changed. Refresh before checking scheduled entries."
+            }
+            val body =
+                JsonObject()
+                    .apply {
+                        addProperty("action", "catch-up")
+                        addProperty("through", due["today"].asString)
+                    }
+                    .toString()
+            change { next ->
+                check(
+                    next.server == server &&
+                        next.budgetId == budget &&
+                        next.epoch == epoch &&
+                        next.scheduledCommand == null
+                )
+                val clock = LogicalClock(next.node, next.clock).next()
+                next.scheduledCommand =
+                    ScheduledCommand(
+                        UUID.randomUUID().toString(),
+                        server,
+                        budget,
+                        "/budgets/$budget/schedules/commands",
+                        body,
+                        clock,
+                        epoch,
+                    )
+                next.clock = clock
+            }
+        }
+        requireScheduleCapability()
+        val command = requireNotNull(saved.scheduledCommand)
+        scheduledScope(command)
+        if (command.reviewMessage != null) return false
+        require(saved.epoch == command.epoch) {
+            "This budget was restored. Cancel the saved schedule request before reviewing the restored schedules in actualBudget."
+        }
+        change { next ->
+            check(next.scheduledCommand?.id == command.id)
+            next.scheduledCommand?.attempted = true
+        }
+        try {
+            api.request(
+                command.path,
+                "POST",
+                command.body,
+                command.id,
+                command.clock,
+                command.epoch,
+            )
+            finishScheduled(command)
+        } catch (failure: BudgetApiException) {
+            if (failure.code == "operation_canceled") finishScheduled(command, true)
+            else throw failure
+        }
+        return true
+    }
+
+    fun retryScheduledWork() {
+        syncLock.withLock {
+            ready()
+            scheduleError = null
+            change { next -> next.scheduledCommand?.reviewMessage = null }
+        }
+        refresh(foreground = true)
+    }
+
+    /** A receipt or an exact durable refusal is required before local cancellation. */
+    fun cancelScheduledWork() {
+        syncLock.withLock {
+            ready()
+            val command = saved.scheduledCommand ?: return@withLock
+            val api = client()
+            capabilities = api.requireSupported()
+            requireScheduleCapability()
+            scheduledScope(command)
+            if (reconcileScheduledReceipt(api)) return@withLock
+            try {
+                api.request(
+                    command.path,
+                    "POST",
+                    command.body,
+                    command.id,
+                    command.clock,
+                    command.epoch,
+                    cancelIfUncommitted = true,
+                )
+                finishScheduled(command)
+            } catch (failure: BudgetApiException) {
+                if (failure.code == "operation_canceled") finishScheduled(command, true)
+                else throw failure
+            }
+        }
+        refresh()
     }
 
     private fun reconcileReceipts(api: BudgetApi) {

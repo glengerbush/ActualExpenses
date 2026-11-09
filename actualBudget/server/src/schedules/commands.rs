@@ -4,6 +4,7 @@ use crate::models::{validate_id, validate_name};
 #[serde(deny_unknown_fields)]
 pub struct Command {
     pub action: String,
+    pub transfer_account_id: Option<String>,
     pub id: Option<String>,
     pub snapshot: Option<String>,
     pub name: Option<String>,
@@ -40,14 +41,15 @@ fn conditions(c: &[Value]) -> Result<(), Error> {
 pub fn create(db: &Connection, b: &str, c: &Command, clock: &str) -> Result<Value, Error> {
     let id = required(&c.id, "id")?;
     validate_id(id)?;
-    let conds = c
-        .conditions
+    let prepared = condition_changes(db, b, c, &[], clock)?;
+    let conds = prepared
         .as_ref()
         .ok_or_else(|| Error::invalid("Schedule conditions required"))?;
     conditions(conds)?;
     let name = c.name.as_deref().map(str::trim).filter(|v| !v.is_empty());
     if let Some(name) = name {
         validate_name(name)?;
+        unique_name(db, b, id, name)?;
     }
     if db.query_row(
         "SELECT EXISTS(SELECT 1 FROM schedules WHERE budget_id=?1 AND id=?2)",
@@ -292,6 +294,10 @@ fn post(
         };
     }
     check_current(row, date)?;
+    if let Some(transaction) = view::matched_transaction(db, b, row, date)? {
+        record(db, b, id, date, "matched", Some(&transaction), clock)?;
+        return crate::ledger::get(db, b, &transaction);
+    }
     *remaining = remaining.checked_sub(1).ok_or_else(|| {
         Error::invalid("Catch-up exceeds500 occurrences. Review older dates before continuing.")
     })?;
@@ -402,7 +408,7 @@ fn catch_up(
                     .is_object();
             if row["posts_transaction"] == true && (recurring || !paid) {
                 if !paid {
-                    posted.push(post(
+                    let transaction = post(
                         db,
                         b,
                         &row,
@@ -412,7 +418,8 @@ fn catch_up(
                         epoch,
                         &mut work,
                         &mut remaining,
-                    )?);
+                    )?;
+                    posted.push(transaction["id"].as_str().map(str::to_owned));
                 }
                 if date != today && recurring && !next_guarded {
                     data::guard(db, b, "schedules", id, &["next_date"], clock)?;
@@ -452,7 +459,7 @@ fn catch_up(
         }
     }
     Ok(
-        json!({"posted_count":posted.iter().filter(|r|!r.is_null()).count(),"handled_count":posted.len(),"transactions":posted}),
+        json!({"posted_count":posted.iter().flatten().count(),"handled_count":posted.len(),"transaction_ids":posted.into_iter().flatten().collect::<Vec<_>>()}),
     )
 }
 
@@ -464,6 +471,7 @@ fn edit(db: &Connection, b: &str, row: &Value, c: &Command, clock: &str) -> Resu
         let name = name.trim();
         if !name.is_empty() {
             validate_name(name)?;
+            unique_name(db, b, id, name)?;
         }
         updated["name"] = if name.is_empty() {
             Value::Null
@@ -493,7 +501,8 @@ fn edit(db: &Connection, b: &str, row: &Value, c: &Command, clock: &str) -> Resu
     }
     let rule = row["rule_id"].as_str().unwrap();
     let mut changed_rule = vec![];
-    if let Some(changes) = &c.conditions {
+    let prepared = condition_changes(db, b, c, row["conditions"].as_array().unwrap(), clock)?;
+    if let Some(changes) = &prepared {
         let mut merged = row["conditions"].as_array().unwrap().clone();
         for change in changes {
             let field = change["field"]
@@ -656,4 +665,62 @@ pub(super) fn scheduled_amount(value: &Value) -> Result<i64, Error> {
         ));
     }
     Ok(rounded as i64)
+}
+
+fn unique_name(db: &Connection, b: &str, id: &str, name: &str) -> Result<(), Error> {
+    if db.query_row("SELECT EXISTS(SELECT 1 FROM schedules WHERE budget_id=?1 AND name=?2 AND id<>?3 AND tombstone=0)",params![b,name,id],|r|r.get::<_,bool>(0))?{return Err(Error::conflict("A schedule with this name already exists. Choose another name."));}
+    Ok(())
+}
+fn condition_changes(
+    db: &Connection,
+    b: &str,
+    c: &Command,
+    base: &[Value],
+    clock: &str,
+) -> Result<Option<Vec<Value>>, Error> {
+    let mut changes = c.conditions.clone();
+    if let Some(destination) = &c.transfer_account_id {
+        validate_id(destination)?;
+        crate::ledger::account_exists(db, b, destination)?;
+        let conditions = changes.get_or_insert_with(Vec::new);
+        let origin = conditions
+            .iter()
+            .chain(base)
+            .find(|c| matches!(c["field"].as_str(), Some("account" | "acct")) && c["op"] == "is")
+            .and_then(|c| c["value"].as_str())
+            .ok_or_else(|| Error::invalid("Choose an origin account for this transfer schedule"))?;
+        if origin == destination {
+            return Err(Error::invalid("Transfer accounts must differ"));
+        }
+        crate::ledger::account_exists(db, b, origin)?;
+        let exists:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM payees WHERE budget_id=?1 AND transfer_account_id=?2 AND tombstone=0)",params![b,destination],|r|r.get(0))?;
+        let payee = crate::transfers::payee(db, b, destination)?;
+        if !exists {
+            data::stamp(
+                db,
+                b,
+                "payees",
+                &payee,
+                &[
+                    "name",
+                    "favorite",
+                    "transfer_account_id",
+                    "category_id",
+                    "merged_into",
+                    "learn_categories",
+                    "tombstone",
+                ],
+                clock,
+            )?;
+        }
+        let condition = json!({"field":"payee","op":"is","value":payee});
+        if let Some(index) = conditions.iter().position(|c| {
+            matches!(c["field"].as_str(), Some("payee" | "description")) && c["op"] == "is"
+        }) {
+            conditions[index] = condition;
+        } else {
+            conditions.push(condition);
+        }
+    }
+    Ok(changes)
 }

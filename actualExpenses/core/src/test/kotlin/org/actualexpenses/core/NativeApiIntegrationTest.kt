@@ -2016,4 +2016,179 @@ class NativeApiIntegrationTest {
             }
         }
     }
+    @Test
+    fun `foreground schedules post once while pending delivery mode never runs schedules`() {
+        Server().use { server ->
+            val store=MemoryStore()
+            val requests=mutableListOf<Pair<String,String>>()
+            val real=BudgetHttpTransport()
+            val transport=HttpTransport { url,method,headers,body ->
+                if(url.contains("/schedules")) requests += method to url
+                real.request(url,method,headers,body)
+            }
+            val app=ApiExpenseService(store,transport=transport)
+            app.connect(server.url);app.chooseBudget(server.budget);app.chooseAccount(server.account)
+            val root="/budgets/${server.budget}"
+            val schedule=UUID.randomUUID().toString()
+            val today=server.get("$root/schedules").getAsJsonObject("data")["today"].asString
+            val snapshot=server.get("$root/checkpoint").getAsJsonObject("data")["snapshot"].asString
+            server.post("$root/schedules/commands", """{"action":"create","id":"$schedule","snapshot":"$snapshot","posts_transaction":true,"conditions":[{"field":"account","op":"is","value":"${server.account}"},{"field":"amount","op":"is","value":-1234},{"field":"date","op":"is","value":"$today"}]}""")
+            app.refresh()
+            assertTrue(requests.isEmpty(),"Pending-expense delivery may not probe or run schedules")
+            assertTrue(app.state().expenses.isEmpty())
+            app.refresh(foreground=true)
+            assertNull(app.state().error)
+            assertEquals(1234L,app.state().expenses.single().amountMinor)
+            assertEquals(0,app.state().pendingCount)
+            assertEquals(1,requests.count{it.first=="POST"})
+            val writes=store.writes
+            app.refresh(foreground=true)
+            assertEquals(1,requests.count{it.first=="POST"})
+            assertEquals(writes,store.writes,"No due work must not rewrite the native cache")
+        }
+    }
+
+    private fun dueSchedule(server:Server):String {
+        val root="/budgets/${server.budget}"
+        val schedule=UUID.randomUUID().toString()
+        val view=server.get("$root/schedules").getAsJsonObject("data")
+        val body=JsonObject().apply{
+            addProperty("action","create");addProperty("id",schedule);addProperty("posts_transaction",true)
+            addProperty("snapshot",view["snapshot"].asString)
+            add("conditions",JsonParser.parseString("""[{"field":"account","op":"is","value":"${server.account}"},{"field":"amount","op":"is","value":-1234},{"field":"date","op":"is","value":"${view["today"].asString}"}]"""))
+        }
+        server.post("$root/schedules/commands",body.toString())
+        return schedule
+    }
+
+    @Test
+    fun `scheduled foreground lost ack retains separate original command through restart and background refresh`() {
+        Server().use { server ->Server().use { other ->
+            val store=MemoryStore();val real=BudgetHttpTransport()
+            val deliveries=mutableListOf<Pair<Map<String,String>,String>>()
+            var lose=true
+            val transport=HttpTransport{url,method,headers,body->
+                val scheduled=method=="POST"&&url.endsWith("/schedules/commands")
+                if(scheduled)deliveries+=headers.toMap() to requireNotNull(body).toString(Charsets.UTF_8)
+                val response=real.request(url,method,headers,body)
+                if(scheduled&&lose){lose=false;throw java.io.IOException("Deliberately lost committed schedule acknowledgement")}
+                response
+            }
+            var app=ApiExpenseService(store,transport=transport)
+            app.connect(server.url);app.chooseBudget(server.budget);app.chooseAccount(server.account)
+            dueSchedule(server)
+            app.refresh(foreground=true)
+            assertNull(app.state().error);assertTrue(app.state().scheduledWorkPending)
+            assertEquals(0,app.state().pendingCount);assertFalse(app.state().syncBlocked)
+            val original=JsonParser.parseString(store.raw).asJsonObject["scheduledCommand"].deepCopy()
+            assertEquals(deliveries[0].second,original.asJsonObject["body"].asString)
+            assertEquals(deliveries[0].first["X-Actual-Edit-Clock"],original.asJsonObject["clock"].asString)
+            assertEquals(deliveries[0].first["X-Actual-Budget-Epoch"],original.asJsonObject["epoch"].asString)
+            assertFailsWith<IllegalArgumentException>{app.connect(other.url)}
+            val otherBudget=UUID.randomUUID().toString();server.post("/budgets","""{"id":"$otherBudget","name":"Other"}""")
+            app.refreshBudgets();assertFailsWith<IllegalArgumentException>{app.chooseBudget(otherBudget)}
+            app=ApiExpenseService(store,transport=transport)
+            app.refresh()
+            assertEquals(1,deliveries.size,"Background/expense mode must not even probe the schedule command receipt")
+            assertEquals(original,JsonParser.parseString(store.raw).asJsonObject["scheduledCommand"])
+            app.refresh(foreground=true)
+            assertNull(app.state().error);assertFalse(app.state().scheduledWorkPending)
+            assertEquals(0,app.state().pendingCount);assertEquals(1234L,app.state().expenses.single().amountMinor)
+            assertEquals(2,deliveries.size)
+            val first=deliveries[0];val proof=deliveries[1]
+            assertEquals("true",proof.first["X-Actual-Receipt-Only"])
+            for(header in listOf("Idempotency-Key","X-Actual-Edit-Clock","X-Actual-Budget-Epoch"))assertEquals(first.first[header],proof.first[header])
+            assertEquals(first.second,proof.second)
+            val rows=server.get("/budgets/${server.budget}/transactions").getAsJsonArray("data")
+            assertEquals(1,rows.size());assertEquals(-1234L,rows[0].asJsonObject["amount"].asLong)
+        }}
+    }
+
+    @Test
+    fun `saved native state without scheduled command still decodes without an idle rewrite`() {
+        Server().use { server ->
+            val saved=MemoryStore();val app=ApiExpenseService(saved)
+            app.connect(server.url);app.chooseBudget(server.budget);app.chooseAccount(server.account)
+            val old=JsonParser.parseString(saved.raw).asJsonObject.apply{remove("scheduledCommand")}.toString()
+            val store=MemoryStore(old);val restarted=ApiExpenseService(store)
+            assertFalse(restarted.state().scheduledWorkPending)
+            restarted.refresh(foreground=true)
+            assertNull(restarted.state().error);assertEquals(0,store.writes);assertEquals(old,store.raw)
+        }
+    }
+
+    @Test
+    fun `uncommitted schedule command keeps original epoch after restore until explicit durable cancellation`() {
+        Server().use { server ->
+            val saved=MemoryStore();val real=BudgetHttpTransport();var intercept=true
+            val attempts=mutableListOf<Triple<String,Map<String,String>,ByteArray?>>()
+            val transport=HttpTransport{url,method,headers,body->
+                if(method=="POST"&&url.endsWith("/schedules/commands")){
+                    attempts+=Triple(url,headers.toMap(),body?.clone())
+                    if(intercept&&!headers.containsKey("X-Actual-Receipt-Only"))throw java.io.IOException("Disconnected before original schedule delivery")
+                }
+                real.request(url,method,headers,body)
+            }
+            val app=ApiExpenseService(saved,transport=transport)
+            app.connect(server.url);app.chooseBudget(server.budget);app.chooseAccount(server.account)
+            dueSchedule(server);val root="/budgets/${server.budget}"
+            val backup=server.post("$root/backups","""{"label":"Before schedule delivery"}""")
+            app.refresh(foreground=true);assertTrue(app.state().scheduledWorkPending)
+            val original=JsonParser.parseString(saved.raw).asJsonObject.getAsJsonObject("scheduledCommand").deepCopy()
+            val wire=attempts.first();intercept=false
+            server.post("$root/backups/${backup["id"].asString}/restore","""{"confirm_name":"Native fixture"}""",200)
+            app.refresh(foreground=true)
+            assertTrue(app.state().scheduledWorkPending);assertFalse(app.state().syncBlocked);assertNull(app.state().error)
+            assertTrue(app.state().scheduledWorkError.orEmpty().contains("restored"),app.state().scheduledWorkError)
+            val retained=JsonParser.parseString(saved.raw).asJsonObject.getAsJsonObject("scheduledCommand")
+            for(field in listOf("id","server","budget","path","body","clock","epoch"))assertEquals(original[field],retained[field])
+            assertNotEquals(original["epoch"].asString,server.get("$root/checkpoint").getAsJsonObject("data")["epoch"].asString)
+            val sends=attempts.count{!it.second.containsKey("X-Actual-Receipt-Only")}
+            app.refresh(foreground=true)
+            assertEquals(sends,attempts.count{!it.second.containsKey("X-Actual-Receipt-Only")},"A known review refusal must not spin on foreground")
+            app.cancelScheduledWork();assertFalse(app.state().scheduledWorkPending)
+            assertTrue(attempts.last().second.containsKey("X-Actual-Cancel-If-Uncommitted"))
+            val late=real.request(wire.first,"POST",wire.second,wire.third)
+            assertEquals(409,late.status);assertEquals("operation_canceled",JsonParser.parseString(late.body.toString(Charsets.UTF_8)).asJsonObject.getAsJsonObject("error")["code"].asString)
+            assertEquals(0,server.get("$root/transactions").getAsJsonArray("data").size())
+            app.refresh(foreground=true)
+            assertFalse(app.state().scheduledWorkPending);assertEquals(1,app.state().expenses.size)
+            assertNotEquals(original["id"].asString,attempts.last().second["Idempotency-Key"])
+        }
+    }
+
+    @Test
+    fun `overdue scheduled work holds for review without spinning or blocking ordinary pending expenses`() {
+        Server().use { server ->
+            val source=Files.readAllBytes(Path.of("../../actualBudget/tests/fixtures/schedules-overdue-26.10.zip"))
+            val stage=server.upload(source);val budget=stage["budget_id"].asString
+            server.post("/imports/${stage["id"].asString}/activate","{}")
+            val account=server.get("/budgets/$budget/accounts").getAsJsonArray("data")[0].asJsonObject["id"].asString
+            val real=BudgetHttpTransport();var sends=0;var scheduleTraffic=0
+            val network=HttpTransport{url,method,headers,body->
+                if(url.contains("/schedules"))scheduleTraffic++
+                if(method=="POST"&&url.endsWith("/schedules/commands")&&!headers.containsKey("X-Actual-Receipt-Only"))sends++
+                real.request(url,method,headers,body)
+            }
+            val store=MemoryStore();val app=ApiExpenseService(store,transport=network)
+            app.connect(server.url);app.chooseBudget(budget);app.chooseAccount(account)
+            app.refresh(foreground=true)
+            assertEquals(1,sends);assertTrue(app.state().scheduledWorkPending)
+            assertTrue(app.state().scheduledWorkError.orEmpty().contains("500"),app.state().scheduledWorkError)
+            assertEquals(0,app.state().pendingCount);assertFalse(app.state().syncBlocked);assertNull(app.state().error)
+            assertEquals(0,server.get("/budgets/$budget/transactions").getAsJsonArray("data").size())
+            app.markOffline();val expense=app.saveExpense(ExpenseDraft("2.34",notes="Capture remains available"))
+            assertEquals(1,app.state().pendingCount)
+            val traffic=scheduleTraffic;app.refresh()
+            assertEquals(traffic,scheduleTraffic,"Pending-only refresh may not deliver or probe held schedule work")
+            assertEquals(0,app.state().pendingCount);assertTrue(app.state().scheduledWorkPending)
+            assertEquals(expense,app.state().expenses.single().id)
+            val restarted=ApiExpenseService(store,transport=network)
+            restarted.refresh(foreground=true)
+            assertEquals(1,sends,"Known work-cap refusal requires explicit review instead of another identical foreground POST")
+            assertTrue(restarted.state().scheduledWorkPending)
+            assertNull(restarted.state().error);assertEquals(expense,restarted.state().expenses.single().id)
+        }
+    }
+
 }

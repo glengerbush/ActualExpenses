@@ -212,8 +212,8 @@ pub(crate) fn post_schedule(
     } else if let Some(destination) = transfer {
         let peer = super::actions::identity(&["actualBudget.schedule-pair.v1", b, id]);
         crate::transfers::composition::save_child(db, b, id, &destination, &peer, clock, None)?;
-        peer_rules(db, b, &peer, clock, &mut runner)?;
         crate::schedules::link(db, b, &peer, schedule, clock)?;
+        peer_rules(db, b, &peer, clock, &mut runner)?;
     }
     crate::schedules::link(db, b, id, schedule, clock)?;
     Ok((runner.into_work(), true))

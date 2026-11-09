@@ -52,32 +52,46 @@ pub fn horizon_days(value: &str, today: &str) -> Result<i64, Error> {
     }
     Ok(result)
 }
-pub fn has_transactions(db: &Connection, b: &str, row: &Value) -> Result<bool, Error> {
-    let Some(date) = row["next_date"].as_str() else {
-        return Ok(false);
-    };
+
+pub(super) fn matched_transaction(
+    db: &Connection,
+    b: &str,
+    row: &Value,
+    date: &str,
+) -> Result<Option<String>, Error> {
     let condition = calendar::date_condition(row["conditions"].as_array().unwrap())?;
     let start = if condition["op"] == "is" || row["posts_transaction"] == true {
         date.to_owned()
     } else {
         calendar::shift(date, -2)?
     };
-    Ok(db.query_row("SELECT EXISTS(SELECT 1 FROM schedule_links l JOIN transactions t ON t.budget_id=l.budget_id AND t.id=l.id WHERE l.budget_id=?1 AND l.schedule_id=?2 AND l.tombstone=0 AND t.tombstone=0 AND t.date>=?3)",params![b,row["id"].as_str(),start],|r|r.get(0))?)
+    Ok(db.query_row("SELECT t.id FROM schedule_links l JOIN transactions t ON t.budget_id=l.budget_id AND t.id=l.id WHERE l.budget_id=?1 AND l.schedule_id=?2 AND l.tombstone=0 AND t.tombstone=0 AND t.date>=?3 ORDER BY t.date DESC,t.id LIMIT 1",params![b,row["id"].as_str(),start],|r|r.get(0)).optional()?)
 }
-pub fn list(db: &Connection, b: &str) -> Result<Value, Error> {
+pub fn has_transactions(db: &Connection, b: &str, row: &Value) -> Result<bool, Error> {
+    let Some(date) = row["next_date"].as_str() else {
+        return Ok(false);
+    };
+    Ok(matched_transaction(db, b, row, date)?.is_some())
+}
+pub fn list(db: &Connection, b: &str, query: &super::Page) -> Result<Value, Error> {
+    crate::store::require_budget(db, b)?;
     let today = calendar::day()?;
     let horizon: String = db.query_row(
         "SELECT value FROM schedule_settings WHERE budget_id=?1 AND id='horizon'",
         [b],
         |r| r.get(0),
     )?;
-    let mut rows = data::list(db, b)?;
+    let mut rows = data::page(db, b, query)?;
+    let more = rows.len() > query.limit;
+    rows.truncate(query.limit);
     let mut previews = vec![];
+    let mut continuations = vec![];
     let mut work = 2_000_000usize;
     for row in &mut rows {
         let length = row["custom_upcoming_length"].as_str().unwrap_or(&horizon);
         let end = calendar::shift(&today, horizon_days(length, &today)?)?;
-        let paid = has_transactions(db, b, row)?;
+        let recorded:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM schedule_occurrences WHERE budget_id=?1 AND schedule_id=?2 AND occurrence_date=?3 AND tombstone=0 AND status IN('posted','matched','suppressed'))",params![b,row["id"].as_str(),row["next_date"].as_str()],|r|r.get(0))?;
+        let paid = recorded || has_transactions(db, b, row)?;
         let date_owned = row["next_date"].as_str().map(str::to_owned);
         let date = date_owned.as_deref();
         let status = if row["completed"] == true {
@@ -111,28 +125,19 @@ pub fn list(db: &Connection, b: &str) -> Result<Value, Error> {
         }
         if !matches!(status, "completed" | "scheduled") {
             if let Some(date) = date.map(str::to_owned) {
-                let value =
-                    calendar::date_condition(row["conditions"].as_array().unwrap())?["value"]
-                        .clone();
-                let mut dates = vec![date.clone()];
-                let mut current = date;
-                while value.is_object() && current <= end {
-                    let Some(next) = calendar::after(&value, &current, &mut work)? else {
-                        break;
-                    };
-                    if next > end {
-                        break;
-                    }
-                    dates.push(next.clone());
-                    current = next;
-                    if dates.len() > 1000 {
-                        return Err(Error::invalid(
-                            "Narrow upcoming length to preview fewer than1000 occurrences",
-                        ));
-                    }
+                let available = (1000usize - previews.len()).min(10);
+                if available == 0 {
+                    continuations.push(json!({"schedule_id":row["id"],"from":date}));
+                    continue;
                 }
-                if paid {
+                let (mut dates, more) =
+                    occurrences::dates(row, &date, &end, available + usize::from(paid), &mut work)?;
+                if paid && dates.first() == Some(&date) {
                     dates.remove(0);
+                }
+                if more && let Some(last) = dates.last() {
+                    continuations
+                        .push(json!({"schedule_id":row["id"],"from":calendar::shift(last,1)?}));
                 }
                 for date in dates {
                     previews.push(json!({"id":format!("preview/{}/{}",row["id"].as_str().unwrap(),date),"schedule_id":row["id"],"date":date,"account_id":row["account_id"],"payee_id":row["payee_id"],"amount":commands::scheduled_amount(&row["amount"])?,"status":status}));
@@ -141,6 +146,64 @@ pub fn list(db: &Connection, b: &str) -> Result<Value, Error> {
         }
     }
     Ok(
-        json!({"schedules":rows,"previews":previews,"upcoming_length":horizon,"today":today,"snapshot":sync::cursor(db,b)?,"epoch":crate::lifecycle::epoch(db,b)?}),
+        json!({"schedules":rows,"previews":previews,"next_offset":more.then_some(query.offset+query.limit),"preview_continuations":continuations,"upcoming_length":horizon,"today":today,"snapshot":sync::cursor(db,b)?,"epoch":crate::lifecycle::epoch(db,b)?}),
+    )
+}
+
+/// Foreground callers probe without updating clocks, receipts or cached state.
+/// Only a genuinely due transition authorizes a separate catch-up command.
+pub fn due(db: &Connection, b: &str) -> Result<Value, Error> {
+    let today = calendar::day()?;
+    let mut work = 2_000_000usize;
+    let mut due = false;
+    let mut next_due: Option<String> = None;
+    for row in data::list(db, b)? {
+        work = work
+            .checked_sub(1)
+            .ok_or_else(|| Error::invalid("Narrow the due schedule set"))?;
+        if row["completed"] == true {
+            continue;
+        }
+        let Some(date) = row["next_date"].as_str() else {
+            continue;
+        };
+        let Some(account) = row["conditions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["field"] == "account" && c["op"] == "is")
+            .and_then(|c| c["value"].as_str())
+        else {
+            continue;
+        };
+        if super::account_open(db, b, account).is_err() {
+            continue;
+        }
+        if date > today.as_str() {
+            if row["posts_transaction"] == true && next_due.as_deref().is_none_or(|d| date < d) {
+                next_due = Some(date.to_owned());
+            }
+            continue;
+        }
+        let handled:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM schedule_occurrences WHERE budget_id=?1 AND schedule_id=?2 AND occurrence_date=?3 AND tombstone=0)",params![b,row["id"].as_str(),date],|r|r.get(0))?;
+        let paid = handled || has_transactions(db, b, &row)?;
+        if !paid {
+            due |= row["posts_transaction"] == true;
+            continue;
+        }
+        if date == today {
+            continue;
+        }
+        let value = &calendar::date_condition(row["conditions"].as_array().unwrap())?["value"];
+        due |= if value.is_string() {
+            true
+        } else if row["posts_transaction"] == true {
+            calendar::after(value, date, &mut work)?.is_some()
+        } else {
+            calendar::next(value, &today, &mut work)?.as_deref() != Some(date)
+        };
+    }
+    Ok(
+        json!({"due":due,"next_due_date":next_due,"today":today,"snapshot":sync::cursor(db,b)?,"epoch":crate::lifecycle::epoch(db,b)?}),
     )
 }

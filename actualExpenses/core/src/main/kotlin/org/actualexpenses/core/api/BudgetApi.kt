@@ -59,12 +59,15 @@ internal class BudgetApi(private val base: String, private val transport: HttpTr
         clock: String? = null,
         epoch: String? = null,
         receiptOnly: Boolean = false,
+        cancelIfUncommitted:Boolean=false,
     ): JsonObject {
         val headers = mutableMapOf("Accept" to "application/json")
         if (body != null) headers["Content-Type"] = "application/json"
         key?.let { headers["Idempotency-Key"] = it }
         clock?.let { headers["X-Actual-Edit-Clock"] = it }
         epoch?.let { headers["X-Actual-Budget-Epoch"] = it }
+        require(!receiptOnly || !cancelIfUncommitted)
+        if(cancelIfUncommitted)headers["X-Actual-Cancel-If-Uncommitted"]="true"
         if (receiptOnly) headers["X-Actual-Receipt-Only"] = "true"
         // A captured expense operation cannot gain split/transfer semantics later.
         if (key != null && method in listOf("PATCH", "DELETE") && path.contains("/transactions/")) {

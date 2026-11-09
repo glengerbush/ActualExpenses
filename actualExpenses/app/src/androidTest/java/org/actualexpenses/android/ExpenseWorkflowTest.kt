@@ -162,6 +162,15 @@ class ExpenseWorkflowTest {
         compose.runOnIdle {assertEquals(session,actions.deletedSession)}
     }
 
+    @Test fun scheduleRecoveryKeepsExpenseCaptureAndExplicitRequestControls(){
+        compose.setContent{ActualExpensesTheme{ExpensesScreen(ExpenseUiState(screen=Screen.EXPENSES,online=true,scheduledWorkPending=true,scheduledWorkError="Review older dates in actualBudget before retrying."),actions)}}
+        compose.onNodeWithContentDescription("Add expense").assertIsDisplayed()
+        compose.onNodeWithText("Retry scheduled entries").performScrollTo().performClick()
+        assertTrue(actions.retriedSchedules)
+        compose.onNodeWithText("Cancel saved schedule request").performScrollTo().performClick()
+        assertTrue(actions.cancelledSchedules)
+    }
+
     private class RecordingActions : ExpenseUiActions {
         override fun showServer() = Unit
         override fun cancelConnection() = Unit
@@ -178,6 +187,10 @@ class ExpenseWorkflowTest {
         override fun chooseAccount(id: String) = Unit
         override fun showBudgets() = Unit
         override fun showAccounts() = Unit
+        var retriedSchedules=false
+        var cancelledSchedules=false
+        override fun retryScheduledWork(){retriedSchedules=true}
+        override fun cancelScheduledWork(){cancelledSchedules=true}
         override fun refresh() = Unit
         override fun save(form: ExpenseForm) { saved = form; saveCount++ }
         override fun delete(session: EditSession, operationId: String) { deleted = session.transactionId;deletedSession=session }

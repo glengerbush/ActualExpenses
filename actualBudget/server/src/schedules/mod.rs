@@ -3,6 +3,7 @@ mod calendar;
 mod commands;
 mod data;
 mod import;
+mod occurrences;
 pub(crate) use import::{
     convert as convert_actual, enrich, import_clock, install as install_actual,
 };
@@ -10,7 +11,7 @@ mod view;
 use crate::{concurrency as sync, error::Error, store::Store};
 use axum::{
     Json, Router,
-    extract::{Path, State, rejection::JsonRejection},
+    extract::{Path, Query, State, rejection::JsonRejection},
     http::{HeaderMap, StatusCode},
     routing::{get, post},
 };
@@ -22,6 +23,11 @@ pub fn router() -> Router<Store> {
     Router::new()
         .route("/api/v1/schedules/preview-dates", post(preview_dates))
         .route("/api/v1/budgets/{budget}/schedules", get(list))
+        .route("/api/v1/budgets/{budget}/schedules/due", get(due))
+        .route(
+            "/api/v1/budgets/{budget}/schedules/{id}/occurrences",
+            get(occurrences::read),
+        )
         .route("/api/v1/budgets/{budget}/schedules/commands", post(command))
 }
 #[derive(Deserialize)]
@@ -44,11 +50,50 @@ async fn preview_dates(input: Result<Json<Dates>, JsonRejection>) -> Result<Json
     }
     Ok(Json(data))
 }
-async fn list(State(store): State<Store>, Path(b): Path<String>) -> Result<Json<Value>, Error> {
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(super) struct Page {
+    #[serde(default)]
+    offset: usize,
+    #[serde(default = "page_limit")]
+    limit: usize,
+    account_id: Option<String>,
+    snapshot: Option<String>,
+}
+fn page_limit() -> usize {
+    100
+}
+async fn list(
+    State(store): State<Store>,
+    Path(b): Path<String>,
+    query: Result<Query<Page>, axum::extract::rejection::QueryRejection>,
+) -> Result<Json<Value>, Error> {
+    crate::models::validate_id(&b)?;
+    let Query(query) = query.map_err(|_| Error::invalid("Invalid schedule page"))?;
+    if query.limit == 0 || query.limit > 1000 || query.offset > 100000 {
+        return Err(Error::invalid("Schedule pages contain1–1000 rows"));
+    }
+    if let Some(account) = &query.account_id {
+        crate::models::validate_id(account)?;
+    }
+    Ok(Json(
+        store
+            .run(move |db| {
+                sync::check_snapshot(db, &b, query.snapshot.as_deref())?;
+                if let Some(account) = &query.account_id {
+                    crate::ledger::account_exists(db, &b, account)?;
+                }
+                Ok(json!({"data":view::list(db,&b,&query)?}))
+            })
+            .await?,
+    ))
+}
+async fn due(State(store): State<Store>, Path(b): Path<String>) -> Result<Json<Value>, Error> {
     crate::models::validate_id(&b)?;
     Ok(Json(
         store
-            .run(move |db| Ok(json!({"data":view::list(db,&b)?})))
+            .run(move |db| Ok(json!({"data":view::due(db,&b)?})))
             .await?,
     ))
 }

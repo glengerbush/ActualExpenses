@@ -160,7 +160,7 @@ fn existing_account(db: &Connection, b: &str, id: &str) -> Result<bool, Error> {
         |r| r.get(0),
     )?)
 }
-fn payee(db: &Connection, b: &str, account: &str) -> Result<String, Error> {
+pub(crate) fn payee(db: &Connection, b: &str, account: &str) -> Result<String, Error> {
     if let Some(id)=db.query_row("SELECT id FROM payees WHERE budget_id=?1 AND transfer_account_id=?2 AND tombstone=0 ORDER BY id LIMIT 1",params![b,account],|r|r.get::<_,String>(0)).optional()?{return Ok(id)}
     let id = uuid::Uuid::new_v4().to_string();
     db.execute("INSERT INTO payees(budget_id,id,name,transfer_account_id) SELECT ?1,?2,name,id FROM accounts WHERE budget_id=?1 AND id=?3",params![b,id,account])?;

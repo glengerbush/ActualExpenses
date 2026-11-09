@@ -818,3 +818,256 @@ fn scheduled_range_midpoints_match_pinned_javascript_at_safe_integer_boundaries(
         assert_eq!(result["balances"]["total"], case["amount"]);
     }
 }
+#[test]
+fn foreground_due_probe_is_read_only_and_stops_after_todays_occurrence() {
+    let s = Server::start();
+    setup(&s);
+    let root = format!("/api/v1/budgets/{B}");
+    let calendar: Value = s.get(&format!("{root}/schedules")).json().unwrap();
+    let today = calendar["data"]["today"].clone();
+    let response = command(
+        &s,
+        "schedule",
+        json!({"action":"create","id":S,"posts_transaction":true,"conditions":[{"field":"account","op":"is","value":A},{"field":"amount","op":"is","value":-100},{"field":"date","op":"is","value":today}]}),
+    );
+    assert_eq!(response.status(), 201);
+    let cp = checkpoint(&s);
+    let probe = s.get(&format!("{root}/schedules/due"));
+    assert_eq!(probe.status(), 200, "{}", probe.text().unwrap());
+    let probe: Value = probe.json().unwrap();
+    assert_eq!(probe["data"]["due"], true);
+    assert_eq!(checkpoint(&s), cp);
+    assert_eq!(
+        command(&s, "foreground", json!({"action":"catch-up"})).status(),
+        200
+    );
+    let cp = checkpoint(&s);
+    for _ in 0..2 {
+        let probe: Value = s.get(&format!("{root}/schedules/due")).json().unwrap();
+        assert_eq!(probe["data"]["due"], false);
+        assert_eq!(checkpoint(&s), cp);
+    }
+    let rows: Value = s
+        .get(&format!("{root}/transactions?account_id={A}"))
+        .json()
+        .unwrap();
+    assert_eq!(rows["data"].as_array().unwrap().len(), 1);
+}
+#[test]
+fn overdue_cap_refuses_atomically_then_explicit_through_dates_make_recoverable_progress() {
+    let s = Server::start();
+    let fixture: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/schedules-overdue-26.10.json"
+    ))
+    .unwrap();
+    let response = s
+        .client
+        .post(format!("{}/api/v1/imports/actual", s.url))
+        .header("Idempotency-Key", "overdue-source")
+        .header("Content-Type", "application/zip")
+        .body(include_bytes!("../../tests/fixtures/schedules-overdue-26.10.zip").to_vec())
+        .send()
+        .unwrap();
+    assert_eq!(response.status(), 201);
+    let stage: Value = response.json().unwrap();
+    assert_eq!(stage["data"]["status"], "ready");
+    let id = stage["data"]["id"].as_str().unwrap();
+    let b = stage["data"]["budget_id"].as_str().unwrap();
+    assert_eq!(
+        s.post(
+            &format!("/api/v1/imports/{id}/activate"),
+            "activate-overdue",
+            json!({})
+        )
+        .status(),
+        201
+    );
+    let root = format!("/api/v1/budgets/{b}");
+    let cp: Value = s.get(&format!("{root}/checkpoint")).json().unwrap();
+    let send = |key: &str, through: &Value| {
+        s.client
+            .post(format!("{}{root}/schedules/commands", s.url))
+            .timeout(Duration::from_secs(30))
+            .header("Idempotency-Key", key)
+            .header(
+                "X-Actual-Budget-Epoch",
+                cp["data"]["epoch"].as_str().unwrap(),
+            )
+            .json(&json!({"action":"catch-up","through":through}))
+            .send()
+            .unwrap()
+    };
+    let over = send("too-many", &fixture["through"]);
+    assert_eq!(over.status(), 400, "{}", over.text().unwrap());
+    let error: Value = over.json().unwrap();
+    assert!(error["error"]["message"].as_str().unwrap().contains("500"));
+    assert_eq!(
+        s.get(&format!("{root}/checkpoint"))
+            .json::<Value>()
+            .unwrap(),
+        cp
+    );
+    let empty: Value = s.get(&format!("{root}/transactions")).json().unwrap();
+    assert_eq!(empty["data"], json!([]));
+    let first = send("first-bounded-part", &fixture["first_chunk"]["through"]);
+    assert_eq!(first.status(), 200, "{}", first.text().unwrap());
+    let first: Value = first.json().unwrap();
+    assert_eq!(
+        first["data"]["posted_count"],
+        fixture["first_chunk"]["transaction_count"]
+    );
+    assert_eq!(
+        first["data"]["transaction_ids"].as_array().unwrap().len(),
+        400
+    );
+    assert!(
+        first.to_string().len() < 30000,
+        "Catch-up receipts must stay bounded instead of hydrating every row"
+    );
+    let final_part = send("second-bounded-part", &fixture["through"]);
+    assert_eq!(final_part.status(), 200, "{}", final_part.text().unwrap());
+    let last: Value = final_part.json().unwrap();
+    assert_eq!(last["data"]["posted_count"], 278);
+    let rows: Value = s
+        .get(&format!("{root}/transactions?limit=1000"))
+        .json()
+        .unwrap();
+    assert_eq!(rows["balances"]["total"], fixture["after"]["total"]);
+    let mut actual = rows["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| json!({"date":r["date"],"amount":r["amount"],"cleared":r["cleared"],"schedule_id":r["schedule_id"]}))
+        .collect::<Vec<_>>();
+    let mut expected = fixture["transactions"].as_array().unwrap().clone();
+    actual.sort_by_key(Value::to_string);
+    expected.sort_by_key(Value::to_string);
+    assert_eq!(actual.len(), expected.len());
+    for (i, (actual, expected)) in actual.iter().zip(&expected).enumerate() {
+        assert_eq!(actual, expected, "Source occurrence {i}");
+    }
+}
+#[test]
+fn occurrence_pages_expose_stable_ids_and_allow_review_beyond_summary_preview_limit() {
+    let s = Server::start();
+    setup(&s);
+    let response = command(
+        &s,
+        "schedule",
+        json!({"action":"create","id":S,"conditions":[{"field":"account","op":"is","value":A},{"field":"amount","op":"is","value":-100},{"field":"date","op":"is","value":{"start":"2026-11-09","frequency":"daily","endMode":"never"}}]}),
+    );
+    assert_eq!(response.status(), 201);
+    let root = format!("/api/v1/budgets/{B}");
+    let cp = checkpoint(&s);
+    let page = s.get(&format!(
+        "{root}/schedules/{S}/occurrences?from=2026-11-09&through=2026-12-31&limit=2"
+    ));
+    assert_eq!(page.status(), 200, "{}", page.text().unwrap());
+    let first: Value = page.json().unwrap();
+    assert_eq!(first["data"]["occurrences"].as_array().unwrap().len(), 2);
+    assert_eq!(first["data"]["next_from"], "2026-11-11");
+    let second: Value = s
+        .get(&format!(
+            "{root}/schedules/{S}/occurrences?from=2026-11-11&through=2026-12-31&limit=2"
+        ))
+        .json()
+        .unwrap();
+    assert_eq!(second["data"]["occurrences"][0]["date"], "2026-11-11");
+    assert_ne!(
+        first["data"]["occurrences"][0]["id"],
+        second["data"]["occurrences"][0]["id"]
+    );
+    assert_eq!(checkpoint(&s), cp);
+    let again: Value = s
+        .get(&format!(
+            "{root}/schedules/{S}/occurrences?from=2026-11-09&through=2026-12-31&limit=2"
+        ))
+        .json()
+        .unwrap();
+    assert_eq!(again, first);
+}
+#[test]
+fn first_transfer_schedule_creates_account_managed_reference_without_posting_money() {
+    let s = Server::start();
+    setup(&s);
+    let root = format!("/api/v1/budgets/{B}");
+    assert_eq!(
+        s.post(
+            &format!("{root}/accounts"),
+            "peer",
+            json!({"id":P,"name":"Savings","opening_balance":0,"opening_date":"2026-01-01"})
+        )
+        .status(),
+        201
+    );
+    let response = command(
+        &s,
+        "transfer-schedule",
+        json!({"action":"create","id":S,"transfer_account_id":P,"conditions":[{"field":"account","op":"is","value":A},{"field":"amount","op":"is","value":-987},{"field":"date","op":"is","value":"2026-11-09"}]}),
+    );
+    assert_eq!(response.status(), 201, "{}", response.text().unwrap());
+    let saved: Value = response.json().unwrap();
+    assert!(
+        saved["data"]["conditions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|c| c["field"] == "payee" && c["value"].is_string())
+    );
+    let empty: Value = s.get(&format!("{root}/transactions")).json().unwrap();
+    assert_eq!(empty["data"], json!([]));
+    assert_eq!(
+        command(
+            &s,
+            "post-transfer",
+            json!({"action":"post","id":S,"occurrence_date":"2026-11-09"})
+        )
+        .status(),
+        200
+    );
+    let origin: Value = s
+        .get(&format!("{root}/transactions?account_id={A}"))
+        .json()
+        .unwrap();
+    let peer: Value = s
+        .get(&format!("{root}/transactions?account_id={P}"))
+        .json()
+        .unwrap();
+    assert_eq!(origin["balances"]["total"], -987);
+    assert_eq!(peer["balances"]["total"], 987);
+    assert_eq!(origin["data"][0]["transfer_id"], peer["data"][0]["id"]);
+    assert_eq!(peer["data"][0]["schedule_id"], S);
+}
+#[test]
+fn already_linked_imported_manual_occurrence_is_acknowledged_without_a_second_purchase() {
+    let s = Server::start();
+    let stage: Value = s
+        .client
+        .post(format!("{}/api/v1/imports/actual", s.url))
+        .header("Idempotency-Key", "manual-source")
+        .header("Content-Type", "application/zip")
+        .body(include_bytes!("../../tests/fixtures/schedules-missed-26.10.zip").to_vec())
+        .send()
+        .unwrap()
+        .json()
+        .unwrap();
+    let id = stage["data"]["id"].as_str().unwrap();
+    let b = stage["data"]["budget_id"].as_str().unwrap();
+    assert_eq!(
+        s.post(
+            &format!("/api/v1/imports/{id}/activate"),
+            "activate",
+            json!({})
+        )
+        .status(),
+        201
+    );
+    let root = format!("/api/v1/budgets/{b}");
+    let before: Value = s.get(&format!("{root}/transactions")).json().unwrap();
+    let cp: Value = s.get(&format!("{root}/checkpoint")).json().unwrap();
+    let response=s.post(&format!("{root}/schedules/commands"),"ack-source-post",json!({"action":"post","id":"21220000-0000-4000-8000-000000000002","occurrence_date":"2026-11-06","snapshot":cp["data"]["snapshot"]}));
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let after: Value = s.get(&format!("{root}/transactions")).json().unwrap();
+    assert_eq!(after["data"], before["data"]);
+    assert_eq!(after["balances"], before["balances"]);
+}

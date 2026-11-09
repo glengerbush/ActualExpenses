@@ -35,10 +35,10 @@ class AppGraph(private val context: Context) {
         try { block(current) } finally { state.value = current.state() }
     }
 
-    suspend fun refresh() {
+    suspend fun refresh(foreground:Boolean=true) {
         val current = service.await()
         try {
-            if (current.state().serverSelected) current.refresh()
+            if (current.state().serverSelected) current.refresh(foreground=foreground)
         } finally { mutex.withLock { state.value = current.state() } }
     }
 
@@ -60,7 +60,7 @@ class PendingSyncWorker(context: Context, parameters: WorkerParameters) : Corout
     override suspend fun doWork(): Result {
         val graph = (applicationContext as ExpensesApplication).graph
         return try {
-            if (graph.access { it.state().pendingCount } > 0) graph.refresh()
+            if (graph.access { it.state().pendingCount } > 0) graph.refresh(foreground=false)
             val state = graph.access { it.state() }
             when {
                 state.pendingCount == 0 -> Result.success()

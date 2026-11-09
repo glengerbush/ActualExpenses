@@ -43,11 +43,13 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         if (graph.state.value.budgetId != null) withContext(Dispatchers.Main) { refresh() }
     }
     override fun chooseBudget(id: String) = task { graph.access { it.chooseBudget(id) }; selection.value = if(graph.state.value.selectedAccountId==null) Screen.ACCOUNTS else null; if(graph.state.value.pendingCount > 0) { graph.schedulePending(); withContext(Dispatchers.Main) { refresh() } } }
-    override fun chooseAccount(id: String) = task { graph.access { it.chooseAccount(id) }; selection.value = null }
+    override fun chooseAccount(id: String) = task { graph.access { it.chooseAccount(id) }; selection.value = null; graph.refresh() }
     override fun showBudgets() = task {graph.access{it.refreshBudgets()};selection.value=Screen.BUDGETS}
     override fun showAccounts() { selection.value = Screen.ACCOUNTS }
     override fun showServer() { selection.value = Screen.SERVER }
     override fun cancelConnection() { selection.value = null }
+    override fun retryScheduledWork()=task{graph.access{it.retryScheduledWork()}}
+    override fun cancelScheduledWork()=task{graph.access{it.cancelScheduledWork()}}
     override fun refresh() {
         if (refreshJob?.isActive == true) return
         refreshJob = viewModelScope.launch {
@@ -113,5 +115,6 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         online = online, busy = busy, pendingCount = pendingCount, error = if (legacyRecovery) null else localError ?: error, notice = notice,
         recoveryMessage = if (legacyRecovery) localError ?: error else null,
         canCancelConnection = budgetId != null, expenseContext=expenseContext, splitRecovery=splitRecovery,
+        scheduledWorkPending=scheduledWorkPending,scheduledWorkError=scheduledWorkError,
     )
 }

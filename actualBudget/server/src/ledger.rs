@@ -26,6 +26,8 @@ pub struct NewTransaction {
     pub new_payee: Option<NewReference>,
     #[serde(default)]
     pub new_category: Option<NewReference>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub learn_categories: Option<bool>,
 }
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]

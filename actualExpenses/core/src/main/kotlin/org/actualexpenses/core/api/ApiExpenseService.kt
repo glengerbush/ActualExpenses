@@ -41,6 +41,7 @@ private data class NativeState(
     val accounts: MutableMap<String, JsonObject> = mutableMapOf(),
     val payees: MutableMap<String, JsonObject> = mutableMapOf(),
     val categories: MutableMap<String, JsonObject> = mutableMapOf(),
+    val associations: MutableMap<String, String> = mutableMapOf(),
     var preferences: JsonObject = JsonObject(),
     val rows: MutableMap<String, JsonObject> = mutableMapOf(),
     val rememberedAccounts: MutableMap<String, String> = mutableMapOf(),
@@ -72,6 +73,7 @@ class ApiExpenseService(
     @Volatile private var error: String? = null
     @Volatile private var blocked = false
     private val syncLock = ReentrantLock()
+    private var capabilities: Set<String> = emptySet()
 
     private fun ready() {
         check(!legacyPresent) { LEGACY_RECOVERY }
@@ -172,6 +174,10 @@ class ApiExpenseService(
                         }
                     } == true
                 },
+            payeeCategoryAssociations = saved.associations.filter { (payee, category) ->
+                payees[payee]?.let { it["deleted"]?.asBoolean != true && it.text("transfer_account_id") == null } == true &&
+                saved.categories[category]?.let { listOf("is_income", "hidden", "group_hidden", "deleted").none { key -> it[key]?.asBoolean == true } } == true
+            },
             currency = currency,
             decimalPlaces = if (currency in setOf("IRR", "JPY", "KRW")) 0 else 2,
             online = online,
@@ -190,7 +196,7 @@ class ApiExpenseService(
             "Keep this server address while a budget is selected. Saved work belongs to its original server."
         }
         val api = BudgetApi(normalized, transport)
-        api.requireSupported()
+        capabilities = api.requireSupported()
         val budgets = budgets(api)
         require(
             normalized != saved.server ||
@@ -495,6 +501,7 @@ class ApiExpenseService(
             // A selected compatible API is checked without login. Compatibility
             // failures never touch durable outbox contents or legacy storage.
             val capabilities = api.requireSupported()
+            this.capabilities = capabilities
             if (saved.budgetId == null) {
                 val list = budgets(api)
                 change { it.budgets = list }
@@ -699,6 +706,7 @@ class ApiExpenseService(
                     }
                 val payees = references(api, budget, "payees", suffix)
                 val categories = references(api, budget, "categories", suffix)
+                val associations = associations(api, budget, snapshot)
                 val prefs =
                     api.request("/budgets/$budget/preferences?$suffix").getAsJsonObject("data")
                 val selected = account?.takeIf { id ->
@@ -736,6 +744,8 @@ class ApiExpenseService(
                     payees.forEach { next.payees[it.text("id")!!] = it }
                     next.categories.clear()
                     categories.forEach { next.categories[it.text("id")!!] = it }
+                    next.associations.clear()
+                    next.associations.putAll(associations)
                     next.preferences = preferences(prefs)
                     if (view != null) installView(next, selected!!, view)
                 }
@@ -777,6 +787,7 @@ class ApiExpenseService(
                     if (changes.any { it["entity"].asString == "category_groups" })
                         references(api, budget, "categories", "snapshot=${BudgetApi.query(cursor)}")
                     else null
+                val associations = if (changes.any { it["entity"].asString in setOf("rules", "rule_settings", "payees", "categories", "category_groups") }) associations(api,budget,cursor) else null
                 val view =
                     if (
                         includeView &&
@@ -807,6 +818,10 @@ class ApiExpenseService(
                                 } else if (next.rows.containsKey(id)) next.rows[id] = row
                             }
                         }
+                    }
+                    if (associations != null) {
+                        next.associations.clear()
+                        next.associations.putAll(associations)
                     }
                     if (categories != null) {
                         next.categories.clear()
@@ -867,6 +882,17 @@ class ApiExpenseService(
             observe(next, row)
         }
         next.recent[account] = recent.map { it.text("id")!! }
+    }
+
+    private fun associations(api:BudgetApi,budget:String,snapshot:String):Map<String,String> {
+        if ("category_associations" !in capabilities) return emptyMap()
+        val data=api.request("/budgets/$budget/rules/associations?snapshot=${BudgetApi.query(snapshot)}").getAsJsonObject("data")
+        require(data.size()<=100000) { "Too many category associations for this device." }
+        return data.entrySet().associate { (payee,value) ->
+            val category=value.asString
+            require(UUID.fromString(payee).toString()==payee && UUID.fromString(category).toString()==category) { "Invalid cached category association." }
+            payee to category
+        }
     }
 
     private fun references(

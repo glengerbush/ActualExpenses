@@ -560,6 +560,7 @@ pub fn apply(
                     category_id: child.category_id.clone(),
                     new_payee: None,
                     new_category: None,
+                    learn_categories: None,
                 };
                 row.validate()?;
                 // Moving an existing allocation off budget retains its latent category.

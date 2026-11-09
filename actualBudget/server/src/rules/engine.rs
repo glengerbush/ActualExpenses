@@ -15,12 +15,15 @@ pub fn validate(rule: &Rule) -> Result<(), Error> {
     for c in &rule.conditions {
         super::conditions::validate(c)?;
     }
+    if !super::actions::requirements(rule).is_empty() {
+        return Err(Error::new(
+            axum::http::StatusCode::UNPROCESSABLE_ENTITY,
+            "rule_requirements",
+            "This rule retains template/formula42 or schedule21 actions that need their execution capability",
+        ));
+    }
     for a in &rule.actions {
-        if !matches!(a["op"].as_str(), Some("set" | "append-notes"))
-            || a["op"] == "set" && !matches!(a["field"].as_str(), Some("category" | "payee"))
-        {
-            return Err(Error::invalid("Invalid rule action"));
-        }
+        super::actions::validate(a)?;
     }
     Ok(())
 }
@@ -60,65 +63,71 @@ pub fn rank(rules: &mut [Rule]) {
         )
     });
 }
-fn key(field: &str) -> &str {
-    match field {
-        "account" => "account_id",
-        "payee" => "payee_id",
-        "category" => "category_id",
-        f => f,
+pub struct Work {
+    pub remaining: usize,
+    pub regex: crate::register_regex::Budget,
+    pub compiled: std::collections::BTreeMap<
+        String,
+        Result<std::sync::Arc<crate::register_regex::Pattern>, crate::register_regex::Failure>,
+    >,
+}
+impl Default for Work {
+    fn default() -> Self {
+        Self {
+            remaining: 2_000_000,
+            regex: crate::register_regex::replacement_budget(),
+            compiled: std::collections::BTreeMap::new(),
+        }
     }
 }
-pub fn evaluate(
-    db: &Connection,
-    b: &str,
-    input: &Value,
-    rules: &[Rule],
-) -> Result<(Value, Vec<String>), Error> {
-    let mut row = input.clone();
-    let mut matched = vec![];
-    let budget = crate::register_regex::replacement_budget();
-    let mut work = 2_000_000usize;
-    let account_off = if let Some(id) = input["account_id"].as_str() {
-        db.query_row(
-            "SELECT off_budget FROM accounts WHERE budget_id=?1 AND id=?2",
-            params![b, id],
-            |r| r.get::<_, bool>(0),
-        )
-        .optional()?
-    } else {
-        None
-    };
-    for rule in rules {
-        let mut matches = !rule.conditions.is_empty() && rule.conditions_op == "and";
-        for c in &rule.conditions {
-            let result =
-                super::conditions::matches(db, b, c, &row, account_off, &budget, &mut work)?;
-            if rule.conditions_op == "or" && result {
-                matches = true;
-                break;
-            }
-            if rule.conditions_op == "and" && !result {
-                matches = false;
-                break;
-            }
-        }
-        if !matches {
-            continue;
-        }
-        matched.push(rule.id.clone());
-        for a in &rule.actions {
-            match a["op"].as_str() {
-                Some("set") => row[key(a["field"].as_str().unwrap())] = a["value"].clone(),
-                Some("append-notes") => {
-                    row["notes"] = json!(format!(
-                        "{}{}",
-                        row["notes"].as_str().unwrap_or(""),
-                        a["value"].as_str().unwrap_or("")
-                    ))
-                }
-                _ => unreachable!(),
-            }
+pub struct Runner {
+    rules: Vec<Rule>,
+    work: Work,
+}
+impl Runner {
+    pub fn new(rules: Vec<Rule>) -> Self {
+        Self {
+            rules,
+            work: Work::default(),
         }
     }
-    Ok((row, matched))
+    pub fn evaluate(
+        &mut self,
+        db: &Connection,
+        b: &str,
+        input: &Value,
+    ) -> Result<(Value, Vec<String>), Error> {
+        let mut row = input.clone();
+        let mut matched = vec![];
+        let account_off = if let Some(id) = input["account_id"].as_str() {
+            db.query_row(
+                "SELECT off_budget FROM accounts WHERE budget_id=?1 AND id=?2",
+                params![b, id],
+                |r| r.get::<_, bool>(0),
+            )
+            .optional()?
+        } else {
+            None
+        };
+        let context = super::conditions::Context { db, b, account_off };
+        for rule in &self.rules {
+            let mut matches = !rule.conditions.is_empty() && rule.conditions_op == "and";
+            for c in &rule.conditions {
+                let result = super::conditions::matches(&context, c, &row, &mut self.work)?;
+                if rule.conditions_op == "or" && result {
+                    matches = true;
+                    break;
+                }
+                if rule.conditions_op == "and" && !result {
+                    matches = false;
+                    break;
+                }
+            }
+            if matches {
+                matched.push(rule.id.clone());
+                row = super::actions::apply(db, b, &row, rule)?;
+            }
+        }
+        Ok((row, matched))
+    }
 }

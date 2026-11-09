@@ -296,6 +296,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         "reflect_budgets",
         "zero_budgets",
         "zero_budget_months",
+        "rules",
         "notes",
         "messages_crdt",
         "messages_pending",
@@ -372,6 +373,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             "reflect_budgets",
             "zero_budgets",
             "zero_budget_months",
+            "rules",
             "notes",
         ]
         .contains(&table.as_str())
@@ -848,7 +850,10 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
     let prefs = preferences::convert_actual(&json!({"synced":synced}))?;
     converted["preferences"] = prefs["shared"].clone();
     for (key, _) in prefs["unmapped"]["synced"].as_object().unwrap() {
-        if key != "budgetType" && !crate::register_settings::imported_preference(key) {
+        if key != "budgetType"
+            && key != "learn-categories"
+            && !crate::register_settings::imported_preference(key)
+        {
             requirement(
                 &mut requirements,
                 &format!("preference:{key}"),
@@ -888,6 +893,15 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             clocks.insert(key, row.clone());
         }
     }
+    converted["rules"] = crate::rules::convert_actual(&source, &payee_map, &category_map)?;
+    converted["rules_version"] = json!(1);
+    requirements.extend(
+        converted["rules"]["requirements"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .cloned(),
+    );
     converted["budgeting"] = crate::budgeting::convert_actual(&source)?;
     converted["budgeting_version"] = json!(1);
     converted["clocks"] = json!(clocks.into_values().collect::<Vec<_>>());
@@ -954,8 +968,10 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
         )?;
     }
     crate::budgeting::install_actual(db, budget, &data["budgeting"])?;
+    crate::rules::install_actual(db, budget, &data["rules"])?;
     for row in array(data, "clocks") {
         crate::budgeting::import_clock(db, budget, &data["budgeting"], row)?;
+        crate::rules::import_clock(db, budget, row)?;
         let dataset = row["dataset"].as_str().unwrap();
         let field = row["column"].as_str().unwrap();
         if dataset == "notes" && field == "note" {

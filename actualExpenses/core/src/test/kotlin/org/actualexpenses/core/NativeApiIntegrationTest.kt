@@ -146,6 +146,55 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun `simple rule associations cache while native overrides never rerun rules or teach defaults`() {
+        Server().use { server ->
+            val base = "/budgets/${server.budget}"
+            val food = UUID.randomUUID().toString()
+            val travel = UUID.randomUUID().toString()
+            val utilities = UUID.randomUUID().toString()
+            val payee = UUID.randomUUID().toString()
+            val rule = UUID.randomUUID().toString()
+            for ((id, name) in listOf(food to "Food", travel to "Travel", utilities to "Utilities"))
+                server.post("$base/categories", """{"id":"$id","name":"$name","is_income":false}""")
+            server.post("$base/payees", """{"id":"$payee","name":"Shop"}""")
+            val snapshot = server.get("$base/checkpoint").getAsJsonObject("data")["snapshot"].asString
+            server.post("$base/rules", """{"id":"$rule","stage":null,"conditionsOp":"and","conditions":[{"field":"payee","op":"is","value":"$payee"}],"actions":[{"op":"set","field":"category","value":"$food"}],"snapshot":"$snapshot"}""")
+            for (days in 1L..2L) {
+                val date = java.time.LocalDate.now().minusDays(days)
+                server.post("$base/transactions", """{"id":"${UUID.randomUUID()}","account_id":"${server.account}","amount":-100,"date":"$date","category_id":"$travel","payee_id":"$payee"}""")
+            }
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            assertEquals(food, app.state().payeeCategoryAssociations[payee])
+            app.markOffline()
+            val expense = app.saveExpense(ExpenseDraft("4.56", payee = "Shop", payeeId = payee, categoryId = travel))
+            val pending = JsonParser.parseString(store.raw).asJsonObject.getAsJsonArray("pending")[0].asJsonObject
+            val body = pending["body"].asString
+            assertFalse(JsonParser.parseString(body).asJsonObject.has("learn_categories"))
+            val restarted = ApiExpenseService(store)
+            assertEquals(food, restarted.state().payeeCategoryAssociations[payee])
+            val now = server.get("$base/checkpoint").getAsJsonObject("data")["snapshot"].asString
+            val clock = DateTimeFormatterBuilder().appendInstant(3).toFormatter().format(Instant.now().plusMillis(1)) + "-0000-0000000000000001"
+            server.patch("$base/rules/$rule", """{"snapshot":"$now","actions":[{"op":"set","field":"category","value":"$utilities"}]}""", clock)
+            restarted.refresh()
+            assertTrue(restarted.state().online, restarted.state().error)
+            assertEquals(0, restarted.state().pendingCount)
+            assertEquals(utilities, restarted.state().payeeCategoryAssociations[payee])
+            assertEquals(travel, restarted.state().expenses.single { it.id == expense }.categoryId)
+            val rules = server.get("$base/rules").getAsJsonArray("data")
+            assertEquals(1, rules.size())
+            assertEquals(utilities, rules[0].asJsonObject.getAsJsonArray("actions")[0].asJsonObject["value"].asString)
+            val current = server.get("$base/checkpoint").getAsJsonObject("data")["snapshot"].asString
+            server.post("$base/rules", """{"id":"${UUID.randomUUID()}","stage":null,"conditionsOp":"and","conditions":[{"field":"payee","op":"is","value":"$payee"}],"actions":[{"op":"set","field":"category","value":"$food"}],"snapshot":"$current"}""")
+            restarted.refresh()
+            assertFalse(restarted.state().payeeCategoryAssociations.containsKey(payee))
+        }
+    }
+
+    @Test
     fun `planning changes advance native checkpoint without losing expenses`() {
         Server().use { server ->
             val base = "/budgets/${server.budget}"

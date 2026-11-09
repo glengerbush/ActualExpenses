@@ -1,6 +1,6 @@
 //! Conditions follow the pinned evaluator, including its string normalization.
 use super::*;
-use crate::register_regex::{Budget, Failure, Pattern};
+use crate::register_regex::{Failure, Pattern};
 use chrono::NaiveDate;
 fn kind(field: &str) -> Option<&'static str> {
     Some(match field {
@@ -144,23 +144,31 @@ fn key(field: &str) -> &str {
         f => f,
     }
 }
-fn regex(pattern: &str, text: &str, budget: &Budget) -> Result<bool, Error> {
-    match Pattern::compile(pattern, false) {
-        Ok(p) => p.matches(text, budget).map_err(|e| e.api_error()),
+fn regex(pattern: &str, text: &str, work: &mut super::engine::Work) -> Result<bool, Error> {
+    let compiled = work
+        .compiled
+        .entry(pattern.to_owned())
+        .or_insert_with(|| Pattern::compile(pattern, false).map(std::sync::Arc::new));
+    match compiled {
+        Ok(p) => p.matches(text, &work.regex).map_err(|e| e.api_error()),
         Err(Failure::Invalid) => Ok(false),
         Err(e) => Err(e.api_error()),
     }
 }
+pub struct Context<'a> {
+    pub db: &'a Connection,
+    pub b: &'a str,
+    pub account_off: Option<bool>,
+}
 pub fn matches(
-    db: &Connection,
-    b: &str,
+    context: &Context<'_>,
     c: &Value,
     row: &Value,
-    account_off: Option<bool>,
-    budget: &Budget,
-    work: &mut usize,
+    work: &mut super::engine::Work,
 ) -> Result<bool, Error> {
-    *work = work
+    let Context { db, b, account_off } = context;
+    work.remaining = work
+        .remaining
         .checked_sub(1)
         .ok_or_else(|| Error::invalid("Rule evaluation work limit reached; narrow the preview"))?;
     let field = c["field"].as_str().unwrap();
@@ -222,7 +230,7 @@ pub fn matches(
                 &expected,
                 actual,
                 op == "isapprox",
-                work,
+                &mut work.remaining,
             );
         }
         let target = expected.as_str().unwrap();
@@ -278,24 +286,29 @@ pub fn matches(
             !v.is_null()
                 && v.as_str()
                     .unwrap_or("")
-                    .contains(expected.as_str().unwrap_or(""))
+                    .contains(expected.as_str().unwrap_or("null"))
         }
         "doesNotContain" => {
             !v.is_null()
                 && !v
                     .as_str()
                     .unwrap_or("")
-                    .contains(expected.as_str().unwrap_or(""))
+                    .contains(expected.as_str().unwrap_or("null"))
         }
         "matches" => {
-            !v.is_null() && regex(expected.as_str().unwrap(), v.as_str().unwrap_or(""), budget)?
+            !v.is_null()
+                && regex(
+                    expected.as_str().unwrap_or("null"),
+                    v.as_str().unwrap_or(""),
+                    work,
+                )?
         }
         "hasTags" | "hasAnyTag" => {
             let mut matches = vec![];
             for tag in expected
                 .as_str()
                 .unwrap()
-                .split(|c: char| c == '#' || c.is_whitespace())
+                .split(|c: char| c == '#' || crate::payees_tags::js_whitespace(c))
                 .filter(|s| !s.is_empty())
             {
                 matches.push(regex(
@@ -304,7 +317,7 @@ pub fn matches(
                         crate::register_regex::escape(&tag.to_lowercase())
                     ),
                     v.as_str().unwrap_or(""),
-                    budget,
+                    work,
                 )?);
             }
             if op == "hasTags" {

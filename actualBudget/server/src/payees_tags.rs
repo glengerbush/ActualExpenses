@@ -70,7 +70,7 @@ pub fn versions(db: &Connection, b: &str, entity: &str, id: &str) -> Result<Valu
     ))
 }
 pub fn record(db: &Connection, b: &str, entity: &str, id: &str) -> Result<Value, Error> {
-    let mut value=if entity=="payees"{db.query_row("SELECT COALESCE(a.name,p.name),p.favorite,p.tombstone,p.transfer_account_id,p.category_id,p.merged_into,(SELECT count(*) FROM transactions t WHERE t.budget_id=p.budget_id AND t.payee_id=p.id AND t.tombstone=0) FROM payees p LEFT JOIN accounts a ON a.budget_id=p.budget_id AND a.id=p.transfer_account_id WHERE p.budget_id=?1 AND p.id=?2",params![b,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?,"favorite":r.get::<_,bool>(1)?,"deleted":r.get::<_,bool>(2)?,"transfer_account_id":r.get::<_,Option<String>>(3)?,"category_id":r.get::<_,Option<String>>(4)?,"merged_into":r.get::<_,Option<String>>(5)?,"transaction_count":r.get::<_,i64>(6)?}))).optional()?}
+    let mut value=if entity=="payees"{db.query_row("SELECT COALESCE(a.name,p.name),p.favorite,p.tombstone,p.transfer_account_id,p.category_id,p.merged_into,p.learn_categories,(SELECT count(*) FROM transactions t WHERE t.budget_id=p.budget_id AND t.payee_id=p.id AND t.tombstone=0) FROM payees p LEFT JOIN accounts a ON a.budget_id=p.budget_id AND a.id=p.transfer_account_id WHERE p.budget_id=?1 AND p.id=?2",params![b,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?,"favorite":r.get::<_,bool>(1)?,"deleted":r.get::<_,bool>(2)?,"transfer_account_id":r.get::<_,Option<String>>(3)?,"category_id":r.get::<_,Option<String>>(4)?,"merged_into":r.get::<_,Option<String>>(5)?,"learn_categories":r.get::<_,bool>(6)?,"transaction_count":r.get::<_,i64>(7)?}))).optional()?}
  else{db.query_row("SELECT tag,color,description,hidden,tombstone FROM tags WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":id,"tag":r.get::<_,String>(0)?,"color":r.get::<_,Option<String>>(1)?,"description":r.get::<_,Option<String>>(2)?,"hidden":r.get::<_,bool>(3)?,"deleted":r.get::<_,bool>(4)?}))).optional()?}.ok_or_else(Error::missing)?;
     value["field_versions"] = versions(db, b, entity, id)?;
     Ok(value)
@@ -353,7 +353,7 @@ fn patch(
     fields(
         body,
         if entity == "payees" {
-            &["name", "favorite"]
+            &["name", "favorite", "learn_categories"]
         } else {
             &["tag", "color", "description", "hidden"]
         },
@@ -378,7 +378,7 @@ fn patch(
                 }
                 json!(v)
             }
-            "favorite" | "hidden" => {
+            "favorite" | "hidden" | "learn_categories" => {
                 if !value.is_boolean() {
                     return Err(Error::invalid("Expected a boolean"));
                 }
@@ -663,6 +663,6 @@ pub fn validate_archive(db: &Connection, b: &str) -> Result<(), Error> {
 }
 
 // ECMAScript \s, as used by pinned Actual (Rust's Unicode whitespace differs).
-fn js_whitespace(c: char) -> bool {
+pub(crate) fn js_whitespace(c: char) -> bool {
     matches!(c,'\u{0009}'..='\u{000d}'|'\u{0020}'|'\u{00a0}'|'\u{1680}'|'\u{2000}'..='\u{200a}'|'\u{2028}'|'\u{2029}'|'\u{202f}'|'\u{205f}'|'\u{3000}'|'\u{feff}')
 }

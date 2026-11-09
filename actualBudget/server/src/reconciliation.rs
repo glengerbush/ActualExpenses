@@ -179,6 +179,7 @@ fn reconcile(
                 category_id: None,
                 new_payee: None,
                 new_category: None,
+                learn_categories: None,
             };
             input.validate()?;
             // Reuse ordinary ordered creation; future rule execution belongs at this same seam.

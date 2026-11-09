@@ -309,6 +309,7 @@ pub fn execute(
             success(db, budget, data, &edit_clock, vec![], StatusCode::OK)
         }
         Mutation::Create(input) => {
+            let learn = input.learn_categories == Some(true);
             let id = input.id.clone();
             let new_payee = input.new_payee.as_ref().map(|p| p.id.clone());
             ledger::create(db, budget, *input)?;
@@ -319,6 +320,9 @@ pub fn execute(
                 seed_field_version(db, budget, "transactions", &id, field, &edit_clock)?;
             }
             mark(db, budget, "transactions", &id)?;
+            if learn {
+                crate::rules::learning::manual(db, budget, std::slice::from_ref(&id), &edit_clock)?;
+            }
             success(
                 db,
                 budget,
@@ -368,6 +372,15 @@ pub fn execute(
             )
         }
         Mutation::Patch(id, mut patch) => {
+            let learn = match patch
+                .as_object_mut()
+                .and_then(|p| p.remove("learn_categories"))
+            {
+                None => false,
+                Some(Value::Bool(v)) => v,
+                _ => return Err(Error::invalid("learn_categories must be boolean")),
+            };
+
             let confirmed = match patch
                 .as_object_mut()
                 .and_then(|p| p.remove("confirm_reconciled"))
@@ -462,6 +475,8 @@ pub fn execute(
                 }
             }
             if !accepted.is_empty() {
+                let learn_category =
+                    learn && accepted.get("category_id").is_some_and(|v| !v.is_null());
                 let new_payee = accepted
                     .get("new_payee")
                     .and_then(|v| v["id"].as_str())
@@ -491,6 +506,14 @@ pub fn execute(
                     seed_field_version(db, budget, "transactions", &id, &field, &edit_clock)?;
                 }
                 mark(db, budget, "transactions", &id)?;
+                if learn_category {
+                    crate::rules::learning::manual(
+                        db,
+                        budget,
+                        std::slice::from_ref(&id),
+                        &edit_clock,
+                    )?;
+                }
             }
             let mut result = if hidden {
                 ledger::get_any(db, budget, &id)?
@@ -732,6 +755,10 @@ pub fn read_changes(
             "preferences" => crate::preferences::get_preferences(db, budget)?,
             "payees" | "tags" => crate::payees_tags::record(db, budget, &entity, &id)?,
             "payee_locations" => crate::payee_locations::record(db, budget, &id)?,
+            "rules" => crate::rules::record(db, budget, &id)?,
+            "rule_settings" => {
+                json!({"id":"learning","enabled":crate::rules::learning::enabled(db,budget)?,"deleted":false})
+            }
             "budget_cells" | "budget_months" | "budget_settings" => {
                 crate::budgeting::record(db, budget, &entity, &id)?
             }

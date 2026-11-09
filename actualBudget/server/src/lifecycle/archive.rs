@@ -28,6 +28,8 @@ pub const TABLES: &[&str] = &[
     "budget_cells",
     "budget_months",
     "budget_settings",
+    "rules",
+    "rule_settings",
     "budget_preferences",
     "register_settings",
     "field_versions",
@@ -76,6 +78,7 @@ pub struct Validated {
     pub legacy_category_metadata: bool,
     pub legacy_locations: bool,
     pub legacy_budgeting: bool,
+    pub legacy_rules: bool,
     pub state: BudgetArchive,
     pub blobs: BTreeMap<String, Vec<u8>>,
 }
@@ -148,7 +151,7 @@ pub fn capture(db: &Connection, budget: &str) -> Result<Vec<u8>, Error> {
     let body = serde_json::to_vec(&state).map_err(Error::internal)?;
     let mut entries = BTreeMap::from([("budget.json".to_owned(), body)]);
     entries.extend(blobs);
-    let manifest = json!({"format":"actualBudget","version":1,"schema_version":16,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
+    let manifest = json!({"format":"actualBudget","version":1,"schema_version":17,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
     if entries.len() + 1 > 1000
         || entries.values().map(Vec::len).sum::<usize>() + manifest.to_string().len() > MAX_EXPANDED
     {
@@ -224,7 +227,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || !matches!(manifest["schema_version"].as_u64(), Some(6..=16))
+        || !matches!(manifest["schema_version"].as_u64(), Some(6..=17))
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }
@@ -578,6 +581,46 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             "The archive's edit clock is ahead of server time; correct time before restoring",
         ));
     }
+    if manifest["schema_version"].as_u64().is_some_and(|v| v < 17) {
+        for (table, columns, rows) in [
+            (
+                "rules",
+                vec![
+                    "budget_id",
+                    "id",
+                    "stage",
+                    "conditions_op",
+                    "conditions",
+                    "actions",
+                    "tombstone",
+                ],
+                vec![],
+            ),
+            (
+                "rule_settings",
+                vec!["budget_id", "id", "enabled", "tombstone"],
+                vec![vec![json!(budget), json!("learning"), json!(1), json!(0)]],
+            ),
+        ] {
+            state.tables.insert(
+                table.into(),
+                Table {
+                    columns: columns.into_iter().map(str::to_owned).collect(),
+                    rows,
+                },
+            );
+        }
+        let payees = state
+            .tables
+            .get_mut("payees")
+            .ok_or_else(|| invalid("Missing payees"))?;
+        if !payees.columns.iter().any(|c| c == "learn_categories") {
+            payees.columns.push("learn_categories".into());
+            for row in &mut payees.rows {
+                row.push(json!(1));
+            }
+        }
+    }
     if state
         .tables
         .keys()
@@ -594,6 +637,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     let mut validated = Validated {
         state,
         blobs,
+        legacy_rules: manifest["schema_version"].as_u64().is_some_and(|v| v < 17),
         legacy_budgeting: manifest["schema_version"].as_u64().is_some_and(|v| v < 16),
         legacy_locations: manifest["schema_version"].as_u64().is_some_and(|v| v < 14),
         legacy_category_metadata: matches!(manifest["schema_version"].as_u64(), Some(6 | 7)),
@@ -708,6 +752,10 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
         "DELETE FROM budget_settings WHERE budget_id=?1",
         [archive.state.budget["id"].as_str().unwrap()],
     )?;
+    db.execute(
+        "DELETE FROM rule_settings WHERE budget_id=?1",
+        [archive.state.budget["id"].as_str().unwrap()],
+    )?;
     for table in TABLES {
         let source = &archive.state.tables[*table];
         let allowed = db
@@ -802,6 +850,9 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
     if archive.legacy_category_metadata {
         crate::categories::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
     }
+    if archive.legacy_rules {
+        crate::rules::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
+    }
     if archive.legacy_budgeting {
         crate::budgeting::enrich_legacy_imports(
             db,
@@ -812,6 +863,7 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
 }
 pub fn validate_financial_state(db: &Connection, budget: &str) -> Result<(), Error> {
     crate::budgeting::validate(db, budget)?;
+    crate::rules::validate(db, budget)?;
     crate::transfers::validate(db, budget)?;
     for table in [
         "accounts",

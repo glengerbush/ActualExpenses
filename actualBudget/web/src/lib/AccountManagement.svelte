@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import MarkdownNotes from "./MarkdownNotes.svelte";
   import {
     request,
     errorMessage,
@@ -371,6 +372,12 @@
               maxlength="10000"
               bind:value={() => draft!.notes, (v) => update({ notes: v })}
             ></textarea>
+            {#if draft.notes}
+              <details>
+                <summary>{t("Preview")}</summary>
+                <MarkdownNotes text={draft.notes} />
+              </details>
+            {/if}
             <label for="manage-group">{t("Account group")}</label><select
               id="manage-group"
               bind:value={() => draft!.groupId, (v) => update({ groupId: v })}

@@ -5,6 +5,8 @@
   import { formatAmount, formatDate } from "./money";
   import type { Transaction, PendingMutation } from "./register-api";
   import { t } from "./i18n.svelte";
+  import { offlineStatus, subscribeOffline } from "./offline/events";
+  import MarkdownNotes from "./MarkdownNotes.svelte";
   let { budgetId, onclose }: { budgetId: string; onclose: () => void } =
     $props();
   type Category = {
@@ -55,6 +57,10 @@
     snapshot: string;
   } | null>(null);
   let editor = $state<HTMLInputElement>();
+  let offline = $state(!offlineStatus.reachable);
+  const writer = uuid();
+  let savedRaw: string | null = null;
+  let savedPayload = "";
   const storageKey = $derived(`actualBudget.categories.v1.${budgetId}`);
   const visible = $derived(
     categories.filter(
@@ -107,12 +113,38 @@
       loading = false;
     }
   }
-  function persist() {
+  function ownsSavedDraft() {
     try {
-      localStorage.setItem(
-        storageKey,
-        JSON.stringify({ draft, pending, deleting, replacement }),
-      );
+      if (!ready) return false;
+      if (localStorage.getItem(storageKey) !== savedRaw) {
+        storageError = t(
+          "Another tab changed the saved category draft. Reload this page before continuing.",
+        );
+        return false;
+      }
+      return true;
+    } catch (e) {
+      storageError = errorMessage(e);
+      return false;
+    }
+  }
+  function persist() {
+    if (!ownsSavedDraft()) return false;
+    try {
+      const payload = JSON.stringify({ draft, pending, deleting, replacement });
+      if (payload === savedPayload || (!savedRaw && !draft && !pending))
+        return true;
+      const next = JSON.stringify({
+        draft,
+        pending,
+        deleting,
+        replacement,
+        revision: uuid(),
+        owner: writer,
+      });
+      localStorage.setItem(storageKey, next);
+      savedRaw = next;
+      savedPayload = payload;
       storageError = "";
       return true;
     } catch (e) {
@@ -120,16 +152,29 @@
       return false;
     }
   }
+  function storageChanged(event: StorageEvent) {
+    if (
+      event.storageArea === localStorage &&
+      (event.key === storageKey || event.key === null)
+    )
+      ownsSavedDraft();
+  }
+  onMount(() =>
+    subscribeOffline(() => {
+      offline = !offlineStatus.reachable;
+    }),
+  );
   onMount(() => {
     try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const state = JSON.parse(saved);
+      savedRaw = localStorage.getItem(storageKey);
+      if (savedRaw) {
+        const state = JSON.parse(savedRaw);
         draft = state.draft;
         pending = state.pending;
         deleting = !!state.deleting;
         replacement = state.replacement ?? "";
       }
+      savedPayload = JSON.stringify({ draft, pending, deleting, replacement });
     } catch (e) {
       storageError = errorMessage(e);
       void load();
@@ -145,7 +190,14 @@
     }
   });
   async function begin(kind: Kind, row?: Category) {
-    if (pending || !epoch) return;
+    if (
+      pending ||
+      !epoch ||
+      storageError ||
+      !offlineStatus.reachable ||
+      !ownsSavedDraft()
+    )
+      return;
     history = null;
     deleting = false;
     error = "";
@@ -164,17 +216,19 @@
       epoch,
       original: row ?? null,
     };
+    if (!persist()) return;
     await tick();
     editor?.focus();
   }
   function closeEditor() {
-    if (pending) return;
+    if (pending || storageError || !ownsSavedDraft()) return;
     draft = null;
     deleting = false;
     error = "";
+    persist();
   }
   async function send() {
-    if (!pending || busy) return;
+    if (!pending || busy || storageError || !persist()) return;
     busy = true;
     error = "";
     retired = false;
@@ -192,6 +246,7 @@
         false,
         operation.budgetEpoch,
       );
+      if (!ownsSavedDraft()) return;
       pending = null;
       draft = null;
       deleting = false;
@@ -208,7 +263,12 @@
       error = errorMessage(e);
       if (e instanceof RequestError) {
         retired = e.code === "budget_restored" || e.code === "budget_deleted";
-        if (!e.uncertain && !retired && e.code !== "clock_skew") {
+        if (
+          !e.uncertain &&
+          !retired &&
+          e.code !== "clock_skew" &&
+          ownsSavedDraft()
+        ) {
           pending = null;
           persist();
         }
@@ -218,7 +278,11 @@
     }
   }
   async function save() {
-    if (!draft || busy || pending || storageError) return;
+    if (!draft || busy || pending || storageError || !ownsSavedDraft()) return;
+    if (!offlineStatus.reachable) {
+      error = t("Reconnect before changing categories or groups.");
+      return;
+    }
     try {
       const values = {
         name: draft.name,
@@ -254,7 +318,7 @@
     }
   }
   async function recover() {
-    if (!pending || !retired) return;
+    if (!pending || !retired || storageError || !ownsSavedDraft()) return;
     try {
       localStorage.setItem(
         `${storageKey}.retired.${pending.key}`,
@@ -298,6 +362,7 @@
   }
 </script>
 
+<svelte:window onstorage={storageChanged} />
 <div class="page-heading">
   <div>
     <h1>{t("Categories")}</h1>
@@ -307,15 +372,19 @@
   </div>
   <button onclick={onclose}>{t("Done")}</button>
 </div>
+{#if offline}<p role="status">
+    {t("Reconnect before changing categories or groups.")}
+  </p>{/if}
 {#if storageError}<p role="alert">
     {t("Draft could not be saved on this device.")}
     {storageError}
+    <button onclick={() => location.reload()}>{t("Reload page")}</button>
   </p>{/if}
 {#if error}<div role="alert">
     <p>{error}</p>
-    {#if pending}<button onclick={send} disabled={busy}
+    {#if pending}<button onclick={send} disabled={busy || !!storageError}
         >{t("Retry unchanged request")}</button
-      >{#if retired}<button onclick={recover} disabled={busy}
+      >{#if retired}<button onclick={recover} disabled={busy || !!storageError}
           >{t("Keep original and review current categories")}</button
         >{/if}{:else}<button onclick={load} disabled={loading}
         >{t("Reload categories")}</button
@@ -324,7 +393,7 @@
 {#if notice}<p role="status">{notice}</p>{/if}
 {#if pending && !error}<p role="status">
     {t("A saved request needs confirmation.")}
-    <button onclick={send} disabled={busy}
+    <button onclick={send} disabled={busy || !!storageError}
       >{t("Retry unchanged request")}</button
     >
   </p>{/if}
@@ -346,7 +415,7 @@
             ? t("New category")
             : t("New group")}
     </h2>
-    <fieldset disabled={busy || !!pending || loading}>
+    <fieldset disabled={busy || !!pending || loading || !!storageError}>
       <legend class="sr-only">{t("Category details")}</legend>
       {#if deleting}
         <p>
@@ -402,7 +471,6 @@
           min="-9007199254740991"
           max="9007199254740991"
           bind:value={draft.sort_order}
-          required
         />
         <p class="hint">{t("Lower numbers appear first within the group.")}</p>
         <label for="category-notes">{t("Notes")}</label><textarea
@@ -417,7 +485,7 @@
         >
       {/if}
       <div class="category-actions">
-        <button type="submit" class="primary"
+        <button type="submit" class="primary" disabled={offline}
           >{busy
             ? t("Saving…")
             : deleting
@@ -426,7 +494,9 @@
         ><button type="button" onclick={closeEditor}>{t("Cancel")}</button
         >{#if draft.id && !deleting}<button
             type="button"
+            disabled={offline}
             onclick={() => {
+              if (!offlineStatus.reachable || !ownsSavedDraft()) return;
               deleting = true;
               replacement = "";
             }}>{t("Merge or delete")}</button
@@ -466,11 +536,20 @@
   <div class="category-actions">
     <button
       onclick={() => begin("categories")}
-      disabled={loading || busy || !!pending || !epoch}
-      >{t("New category")}</button
+      disabled={offline ||
+        loading ||
+        busy ||
+        !!pending ||
+        !epoch ||
+        !!storageError}>{t("New category")}</button
     ><button
       onclick={() => begin("category-groups")}
-      disabled={loading || busy || !!pending || !epoch}>{t("New group")}</button
+      disabled={offline ||
+        loading ||
+        busy ||
+        !!pending ||
+        !epoch ||
+        !!storageError}>{t("New group")}</button
     ><button
       onclick={() => drill("uncategorized", t("Uncategorized"))}
       disabled={loading}>{t("Uncategorized transactions")}</button
@@ -495,19 +574,23 @@
               </h3>
               {#if group}<button
                   onclick={() => begin("category-groups", group)}
-                  disabled={!!pending}
+                  disabled={offline || !!pending || !!storageError}
                   >{t("Edit group")}
                   <span class="sr-only">{group.name}</span></button
                 >{/if}
             </div>
-            {#if group?.notes}<p class="notes">{group.notes}</p>{/if}
+            {#if group?.notes}<div class="notes">
+                <MarkdownNotes text={group.notes} />
+              </div>{/if}
             {#each children as row (row.id)}<div class="category-row">
                 <div>
                   <strong>{row.name}</strong>{#if row.hidden}<span
                       class="muted"
                     >
                       · {t("Hidden")}</span
-                    >{/if}{#if row.notes}<p class="notes">{row.notes}</p>{/if}
+                    >{/if}{#if row.notes}<div class="notes">
+                      <MarkdownNotes text={row.notes} />
+                    </div>{/if}
                 </div>
                 <div class="category-actions">
                   <button onclick={() => drill(row.id, row.name)}
@@ -515,7 +598,7 @@
                     <span class="sr-only">{row.name}</span></button
                   ><button
                     onclick={() => begin("categories", row)}
-                    disabled={!!pending}
+                    disabled={offline || !!pending || !!storageError}
                     >{t("Edit")} <span class="sr-only">{row.name}</span></button
                   >
                 </div>
@@ -531,7 +614,9 @@
       >{#each retained as row (row.key)}<div class="category-row">
           <div>
             <strong>{row.name}</strong>
-            <p class="notes">{row.notes || t("No notes")}</p>
+            <div class="notes">
+              <MarkdownNotes text={row.notes || t("No notes")} />
+            </div>
           </div>
           <span class="muted"
             >{row.group ? t("Deleted group") : t("Deleted")}</span
@@ -613,7 +698,6 @@
     min-width: 0;
   }
   .notes {
-    white-space: pre-wrap;
     overflow-wrap: anywhere;
     margin: 0.25rem 0;
     color: var(--muted);

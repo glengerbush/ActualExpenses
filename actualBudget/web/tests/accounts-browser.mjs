@@ -59,7 +59,26 @@ try {
   await page.getByLabel("Account name", { exact: true }).fill("Daily spending");
   await page
     .getByLabel("Account notes", { exact: true })
-    .fill("Keep history\nFor travel");
+    .fill("**Keep history**\n[For travel](https://example.test/travel)");
+  await page.getByText("Preview", { exact: true }).click();
+  await expect(page.locator(".markdown-notes strong")).toHaveText(
+    "Keep history",
+  );
+  await expect(page.getByRole("link", { name: "For travel" })).toHaveAttribute(
+    "href",
+    "https://example.test/travel",
+  );
+  await mkdir("test-results", { recursive: true });
+  await page.screenshot({
+    path: "test-results/account-notes-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "test-results/account-notes-mobile.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page
     .getByLabel("Account group", { exact: true })
     .selectOption({ label: "Everyday" });

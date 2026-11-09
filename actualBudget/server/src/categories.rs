@@ -18,6 +18,7 @@ use axum::{
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::Deserialize;
 use serde_json::{Value, json};
+use std::collections::HashSet;
 const CATEGORY_FIELDS: &[&str] = &[
     "name",
     "group_id",
@@ -591,8 +592,12 @@ fn delete(
 /// Resolve retired category IDs for delayed clients without resurrecting retired categories.
 pub fn resolve(db: &Connection, budget: &str, id: Option<String>) -> Result<Option<String>, Error> {
     let mut current = id;
-    for _ in 0..128 {
+    let mut visited = HashSet::new();
+    loop {
         let Some(id) = &current else { return Ok(None) };
+        if !visited.insert(id.clone()) {
+            return Err(Error::invalid("Category redirect cycle"));
+        }
         let row = get(db, budget, "categories", id).map_err(|error| {
             if error.code == "not_found" {
                 Error::invalid("Unknown category reference in this budget")
@@ -605,7 +610,6 @@ pub fn resolve(db: &Connection, budget: &str, id: Option<String>) -> Result<Opti
         }
         current = row["replacement_id"].as_str().map(str::to_owned);
     }
-    Err(Error::invalid("Category redirect cycle"))
 }
 pub fn validate_archive(db: &Connection, budget: &str) -> Result<(), Error> {
     for table in ["categories", "category_groups"] {

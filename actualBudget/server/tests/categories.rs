@@ -152,6 +152,106 @@ fn ok(r: Response) -> Value {
     body
 }
 #[test]
+fn long_category_merge_history_remains_restorable_and_resolves_delayed_references() {
+    let s = Server::start();
+    ok(s.write(
+        "POST",
+        "/api/v1/budgets",
+        "budget",
+        None,
+        json!({"id":B,"name":"Long history"}),
+    ));
+    let base = format!("/api/v1/budgets/{B}");
+    let ids: Vec<_> = (0..130)
+        .map(|i| format!("17000000-0000-4000-8000-{i:012}"))
+        .collect();
+    for (i, id) in ids.iter().enumerate() {
+        ok(s.write(
+            "POST",
+            &format!("{base}/categories"),
+            &format!("category-{i}"),
+            None,
+            json!({"id":id,"name":format!("Category {i}")}),
+        ));
+    }
+    for (i, pair) in ids.windows(2).enumerate() {
+        ok(s.write(
+            "DELETE",
+            &format!("{base}/categories/{}", pair[0]),
+            &format!("merge-{i}"),
+            None,
+            json!({"replacement_id":pair[1]}),
+        ));
+    }
+    let backup = ok(s.write(
+        "POST",
+        &format!("{base}/backups"),
+        "backup",
+        None,
+        json!({"label":"Long category history"}),
+    ));
+    let bytes = s
+        .client
+        .get(format!(
+            "{}{base}/backups/{}/download",
+            s.url,
+            backup["data"]["id"].as_str().unwrap()
+        ))
+        .send()
+        .unwrap()
+        .error_for_status()
+        .unwrap()
+        .bytes()
+        .unwrap();
+    let stage = ok(s
+        .client
+        .post(format!("{}/api/v1/restores", s.url))
+        .header("Idempotency-Key", "stage")
+        .header("Content-Type", "application/zip")
+        .body(bytes)
+        .send()
+        .unwrap());
+    ok(s.write(
+        "POST",
+        &format!(
+            "{base}/restores/{}/activate",
+            stage["data"]["id"].as_str().unwrap()
+        ),
+        "restore",
+        None,
+        json!({"confirm_name":"Long history"}),
+    ));
+    let account = "18000000-0000-4000-8000-000000000001";
+    let epoch = s.get(&format!("{base}/checkpoint"))["data"]["epoch"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let write = |path: &str, key: &str, body: Value| {
+        ok(s.client
+            .post(format!("{}{base}{path}", s.url))
+            .header("Idempotency-Key", key)
+            .header("X-Actual-Budget-Epoch", &epoch)
+            .json(&body)
+            .send()
+            .unwrap())
+    };
+    write(
+        "/accounts",
+        "account",
+        json!({"id":account,"name":"Cash","opening_balance":0,"opening_date":"2026-01-01"}),
+    );
+    let row = write(
+        "/transactions",
+        "delayed",
+        json!({"id":"18000000-0000-4000-8000-000000000002","account_id":account,"amount":-100,"date":"2026-01-01","category_id":ids[0]}),
+    );
+    assert_eq!(row["data"]["category_id"], *ids.last().unwrap());
+    assert_eq!(
+        s.restart().get(&format!("{base}/transactions"))["data"][0]["category_id"],
+        *ids.last().unwrap()
+    );
+}
+#[test]
 fn lifecycle_matches_published_actual_oracle_and_archives_history() {
     let s = Server::start();
     ok(s.write(
@@ -213,6 +313,8 @@ fn lifecycle_matches_published_actual_oracle_and_archives_history() {
                 ok(s.write("PATCH",&format!("{base}/categories/{C}"),"edit",None,json!({"name":"Meals","group_id":id("other"),"hidden":true,"notes":"Keep receipts\nReimbursements stay here"})));
             }
             2 => {
+                let before = s.get(&format!("{base}/transactions"));
+                let cursor = before["snapshot"].as_str().unwrap();
                 let body = json!({"replacement_id":id("dining")});
                 let first = ok(s.write(
                     "DELETE",
@@ -231,6 +333,24 @@ fn lifecycle_matches_published_actual_oracle_and_archives_history() {
                         body
                     ))
                 );
+                let changes = s.get(&format!("{base}/changes?cursor={cursor}"));
+                for row in before["data"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .filter(|row| row["category_id"] == C)
+                {
+                    assert!(
+                        changes["data"]
+                            .as_array()
+                            .unwrap()
+                            .iter()
+                            .any(|change| change["entity"] == "transactions"
+                                && change["id"] == row["id"]
+                                && change["data"]["category_id"] == id("dining")),
+                        "Category reassignment must publish the changed transaction: {changes}"
+                    );
+                }
             }
             3 => {
                 ok(s.write(

@@ -1,5 +1,7 @@
 # Ticket15 validation and handoff
 
+Accepted2026-11-09 through `4796e11`. [Final integrated qualification](1314151646-validation.md) resolves the historical integration/review gates recorded below.
+
 Isolated tree `ticket15`, base570806f; candidate committed by root as `a3d9508`.
 No production data, deploys or APK
 identity/signing changes. Skills: implement/TDD, Impeccable, Svelte writer/core.

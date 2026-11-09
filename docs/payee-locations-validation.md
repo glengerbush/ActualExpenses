@@ -1,5 +1,7 @@
 # Payee locations — ticket46
 
+Accepted2026-11-09 through `4796e11`. [Final integrated qualification](1314151646-validation.md) resolves the historical integration/review gates recorded below.
+
 Slice based on5a9efa1, committed as89560a8 and composed with1713c33.
 Independent Standards/Spec and Impeccable finish/documentation reviews pass;
 integrated batch qualification remains a gate. No release, deployment or

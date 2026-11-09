@@ -1,5 +1,7 @@
 # Ticket16 reconciliation evidence
 
+Accepted2026-11-09 through `4796e11`. [Final integrated qualification](1314151646-validation.md) resolves the historical integration/review gates recorded below.
+
 Private base: `20b6eb9`; branch `codex/reconcile16`; no commits or deployment. Canonical ticket16 and spec stories13–15/22 define scope. Root owns final integration and independent review.
 
 ## Delivered

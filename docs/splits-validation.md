@@ -1,5 +1,7 @@
 # Ticket 14 — split transactions
 
+Accepted2026-11-09 through `4796e11`. [Final integrated qualification](1314151646-validation.md) resolves the historical integration/review gates recorded below.
+
 Implementation worktree baseline: `8ad9315`. Pinned Actual: **26.10.0**, commit
 `2bebdbaae0b701120a8cad9d56aafd64fa04c577`. Synthetic data only; no release,
 production import or live-data access. Root integration/review remains required.

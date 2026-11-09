@@ -1,5 +1,7 @@
 # Ticket 13 — bulk changes and undo/redo validation
 
+Accepted2026-11-09 through `4796e11`. [Final integrated qualification](1314151646-validation.md) resolves the historical integration/review gates recorded below.
+
 Private implementation on `codex/bulk13`, base `8a941e9`. No production data used. Root composes reconciliation/transfer/large-split dependencies and independently reviews before ticket acceptance.
 
 ## Independent baseline evidence

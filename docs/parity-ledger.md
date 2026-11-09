@@ -35,23 +35,23 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 10 | 02, 09 | Accounts and reconciliation | [02: on/off-budget creation and opening balances](open-budget-validation.md); [09: organization, closure and notes](0910-validation.md) |
 | 11 | 09 | Accounts and reconciliation | [09: grouping/order, closed visibility, deletion and native recovery](0910-validation.md) |
 | 12 | 03, 09, 12 | Accounts and reconciliation | [03: exact account and running balances](register-validation.md); [09: organization](0910-validation.md); [12: accepted register customization and filtered totals](register-query-validation.md) |
-| 13 | 16 | Accounts and reconciliation | Pending feature acceptance |
-| 14 | 16 | Accounts and reconciliation | Pending feature acceptance |
-| 15 | 16 | Accounts and reconciliation | Pending feature acceptance |
-| 16 | 09 | Accounts and reconciliation | [09: explicit account deletion, retained history/receipts and non-transfer closure](0910-validation.md); transfer-based closure remains15 |
-| 17 | 03, 13 | Transactions, payees and categories | [03: single transaction CRUD and duplicate](register-validation.md); bulk/undo pending 13 |
+| 13 | 16 | Accounts and reconciliation | [16: statement comparison, exact adjustments and protected edits](reconciliation-validation.md) |
+| 14 | 16 | Accounts and reconciliation | [16: lock/unlock and retained reconcile dates](reconciliation-validation.md) |
+| 15 | 16 | Accounts and reconciliation | [16: credit/debt signs and off-budget revaluation](reconciliation-validation.md) |
+| 16 | 09 | Accounts and reconciliation | [09: account organization/deletion](0910-validation.md); [15: transfer-based closure](transfers-validation.md) |
+| 17 | 03, 13 | Transactions, payees and categories | [03: single CRUD](register-validation.md); [13: atomic bulk edits/duplicate/delete and guarded undo](bulk-undo-validation.md) |
 | 18 | 03, 52 | Transactions, payees and categories | [03: exact financial values, dates and calculator baseline](register-validation.md); whole-feature audit pending 52 |
-| 19 | 03, 13 | Transactions, payees and categories | [03: ordinary transaction field edits and retry recovery](register-validation.md); bulk/undo pending 13 |
-| 20 | 13 | Transactions, payees and categories | Pending feature acceptance |
+| 19 | 03, 13 | Transactions, payees and categories | [03: ordinary edits](register-validation.md); [13: bulk fields, literal/regex notes and immutable replay](bulk-undo-validation.md) |
+| 20 | 13 | Transactions, payees and categories | [13: owner-scoped20-group undo/redo, connected history and newer-edit conflict refusal](bulk-undo-validation.md) |
 | 21 | 12 | Transactions, payees and categories | [12: accepted search, sorting, compound filters and saved views](register-query-validation.md) |
-| 22 | 12, 16 | Transactions, payees and categories | [12: accepted visibility and register balances](register-query-validation.md); reconciliation16 acceptance pending |
-| 23 | 14 | Transactions, payees and categories | [14: split allocations, unsplit/recombine, pinned fixtures and recovery](splits-validation.md); query12 integration and corrective review pass; undo13/transfer15 integration pending |
-| 24 | 15 | Transactions, payees and categories | Pending feature acceptance |
-| 25 | 15 | Transactions, payees and categories | Pending feature acceptance |
+| 22 | 12, 16 | Transactions, payees and categories | [12: visibility and balances](register-query-validation.md); [16: reconciliation and protection](reconciliation-validation.md) |
+| 23 | 14 | Transactions, payees and categories | [14: exact splits, recombination, sparse1001-child workflows and guarded history](splits-validation.md); [integrated acceptance](1314151646-validation.md) |
+| 24 | 15 | Transactions, payees and categories | [15: reciprocal transfer edits/deletion and imports](transfers-validation.md) |
+| 25 | 15 | Transactions, payees and categories | [15: account closure, duplicate/link handling and history](transfers-validation.md) |
 | 26 | 25 | Transactions, payees and categories | Pending feature acceptance |
 | 27 | 03, 11 | Transactions, payees and categories | [11: payee management, aliases, retained references and Android choices](payees-tags-validation.md) |
 | 28 | 11, 19 | Transactions, payees and categories | [11: payee management and metadata](payees-tags-validation.md); associated rules/learning pending19 |
-| 29 | 46 | Transactions, payees and categories | Pending feature acceptance |
+| 29 | 46 | Transactions, payees and categories | [46: explicit locations, baseline proximity, migration and HTTP fallback](payee-locations-validation.md) |
 | 30 | 11 | Transactions, payees and categories | [11: exact tag discovery, management, visibility, filtering and migration](payees-tags-validation.md) |
 | 31 | 03, 10 | Transactions, payees and categories | [10: groups/order/hiding, notes, history-preserving merge/delete and legacy migration](0910-validation.md) |
 | 32 | 03, 10 | Transactions, payees and categories | [10: signed refunds/reimbursements, uncategorized drilldowns and exact reassignment](0910-validation.md) |
@@ -61,7 +61,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 36 | 17 | Tracking, envelope and automation | Pending feature acceptance |
 | 37 | 17 | Tracking, envelope and automation | Pending feature acceptance |
 | 38 | 17, 18 | Tracking, envelope and automation | Pending feature acceptance |
-| 39 | 15, 18 | Tracking, envelope and automation | Pending feature acceptance |
+| 39 | 15, 18 | Tracking, envelope and automation | [15: on/off-budget and credit-payment categorization](transfers-validation.md); envelope calculations pending18 |
 | 40 | 10, 17, 18 | Tracking, envelope and automation | [10: category detail/history/notes](0910-validation.md); planning behavior pending17/18 |
 | 41 | 23 | Tracking, envelope and automation | Pending feature acceptance |
 | 42 | 23, 24 | Tracking, envelope and automation | Pending feature acceptance |
@@ -117,7 +117,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 92 | 06 | Android and offline expense capture | [06: pending/latest-backdated retention](android-api-validation.md) |
 | 93 | 06 | Android and offline expense capture | [06: amount-only, optional fields and automatic clearing](android-api-validation.md) |
 | 94 | 19, 20 | Android and offline expense capture | Pending feature acceptance |
-| 95 | 06, 14, 15 | Android and offline expense capture | [06: current eligibility filters and unsupported-feature activation guards](android-api-validation.md); [14: split parent/child exclusion and pending recovery](splits-validation.md); transfer predicate must extend before15 activation |
+| 95 | 06, 14, 15 | Android and offline expense capture | [14/15: split/transfer exclusion and real native incremental eligibility](1314151646-validation.md) |
 | 96 | 20 | Android and offline expense capture | Pending feature acceptance |
 | 97 | 20 | Android and offline expense capture | Pending feature acceptance |
 | 98 | 20, 50 | Android and offline expense capture | Pending feature acceptance |

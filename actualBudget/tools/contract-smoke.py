@@ -490,6 +490,24 @@ def main():
             check(match_path, match_template, "POST", {**match_body, "snapshot": schedule_cursor}, expected=409)
             assert check(rr + "/checkpoint", budgets + "/{budget}/checkpoint") == match_checkpoint
 
+            # Link mutations keep transfer pairs together and replay their original result.
+            transfer_id = transferred["data"]["transaction"]["id"]
+            for action in ("unlink", "link"):
+                schedule_page = check(schedule_path, schedule_template)["data"]
+                link_body = {"action": action, "id": transfer_schedule,
+                             "snapshot": schedule_page["snapshot"], "transaction_ids": [transfer_id]}
+                assert not schedule_validator.is_valid({**link_body, "transaction_ids": []})
+                outcome = schedule_command(link_body, "schedule-" + action)
+                assert set(outcome["data"]["transaction_ids"]) == {transfer_id, counterpart}
+                assert outcome["data"]["affected_count"] == 2
+                assert schedule_command(link_body, "schedule-" + action, extra_headers={"X-Actual-Receipt-Only": "true"}) == outcome
+                for transaction_id in (transfer_id, counterpart):
+                    row = check(rr + "/transactions/" + transaction_id, budgets + "/{budget}/transactions/{id}")["data"]
+                    assert row.get("schedule_id") == (transfer_schedule if action == "link" else None)
+                check(command_path, command_template, "POST",
+                      {**link_body, "snapshot": outcome["snapshot"], "transaction_ids": []},
+                      {"Idempotency-Key": "empty-schedule-" + action}, expected=400)
+
             # Genuine released Android work validates the public handoff contract,
             # including dense order keys returned by the ordinary companion view.
             legacy_dir = project / "tests/fixtures/android-upgrade"

@@ -22676,7 +22676,9 @@
               "post",
               "skip",
               "catch-up",
-              "settings"
+              "settings",
+              "link",
+              "unlink"
             ]
           },
           "id": {
@@ -22738,6 +22740,17 @@
             "format": "uuid",
             "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
             "description": "Create/update only: resolve or create the account-managed transfer payee for this destination, atomically rewriting the core payee condition. No prior transfer transaction is required."
+          },
+          "transaction_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "minItems": 1,
+            "maxItems": 500,
+            "uniqueItems": true
           }
         },
         "required": [
@@ -22855,9 +22868,31 @@
                 "upcoming_length"
               ]
             }
+          },
+          {
+            "if": {
+              "properties": {
+                "action": {
+                  "enum": [
+                    "link",
+                    "unlink"
+                  ]
+                }
+              },
+              "required": [
+                "action"
+              ]
+            },
+            "then": {
+              "required": [
+                "id",
+                "snapshot",
+                "transaction_ids"
+              ]
+            }
           }
         ],
-        "description": "Persist original body/key/clock/epoch before sending. All commands except catch-up require a captured snapshot. Catch-up uses current authoritative schedules through an optional past/server-today cutoff; atomic maximum500 occurrences and shared rule work budget. GET never posts. Update merges changed schedule conditions while retaining other linked-rule conditions; use_global_upcoming_length clears an override."
+        "description": "Persist original body/key/clock/epoch before sending. All commands except catch-up require a captured snapshot. Catch-up uses current authoritative schedules through an optional past/server-today cutoff; atomic maximum500 occurrences and shared rule work budget. GET never posts. Update merges changed schedule conditions while retaining other linked-rule conditions; use_global_upcoming_length clears an override. Link/unlink atomically update selected transaction links and reciprocal transfer legs. Split-parent selection does not link its children. Explicit unlink releases an occurrence for a distinct future posting; original receipts remain unchanged."
       },
       "ScheduleCatchUp": {
         "type": "object",
@@ -22952,6 +22987,9 @@
                   "upcoming_length"
                 ],
                 "additionalProperties": false
+              },
+              {
+                "$ref": "#/components/schemas/ScheduleLinkResult"
               }
             ]
           },
@@ -23342,6 +23380,35 @@
           "next_offset",
           "snapshot",
           "epoch"
+        ],
+        "additionalProperties": false
+      },
+      "ScheduleLinkResult": {
+        "type": "object",
+        "properties": {
+          "affected_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "transaction_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "maxItems": 1000,
+            "uniqueItems": true
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/Schedule"
+          }
+        },
+        "required": [
+          "affected_count",
+          "transaction_ids",
+          "schedule"
         ],
         "additionalProperties": false
       }

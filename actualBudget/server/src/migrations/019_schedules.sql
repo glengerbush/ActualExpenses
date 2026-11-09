@@ -9,7 +9,7 @@ CREATE UNIQUE INDEX schedules_live_name ON schedules(budget_id,name) WHERE tombs
 CREATE INDEX schedules_due ON schedules(budget_id,next_date) WHERE tombstone=0 AND completed=0;
 CREATE TABLE schedule_occurrences (
  budget_id TEXT NOT NULL REFERENCES budgets(id),id TEXT NOT NULL,schedule_id TEXT NOT NULL,
- occurrence_date TEXT NOT NULL,status TEXT NOT NULL CHECK(status IN('posted','skipped','matched')),
+ occurrence_date TEXT NOT NULL,status TEXT NOT NULL CHECK(status IN('posted','skipped','matched','suppressed')),
  transaction_id TEXT,tombstone INTEGER NOT NULL DEFAULT 0 CHECK(tombstone IN(0,1)),
  PRIMARY KEY(budget_id,id),UNIQUE(budget_id,schedule_id,occurrence_date)
 );

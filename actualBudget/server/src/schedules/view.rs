@@ -31,7 +31,8 @@ pub fn horizon_days(value: &str, today: &str) -> Result<i64, Error> {
                         let months = n
                             .checked_mul(if unit == "year" { 12 } else { 1 })
                             .ok_or_else(|| Error::invalid("Upcoming length exceeds calendar"))?;
-                        (day.checked_add_months(Months::new(months))
+                        (month
+                            .checked_add_months(Months::new(months))
                             .ok_or_else(|| Error::invalid("Upcoming length exceeds calendar"))?
                             - month)
                             .num_days()
@@ -134,7 +135,7 @@ pub fn list(db: &Connection, b: &str) -> Result<Value, Error> {
                     dates.remove(0);
                 }
                 for date in dates {
-                    previews.push(json!({"id":format!("preview/{}/{}",row["id"].as_str().unwrap(),date),"schedule_id":row["id"],"date":date,"account_id":row["account_id"],"payee_id":row["payee_id"],"amount":row["amount"],"status":status}));
+                    previews.push(json!({"id":format!("preview/{}/{}",row["id"].as_str().unwrap(),date),"schedule_id":row["id"],"date":date,"account_id":row["account_id"],"payee_id":row["payee_id"],"amount":commands::scheduled_amount(&row["amount"])?,"status":status}));
                 }
             }
         }

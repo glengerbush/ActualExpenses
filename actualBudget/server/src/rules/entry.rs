@@ -133,16 +133,14 @@ pub(crate) fn post_schedule(
     clock: &str,
     epoch: Option<&str>,
     work: engine::Work,
-) -> Result<engine::Work, Error> {
+) -> Result<(engine::Work, bool), Error> {
     let id = input["id"]
         .as_str()
         .ok_or_else(|| Error::invalid("Scheduled transaction identity required"))?;
     let mut runner = engine::Runner::with_work(load(db, b)?, work);
     let (mut after, matched) = runner.evaluate(db, b, input)?;
     if after["deleted"] == true {
-        return Err(Error::conflict(
-            "The schedule's rules delete this occurrence. Review the linked rule before posting.",
-        ));
+        return Ok((runner.into_work(), false));
     }
     let schedule = input["schedule_id"]
         .as_str()
@@ -209,15 +207,8 @@ pub(crate) fn post_schedule(
                 work: runner.into_work(),
             },
         )?;
-        let row = crate::ledger::get(db, b, id)?;
-        for child in row["children"].as_array().into_iter().flatten() {
-            crate::schedules::link(db, b, child["id"].as_str().unwrap(), schedule, clock)?;
-            if let Some(peer) = child["transfer_id"].as_str() {
-                crate::schedules::link(db, b, peer, schedule, clock)?;
-            }
-        }
         crate::schedules::link(db, b, id, schedule, clock)?;
-        return Ok(work);
+        return Ok((work, true));
     } else if let Some(destination) = transfer {
         let peer = super::actions::identity(&["actualBudget.schedule-pair.v1", b, id]);
         crate::transfers::composition::save_child(db, b, id, &destination, &peer, clock, None)?;
@@ -225,5 +216,5 @@ pub(crate) fn post_schedule(
         crate::schedules::link(db, b, &peer, schedule, clock)?;
     }
     crate::schedules::link(db, b, id, schedule, clock)?;
-    Ok(runner.into_work())
+    Ok((runner.into_work(), true))
 }

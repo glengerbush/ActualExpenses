@@ -30,15 +30,19 @@ struct Dates {
     config: Value,
     from: String,
     count: usize,
+    upcoming_length: Option<String>,
 }
 async fn preview_dates(input: Result<Json<Dates>, JsonRejection>) -> Result<Json<Value>, Error> {
     let Json(body) = input.map_err(crate::api::json_error)?;
     if body.count == 0 || body.count > 1000 {
         return Err(Error::invalid("Preview1–1000 dates"));
     }
-    Ok(Json(
-        json!({"data":calendar::dates(&body.config,&body.from,body.count,&mut 2_000_000)?}),
-    ))
+    let mut data =
+        json!({"data":calendar::dates(&body.config,&body.from,body.count,&mut 2_000_000)?});
+    if let Some(horizon) = body.upcoming_length {
+        data["upcoming_days"] = json!(view::horizon_days(&horizon, &body.from)?);
+    }
+    Ok(Json(data))
 }
 async fn list(State(store): State<Store>, Path(b): Path<String>) -> Result<Json<Value>, Error> {
     crate::models::validate_id(&b)?;

@@ -544,3 +544,277 @@ fn owned_post_undo_redo_and_same_budget_native_restore_keep_occurrence_identity(
     assert_eq!(unchanged["data"], restored["data"]);
     assert_eq!(unchanged["balances"]["total"], -1234);
 }
+const P: &str = "21220000-0000-4000-8000-000000000103";
+const PAYEE: &str = "21220000-0000-4000-8000-000000000104";
+const CATEGORY: &str = "21220000-0000-4000-8000-000000000105";
+fn mapped(value: &Value, ids: &std::collections::BTreeMap<String, String>) -> Value {
+    match value {
+        Value::String(v) => ids.get(v).map_or_else(|| value.clone(), |id| json!(id)),
+        Value::Array(items) => Value::Array(items.iter().map(|v| mapped(v, ids)).collect()),
+        Value::Object(items) => Value::Object(
+            items
+                .iter()
+                .map(|(k, v)| (k.clone(), mapped(v, ids)))
+                .collect(),
+        ),
+        _ => value.clone(),
+    }
+}
+#[test]
+fn linked_schedule_financial_pipeline_matches_independent_settled_source_ledger() {
+    let oracle: Value =
+        serde_json::from_str(include_str!("../../tests/fixtures/schedule-financial.json")).unwrap();
+    for case in oracle["cases"].as_array().unwrap() {
+        let s = Server::start();
+        setup(&s);
+        let root = format!("/api/v1/budgets/{B}");
+        assert_eq!(
+            s.post(
+                &format!("{root}/accounts"),
+                "peer",
+                json!({"id":P,"name":"Savings","opening_balance":0,"opening_date":"2026-01-01"})
+            )
+            .status(),
+            201
+        );
+        assert_eq!(
+            s.post(
+                &format!("{root}/payees"),
+                "payee",
+                json!({"id":PAYEE,"name":"Bill"})
+            )
+            .status(),
+            201
+        );
+        assert_eq!(
+            s.post(
+                &format!("{root}/categories"),
+                "category",
+                json!({"id":CATEGORY,"name":"Utilities","is_income":false})
+            )
+            .status(),
+            201
+        );
+        let mut ids = std::collections::BTreeMap::from([
+            ("ACCOUNT".into(), A.into()),
+            ("PEER".into(), P.into()),
+            ("PAYEE".into(), PAYEE.into()),
+            ("CATEGORY".into(), CATEGORY.into()),
+        ]);
+        if case["transfer"] == true || case["name"].as_str().unwrap().contains("split transfer") {
+            // Ordinary public transfer lifecycle establishes account-managed identities;
+            // removing the zero-value pair leaves the financial fixture empty.
+            let seed = "21220000-0000-4000-8000-000000000220";
+            let response=s.post(&format!("{root}/transfers"),"bootstrap-transfer",json!({"id":seed,"counterpart_id":"21220000-0000-4000-8000-000000000221","account_id":A,"to_account_id":P,"amount":0,"date":"2026-11-09"}));
+            assert_eq!(response.status(), 201, "{}", response.text().unwrap());
+            let response = s
+                .client
+                .delete(format!("{}{root}/transactions/{seed}", s.url))
+                .header("Idempotency-Key", "remove-bootstrap")
+                .json(&json!({}))
+                .send()
+                .unwrap();
+            assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+            let payees: Value = s
+                .get(&format!("{root}/payees?include_transfers=true"))
+                .json()
+                .unwrap();
+            for (name, target) in [("TRANSFER", P), ("BACK_TRANSFER", A)] {
+                ids.insert(
+                    name.into(),
+                    payees["data"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .find(|p| p["transfer_account_id"] == target)
+                        .unwrap()["id"]
+                        .as_str()
+                        .unwrap()
+                        .into(),
+                );
+            }
+        }
+        let response = command(
+            &s,
+            "schedule",
+            json!({"action":"create","id":case["schedule"],"name":case["name"],"conditions":mapped(&case["conditions"],&ids),"actions":mapped(&case["actions"],&ids)}),
+        );
+        assert_eq!(
+            response.status(),
+            201,
+            "{}: {}",
+            case["name"],
+            response.text().unwrap()
+        );
+        if case["ordinary"] == true {
+            let response=s.post(&format!("{root}/rules"),"ordinary-rule",json!({"id":"21220000-0000-4000-8000-000000000230","stage":"post","conditionsOp":"and","conditions":[{"field":"category","op":"is","value":CATEGORY}],"actions":[{"op":"append-notes","value":" / checked"}],"snapshot":checkpoint(&s)["snapshot"]}));
+            assert_eq!(response.status(), 201);
+        }
+        let response = command(
+            &s,
+            "post",
+            json!({"action":"post","id":case["schedule"],"occurrence_date":case["date"].as_str().unwrap_or("2026-11-09"),"today":case["today"].as_bool().unwrap_or(false)}),
+        );
+        assert_eq!(
+            response.status(),
+            200,
+            "{}: {}",
+            case["name"],
+            response.text().unwrap()
+        );
+        let mut flat = vec![];
+        let mut balances = vec![];
+        for (name, account) in [("ACCOUNT", A), ("PEER", P)] {
+            let view: Value = s
+                .get(&format!("{root}/transactions?account_id={account}"))
+                .json()
+                .unwrap();
+            balances.push(view["balances"]["total"].clone());
+            let mut parents = view["data"].as_array().unwrap().clone();
+            parents.sort_by(|a, b| {
+                a["date"]
+                    .as_str()
+                    .cmp(&b["date"].as_str())
+                    .then(a["amount"].as_i64().cmp(&b["amount"].as_i64()))
+                    .then(a["notes"].as_str().cmp(&b["notes"].as_str()))
+            });
+            for (i, parent) in parents.iter().enumerate() {
+                let key = format!("{name}/{i}");
+                flat.push((key.clone(), None, parent.clone()));
+                for (j, child) in parent["children"]
+                    .as_array()
+                    .into_iter()
+                    .flatten()
+                    .enumerate()
+                {
+                    flat.push((format!("{key}/{j}"), Some(key.clone()), child.clone()));
+                }
+            }
+        }
+        let labels = flat
+            .iter()
+            .map(|(key, _, row)| (row["id"].as_str().unwrap().to_owned(), key.clone()))
+            .collect::<std::collections::BTreeMap<_, _>>();
+        let reference = |value: &Value| {
+            if value.is_null() {
+                Value::Null
+            } else {
+                json!(
+                    ids.iter()
+                        .find(|(_, id)| value == id.as_str())
+                        .unwrap_or_else(|| panic!("Unknown reference {value}"))
+                        .0
+                )
+            }
+        };
+        let actual=flat.iter().map(|(key,parent,row)|json!({"key":key,"parent":parent,"amount":row["amount"],"date":row["date"],"notes":row["notes"],"cleared":row["cleared"],"payee":reference(&row["payee_id"]),"category":reference(&row["category_id"]),"schedule":row.get("schedule_id").unwrap_or(&Value::Null),"peer":row["transfer_id"].as_str().map(|id|labels.get(id).expect("Missing reciprocal row"))})).collect::<Vec<_>>();
+        let mut expected = case["ledger"].clone();
+        if case["today"] == true {
+            let today =
+                s.get(&format!("{root}/schedules")).json::<Value>().unwrap()["data"]["today"]
+                    .clone();
+            for row in expected.as_array_mut().unwrap() {
+                row["date"] = today.clone();
+            }
+        }
+        assert_eq!(json!(actual), expected, "{}", case["name"]);
+        assert_eq!(json!(balances), case["balances"], "{}", case["name"]);
+    }
+}
+#[test]
+fn final_and_one_time_skip_are_baseline_noops_not_unposted_suppression() {
+    for recurring in [false, true] {
+        let s = Server::start();
+        setup(&s);
+        let date = if recurring {
+            json!({"start":"2026-11-08","frequency":"daily","endMode":"after_n_occurrences","endOccurrences":1})
+        } else {
+            json!("2026-11-08")
+        };
+        let response = command(
+            &s,
+            "schedule",
+            json!({"action":"create","id":S,"posts_transaction":true,"conditions":[{"field":"account","op":"is","value":A},{"field":"amount","op":"is","value":-100},{"field":"date","op":"is","value":date}]}),
+        );
+        assert_eq!(response.status(), 201);
+        let response = command(
+            &s,
+            "skip-final",
+            json!({"action":"skip","id":S,"occurrence_date":"2026-11-08"}),
+        );
+        assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+        let response = command(
+            &s,
+            "catchup",
+            json!({"action":"catch-up","through":"2026-11-09"}),
+        );
+        assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+        let result: Value = response.json().unwrap();
+        assert_eq!(result["data"]["posted_count"], 1);
+        let ledger: Value = s
+            .get(&format!("/api/v1/budgets/{B}/transactions?account_id={A}"))
+            .json()
+            .unwrap();
+        assert_eq!(ledger["balances"]["total"], -100);
+        assert_eq!(ledger["data"].as_array().unwrap().len(), 1);
+    }
+}
+#[test]
+fn horizon_previews_match_exact_pinned_month_helper_and_never_mutate() {
+    let s = Server::start();
+    let oracle: Value =
+        serde_json::from_str(include_str!("../../tests/fixtures/schedule-financial.json")).unwrap();
+    for case in oracle["horizons"].as_array().unwrap() {
+        let response=s.post("/api/v1/schedules/preview-dates","horizon",json!({"config":case["today"],"from":case["today"],"count":1,"upcoming_length":case["value"]}));
+        assert_eq!(
+            response.status(),
+            200,
+            "{case}: {}",
+            response.text().unwrap()
+        );
+        let result: Value = response.json().unwrap();
+        assert_eq!(result["upcoming_days"], case["days"], "{case}");
+    }
+    assert_eq!(
+        s.get("/api/v1/budgets").json::<Value>().unwrap()["data"],
+        json!([])
+    );
+}
+#[test]
+fn scheduled_range_midpoints_match_pinned_javascript_at_safe_integer_boundaries() {
+    let oracle: Value =
+        serde_json::from_str(include_str!("../../tests/fixtures/schedule-financial.json")).unwrap();
+    for case in oracle["amounts"].as_array().unwrap() {
+        let s = Server::start();
+        setup(&s);
+        let amount = &case["value"];
+        let response = command(
+            &s,
+            "schedule",
+            json!({"action":"create","id":S,"conditions":[{"field":"account","op":"is","value":A},{"field":"amount","op":if amount.is_object(){"isbetween"}else{"is"},"value":amount},{"field":"date","op":"is","value":"2026-11-09"}]}),
+        );
+        assert_eq!(
+            response.status(),
+            201,
+            "{case}: {}",
+            response.text().unwrap()
+        );
+        let response = command(
+            &s,
+            "post",
+            json!({"action":"post","id":S,"occurrence_date":"2026-11-09"}),
+        );
+        assert_eq!(
+            response.status(),
+            200,
+            "{case}: {}",
+            response.text().unwrap()
+        );
+        let result: Value = s
+            .get(&format!("/api/v1/budgets/{B}/transactions?account_id={A}"))
+            .json()
+            .unwrap();
+        assert_eq!(result["data"][0]["amount"], case["amount"], "{case}");
+        assert_eq!(result["balances"]["total"], case["amount"]);
+    }
+}

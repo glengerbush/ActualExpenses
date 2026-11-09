@@ -202,8 +202,9 @@ pub fn apply(
             let date = required(&c.occurrence_date, "occurrence_date")?;
             check_current(&row, date)?;
             data::guard(db, b, "schedules", id, &["next_date"], clock)?;
-            record(db, b, id, date, "skipped", None, clock)?;
-            advance(db, b, &row, clock, &mut 2_000_000)?;
+            if advance(db, b, &row, clock, &mut 2_000_000)? {
+                record(db, b, id, date, "skipped", None, clock)?;
+            }
             data::get(db, b, id)
         }
         _ => Err(Error::invalid("Unknown schedule command")),
@@ -284,6 +285,7 @@ fn post(
     if let Some((status, transaction)) = existing(db, b, id, date)? {
         return match (status.as_str(), transaction) {
             ("posted" | "matched", Some(tx)) => crate::ledger::get_any(db, b, &tx),
+            ("suppressed", None) => Ok(Value::Null),
             _ => Err(Error::conflict(
                 "The occurrence was skipped; review it before posting",
             )),
@@ -313,20 +315,16 @@ fn post(
         })
         .map(|c| c["value"].clone())
         .unwrap_or(json!(0));
-    let amount = if let Some(n) = amount.as_i64() {
-        n
-    } else {
-        let a = amount["num1"]
-            .as_i64()
-            .ok_or_else(|| Error::invalid("Invalid scheduled range"))?;
-        let z = amount["num2"]
-            .as_i64()
-            .ok_or_else(|| Error::invalid("Invalid scheduled range"))?;
-        i64::try_from((a as i128 + z as i128 + 1).div_euclid(2)).map_err(Error::internal)?
-    };
+    let amount = scheduled_amount(&amount)?;
     let tx = data::identity(&["actualBudget.schedule-transaction.v1", b, id, date]);
     let input = json!({"id":tx,"account_id":account,"payee_id":payee,"category_id":null,"amount":amount,"date":if today{calendar::day()?}else{date.to_owned()},"notes":"","cleared":false,"schedule_id":id,"is_parent":false,"parent_id":null});
-    *work = crate::rules::post_schedule(db, b, &input, clock, epoch, std::mem::take(work))?;
+    let (remaining, inserted) =
+        crate::rules::post_schedule(db, b, &input, clock, epoch, std::mem::take(work))?;
+    *work = remaining;
+    if !inserted {
+        record(db, b, id, date, "suppressed", None, clock)?;
+        return Ok(Value::Null);
+    }
     record(db, b, id, date, "posted", Some(&tx), clock)?;
     crate::ledger::get(db, b, &tx)
 }
@@ -453,7 +451,9 @@ fn catch_up(
             }
         }
     }
-    Ok(json!({"posted_count":posted.len(),"transactions":posted}))
+    Ok(
+        json!({"posted_count":posted.iter().filter(|r|!r.is_null()).count(),"handled_count":posted.len(),"transactions":posted}),
+    )
 }
 
 fn edit(db: &Connection, b: &str, row: &Value, c: &Command, clock: &str) -> Result<Value, Error> {
@@ -622,8 +622,16 @@ fn edit(db: &Connection, b: &str, row: &Value, c: &Command, clock: &str) -> Resu
     }
     data::get(db, b, id)
 }
-fn scheduled_amount(value: &Value) -> Result<i64, Error> {
+pub(super) fn scheduled_amount(value: &Value) -> Result<i64, Error> {
+    if value.is_null() {
+        return Ok(0);
+    }
     if let Some(n) = value.as_i64() {
+        if n.unsigned_abs() > crate::models::MAX_MONEY as u64 {
+            return Err(Error::invalid(
+                "Scheduled amount exceeds safe integer range",
+            ));
+        }
         return Ok(n);
     }
     let a = value["num1"]
@@ -632,5 +640,20 @@ fn scheduled_amount(value: &Value) -> Result<i64, Error> {
     let b = value["num2"]
         .as_i64()
         .ok_or_else(|| Error::invalid("Invalid scheduled range"))?;
-    i64::try_from((a as i128 + b as i128 + 1).div_euclid(2)).map_err(Error::internal)
+    // Pinned getScheduledAmount uses JS Number addition before Math.round.
+    // The result remains an exact integer; the oracle covers binary64 midpoint
+    // loss near the safe-integer boundary and negative half-cent ties.
+    let average = (a as f64 + b as f64) / 2.0;
+    let lower = average.floor();
+    let rounded = if average - lower >= 0.5 {
+        lower + 1.0
+    } else {
+        lower
+    };
+    if !rounded.is_finite() || rounded.abs() > crate::models::MAX_MONEY as f64 {
+        return Err(Error::invalid(
+            "Scheduled midpoint exceeds safe integer range",
+        ));
+    }
+    Ok(rounded as i64)
 }

@@ -1,6 +1,17 @@
-# Rules/category learning candidate validation
+# Rules/category learning acceptance
 
-Ticket19; spec stories28,44–46,94. Root owns final Standards/Spec/Impeccable review and batch qualification.
+Ticket19 accepted through `f486a7b` on2026-11-09; spec stories28,44–46,94. Independent Standards/Spec reviews pass; Impeccable finish review approves the corrected interface. No remaining findings in this slice. Full replacement qualification remains open.
+
+## Integrated qualification
+
+- All186 current public HTTP cases pass across `/tmp/rules-composed-http.log`, `/tmp/rules-composed-http-tail.log`, and the focused schema11/12 corrections below. The first run exposed a formerly unsupported simple-rule expectation; a genuine unsupported template fixture now preserves blocked-import coverage. Two older upgrade assertions differed only in their expected cursor; explicit incremental metadata checks preserve financial equality. This is combined coverage, not one uninterrupted suite pass.
+- All30 native API integration tests passed with zero failures/skips; fresh debug APK assembly and lint passed,50 tasks executed: `/tmp/rules-native-all-build.log`. No new physical-device or signed-upgrade claim.
+- All36 browser groups and five fixture checks pass across the production runs. The frozen `6d647f5` batch ran all41 commands, with35 browser groups and all five fixtures passing; only restore-generation recovery failed. Final `f486a7b` production recheck passed offline-epoch, rules, register, offline, and register-recovery groups: `/tmp/rules-container-complete.log`, `/tmp/rules-container-guard.log`. The preceding inline-reference failure and recovery corrections are documented below; no failed result is represented as a passing uninterrupted run.
+- Final production image `sha256:6f080c12b85537879182dd9d0c6e817ea1987e98875c9f42f4dc83830ade11c7`,133576601 bytes,user10001:10001: plain HTTP, bundled assets, read-only receipt lookup, persistence and exact replay after container replacement pass. Disposable containers, volumes and qualification runner were cleaned up.
+- Served OpenAPI response validation, pinned independent oracle check, Clippy, web check/build and relevant Svelte autofixers pass. Independent backend reviews at `e72e7b3`/`3747e04`, corrective UI review at `6d647f5`, and recovery-guard review at `f486a7b` pass. Root separately reviewed test-only route adaptations `ba0892f` and `fd14293`; financial and immutable-request assertions remain intact.
+- Final production captures are retained in [screenshots/rules](screenshots/rules). Schema17 executable preserved at `.scratch/actualbudget-schema17-server`, SHA256 `f4043c68c6b09bb848757a40b6e5c73a4636e3a8e82dbd820dd22a2fe268fab6`, for genuine later upgrade fixtures; backend source is unchanged after `3747e04`.
+
+No application version bump, push, release, production storage change or deployment occurred. Tickets20/21/42 retain their explicit migration/schedule/expression scope; ticket51 retains whole-system resource qualification.
 
 ## Independent reference
 

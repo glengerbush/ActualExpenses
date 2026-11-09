@@ -1,6 +1,6 @@
 # Transaction rules
 
-Candidate implements ticket19. Final batch qualification and independent finish review are root-owned; focused evidence is in `../docs/rules-validation.md`.
+Ticket19 accepted through `f486a7b`; [qualification and independent reviews](../docs/rules-validation.md) cover the complete slice. Schedule execution and expressions retain their separately assigned tickets.
 
 Rules execute pre/default/post, then ascending pinned specificity and ID. Conditions inspect the evolving transaction. Preview reads a captured snapshot and never saves ledger rows, payees, or learning. Selective apply uses one command-wide regex/recurrence work budget, one receipt, and one optional owned history action. Protected connected entries require unlock and a new preview.
 

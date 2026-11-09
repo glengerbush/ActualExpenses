@@ -173,3 +173,60 @@ fn legacy_identity_maps_only_exact_source_and_each_field_keeps_original_order() 
         json!([])
     );
 }
+
+#[test]
+fn observed_source_field_is_acknowledged_before_current_split_guard_but_unknown_edits_are_retained()
+{
+    let server = Server::start();
+    let (budget, source) = imported(&server);
+    let id = "04000000-0000-4000-8000-000000000002";
+    let endpoint = format!("/api/v1/budgets/{budget}/transactions/{id}");
+    let original = server.get(&endpoint).json::<Value>().unwrap();
+    let epoch = server
+        .get(&format!("/api/v1/budgets/{budget}/checkpoint"))
+        .json::<Value>()
+        .unwrap()["data"]["epoch"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let checkpoint = server
+        .get(&format!("/api/v1/budgets/{budget}/checkpoint"))
+        .json::<Value>()
+        .unwrap()["data"]["snapshot"]
+        .clone();
+    let split=server.post(&format!("{endpoint}/splits"),"split",json!({"snapshot":checkpoint,"children":[{"id":"20000000-0000-4000-8000-000000000020","amount":original["data"]["amount"]}]}));
+    assert_eq!(split.status(), 200, "{}", split.text().unwrap());
+    let before = server.get(&endpoint).json::<Value>().unwrap();
+    let path = format!("/api/v1/budgets/{budget}/android-upgrade/operations");
+    let mut body = json!({"source":{"file_id":source["cloudFileId"],"group_id":source["groupId"]},"epoch":epoch,"operation":{"id":"30000000-0000-4000-8000-000000000020","transactionId":id,"creates":false,"deletes":false,"createdOffline":false,"attempted":true,"changes":[{"dataset":"transactions","row":id,"column":"notes","value":original["data"]["notes"],"timestamp":original["data"]["field_versions"]["notes"]}]}});
+    let response = server.post(&path, "30000000-0000-4000-8000-000000000020", body.clone());
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    assert_eq!(server.get(&endpoint).json::<Value>().unwrap(), before);
+    body["operation"]["id"] = json!("40000000-0000-4000-8000-000000000020");
+    body["operation"]["changes"][0]["value"] = json!("timestamp collision");
+    assert_eq!(
+        server
+            .post(&path, "40000000-0000-4000-8000-000000000020", body.clone())
+            .status(),
+        409
+    );
+    body["operation"]["id"] = json!("50000000-0000-4000-8000-000000000020");
+    body["operation"]["changes"][0]["timestamp"] = json!(format!(
+        "{}-0000-cccccccccccccccc",
+        chrono::DateTime::<chrono::Utc>::from_timestamp_millis(
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_millis() as i64
+        )
+        .unwrap()
+        .to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
+    ));
+    assert_eq!(
+        server
+            .post(&path, "50000000-0000-4000-8000-000000000020", body)
+            .status(),
+        409
+    );
+    assert_eq!(server.get(&endpoint).json::<Value>().unwrap(), before);
+}

@@ -1,0 +1,21 @@
+# Android upgrade handoff (ticket20, implementation in progress)
+
+The released `2b25b07` client stores Actual CRDT messages, not API-v1 requests. Each message has its own HLC. A single API edit-clock header cannot represent it. The upgrade leaves `expenses.state` and Keystore alias `actualexpenses.state.v1` intact.
+
+The recovery screen finds activated imports by **original cloud-file UUID and sync-group UUID**. Source local ID is reported as provenance. Names never establish identity. Several matching imports require explicit target-UUID selection; an API budget duplicate without original import provenance is not a target. Missing imports/groups and unsupported servers retain work.
+
+A single encrypted AtomicFile replacement writes the API state, all original operation JSON/message ordering/IDs/typed values/attempted flags, original clock/node, selected account, cached references, pending/retained rows and a source fingerprint marker. There is no cleanup of the original. Restart reads the marker before touching legacy storage; even a still-pending migrated queue does not re-read/decrypt/hash the full original file. Existing API work cannot be overwritten by a second legacy queue. Pre-write failure retains recovery; post-commit interruption resumes the durable new state.
+
+`POST /api/v1/budgets/{budget}/android-upgrade/operations` receives one original operation. Idempotency-Key is its original UUID. Each field keeps its own original HLC; a batch edit clock is rejected. The body captures the target epoch once. Original receipt lookup precedes epoch/current-eligibility checks, and remains available after restore. Receipt-only probes never execute unknown work. Cancellation retains the original payload and records a durable refusal. No rules or category learning run.
+
+Latest source clocks prove individual fields only. Exact source timestamp **and decoded typed value** can acknowledge that field without touching a later split/transfer. Equal timestamp/different value refuses. Unobserved edits retain ordinary expense and reconciliation guards. Ordinary fields use existing newest-field ordering; an older unpublished deletion loses to any newer known field. Published tombstones remain published. Existing transaction IDs outside the original imported snapshot cannot be adopted as uncertain legacy creations.
+
+Conversion is explicit: `acct→account_id`, `description→payee_id`, `category→category_id`, numeric date→ISO date, numeric 0/1 status→boolean, null notes→empty native notes. Payee/category aliases resolve through existing canonical-reference paths. Source `sort_order` is a floating-point order, while native rows use integer ranks: existing imported ranks remain unchanged; absent legacy creations append in original queue order. Raw source order and all structural default messages remain in the immutable receipt. Unsupported fields or incomplete creations refuse atomically, never disappear.
+
+Cached source values are a pending projection, not current server authority. After legacy acknowledgement, the native service invalidates that account’s bounded view even when the source acknowledgement produced no new cursor event; published deletions and newer remote values therefore replace stale cached values. Cached manual category overrides stay explicit; native writes do not run the complete rule engine or teach defaults.
+
+## Independent fixtures
+
+`actualBudget/tests/fixtures/android-upgrade/manifest.json` records the pinned Actual26.10 source commit, unchanged released service hash and each fixture hash. `LegacyUpgradeFixtureGeneratorTest` drives the unchanged released ExpenseService against disposable Actual26.10, drops real post-commit responses, and saves genuine old state. The independent official API synchronizes, reads the settled ledger and exports each archive. Cases cover lost create/edit/delete acknowledgements and unpublished edits, inline payees, offline correction/manual clearing and an older deletion followed by a newer remote edit. No hand-authored SavedState or fabricated schema versions.
+
+Core checkpoint checks are focused, not final qualification. Device signed-upgrade/reinstall, denied-background/foreground recovery, routing, rendered recovery UI and final consolidated checks remain required before acceptance.

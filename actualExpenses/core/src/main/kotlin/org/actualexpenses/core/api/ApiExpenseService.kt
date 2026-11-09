@@ -21,6 +21,8 @@ private data class NativeOperation(
     val clock: String = ZERO_TIMESTAMP,
     val epoch: String = "",
     val budgetId: String = "",
+    val legacy: Boolean = false,
+    val projection: JsonObject = JsonObject(),
     val creates: Boolean = false,
     val deletes: Boolean = false,
     val createdOffline: Boolean = false,
@@ -36,7 +38,7 @@ private data class NativeState(
     var epoch: String = "",
     var accountId: String? = null,
     var checkpoint: String? = null,
-    val node: String = UUID.randomUUID().toString().replace("-", "").takeLast(16),
+    var node: String = UUID.randomUUID().toString().replace("-", "").takeLast(16),
     var clock: String = ZERO_TIMESTAMP,
     val accounts: MutableMap<String, JsonObject> = mutableMapOf(),
     val payees: MutableMap<String, JsonObject> = mutableMapOf(),
@@ -48,17 +50,19 @@ private data class NativeState(
     val recent: MutableMap<String, List<String>> = mutableMapOf(),
     val retained: MutableMap<String, String> = mutableMapOf(),
     val pending: MutableList<NativeOperation> = mutableListOf(),
+    var legacyFingerprint: String? = null,
     var notice: String? = null,
 )
 
-/** Native v1 application boundary. Legacy storage is read only and never converted here. */
+/** Native v1 application boundary; legacy handoff retains the original encrypted store. */
 class ApiExpenseService(
     private val store: StateStore,
     private val legacyStore: StateStore? = null,
     private val transport: HttpTransport = BudgetHttpTransport(),
 ) {
     private val gson = GsonBuilder().serializeNulls().create()
-    private val legacyPresent = legacyStore?.read()?.isNotBlank() == true
+    private val legacyRaw by lazy { legacyStore?.read()?.takeIf { it.isNotBlank() } }
+    private val legacyPresent: Boolean get() = saved.legacyFingerprint == null && legacyRaw != null
     @Volatile
     private var saved =
         store.read()?.let {
@@ -97,8 +101,28 @@ class ApiExpenseService(
     fun state(): AppState {
         if (legacyPresent)
             return AppState(
-                server = saved.server,
-                error = LEGACY_RECOVERY,
+                server =
+                    saved.server.ifEmpty {
+                        runCatching {
+                                JsonParser.parseString(legacyRaw)
+                                    .asJsonObject["server"]
+                                    ?.asString
+                                    .orEmpty()
+                            }
+                            .getOrDefault("")
+                    },
+                budgets = saved.budgets,
+                pendingCount =
+                    runCatching {
+                            JsonParser.parseString(legacyRaw)
+                                .asJsonObject
+                                .getAsJsonArray("pending")
+                                .map { it.asJsonObject["transactionId"].asString }
+                                .distinct()
+                                .size
+                        }
+                        .getOrDefault(0),
+                error = error ?: LEGACY_RECOVERY,
                 syncBlocked = true,
                 legacyRecovery = true,
             )
@@ -190,6 +214,7 @@ class ApiExpenseService(
     }
 
     fun connect(server: String) = syncLock.withLock {
+        if (legacyPresent) { prepareLegacy(server); return@withLock }
         ready()
         val normalized = BudgetApi.normalized(server)
         require(saved.pending.isEmpty() || normalized == saved.server) {
@@ -223,7 +248,148 @@ class ApiExpenseService(
         blocked = false
     }
 
+
+    private fun prepareLegacy(server: String, selected: String? = null) {
+        check(saved.pending.isEmpty() && saved.budgetId == null) {
+            "Both old and API saved work exist. Keep app data intact; resolve the API queue before migrating the original installation."
+        }
+        val legacy = LegacyUpgrade(requireNotNull(legacyRaw))
+        val normalized = BudgetApi.normalized(server)
+        val api = BudgetApi(normalized, transport)
+        val supported = api.requireSupported()
+        require("android_upgrade" in supported) {
+            "Update actualBudget to support Android migration. Your original saved work remains intact."
+        }
+        val source = legacy.source
+        val candidates =
+            api.request(
+                    "/android-upgrade/sources?file_id=${BudgetApi.query(source["file_id"].asString)}&group_id=${BudgetApi.query(source["group_id"].asString)}"
+                )
+                .getAsJsonArray("data")
+                .map { it.asJsonObject }
+        require(candidates.isNotEmpty()) {
+            "No matching imported budget and sync group. Import the original archive into this server; saved work remains on this phone."
+        }
+        val candidate =
+            if (selected != null) candidates.singleOrNull { it["id"].asString == selected }
+            else candidates.singleOrNull()
+        if (candidate == null) {
+            change { next ->
+                next.server = normalized
+                next.budgets = candidates.map {
+                    RemoteBudget(
+                        it["id"].asString,
+                        "",
+                        "${it["name"].asString} · ${it["id"].asString}",
+                    )
+                }
+            }
+            error =
+                "Several imports match the original source. Choose the exact target budget below; names alone do not establish identity."
+            return
+        }
+        val budget = candidate["id"].asString
+        val epoch = candidate["epoch"].asString
+        val view = legacy.view
+        val pendingAccounts = mutableMapOf<String, String>()
+        // This single atomic write is the handoff. Failure leaves the old recovery state active.
+        change { next ->
+            next.server = normalized
+            next.budgetId = budget
+            next.epoch = epoch
+            next.accountId = legacy.json["accountId"]?.takeUnless { it.isJsonNull }?.asString
+            next.node = legacy.json["node"].asString
+            next.clock = legacy.json["clock"].asString.also(LogicalClock::validate)
+            next.budgets = candidates.map {
+                RemoteBudget(it["id"].asString, "", it["name"].asString)
+            }
+            for (row in legacy.rows("accounts")) {
+                row.addProperty("closed", row["closed"]?.asInt == 1)
+                row.addProperty("deleted", row["tombstone"]?.asInt == 1)
+                next.accounts[row["id"].asString] = row
+            }
+            view.payees.forEach {
+                next.payees[it.id] =
+                    JsonObject().apply {
+                        addProperty("id", it.id)
+                        addProperty("name", it.name)
+                    }
+            }
+            view.categories.forEach {
+                next.categories[it.id] =
+                    JsonObject().apply {
+                        addProperty("id", it.id)
+                        addProperty("name", it.name)
+                    }
+            }
+            next.associations.putAll(view.payeeCategoryAssociations)
+            next.preferences.addProperty("currency_code", view.currency)
+            view.expenses.forEach { row ->
+                next.rows[row.id] =
+                    JsonObject().apply {
+                        addProperty("id", row.id)
+                        addProperty("account_id", row.accountId)
+                        addProperty("amount", -row.amountMinor)
+                        addProperty("date", row.date)
+                        addProperty("payee_id", row.payeeId)
+                        addProperty("category_id", row.categoryId)
+                        addProperty("notes", row.notes)
+                        addProperty("cleared", true)
+                        addProperty("reconciled", false)
+                    }
+            }
+            next.recent[next.accountId.orEmpty()] =
+                view.expenses.filter { !it.pending }.take(10).map { it.id }
+            next.accountId?.let { next.rememberedAccounts[scopeKey(normalized, budget)] = it }
+            legacy.json.getAsJsonObject("retained")?.entrySet()?.forEach { (account, id) ->
+                next.retained["${scopeKey(normalized,budget)}\u001f$account"] = id.asString
+            }
+            legacy.operations.forEach { item ->
+                val op = item.asJsonObject
+                val projection = LegacyUpgrade.projection(op)
+                val id = op["transactionId"].asString
+                val account =
+                    projection["account_id"]?.asString
+                        ?: pendingAccounts[id]
+                        ?: legacy.row("transactions", id)?.get("acct")?.asString
+                requireNotNull(account) {
+                    "Saved expense has no original account mapping. Original work remains intact."
+                }
+                pendingAccounts[id] = account
+                if (!next.rows.containsKey(id))
+                    legacy.row("transactions", id)?.let {
+                        next.rows[id] = LegacyUpgrade.cachedRow(it)
+                    }
+                next.pending +=
+                    NativeOperation(
+                        id = op["id"].asString,
+                        transactionId = id,
+                        accountId = account,
+                        method = "POST",
+                        path = "/budgets/$budget/android-upgrade/operations",
+                        body = legacy.body(op, epoch),
+                        epoch = epoch,
+                        budgetId = budget,
+                        legacy = true,
+                        projection = projection,
+                        creates = op["creates"].asBoolean,
+                        deletes = op["deletes"].asBoolean,
+                        createdOffline = op["createdOffline"].asBoolean,
+                        attempted = op["attempted"].asBoolean,
+                    )
+            }
+            next.legacyFingerprint = legacy.fingerprint
+            next.notice =
+                "Original saved work recovered. Connect to reconcile pending changes; the original encrypted file is preserved."
+        }
+        capabilities = supported
+        online = false
+        error = null
+        blocked = false
+    }
+
     fun chooseBudget(id: String) = syncLock.withLock {
+        if (legacyPresent) { prepareLegacy(saved.server, id); return@withLock }
         ready()
         synchronized(this) {
             require(saved.pending.isEmpty() || saved.budgetId == id) {
@@ -449,11 +615,9 @@ class ApiExpenseService(
         require(projected()[id]?.let(::eligible) == true) { "This expense is no longer editable." }
         change { next ->
             val related = next.pending.filter { it.transactionId == id }
-            if (related.any { it.creates } && related.none { it.attempted }) {
+            if (related.any { it.creates } && related.none { it.attempted || it.legacy }) {
                 val references = related.mapNotNull {
-                    it.body
-                        ?.let(JsonParser::parseString)
-                        ?.asJsonObject
+                    (if (it.legacy) it.projection else it.body?.let(JsonParser::parseString)?.asJsonObject)
                         ?.getAsJsonObject("new_payee")
                 }
                 next.pending.removeAll { it.transactionId == id }
@@ -525,7 +689,7 @@ class ApiExpenseService(
                         }
                     } ?: break
                 try {
-                    val result = api.request(op.path, op.method, op.body, op.id, op.clock, op.epoch)
+                    val result = api.request(op.path, op.method, op.body, op.id, if (op.legacy) null else op.clock, op.epoch)
                     acknowledge(op, result)
                 } catch (failure: BudgetApiException) {
                     if (failure.code == "deletion_superseded") {
@@ -565,7 +729,7 @@ class ApiExpenseService(
                         op.method,
                         op.body,
                         op.id,
-                        op.clock,
+                        if (op.legacy) null else op.clock,
                         op.epoch,
                         receiptOnly = true,
                     ),
@@ -594,7 +758,7 @@ class ApiExpenseService(
         require(op.splitRejected) { "Refresh to verify the rejected expense change first." }
         val api = BudgetApi(saved.server, transport)
         try {
-            acknowledge(op, api.request(op.path, op.method, op.body, op.id, op.clock, op.epoch, receiptOnly = true))
+            acknowledge(op, api.request(op.path, op.method, op.body, op.id, if (op.legacy) null else op.clock, op.epoch, receiptOnly = true))
         } catch (failure: BudgetApiException) {
             if (failure.code !in setOf("split_transaction", "transfer_transaction")) throw failure
             change {
@@ -656,7 +820,13 @@ class ApiExpenseService(
         val row = result.getAsJsonObject("data")
         change { next ->
             next.pending.removeAll { it.id == op.id }
-            if (row?.text("id") == op.transactionId) {
+            if (op.legacy) {
+                // A source ACK is not the current native row. Force a bounded view
+                // even when reconciliation did not advance the server change cursor.
+                next.recent.remove(op.accountId)
+                if (row?.get("deleted")?.asBoolean == true) next.rows.remove(op.transactionId)
+            }
+            if (!op.legacy && row?.text("id") == op.transactionId) {
                 if (row["deleted"]?.asBoolean == true || op.deletes)
                     next.rows.remove(op.transactionId)
                 else next.rows[op.transactionId] = row.deepCopy()
@@ -949,9 +1119,8 @@ class ApiExpenseService(
         saved.payees.toMutableMap().apply {
             saved.pending
                 .mapNotNull {
-                    it.body
-                        ?.let(JsonParser::parseString)
-                        ?.asJsonObject
+                    (if (it.legacy) it.projection
+                        else it.body?.let(JsonParser::parseString)?.asJsonObject)
                         ?.getAsJsonObject("new_payee")
                 }
                 .forEach { put(it["id"].asString, it) }
@@ -973,8 +1142,8 @@ class ApiExpenseService(
                                     addProperty("reconciled", false)
                                 }
                             }
-                        op.body?.let {
-                            JsonParser.parseString(it).asJsonObject.entrySet().forEach {
+                        (if (op.legacy) op.projection else op.body?.let(JsonParser::parseString)?.asJsonObject)?.let {
+                            it.entrySet().forEach {
                                 (field, value) ->
                                 if (field == "new_payee") {
                                     row.add("payee_id", value.asJsonObject["id"])
@@ -1008,6 +1177,6 @@ class ApiExpenseService(
 
     companion object {
         const val LEGACY_RECOVERY =
-            "Your previous Actual budget and pending changes are preserved on this phone. This update cannot migrate them yet. Keep app data intact; use the migration update before connecting to the new server."
+            "Your previous Actual budget and pending changes are preserved on this phone. Import the original budget archive into actualBudget, then connect below. Original app data and message clocks remain on this phone until the handoff is safely saved."
     }
 }

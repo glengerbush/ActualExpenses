@@ -131,7 +131,12 @@ async function handleOracle(incoming, outgoing) {
   const body = chunks.length ? JSON.parse(Buffer.concat(chunks).toString()) : {};
   let result;
   const pathname = new URL(incoming.url, 'http://localhost').pathname;
-  if (incoming.method === 'GET' && pathname === '/state') {
+  if (incoming.method === 'GET' && pathname === '/archive') {
+    await api.sync();
+    const archive = await api.exportBudget();
+    outgoing.writeHead(200, { 'content-type': 'application/zip' });
+    outgoing.end(Buffer.from(archive)); return;
+  } else if (incoming.method === 'GET' && pathname === '/state') {
     await api.sync();
     result = { accounts: await api.getAccounts(), payees: await api.getPayees(), categories: await api.getCategories(), rules: await api.getRules(), transactions: await api.getTransactions(accountId), faultEvents };
   } else if (incoming.method === 'POST' && pathname === '/transactions') {

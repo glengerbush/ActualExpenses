@@ -21,8 +21,9 @@ import org.junit.jupiter.api.Test
 class NativeApiIntegrationTest {
     private class MemoryStore(var raw: String? = null) : StateStore {
         var writes = 0
+        var reads = 0
 
-        override fun read() = raw
+        override fun read() = raw.also { reads++ }
 
         override fun write(value: String) {
             raw = value
@@ -30,7 +31,7 @@ class NativeApiIntegrationTest {
         }
     }
 
-    private class Server : AutoCloseable {
+    private class Server(private val binaryOverride: String? = null) : AutoCloseable {
         private val directory = Files.createTempDirectory("actualexpenses-v1-")
         private val client = HttpClient.newHttpClient()
         private val child: Process
@@ -42,7 +43,7 @@ class NativeApiIntegrationTest {
             val web = Files.createDirectory(directory.resolve("web"))
             Files.writeString(web.resolve("index.html"), "<title>Disposable fixture</title>")
             val binary =
-                System.getenv("ACTUALBUDGET_BINARY")
+                binaryOverride ?: System.getenv("ACTUALBUDGET_BINARY")
                     ?: Path.of("../../actualBudget/server/target/debug/actualbudget-server")
                         .toAbsolutePath()
                         .normalize()
@@ -142,6 +143,290 @@ class NativeApiIntegrationTest {
             child.destroy()
             child.waitFor()
             directory.toFile().deleteRecursively()
+        }
+    }
+
+    private fun upgradeFixture(case: String, suffix: String): ByteArray =
+        Files.readAllBytes(
+            Path.of("../../actualBudget/tests/fixtures/android-upgrade/$case.$suffix")
+        )
+
+    private fun importUpgrade(server: Server, case: String): String {
+        val stage = server.upload(upgradeFixture(case, "zip"))
+        server.post("/imports/${stage["id"].asString}/activate", "{}")
+        return stage["budget_id"].asString
+    }
+
+    @Test
+    fun `upgrade lost legacy create edit and published delete keep source identity and financial effect`() {
+        for (case in listOf("lost-create", "lost-edit", "lost-delete")) Server().use { server ->
+            val budget = importUpgrade(server, case)
+            val legacy = MemoryStore(upgradeFixture(case, "state.json").toString(Charsets.UTF_8))
+            val original = legacy.raw
+            val native = MemoryStore()
+            var app = ApiExpenseService(native, legacy)
+            assertTrue(app.state().legacyRecovery)
+            app.connect(server.url)
+            assertFalse(app.state().legacyRecovery)
+            val staged = JsonParser.parseString(native.raw).asJsonObject
+            val old = JsonParser.parseString(original).asJsonObject
+            assertEquals(old["clock"], staged["clock"], "Handoff never mints edit order")
+            val pending = staged.getAsJsonArray("pending").single().asJsonObject
+            assertEquals(
+                old.getAsJsonArray("pending").single(),
+                JsonParser.parseString(pending["body"].asString).asJsonObject["operation"],
+            )
+            assertEquals(
+                old.getAsJsonArray("pending").single().asJsonObject["attempted"],
+                pending["attempted"],
+            )
+            assertEquals(budget, app.state().budgetId)
+            val legacyReads = legacy.reads
+            app = ApiExpenseService(native, legacy)
+            assertFalse(
+                app.state().legacyRecovery,
+                "Marker must suppress re-reading preserved legacy queue",
+            )
+            assertEquals(
+                legacyReads,
+                legacy.reads,
+                "Migrated startup must not read/decrypt/hash the original full legacy store",
+            )
+            app.refresh()
+            assertNull(app.state().error, case + ": " + app.state().error)
+            assertEquals(0, app.state().pendingCount)
+            val expected =
+                JsonParser.parseString(upgradeFixture(case, "oracle.json").toString(Charsets.UTF_8))
+                    .asJsonObject
+                    .getAsJsonArray("transactions")
+            val rows = server.get("/budgets/$budget/transactions?limit=1000").getAsJsonArray("data")
+            assertEquals(
+                expected.map { it.asJsonObject["id"].asString }.toSet(),
+                app.state().expenses.map { it.id }.toSet(),
+                "Reconciled cache must reflect current native rows, including published deletions",
+            )
+            assertEquals(
+                expected.map { it.asJsonObject["id"].asString }.toSet(),
+                rows.map { it.asJsonObject["id"].asString }.toSet(),
+            )
+            expected.forEach { item ->
+                val wanted = item.asJsonObject
+                val actual = rows.single { it.asJsonObject["id"] == wanted["id"] }.asJsonObject
+                for (field in listOf("amount", "notes", "date", "cleared")) assertEquals(
+                    wanted[field],
+                    actual[field],
+                    "$case $field",
+                )
+            }
+            val writes = native.writes
+            app = ApiExpenseService(native, legacy)
+            app.refresh()
+            assertEquals(0, app.state().pendingCount)
+            assertEquals(writes, native.writes, "Unchanged reopen must not rewrite migrated state")
+            assertEquals(original, legacy.raw)
+            assertEquals(0, legacy.writes)
+        }
+    }
+
+    @Test
+    fun `upgrade missing mapping atomic failure and source ambiguity retain original work`() {
+        Server().use { server ->
+            val legacy =
+                MemoryStore(upgradeFixture("pending", "state.json").toString(Charsets.UTF_8))
+            val original = legacy.raw
+            val native = MemoryStore()
+            val app = ApiExpenseService(native, legacy)
+            assertFailsWith<IllegalArgumentException> { app.connect(server.url) }
+            assertNull(native.raw)
+            assertEquals(original, legacy.raw)
+            val budget = importUpgrade(server, "pending")
+            val failed =
+                object : StateStore {
+                    override fun read(): String? = null
+
+                    override fun write(value: String): Unit = throw IOException("disk full")
+                }
+            val interrupted = ApiExpenseService(failed, legacy)
+            assertFailsWith<IOException> { interrupted.connect(server.url) }
+            assertTrue(interrupted.state().legacyRecovery)
+            assertEquals(original, legacy.raw)
+            importUpgrade(
+                server,
+                "lost-edit",
+            ) // Genuine distinct archive, same original cloud/group.
+            app.connect(server.url)
+            assertTrue(app.state().legacyRecovery)
+            assertEquals(2, app.state().budgets.size)
+            assertEquals(
+                0,
+                server
+                    .get("/budgets/$budget/transactions?limit=1000")
+                    .getAsJsonArray("data")
+                    .count { it.asJsonObject["notes"]?.asString == "corrected offline" },
+            )
+            app.chooseBudget(budget)
+            assertFalse(app.state().legacyRecovery)
+            assertEquals(budget, app.state().budgetId)
+            app.refresh()
+            assertNull(app.state().error)
+            assertEquals(0, app.state().pendingCount)
+            val seed =
+                JsonParser.parseString(original)
+                    .asJsonObject
+                    .getAsJsonArray("pending")
+                    .first()
+                    .asJsonObject["transactionId"]
+                    .asString
+            val actual = server.get("/budgets/$budget/transactions/$seed").getAsJsonObject("data")
+            assertEquals(-1456, actual["amount"].asInt)
+            assertEquals("newer remote edit", actual["notes"].asString)
+            assertEquals(original, legacy.raw)
+            assertEquals(0, legacy.writes)
+        }
+    }
+
+    @Test
+    fun `upgrade interrupted new receipt preserves exact legacy messages across restart and offline correction`() {
+        Server().use { server ->
+            val budget = importUpgrade(server, "pending")
+            val legacy =
+                MemoryStore(upgradeFixture("pending", "state.json").toString(Charsets.UTF_8))
+            val native = MemoryStore()
+            val original = legacy.raw
+            val wire = mutableListOf<List<String>>()
+            var lost = true
+            val delegate = BudgetHttpTransport()
+            val transport = HttpTransport { url, method, headers, body ->
+                val response = delegate.request(url, method, headers, body)
+                if (url.endsWith("/android-upgrade/operations")) {
+                    assertNull(
+                        headers["X-Actual-Edit-Clock"],
+                        "No batch clock can replace original field clocks",
+                    )
+                    wire +=
+                        listOf(
+                            headers["Idempotency-Key"]!!,
+                            body!!.toString(Charsets.UTF_8),
+                            headers["X-Actual-Budget-Epoch"]!!,
+                        )
+                    if (
+                        lost && headers["X-Actual-Receipt-Only"] == null && response.status == 200
+                    ) {
+                        lost = false
+                        throw IOException("lost new-server acknowledgement")
+                    }
+                }
+                response
+            }
+            var app = ApiExpenseService(native, legacy, transport)
+            app.connect(server.url)
+            val old = JsonParser.parseString(original).asJsonObject
+            val created =
+                old.getAsJsonArray("pending")
+                    .map { it.asJsonObject }
+                    .single { it["creates"].asBoolean }["transactionId"]
+                    .asString
+            val pendingEdit =
+                old.getAsJsonArray("pending").first().asJsonObject["transactionId"].asString
+            assertFalse(app.state().online)
+            assertFailsWith<IllegalArgumentException> { app.beginEdit(pendingEdit) }
+            val session = app.beginEdit(created)
+            app.saveExpense(session.original!!.copy(amount = "4.56", categoryId = null), session)
+            app.refresh()
+            assertNotNull(app.state().error)
+            assertTrue(app.state().pendingCount > 0)
+            val captured = wire.first()
+            app = ApiExpenseService(native, legacy, transport)
+            app.refresh()
+            assertNull(app.state().error)
+            assertEquals(0, app.state().pendingCount)
+            assertTrue(
+                wire.count { it == captured } >= 2,
+                "Original wire body/key/epoch must survive retry",
+            )
+            val row = server.get("/budgets/$budget/transactions/$created").getAsJsonObject("data")
+            assertEquals(-456, row["amount"].asInt)
+            assertTrue(row["category_id"].isJsonNull)
+            val seed =
+                server.get("/budgets/$budget/transactions/$pendingEdit").getAsJsonObject("data")
+            assertEquals(-1456, seed["amount"].asInt)
+            assertEquals("newer remote edit", seed["notes"].asString)
+            assertEquals(original, legacy.raw)
+            assertEquals(0, legacy.writes)
+        }
+    }
+
+    @Test
+    fun `upgrade durable marker survives lost local acknowledgement and refuses native queue coexistence`() {
+        Server().use { server ->
+            importUpgrade(server, "lost-create")
+            val legacy =
+                MemoryStore(upgradeFixture("lost-create", "state.json").toString(Charsets.UTF_8))
+            val native = MemoryStore()
+            val interruptedStore =
+                object : StateStore {
+                    override fun read() = native.read()
+
+                    override fun write(value: String) {
+                        native.write(value)
+                        throw IOException("process stopped after atomic commit")
+                    }
+                }
+            assertFailsWith<IOException> {
+                ApiExpenseService(interruptedStore, legacy).connect(server.url)
+            }
+            val recovered = ApiExpenseService(native, legacy)
+            assertFalse(recovered.state().legacyRecovery)
+            assertEquals(1, recovered.state().pendingCount)
+            recovered.refresh()
+            assertNull(recovered.state().error)
+            assertEquals(0, recovered.state().pendingCount)
+            val coexist = MemoryStore()
+            val existing = ApiExpenseService(coexist)
+            existing.connect(server.url)
+            existing.chooseBudget(server.budget)
+            existing.chooseAccount(server.account)
+            existing.markOffline()
+            existing.saveExpense(ExpenseDraft("1.23"))
+            val bytes = coexist.raw
+            val blocked =
+                ApiExpenseService(
+                    coexist,
+                    legacy,
+                    HttpTransport { _, _, _, _ -> error("No network before coexistence refusal") },
+                )
+            assertFailsWith<IllegalStateException> { blocked.connect(server.url) }
+            assertEquals(bytes, coexist.raw)
+            assertEquals(0, legacy.writes)
+        }
+    }
+
+    @Test
+    fun `upgrade app first retains work on unsupported server then migrates after server update`() {
+        val prior = System.getenv("ACTUALBUDGET_PRE_UPGRADE_BINARY")
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+            prior != null,
+            "Genuine prior executable supplied for upgrade qualification",
+        )
+        val legacy =
+            MemoryStore(upgradeFixture("lost-create", "state.json").toString(Charsets.UTF_8))
+        val original = legacy.raw
+        val native = MemoryStore()
+        val app = ApiExpenseService(native, legacy)
+        Server(prior).use { old ->
+            val failure = assertFailsWith<IllegalArgumentException> { app.connect(old.url) }
+            assertTrue(failure.message.orEmpty().contains("Update actualBudget"))
+            assertNull(native.raw)
+            assertTrue(app.state().legacyRecovery)
+            assertEquals(original, legacy.raw)
+        }
+        Server().use { current ->
+            importUpgrade(current, "lost-create")
+            app.connect(current.url)
+            app.refresh()
+            assertNull(app.state().error)
+            assertEquals(0, app.state().pendingCount)
+            assertEquals(0, legacy.writes)
         }
     }
 

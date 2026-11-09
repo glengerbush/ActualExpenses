@@ -20,7 +20,7 @@ use axum::{
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::Deserialize;
 use serde_json::{Value, json};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 
 pub fn router() -> Router<Store> {
     Router::new()
@@ -75,7 +75,7 @@ async fn sources(
         query.map_err(|_| Error::invalid("Supply original file_id and group_id"))?;
     validate_id(&source.file_id)?;
     validate_id(&source.group_id)?;
-    let result=store.run(move|db|{let mut q=db.prepare("SELECT b.id,b.name,s.source_local_id FROM imported_sources s JOIN budgets b ON b.id=s.budget_id WHERE source_cloud_id=?1 AND source_group_id=?2 ORDER BY b.id")?;
+    let result=store.run(move|db|{let mut q=db.prepare("SELECT b.id,b.name,s.source_local_id FROM imported_sources s JOIN budgets b ON b.id=s.budget_id WHERE source_cloud_id=?1 AND source_group_id=?2 AND b.deleted=0 ORDER BY b.id")?;
  let rows=q.query_map(params![source.file_id,source.group_id],|r|Ok((r.get::<_,String>(0)?,r.get::<_,String>(1)?,r.get::<_,String>(2)?)))?.collect::<Result<Vec<_>,_>>()?;
  let mut out=vec![];for (id,name,local) in rows{let metadata=crate::lifecycle::metadata(db,&id,false)?;out.push(json!({"id":id,"name":name,"source_local_id":local,"epoch":metadata["epoch"]}));}Ok(json!({"data":out}))}).await?;
     Ok(Json(result))
@@ -91,6 +91,16 @@ async fn operation(
     let key = idempotency_key(&headers)?;
     let handoff: Handoff = serde_json::from_value(body.clone())
         .map_err(|_| Error::invalid("Invalid Android upgrade operation"))?;
+    if headers.contains_key("X-Actual-Edit-Clock") {
+        return Err(Error::invalid(
+            "Legacy message clocks cannot be replaced with a batch edit clock",
+        ));
+    }
+    if crate::lifecycle::epoch_header(&headers)?.is_some_and(|epoch| epoch != handoff.epoch) {
+        return Err(Error::invalid(
+            "Header epoch must match the captured handoff epoch",
+        ));
+    }
     let receipt_only = concurrency::receipt_only_header(&headers)?;
     let cancel = concurrency::cancel_header(&headers)?;
     let payload = body.to_string();
@@ -174,9 +184,45 @@ fn native_field(message: &Message) -> Result<Option<(&str, Value)>, Error> {
             Some(1) => json!(true),
             _ => return Err(Error::invalid("Legacy status must be 0 or 1")),
         },
+        "amount" => {
+            if message.value.as_i64().is_none_or(|n| n >= 0) {
+                return Err(blocked(
+                    "Only negative ordinary expenses can be migrated here",
+                ));
+            }
+            message.value.clone()
+        }
         _ => message.value.clone(),
     };
     Ok(Some((field, value)))
+}
+// Latest source cells prove only that field. Never infer a whole-operation ACK.
+fn source_observed(db: &Connection, budget: &str, m: &Message) -> Result<bool, Error> {
+    let source: Option<(String,String)> = db.query_row("SELECT edit_order,serialized_value FROM imported_field_clocks WHERE budget_id=?1 AND dataset=?2 AND row_id=?3 AND column_name=?4",params![budget,m.dataset,m.row,m.column],|r|Ok((r.get(0)?,r.get(1)?))).optional()?;
+    if let Some((clock, encoded)) = source
+        && clock == m.timestamp
+    {
+        let value = if encoded == "0:" {
+            Value::Null
+        } else if let Some(text) = encoded.strip_prefix("S:") {
+            json!(text)
+        } else if let Some(number) = encoded.strip_prefix("N:") {
+            serde_json::from_str::<Value>(number).map_err(Error::internal)?
+        } else {
+            return Err(blocked(
+                "Unknown original source value format; retain the original saved work",
+            ));
+        };
+        let same = value == m.value
+            || (value.is_number() && m.value.is_number() && value.as_f64() == m.value.as_f64());
+        if !same {
+            return Err(blocked(
+                "A saved message reuses an original timestamp with a different value. Original work needs review.",
+            ));
+        }
+        return Ok(true);
+    }
+    Ok(false)
 }
 fn apply(db: &Connection, budget: &str, key: &str, handoff: Handoff) -> Result<Value, Error> {
     let op = handoff.operation;
@@ -213,6 +259,7 @@ fn apply(db: &Connection, budget: &str, key: &str, handoff: Handoff) -> Result<V
         if !timestamps.insert(&m.timestamp) || !cells.insert((&m.dataset, &m.row, &m.column)) {
             return Err(Error::invalid("Repeated message identity or field"));
         }
+        source_observed(db, budget, m)?;
         if m.dataset == "transactions" {
             if m.row != op.transaction_id {
                 return Err(Error::invalid("Operation contains another transaction"));
@@ -235,6 +282,44 @@ fn apply(db: &Connection, budget: &str, key: &str, handoff: Handoff) -> Result<V
     {
         return Err(Error::invalid("Invalid legacy deletion"));
     }
+    if !op.deletes
+        && op
+            .changes
+            .iter()
+            .any(|m| m.dataset == "transactions" && m.column == "tombstone" && m.value != 0)
+    {
+        return Err(Error::invalid(
+            "Deletion message must retain its original deletion state",
+        ));
+    }
+    if op.creates {
+        for required in [
+            "amount",
+            "date",
+            "acct",
+            "cleared",
+            "reconciled",
+            "tombstone",
+            "isParent",
+            "isChild",
+            "parent_id",
+            "transferred_id",
+            "sort_order",
+            "description",
+            "category",
+            "notes",
+        ] {
+            if !op
+                .changes
+                .iter()
+                .any(|m| m.dataset == "transactions" && m.column == required)
+            {
+                return Err(blocked(
+                    "The saved creation is incomplete. Keep the original app data for recovery",
+                ));
+            }
+        }
+    }
     let exists: bool = db.query_row(
         "SELECT EXISTS(SELECT 1 FROM transactions WHERE budget_id=?1 AND id=?2)",
         params![budget, op.transaction_id],
@@ -244,6 +329,14 @@ fn apply(db: &Connection, budget: &str, key: &str, handoff: Handoff) -> Result<V
         return Err(blocked(
             "The original expense is absent from this import. Import the matching source snapshot; do not recreate an uncertain edit.",
         ));
+    }
+    if exists && op.creates {
+        let imported:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM imported_sources i JOIN staged_imports s ON s.id=i.import_id,json_each(s.conversion,'$.transactions') t WHERE i.budget_id=?1 AND json_extract(t.value,'$.id')=?2)",params![budget,op.transaction_id],|r|r.get(0))?;
+        if !imported {
+            return Err(blocked(
+                "This ID already belongs to a transaction outside the original imported snapshot. Keep the original work for review.",
+            ));
+        }
     }
     let mut conflicts = vec![];
     // Published tombstones cannot be resurrected, even by a newer ordinary field.
@@ -259,7 +352,6 @@ fn apply(db: &Connection, budget: &str, key: &str, handoff: Handoff) -> Result<V
         );
     }
     // Prepare original inline payees before transaction references, inside the same receipt transaction.
-    let mut names = BTreeMap::new();
     for m in &op.changes {
         if m.dataset == "payees" && m.column == "name" {
             crate::models::validate_name(
@@ -267,11 +359,13 @@ fn apply(db: &Connection, budget: &str, key: &str, handoff: Handoff) -> Result<V
                     .as_str()
                     .ok_or_else(|| Error::invalid("Invalid payee name"))?,
             )?;
-            names.insert(&m.row, m);
         }
     }
     for m in &op.changes {
         if m.dataset == "transactions" {
+            continue;
+        }
+        if source_observed(db, budget, m)? {
             continue;
         }
         match (m.dataset.as_str(), m.column.as_str()) {
@@ -316,9 +410,59 @@ fn apply(db: &Connection, budget: &str, key: &str, handoff: Handoff) -> Result<V
                     }
                 }
             }
-            ("payees", "tombstone") if m.value == 0 => {}
-            ("payees", "transfer_acct") if m.value.is_null() => {}
-            ("payee_mapping", "targetId") if m.value == m.row => {}
+            ("payees", "tombstone") if m.value == 0 => {
+                let live: bool = db
+                    .query_row(
+                        "SELECT tombstone=0 FROM payees WHERE budget_id=?1 AND id=?2",
+                        params![budget, m.row],
+                        |r| r.get(0),
+                    )
+                    .optional()?
+                    .unwrap_or(false);
+                if live {
+                    concurrency::seed_field_version(
+                        db,
+                        budget,
+                        "payees",
+                        &m.row,
+                        "tombstone",
+                        &m.timestamp,
+                    )?;
+                }
+            }
+            ("payees", "transfer_acct") if m.value.is_null() => {
+                let ordinary:bool=db.query_row("SELECT transfer_account_id IS NULL FROM payees WHERE budget_id=?1 AND id=?2",params![budget,m.row],|r|r.get(0)).optional()?.unwrap_or(false);
+                if ordinary {
+                    concurrency::seed_field_version(
+                        db,
+                        budget,
+                        "payees",
+                        &m.row,
+                        "transfer_account_id",
+                        &m.timestamp,
+                    )?;
+                }
+            }
+            ("payee_mapping", "targetId") if m.value == m.row => {
+                let direct: bool = db
+                    .query_row(
+                        "SELECT merged_into IS NULL FROM payees WHERE budget_id=?1 AND id=?2",
+                        params![budget, m.row],
+                        |r| r.get(0),
+                    )
+                    .optional()?
+                    .unwrap_or(false);
+                if direct {
+                    concurrency::seed_field_version(
+                        db,
+                        budget,
+                        "payees",
+                        &m.row,
+                        "merged_into",
+                        &m.timestamp,
+                    )?;
+                }
+            }
             _ => {
                 return Err(blocked(
                     "The saved payee change needs review; original messages are retained",
@@ -374,6 +518,9 @@ fn apply(db: &Connection, budget: &str, key: &str, handoff: Handoff) -> Result<V
             let Some((field, value)) = native_field(m)? else {
                 continue;
             };
+            if source_observed(db, budget, m)? {
+                continue;
+            }
             if field == "tombstone" && value == false {
                 continue;
             }

@@ -16642,6 +16642,246 @@
           }
         }
       }
+    },
+    "/api/v1/android-upgrade/sources": {
+      "get": {
+        "summary": "Find exact imported legacy cloud-file and sync-group identities",
+        "description": "Names never establish identity. Multiple genuine imports may match: caller must explicitly select the intended target UUID; native duplicates without original imported_sources provenance are excluded. No writes.",
+        "parameters": [
+          {
+            "name": "file_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "group_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Original message outcomes durably reconciled; exact request replays unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AndroidUpgradeCandidate"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed original operation or attempted batch clock override.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No matching resource or receipt remains uncommitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Source mapping, epoch, message identity, protected expense, or receipt conflict; retain original work.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/android-upgrade/operations": {
+      "post": {
+        "summary": "Reconcile one original released Android CRDT operation",
+        "description": "Send original operation UUID as Idempotency-Key. Preserve each original message timestamp, row, column, typed value, sequence and attempted state; no X-Actual-Edit-Clock batch header is accepted. Source cloud/group must match this imported budget. Body epoch is captured once on local atomic handoff and never rebased. Receipts resolve before current epoch/eligibility checks. Exact observed source fields reconcile before split/transfer guards; unknown changes retain ordinary-expense guards. Published tombstones never resurrect. Imported source fractional sort_order is provenance, not native rank: existing imported rank stays; new absent expenses append in original operation order. Unsupported messages/partial creations refuse atomically, retaining original work. Supports original-body X-Actual-Receipt-Only and X-Actual-Cancel-If-Uncommitted; unknown receipt probes never execute. No automatic rules/learning.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "X-Actual-Receipt-Only",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AndroidUpgradeHandoff"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Original message outcomes durably reconciled; exact request replays unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "outcome",
+                    "conflicts",
+                    "cursor"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "id"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "deleted": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "outcome": {
+                      "type": "string",
+                      "enum": [
+                        "reconciled",
+                        "published_deletion"
+                      ]
+                    },
+                    "conflicts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "field"
+                        ],
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "submitted_clock": {
+                            "$ref": "#/components/schemas/EditClock"
+                          },
+                          "winning_clock": {
+                            "$ref": "#/components/schemas/EditClock"
+                          },
+                          "outcome": {
+                            "type": "string",
+                            "enum": [
+                              "deletion_superseded"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "cursor": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed original operation or attempted batch clock override.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No matching resource or receipt remains uncommitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Source mapping, epoch, message identity, protected expense, or receipt conflict; retain original work.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -21004,6 +21244,157 @@
           "deleted"
         ],
         "additionalProperties": false
+      },
+      "AndroidUpgradeSource": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "file_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "group_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          }
+        },
+        "required": [
+          "file_id",
+          "group_id"
+        ]
+      },
+      "AndroidUpgradeMessage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "timestamp": {
+            "$ref": "#/components/schemas/EditClock"
+          },
+          "dataset": {
+            "type": "string",
+            "enum": [
+              "transactions",
+              "payees",
+              "payee_mapping"
+            ]
+          },
+          "row": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "column": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "string",
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "timestamp",
+          "dataset",
+          "row",
+          "column",
+          "value"
+        ]
+      },
+      "AndroidUpgradeOperation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "transactionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "creates": {
+            "type": "boolean"
+          },
+          "deletes": {
+            "type": "boolean"
+          },
+          "createdOffline": {
+            "type": "boolean"
+          },
+          "attempted": {
+            "type": "boolean"
+          },
+          "changes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/AndroidUpgradeMessage"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "transactionId",
+          "creates",
+          "deletes",
+          "createdOffline",
+          "attempted",
+          "changes"
+        ]
+      },
+      "AndroidUpgradeHandoff": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/AndroidUpgradeSource"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "operation": {
+            "$ref": "#/components/schemas/AndroidUpgradeOperation"
+          }
+        },
+        "required": [
+          "source",
+          "epoch",
+          "operation"
+        ]
+      },
+      "AndroidUpgradeCandidate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "source_local_id",
+          "epoch"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "source_local_id": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          }
+        }
       }
     }
   }

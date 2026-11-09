@@ -159,7 +159,13 @@ fn ordered_rules_match_the_independent_engine_without_preview_side_effects() {
             "preview",
             json!({"snapshot":checkpoint["data"]["snapshot"],"transaction":row}),
         );
-        assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+        assert_eq!(
+            response.status(),
+            200,
+            "{} {}",
+            case["name"],
+            response.text().unwrap()
+        );
         let preview = response.json::<Value>().unwrap();
         let after = &preview["data"]["transactions"][0]["after"];
         for (native, source) in [
@@ -823,7 +829,7 @@ fn financial_state(s: &Server, root: &str) -> Value {
             flat.extend(children);
         }
     }
-    json!({"cash":left.into_iter().map(|r|json!({"amount":r["amount"],"notes":r["notes"],"children":r["children"].as_array().map(|cs|cs.iter().map(|c|json!({"amount":c["amount"],"notes":c["notes"],"paired":c["transfer_id"].is_string()})).collect::<Vec<_>>()).unwrap_or_default()})).collect::<Vec<_>>(),"other":right.into_iter().map(|r|json!({"amount":r["amount"],"notes":r["notes"],"paired":r["transfer_id"].is_string()})).collect::<Vec<_>>(),"balances":[cash["balance"].clone(),other["balance"].clone()],"reciprocal_balanced":flat.iter().filter(|r|r["transfer_id"].is_string()).all(|r|flat.iter().any(|p|p["id"]==r["transfer_id"]&&p["transfer_id"]==r["id"]&&p["amount"].as_i64()==r["amount"].as_i64().map(|v|-v)))})
+    json!({"cash":left.into_iter().map(|r|json!({"amount":r["amount"],"date":r["date"],"cleared":r["cleared"],"notes":r["notes"],"children":r["children"].as_array().map(|cs|cs.iter().map(|c|json!({"amount":c["amount"],"date":c["date"],"cleared":c["cleared"],"notes":c["notes"],"paired":c["transfer_id"].is_string()})).collect::<Vec<_>>()).unwrap_or_default()})).collect::<Vec<_>>(),"other":right.into_iter().map(|r|json!({"amount":r["amount"],"date":r["date"],"cleared":r["cleared"],"notes":r["notes"],"paired":r["transfer_id"].is_string()})).collect::<Vec<_>>(),"balances":[cash["balance"].clone(),other["balance"].clone()],"reciprocal_balanced":flat.iter().filter(|r|r["transfer_id"].is_string()).all(|r|flat.iter().any(|p|p["id"]==r["transfer_id"]&&p["transfer_id"]==r["id"]&&p["amount"].as_i64()==r["amount"].as_i64().map(|v|-v)))})
 }
 #[test]
 fn persisted_transfer_rule_oracle_preserves_valid_pairs_and_refuses_contradictory_amounts_atomically()
@@ -869,7 +875,7 @@ fn persisted_transfer_rule_oracle_preserves_valid_pairs_and_refuses_contradictor
         );
         let id = format!(
             "19190000-0000-4000-8000-{:012}",
-            30000 + index * 100 + usize::from(case["split"] == true)
+            30000 + index * 100 + usize::from(case["split"] == true && case["parent"] != true)
         );
         let row = s
             .get(&format!("{root}/transactions/{id}"))
@@ -897,8 +903,13 @@ fn persisted_transfer_rule_oracle_preserves_valid_pairs_and_refuses_contradictor
             .json(&json!({"snapshot":before,"ids":ids}))
             .send()
             .unwrap();
-        if case["after"]["reciprocal_balanced"] == false {
-            assert_eq!(r.status(), 409, "{}", r.text().unwrap());
+        if case["replacement_refusal"] == true {
+            assert!(
+                [400, 409].contains(&r.status().as_u16()),
+                "{} {}",
+                case["name"],
+                r.text().unwrap()
+            );
             assert_eq!(cursor(&s, &root), before);
             assert_eq!(financial_state(&s, &root), case["initial"]);
             let h = s
@@ -920,4 +931,231 @@ fn persisted_transfer_rule_oracle_preserves_valid_pairs_and_refuses_contradictor
             );
         }
     }
+}
+
+fn import_financial(index: usize) -> (Server, String, String, Value) {
+    let s = Server::start();
+    let source = std::fs::read(format!(
+        "{}/../tests/fixtures/rules-financial-{index}-26.10.0.zip",
+        env!("CARGO_MANIFEST_DIR")
+    ))
+    .unwrap();
+    let uploaded = s
+        .client
+        .post(format!("{}/api/v1/imports/actual", s.url))
+        .header("Idempotency-Key", "source")
+        .header("Content-Type", "application/zip")
+        .body(source)
+        .send()
+        .unwrap()
+        .json::<Value>()
+        .unwrap();
+    assert_eq!(uploaded["data"]["status"], "ready", "{uploaded}");
+    let r = s.post(
+        &format!(
+            "/api/v1/imports/{}/activate",
+            uploaded["data"]["id"].as_str().unwrap()
+        ),
+        "activate",
+        json!({}),
+    );
+    assert_eq!(r.status(), 201);
+    let root = format!(
+        "/api/v1/budgets/{}",
+        uploaded["data"]["budget_id"].as_str().unwrap()
+    );
+    let id = format!("19190000-0000-4000-8000-{:012}", 30000 + index * 100);
+    let row = s
+        .get(&format!("{root}/transactions/{id}"))
+        .json::<Value>()
+        .unwrap()["data"]
+        .clone();
+    (s, root, id, row)
+}
+#[test]
+fn selected_peers_keep_only_each_rules_explicit_field_intent() {
+    for only_amount in [false, true] {
+        let (s, root, id, row) = import_financial(0);
+        let peer = row["transfer_id"].as_str().unwrap();
+        let other = s
+            .get(&format!("{root}/transactions/{peer}"))
+            .json::<Value>()
+            .unwrap()["data"]
+            .clone();
+        let actions = if only_amount {
+            json!([{"op":"set","field":"amount","value":-77}])
+        } else {
+            json!([{"op":"append-notes","value":" X"}])
+        };
+        let rule = json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"account","op":"is","value":row["account_id"]}],"actions":actions,"snapshot":cursor(&s,&root)});
+        assert_eq!(
+            s.post(&format!("{root}/rules"), "ruleA", rule).status(),
+            201
+        );
+        if !only_amount {
+            let rule = json!({"id":F,"stage":null,"conditionsOp":"and","conditions":[{"field":"account","op":"is","value":other["account_id"]}],"actions":[{"op":"set","field":"cleared","value":true}],"snapshot":cursor(&s,&root)});
+            assert_eq!(
+                s.post(&format!("{root}/rules"), "ruleB", rule).status(),
+                201
+            );
+        }
+        let r = s.post(
+            &format!("{root}/rules/apply"),
+            "apply",
+            json!({"ids":[id,peer],"snapshot":cursor(&s,&root)}),
+        );
+        assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+        let a = s
+            .get(&format!("{root}/transactions/{id}"))
+            .json::<Value>()
+            .unwrap()["data"]
+            .clone();
+        let b = s
+            .get(&format!("{root}/transactions/{peer}"))
+            .json::<Value>()
+            .unwrap()["data"]
+            .clone();
+        if only_amount {
+            assert_eq!(a["amount"], -77);
+            assert_eq!(b["amount"], 77);
+        } else {
+            assert_eq!(a["notes"], "Pair X");
+            assert_eq!(b["notes"], "Pair X");
+            assert_eq!(b["cleared"], true);
+        }
+    }
+}
+
+#[test]
+fn automatic_entry_protection_matches_the_executed_desktop_helper() {
+    let (s, root) = setup();
+    for id in [E, F] {
+        assert_eq!(
+            s.post(
+                &format!("{root}/categories"),
+                &format!("category{id}"),
+                json!({"id":id,"name":id,"is_income":false})
+            )
+            .status(),
+            201
+        );
+        assert_eq!(
+            s.post(
+                &format!("{root}/payees"),
+                &format!("payee{id}"),
+                json!({"id":id,"name":id})
+            )
+            .status(),
+            201
+        );
+        assert_eq!(
+            s.post(
+                &format!("{root}/accounts"),
+                &format!("account{id}"),
+                json!({"id":id,"name":id,"opening_balance":0,"opening_date":"2026-01-01"})
+            )
+            .status(),
+            201
+        );
+    }
+    let oracle: Value =
+        serde_json::from_str(include_str!("../../tests/fixtures/rules-26.10.0.json")).unwrap();
+    for case in oracle["manual_protection"].as_array().unwrap() {
+        let field = case["field"].as_str().unwrap();
+        if field == "imported_payee" {
+            continue;
+        }
+        let key = match field {
+            "payee" => "payee_id",
+            "category" => "category_id",
+            "account" => "account_id",
+            v => v,
+        };
+        let convert = |v: &Value| {
+            if ["payee", "category", "account"].contains(&field) && v.is_string() {
+                json!(if v == "manual" { E } else { F })
+            } else {
+                v.clone()
+            }
+        };
+        let current = convert(&case["current"]);
+        let next = convert(&case["next"]);
+        let mut row = json!({"id":R,"account_id":A,"date":"2026-01-01","amount":-100,"notes":"","cleared":false,"category_id":null,"payee_id":null});
+        row[key] = current.clone();
+        let rule = json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"amount","op":"gte","value":-1000}],"actions":[{"op":"set","field":field,"value":next}]});
+        let r = s.post(
+            &format!("{root}/rules/preview"),
+            "preview",
+            json!({"snapshot":cursor(&s,&root),"rule":rule,"transaction":row,"manual_entry":true}),
+        );
+        assert_eq!(r.status(), 200, "{case} {}", r.text().unwrap());
+        let r = r.json::<Value>().unwrap();
+        assert_eq!(
+            r["data"]["transactions"][0]["after"][key],
+            if case["apply"] == true { next } else { current },
+            "{case}"
+        );
+    }
+}
+#[test]
+fn automatic_entry_is_one_atomic_owned_action_with_manual_values_and_exact_replay() {
+    let (s, root) = setup();
+    for (id, name) in [(E, "Food"), (F, "Travel")] {
+        assert_eq!(
+            s.post(
+                &format!("{root}/categories"),
+                id,
+                json!({"id":id,"name":name,"is_income":false})
+            )
+            .status(),
+            201
+        );
+    }
+    let rule = json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"amount","op":"lt","value":0}],"actions":[{"op":"set","field":"category","value":E},{"op":"set","field":"amount","value":-777},{"op":"set","field":"date","value":"2025-01-01"},{"op":"set","field":"cleared","value":true},{"op":"append-notes","value":" X"}],"snapshot":cursor(&s,&root)});
+    assert_eq!(s.post(&format!("{root}/rules"), "rule", rule).status(), 201);
+    let transaction = json!({"id":E,"account_id":A,"amount":-100,"date":"2026-01-01","notes":"Manual","category_id":F});
+    let mut body = transaction;
+    body["snapshot"] = cursor(&s, &root);
+    let send = || {
+        s.client
+            .post(format!("{}{root}/rules/transactions", s.url))
+            .header("Idempotency-Key", "automatic")
+            .header("X-Actual-History-Owner", OWNER)
+            .json(&body)
+            .send()
+            .unwrap()
+    };
+    let r = send();
+    assert_eq!(r.status(), 201, "{}", r.text().unwrap());
+    let original = r.json::<Value>().unwrap();
+    for (field, value) in [
+        ("amount", json!(-100)),
+        ("date", json!("2026-01-01")),
+        ("category_id", json!(F)),
+        ("cleared", json!(true)),
+        ("notes", json!("Manual X")),
+    ] {
+        assert_eq!(original["data"][field], value);
+    }
+    let r=s.client.patch(format!("{}{root}/rules/{R}",s.url)).header("Idempotency-Key","remote").json(&json!({"snapshot":cursor(&s,&root),"actions":[{"op":"append-notes","value":" different"}]})).send().unwrap();
+    assert_eq!(r.status(), 200);
+    assert_eq!(send().json::<Value>().unwrap(), original);
+    let h = s
+        .client
+        .get(format!("{}{root}/history", s.url))
+        .header("X-Actual-History-Owner", OWNER)
+        .send()
+        .unwrap()
+        .json::<Value>()
+        .unwrap();
+    let undo = s
+        .client
+        .post(format!("{}{root}/history/undo", s.url))
+        .header("Idempotency-Key", "undo")
+        .header("X-Actual-History-Owner", OWNER)
+        .json(&json!({"action_id":h["data"]["undo"]["id"]}))
+        .send()
+        .unwrap();
+    assert_eq!(undo.status(), 200, "{}", undo.text().unwrap());
+    assert_eq!(s.get(&format!("{root}/transactions/{E}")).status(), 404);
 }

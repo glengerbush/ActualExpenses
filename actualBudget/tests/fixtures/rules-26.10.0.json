@@ -14,7 +14,7 @@
             {
               "field": "category",
               "op": "is",
-              "value": "7b4acf5c-fe87-4a21-800e-aad30499095e"
+              "value": "80a2175c-a3be-49a0-86c6-067916033c36"
             }
           ],
           "actions": [
@@ -32,14 +32,14 @@
             {
               "field": "payee",
               "op": "is",
-              "value": "52862e0b-13a9-45fc-94fb-a7d130b4b0aa"
+              "value": "269ae367-eff4-4f76-ba74-436d57b561be"
             }
           ],
           "actions": [
             {
               "op": "set",
               "field": "category",
-              "value": "7b4acf5c-fe87-4a21-800e-aad30499095e"
+              "value": "80a2175c-a3be-49a0-86c6-067916033c36"
             }
           ]
         },
@@ -58,14 +58,14 @@
             {
               "op": "set",
               "field": "payee",
-              "value": "52862e0b-13a9-45fc-94fb-a7d130b4b0aa"
+              "value": "269ae367-eff4-4f76-ba74-436d57b561be"
             }
           ]
         }
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -76,16 +76,16 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
-        "payee": "52862e0b-13a9-45fc-94fb-a7d130b4b0aa",
-        "category": "7b4acf5c-fe87-4a21-800e-aad30499095e",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
+        "payee": "269ae367-eff4-4f76-ba74-436d57b561be",
+        "category": "80a2175c-a3be-49a0-86c6-067916033c36",
         "amount": -1234,
         "date": "2026-11-08",
         "notes": "Original / checked",
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -129,7 +129,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -140,7 +140,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -149,7 +149,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -204,7 +204,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -215,7 +215,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -224,7 +224,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -279,7 +279,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -290,7 +290,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -299,7 +299,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -349,7 +349,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -360,7 +360,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -369,7 +369,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -419,9 +419,9 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
-        "category": "7b4acf5c-fe87-4a21-800e-aad30499095e",
+        "category": "80a2175c-a3be-49a0-86c6-067916033c36",
         "amount": -1234,
         "date": "2026-11-08",
         "notes": "Original",
@@ -430,16 +430,16 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
-        "category": "7b4acf5c-fe87-4a21-800e-aad30499095e",
+        "category": "80a2175c-a3be-49a0-86c6-067916033c36",
         "amount": -1234,
         "date": "2026-11-08",
         "notes": "Original / matched",
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -478,7 +478,7 @@
               "field": "payee",
               "op": "oneOf",
               "value": [
-                "52862e0b-13a9-45fc-94fb-a7d130b4b0aa"
+                "269ae367-eff4-4f76-ba74-436d57b561be"
               ]
             }
           ],
@@ -492,8 +492,8 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
-        "payee": "52862e0b-13a9-45fc-94fb-a7d130b4b0aa",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
+        "payee": "269ae367-eff4-4f76-ba74-436d57b561be",
         "category": null,
         "amount": -1234,
         "date": "2026-11-08",
@@ -503,8 +503,8 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
-        "payee": "52862e0b-13a9-45fc-94fb-a7d130b4b0aa",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
+        "payee": "269ae367-eff4-4f76-ba74-436d57b561be",
         "category": null,
         "amount": -1234,
         "date": "2026-11-08",
@@ -512,7 +512,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -550,7 +550,7 @@
               "field": "payee",
               "op": "notOneOf",
               "value": [
-                "52862e0b-13a9-45fc-94fb-a7d130b4b0aa"
+                "269ae367-eff4-4f76-ba74-436d57b561be"
               ]
             }
           ],
@@ -564,7 +564,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -575,7 +575,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -584,7 +584,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -634,8 +634,8 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
-        "payee": "52862e0b-13a9-45fc-94fb-a7d130b4b0aa",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
+        "payee": "269ae367-eff4-4f76-ba74-436d57b561be",
         "category": null,
         "amount": -1234,
         "date": "2026-11-08",
@@ -645,8 +645,8 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
-        "payee": "52862e0b-13a9-45fc-94fb-a7d130b4b0aa",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
+        "payee": "269ae367-eff4-4f76-ba74-436d57b561be",
         "category": null,
         "amount": -1234,
         "date": "2026-11-08",
@@ -654,7 +654,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -704,8 +704,8 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
-        "payee": "52862e0b-13a9-45fc-94fb-a7d130b4b0aa",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
+        "payee": "269ae367-eff4-4f76-ba74-436d57b561be",
         "category": null,
         "amount": -1234,
         "date": "2026-11-08",
@@ -715,8 +715,8 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
-        "payee": "52862e0b-13a9-45fc-94fb-a7d130b4b0aa",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
+        "payee": "269ae367-eff4-4f76-ba74-436d57b561be",
         "category": null,
         "amount": -1234,
         "date": "2026-11-08",
@@ -724,7 +724,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -774,8 +774,8 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
-        "payee": "52862e0b-13a9-45fc-94fb-a7d130b4b0aa",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
+        "payee": "269ae367-eff4-4f76-ba74-436d57b561be",
         "category": null,
         "amount": -1234,
         "date": "2026-11-08",
@@ -785,8 +785,8 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
-        "payee": "52862e0b-13a9-45fc-94fb-a7d130b4b0aa",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
+        "payee": "269ae367-eff4-4f76-ba74-436d57b561be",
         "category": null,
         "amount": -1234,
         "date": "2026-11-08",
@@ -794,7 +794,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -844,7 +844,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -855,7 +855,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -864,7 +864,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -914,7 +914,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -925,7 +925,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -934,7 +934,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -984,7 +984,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -995,7 +995,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1004,7 +1004,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -1054,7 +1054,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1065,7 +1065,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1074,7 +1074,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -1124,7 +1124,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1135,7 +1135,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1144,7 +1144,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -1194,7 +1194,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1205,7 +1205,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1214,7 +1214,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -1264,7 +1264,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1275,7 +1275,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1284,7 +1284,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -1334,7 +1334,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1345,7 +1345,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1354,7 +1354,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -1404,7 +1404,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1415,7 +1415,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1424,7 +1424,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -1474,7 +1474,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1485,7 +1485,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1494,7 +1494,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -1547,7 +1547,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1558,7 +1558,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1567,7 +1567,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -1617,7 +1617,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": 108,
@@ -1628,7 +1628,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": 108,
@@ -1637,7 +1637,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -1687,7 +1687,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": 109,
@@ -1698,7 +1698,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": 109,
@@ -1707,7 +1707,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -1760,7 +1760,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": 0,
@@ -1771,7 +1771,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": 0,
@@ -1780,7 +1780,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -1833,7 +1833,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1844,7 +1844,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1853,7 +1853,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -1906,7 +1906,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1917,7 +1917,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1926,7 +1926,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -1976,7 +1976,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1987,7 +1987,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -1996,7 +1996,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -2046,7 +2046,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2057,7 +2057,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2066,7 +2066,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -2116,7 +2116,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2127,7 +2127,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2136,7 +2136,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -2186,7 +2186,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2197,7 +2197,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2206,7 +2206,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -2256,7 +2256,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2267,7 +2267,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2276,7 +2276,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -2313,7 +2313,7 @@
             {
               "field": "category_group",
               "op": "is",
-              "value": "a68b1b96-cd3e-4911-bcf2-83eb0dc0e3e5"
+              "value": "f6b79f3a-06b4-4d46-a6da-69248614c054"
             }
           ],
           "actions": [
@@ -2326,9 +2326,9 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
-        "category": "7b4acf5c-fe87-4a21-800e-aad30499095e",
+        "category": "80a2175c-a3be-49a0-86c6-067916033c36",
         "amount": -1234,
         "date": "2026-11-08",
         "notes": "Original",
@@ -2337,16 +2337,16 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
-        "category": "7b4acf5c-fe87-4a21-800e-aad30499095e",
+        "category": "80a2175c-a3be-49a0-86c6-067916033c36",
         "amount": -1234,
         "date": "2026-11-08",
         "notes": "Original / matched",
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -2402,7 +2402,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2413,7 +2413,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2422,7 +2422,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -2479,7 +2479,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2490,7 +2490,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2499,7 +2499,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -2573,7 +2573,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2584,7 +2584,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -999,
@@ -2593,7 +2593,7 @@
         "imported_payee": "MY SHOP",
         "cleared": true,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -2649,9 +2649,9 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
-        "payee": "52862e0b-13a9-45fc-94fb-a7d130b4b0aa",
-        "category": "7b4acf5c-fe87-4a21-800e-aad30499095e",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
+        "payee": "269ae367-eff4-4f76-ba74-436d57b561be",
+        "category": "80a2175c-a3be-49a0-86c6-067916033c36",
         "amount": -1234,
         "date": "2026-11-08",
         "notes": "Original",
@@ -2660,7 +2660,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2669,7 +2669,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -2721,7 +2721,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2732,8 +2732,8 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
-        "payee": "52862e0b-13a9-45fc-94fb-a7d130b4b0aa",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
+        "payee": "269ae367-eff4-4f76-ba74-436d57b561be",
         "category": null,
         "amount": -1234,
         "date": "2026-11-08",
@@ -2741,7 +2741,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -2793,7 +2793,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2804,8 +2804,8 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
-        "payee": "649357fc-8872-4228-85ed-762d3decd9e8",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
+        "payee": "95383337-e136-4c4a-8541-296b17529c45",
         "category": null,
         "amount": -1234,
         "date": "2026-11-08",
@@ -2813,7 +2813,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -2864,7 +2864,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2875,7 +2875,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -1234,
@@ -2884,7 +2884,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -2937,7 +2937,7 @@
             {
               "op": "set",
               "field": "category",
-              "value": "7b4acf5c-fe87-4a21-800e-aad30499095e",
+              "value": "80a2175c-a3be-49a0-86c6-067916033c36",
               "options": {
                 "splitIndex": 1
               }
@@ -2969,7 +2969,7 @@
             {
               "op": "set",
               "field": "category",
-              "value": "83dbe613-ea95-4aa0-9393-93338eea34ab",
+              "value": "a93b932e-439d-4034-8e86-514ddb024dfd",
               "options": {
                 "splitIndex": 4
               }
@@ -2979,7 +2979,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -101,
@@ -2990,7 +2990,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -101,
@@ -2999,7 +2999,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -3029,9 +3029,9 @@
             "amount": -20,
             "payee": null,
             "sort_order": -2,
-            "category": "7b4acf5c-fe87-4a21-800e-aad30499095e",
-            "id": "502b18f1-0155-4ded-b2a1-9b47600e8f53",
-            "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+            "category": "80a2175c-a3be-49a0-86c6-067916033c36",
+            "id": "6b096326-564b-4d17-b3c0-310ca8d66c53",
+            "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
             "date": "2026-11-08",
             "cleared": false,
             "reconciled": null,
@@ -3045,8 +3045,8 @@
             "payee": null,
             "sort_order": -3,
             "category": null,
-            "id": "daf23927-e71c-419c-8932-c7b60d7218ec",
-            "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+            "id": "93b5d41b-cdbc-4401-9c1e-f40cc889fe9b",
+            "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
             "date": "2026-11-08",
             "cleared": false,
             "reconciled": null,
@@ -3060,8 +3060,8 @@
             "payee": null,
             "sort_order": -4,
             "category": null,
-            "id": "32a9760e-ea98-4ad8-b8ab-b05d231c2c5a",
-            "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+            "id": "e266d3df-16e1-431d-9d9f-8dcd61a433d4",
+            "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
             "date": "2026-11-08",
             "cleared": false,
             "reconciled": null,
@@ -3074,9 +3074,9 @@
             "amount": -21,
             "payee": null,
             "sort_order": -5,
-            "category": "83dbe613-ea95-4aa0-9393-93338eea34ab",
-            "id": "00f741b1-570a-4cf3-9400-62f47482de54",
-            "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+            "category": "a93b932e-439d-4034-8e86-514ddb024dfd",
+            "id": "b571efe4-e73b-4877-a859-677dca19569e",
+            "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
             "date": "2026-11-08",
             "cleared": false,
             "reconciled": null,
@@ -3136,7 +3136,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -101,
@@ -3147,7 +3147,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -101,
@@ -3156,7 +3156,7 @@
         "imported_payee": "MY SHOP",
         "cleared": false,
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -3187,8 +3187,8 @@
             "payee": null,
             "sort_order": -2,
             "category": null,
-            "id": "b72bf7b1-f550-4414-bc54-46938bb69001",
-            "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+            "id": "c5edb464-8983-442a-90f5-315825c4538e",
+            "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
             "date": "2026-11-08",
             "cleared": false,
             "reconciled": null,
@@ -3203,8 +3203,8 @@
             "payee": null,
             "sort_order": -3,
             "category": null,
-            "id": "1cf1e280-80c4-47e5-9c79-4e632f6405da",
-            "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+            "id": "7f8d7024-3132-4c7c-be55-97e308b9b5f3",
+            "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
             "date": "2026-11-08",
             "cleared": false,
             "reconciled": null,
@@ -3257,7 +3257,7 @@
       ],
       "transaction": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -101,
@@ -3270,7 +3270,7 @@
       },
       "after": {
         "id": "19190000-0000-4000-8000-000000000020",
-        "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+        "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
         "payee": null,
         "category": null,
         "amount": -101,
@@ -3281,7 +3281,7 @@
         "is_child": true,
         "parent_id": "19190000-0000-4000-8000-000000000999",
         "_account": {
-          "id": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
+          "id": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
           "account_id": null,
           "name": "Cash",
           "balance_current": null,
@@ -3309,12 +3309,12 @@
     }
   ],
   "ids": {
-    "account": "1ca5aeaf-5e9f-4ad2-b740-e390f1e9b1bb",
-    "group": "a68b1b96-cd3e-4911-bcf2-83eb0dc0e3e5",
-    "Food": "7b4acf5c-fe87-4a21-800e-aad30499095e",
-    "Travel": "83dbe613-ea95-4aa0-9393-93338eea34ab",
-    "Shop": "52862e0b-13a9-45fc-94fb-a7d130b4b0aa",
-    "Generated": "649357fc-8872-4228-85ed-762d3decd9e8"
+    "account": "02e3651d-5c77-4d1d-b6f6-fdbc313a9ace",
+    "group": "f6b79f3a-06b4-4d46-a6da-69248614c054",
+    "Food": "80a2175c-a3be-49a0-86c6-067916033c36",
+    "Travel": "a93b932e-439d-4034-8e86-514ddb024dfd",
+    "Shop": "269ae367-eff4-4f76-ba74-436d57b561be",
+    "Generated": "95383337-e136-4c4a-8541-296b17529c45"
   },
   "learning": [
     {
@@ -3899,6 +3899,8 @@
         "cash": [
           {
             "amount": -100,
+            "date": "2026-11-08",
+            "cleared": true,
             "notes": "Pair",
             "children": []
           }
@@ -3906,6 +3908,8 @@
         "other": [
           {
             "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
             "notes": "Pair",
             "paired": true
           }
@@ -3920,6 +3924,8 @@
         "cash": [
           {
             "amount": -77,
+            "date": "2026-11-08",
+            "cleared": true,
             "notes": "Pair",
             "children": []
           }
@@ -3927,6 +3933,8 @@
         "other": [
           {
             "amount": 77,
+            "date": "2026-11-08",
+            "cleared": false,
             "notes": "Pair",
             "paired": true
           }
@@ -3937,7 +3945,8 @@
         ],
         "reciprocal_balanced": true
       },
-      "errors": []
+      "errors": [],
+      "replacement_refusal": false
     },
     {
       "name": "both paired amounts",
@@ -3953,6 +3962,8 @@
         "cash": [
           {
             "amount": -100,
+            "date": "2026-11-08",
+            "cleared": true,
             "notes": "Pair",
             "children": []
           }
@@ -3960,6 +3971,8 @@
         "other": [
           {
             "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
             "notes": "Pair",
             "paired": true
           }
@@ -3974,6 +3987,8 @@
         "cash": [
           {
             "amount": 77,
+            "date": "2026-11-08",
+            "cleared": true,
             "notes": "Pair",
             "children": []
           }
@@ -3981,6 +3996,8 @@
         "other": [
           {
             "amount": 77,
+            "date": "2026-11-08",
+            "cleared": false,
             "notes": "Pair",
             "paired": true
           }
@@ -3991,7 +4008,8 @@
         ],
         "reciprocal_balanced": false
       },
-      "errors": []
+      "errors": [],
+      "replacement_refusal": true
     },
     {
       "name": "both paired notes",
@@ -4006,6 +4024,8 @@
         "cash": [
           {
             "amount": -100,
+            "date": "2026-11-08",
+            "cleared": true,
             "notes": "Pair",
             "children": []
           }
@@ -4013,6 +4033,8 @@
         "other": [
           {
             "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
             "notes": "Pair",
             "paired": true
           }
@@ -4027,6 +4049,8 @@
         "cash": [
           {
             "amount": -100,
+            "date": "2026-11-08",
+            "cleared": true,
             "notes": "Pair / rule",
             "children": []
           }
@@ -4034,6 +4058,8 @@
         "other": [
           {
             "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
             "notes": "Pair / rule",
             "paired": true
           }
@@ -4044,7 +4070,8 @@
         ],
         "reciprocal_balanced": true
       },
-      "errors": []
+      "errors": [],
+      "replacement_refusal": false
     },
     {
       "name": "both paired delete",
@@ -4059,6 +4086,8 @@
         "cash": [
           {
             "amount": -100,
+            "date": "2026-11-08",
+            "cleared": true,
             "notes": "Pair",
             "children": []
           }
@@ -4066,6 +4095,8 @@
         "other": [
           {
             "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
             "notes": "Pair",
             "paired": true
           }
@@ -4085,7 +4116,8 @@
         ],
         "reciprocal_balanced": true
       },
-      "errors": []
+      "errors": [],
+      "replacement_refusal": false
     },
     {
       "name": "split transfer child notes",
@@ -4101,15 +4133,21 @@
         "cash": [
           {
             "amount": -200,
+            "date": "2026-11-08",
+            "cleared": true,
             "notes": "Parent",
             "children": [
               {
                 "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
                 "notes": "Pair",
                 "paired": true
               },
               {
                 "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
                 "notes": "Other child",
                 "paired": false
               }
@@ -4119,6 +4157,8 @@
         "other": [
           {
             "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
             "notes": "Pair",
             "paired": true
           }
@@ -4133,15 +4173,21 @@
         "cash": [
           {
             "amount": -200,
+            "date": "2026-11-08",
+            "cleared": true,
             "notes": "Parent",
             "children": [
               {
                 "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
                 "notes": "Pair / rule",
                 "paired": true
               },
               {
                 "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
                 "notes": "Other child",
                 "paired": false
               }
@@ -4151,6 +4197,8 @@
         "other": [
           {
             "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
             "notes": "Pair / rule",
             "paired": true
           }
@@ -4161,7 +4209,8 @@
         ],
         "reciprocal_balanced": true
       },
-      "errors": []
+      "errors": [],
+      "replacement_refusal": false
     },
     {
       "name": "split transfer both notes",
@@ -4177,15 +4226,21 @@
         "cash": [
           {
             "amount": -200,
+            "date": "2026-11-08",
+            "cleared": true,
             "notes": "Parent",
             "children": [
               {
                 "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
                 "notes": "Pair",
                 "paired": true
               },
               {
                 "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
                 "notes": "Other child",
                 "paired": false
               }
@@ -4195,6 +4250,8 @@
         "other": [
           {
             "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
             "notes": "Pair",
             "paired": true
           }
@@ -4209,15 +4266,21 @@
         "cash": [
           {
             "amount": -200,
+            "date": "2026-11-08",
+            "cleared": true,
             "notes": "Parent",
             "children": [
               {
                 "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
                 "notes": "Pair / rule",
                 "paired": true
               },
               {
                 "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
                 "notes": "Other child",
                 "paired": false
               }
@@ -4227,6 +4290,8 @@
         "other": [
           {
             "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
             "notes": "Pair / rule",
             "paired": true
           }
@@ -4237,7 +4302,648 @@
         ],
         "reciprocal_balanced": true
       },
-      "errors": []
+      "errors": [],
+      "replacement_refusal": false
+    },
+    {
+      "name": "unlink paired payee",
+      "actions": [
+        {
+          "op": "set",
+          "field": "payee",
+          "value": null
+        }
+      ],
+      "both": false,
+      "initial": {
+        "cash": [
+          {
+            "amount": -100,
+            "date": "2026-11-08",
+            "cleared": true,
+            "notes": "Pair",
+            "children": []
+          }
+        ],
+        "other": [
+          {
+            "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
+            "notes": "Pair",
+            "paired": true
+          }
+        ],
+        "balances": [
+          -100,
+          100
+        ],
+        "reciprocal_balanced": true
+      },
+      "after": {
+        "cash": [
+          {
+            "amount": -100,
+            "date": "2026-11-08",
+            "cleared": true,
+            "notes": "Pair",
+            "children": []
+          }
+        ],
+        "other": [],
+        "balances": [
+          -100,
+          0
+        ],
+        "reciprocal_balanced": true
+      },
+      "errors": [],
+      "replacement_refusal": false
+    },
+    {
+      "name": "parent targets child cleared",
+      "actions": [
+        {
+          "op": "set",
+          "field": "cleared",
+          "value": false,
+          "options": {
+            "splitIndex": 1
+          }
+        }
+      ],
+      "split": true,
+      "parent": true,
+      "both": false,
+      "initial": {
+        "cash": [
+          {
+            "amount": -200,
+            "date": "2026-11-08",
+            "cleared": true,
+            "notes": "Parent",
+            "children": [
+              {
+                "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "Pair",
+                "paired": true
+              },
+              {
+                "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "Other child",
+                "paired": false
+              }
+            ]
+          }
+        ],
+        "other": [
+          {
+            "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
+            "notes": "Pair",
+            "paired": true
+          }
+        ],
+        "balances": [
+          -200,
+          100
+        ],
+        "reciprocal_balanced": true
+      },
+      "after": {
+        "cash": [
+          {
+            "amount": -200,
+            "date": "2026-11-08",
+            "cleared": true,
+            "notes": "Parent",
+            "children": [
+              {
+                "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "Pair",
+                "paired": true
+              },
+              {
+                "amount": -100,
+                "date": "2026-11-08",
+                "cleared": false,
+                "notes": "Other child",
+                "paired": false
+              }
+            ]
+          }
+        ],
+        "other": [
+          {
+            "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
+            "notes": "Pair",
+            "paired": true
+          }
+        ],
+        "balances": [
+          -200,
+          100
+        ],
+        "reciprocal_balanced": true
+      },
+      "errors": [],
+      "replacement_refusal": true
+    },
+    {
+      "name": "parent targets child date",
+      "actions": [
+        {
+          "op": "set",
+          "field": "date",
+          "value": "2026-11-07",
+          "options": {
+            "splitIndex": 1
+          }
+        }
+      ],
+      "split": true,
+      "parent": true,
+      "both": false,
+      "initial": {
+        "cash": [
+          {
+            "amount": -200,
+            "date": "2026-11-08",
+            "cleared": true,
+            "notes": "Parent",
+            "children": [
+              {
+                "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "Pair",
+                "paired": true
+              },
+              {
+                "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "Other child",
+                "paired": false
+              }
+            ]
+          }
+        ],
+        "other": [
+          {
+            "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
+            "notes": "Pair",
+            "paired": true
+          }
+        ],
+        "balances": [
+          -200,
+          100
+        ],
+        "reciprocal_balanced": true
+      },
+      "after": {
+        "cash": [
+          {
+            "amount": -200,
+            "date": "2026-11-08",
+            "cleared": true,
+            "notes": "Parent",
+            "children": [
+              {
+                "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "Pair",
+                "paired": true
+              },
+              {
+                "amount": -100,
+                "date": "2026-11-07",
+                "cleared": true,
+                "notes": "Other child",
+                "paired": false
+              }
+            ]
+          }
+        ],
+        "other": [
+          {
+            "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
+            "notes": "Pair",
+            "paired": true
+          }
+        ],
+        "balances": [
+          -200,
+          100
+        ],
+        "reciprocal_balanced": true
+      },
+      "errors": [],
+      "replacement_refusal": true
+    },
+    {
+      "name": "parent targets child amount",
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": -55,
+          "options": {
+            "splitIndex": 1
+          }
+        }
+      ],
+      "split": true,
+      "parent": true,
+      "both": false,
+      "initial": {
+        "cash": [
+          {
+            "amount": -200,
+            "date": "2026-11-08",
+            "cleared": true,
+            "notes": "Parent",
+            "children": [
+              {
+                "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "Pair",
+                "paired": true
+              },
+              {
+                "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "Other child",
+                "paired": false
+              }
+            ]
+          }
+        ],
+        "other": [
+          {
+            "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
+            "notes": "Pair",
+            "paired": true
+          }
+        ],
+        "balances": [
+          -200,
+          100
+        ],
+        "reciprocal_balanced": true
+      },
+      "after": {
+        "cash": [
+          {
+            "amount": -200,
+            "date": "2026-11-08",
+            "cleared": true,
+            "notes": "Parent",
+            "children": [
+              {
+                "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "Pair",
+                "paired": true
+              },
+              {
+                "amount": -55,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "Other child",
+                "paired": false
+              }
+            ]
+          }
+        ],
+        "other": [
+          {
+            "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
+            "notes": "Pair",
+            "paired": true
+          }
+        ],
+        "balances": [
+          -155,
+          100
+        ],
+        "reciprocal_balanced": true
+      },
+      "errors": [],
+      "replacement_refusal": true
+    },
+    {
+      "name": "parent targets child notes",
+      "actions": [
+        {
+          "op": "append-notes",
+          "value": " / allocation",
+          "options": {
+            "splitIndex": 1
+          }
+        }
+      ],
+      "split": true,
+      "parent": true,
+      "both": false,
+      "initial": {
+        "cash": [
+          {
+            "amount": -200,
+            "date": "2026-11-08",
+            "cleared": true,
+            "notes": "Parent",
+            "children": [
+              {
+                "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "Pair",
+                "paired": true
+              },
+              {
+                "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "Other child",
+                "paired": false
+              }
+            ]
+          }
+        ],
+        "other": [
+          {
+            "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
+            "notes": "Pair",
+            "paired": true
+          }
+        ],
+        "balances": [
+          -200,
+          100
+        ],
+        "reciprocal_balanced": true
+      },
+      "after": {
+        "cash": [
+          {
+            "amount": -200,
+            "date": "2026-11-08",
+            "cleared": true,
+            "notes": "Parent / allocation",
+            "children": [
+              {
+                "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "Pair",
+                "paired": true
+              },
+              {
+                "amount": -100,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "Other child",
+                "paired": false
+              }
+            ]
+          }
+        ],
+        "other": [
+          {
+            "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
+            "notes": "Pair",
+            "paired": true
+          }
+        ],
+        "balances": [
+          -200,
+          100
+        ],
+        "reciprocal_balanced": true
+      },
+      "errors": [],
+      "replacement_refusal": false
+    },
+    {
+      "name": "ordinary becomes exact split",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": -40,
+          "options": {
+            "splitIndex": 1,
+            "method": "fixed-amount"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "both": false,
+      "initial": {
+        "cash": [
+          {
+            "amount": -100,
+            "date": "2026-11-08",
+            "cleared": true,
+            "notes": "Pair",
+            "children": []
+          }
+        ],
+        "other": [
+          {
+            "amount": 100,
+            "date": "2026-11-08",
+            "cleared": false,
+            "notes": "Pair",
+            "paired": true
+          }
+        ],
+        "balances": [
+          -100,
+          100
+        ],
+        "reciprocal_balanced": true
+      },
+      "after": {
+        "cash": [
+          {
+            "amount": -100,
+            "date": "2026-11-08",
+            "cleared": true,
+            "notes": "Pair",
+            "children": [
+              {
+                "amount": -40,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "",
+                "paired": true
+              },
+              {
+                "amount": -60,
+                "date": "2026-11-08",
+                "cleared": true,
+                "notes": "",
+                "paired": true
+              }
+            ]
+          }
+        ],
+        "other": [
+          {
+            "amount": 60,
+            "date": "2026-11-08",
+            "cleared": false,
+            "notes": "",
+            "paired": true
+          },
+          {
+            "amount": 40,
+            "date": "2026-11-08",
+            "cleared": false,
+            "notes": "",
+            "paired": true
+          }
+        ],
+        "balances": [
+          -100,
+          100
+        ],
+        "reciprocal_balanced": true
+      },
+      "errors": [],
+      "replacement_refusal": false
+    }
+  ],
+  "manual_protection": [
+    {
+      "field": "category",
+      "current": null,
+      "next": "food",
+      "apply": true
+    },
+    {
+      "field": "category",
+      "current": "manual",
+      "next": "rule",
+      "apply": false
+    },
+    {
+      "field": "amount",
+      "current": 0,
+      "next": 1200,
+      "apply": true
+    },
+    {
+      "field": "amount",
+      "current": 100,
+      "next": 1200,
+      "apply": false
+    },
+    {
+      "field": "date",
+      "current": "2026-11-08",
+      "next": "2026-01-01",
+      "apply": false
+    },
+    {
+      "field": "cleared",
+      "current": false,
+      "next": true,
+      "apply": true
+    },
+    {
+      "field": "cleared",
+      "current": true,
+      "next": false,
+      "apply": false
+    },
+    {
+      "field": "notes",
+      "current": "",
+      "next": "memo",
+      "apply": true
+    },
+    {
+      "field": "notes",
+      "current": "Coffee",
+      "next": "CoffeePAID",
+      "apply": true
+    },
+    {
+      "field": "notes",
+      "current": "Coffee",
+      "next": "A Coffee B",
+      "apply": true
+    },
+    {
+      "field": "notes",
+      "current": "CoffeePAID",
+      "next": "CoffeePAIDPAID",
+      "apply": false
+    },
+    {
+      "field": "notes",
+      "current": "A Coffee",
+      "next": "A A Coffee",
+      "apply": false
+    },
+    {
+      "field": "notes",
+      "current": "manual",
+      "next": "replacement",
+      "apply": false
+    },
+    {
+      "field": "imported_payee",
+      "current": "Store",
+      "next": "Store Inc",
+      "apply": false
+    },
+    {
+      "field": "payee",
+      "current": "manual",
+      "next": "inferred",
+      "apply": false
+    },
+    {
+      "field": "account",
+      "current": "manual",
+      "next": "inferred",
+      "apply": false
     }
   ]
 }

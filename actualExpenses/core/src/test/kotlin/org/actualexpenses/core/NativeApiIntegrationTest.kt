@@ -154,14 +154,24 @@ class NativeApiIntegrationTest {
             val utilities = UUID.randomUUID().toString()
             val payee = UUID.randomUUID().toString()
             val rule = UUID.randomUUID().toString()
-            for ((id, name) in listOf(food to "Food", travel to "Travel", utilities to "Utilities"))
-                server.post("$base/categories", """{"id":"$id","name":"$name","is_income":false}""")
+            for ((id, name) in
+                listOf(food to "Food", travel to "Travel", utilities to "Utilities")) server.post(
+                "$base/categories",
+                """{"id":"$id","name":"$name","is_income":false}""",
+            )
             server.post("$base/payees", """{"id":"$payee","name":"Shop"}""")
-            val snapshot = server.get("$base/checkpoint").getAsJsonObject("data")["snapshot"].asString
-            server.post("$base/rules", """{"id":"$rule","stage":null,"conditionsOp":"and","conditions":[{"field":"payee","op":"is","value":"$payee"}],"actions":[{"op":"set","field":"category","value":"$food"}],"snapshot":"$snapshot"}""")
+            val snapshot =
+                server.get("$base/checkpoint").getAsJsonObject("data")["snapshot"].asString
+            server.post(
+                "$base/rules",
+                """{"id":"$rule","stage":null,"conditionsOp":"and","conditions":[{"field":"payee","op":"is","value":"$payee"}],"actions":[{"op":"set","field":"category","value":"$food"}],"snapshot":"$snapshot"}""",
+            )
             for (days in 1L..2L) {
                 val date = java.time.LocalDate.now().minusDays(days)
-                server.post("$base/transactions", """{"id":"${UUID.randomUUID()}","account_id":"${server.account}","amount":-100,"date":"$date","category_id":"$travel","payee_id":"$payee"}""")
+                server.post(
+                    "$base/transactions",
+                    """{"id":"${UUID.randomUUID()}","account_id":"${server.account}","amount":-100,"date":"$date","category_id":"$travel","payee_id":"$payee"}""",
+                )
             }
             val store = MemoryStore()
             val app = ApiExpenseService(store)
@@ -170,15 +180,30 @@ class NativeApiIntegrationTest {
             app.chooseAccount(server.account)
             assertEquals(food, app.state().payeeCategoryAssociations[payee])
             app.markOffline()
-            val expense = app.saveExpense(ExpenseDraft("4.56", payee = "Shop", payeeId = payee, categoryId = travel))
-            val pending = JsonParser.parseString(store.raw).asJsonObject.getAsJsonArray("pending")[0].asJsonObject
+            val expense =
+                app.saveExpense(
+                    ExpenseDraft("4.56", payee = "Shop", payeeId = payee, categoryId = travel)
+                )
+            val pending =
+                JsonParser.parseString(store.raw)
+                    .asJsonObject
+                    .getAsJsonArray("pending")[0]
+                    .asJsonObject
             val body = pending["body"].asString
             assertFalse(JsonParser.parseString(body).asJsonObject.has("learn_categories"))
             val restarted = ApiExpenseService(store)
             assertEquals(food, restarted.state().payeeCategoryAssociations[payee])
             val now = server.get("$base/checkpoint").getAsJsonObject("data")["snapshot"].asString
-            val clock = DateTimeFormatterBuilder().appendInstant(3).toFormatter().format(Instant.now().plusMillis(1)) + "-0000-0000000000000001"
-            server.patch("$base/rules/$rule", """{"snapshot":"$now","actions":[{"op":"set","field":"category","value":"$utilities"}]}""", clock)
+            val clock =
+                DateTimeFormatterBuilder()
+                    .appendInstant(3)
+                    .toFormatter()
+                    .format(Instant.now().plusMillis(1)) + "-0000-0000000000000001"
+            server.patch(
+                "$base/rules/$rule",
+                """{"snapshot":"$now","actions":[{"op":"set","field":"category","value":"$utilities"}]}""",
+                clock,
+            )
             restarted.refresh()
             assertTrue(restarted.state().online, restarted.state().error)
             assertEquals(0, restarted.state().pendingCount)
@@ -186,9 +211,45 @@ class NativeApiIntegrationTest {
             assertEquals(travel, restarted.state().expenses.single { it.id == expense }.categoryId)
             val rules = server.get("$base/rules").getAsJsonArray("data")
             assertEquals(1, rules.size())
-            assertEquals(utilities, rules[0].asJsonObject.getAsJsonArray("actions")[0].asJsonObject["value"].asString)
-            val current = server.get("$base/checkpoint").getAsJsonObject("data")["snapshot"].asString
-            server.post("$base/rules", """{"id":"${UUID.randomUUID()}","stage":null,"conditionsOp":"and","conditions":[{"field":"payee","op":"is","value":"$payee"}],"actions":[{"op":"set","field":"category","value":"$food"}],"snapshot":"$current"}""")
+            assertEquals(
+                utilities,
+                rules[0].asJsonObject.getAsJsonArray("actions")[0].asJsonObject["value"].asString,
+            )
+            val splitOnly =
+                server.get("$base/checkpoint").getAsJsonObject("data")["snapshot"].asString
+            val splitClock =
+                DateTimeFormatterBuilder()
+                    .appendInstant(3)
+                    .toFormatter()
+                    .format(Instant.now().plusMillis(2)) + "-0000-0000000000000001"
+            server.patch(
+                "$base/rules/$rule",
+                """{"snapshot":"$splitOnly","actions":[{"op":"set","field":"category","value":"$utilities","options":{"splitIndex":1}}]}""",
+                splitClock,
+            )
+            assertEquals(0, server.get("$base/rules/associations").getAsJsonObject("data").size())
+            restarted.refresh()
+            assertFalse(restarted.state().payeeCategoryAssociations.containsKey(payee))
+            val ordinary =
+                server.get("$base/checkpoint").getAsJsonObject("data")["snapshot"].asString
+            val ordinaryClock =
+                DateTimeFormatterBuilder()
+                    .appendInstant(3)
+                    .toFormatter()
+                    .format(Instant.now().plusMillis(3)) + "-0000-0000000000000001"
+            server.patch(
+                "$base/rules/$rule",
+                """{"snapshot":"$ordinary","actions":[{"op":"set","field":"category","value":"$utilities"}]}""",
+                ordinaryClock,
+            )
+            restarted.refresh()
+            assertEquals(utilities, restarted.state().payeeCategoryAssociations[payee])
+            val current =
+                server.get("$base/checkpoint").getAsJsonObject("data")["snapshot"].asString
+            server.post(
+                "$base/rules",
+                """{"id":"${UUID.randomUUID()}","stage":null,"conditionsOp":"and","conditions":[{"field":"payee","op":"is","value":"$payee"}],"actions":[{"op":"set","field":"category","value":"$food"}],"snapshot":"$current"}""",
+            )
             restarted.refresh()
             assertFalse(restarted.state().payeeCategoryAssociations.containsKey(payee))
         }

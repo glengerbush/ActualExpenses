@@ -21,6 +21,7 @@ pub fn associations(db: &Connection, b: &str) -> Result<BTreeMap<String, String>
             || c["op"] != "is"
             || a["op"] != "set"
             || a["field"] != "category"
+            || a["options"]["splitIndex"].as_u64().is_some_and(|n| n > 0)
             || !a["options"]["template"].is_null()
             || !a["options"]["formula"].is_null()
         {

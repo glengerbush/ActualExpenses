@@ -145,6 +145,12 @@ try {
   {name:'both paired delete',actions:[{op:'delete-transaction',value:null}],both:true},
   {name:'split transfer child notes',actions:[{op:'append-notes',value:' / rule'}],split:true,both:false},
   {name:'split transfer both notes',actions:[{op:'append-notes',value:' / rule'}],split:true,both:true},
+  {name:'unlink paired payee',actions:[{op:'set',field:'payee',value:null}],both:false},
+  {name:'parent targets child cleared',actions:[{op:'set',field:'cleared',value:false,options:{splitIndex:1}}],split:true,parent:true,both:false},
+  {name:'parent targets child date',actions:[{op:'set',field:'date',value:'2026-11-07',options:{splitIndex:1}}],split:true,parent:true,both:false},
+  {name:'parent targets child amount',actions:[{op:'set',field:'amount',value:-55,options:{splitIndex:1}}],split:true,parent:true,both:false},
+  {name:'parent targets child notes',actions:[{op:'append-notes',value:' / allocation',options:{splitIndex:1}}],split:true,parent:true,both:false},
+  {name:'ordinary becomes exact split',actions:[{op:'set-split-amount',value:-40,options:{splitIndex:1,method:'fixed-amount'}},{op:'set-split-amount',value:null,options:{splitIndex:2,method:'remainder'}}],both:false},
  ];
  for(const [index,c] of financialCases.entries()) {
   let cash,other;
@@ -152,12 +158,24 @@ try {
   const payee=(await api.getPayees()).find(p=>p.transfer_acct===other).id;
   const root=identity(30000+index*100),childId=identity(30001+index*100),otherChild=identity(30002+index*100);
   await api.addTransactions(cash,[c.split?{id:root,date:'2026-11-08',amount:-200,notes:'Parent',subtransactions:[{id:childId,amount:-100,payee,notes:'Pair'},{id:otherChild,amount:-100,notes:'Other child'}]}:{id:root,date:'2026-11-08',amount:-100,payee,notes:'Pair'}],{runTransfers:true});
-  async function state(){const left=await api.getTransactions(cash),right=await api.getTransactions(other);const flat=[...left.flatMap(r=>[r,...(r.subtransactions??[])]),...right.flatMap(r=>[r,...(r.subtransactions??[])])];return {cash:left.map(r=>({amount:r.amount,notes:r.notes??'',children:(r.subtransactions??[]).map(c=>({amount:c.amount,notes:c.notes??'',paired:!!c.transfer_id}))})),other:right.map(r=>({amount:r.amount,notes:r.notes??'',paired:!!r.transfer_id})),balances:[await api.getAccountBalance(cash),await api.getAccountBalance(other)],reciprocal_balanced:flat.filter(r=>r.transfer_id).every(r=>flat.some(p=>p.id===r.transfer_id&&p.transfer_id===r.id&&p.amount===-r.amount))};}
-  const initial=await state();const left=await api.getTransactions(cash),right=await api.getTransactions(other);const selected=[c.split?left[0].subtransactions.find(r=>r.id===childId):left[0],...(c.both?[right[0]]:[])];assert.ok(selected.every(Boolean),c.name);
+  async function state(){const left=await api.getTransactions(cash),right=await api.getTransactions(other);const flat=[...left.flatMap(r=>[r,...(r.subtransactions??[])]),...right.flatMap(r=>[r,...(r.subtransactions??[])])];return {cash:left.map(r=>({amount:r.amount,date:r.date,cleared:!!r.cleared,notes:r.notes??'',children:(r.subtransactions??[]).map(c=>({amount:c.amount,date:c.date,cleared:!!c.cleared,notes:c.notes??'',paired:!!c.transfer_id}))})),other:right.map(r=>({amount:r.amount,date:r.date,cleared:!!r.cleared,notes:r.notes??'',paired:!!r.transfer_id})),balances:[await api.getAccountBalance(cash),await api.getAccountBalance(other)],reciprocal_balanced:flat.filter(r=>r.transfer_id).every(r=>flat.some(p=>p.id===r.transfer_id&&p.transfer_id===r.id&&p.amount===-r.amount))};}
+  const initial=await state();const left=await api.getTransactions(cash),right=await api.getTransactions(other);const selected=[c.split&&!c.parent?left[0].subtransactions.find(r=>r.id===childId):left[0],...(c.both?[right[0]]:[])];assert.ok(selected.every(Boolean),c.name);
   financialArchives.push(await api.exportBudget());
   const applied=await engine.send('rule-apply-actions',{transactions:selected,actions:c.actions});assert.ok(applied&&Array.isArray(applied.errors),c.name);const after=await state();
-  result.financial.push({...c,initial,after,errors:applied.errors});
+  result.financial.push({...c,initial,after,errors:applied.errors,replacement_refusal:['both paired amounts','parent targets child cleared','parent targets child date','parent targets child amount'].includes(c.name)});
  }
+ // Execute the exact pinned desktop helper AST, with only TypeScript erasure.
+ const ts=createRequire(new URL('../web/package.json',import.meta.url))('typescript');
+ const helperPath=new URL('../reference/actual-26.10.0/packages/desktop-client/src/components/transactions/table/utils.ts',import.meta.url);
+ const helperSource=await readFile(helperPath,'utf8');
+ const ast=ts.createSourceFile('utils.ts',helperSource,ts.ScriptTarget.Latest,true);
+ const declaration=ast.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='shouldApplyRuleChange');
+ assert.ok(declaration,'Pinned manual-entry helper exists');
+ const {shouldApplyRuleChange}=await import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(declaration.getText(ast),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64'));
+ const protectionCases=[
+ ['category',null,'food'],['category','manual','rule'],['amount',0,1200],['amount',100,1200],['date','2026-11-08','2026-01-01'],['cleared',false,true],['cleared',true,false],['notes','','memo'],['notes','Coffee','CoffeePAID'],['notes','Coffee','A Coffee B'],['notes','CoffeePAID','CoffeePAIDPAID'],['notes','A Coffee','A A Coffee'],['notes','manual','replacement'],['imported_payee','Store','Store Inc'],['payee','manual','inferred'],['account','manual','inferred']
+ ];
+ result.manual_protection=protectionCases.map(([field,current,next])=>({field,current,next,apply:shouldApplyRuleChange(field,current,next)}));
  const file=new URL('../tests/fixtures/rules-26.10.0.json',import.meta.url);
  if(process.argv.includes('--check')){
   const normalize=x=>{let text=JSON.stringify(x,(key,value)=>key==='subtransactions'?value.map(({id,...child})=>child):value);for(const [name,id] of Object.entries(x.ids))text=text.replaceAll(id,name.toUpperCase());return text;};

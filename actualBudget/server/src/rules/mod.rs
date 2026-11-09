@@ -2,6 +2,7 @@
 mod actions;
 mod conditions;
 mod engine;
+mod entry;
 mod import;
 pub mod learning;
 mod plan;
@@ -35,6 +36,14 @@ pub fn router() -> Router<Store> {
         .route("/api/v1/budgets/{budget}/rules/preview", post(preview))
         .route("/api/v1/budgets/{budget}/rules/apply", post(apply))
         .route(
+            "/api/v1/budgets/{budget}/rules/transactions",
+            post(entry::create),
+        )
+        .route(
+            "/api/v1/budgets/{budget}/rules/rename-payee",
+            post(rename_payee),
+        )
+        .route(
             "/api/v1/budgets/{budget}/rules/learning",
             post(set_learning),
         )
@@ -48,7 +57,7 @@ pub fn router() -> Router<Store> {
         )
 }
 pub fn load(db: &Connection, b: &str) -> Result<Vec<Rule>, Error> {
-    let mut q=db.prepare("SELECT id,stage,conditions_op,conditions,actions FROM rules WHERE budget_id=?1 AND tombstone=0")?;
+    let mut q=db.prepare("SELECT id,stage,conditions_op,conditions,actions FROM rules WHERE budget_id=?1 AND tombstone=0 LIMIT 100001")?;
     let raw = q
         .query_map([b], |r| {
             Ok((
@@ -72,6 +81,55 @@ pub fn load(db: &Connection, b: &str) -> Result<Vec<Rule>, Error> {
             })
         })
         .collect::<Result<Vec<_>, Error>>()?;
+    if rules.len() > 100000 {
+        return Err(Error::invalid("Rule set exceeds100000 saved rules"));
+    }
+    // Resolve real merges once per load. Never normalize an unreplaced removal
+    // to null: that would broaden equality into an uncategorized predicate.
+    let mut redirects = std::collections::BTreeMap::new();
+    for (field, table, column) in [
+        ("payee", "payees", "merged_into"),
+        ("category", "categories", "replacement_id"),
+    ] {
+        let mut q = db.prepare(&format!(
+            "SELECT id,{column} FROM {table} WHERE budget_id=?1 AND {column} IS NOT NULL"
+        ))?;
+        for row in q.query_map([b], |r| {
+            Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
+        })? {
+            let (id, target) = row?;
+            redirects.insert((field.to_owned(), id), target);
+        }
+    }
+    for rule in &mut rules {
+        for item in rule.conditions.iter_mut().chain(rule.actions.iter_mut()) {
+            let field = item["field"].as_str().unwrap_or("").to_owned();
+            if !matches!(field.as_str(), "payee" | "category") {
+                continue;
+            }
+            let canonical = |value: &mut Value| -> Result<(), Error> {
+                let Some(mut id) = value.as_str().map(str::to_owned) else {
+                    return Ok(());
+                };
+                let mut seen = std::collections::BTreeSet::new();
+                while let Some(next) = redirects.get(&(field.clone(), id.clone())) {
+                    if !seen.insert(id) {
+                        return Err(Error::invalid("Cyclic rule reference aliases"));
+                    }
+                    id = next.clone();
+                }
+                *value = json!(id);
+                Ok(())
+            };
+            if let Some(values) = item["value"].as_array_mut() {
+                for value in values {
+                    canonical(value)?;
+                }
+            } else {
+                canonical(&mut item["value"])?;
+            }
+        }
+    }
     engine::rank(&mut rules);
     Ok(rules)
 }
@@ -286,4 +344,59 @@ async fn set_learning(
  let value=if let Some(payee)=body["payee_id"].as_str(){crate::models::validate_id(payee)?;let p=crate::payees_tags::record(db,&b,"payees",payee)?;if p["deleted"]==true||!p["transfer_account_id"].is_null(){return Err(Error::invalid("Choose an ordinary active payee"));}guard(db,&b,"payees",payee,"learn_categories",&clock)?;db.execute("UPDATE payees SET learn_categories=?3 WHERE budget_id=?1 AND id=?2",params![b,payee,enabled])?;sync::seed_field_version(db,&b,"payees",payee,"learn_categories",&clock)?;sync::mark(db,&b,"payees",payee)?;json!({"payee_id":payee,"enabled":enabled})}else{if !body["payee_id"].is_null(){return Err(Error::invalid("Invalid payee"));}guard(db,&b,"rule_settings","learning","enabled",&clock)?;db.execute("UPDATE rule_settings SET enabled=?2 WHERE budget_id=?1 AND id='learning'",params![b,enabled])?;sync::seed_field_version(db,&b,"rule_settings","learning","enabled",&clock)?;sync::mark(db,&b,"rule_settings","learning")?;json!({"enabled":enabled})};
  Ok(json!({"response_status":200,"response_body":{"data":value,"snapshot":sync::cursor(db,&b)?,"edit_clock":clock}}))
  })}).await
+}
+
+async fn rename_payee(
+    State(store): State<Store>,
+    Path(b): Path<String>,
+    headers: HeaderMap,
+    input: Result<Json<Value>, JsonRejection>,
+) -> Result<(StatusCode, Json<Value>), Error> {
+    let Json(body) = input.map_err(crate::api::json_error)?;
+    crate::models::validate_id(&b)?;
+    let key = crate::api::idempotency_key(&headers)?;
+    let owner = crate::history::owner_header(&headers)?;
+    let proposed = sync::header(&headers)?;
+    let epoch = crate::lifecycle::epoch_header(&headers)?;
+    let cancel = sync::cancel_header(&headers)?;
+    let lookup = sync::receipt_only_header(&headers)?;
+    let payload = body.to_string();
+    store.run(move|db|{
+        let scope=format!("POST /budgets/{b}/rules/rename-payee");
+        if lookup{return sync::receipt_owned(db,&scope,&key,&payload,proposed.as_deref(),StatusCode::OK,owner.as_ref());}
+        sync::write_owned(db,&scope,&key,&payload,proposed.as_deref(),StatusCode::OK,owner.as_ref(),|db|{
+            if cancel{return sync::canceled(db,&b);}
+            crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;
+            sync::check_snapshot(db,&b,Some(snapshot(&body)?))?;
+            if body.as_object().is_none_or(|o|o.keys().any(|k|!["snapshot","payee_id","imported_payees"].contains(&k.as_str()))){return Err(Error::invalid("Unknown rename rule field"));}
+            let payee=body["payee_id"].as_str().ok_or_else(||Error::invalid("Choose a payee"))?;
+            crate::models::validate_id(payee)?;
+            let payee=crate::payees_tags::canonical(db,&b,payee)?;
+            let target=crate::payees_tags::record(db,&b,"payees",&payee)?;
+            if target["deleted"]==true || !target["transfer_account_id"].is_null(){return Err(Error::invalid("Choose a live ordinary payee"));}
+            let values=body["imported_payees"].as_array().filter(|v|!v.is_empty()&&v.len()<=100).ok_or_else(||Error::invalid("Provide1–100 imported names"))?;
+            let mut names=vec![];
+            for value in values {let value=value.as_str().filter(|s|s.chars().count()<=10000).ok_or_else(||Error::invalid("Invalid imported payee name"))?;if !value.is_empty()&&!names.contains(&json!(value)){names.push(json!(value));}}
+            if names.is_empty(){return Err(Error::invalid("Provide a nonempty imported name"));}
+            let existing=load(db,&b)?.into_iter().find(|r|r.stage.as_deref()==Some("pre")&&r.conditions.len()==1&&r.conditions[0]["field"]=="imported_payee"&&r.conditions[0]["op"]=="oneOf"&&r.actions.len()==1&&r.actions[0]["op"]=="set"&&r.actions[0]["field"]=="payee"&&r.actions[0]["value"]==payee);
+            let clock=sync::clock(db,&b,proposed.as_deref())?;
+            let id=if let Some(mut rule)=existing {
+                guard(db,&b,"rules",&rule.id,"conditions",&clock)?;
+                let previous=rule.conditions[0]["value"].as_array_mut().ok_or_else(||Error::invalid("Invalid rename condition"))?;
+                for name in names{if !previous.contains(&name){previous.push(name);}}
+                db.execute("UPDATE rules SET conditions=?3 WHERE budget_id=?1 AND id=?2",params![b,rule.id,serde_json::to_string(&rule.conditions).map_err(Error::internal)?])?;
+                sync::seed_field_version(db,&b,"rules",&rule.id,"conditions",&clock)?;
+                rule.id
+            }else{
+                let id=uuid::Uuid::new_v4().to_string();
+                let conditions=json!([{"field":"imported_payee","op":"oneOf","value":names}]);
+                let actions=json!([{"op":"set","field":"payee","value":payee}]);
+                db.execute("INSERT INTO rules(budget_id,id,stage,conditions_op,conditions,actions) VALUES(?1,?2,'pre','and',?3,?4)",params![b,id,conditions.to_string(),actions.to_string()])?;
+                for field in ["stage","conditions_op","conditions","actions","tombstone"] {sync::seed_field_version(db,&b,"rules",&id,field,&clock)?;}
+                id
+            };
+            sync::mark(db,&b,"rules",&id)?;
+            Ok(json!({"response_status":200,"response_body":{"data":record(db,&b,&id)?,"snapshot":sync::cursor(db,&b)?,"edit_clock":clock}}))
+        })
+    }).await
 }

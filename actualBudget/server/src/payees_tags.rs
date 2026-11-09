@@ -252,7 +252,7 @@ pub fn validate_tag(tag: &str) -> Result<(), Error> {
         Ok(())
     }
 }
-fn create(
+pub(crate) fn create(
     db: &Connection,
     b: &str,
     entity: &str,

@@ -80,11 +80,6 @@ pub fn validate(a: &Value) -> Result<(), Error> {
                 }
                 _ => return Err(Error::invalid("Unsupported rule action field")),
             };
-            if index > 0 && matches!(field, "amount" | "date" | "cleared" | "account") {
-                return Err(Error::invalid(
-                    "This action belongs to the parent transaction",
-                ));
-            }
         }
         "prepend-notes" | "append-notes" => text(value, 10000)?,
         "delete-transaction" => {}
@@ -263,6 +258,10 @@ pub fn apply(db: &Connection, b: &str, input: &Value, rule: &Rule) -> Result<Val
     if child_actions.is_empty() || row["is_child"] == true || !row["parent_id"].is_null() {
         return Ok(row);
     }
+    let retained_first = row["children"]
+        .as_array()
+        .and_then(|children| children.first())
+        .cloned();
     let mut children = row["children"].as_array().cloned().unwrap_or_else(|| {
         vec![child(
             &row,
@@ -328,6 +327,20 @@ pub fn apply(db: &Connection, b: &str, input: &Value, rule: &Rule) -> Result<Val
         )?);
     }
     children.remove(0);
+    // Actual's batch updater writes the returned children without deleting the
+    // old reserved first child. Retain it when composing the persisted graph.
+    if let Some(first) = retained_first {
+        children.insert(0, first);
+    }
+    for child in &children {
+        for field in ["account_id", "date", "cleared"] {
+            if !child[field].is_null() && child[field] != row[field] {
+                return Err(Error::conflict(
+                    "Rule allocations must retain their parent's account, date and cleared state. No actions were saved.",
+                ));
+            }
+        }
+    }
     let total = children
         .iter()
         .map(|c| c["amount"].as_i64().unwrap_or(0) as i128)

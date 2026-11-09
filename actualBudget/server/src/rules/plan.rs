@@ -7,6 +7,80 @@ pub struct Entry {
     pub after: Value,
     pub matched_rule_ids: Vec<String>,
 }
+pub fn validate_body(body: &Value, applying: bool) -> Result<(), Error> {
+    let allowed = if applying {
+        &["snapshot", "ids", "rule_ids"][..]
+    } else {
+        &[
+            "snapshot",
+            "ids",
+            "rule_ids",
+            "rule",
+            "transaction",
+            "account_id",
+            "offset",
+            "limit",
+            "manual_entry",
+        ][..]
+    };
+    if body
+        .as_object()
+        .is_none_or(|o| o.keys().any(|k| !allowed.contains(&k.as_str())))
+    {
+        return Err(Error::invalid("Unknown rule command field"));
+    }
+    if !body["rule"].is_null() && !body["rule_ids"].is_null() {
+        return Err(Error::invalid(
+            "Preview a draft rule or saved rules, not both",
+        ));
+    }
+    for name in ["offset", "limit"] {
+        if !body[name].is_null() && body[name].as_u64().is_none() {
+            return Err(Error::invalid("Invalid preview page"));
+        }
+    }
+    if !body["transaction"].is_null() && !body["transaction"].is_object() {
+        return Err(Error::invalid("Preview transaction must be an object"));
+    }
+    Ok(())
+}
+fn validate_draft(row: &Value) -> Result<(), Error> {
+    let mut value = serde_json::Map::new();
+    for key in [
+        "id",
+        "account_id",
+        "amount",
+        "date",
+        "notes",
+        "cleared",
+        "payee_id",
+        "category_id",
+    ] {
+        if let Some(v) = row.get(key) {
+            value.insert(key.into(), v.clone());
+        }
+    }
+    if value.get("notes").is_none_or(Value::is_null) {
+        value.insert("notes".into(), json!(""));
+    }
+    let input: ledger::NewTransaction = serde_json::from_value(Value::Object(value))
+        .map_err(|_| Error::invalid("Invalid preview transaction fields"))?;
+    input.validate()?;
+    if let Some(children) = row.get("children") {
+        let children = children
+            .as_array()
+            .filter(|v| v.len() <= 100_000)
+            .ok_or_else(|| Error::invalid("Invalid preview allocations"))?;
+        for child in children {
+            let mut child = child.clone();
+            for key in ["account_id", "date", "cleared"] {
+                child[key] = row[key].clone();
+            }
+            validate_draft(&child)?;
+        }
+    }
+    Ok(())
+}
 pub fn selected_rules(db: &Connection, b: &str, body: &Value) -> Result<Vec<Rule>, Error> {
     if !body["rule"].is_null() {
         let rule: Rule = serde_json::from_value(body["rule"].clone())
@@ -73,9 +147,14 @@ fn hydrate(db: &Connection, b: &str, ids: &[String]) -> Result<Vec<Value>, Error
     }).collect()
 }
 pub fn evaluate(db: &Connection, b: &str, body: &Value) -> Result<(Vec<Entry>, usize), Error> {
+    validate_body(body, false)?;
     let rules = selected_rules(db, b, body)?;
-    let mut runner = engine::Runner::new(rules);
     let direct = body["transaction"].is_object();
+    let mut runner = if direct {
+        engine::Runner::new(rules)
+    } else {
+        engine::Runner::for_apply(rules)
+    };
     let selected = ids(body, false)?;
     if direct && selected.is_some() {
         return Err(Error::invalid("Preview one draft or selected ledger rows"));
@@ -116,13 +195,18 @@ pub fn evaluate(db: &Connection, b: &str, body: &Value) -> Result<(Vec<Entry>, u
     let mut entries = vec![];
     for input in &mut inputs {
         if direct {
+            validate_draft(input)?;
             for field in ["payee_id", "category_id", "parent_id", "transfer_id"] {
                 if input.get(field).is_none() {
                     input[field] = Value::Null;
                 }
             }
         }
-        let (after, matched) = runner.evaluate(db, b, input)?;
+        let (mut after, matched) = runner.evaluate(db, b, input)?;
+        if body["manual_entry"] == true {
+            after = super::entry::protect(input, &after);
+        }
+
         if direct || selected.is_some() || !matched.is_empty() {
             entries.push(Entry {
                 before: input.clone(),
@@ -170,7 +254,7 @@ fn patch(before: &Value, after: &Value) -> Value {
             result.insert(field.into(), after[field].clone());
         }
     }
-    if let Some(new) = after.get("new_payee") {
+    if let Some(new) = after.get("new_payee").filter(|v| v.is_object()) {
         result.remove("payee_id");
         result.insert("new_payee".into(), new.clone());
     }
@@ -183,8 +267,20 @@ pub fn apply(
     clock: &str,
     epoch: Option<&str>,
 ) -> Result<Value, Error> {
+    validate_body(body, true)?;
     let ids = ids(body, true)?.unwrap();
     let (entries, _) = evaluate(db, b, body)?;
+    commit(db, b, &ids, entries, clock, epoch, None)
+}
+pub(super) fn commit(
+    db: &Connection,
+    b: &str,
+    ids: &[String],
+    entries: Vec<Entry>,
+    clock: &str,
+    epoch: Option<&str>,
+    created: Option<&str>,
+) -> Result<Value, Error> {
     let members = crate::transfers::protection::members(
         db,
         b,
@@ -204,12 +300,79 @@ pub fn apply(
         {
             if entry.after["deleted"] != true
                 && peer.after["deleted"] != true
+                && entry.after["amount"] != entry.before["amount"]
+                && peer.after["amount"] != peer.before["amount"]
                 && entry.after["amount"].as_i64().unwrap()
                     != -peer.after["amount"].as_i64().unwrap()
             {
                 return Err(Error::conflict(
                     "Selected rules give a transfer two contradictory amounts. No rule actions were saved.",
                 ));
+            }
+        }
+    }
+    for entry in &entries {
+        if entry.matched_rule_ids.is_empty() || entry.before == entry.after {
+            continue;
+        }
+        let structural = entry.after["is_parent"] == true
+            || !entry.before["parent_id"].is_null()
+            || entry.after["deleted"] == true;
+        let fields = patch(&entry.before, &entry.after);
+        let affected =
+            crate::transfers::protection::members(db, b, &[entry.before["id"].as_str().unwrap()])?;
+        for row in affected {
+            let id = row["id"].as_str().unwrap();
+            if created == Some(id) {
+                continue;
+            }
+            if structural {
+                let stale:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM field_versions WHERE budget_id=?1 AND entity='transactions' AND entity_id=?2 AND clock>=?3)",params![b,id,clock],|r|r.get(0))?;
+                if stale {
+                    return Err(Error::conflict(
+                        "A newer entry prevents applying the rules. Refresh and review again.",
+                    ));
+                }
+            } else {
+                for field in fields.as_object().unwrap().keys() {
+                    guard(
+                        db,
+                        b,
+                        "transactions",
+                        id,
+                        if field == "new_payee" {
+                            "payee_id"
+                        } else {
+                            field
+                        },
+                        clock,
+                    )?;
+                }
+            }
+        }
+    }
+    // Payee-name actions are planned during preview; create each planned name
+    // once inside this same atomic receipt, including allocation-only names.
+    let mut entries = entries;
+    let mut planned = std::collections::BTreeMap::new();
+    for entry in &entries {
+        for row in std::iter::once(&entry.after)
+            .chain(entry.after["children"].as_array().into_iter().flatten())
+        {
+            if let Some(new) = row.get("new_payee").filter(|v| v.is_object()) {
+                planned.insert(new["id"].as_str().unwrap().to_owned(), new.clone());
+            }
+        }
+    }
+    for (id, new) in planned {
+        crate::payees_tags::create(db, b, "payees", &new, clock)?;
+        sync::mark(db, b, "payees", &id)?;
+    }
+    for entry in &mut entries {
+        entry.after.as_object_mut().unwrap().remove("new_payee");
+        if let Some(children) = entry.after["children"].as_array_mut() {
+            for child in children {
+                child.as_object_mut().unwrap().remove("new_payee");
             }
         }
     }
@@ -277,7 +440,56 @@ pub fn apply(
         if !live && entry.after["deleted"] == true {
             continue;
         }
-        let current = ledger::get(db, b, id)?;
+        let mut current = ledger::get(db, b, id)?;
+        let desired_payee = entry.after["payee_id"].as_str();
+        let destination = if let Some(payee) = desired_payee {
+            crate::payees_tags::record(db, b, "payees", payee)?["transfer_account_id"]
+                .as_str()
+                .map(str::to_owned)
+        } else {
+            None
+        };
+        if entry.after["is_parent"] == true && current["transfer_id"].is_string() {
+            crate::transfers::composition::remove_child(db, b, id, clock, None)?;
+            current = ledger::get(db, b, id)?;
+        }
+        // A changed transfer payee is a graph operation, not an ordinary
+        // payee patch. Original graph locks and winning clocks were checked
+        // above, before any same-command detach stamps existed.
+        if entry.after["deleted"] != true
+            && entry.after["is_parent"] != true
+            && entry.before["payee_id"] != entry.after["payee_id"]
+            && (current["transfer_id"].is_string() || destination.is_some())
+        {
+            if current["transfer_id"].is_string() {
+                crate::transfers::composition::remove_child(db, b, id, clock, None)?;
+            }
+            let mut fields = patch(&entry.before, &entry.after);
+            if destination.is_some() {
+                fields.as_object_mut().unwrap().remove("payee_id");
+            }
+            if !fields.as_object().unwrap().is_empty() {
+                ledger::update(db, b, id, fields.clone())?;
+                for field in fields.as_object().unwrap().keys() {
+                    sync::seed_field_version(db, b, "transactions", id, field, clock)?;
+                }
+                sync::mark(db, b, "transactions", id)?;
+            }
+            if let Some(destination) = destination {
+                let peer = super::actions::identity(&["actualBudget.rule-pair.v1", b, id, clock]);
+                crate::transfers::composition::save_child(
+                    db,
+                    b,
+                    id,
+                    &destination,
+                    &peer,
+                    clock,
+                    None,
+                )?;
+            }
+            changed.push(ledger::get(db, b, id)?);
+            continue;
+        }
         let mutation = if entry.after["deleted"] == true {
             sync::Mutation::Delete(id.to_owned())
         } else if entry.after["is_parent"] == true {
@@ -286,14 +498,35 @@ pub fn apply(
                 .ok_or_else(|| Error::invalid("Missing rule allocations"))?
                 .iter()
                 .map(|c| {
+                    let child_id = c["id"].as_str().unwrap();
+                    let destination = if let Some(payee) = c["payee_id"].as_str() {
+                        crate::payees_tags::record(db, b, "payees", payee)?["transfer_account_id"]
+                            .as_str()
+                            .map(str::to_owned)
+                    } else {
+                        None
+                    };
+                    let peer = destination.as_ref().map(|_| {
+                        c["transfer_id"]
+                            .as_str()
+                            .map(str::to_owned)
+                            .unwrap_or_else(|| {
+                                super::actions::identity(&[
+                                    "actualBudget.rule-child-pair.v1",
+                                    b,
+                                    child_id,
+                                    clock,
+                                ])
+                            })
+                    });
                     Ok(crate::splits::Child {
                         id: c["id"].as_str().unwrap().to_owned(),
                         amount: c["amount"].as_i64().unwrap(),
                         payee_id: c["payee_id"].as_str().map(str::to_owned),
                         category_id: c["category_id"].as_str().map(str::to_owned),
                         notes: c["notes"].as_str().unwrap_or("").into(),
-                        transfer_account_id: c["transfer_account_id"].as_str().map(str::to_owned),
-                        counterpart_id: c["transfer_id"].as_str().map(str::to_owned),
+                        transfer_account_id: destination,
+                        counterpart_id: peer,
                     })
                 })
                 .collect::<Result<Vec<_>, Error>>()?;
@@ -317,7 +550,11 @@ pub fn apply(
                 },
             )
         } else {
-            let fields = patch(&current, &entry.after);
+            let mut fields = patch(&entry.before, &entry.after);
+            fields
+                .as_object_mut()
+                .unwrap()
+                .retain(|field, value| current[field] != *value);
             if fields.as_object().unwrap().is_empty() {
                 continue;
             }

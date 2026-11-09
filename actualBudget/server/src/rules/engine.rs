@@ -85,6 +85,21 @@ pub struct Runner {
     work: Work,
 }
 impl Runner {
+    pub fn for_apply(mut rules: Vec<Rule>) -> Self {
+        // Pinned RuleEditor invokes rule-apply-actions, whose parser discards
+        // options for these operations. Live rules-run retains their options.
+        for rule in &mut rules {
+            for action in &mut rule.actions {
+                if matches!(
+                    action["op"].as_str(),
+                    Some("prepend-notes" | "append-notes" | "delete-transaction")
+                ) {
+                    action.as_object_mut().unwrap().remove("options");
+                }
+            }
+        }
+        Self::new(rules)
+    }
     pub fn new(rules: Vec<Rule>) -> Self {
         Self {
             rules,

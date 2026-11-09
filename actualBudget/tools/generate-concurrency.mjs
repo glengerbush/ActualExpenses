@@ -45,7 +45,23 @@ const scenarios = [
     { clock: clock(3, 5), fields: { notes: 'newer retained work' } },
     { clock: clock(2, 5), fields: { tombstone: 1 } },
   ], policy: 'Actual applies the independent tombstone field. The approved replacement rejects this unpublished deletion before publication; this scenario documents the intentional stronger policy, not direct parity.' },
+  { name: 'account-category-older-first', id: id(6), mutations: [
+    { clock: clock(2, 6), fields: { acct: '$off' } },
+    { clock: clock(2, 6, '0001'), fields: { category: null } },
+    { clock: clock(3, 6), fields: { category: '$category' } },
+  ] },
+  { name: 'account-category-newer-first', id: id(7), mutations: [
+    { clock: clock(3, 7), fields: { category: '$category' } },
+    { clock: clock(2, 7), fields: { acct: '$off' } },
+    { clock: clock(2, 7, '0001'), fields: { category: null } },
+  ] },
 ];
+// Keep runtime-generated IDs out of the fixture; Actual's wire null is 0:.
+function serializeValue(value, references) {
+  if (value === null) return '0:';
+  const resolved = references[value] ?? value;
+  return (typeof resolved === 'number' ? 'N:' : 'S:') + resolved;
+}
 function clockOracle() {
   const actualNow = Date.now;
   const result = { physical_time: new Date(fixedNow).toISOString(), sends: [], receives: [] };
@@ -102,9 +118,12 @@ try {
   const { url, password, token } = await boot();
   const clientDir = join(root, 'client'); await mkdir(clientDir);
   await api.init({ dataDir: clientDir, serverURL: url, password }); initialized = true;
-  let account;
+  let account, off, category;
   await api.runImport('Disposable concurrency oracle', async () => {
     account = await api.createAccount({ name: 'Spending', offbudget: false }, 0);
+    off = await api.createAccount({ name: 'Off', offbudget: true }, 0);
+    const group = await api.createCategoryGroup({ name: 'Expenses', is_income: false });
+    category = await api.createCategory({ name: 'Food', group_id: group, is_income: false });
     await api.addTransactions(account, scenarios.map(s => ({ id: s.id, date: '2026-01-01', amount: -100, notes: 'initial', cleared: true })));
   });
   await api.sync();
@@ -114,7 +133,7 @@ try {
   for (const scenario of scenarios) for (const mutation of scenario.mutations) {
     const messages = Object.entries(mutation.fields).map(([column, value]) => create(MessageEnvelopeSchema, {
       timestamp: mutation.clock, isEncrypted: false,
-      content: toBinary(MessageSchema, create(MessageSchema, { dataset: 'transactions', row: scenario.id, column, value: (typeof value === 'number' ? 'N:' : 'S:') + value })),
+      content: toBinary(MessageSchema, create(MessageSchema, { dataset: 'transactions', row: scenario.id, column, value: serializeValue(value, { $off: off, $category: category }) })),
     }));
     const body = toBinary(SyncRequestSchema, create(SyncRequestSchema, { fileId: file.fileId, groupId: file.groupId, since: zero, messages }));
     const response = await fetch(url + '/sync/sync', { method: 'POST', headers: { 'X-ACTUAL-TOKEN': token, 'Content-Type': 'application/actual-sync' }, body });
@@ -129,20 +148,26 @@ try {
   const freshDir = join(root, 'fresh'); await mkdir(freshDir);
   await api.init({ dataDir: freshDir }); initialized = true;
   await api.importBudget(archive, { type: 'actual' });
-  const visible = await api.getTransactions(account);
+  const visible = [...await api.getTransactions(account), ...await api.getTransactions(off)];
   for (const scenario of scenarios) {
     const row = audit.records.transactions.find(row => row.id === scenario.id);
     assert.ok(row);
     const versions = Object.fromEntries(audit.latest_field_clocks.filter(v => v.dataset === 'transactions' && v.row === scenario.id).map(v => [v.column, v.timestamp]));
     scenario.initial = { amount: -100, notes: 'initial', date: '2026-01-01', cleared: true, clock: zero };
     scenario.expected = { amount: row.amount, notes: row.notes, tombstone: Boolean(row.tombstone), visible: visible.some(v => v.id === scenario.id), field_versions: versions };
+    if (scenario.name.startsWith('account-category-')) {
+      assert.equal(row.acct, off);
+      assert.equal(row.category, category);
+      scenario.expected.account = 'off';
+      scenario.expected.category = 'Food';
+    }
     assert.equal(scenario.expected.visible, !scenario.expected.tombstone);
   }
   const result = { oracle: 'Actual API/sync-server 26.10.0 and its locked CRDT package', source_commit: '2bebdbaae0b701120a8cad9d56aafd64fa04c577', timestamp_source_sha256: createHash('sha256').update(await readFile(sourcePath)).digest('hex'), clocks: clockResults, scenarios };
   const output = JSON.stringify(result, null, 2) + '\n';
   if (process.argv.includes('--check')) assert.equal(await readFile(fixturePath, 'utf8'), output);
   else await writeFile(fixturePath, output);
-  console.log('PASS five pinned sync/public-API ordering scenarios and HLC drift/counter cases');
+  console.log('PASS seven pinned sync/public-API ordering scenarios and HLC drift/counter cases');
 } finally {
   if (initialized) await api.shutdown();
   if (child && child.exitCode === null) { const closed = new Promise(resolve => child.once('close', resolve)); child.kill('SIGTERM'); await closed; }

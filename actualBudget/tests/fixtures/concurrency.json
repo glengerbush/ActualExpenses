@@ -212,6 +212,92 @@
           "tombstone": "2026-01-02T00:00:00.000Z-0000-0000000000000005"
         }
       }
+    },
+    {
+      "name": "account-category-older-first",
+      "id": "05000000-0000-4000-8000-000000000006",
+      "mutations": [
+        {
+          "clock": "2026-01-02T00:00:00.000Z-0000-0000000000000006",
+          "fields": {
+            "acct": "$off"
+          }
+        },
+        {
+          "clock": "2026-01-02T00:00:00.000Z-0001-0000000000000006",
+          "fields": {
+            "category": null
+          }
+        },
+        {
+          "clock": "2026-01-03T00:00:00.000Z-0000-0000000000000006",
+          "fields": {
+            "category": "$category"
+          }
+        }
+      ],
+      "initial": {
+        "amount": -100,
+        "notes": "initial",
+        "date": "2026-01-01",
+        "cleared": true,
+        "clock": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "expected": {
+        "amount": -100,
+        "notes": "initial",
+        "tombstone": false,
+        "visible": true,
+        "field_versions": {
+          "acct": "2026-01-02T00:00:00.000Z-0000-0000000000000006",
+          "category": "2026-01-03T00:00:00.000Z-0000-0000000000000006"
+        },
+        "account": "off",
+        "category": "Food"
+      }
+    },
+    {
+      "name": "account-category-newer-first",
+      "id": "05000000-0000-4000-8000-000000000007",
+      "mutations": [
+        {
+          "clock": "2026-01-03T00:00:00.000Z-0000-0000000000000007",
+          "fields": {
+            "category": "$category"
+          }
+        },
+        {
+          "clock": "2026-01-02T00:00:00.000Z-0000-0000000000000007",
+          "fields": {
+            "acct": "$off"
+          }
+        },
+        {
+          "clock": "2026-01-02T00:00:00.000Z-0001-0000000000000007",
+          "fields": {
+            "category": null
+          }
+        }
+      ],
+      "initial": {
+        "amount": -100,
+        "notes": "initial",
+        "date": "2026-01-01",
+        "cleared": true,
+        "clock": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "expected": {
+        "amount": -100,
+        "notes": "initial",
+        "tombstone": false,
+        "visible": true,
+        "field_versions": {
+          "acct": "2026-01-02T00:00:00.000Z-0000-0000000000000007",
+          "category": "2026-01-03T00:00:00.000Z-0000-0000000000000007"
+        },
+        "account": "off",
+        "category": "Food"
+      }
     }
   ]
 }

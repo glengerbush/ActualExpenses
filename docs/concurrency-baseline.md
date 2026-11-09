@@ -16,6 +16,20 @@ The committed [fixture](../actualBudget/tests/fixtures/concurrency.json) covers:
 - Repeated identical sync message delivery.
 - A published tombstone remaining invisible after a newer ordinary field edit.
 - An older independent tombstone arriving after a newer notes edit.
+- An older move to an off-budget account and its category clear, followed by a newer Food category edit.
+- The same account/category operations arriving in reverse order.
+
+The two cross-field scenarios both finish in the off-budget account with category
+Food. Their actual wire column is `acct`, not `account`; null is serialized as
+`0:`. The account move, its category clear and the newer category edit have
+separate clocks. An arrival-order-dependent constraint that rejects a newer
+category on the current off-budget account, or clears that newer category when
+an older move arrives, would diverge from the pinned result. Runtime account and
+category UUIDs are represented by `$off`/`$category` placeholders in mutations;
+only these new scenarios add normalized `expected.account: "off"` and
+`expected.category: "Food"`. The original five scenarios retain their shape and
+values. Observed field clocks keep baseline names (`acct`, `category`) for consumers
+to map explicitly to the replacement API.
 
 Two boundaries matter. Actual retains the later ordinary field inside a deleted
 row; preserving visibility alone would miss that state. Conversely, raw Actual

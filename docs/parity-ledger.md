@@ -32,13 +32,13 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 7 | 27 | Budget files, backups and migration | Pending feature acceptance |
 | 8 | 08 | Budget files, backups and migration | [08: automatic/manual/pre-upgrade recovery and fault-safe restore](budget-lifecycle-validation.md) |
 | 9 | 04, 08, 50 | Budget files, backups and migration | [04: retained/rejected source validation](import-validation.md); [08: checksummed archive validation and pre-action recovery](budget-lifecycle-validation.md); complete migration qualification pending50 |
-| 10 | 02, 09 | Accounts and reconciliation | [02: on/off-budget creation, notes and seven independent opening-balance cases](open-budget-validation.md); account management pending 09 |
-| 11 | 09 | Accounts and reconciliation | Pending feature acceptance |
-| 12 | 03, 09, 12 | Accounts and reconciliation | [03: exact account and running balances](register-validation.md); organization and register customization pending 09/12 |
+| 10 | 02, 09 | Accounts and reconciliation | [02: on/off-budget creation and opening balances](open-budget-validation.md); [09: organization, closure and notes](0910-validation.md) |
+| 11 | 09 | Accounts and reconciliation | [09: grouping/order, closed visibility, deletion and native recovery](0910-validation.md) |
+| 12 | 03, 09, 12 | Accounts and reconciliation | [03: exact account and running balances](register-validation.md); [09: organization](0910-validation.md); register customization pending12 |
 | 13 | 16 | Accounts and reconciliation | Pending feature acceptance |
 | 14 | 16 | Accounts and reconciliation | Pending feature acceptance |
 | 15 | 16 | Accounts and reconciliation | Pending feature acceptance |
-| 16 | 09 | Accounts and reconciliation | Pending feature acceptance |
+| 16 | 09 | Accounts and reconciliation | [09: explicit account deletion, retained history/receipts and non-transfer closure](0910-validation.md); transfer-based closure remains15 |
 | 17 | 03, 13 | Transactions, payees and categories | [03: single transaction CRUD and duplicate](register-validation.md); bulk/undo pending 13 |
 | 18 | 03, 52 | Transactions, payees and categories | [03: exact financial values, dates and calculator baseline](register-validation.md); whole-feature audit pending 52 |
 | 19 | 03, 13 | Transactions, payees and categories | [03: ordinary transaction field edits and retry recovery](register-validation.md); bulk/undo pending 13 |
@@ -53,8 +53,8 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 28 | 11, 19 | Transactions, payees and categories | Pending feature acceptance |
 | 29 | 46 | Transactions, payees and categories | Pending feature acceptance |
 | 30 | 11 | Transactions, payees and categories | Pending feature acceptance |
-| 31 | 03, 10 | Transactions, payees and categories | [03: category creation/selection](register-validation.md); category organization pending 10 |
-| 32 | 03, 10 | Transactions, payees and categories | [03: refunds and uncategorized entries](register-validation.md); broader category behavior pending 10 |
+| 31 | 03, 10 | Transactions, payees and categories | [10: groups/order/hiding, notes, history-preserving merge/delete and legacy migration](0910-validation.md) |
+| 32 | 03, 10 | Transactions, payees and categories | [10: signed refunds/reimbursements, uncategorized drilldowns and exact reassignment](0910-validation.md) |
 | 33 | 17, 18 | Tracking, envelope and automation | Pending feature acceptance |
 | 34 | 18 | Tracking, envelope and automation | Pending feature acceptance |
 | 35 | 18 | Tracking, envelope and automation | Pending feature acceptance |
@@ -62,7 +62,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 37 | 17 | Tracking, envelope and automation | Pending feature acceptance |
 | 38 | 17, 18 | Tracking, envelope and automation | Pending feature acceptance |
 | 39 | 15, 18 | Tracking, envelope and automation | Pending feature acceptance |
-| 40 | 10, 17, 18 | Tracking, envelope and automation | Pending feature acceptance |
+| 40 | 10, 17, 18 | Tracking, envelope and automation | [10: category detail/history/notes](0910-validation.md); planning behavior pending17/18 |
 | 41 | 23 | Tracking, envelope and automation | Pending feature acceptance |
 | 42 | 23, 24 | Tracking, envelope and automation | Pending feature acceptance |
 | 43 | 24 | Tracking, envelope and automation | Pending feature acceptance |

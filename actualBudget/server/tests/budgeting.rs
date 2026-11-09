@@ -519,3 +519,239 @@ fn movement_notes_use_supported_currency_precision_and_undo_both_allocations_and
     assert_eq!(allocation(&v, D), 0);
     assert_eq!(v["months"]["2026-01"]["notes"], "");
 }
+
+fn import_zip(s: &Server, bytes: &[u8]) -> (String, String) {
+    let uploaded = s
+        .client
+        .post(format!("{}/api/v1/imports/actual", s.url))
+        .header("Content-Type", "application/zip")
+        .header("Idempotency-Key", "import")
+        .body(bytes.to_vec())
+        .send()
+        .unwrap()
+        .json::<Value>()
+        .unwrap();
+    assert_eq!(uploaded["data"]["status"], "ready", "{uploaded}");
+    let r = s.post(
+        &format!(
+            "/api/v1/imports/{}/activate",
+            uploaded["data"]["id"].as_str().unwrap()
+        ),
+        "activate",
+        json!({}),
+    );
+    assert_eq!(r.status(), 201, "{}", r.text().unwrap());
+    let budget = uploaded["data"]["budget_id"].as_str().unwrap().to_owned();
+    (format!("/api/v1/budgets/{budget}"), budget)
+}
+#[test]
+fn allocated_actual_exports_and_native_archives_preserve_both_methods_notes_holds_and_actual_drilldown()
+ {
+    let fixture: Value =
+        serde_json::from_str(include_str!("../../tests/fixtures/budgeting-26.10.0.json")).unwrap();
+    for (case, bytes) in fixture["cases"].as_array().unwrap().iter().zip([
+        include_bytes!("../../tests/fixtures/budgeting-tracking-allocated.zip").as_slice(),
+        include_bytes!("../../tests/fixtures/budgeting-envelope-allocated.zip").as_slice(),
+    ]) {
+        let s = Server::start();
+        let (root, _) = import_zip(&s, bytes);
+        let v = s
+            .get(&format!("{root}/budget?month=2026-11&count=4"))
+            .json::<Value>()
+            .unwrap()["data"]
+            .clone();
+        let expected = case["steps"].as_array().unwrap().last().unwrap();
+        for (m, month) in expected["months"].as_object().unwrap() {
+            for (k, n) in month["summary"].as_object().unwrap() {
+                assert_eq!(
+                    v["months"][m]["summary"][k.replace('-', "_")],
+                    *n,
+                    "{m} {k}"
+                );
+            }
+            for c in v["months"][m]["categories"].as_array().unwrap() {
+                let r = s
+                    .get(&format!(
+                        "{root}/budget/transactions?month={m}&category={}&snapshot={}",
+                        c["id"].as_str().unwrap(),
+                        v["snapshot"].as_str().unwrap()
+                    ))
+                    .json::<Value>()
+                    .unwrap();
+                assert_eq!(r["actual_total"], c["actual"]);
+                assert!(
+                    r["data"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .all(|row| row["is_parent"] != true)
+                );
+            }
+        }
+        let backup = s
+            .post(&format!("{root}/backups"), "backup", json!({}))
+            .json::<Value>()
+            .unwrap();
+        let zip = s
+            .get(&format!(
+                "{root}/backups/{}/download",
+                backup["data"]["id"].as_str().unwrap()
+            ))
+            .bytes()
+            .unwrap();
+        let t = Server::start();
+        let stage = t
+            .client
+            .post(format!("{}/api/v1/restores", t.url))
+            .header("Idempotency-Key", "native")
+            .header("Content-Type", "application/zip")
+            .body(zip)
+            .send()
+            .unwrap()
+            .json::<Value>()
+            .unwrap();
+        assert_eq!(stage["data"]["report"]["schema_version"], 16, "{stage}");
+        let metadata = s.get(&root).json::<Value>().unwrap();
+        let r = t.post(
+            &format!(
+                "{root}/restores/{}/activate",
+                stage["data"]["id"].as_str().unwrap()
+            ),
+            "restore",
+            json!({"confirm_name":metadata["data"]["name"]}),
+        );
+        assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+        let restored = t
+            .get(&format!("{root}/budget?month=2026-11&count=4"))
+            .json::<Value>()
+            .unwrap();
+        assert_eq!(restored["data"]["months"], v["months"]);
+        assert_eq!(restored["data"]["method"], v["method"]);
+        assert_ne!(restored["data"]["epoch"], v["epoch"]);
+    }
+}
+#[test]
+fn category_merge_moves_plan_and_actuals_atomically_and_refuses_overflow() {
+    let (s, root) = setup();
+    for (id, n) in [(C, 200), (D, 300)] {
+        assert_eq!(
+            write_plan(
+                &s,
+                &root,
+                id,
+                json!({"action":"set","category":id,"amount":n}),
+                None
+            )
+            .status(),
+            200
+        );
+    }
+    let r = s
+        .client
+        .delete(format!("{}{root}/categories/{C}", s.url))
+        .header("Idempotency-Key", "merge")
+        .header("X-Actual-History-Owner", OWNER)
+        .json(&json!({"replacement_id":D}))
+        .send()
+        .unwrap();
+    assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+    let v = plan(&s, &root);
+    assert_eq!(allocation(&v, D), 500);
+    assert!(
+        v["months"]["2026-01"]["categories"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|c| c["id"] != C)
+    );
+    let h = s
+        .client
+        .get(format!("{}{root}/history", s.url))
+        .header("X-Actual-History-Owner", OWNER)
+        .send()
+        .unwrap()
+        .json::<Value>()
+        .unwrap();
+    let undo = s
+        .client
+        .post(format!("{}{root}/history/undo", s.url))
+        .header("Idempotency-Key", "undo-merge")
+        .header("X-Actual-History-Owner", OWNER)
+        .json(&json!({"action_id":h["data"]["undo"]["id"]}))
+        .send()
+        .unwrap();
+    assert_eq!(undo.status(), 200, "{}", undo.text().unwrap());
+    assert_eq!(allocation(&plan(&s, &root), C), 200);
+    assert_eq!(allocation(&plan(&s, &root), D), 300);
+    let before = plan(&s, &root);
+    let r = write_plan(
+        &s,
+        &root,
+        "overflow",
+        json!({"action":"set","category":C,"amount":9007199254740991i64}),
+        None,
+    );
+    assert_eq!(r.status(), 400, "{}", r.text().unwrap());
+    assert_eq!(plan(&s, &root)["snapshot"], before["snapshot"]);
+    assert_eq!(allocation(&plan(&s, &root), C), 200);
+}
+
+#[test]
+fn exact_receipts_lookup_cancellation_and_equal_clock_have_public_route_contracts() {
+    let (s, root) = setup();
+    let v = plan(&s, &root);
+    let clock = format!(
+        "{}-0000-1718000000000000",
+        chrono::DateTime::<chrono::Utc>::from(std::time::SystemTime::now())
+            .to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
+    );
+    let body = json!({"action":"set","month":"2026-01","category":C,"amount":200,"snapshot":v["snapshot"]});
+    let send = |key: &str, body: &Value, header: Option<&str>| {
+        let mut r = s
+            .client
+            .post(format!("{}{root}/budget", s.url))
+            .header("Idempotency-Key", key)
+            .header("X-Actual-Edit-Clock", &clock)
+            .header("X-Actual-History-Owner", OWNER)
+            .header("X-Actual-Budget-Epoch", v["epoch"].as_str().unwrap())
+            .json(body);
+        if let Some(h) = header {
+            r = r.header(h, "true");
+        }
+        r.send().unwrap()
+    };
+    let unknown = send("first", &body, Some("X-Actual-Receipt-Only"));
+    assert_eq!(unknown.status(), 404, "{}", unknown.text().unwrap());
+    let first = send("first", &body, None);
+    assert_eq!(first.status(), 200);
+    let first = first.json::<Value>().unwrap();
+    assert_eq!(send("first", &body, None).json::<Value>().unwrap(), first);
+    assert_eq!(
+        send("first", &body, Some("X-Actual-Receipt-Only"))
+            .json::<Value>()
+            .unwrap(),
+        first
+    );
+    assert_eq!(
+        send("first", &body, Some("X-Actual-Cancel-If-Uncommitted"))
+            .json::<Value>()
+            .unwrap(),
+        first
+    );
+    let mut changed = body.clone();
+    changed["snapshot"] = plan(&s, &root)["snapshot"].clone();
+    changed["amount"] = json!(100);
+    assert_eq!(send("equal-clock", &changed, None).status(), 409);
+    assert_eq!(allocation(&plan(&s, &root), C), 200);
+    let canceled = send("canceled", &changed, Some("X-Actual-Cancel-If-Uncommitted"));
+    assert_eq!(canceled.status(), 409);
+    assert_eq!(
+        canceled.json::<Value>().unwrap()["error"]["code"],
+        "operation_canceled"
+    );
+    assert_eq!(
+        send("canceled", &changed, None).json::<Value>().unwrap()["error"]["code"],
+        "operation_canceled"
+    );
+    assert_eq!(allocation(&plan(&s, &root), C), 200);
+}

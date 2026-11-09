@@ -96,7 +96,8 @@ async fn cancellation_scope(
             (request.method().as_str(), path),
             (
                 "POST",
-                "/api/v1/budgets/{budget}/transactions"
+                "/api/v1/budgets/{budget}/budget"
+                    | "/api/v1/budgets/{budget}/transactions"
                     | "/api/v1/budgets/{budget}/transactions/bulk"
                     | "/api/v1/budgets/{budget}/history/{direction}"
                     | "/api/v1/budgets/{budget}/transfers"
@@ -126,7 +127,8 @@ async fn cancellation_scope(
             (request.method().as_str(), path),
             (
                 "POST",
-                "/api/v1/budgets/{budget}/transactions"
+                "/api/v1/budgets/{budget}/budget"
+                    | "/api/v1/budgets/{budget}/transactions"
                     | "/api/v1/budgets/{budget}/transactions/bulk"
                     | "/api/v1/budgets/{budget}/history/{direction}"
                     | "/api/v1/budgets/{budget}/transfers"

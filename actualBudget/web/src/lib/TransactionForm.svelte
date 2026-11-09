@@ -299,7 +299,19 @@
     void checkRulesCapability().catch(() => {});
     void readBudget(budgetId)
       .then((cache) => {
+        if (!alive) return;
         associations = cache?.associations ?? {};
+        if (
+          cache &&
+          draft &&
+          !draft.pending &&
+          !draft.original &&
+          !draft.ruleSnapshot &&
+          cache.epoch === draft.budgetEpoch
+        ) {
+          draft.ruleSnapshot = cache.snapshot;
+          persist(draft);
+        }
       })
       .catch(() => {});
     void checkSharedIntent();
@@ -367,10 +379,23 @@
       const checkpoint = await request<{
         data: { snapshot: string; epoch: string };
       }>(`/budgets/${budgetId}/checkpoint`);
-      if (checkpoint.data.epoch !== draft.budgetEpoch)
-        throw new Error(
-          "This budget was restored. Reopen the current budget before applying rules.",
-        );
+      if (checkpoint.data.epoch !== draft.budgetEpoch) {
+        rulesNotice =
+          "This budget was restored. Your original entry and generation are retained for safe recovery.";
+        return;
+      }
+      if (
+        !alive ||
+        !draft ||
+        draft.draftId !== identity ||
+        draft.pending ||
+        JSON.stringify($state.snapshot(draft.fields)) !== fingerprint
+      )
+        return;
+      // Save may use the atomic rules route even if its optional preview fails.
+      // Only a snapshot in the draft's original generation can be captured.
+      draft.ruleSnapshot = checkpoint.data.snapshot;
+      persist(draft);
       const transaction = {
         id: draft.id,
         account_id: f.account_id,
@@ -445,10 +470,16 @@
         ? "Rules reviewed this entry. Manual values are preserved; additions and filled fields are shown below."
         : "";
     } catch (e) {
-      if (force) throw e;
+      if (force && !optionalRuleCheckUnavailable(e)) throw e;
       rulesNotice =
-        "Automatic rules could not be reviewed. Saving online will retry the rule check.";
+        "Rule preview is unavailable. Your original entry is retained; saving keeps its original context.";
     }
+  }
+  function optionalRuleCheckUnavailable(e: unknown) {
+    return (
+      e instanceof RequestError &&
+      (!e.code || ["snapshot_changed", "budget_restored"].includes(e.code))
+    );
   }
   async function entryAmount(input: string) {
     if (!draft) throw new Error("No transaction draft.");
@@ -493,14 +524,27 @@
   async function prepare(): Promise<PendingMutation | null> {
     if (!draft) return null;
     if (draft.pending) return draft.pending;
+    const onlineAtSave = !disconnected && offlineStatus.reachable;
     if (
       !draft.original &&
       !draft.replaces &&
       !disconnected &&
       offlineStatus.reachable
-    )
-      await checkRulesCapability();
+    ) {
+      try {
+        await checkRulesCapability();
+      } catch (e) {
+        if (!optionalRuleCheckUnavailable(e)) throw e;
+      }
+    }
     await applyAutomaticRules(true);
+    const useAutomaticRules =
+      onlineAtSave &&
+      draft.automaticRules &&
+      rulesAvailable &&
+      !draft.original &&
+      !draft.replaces &&
+      !!draft.ruleSnapshot;
     const saved = readTransactionDraft(budgetId);
     if (saved?.draftId === draft.draftId && saved.pending) {
       throw new Error(
@@ -526,7 +570,7 @@
     }
     const f = draft.fields;
     if (
-      (!offlineStatus.reachable || disconnected) &&
+      !onlineAtSave &&
       (!draft.original || draft.replaces || queued?.offlineCreated)
     ) {
       if (
@@ -621,20 +665,7 @@
         body.reconciled_version = draft.original.field_versions?.reconciled;
       }
     } else body.id = draft.id;
-    if (
-      draft.automaticRules &&
-      rulesAvailable &&
-      !draft.original &&
-      !draft.replaces &&
-      !disconnected &&
-      offlineStatus.reachable
-    ) {
-      if (!draft.ruleSnapshot)
-        throw new Error(
-          "Wait for automatic rules to finish reviewing this entry.",
-        );
-      body.snapshot = draft.ruleSnapshot;
-    }
+    if (useAutomaticRules) body.snapshot = draft.ruleSnapshot;
     if (
       f.categoryManual === true &&
       ((body.category_id && body.category_id === f.manualCategory) ||
@@ -644,15 +675,9 @@
     )
       body.learn_categories = true;
     return {
-      path:
-        draft.automaticRules &&
-        rulesAvailable &&
-        !draft.original &&
-        !draft.replaces &&
-        !disconnected &&
-        offlineStatus.reachable
-          ? `/budgets/${budgetId}/rules/transactions`
-          : `/budgets/${budgetId}/transactions${draft.original ? `/${draft.id}` : ""}`,
+      path: useAutomaticRules
+        ? `/budgets/${budgetId}/rules/transactions`
+        : `/budgets/${budgetId}/transactions${draft.original ? `/${draft.id}` : ""}`,
       method: draft.original ? "PATCH" : "POST",
       key: draft.draftId,
       historyOwner: await historyOwner(),

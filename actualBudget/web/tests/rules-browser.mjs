@@ -142,6 +142,94 @@ try {
   const rows = (await call(root + "/transactions?limit=100")).data;
   expect(rows.filter((r) => r.notes.endsWith(" / checked"))).toHaveLength(1);
   expect(rows.filter((r) => r.category_id === food)).toHaveLength(1);
+  // Readonly preview transport failure cannot prevent the original Save handoff.
+  await page.getByRole("button", { name: "Close", exact: true }).click();
+  const previewPattern = "**/api/v1" + root + "/rules/preview",
+    entryPattern = "**/api/v1" + root + "/rules/transactions";
+  let allowEntry = false;
+  const entryAttempts = [];
+  await page.route(previewPattern, (route) => route.abort("failed"));
+  await page.route(entryPattern, async (route) => {
+    const r = route.request();
+    if (r.method() !== "POST") return route.continue();
+    entryAttempts.push({
+      body: r.postData(),
+      headers: Object.fromEntries(
+        Object.entries(r.headers()).filter(([k]) =>
+          [
+            "idempotency-key",
+            "x-actual-edit-clock",
+            "x-actual-budget-epoch",
+            "x-actual-history-owner",
+          ].includes(k),
+        ),
+      ),
+    });
+    return allowEntry ? route.continue() : route.abort("failed");
+  });
+  await page
+    .getByRole("button", { name: "Add transaction", exact: true })
+    .click();
+  await page.getByLabel("Amount", { exact: true }).fill("2.22");
+  await page.getByLabel("Payee", { exact: true }).selectOption(shop);
+  await page.getByLabel("Category", { exact: true }).selectOption(travel);
+  await page.getByLabel("Notes", { exact: true }).fill("Network preview entry");
+  await page
+    .getByRole("button", { name: "Save transaction", exact: true })
+    .click();
+  await expect(page.getByTestId("pending-expenses")).toContainText(
+    "Network preview entry",
+  );
+  await expect.poll(() => entryAttempts.length).toBeGreaterThan(0);
+  const capturedEntry = entryAttempts[0],
+    capturedBody = JSON.parse(capturedEntry.body);
+  expect(capturedBody.notes).toBe("Network preview entry");
+  expect(capturedBody.amount).toBe(-222);
+  expect(capturedBody.category_id).toBe(travel);
+  expect(capturedBody.snapshot).toMatch(/^c1/);
+  expect(capturedEntry.headers["x-actual-budget-epoch"]).toMatch(
+    /^[0-9a-f]{32}$/,
+  );
+  expect(capturedEntry.headers["x-actual-history-owner"]).toMatch(
+    /^[0-9a-f-]{36}$/,
+  );
+  expect(
+    (await fetch(api + root + "/transactions/" + capturedBody.id)).status,
+  ).toBe(404);
+  await page.reload();
+  await expect(page.getByTestId("pending-expenses")).toContainText(
+    "Network preview entry",
+  );
+  expect(
+    entryAttempts.every(
+      (a) => JSON.stringify(a) === JSON.stringify(capturedEntry),
+    ),
+  ).toBe(true);
+  // Resume transport using the browser's real retry signal; automatic delivery
+  // may legitimately settle the item before a manual Retry click can land.
+  allowEntry = true;
+  await page.evaluate(() => dispatchEvent(new Event("online")));
+  await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+  expect(entryAttempts.length).toBeGreaterThan(1);
+  expect(
+    entryAttempts.every(
+      (a) => JSON.stringify(a) === JSON.stringify(capturedEntry),
+    ),
+  ).toBe(true);
+  const savedNetworkEntry = (
+    await call(root + "/transactions/" + capturedBody.id)
+  ).data;
+  expect(savedNetworkEntry.amount).toBe(-222);
+  expect(savedNetworkEntry.category_id).toBe(travel);
+  expect(savedNetworkEntry.notes).toBe("Network preview entry / checked");
+  expect(
+    (await call(root + "/transactions?limit=100")).data.filter(
+      (r) => r.id === capturedBody.id,
+    ),
+  ).toHaveLength(1);
+  await page.unroute(previewPattern);
+  await page.unroute(entryPattern);
+  await page.getByRole("button", { name: "Rules", exact: true }).click();
   // An untouched remote condition survives an actions-only edit, including refresh.
   await page.getByRole("button", { name: "Edit rule", exact: true }).click();
   await page.getByLabel(/^Notes text 2/).fill(" / local");

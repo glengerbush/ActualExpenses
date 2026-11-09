@@ -38,3 +38,11 @@ Ignored screenshots include `actualBudget/web/test-results/offline-pending-mobil
 - `register-recovery.mjs`: missing-preference recovery removes both caches; original pending requests still resolve while new financial entry is blocked. Snapshot pagination and failed-cutoff preservation remain.
 - `date-recovery-browser.mjs`: transaction replay after a year change is automatic foreground delivery. Captured date/body/key checks remain; creation recovery stays manual.
 - `concurrency-browser.mjs`: controlled faults attach to the context when any tab may claim delivery. Additional identical retries are allowed; exact request identities and final financial results remain asserted. Delayed rejection, hidden-row feedback, clock correction, lost cancellation requests/acknowledgements, cancel-before-commit versus receipt-after-commit, capability gating and latent category preservation remain.
+
+## Review follow-ups
+
+`offline-edit-race-browser.mjs` covers an editor opened on an unsent expense while its original request starts or finishes delivery. Each editor owns a new identity. One IndexedDB transaction either removes the unattempted original and journals the replacement, or journals a PATCH dependent on the immutable attempted original. The PATCH contains changed fields only, retains the original budget epoch, and maps references created by the original request. A failed draft cleanup after that durable handoff is recovered on reload using the matching journal snapshot; receipts must match method/path/key/body/clock/epoch before adoption. The three browser cases assert exactly one financial row with the edited amount, including reload after interrupted local cleanup.
+
+Global **Review pending expenses** is independent of the active catalog. The deleted-budget test now navigates to All budgets, reloads, opens global recovery, inspects the original amount/date/account/notes and safely cancels the original request. The view starts no new budget mutations. Its 320px/200% screenshots are `offline-global-recovery-heading-200.png` and `offline-global-recovery-actions-200.png`.
+
+The idle-browser check advances two minutes with an empty outbox and asserts zero API requests. Lost-ack tests wait for the injected network failure before reloading; a pending panel alone only proves durable local storage, not that the attempted request has finished.

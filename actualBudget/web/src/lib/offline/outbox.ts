@@ -2,7 +2,11 @@ import { captureAmountFormat, type AmountFormat } from "../money";
 import { validDate } from "../dates";
 import { uuid } from "../api";
 import { validClock, resetCorrectedClock } from "../edit-clock";
-import type { PendingMutation, Transaction } from "../register-api";
+import {
+  sameMutation,
+  type PendingMutation,
+  type Transaction,
+} from "../register-api";
 import { validPending, type TransactionDraft } from "../register-storage";
 import { transaction, result, OfflineStateError } from "./storage";
 import { emit } from "./events";
@@ -32,6 +36,7 @@ export interface DeliveryReceipt {
   message: string;
   row?: Transaction;
   pending?: PendingMutation;
+  draft?: TransactionDraft | null;
 }
 const owner = (() => {
   try {
@@ -45,8 +50,6 @@ const owner = (() => {
     return uuid();
   }
 })();
-const same = (a: unknown, b: unknown) =>
-  JSON.stringify(a) === JSON.stringify(b);
 const canonicalUuid = (value: unknown): value is string =>
   typeof value === "string" &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value);
@@ -97,7 +100,8 @@ export async function enqueue(input: {
   row: Transaction;
   draft?: TransactionDraft | null;
   offlineCreated: boolean;
-  replace?: OutboxEntry;
+  replace?: { key: string; revision: string };
+  afterAttempt?: { pending: PendingMutation; original: Transaction };
   dependsOn?: string;
 }): Promise<OutboxEntry> {
   const entry: OutboxEntry = {
@@ -116,32 +120,74 @@ export async function enqueue(input: {
     dependsOn: input.dependsOn,
   };
   validate(entry);
-  const saved = await transaction(["operations"], "readwrite", async (tx) => {
-    const store = tx.objectStore("operations");
-    const existing = await result<OutboxEntry | undefined>(
-      store.get(entry.key),
-    );
-    if (existing) {
-      validate(existing);
-      if (input.replace) {
-        if (existing.revision !== input.replace.revision || existing.attempted)
-          throw new OfflineStateError(
-            "This expense changed or started syncing in another tab. Reload pending work before editing.",
-          );
-      } else {
-        if (!same(existing.pending, entry.pending))
+  const saved = await transaction(
+    ["operations", "receipts"],
+    "readwrite",
+    async (tx) => {
+      const store = tx.objectStore("operations");
+      const existing = await result<OutboxEntry | undefined>(
+        store.get(entry.key),
+      );
+      if (existing) {
+        validate(existing);
+        if (
+          !sameMutation(existing.pending, entry.pending) &&
+          !sameMutation(existing.pending, input.afterAttempt?.pending)
+        )
           throw new OfflineStateError(
             "This operation already has different saved details. Reload pending work.",
           );
         return existing;
       }
-    } else if (input.replace)
-      throw new OfflineStateError(
-        "This pending expense already synced or was removed. Refresh before editing.",
+      const acknowledged = await result<DeliveryReceipt | undefined>(
+        tx.objectStore("receipts").get(entry.key),
       );
-    await result(store.put(entry, entry.key));
-    return entry;
-  });
+      if (acknowledged) {
+        if (
+          !sameMutation(acknowledged.pending, entry.pending) &&
+          !sameMutation(acknowledged.pending, input.afterAttempt?.pending)
+        )
+          throw new OfflineStateError(
+            "This operation has a receipt for different details. The edited draft has been kept.",
+          );
+        return { ...entry, pending: acknowledged.pending! };
+      }
+      if (input.replace) {
+        const original = await result<OutboxEntry | undefined>(
+          store.get(input.replace.key),
+        );
+        if (original) validate(original);
+        if (original && !original.attempted) {
+          if (original.revision !== input.replace.revision)
+            throw new OfflineStateError(
+              "This pending expense changed in another tab. Your edited draft has been kept; review the current pending expense before replacing it.",
+            );
+          await result(store.delete(original.key));
+        } else {
+          const receipt = original
+            ? undefined
+            : await result<DeliveryReceipt | undefined>(
+                tx.objectStore("receipts").get(input.replace.key),
+              );
+          if (!input.afterAttempt || (!original && !receipt?.row))
+            throw new OfflineStateError(
+              "The original pending expense was removed or canceled. Your edited draft has been kept.",
+            );
+          entry.pending = input.afterAttempt.pending;
+          entry.dependsOn = original?.key;
+          if (entry.draft)
+            entry.draft = {
+              ...entry.draft,
+              original: input.afterAttempt.original,
+              pending: entry.pending,
+            };
+        }
+      }
+      validate(entry);
+      await result(store.put(entry, entry.key));
+      return entry;
+    },
+  );
   emit();
   return saved;
 }
@@ -193,7 +239,7 @@ export async function settle(
       );
       if (!current) return;
       validate(current);
-      if (!same(current.pending, entry.pending))
+      if (!sameMutation(current.pending, entry.pending))
         throw new OfflineStateError(
           "Pending operation changed while syncing. Original result retained on server.",
         );
@@ -207,7 +253,10 @@ export async function settle(
       await result(
         tx
           .objectStore("receipts")
-          .put({ ...receipt, pending: entry.pending }, entry.key),
+          .put(
+            { ...receipt, pending: entry.pending, draft: entry.draft },
+            entry.key,
+          ),
       );
       await result(store.delete(entry.key));
       return current.cancelRequested;

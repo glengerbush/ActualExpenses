@@ -170,6 +170,13 @@ try {
   await expect(page.getByTestId("pending-expenses")).toContainText(
     "Lost acknowledgement",
   );
+  await expect(
+    page
+      .getByText("Cannot reach the server. Check your connection and retry.", {
+        exact: true,
+      })
+      .first(),
+  ).toBeVisible();
   const second = await context.newPage();
   await second.goto(server.url);
   await page.evaluate(() => dispatchEvent(new Event("online")));
@@ -315,6 +322,19 @@ try {
   await page.unroute("**/api/v1/**");
   console.log(
     "PASS cache renders before held API responses; unchanged reopen downloads no references and rewrites no cache",
+  );
+  let idleRequests = 0;
+  const countIdle = (request) => {
+    if (request.url().includes("/api/v1/")) idleRequests++;
+  };
+  page.on("request", countIdle);
+  await page.clock.install({ time: new Date() });
+  await page.clock.runFor(120_000);
+  expect(idleRequests).toBe(0);
+  await page.clock.setSystemTime(new Date());
+  page.off("request", countIdle);
+  console.log(
+    "PASS empty outbox causes no API polling during two minutes of idle browser time",
   );
   // An unknown change kind must cause a guarded bootstrap, never a silently advanced cache cursor.
   const newPayee = randomUUID();

@@ -249,6 +249,7 @@
     </div>
   {:else}
     <h2>{session.stage.name}</h2>
+    <p><strong>{t("Selected backup")}</strong>: {session.filename}</p>
     <p>{t("Backup validated. The original archive is retained.")}</p>
     <dl>
       <div>

@@ -60,6 +60,15 @@ try {
       await expect(
         page.getByRole("button", { name: button, exact: true }),
       ).toBeVisible();
+      if (button === "Retry pending expense")
+        await expect(
+          page
+            .getByText(
+              "Cannot reach the server. Check your connection and retry.",
+              { exact: true },
+            )
+            .first(),
+        ).toBeVisible();
       await page.clock.setSystemTime(
         new Date(`${currentYear + 1}-11-08T12:00:00Z`),
       );

@@ -28,6 +28,7 @@
   import { calculateAmount } from "./calculator";
   import {
     mutate,
+    sameMutation,
     requestCancellation,
     type Transaction,
     type Reference,
@@ -76,6 +77,34 @@
         receipts(budgetId),
       ]);
       if (!draft || draft.pending) return;
+      const owned = pendingRows.find((item) => item.key === draft!.draftId);
+      const receipt = acknowledged.find((item) => item.key === draft!.draftId);
+      const handedOff = owned?.draft ?? receipt?.draft;
+      const intent = (value: Draft) =>
+        JSON.stringify([
+          value.draftId,
+          value.id,
+          value.fields,
+          value.format,
+          value.dateFormat,
+          value.budgetEpoch,
+          value.editClock,
+        ]);
+      if (
+        draft.replaces &&
+        handedOff?.pending &&
+        intent(draft) === intent(handedOff) &&
+        (!receipt || sameMutation(receipt.pending, handedOff.pending))
+      ) {
+        draft = structuredClone(handedOff);
+        persist(draft);
+        clearTransactionDraft(draft, true);
+        oncomplete(
+          receipt?.row ?? null,
+          receipt?.message ?? t("Saved on this device. Waiting to sync."),
+        );
+        return;
+      }
       if (
         pendingRows.some((item) => item.key === draft!.draftId) ||
         acknowledged.some((item) => item.key === draft!.draftId)
@@ -103,8 +132,16 @@
       if (!saved && queued?.draft && !queued.attempted) {
         draft = {
           ...structuredClone(queued.draft),
+          draftId: uuid(),
+          referenceIds: { payee: uuid(), category: uuid() },
           pending: null,
           editClock: undefined,
+          replaces: {
+            key: queued.key,
+            revision: queued.revision,
+            row: structuredClone(queued.row),
+            pending: structuredClone(queued.pending),
+          },
         };
         persist(draft);
       } else if (saved) {
@@ -388,23 +425,90 @@
         oncancel();
         return;
       }
-      draft = { ...draft, pending, clockRejected: false, attemptId: uuid() };
-      persist(draft);
-      await enqueue({
+      const submittedDraft = {
+        ...draft,
+        pending,
+        clockRejected: false,
+        attemptId: uuid(),
+      };
+      // Replacements stay editable until the atomic IDB handoff. A concurrent claim
+      // may turn this intended POST replacement into a distinct PATCH.
+      if (!draft.replaces) {
+        draft = submittedDraft;
+        persist(draft);
+      }
+      const replacement = draft.replaces;
+      const originalRow = replacement
+        ? { ...$state.snapshot(replacement.row) }
+        : null;
+      const adjusted = { ...(pending.body as Record<string, unknown>) };
+      if (replacement && originalRow) {
+        const originalBody = replacement.pending.body as Record<
+          string,
+          unknown
+        >;
+        for (const [kind, field] of [
+          ["new_payee", "payee_id"],
+          ["new_category", "category_id"],
+        ] as const) {
+          const created = originalBody?.[kind] as
+            { id: string; name: string; is_income?: boolean } | undefined;
+          if (!created) continue;
+          originalRow[field] = created.id;
+          const desired = adjusted[kind] as
+            { name: string; is_income?: boolean } | undefined;
+          if (
+            desired &&
+            desired.name === created.name &&
+            desired.is_income === created.is_income
+          ) {
+            delete adjusted[kind];
+            adjusted[field] = created.id;
+          }
+        }
+      }
+      const patchBody = originalRow
+        ? Object.fromEntries(
+            Object.entries(adjusted).filter(
+              ([key, value]) =>
+                key !== "id" &&
+                JSON.stringify(value) !==
+                  JSON.stringify(originalRow[key as keyof Transaction]),
+            ),
+          )
+        : null;
+      if (patchBody && Object.keys(patchBody).length === 0) {
+        clearTransactionDraft(draft);
+        oncancel();
+        return;
+      }
+      const savedEntry = await enqueue({
         budgetId,
         pending: $state.snapshot(pending),
         row: preview(pending),
-        draft: $state.snapshot(draft),
+        draft: $state.snapshot(submittedDraft),
         offlineCreated:
           queued?.offlineCreated ??
           (!draft.original &&
             (!draft.beganOnline || disconnected || !offlineStatus.reachable)),
-        replace: queued && !queued.attempted ? queued : undefined,
+        replace: replacement,
+        afterAttempt: replacement
+          ? {
+              pending: {
+                ...pending,
+                path: `/budgets/${budgetId}/transactions/${draft.id}`,
+                method: "PATCH",
+                body: patchBody,
+              },
+              original: originalRow!,
+            }
+          : undefined,
         dependsOn: queued?.attempted ? queued.key : undefined,
       });
+      draft = { ...submittedDraft, pending: savedEntry.pending };
       await deliverPending();
-      const receipt = (await receipts(budgetId)).find(
-        (r) => r.key === pending.key,
+      const receipt = (await receipts(budgetId)).find((r) =>
+        sameMutation(r.pending, savedEntry.pending),
       );
       // Ownership transfers only after the IndexedDB transaction has committed.
       clearTransactionDraft(draft, true);

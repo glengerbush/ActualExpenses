@@ -111,9 +111,9 @@ try {
   await page.getByLabel("Currency display", { exact: true }).check();
   await page.locator("#currency").selectOption("JPY");
   await page.getByRole("button", { name: "Save shared preferences" }).click();
-  await expect(page.getByRole("status")).toHaveText(
-    "Shared preferences saved.",
-  );
+  await expect(
+    page.getByRole("status").filter({ hasText: "Shared preferences saved." }),
+  ).toHaveText("Shared preferences saved.");
   await page.getByRole("button", { name: "Done", exact: true }).click();
   await expect(
     page
@@ -128,9 +128,9 @@ try {
   await page.getByLabel("Currency display", { exact: true }).uncheck();
   await expect(page.locator("#currency")).toHaveCount(0);
   await page.getByRole("button", { name: "Save shared preferences" }).click();
-  await expect(page.getByRole("status")).toHaveText(
-    "Shared preferences saved.",
-  );
+  await expect(
+    page.getByRole("status").filter({ hasText: "Shared preferences saved." }),
+  ).toHaveText("Shared preferences saved.");
   expect(
     (await api(`/budgets/${budget}/preferences`, undefined, "GET")).data
       .currency_code,
@@ -149,9 +149,9 @@ try {
   await page.getByLabel("Currency display", { exact: true }).check();
   await expect(page.locator("#currency")).toHaveValue("");
   await page.getByRole("button", { name: "Save shared preferences" }).click();
-  await expect(page.getByRole("status")).toHaveText(
-    "Shared preferences saved.",
-  );
+  await expect(
+    page.getByRole("status").filter({ hasText: "Shared preferences saved." }),
+  ).toHaveText("Shared preferences saved.");
   console.log(
     "PASS currency default-off, explicit opt-in/JPY, disable clears code and restores two-decimal units",
   );
@@ -189,9 +189,9 @@ try {
   await page.locator("#week-start").selectOption("1");
   await page.getByLabel("Hide decimal places").uncheck();
   await page.getByRole("button", { name: "Save shared preferences" }).click();
-  await expect(page.getByRole("status")).toHaveText(
-    "Shared preferences saved.",
-  );
+  await expect(
+    page.getByRole("status").filter({ hasText: "Shared preferences saved." }),
+  ).toHaveText("Shared preferences saved.");
   await page.getByRole("button", { name: "Done", exact: true }).click();
   await page.getByRole("button", { name: "Add account", exact: true }).click();
   await page.getByLabel("Opening date").fill("08/11/2026");
@@ -244,9 +244,9 @@ try {
   await expect(page.locator("#number-format")).toHaveValue("space-comma");
   expect(writes.length).toBe(1);
   await page.getByRole("button", { name: "Retry saving" }).click();
-  await expect(page.getByRole("status")).toHaveText(
-    "Shared preferences saved.",
-  );
+  await expect(
+    page.getByRole("status").filter({ hasText: "Shared preferences saved." }),
+  ).toHaveText("Shared preferences saved.");
   expect(writes.length).toBe(2);
   expect(writes[1]).toEqual(writes[0]);
   await page.unroute(`**/api/v1/budgets/${budget}/preferences`);

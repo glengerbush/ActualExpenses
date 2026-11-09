@@ -1,5 +1,6 @@
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
+import { mkdir } from "node:fs/promises";
 import { startServer } from "./server.mjs";
 const server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1");
@@ -148,6 +149,81 @@ try {
   expect(attempts.at(-1).epoch).toBe(restored.budget.epoch);
   console.log(
     "PASS form-open generation captured before restore; submit never silently rebases old intent",
+  );
+  await page
+    .getByRole("button", { name: "Cancel pending change safely", exact: true })
+    .click();
+  await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+  await context.route("**/api/v1/**", (route) => route.abort());
+  await page.evaluate(() => dispatchEvent(new Event("offline")));
+  await page
+    .getByRole("button", { name: "Add transaction", exact: true })
+    .click();
+  await page.getByLabel("Amount", { exact: true }).fill("2");
+  await page.getByLabel("Notes", { exact: true }).fill("Retain after deletion");
+  await page
+    .getByRole("button", { name: "Save transaction", exact: true })
+    .click();
+  await expect(page.getByTestId("pending-expenses")).toContainText(
+    "Retain after deletion",
+  );
+  const deletionEpoch = (
+    await (await fetch(api + "/api/v1" + root + "/checkpoint")).json()
+  ).data.epoch;
+  await write(
+    root,
+    { confirm_name: "Outbox generation" },
+    deletionEpoch,
+    "DELETE",
+  );
+  await context.unroute("**/api/v1/**");
+  await page.evaluate(() => dispatchEvent(new Event("online")));
+  await expect(page.getByTestId("pending-expenses")).toContainText(/deleted/i);
+  const deletedAttempt = attempts.at(-1);
+  await page.getByRole("button", { name: "All budgets", exact: true }).click();
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Review pending expenses", exact: true })
+    .click();
+  await expect(page.getByTestId("pending-expenses")).toContainText(
+    "Retain after deletion",
+  );
+  await mkdir("test-results", { recursive: true });
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.evaluate(() => (document.documentElement.style.fontSize = "200%"));
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth + 1,
+    ),
+  ).toBe(true);
+  await page
+    .getByRole("heading", {
+      name: "Pending expenses on this device",
+      exact: true,
+    })
+    .scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: "test-results/offline-global-recovery-heading-200.png",
+  });
+  await page
+    .getByRole("button", { name: "Cancel pending change safely", exact: true })
+    .scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: "test-results/offline-global-recovery-actions-200.png",
+  });
+  await page
+    .getByRole("button", { name: "Cancel pending change safely", exact: true })
+    .click();
+  await expect(
+    page.getByText("No pending expenses on this device.", { exact: true }),
+  ).toBeVisible();
+  const cancellation = attempts.at(-1);
+  expect(cancellation.key).toBe(deletedAttempt.key);
+  expect(cancellation.body).toBe(deletedAttempt.body);
+  expect(cancellation.epoch).toBe(deletedAttempt.epoch);
+  expect(cancellation.cancel).toBe("true");
+  console.log(
+    "PASS deleted budget retains queued work across reload and resolves only through explicit original-identity cancellation",
   );
   await context.close();
 } finally {

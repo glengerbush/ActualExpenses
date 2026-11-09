@@ -89,7 +89,10 @@ try {
       .click();
     const request = await captured;
     await expect(
-      page.getByRole("button", { name: "Discard rejected edit", exact: true }),
+      page.getByRole("button", {
+        name: "Cancel pending change safely",
+        exact: true,
+      }),
     ).toBeVisible();
     if (hidden)
       expect(
@@ -129,7 +132,10 @@ try {
     else
       expect(outcome.conflicts.map((field) => field.field)).toContain("notes");
     await page
-      .getByRole("button", { name: "Discard rejected edit", exact: true })
+      .getByRole("button", {
+        name: "Cancel pending change safely",
+        exact: true,
+      })
       .click();
     await expect(
       page.getByRole("button", { name: "Add transaction", exact: true }),

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
   import { request, errorMessage, RequestError, uuid } from "./api";
   import { t } from "./i18n.svelte";
   import { offlineStatus, subscribeOffline } from "./offline/events";
@@ -44,6 +44,8 @@
   } | null>(null);
   let offline = $state(!offlineStatus.reachable);
   let mounted = true;
+  let confirmationHeading: HTMLElement | undefined;
+  let confirmationTrigger: HTMLElement | undefined;
   const locked = $derived(busy || offline || !!pending || !current);
   async function refresh() {
     const id = budget.id;
@@ -172,11 +174,23 @@
             });
     void run(operation);
   }
-  function choose(kind: "deleted" | "restored", point?: BackupPoint) {
+  async function choose(
+    kind: "deleted" | "restored",
+    point: BackupPoint | undefined,
+    trigger: HTMLElement,
+  ) {
     if (locked || !current) return;
     confirm = { kind, point, budget: structuredClone(current) };
     confirmation = "";
     error = "";
+    confirmationTrigger = trigger;
+    await tick();
+    confirmationHeading?.focus();
+  }
+  async function cancelConfirmation() {
+    confirm = null;
+    await tick();
+    confirmationTrigger?.focus();
   }
   function confirmed(event: SubmitEvent) {
     event.preventDefault();
@@ -268,7 +282,15 @@
       </p>{/if}
     {#if confirm}
       <form class="confirmation" onsubmit={confirmed}>
-        <h2>
+        <h2
+          tabindex="-1"
+          {@attach (element) => {
+            confirmationHeading = element;
+            return () => {
+              confirmationHeading = undefined;
+            };
+          }}
+        >
           {t(
             confirm.kind === "deleted"
               ? "Delete this budget?"
@@ -312,9 +334,7 @@
           ><button
             type="button"
             disabled={busy || !!pending}
-            onclick={() => {
-              confirm = null;
-            }}>{t("Cancel")}</button
+            onclick={cancelConfirmation}>{t("Cancel")}</button
           >
         </div>
       </form>
@@ -378,7 +398,8 @@
                   download>{t("Download")}</a
                 ><button
                   disabled={locked || !!confirm}
-                  onclick={() => choose("restored", point)}
+                  onclick={(event) =>
+                    choose("restored", point, event.currentTarget)}
                   >{t("Restore")}</button
                 >
               </div>
@@ -414,7 +435,9 @@
           <button onclick={onclose} disabled={busy}>{t("Close budget")}</button
           ><button
             disabled={locked || !!confirm}
-            onclick={() => choose("deleted")}>{t("Delete budget")}</button
+            onclick={(event) =>
+              choose("deleted", undefined, event.currentTarget)}
+            >{t("Delete budget")}</button
           >
         </div>
       </section>

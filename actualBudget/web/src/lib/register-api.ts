@@ -39,6 +39,22 @@ export interface PendingMutation {
   budgetEpoch?: string;
   body?: unknown;
 }
+/** Compare the immutable HTTP operation; cancellation and UI bookkeeping are not payload. */
+export function sameMutation(
+  a: PendingMutation | null | undefined,
+  b: PendingMutation | null | undefined,
+): boolean {
+  if (!a || !b) return a === b;
+  const identity = (value: PendingMutation) => [
+    value.method,
+    value.path,
+    value.key,
+    value.edit_clock ?? null,
+    value.budgetEpoch ?? null,
+    value.body ?? null,
+  ];
+  return JSON.stringify(identity(a)) === JSON.stringify(identity(b));
+}
 export function registerPage(
   budgetId: string,
   accountId: string | null,

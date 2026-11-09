@@ -165,6 +165,27 @@ try {
     path: "test-results/budget-management-mobile.png",
     fullPage: true,
   });
+  await page
+    .getByRole("button", { name: "Delete budget", exact: true })
+    .click();
+  const confirmationHeading = page.getByRole("heading", {
+    name: "Delete this budget?",
+    exact: true,
+  });
+  await expect(confirmationHeading).toBeFocused();
+  expect(
+    await confirmationHeading.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      return box.top >= 0 && box.bottom <= innerHeight;
+    }),
+  ).toBe(true);
+  await page.screenshot({
+    path: "test-results/budget-confirmation-mobile.png",
+  });
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Delete budget", exact: true }),
+  ).toBeFocused();
   await page.addStyleTag({ content: "html{font-size:100%}" });
   await page.setViewportSize({ width: 1280, height: 960 });
   await page.getByLabel("Copy name", { exact: true }).fill("Independent copy");
@@ -290,13 +311,26 @@ try {
   expect(uploads[0].sha).toBe(
     createHash("sha256").update(archive).digest("hex"),
   );
-  await page.screenshot({path:"test-results/native-restore-desktop.png",fullPage:true});
-  await page.setViewportSize({width:320,height:900});
-  await page.addStyleTag({content:"html{font-size:200%}"});
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-  await page.screenshot({path:"test-results/native-restore-mobile.png",fullPage:true});
-  await page.addStyleTag({content:"html{font-size:100%}"});
-  await page.setViewportSize({width:1280,height:960});
+  await expect(
+    page.getByText("actualBudget.zip", { exact: false }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/native-restore-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.addStyleTag({ content: "html{font-size:200%}" });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: "test-results/native-restore-mobile.png",
+    fullPage: true,
+  });
+  await page.addStyleTag({ content: "html{font-size:100%}" });
+  await page.setViewportSize({ width: 1280, height: 960 });
   const activations = [];
   await page.route("**/api/v1/budgets/*/restores/*/activate", async (route) => {
     activations.push({

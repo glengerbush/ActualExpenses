@@ -30,6 +30,7 @@
   import Register from "./lib/Register.svelte";
   import Settings from "./lib/Settings.svelte";
   import ThemeRecovery from "./lib/themes/ThemeRecovery.svelte";
+  import PendingRecovery from "./lib/offline/PendingRecovery.svelte";
   import ImportBudget from "./lib/ImportBudget.svelte";
   import BudgetManagement from "./lib/BudgetManagement.svelte";
   import RestoreBudget from "./lib/RestoreBudget.svelte";
@@ -49,7 +50,14 @@
   let error = $state("");
   let recoveryError = $state("");
   let form = $state<
-    "budget" | "account" | "settings" | "import" | "manage" | "restore" | null
+    | "budget"
+    | "account"
+    | "settings"
+    | "import"
+    | "manage"
+    | "restore"
+    | "pending"
+    | null
   >(null);
   let managedBudget = $state.raw<ManagedBudget | null>(null);
   let deletedBudgets = $state.raw<ManagedBudget[]>([]);
@@ -239,6 +247,7 @@
       | "import"
       | "manage"
       | "restore"
+      | "pending"
       | null,
   ) {
     navigation++;
@@ -362,6 +371,9 @@
     {:else}<p class="muted sidebar-description">
         {t("Your accounts, together.")}
       </p>{/if}
+    <button onclick={() => showForm("pending")} disabled={!!form || loading}
+      >{t("Review pending expenses")}</button
+    >
   </aside>
   <main
     id="main"
@@ -424,6 +436,7 @@
         <p class="error" role="alert">{error}</p>
         <button class="primary" onclick={retry}>{t("Retry")}</button>
       </section>
+    {:else if form === "pending"}<PendingRecovery onclose={showBudgets} />
     {:else if form === "manage" && managedBudget}{#key managedBudget.id}<BudgetManagement
           budget={managedBudget}
           onchanged={lifecycleChanged}

@@ -133,6 +133,13 @@ try {
   await expect(
     page.getByRole("button", { name: "Retry pending expense" }),
   ).toBeVisible();
+  await expect(
+    page
+      .getByText("Cannot reach the server. Check your connection and retry.", {
+        exact: true,
+      })
+      .first(),
+  ).toBeVisible();
   await page.reload();
   await expect(page.getByTestId("pending-expenses"))
     .toHaveCount(0)
@@ -262,6 +269,14 @@ try {
         .click();
     await expect(
       page.getByRole("button", { name: "Retry pending expense" }),
+    ).toBeVisible();
+    await expect(
+      page
+        .getByText(
+          "Cannot reach the server. Check your connection and retry.",
+          { exact: true },
+        )
+        .first(),
     ).toBeVisible();
     await page.reload();
     await expect(page.getByTestId("pending-expenses")).toHaveCount(0);

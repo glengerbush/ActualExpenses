@@ -45,6 +45,7 @@
     changes,
     references,
     mutate,
+    sameMutation,
     requestCancellation,
     type RegisterPage,
     type Transaction,
@@ -79,10 +80,7 @@
         const owned =
           items.find((item) => item.key === oldDraft.draftId)?.pending ??
           acknowledged.find((item) => item.key === oldDraft.draftId)?.pending;
-        if (
-          owned &&
-          JSON.stringify(owned) === JSON.stringify(oldDraft.pending)
-        ) {
+        if (owned && sameMutation(owned, oldDraft.pending)) {
           clearTransactionDraft(oldDraft, true);
           recoveredPending = false;
           showForm = false;
@@ -94,7 +92,7 @@
         const owned =
           items.find((item) => item.key === oldAction.key)?.pending ??
           acknowledged.find((item) => item.key === oldAction.key)?.pending;
-        if (owned && JSON.stringify(owned) === JSON.stringify(oldAction)) {
+        if (owned && sameMutation(owned, oldAction)) {
           clearRegisterAction(budgetId, oldAction);
           pending = null;
         }
@@ -424,8 +422,8 @@
           offlineCreated: false,
         });
         await deliverPending();
-        const receipt = (await receipts(budgetId)).find(
-          (r) => r.key === submitted.key,
+        const receipt = (await receipts(budgetId)).find((r) =>
+          sameMutation(r.pending, submitted),
         );
         terminalNotice =
           receipt?.message ?? t("Saved on this device. Waiting to sync.");

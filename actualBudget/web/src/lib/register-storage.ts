@@ -40,6 +40,12 @@ export interface TransactionDraft {
   attemptId?: string;
   budgetEpoch?: string;
   beganOnline?: boolean;
+  replaces?: {
+    key: string;
+    revision: string;
+    row: Transaction;
+    pending: PendingMutation;
+  };
 }
 export type SavedAction = PendingMutation & {
   description: string;
@@ -171,6 +177,18 @@ function validDraft(value: unknown, budget: string): value is TransactionDraft {
     (!isObject(value.original) ||
       value.original.id !== value.id ||
       !Number.isSafeInteger(value.original.amount))
+  )
+    return false;
+  if (
+    value.replaces !== undefined &&
+    (!isObject(value.replaces) ||
+      !uuid(value.replaces.key) ||
+      !uuid(value.replaces.revision) ||
+      !isObject(value.replaces.row) ||
+      value.replaces.row.id !== value.id ||
+      !Number.isSafeInteger(value.replaces.row.amount) ||
+      !validPending(value.replaces.pending, budget) ||
+      value.replaces.pending.key !== value.replaces.key)
   )
     return false;
   if (value.attemptId !== undefined && !uuid(value.attemptId)) return false;

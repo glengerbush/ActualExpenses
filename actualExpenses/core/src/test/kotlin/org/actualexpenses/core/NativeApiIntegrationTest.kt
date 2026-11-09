@@ -217,6 +217,46 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun `confirmed protected pair edits and unlock never restore native expense eligibility`() {
+        Server().use { server ->
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            val id = app.saveExpense(ExpenseDraft("12.34", notes = "Converted payment"))
+            app.refresh()
+            val base = "/budgets/${server.budget}"
+            val account = UUID.randomUUID().toString()
+            val peer = UUID.randomUUID().toString()
+            server.post("$base/accounts", """{"id":"$account","name":"Card","opening_balance":0,"opening_date":"2026-01-01"}""")
+            server.post("$base/transactions", """{"id":"$peer","account_id":"$account","amount":1234,"date":"2026-01-01","cleared":true}""")
+            server.post("$base/transfers/link", """{"id":"$id","counterpart_id":"$peer"}""", 200)
+            for ((owner, balance) in listOf(server.account to -1234, account to 1234)) {
+                val path = "$base/accounts/$owner/reconciliation"
+                val progress = server.get(path).getAsJsonObject("data")
+                server.post(path, """{"action":"lock","statement_balance":$balance,"snapshot":${progress["snapshot"]},"date":"2026-02-28"}""", 200)
+            }
+            val current = server.get("$base/transactions/$id/splits")
+            val clock = DateTimeFormatterBuilder().appendInstant(3).toFormatter().format(Instant.now().plusSeconds(1)) + "-0000-ffffffffffffffff"
+            server.patch("$base/transactions/$id", """{"amount":-1300,"confirm_reconciled":true,"transfer_protection_token":${current["transfer_protection_token"]}}""", clock)
+            app.refresh()
+            assertTrue(app.state().online, app.state().error)
+            assertTrue(app.state().expenses.isEmpty())
+            assertTrue(server.get("$base/transactions/$id").getAsJsonObject("data")["reconciled"].asBoolean)
+            assertEquals(1300, server.get("$base/transactions/$peer").getAsJsonObject("data")["amount"].asInt)
+            val proof = server.get("$base/transactions/$id/splits")
+            server.post("$base/transactions/$id/unlock", """{"reconciliation_token":${proof["reconciliation_token"]}}""", 200)
+            val restarted = ApiExpenseService(store)
+            restarted.refresh()
+            assertTrue(restarted.state().expenses.isEmpty())
+            assertTrue(restarted.state().payees.isEmpty())
+            val retained = server.get("$base/companion?account_id=${server.account}&retain=$id").getAsJsonObject("data")
+            assertEquals(id, retained.getAsJsonArray("unavailable").single().asString)
+        }
+    }
+
+    @Test
     fun `reconciliation hides settled expenses and unlocking restores native eligibility`() {
         Server().use { server ->
             val store = MemoryStore()

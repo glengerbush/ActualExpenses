@@ -11486,7 +11486,7 @@
             }
           },
           "413": {
-            "description": "Body exceeds 65536 bytes",
+            "description": "Split JSON body exceeds 67108864 bytes; retain the draft and reduce the changed allocations per request.",
             "content": {
               "application/json": {
                 "schema": {
@@ -11557,7 +11557,7 @@
             }
           }
         },
-        "description": "Online-only aggregate edit. Original snapshot, payload, idempotency key, edit clock and budget epoch stay unchanged on retry. Replacement preserves supplied child IDs; omitted children become tombstones. Exact sums required; even targets zero children, proportional uses signed child weights, auto selects even when zeros exist. Recombine preserves parent ID and total; unsplit detaches selected children (empty detach means all) with Actual 26.10 one-child collapse behavior. All changes, versions and receipt commit atomically. Generic PATCH of split records is refused; generic DELETE of parent cascades, child deletion requires replacement and remainder allocation.",
+        "description": "Online-only aggregate edit. Original snapshot, payload, idempotency key, edit clock and budget epoch stay unchanged on retry. Replacement preserves supplied child IDs; omitted children become tombstones. Exact sums required; even targets zero children, proportional uses signed child weights, auto selects even when zeros exist. Recombine preserves parent ID and total; unsplit detaches selected children (empty detach means all) with Actual 26.10 one-child collapse behavior. All changes, versions and receipt commit atomically. Generic PATCH of split records is refused; generic DELETE of parent cascades, child deletion requires replacement and remainder allocation. Sparse changes preserve unspecified children and avoid retransmitting the whole allocation list. Up to 100000 live allocations match the accepted Actual import row bound. Only this mutation route accepts a 67108864-byte JSON body; ordinary JSON routes retain their 65536-byte limit. Prefer sparse edits and reconciliation_token for large aggregates.",
         "summary": "Atomically replace split allocations, recombine, or detach children"
       },
       "get": {
@@ -11582,6 +11582,16 @@
               "format": "uuid",
               "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
             }
+          },
+          {
+            "name": "counterpart_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "For linking existing entries: capture proof covering both candidate connected components atomically."
           }
         ],
         "responses": {
@@ -11595,7 +11605,11 @@
                     "data",
                     "snapshot",
                     "epoch",
-                    "reconciliation_token"
+                    "reconciliation_token",
+                    "transfer_protection_token",
+                    "transfer_protected_count",
+                    "transfer_protection_clock",
+                    "transfer_connected"
                   ],
                   "properties": {
                     "data": {
@@ -11609,6 +11623,19 @@
                     },
                     "reconciliation_token": {
                       "$ref": "#/components/schemas/ReconciliationToken"
+                    },
+                    "transfer_protection_token": {
+                      "$ref": "#/components/schemas/TransferProtectionToken"
+                    },
+                    "transfer_protected_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "transfer_protection_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "transfer_connected": {
+                      "type": "boolean"
                     }
                   }
                 }
@@ -13214,6 +13241,16 @@
               ]
             },
             "description": "Requires transaction_receipt_lookup capability. Read-only reconciliation using the original method/path/body/key/edit clock/epoch. Known receipts return their original status/body before budget generation and account availability checks. Unknown requests return 404 operation_uncommitted without mutation, cancellation, clock advancement or consuming the key. Cannot combine with X-Actual-Cancel-If-Uncommitted; supported only on transaction POST/PATCH/DELETE."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -13416,6 +13453,16 @@
               ]
             },
             "description": "Requires transaction_receipt_lookup capability. Read-only reconciliation using the original method/path/body/key/edit clock/epoch. Known receipts return their original status/body before budget generation and account availability checks. Unknown requests return 404 operation_uncommitted without mutation, cancellation, clock advancement or consuming the key. Cannot combine with X-Actual-Cancel-If-Uncommitted; supported only on transaction POST/PATCH/DELETE."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -13752,6 +13799,16 @@
               ]
             },
             "description": "Requires advertised reconciliation_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "responses": {
@@ -13981,6 +14038,16 @@
               ]
             },
             "description": "Requires advertised reconciliation_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "responses": {
@@ -14912,11 +14979,14 @@
           },
           "confirm_reconciled": {
             "type": "boolean",
-            "description": "Explicit confirmation for this immutable edit; requires captured reconciled_version. Protection remains unchanged. Each affected protected aggregate member must independently pass the same freshness guard. Deletion requires explicit unlock."
+            "description": "Explicit confirmation preserving reconciled flags. Ordinary edits require reconciled_version; linked transfers require transfer_protection_token covering all connected affected members. DELETE requires explicit unlock."
           },
           "reconciled_version": {
             "$ref": "#/components/schemas/EditClock",
             "description": "Reconciled field version captured from the displayed transaction when confirming. Must exactly match current protection version; immutable intent clock must also be newer. Missing proof or a later unlock/relock rejects before mutation. Original committed receipts replay before this check."
+          },
+          "transfer_protection_token": {
+            "$ref": "#/components/schemas/TransferProtectionToken"
           }
         },
         "required": [],
@@ -14924,6 +14994,9 @@
         "minProperties": 1,
         "dependentRequired": {
           "reconciled_version": [
+            "confirm_reconciled"
+          ],
+          "transfer_protection_token": [
             "confirm_reconciled"
           ]
         },
@@ -14940,14 +15013,30 @@
               ]
             },
             "then": {
-              "required": [
-                "reconciled_version"
+              "anyOf": [
+                {
+                  "required": [
+                    "reconciled_version"
+                  ]
+                },
+                {
+                  "required": [
+                    "transfer_protection_token"
+                  ]
+                }
               ]
             }
           }
         ],
         "dependentSchemas": {
           "reconciled_version": {
+            "properties": {
+              "confirm_reconciled": {
+                "const": true
+              }
+            }
+          },
+          "transfer_protection_token": {
             "properties": {
               "confirm_reconciled": {
                 "const": true
@@ -16378,7 +16467,8 @@
                   11,
                   12,
                   13,
-                  14
+                  14,
+                  15
                 ]
               },
               "domains": {
@@ -16742,6 +16832,91 @@
         ],
         "additionalProperties": false
       },
+      "NewTransfer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "account_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "cleared": {
+            "type": "boolean",
+            "default": false
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 10000,
+            "default": ""
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "counterpart_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "to_account_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          }
+        },
+        "required": [
+          "id",
+          "account_id",
+          "amount",
+          "date",
+          "counterpart_id",
+          "to_account_id"
+        ],
+        "additionalProperties": false
+      },
+      "LinkTransfer": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "counterpart_id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "counterpart_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          }
+        }
+      },
       "SplitChild": {
         "type": "object",
         "additionalProperties": false,
@@ -16836,14 +17011,14 @@
           },
           "children": {
             "type": "array",
-            "maxItems": 100,
+            "maxItems": 100000,
             "items": {
               "$ref": "#/components/schemas/SplitChild"
             }
           },
           "detach": {
             "type": "array",
-            "maxItems": 100,
+            "maxItems": 100000,
             "items": {
               "type": "string",
               "format": "uuid",
@@ -16867,6 +17042,11 @@
                       "required": [
                         "reconciled_version"
                       ]
+                    },
+                    {
+                      "required": [
+                        "transfer_protection_token"
+                      ]
                     }
                   ]
                 }
@@ -16888,6 +17068,32 @@
           },
           "reconciliation_token": {
             "$ref": "#/components/schemas/ReconciliationToken"
+          },
+          "transfer_protection_token": {
+            "$ref": "#/components/schemas/TransferProtectionToken"
+          },
+          "changes": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Sparse replacement, mutually exclusive with nonempty children/detach and non-replace actions. Existing children not mentioned are preserved in their original order; upsert replaces a complete child by ID or appends a new child in supplied order. Remove lists existing IDs only. IDs across upsert/remove must be distinct. Final aggregate max100000; allocation runs once on the complete result. Absent changes retains the historical full-replacement receipt payload.",
+            "properties": {
+              "upsert": {
+                "type": "array",
+                "maxItems": 100000,
+                "items": {
+                  "$ref": "#/components/schemas/SplitChild"
+                }
+              },
+              "remove": {
+                "type": "array",
+                "maxItems": 100000,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
           }
         },
         "dependentRequired": {
@@ -16895,6 +17101,9 @@
             "confirm_reconciled"
           ],
           "reconciliation_token": [
+            "confirm_reconciled"
+          ],
+          "transfer_protection_token": [
             "confirm_reconciled"
           ]
         },
@@ -16907,6 +17116,13 @@
             }
           },
           "reconciliation_token": {
+            "properties": {
+              "confirm_reconciled": {
+                "const": true
+              }
+            }
+          },
+          "transfer_protection_token": {
             "properties": {
               "confirm_reconciled": {
                 "const": true
@@ -17476,91 +17692,6 @@
         ],
         "additionalProperties": false
       },
-      "NewTransfer": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-          },
-          "account_id": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-          },
-          "amount": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991,
-            "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
-          },
-          "date": {
-            "type": "string",
-            "format": "date"
-          },
-          "cleared": {
-            "type": "boolean",
-            "default": false
-          },
-          "notes": {
-            "type": "string",
-            "maxLength": 10000,
-            "default": ""
-          },
-          "category_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid",
-                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "counterpart_id": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-          },
-          "to_account_id": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-          }
-        },
-        "required": [
-          "id",
-          "account_id",
-          "amount",
-          "date",
-          "counterpart_id",
-          "to_account_id"
-        ],
-        "additionalProperties": false
-      },
-      "LinkTransfer": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "id",
-          "counterpart_id"
-        ],
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-          },
-          "counterpart_id": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-          }
-        }
-      },
       "ReconciliationProgress": {
         "type": "object",
         "properties": {
@@ -17625,6 +17756,11 @@
         "type": "string",
         "pattern": "^[0-9a-f]{64}$",
         "description": "Fixed-size SHA256 proof from GET transaction splits. Binds budget, logical parent ID and all live member IDs, reconciled flags and reconciled field versions. Capture unchanged with the confirmed intent; server checks current membership/protection and newer original intent clock atomically. Does not replace budget epoch or split snapshot."
+      },
+      "TransferProtectionToken": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$",
+        "description": "Captured fixed-size proof of complete connected live split/transfer membership, relationship edges and every member\u2019s own reconciled flag/version, bound to this budget. Capture GET /transactions/{id}/splits; for linking include counterpart_id query parameter. Verify inside the receipt transaction with the original intent clock newer than every captured protection version. Immutable retries never refresh proof."
       }
     }
   }

@@ -32,6 +32,21 @@ Creation, deletion, account movement and split changes guard complete affected r
 
 Browser bulk/history is online-only. The original request, formatting/date context, epoch, owner and clock are persisted before every send, retry and cancellation. A quota/CAS failure blocks transmission; the UI retains recovery actions and confirmed balances. Saved checkpoints advance only after committed storage. A lost success response can be retried after reload without a duplicate financial action. A durable cancellation fences the original identity; it never invents a replacement request.
 
-## Required composition gates
+## Composed financial boundaries
 
-This private slice starts from ordinary/split/register schema 11 and uses provisional migration 012. Integration renumbers it after reconciliation 12 and transfer 13. Reconciliation routes must call `write_owned`; capture includes all member reconciliation versions and account `last_reconciled`. Journal evidence must preserve exact original complete membership/protection, never mint fresh authorization over a newer lock. Transfers require both reciprocal aggregate sets, link identity guards and transfer validation after restoration. Large-split sparse `Change.changes` needs the compatible constructor field and final aggregate checks. These combined workflows are acceptance gates, not covered by ordinary-only evidence. Companion Android stays expense-only; bulk/history changes are observable through its existing read contract.
+Schema15 follows reconciliation12, transfer13 and locations14. Reconciliation,
+unlock and transfer routes join `write_owned`; complete connected before/after
+split/reciprocal-transfer membership and exact field versions guard each inverse.
+Raw reconciliation generations remain separate from lineage normalization; a
+newer lock cannot acquire authorization from an older action. Only captured IDs
+may touch protected rows. Inverse completion validates transfer reciprocity and
+split totals. Sparse `Change.changes` preserves existing transfer identities.
+
+Both selected ordinary transfer legs duplicate independently, matching the pinned
+desktop batch handler (two fresh pairs). Deletion reads every initial selection
+live, then treats a counterpart already removed by this same atomic batch as
+completed. Stale initial selections still refuse. New transfer/reconciliation
+requests capture the browser owner before persistence; saved legacy requests keep
+their original owner shape. Auxiliary journal/lineage remain outside archives and
+imports. Companion Android remains expense-only. Root delta review and final
+stable-batch qualification remain acceptance gates.

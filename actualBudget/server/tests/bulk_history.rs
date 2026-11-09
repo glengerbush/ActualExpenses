@@ -861,3 +861,440 @@ fn metadata_undo_name_collision(domain: &str, original: &str, renamed: &str) {
         entries
     );
 }
+
+#[test]
+fn transfer_creation_history_restores_both_legs_and_reconciliation_is_one_action() {
+    let s = Server::setup();
+    let root = format!("/api/v1/budgets/{BUDGET}");
+    let other = "13000000-0000-4000-8000-000000000002";
+    let peer = "13000000-0000-4000-8000-000000000003";
+    assert_eq!(
+        s.post(
+            &format!("{root}/accounts"),
+            "other",
+            json!({"id":other,"name":"Savings","opening_balance":0,"opening_date":"2026-01-01"})
+        )
+        .status(),
+        201
+    );
+    let created = s.owned("POST",&format!("{root}/transfers"),"owned-transfer",json!({"id":ENTRY,"counterpart_id":peer,"account_id":ACCOUNT,"to_account_id":other,"amount":-100,"date":"2026-01-02","cleared":true}));
+    assert!(created.status().is_success(), "{}", created.text().unwrap());
+    assert!(
+        !s.history()["undo"].is_null(),
+        "transfer must join engine history"
+    );
+    let undone = s.step("undo", "undo-transfer");
+    assert_eq!(undone.status(), 200, "{}", undone.text().unwrap());
+    for id in [ENTRY, peer] {
+        assert_eq!(s.get(&format!("{root}/transactions/{id}")).status(), 404);
+    }
+    let redone = s.step("redo", "redo-transfer");
+    assert_eq!(redone.status(), 200, "{}", redone.text().unwrap());
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{peer}"))
+            .json::<Value>()
+            .unwrap()["data"]["amount"],
+        100
+    );
+    let reconcile = format!("{root}/accounts/{ACCOUNT}/reconciliation");
+    let preview = s.get(&reconcile).json::<Value>().unwrap();
+    let locked=s.owned("POST",&reconcile,"owned-lock",json!({"action":"lock","statement_balance":-100,"snapshot":preview["data"]["snapshot"],"date":"2026-01-31"}));
+    assert_eq!(locked.status(), 200, "{}", locked.text().unwrap());
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{ENTRY}"))
+            .json::<Value>()
+            .unwrap()["data"]["reconciled"],
+        true
+    );
+    let undone = s.step("undo", "undo-lock");
+    assert_eq!(undone.status(), 200, "{}", undone.text().unwrap());
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{ENTRY}"))
+            .json::<Value>()
+            .unwrap()["data"]["reconciled"],
+        false
+    );
+    let redone = s.step("redo", "redo-lock");
+    assert_eq!(redone.status(), 200, "{}", redone.text().unwrap());
+    assert_eq!(
+        s.get(&format!("{root}/transactions/{ENTRY}"))
+            .json::<Value>()
+            .unwrap()["data"]["reconciled"],
+        true
+    );
+}
+
+#[test]
+fn protected_transfer_history_uses_saved_graph_and_refuses_remote_peer_fields_or_relocks() {
+    for remote in ["notes", "relock", "owned-unlock-undo"] {
+        let s = Server::setup();
+        let root = format!("/api/v1/budgets/{BUDGET}");
+        let other = "13000000-0000-4000-8000-000000000002";
+        let peer = "13000000-0000-4000-8000-000000000003";
+        assert_eq!(
+            s.post(
+                &format!("{root}/accounts"),
+                "other",
+                json!({"id":other,"name":"Savings","opening_balance":0,"opening_date":"2026-01-01"})
+            )
+            .status(),
+            201
+        );
+        assert_eq!(s.post(&format!("{root}/transfers"),"transfer",json!({"id":ENTRY,"counterpart_id":peer,"account_id":ACCOUNT,"to_account_id":other,"amount":-100,"date":"2026-01-02","cleared":true})).status(),201);
+        assert_eq!(
+            s.owned(
+                "PATCH",
+                &format!("{root}/transactions/{peer}"),
+                "clear",
+                json!({"cleared":true})
+            )
+            .status(),
+            200
+        );
+        for (account, balance, key) in [(ACCOUNT, -100, "lock-source"), (other, 100, "lock-peer")] {
+            let path = format!("{root}/accounts/{account}/reconciliation");
+            let preview = s.get(&path).json::<Value>().unwrap();
+            assert_eq!(s.post(&path,key,json!({"action":"lock","snapshot":preview["data"]["snapshot"],"statement_balance":balance,"date":"2026-01-31"})).status(),200);
+        }
+        let path = format!("{root}/transactions/{ENTRY}");
+        let proof = s.get(&format!("{path}/splits")).json::<Value>().unwrap();
+        let edited=s.owned("PATCH",&path,"confirmed",json!({"amount":-125,"confirm_reconciled":true,"transfer_protection_token":proof["transfer_protection_token"]}));
+        assert_eq!(edited.status(), 200, "{}", edited.text().unwrap());
+        for (direction, key, amount) in [("undo", "u", -100), ("redo", "r", -125)] {
+            let r = s.step(direction, key);
+            assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+            assert_eq!(
+                s.get(&path).json::<Value>().unwrap()["data"]["amount"],
+                amount
+            );
+            assert_eq!(
+                s.get(&format!("{root}/transactions/{peer}"))
+                    .json::<Value>()
+                    .unwrap()["data"]["amount"],
+                -amount
+            );
+        }
+        let peer_path = format!("{root}/transactions/{peer}");
+        if remote == "notes" {
+            let proof = s
+                .get(&format!("{peer_path}/splits"))
+                .json::<Value>()
+                .unwrap();
+            let r=s.client.patch(format!("{}{peer_path}",s.url)).header("Idempotency-Key","remote-notes").json(&json!({"notes":"Remote peer note","confirm_reconciled":true,"transfer_protection_token":proof["transfer_protection_token"]})).send().unwrap();
+            assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+        } else if remote == "owned-unlock-undo" {
+            let row = s.get(&peer_path).json::<Value>().unwrap();
+            let r = s.owned(
+                "POST",
+                &format!("{peer_path}/unlock"),
+                "owned-unlock",
+                json!({"reconciled_version":row["data"]["field_versions"]["reconciled"]}),
+            );
+            assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+            let r = s.step("undo", "undo-owned-unlock");
+            assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+            assert_eq!(
+                s.get(&peer_path).json::<Value>().unwrap()["data"]["reconciled"],
+                true
+            );
+        } else {
+            let row = s.get(&peer_path).json::<Value>().unwrap();
+            assert_eq!(
+                s.post(
+                    &format!("{peer_path}/unlock"),
+                    "remote-unlock",
+                    json!({"reconciled_version":row["data"]["field_versions"]["reconciled"]})
+                )
+                .status(),
+                200
+            );
+            let path = format!("{root}/accounts/{other}/reconciliation");
+            let preview = s.get(&path).json::<Value>().unwrap();
+            assert_eq!(s.post(&path,"remote-relock",json!({"action":"lock","snapshot":preview["data"]["snapshot"],"statement_balance":125,"date":"2026-02-28"})).status(),200);
+        }
+        let before = s.get(&path).json::<Value>().unwrap();
+        let peer_before = s.get(&peer_path).json::<Value>().unwrap();
+        let history = s.history();
+        let r = s.step("undo", "unsafe-undo");
+        assert_eq!(r.status(), 409, "{}", r.text().unwrap());
+        assert_eq!(s.get(&path).json::<Value>().unwrap(), before);
+        assert_eq!(s.get(&peer_path).json::<Value>().unwrap(), peer_before);
+        assert_eq!(s.history(), history);
+    }
+}
+
+#[test]
+fn imported_thousand_child_sparse_history_undo_and_redo_preserve_exact_aggregates() {
+    let mut s = Server::start();
+    // Large debug-build archive/history qualification, matching the existing
+    // thousand-member transfer harness; this is not a product latency SLO.
+    s.client = Client::builder()
+        .timeout(Duration::from_secs(30))
+        .build()
+        .unwrap();
+    let imported = s
+        .client
+        .post(format!("{}/api/v1/imports/actual", s.url))
+        .header("Idempotency-Key", "large-import")
+        .header("Content-Type", "application/zip")
+        .body(include_bytes!("../../tests/fixtures/reconciliation-large.zip").to_vec())
+        .send()
+        .unwrap();
+    assert_eq!(imported.status(), 201);
+    let imported = imported.json::<Value>().unwrap();
+    assert_eq!(
+        s.post(
+            &format!(
+                "/api/v1/imports/{}/activate",
+                imported["data"]["id"].as_str().unwrap()
+            ),
+            "activate",
+            json!({})
+        )
+        .status(),
+        201
+    );
+    let budget = imported["data"]["budget_id"].as_str().unwrap();
+    let fixture: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/reconciliation-large.json"
+    ))
+    .unwrap();
+    let path = format!(
+        "/api/v1/budgets/{budget}/transactions/{}/splits",
+        fixture["accounts"][1]["parent"].as_str().unwrap()
+    );
+    let before = s.get(&path).json::<Value>().unwrap();
+    let child = before["data"]["children"][1000]["id"].as_str().unwrap();
+    let body = json!({"snapshot":before["snapshot"],"changes":{"upsert":[{"id":child,"amount":-1,"notes":"Sparse history final child"}]}});
+    assert!(body.to_string().len() < 512);
+    let r = s.owned("POST", &path, "large-owned-sparse", body.clone());
+    assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+    let after = s.get(&path).json::<Value>().unwrap();
+    assert_eq!(after["data"]["children"].as_array().unwrap().len(), 1001);
+    for direction in ["undo", "redo"] {
+        let history = s
+            .client
+            .get(format!("{}/api/v1/budgets/{budget}/history", s.url))
+            .header("X-Actual-History-Owner", OWNER)
+            .send()
+            .unwrap()
+            .json::<Value>()
+            .unwrap();
+        let r = s.owned(
+            "POST",
+            &format!("/api/v1/budgets/{budget}/history/{direction}"),
+            direction,
+            json!({"action_id":history["data"][direction]["id"]}),
+        );
+        assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+        let actual = s.get(&path).json::<Value>().unwrap();
+        assert_eq!(actual["data"]["children"].as_array().unwrap().len(), 1001);
+        assert_eq!(
+            actual["data"]["children"][1000]["notes"],
+            if direction == "undo" {
+                before["data"]["children"][1000]["notes"].clone()
+            } else {
+                json!("Sparse history final child")
+            }
+        );
+        assert_eq!(actual["data"]["amount"], -1001);
+    }
+    assert_eq!(
+        s.owned("POST", &path, "large-owned-sparse", body)
+            .json::<Value>()
+            .unwrap()["data"],
+        after["data"]
+    );
+}
+
+#[test]
+fn genuine_schema14_upgrade_and_archive_keep_original_receipts_without_portable_history() {
+    let fixture: Value =
+        serde_json::from_str(include_str!("../../tests/fixtures/history-schema14.json")).unwrap();
+    let data = tempfile::tempdir().unwrap();
+    std::fs::write(
+        data.path().join("actualbudget.sqlite3"),
+        include_bytes!("../../tests/fixtures/history-schema14.sqlite3"),
+    )
+    .unwrap();
+    let s = Server::with_data(data);
+    let budget = fixture["budget"]["data"]["id"].as_str().unwrap();
+    let root = format!("/api/v1/budgets/{budget}");
+    let peer = fixture["rows"][0]["id"].as_str().unwrap();
+    let path = format!("{root}/transactions/{peer}");
+    assert_eq!(
+        s.get(&path).json::<Value>().unwrap()["data"],
+        fixture["rows"][0]
+    );
+    for (route, key, body, result) in [
+        ("transfers", "transfer13", "transfer_body", "transfer"),
+        ("payee-locations", "location14", "location_body", "location"),
+    ] {
+        assert_eq!(
+            s.post(&format!("{root}/{route}"), key, fixture[body].clone())
+                .json::<Value>()
+                .unwrap(),
+            fixture[result]
+        );
+    }
+    assert_eq!(
+        s.post(
+            &format!(
+                "{root}/accounts/{}/reconciliation",
+                fixture["account"]["id"].as_str().unwrap()
+            ),
+            "reconcile13",
+            fixture["reconciliation_body"].clone()
+        )
+        .json::<Value>()
+        .unwrap(),
+        fixture["reconciliation"]
+    );
+    assert_eq!(
+        s.get(&format!(
+            "/api/v1/imports/{}",
+            fixture["stage"]["data"]["id"].as_str().unwrap()
+        ))
+        .json::<Value>()
+        .unwrap()["data"]["status"],
+        "ready"
+    );
+    let history = s
+        .client
+        .get(format!("{}{root}/history", s.url))
+        .header("X-Actual-History-Owner", OWNER)
+        .send()
+        .unwrap()
+        .json::<Value>()
+        .unwrap();
+    assert!(history["data"]["undo"].is_null());
+    let proof = s.get(&format!("{path}/splits")).json::<Value>().unwrap();
+    let r=s.owned("PATCH",&path,"post-upgrade",json!({"notes":"Owned after migration","confirm_reconciled":true,"transfer_protection_token":proof["transfer_protection_token"]}));
+    assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+    let history = s
+        .client
+        .get(format!("{}{root}/history", s.url))
+        .header("X-Actual-History-Owner", OWNER)
+        .send()
+        .unwrap()
+        .json::<Value>()
+        .unwrap();
+    assert!(!history["data"]["undo"].is_null());
+    let target = Server::start();
+    let upload = target
+        .client
+        .post(format!("{}/api/v1/restores", target.url))
+        .header("Idempotency-Key", "old-archive")
+        .header("Content-Type", "application/zip")
+        .body(include_bytes!("../../tests/fixtures/history-schema14.zip").to_vec())
+        .send()
+        .unwrap()
+        .json::<Value>()
+        .unwrap();
+    assert_eq!(upload["data"]["report"]["schema_version"], 15);
+    let restored = target.post(
+        &format!(
+            "{root}/restores/{}/activate",
+            upload["data"]["id"].as_str().unwrap()
+        ),
+        "activate-old",
+        json!({"confirm_name":fixture["budget"]["data"]["name"]}),
+    );
+    assert!(
+        restored.status().is_success(),
+        "{}",
+        restored.text().unwrap()
+    );
+    assert_eq!(
+        target.get(&path).json::<Value>().unwrap()["data"],
+        fixture["rows"][0]
+    );
+    assert_eq!(
+        target
+            .post(
+                &format!("{root}/transfers"),
+                "transfer13",
+                fixture["transfer_body"].clone()
+            )
+            .json::<Value>()
+            .unwrap(),
+        fixture["transfer"]
+    );
+    let history = target
+        .client
+        .get(format!("{}{root}/history", target.url))
+        .header("X-Actual-History-Owner", OWNER)
+        .send()
+        .unwrap()
+        .json::<Value>()
+        .unwrap();
+    assert!(history["data"]["undo"].is_null());
+}
+
+#[test]
+fn selecting_both_transfer_legs_matches_pinned_bulk_duplicate_and_delete() {
+    let s = Server::setup();
+    let root = format!("/api/v1/budgets/{BUDGET}");
+    let other = "13000000-0000-4000-8000-000000000002";
+    let peer = "13000000-0000-4000-8000-000000000003";
+    assert_eq!(
+        s.post(
+            &format!("{root}/accounts"),
+            "other",
+            json!({"id":other,"name":"Savings","opening_balance":0,"opening_date":"2026-01-01"})
+        )
+        .status(),
+        201
+    );
+    assert_eq!(s.post(&format!("{root}/transfers"),"pair",json!({"id":ENTRY,"counterpart_id":peer,"account_id":ACCOUNT,"to_account_id":other,"amount":-100,"date":"2026-01-01"})).status(),201);
+    let oracle: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/bulk-transfer-pairs.json"
+    ))
+    .unwrap();
+    let state = || {
+        let mut result = json!({});
+        for (name, account) in [("cash", ACCOUNT), ("savings", other)] {
+            let rows = s
+                .get(&format!("{root}/transactions?account_id={account}"))
+                .json::<Value>()
+                .unwrap();
+            let mut amounts = rows["data"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|r| r["amount"].as_i64().unwrap())
+                .collect::<Vec<_>>();
+            amounts.sort();
+            result[name] = json!(amounts);
+        }
+        result
+    };
+    assert_eq!(state(), oracle["initial"]);
+    let bulk = format!("{root}/transactions/bulk");
+    for action in ["duplicate", "delete"] {
+        let view = s
+            .get(&format!("{root}/transactions"))
+            .json::<Value>()
+            .unwrap();
+        let mut body = json!({"snapshot":view["snapshot"],"action":action,"ids":[ENTRY,peer]});
+        if action == "duplicate" {
+            body["duplicate_ids"] = json!([
+                "13000000-0000-4000-8000-000000000010",
+                "13000000-0000-4000-8000-000000000011"
+            ]);
+        }
+        let r = s.owned("POST", &bulk, action, body);
+        assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+        assert_eq!(
+            state(),
+            oracle[if action == "duplicate" {
+                "duplicated"
+            } else {
+                "deleted"
+            }]
+        );
+    }
+    let r = s.step("undo", "undo-both-delete");
+    assert_eq!(r.status(), 200, "{}", r.text().unwrap());
+    assert_eq!(state(), oracle["duplicated"]);
+}

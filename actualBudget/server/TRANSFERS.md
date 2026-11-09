@@ -11,7 +11,8 @@ an applicable source category. Card payments between on-budget accounts create
 no categorized income. Ordinary transaction/payee APIs cannot manufacture a pair.
 
 `POST /transfers/link` accepts two existing IDs. Opposite amounts, distinct open
-accounts, unlinked, unreconciled non-opening entries required. Dates, amounts,
+accounts, unlinked non-opening entries required; reconciled candidates need
+explicit captured graph confirmation. Dates, amounts,
 notes and cleared states remain; both categories clear, matching pinned Actual.
 
 Existing transaction PATCH/DELETE/duplicate endpoints recognize transfer pairs.
@@ -24,7 +25,10 @@ saved preference, absent historical preference means false. Actual source
 Deleting either side tombstones both, comparing the original deletion clock with
 all fields on both rows. Superseded deletion is a durable terminal receipt.
 Duplicating either side creates two fresh IDs and retains independent dates,
-with cleared/reconciled reset. Reconciled pairs require unlocking before edits.
+with cleared/reconciled reset. Reconciled pair edits accept explicit confirmation
+with the captured `transfer_protection_token` for all connected split/transfer
+members, or require unlocking first. Proof membership and original HLC must
+remain fresh; later locks refuse the complete edit.
 
 Account close accepts either the existing empty body, or a transfer body with
 pair IDs, `to_account_id`, `date`, optional category and `expected_balance`.
@@ -63,15 +67,17 @@ rows and transfer payee identities after genuine incremental updates.
   can change destinations atomically. Parent deletion fences newer peer edits.
 - Ticket13: wrap the existing transaction/receipt boundary with one undo group,
   retaining both legs, generated payees, relevant parent/account state and versions.
-  Do not expose per-leg undo or silently omit transfers. Undo is not implemented
-  in this base; acceptance waits for the combined undo contract.
+  Composed history captures complete before/after reciprocal graphs and exact
+  protection generations. Newer peer fields, membership or locks refuse the
+  inverse atomically. Per-leg undo never leaves a broken pair.
 - Ticket16: PATCH confirmation must carry exact observed lock versions per ID
   (for example `reconciled_versions`), plus the original intent clock. Strip
   confirmation metadata before transfer field validation and call the shared
   version-aware protection for both legs and affected parent/sibling rows. A
   boolean alone must not bypass a later relock. Disclose protected entries in the
   editor. DELETE retains explicit local unlock requirements on both legs.
-  Current composition rejects locked entries; confirmation integration remains.
+  Captured graph confirmation is implemented for edits/linking and structural
+  split recovery; a boolean alone never authorizes protected rows.
 
 Pinned combined oracle reveals a defect: editing a counterpart from600 to700
 changes its split child from−600 to−700 while the parent remains−1000 and another

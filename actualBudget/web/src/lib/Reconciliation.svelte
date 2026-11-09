@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { historyOwner } from "./history-owner";
   import { onMount, untrack } from "svelte";
   import {
     request,
@@ -232,6 +233,7 @@
           key: uuid(),
           edit_clock: nextEditClock(account.field_versions),
           budgetEpoch: preferences.budgetEpoch,
+          historyOwner: await historyOwner(),
         };
         save({
           ...(draft ?? {

@@ -31,6 +31,9 @@ export interface SplitDraft {
   };
   confirmedReconciled?: boolean;
   reconciliationToken?: string;
+  transferProtectionToken?: string;
+  transferProtectionClock?: string;
+  transferProtectedCount?: number;
   pending: PendingMutation | null;
 }
 async function database(): Promise<IDBDatabase> {

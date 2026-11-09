@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { historyOwner } from "./history-owner";
   import { onMount, tick } from "svelte";
   import DateInput from "./DateInput.svelte";
   import { displayDate, parseDateInput, validDate } from "./dates";
@@ -53,6 +54,10 @@
     format: AmountFormat;
     original: Transaction | null;
     pending: PendingMutation | null;
+    protectionToken?: string;
+    protectionClock?: string;
+    protectedCount?: number;
+    confirmedReconciled?: boolean;
   };
   let {
     budgetId,
@@ -178,6 +183,8 @@
         observeVersions(other.data.field_versions);
         persist();
       }
+      if (draft.mode === "edit" && !draft.pending && !draft.protectionToken)
+        await captureProtection();
       ready = true;
       await tick();
       if (alive) document.getElementById("transfer-title")?.focus();
@@ -202,12 +209,49 @@
     if (!draft || draft.pending || busy || offline) return;
     try {
       draft[key] = value;
+      if (key === "destination" && draft.mode === "link") {
+        draft.counterpart = "";
+        draft.protectionToken = undefined;
+        draft.protectionClock = undefined;
+        draft.protectedCount = undefined;
+        draft.confirmedReconciled = false;
+      }
       if (key === "source")
         draft.balance = accounts.find((a) => a.id === value)?.balance ?? 0;
       persist();
     } catch (e) {
       error = errorMessage(e);
       ready = false;
+    }
+  }
+  async function captureProtection() {
+    if (!draft || draft.pending) return;
+    const current = await request<{
+      transfer_protection_token: string;
+      transfer_protection_clock: string;
+      transfer_protected_count: number;
+    }>(
+      `/budgets/${budgetId}/transactions/${draft.id}/splits${draft.mode === "link" ? `?counterpart_id=${draft.counterpart}` : ""}`,
+    );
+    if (!alive || !draft) return;
+    draft.protectionToken = current.transfer_protection_token;
+    draft.protectionClock = current.transfer_protection_clock;
+    draft.protectedCount = current.transfer_protected_count;
+    draft.confirmedReconciled = false;
+    observeVersions({ reconciled: current.transfer_protection_clock });
+    persist();
+  }
+  async function chooseCounterpart(id: string) {
+    edit("counterpart", id);
+    if (!draft || draft.pending || !id) return;
+    busy = true;
+    try {
+      await captureProtection();
+    } catch (e) {
+      error = errorMessage(e);
+      ready = false;
+    } finally {
+      busy = false;
     }
   }
   async function matching() {
@@ -235,7 +279,6 @@
               (r) =>
                 !r.transfer_id &&
                 !r.is_parent &&
-                !r.reconciled &&
                 !r.starting_balance &&
                 r.amount === -(draft?.original?.amount ?? 0),
             ),
@@ -259,6 +302,14 @@
         if (draft.epoch !== preferences.budgetEpoch)
           throw new Error(
             "This budget was restored. Close this unsent draft and review the current accounts before starting again.",
+          );
+        if (
+          (draft.mode === "edit" || draft.mode === "link") &&
+          draft.protectedCount &&
+          !draft.confirmedReconciled
+        )
+          throw new Error(
+            "Confirm editing reconciled entries in this transfer, or unlock them first.",
           );
         const date = parseDateInput(
           draft.date,
@@ -319,6 +370,19 @@
               category_id: draft.category || null,
             };
         }
+        if (
+          (draft.mode === "edit" || draft.mode === "link") &&
+          draft.confirmedReconciled
+        ) {
+          if (!draft.protectionToken)
+            throw new Error(
+              "Reopen the transfer to review its current protection.",
+            );
+          body.confirm_reconciled = true;
+          body.transfer_protection_token = draft.protectionToken;
+        }
+        if (draft.protectionClock)
+          observeVersions({ reconciled: draft.protectionClock });
         draft.pending = {
           path,
           method,
@@ -326,6 +390,7 @@
           key: uuid(),
           edit_clock: nextEditClock(draft.original?.field_versions),
           budgetEpoch: draft.epoch,
+          historyOwner: await historyOwner(),
         };
       }
       // Every dispatch, including retry/cancel, requires a durable immutable intent.
@@ -358,6 +423,7 @@
         pending.edit_clock,
         cancel,
         pending.budgetEpoch,
+        pending.historyOwner,
       );
       remove();
       oncomplete(
@@ -467,7 +533,7 @@
               <label for="transfer-match">Matching entry</label><select
                 id="transfer-match"
                 value={draft.counterpart}
-                onchange={(e) => edit("counterpart", e.currentTarget.value)}
+                onchange={(e) => void chooseCounterpart(e.currentTarget.value)}
                 required
                 ><option value="">Choose entry</option
                 >{#each candidates as row (row.id)}<option value={row.id}
@@ -538,6 +604,19 @@
               >{/if}
           {/if}
         </div>
+        {#if draft.protectedCount}
+          <label class="check-label"
+            ><input
+              type="checkbox"
+              checked={draft.confirmedReconciled ?? false}
+              onchange={(e) =>
+                edit("confirmedReconciled", e.currentTarget.checked)}
+            />Confirm editing reconciled entries in this transfer</label
+          >
+          <p>
+            Linked split allocations are included. Entries remain reconciled.
+          </p>
+        {/if}
       </fieldset>
       {#if draft.pending}<p>
           The original request is saved. Retry unchanged or cancel it before

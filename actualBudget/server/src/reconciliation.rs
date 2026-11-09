@@ -84,19 +84,21 @@ async fn mutate(
     let (b, id) = path(p)?;
     let Json(body) = input.map_err(json_error)?;
     let key = idempotency_key(&headers)?;
+    let owner = crate::history::owner_header(&headers)?;
     let proposed = concurrency::header(&headers)?;
     let cancel = concurrency::cancel_header(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;
     let unlock = uri.path().ends_with("/unlock");
     let scope = format!("POST {}", uri.path().trim_start_matches("/api/v1"));
     s.run(move |db| {
-        concurrency::write(
+        concurrency::write_owned(
             db,
             &scope,
             &key,
             &body.to_string(),
             proposed.as_deref(),
             StatusCode::OK,
+            owner.as_ref(),
             |db| {
                 if cancel {
                     return concurrency::canceled(db, &b);

@@ -89,6 +89,7 @@ try {
           body: route.request().postData(),
           key: route.request().headers()["idempotency-key"],
           clock: route.request().headers()["x-actual-edit-clock"],
+          owner: route.request().headers()["x-actual-history-owner"],
         };
         const url = new URL(route.request().url());
         const headers = { ...route.request().headers(), host: url.host };
@@ -125,6 +126,12 @@ try {
   expect(retry.postData()).toBe(original.body);
   expect(retry.headers()["idempotency-key"]).toBe(original.key);
   expect(retry.headers()["x-actual-edit-clock"]).toBe(original.clock);
+  expect(original.owner).toMatch(/^[0-9a-f-]{36}$/);
+  expect(retry.headers()["x-actual-history-owner"]).toBe(original.owner);
+  const ownedHistory = await fetch(api + "/api/v1" + root + "/history", {
+    headers: { "X-Actual-History-Owner": original.owner },
+  }).then((r) => r.json());
+  expect(ownedHistory.data.undo).not.toBeNull();
   await expect(page.getByTestId("reconciliation-difference")).toHaveText(
     "0.00",
   );

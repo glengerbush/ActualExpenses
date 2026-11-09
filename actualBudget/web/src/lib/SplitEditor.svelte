@@ -55,6 +55,22 @@
     await tick();
     heading?.focus();
   }
+  const pageSize = 20;
+  let page = $state(0);
+  let jumpTo = $state("1");
+  let jumpIndex = $derived(Number(jumpTo));
+  let pageStart = $derived(
+    Math.min(
+      page * pageSize,
+      Math.max(
+        0,
+        Math.floor(((draft?.children.length ?? 1) - 1) / pageSize) * pageSize,
+      ),
+    ),
+  );
+  let originalIds = $derived(
+    new Set(draft?.parent.children?.map((child) => child.id) ?? []),
+  );
   let saved: SplitDraft | null = null;
   let writes: Promise<void> = Promise.resolve();
   onMount(() => {
@@ -80,6 +96,8 @@
     if (busy) return;
     active = true;
     snapshotChanged = false;
+    page = 0;
+    jumpTo = "1";
     busy = true;
     error = "";
     try {
@@ -96,6 +114,10 @@
         snapshot: string;
         epoch: string;
         reconciliation_token: string;
+        transfer_protection_token: string;
+        transfer_protection_clock: string;
+        transfer_protected_count: number;
+        transfer_connected: boolean;
       }>(`/budgets/${budgetId}/transactions/${parent.id}/splits`);
       parent = current.data;
       const format = captureAmountFormat();
@@ -125,6 +147,11 @@
         snapshot: current.snapshot,
         epoch: current.epoch,
         reconciliationToken: current.reconciliation_token,
+        transferProtectionToken: current.transfer_connected
+          ? current.transfer_protection_token
+          : undefined,
+        transferProtectionClock: current.transfer_protection_clock,
+        transferProtectedCount: current.transfer_protected_count,
         format,
         children,
         fields: {
@@ -243,7 +270,10 @@
           draft.parent,
           ...(draft.parent.children ?? []),
         ].filter((row) => row.reconciled);
-        if (protectedRows.length && !draft.confirmedReconciled)
+        if (
+          (protectedRows.length || draft.transferProtectedCount) &&
+          !draft.confirmedReconciled
+        )
           throw new Error(
             "Confirm editing this reconciled split, or unlock it first.",
           );
@@ -254,6 +284,49 @@
           amount: parseAmount(draft.fields.amount, draft.format),
           payee_id: draft.fields.payee_id || null,
         };
+        if (draft.transferProtectionClock)
+          observeVersions({ reconciled: draft.transferProtectionClock });
+        const original = new Map(
+          (draft.parent.children ?? []).map((child) => [child.id, child]),
+        );
+        const present = new Set(draft.children.map((child) => child.id));
+        const changes =
+          action === "replace"
+            ? {
+                upsert: draft.children
+                  .map((child) => ({
+                    ...child,
+                    amount: parseAmount(child.amount || "0", draft!.format),
+                    payee_id: child.transfer_account_id
+                      ? null
+                      : child.payee_id || null,
+                    transfer_account_id: child.transfer_account_id || undefined,
+                    counterpart_id: child.transfer_account_id
+                      ? child.counterpart_id
+                      : undefined,
+                    category_id: child.category_id || null,
+                  }))
+                  .filter((child) => {
+                    const previous = original.get(child.id);
+                    return (
+                      !previous ||
+                      child.amount !== previous.amount ||
+                      child.notes !== previous.notes ||
+                      child.payee_id !==
+                        (previous.transfer_id
+                          ? null
+                          : (previous.retained_payee_id ??
+                            previous.payee_id)) ||
+                      child.category_id !== previous.category_id ||
+                      child.transfer_account_id !==
+                        (previous.transfer_account_id ?? undefined) ||
+                      child.counterpart_id !==
+                        (previous.transfer_id ?? undefined)
+                    );
+                  }),
+                remove: [...original.keys()].filter((id) => !present.has(id)),
+              }
+            : undefined;
         draft.pending = {
           path: `/budgets/${budgetId}/transactions/${draft.parent.id}/splits`,
           method: "POST",
@@ -263,38 +336,32 @@
           budgetEpoch: draft.epoch,
           body: {
             snapshot: draft.snapshot,
-            ...(protectedRows.length
+            ...(protectedRows.length || draft.transferProtectedCount
               ? {
                   confirm_reconciled: true,
-                  ...(draft.reconciliationToken
-                    ? { reconciliation_token: draft.reconciliationToken }
-                    : {
-                        reconciled_versions: Object.fromEntries(
-                          protectedRows.map((row) => [
-                            row.id,
-                            row.field_versions?.reconciled,
-                          ]),
-                        ),
-                      }),
+                  ...(draft.transferProtectionToken
+                    ? {
+                        transfer_protection_token:
+                          draft.transferProtectionToken,
+                      }
+                    : draft.reconciliationToken
+                      ? { reconciliation_token: draft.reconciliationToken }
+                      : {
+                          reconciled_versions: Object.fromEntries(
+                            protectedRows.map((row) => [
+                              row.id,
+                              row.field_versions?.reconciled,
+                            ]),
+                          ),
+                        }),
                 }
               : {}),
             action,
             allocation,
             detach,
             fields,
-            children:
-              action === "replace"
-                ? draft.children.map((c) => ({
-                    ...c,
-                    amount: parseAmount(c.amount || "0", draft!.format),
-                    payee_id: c.transfer_account_id ? null : c.payee_id || null,
-                    transfer_account_id: c.transfer_account_id || undefined,
-                    counterpart_id: c.transfer_account_id
-                      ? c.counterpart_id
-                      : undefined,
-                    category_id: c.category_id || null,
-                  }))
-                : [],
+            children: [],
+            ...(changes ? { changes } : {}),
           },
         };
       }
@@ -393,7 +460,7 @@
       oninput={() => void persist()}
       onchange={() => void persist()}
     >
-      {#if draft.parent.reconciled || draft.parent.children?.some((row) => row.reconciled)}
+      {#if draft.transferProtectedCount || draft.parent.reconciled || draft.parent.children?.some((row) => row.reconciled)}
         <label class="checkbox"
           ><input
             type="checkbox"
@@ -401,6 +468,7 @@
             disabled={busy || !!draft.pending || recovery}
           />{t("Confirm editing this reconciled split")}</label
         >
+        <p>Linked transfer entries are included. Entries remain reconciled.</p>
         <p class="hint">
           {t(
             "This changes settled entries. The transaction and its splits stay locked.",
@@ -453,7 +521,53 @@
           >
         </div>
       </fieldset>
-      {#each draft.children as child, index (child.id)}
+      {#if draft.children.length > pageSize}
+        <nav class="split-pages" aria-label={t("Split pages")}>
+          <p role="status">
+            {t("Splits {{start}}–{{end}} of {{total}}", {
+              start: pageStart + 1,
+              end: Math.min(pageStart + pageSize, draft.children.length),
+              total: draft.children.length,
+            })}
+          </p>
+          <div class="split-actions">
+            <button
+              type="button"
+              disabled={busy || pageStart === 0}
+              onclick={() => {
+                page = pageStart / pageSize - 1;
+              }}>{t("Previous splits")}</button
+            >
+            <button
+              type="button"
+              disabled={busy || pageStart + pageSize >= draft.children.length}
+              onclick={() => {
+                page = pageStart / pageSize + 1;
+              }}>{t("Next splits")}</button
+            >
+            <label
+              >{t("Go to split")}<input
+                inputmode="numeric"
+                bind:value={jumpTo}
+                oninput={(event) => event.stopPropagation()}
+                onchange={(event) => event.stopPropagation()}
+              /></label
+            >
+            <button
+              type="button"
+              disabled={busy ||
+                !Number.isInteger(jumpIndex) ||
+                jumpIndex < 1 ||
+                jumpIndex > draft.children.length}
+              onclick={() => {
+                page = Math.floor((jumpIndex - 1) / pageSize);
+              }}>{t("Show split")}</button
+            >
+          </div>
+        </nav>
+      {/if}
+      {#each draft.children.slice(pageStart, pageStart + pageSize) as child, offset (child.id)}
+        {@const index = pageStart + offset}
         <fieldset disabled={busy || !!draft.pending || recovery}>
           <legend>{t("Split")} {index + 1}</legend>
           <div class="split-fields">
@@ -530,7 +644,7 @@
               }
             }}>{t("Remove split")}</button
           >
-          {#if draft.parent.children?.some((c) => c.id === child.id)}<button
+          {#if originalIds.has(child.id)}<button
               type="button"
               onclick={() => void send("unsplit", "exact", [child.id])}
               disabled={disconnected}>{t("Unsplit this child")}</button
@@ -560,7 +674,7 @@
         <div class="split-actions">
           <button
             type="button"
-            disabled={busy || draft.children.length >= 100}
+            disabled={busy || draft.children.length >= 100000}
             onclick={() => {
               if (draft) {
                 draft.children.push({
@@ -570,6 +684,7 @@
                   category_id: "",
                   notes: "",
                 });
+                page = Math.floor((draft.children.length - 1) / pageSize);
                 void persist();
               }
             }}>{t("Add split")}</button
@@ -633,6 +748,15 @@
   select {
     max-width: 100%;
     min-width: 0;
+  }
+  .split-pages {
+    margin-block: 1rem;
+  }
+  .split-pages .split-actions {
+    align-items: end;
+  }
+  .split-pages input {
+    width: 8rem;
   }
   .split-actions {
     display: flex;

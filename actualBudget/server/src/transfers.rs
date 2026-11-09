@@ -1,5 +1,6 @@
 //! Transfer pairs are one financial operation and one receipt transaction.
 pub mod composition;
+pub mod protection;
 use crate::{
     api, concurrency as order,
     error::Error,
@@ -41,6 +42,10 @@ struct Create {
 struct Link {
     id: String,
     counterpart_id: String,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    confirm_reconciled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    transfer_protection_token: Option<String>,
 }
 
 pub fn router() -> Router<Store> {
@@ -97,6 +102,7 @@ where
     F: FnOnce(&Connection, &str, &str) -> Result<Value, Error> + Send + 'static,
 {
     let key = api::idempotency_key(&headers)?;
+    let owner = crate::history::owner_header(&headers)?;
     let proposed = order::header(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;
     let cancel = order::cancel_header(&headers)?;
@@ -105,22 +111,24 @@ where
         .run(move |db| {
             let scope = format!("POST /budgets/{b}/{route}");
             if receipt {
-                return order::receipt(
+                return order::receipt_owned(
                     db,
                     &scope,
                     &key,
                     &body,
                     proposed.as_deref(),
                     StatusCode::OK,
+                    owner.as_ref(),
                 );
             }
-            order::write(
+            order::write_owned(
                 db,
                 &scope,
                 &key,
                 &body,
                 proposed.as_deref(),
                 StatusCode::OK,
+                owner.as_ref(),
                 |db| {
                     if cancel {
                         return order::canceled(db, &b);
@@ -266,15 +274,25 @@ fn link_pair(db: &Connection, b: &str, input: &Link, clock: &str) -> Result<(), 
             "Choose two opposite amounts in different accounts that are not linked",
         ));
     }
+    if input.transfer_protection_token.is_some() && !input.confirm_reconciled {
+        return Err(Error::invalid(
+            "Transfer protection proof requires confirm_reconciled=true",
+        ));
+    }
+    let authorization = protection::authorize(
+        db,
+        b,
+        &[&input.id, &input.counterpart_id],
+        input.transfer_protection_token.as_deref(),
+        clock,
+    )?;
     for row in [&a, &z] {
         if row["is_parent"] == true {
             return Err(Error::invalid("Split parents cannot be transfer legs"));
         }
-        composition::guard(db, b, row, clock)?;
-        if row["reconciled"] == true || row["starting_balance"] == true {
-            return Err(Error::conflict(
-                "Opening balances and reconciled entries cannot be linked",
-            ));
+        composition::guard(db, b, row, clock, authorization.as_ref())?;
+        if row["starting_balance"] == true {
+            return Err(Error::conflict("Opening balances cannot be linked"));
         }
         account(db, b, row["account_id"].as_str().unwrap())?;
         if newer(row, clock) {
@@ -335,6 +353,7 @@ pub fn patch(
     id: &str,
     patch: Value,
     clock: &str,
+    proof: Option<&str>,
 ) -> Result<Value, Error> {
     let live:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM transactions a JOIN transactions z ON z.budget_id=a.budget_id AND z.id=a.transfer_id WHERE a.budget_id=?1 AND a.id=?2 AND a.tombstone=0 AND z.tombstone=0 AND z.transfer_id=a.id)",params![b,id],|r|r.get(0))?;
     if !live {
@@ -359,11 +378,7 @@ pub fn patch(
     if fields.is_empty() {
         return Err(Error::invalid("Provide at least one transfer field"));
     }
-    if a["reconciled"] == true || z["reconciled"] == true {
-        return Err(Error::conflict(
-            "Unlock both reconciled transfer entries before editing",
-        ));
-    }
+    let authorization = protection::authorize(db, b, &[id], proof, clock)?;
     // A queued ordinary edit cannot acquire pair semantics after conversion.
     let linked_clock = a["field_versions"]["transfer_id"]
         .as_str()
@@ -412,11 +427,7 @@ pub fn patch(
         let targets = composition::field_rows(db, b, &initial, &field, sync)?;
         let mut winning = order::ZERO.to_owned();
         for target in &targets {
-            if target["reconciled"] == true {
-                return Err(Error::conflict(
-                    "Unlock the affected split and transfer entries before editing",
-                ));
-            }
+            protection::protect_group(db, b, target, authorization.as_ref())?;
             winning = winning.max(
                 target["field_versions"][&field]
                     .as_str()
@@ -427,9 +438,7 @@ pub fn patch(
                 && let Some(parent) = target["parent_id"].as_str()
             {
                 let parent = ledger::get(db, b, parent)?;
-                if parent["reconciled"] == true {
-                    return Err(Error::conflict("Unlock the split before editing"));
-                }
+                protection::protect(&parent, authorization.as_ref())?;
                 winning = winning.max(
                     parent["field_versions"]["amount"]
                         .as_str()
@@ -600,7 +609,7 @@ pub fn delete(db: &Connection, b: &str, id: &str, clock: &str) -> Result<Value, 
     }
     for rid in [id, &other] {
         if rid == other && !z["parent_id"].is_null() {
-            composition::guard(db, b, &z, clock)?;
+            composition::guard(db, b, &z, clock, None)?;
             composition::detach(db, b, rid, clock)?;
             continue;
         }
@@ -731,6 +740,7 @@ pub fn detach_for_account_deletion(
 ) -> Result<(), Error> {
     if let Some(other) = counterpart(db, b, id)? {
         let row = ledger::get_any(db, b, &other)?;
+        protection::protect_group(db, b, &row, None)?;
         if newer(&row, clock) {
             return Err(Error::conflict(
                 "A newer counterpart edit prevents account deletion",

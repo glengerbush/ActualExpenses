@@ -62,7 +62,12 @@ future compaction requires an explicit acknowledgement protocol.
 Budget/account IDs are caller-assigned canonical lowercase UUIDs. Account IDs are
 budget-scoped. Money is signed integer minor units, limited to JavaScript's exact
 integer range. Dates are calendar dates `YYYY-MM-DD`, years 0001–9999. Names allow
-120 characters, notes 10000, request bodies 65536 bytes. Transaction pages are
+120 characters, notes 10000, ordinary request bodies 65536 bytes. Split mutations
+accept up to 100000 allocations and 64 MiB JSON (matching the accepted import row
+and expanded-archive bounds). Sparse `changes: { upsert, remove }` avoids sending
+unchanged allocations; remainder allocation runs on the entire aggregate.
+The browser renders 20 allocations per page, with direct navigation to any split.
+See [split editing](SPLITS.md) for resource bounds and retry semantics. Transaction pages are
 bounded to 1000 entries and offset 1000000. Budget/account lists include all items.
 
 Nonzero opening balances create real cleared, unreconciled transactions with a

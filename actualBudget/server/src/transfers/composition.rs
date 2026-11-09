@@ -2,15 +2,22 @@
 use super::*;
 use std::collections::BTreeSet;
 
-pub fn guard(db: &Connection, b: &str, row: &Value, clock: &str) -> Result<(), Error> {
-    if row["reconciled"] == true || newer(row, clock) {
+pub fn guard(
+    db: &Connection,
+    b: &str,
+    row: &Value,
+    clock: &str,
+    authorization: Option<&protection::Authorization>,
+) -> Result<(), Error> {
+    protection::protect_group(db, b, row, authorization)?;
+    if newer(row, clock) {
         return Err(Error::conflict(
             "A reconciled or newer transfer entry prevents changing this split. Refresh and review both accounts.",
         ));
     }
     if let Some(parent) = row["parent_id"].as_str() {
-        let parent = ledger::get(db, b, parent)?;
-        if parent["reconciled"] == true || newer(&parent, clock) {
+        let parent_newer: bool = db.query_row("SELECT EXISTS(SELECT 1 FROM field_versions WHERE budget_id=?1 AND entity='transactions' AND entity_id=?2 AND clock>?3)",params![b,parent,clock],|r|r.get(0))?;
+        if parent_newer {
             return Err(Error::conflict(
                 "A reconciled or newer split prevents this transfer change. Refresh the split.",
             ));
@@ -44,10 +51,11 @@ pub fn guard_children(
     b: &str,
     children: &[Value],
     clock: &str,
+    authorization: Option<&protection::Authorization>,
 ) -> Result<(), Error> {
     for child in children {
         if let Some(peer) = child["transfer_id"].as_str() {
-            guard(db, b, &ledger::get(db, b, peer)?, clock)?;
+            guard(db, b, &ledger::get(db, b, peer)?, clock, authorization)?;
         }
     }
     Ok(())
@@ -131,10 +139,16 @@ pub fn apply_field(
 
 /// Delete an allocation's paired ordinary row, or detach a paired allocation.
 /// The caller owns removing/reallocating the local child and its parent's total.
-pub fn remove_child(db: &Connection, b: &str, id: &str, clock: &str) -> Result<(), Error> {
+pub fn remove_child(
+    db: &Connection,
+    b: &str,
+    id: &str,
+    clock: &str,
+    authorization: Option<&protection::Authorization>,
+) -> Result<(), Error> {
     if let Some(peer) = counterpart(db, b, id)? {
         let row = ledger::get(db, b, &peer)?;
-        guard(db, b, &row, clock)?;
+        guard(db, b, &row, clock, authorization)?;
         if row["parent_id"].is_null() {
             db.execute(
                 "UPDATE transactions SET tombstone=1 WHERE budget_id=?1 AND id=?2",
@@ -165,6 +179,7 @@ pub fn save_child(
     destination: &str,
     peer_id: &str,
     clock: &str,
+    authorization: Option<&protection::Authorization>,
 ) -> Result<(), Error> {
     let row = ledger::get(db, b, id)?;
     let from = row["account_id"].as_str().unwrap();
@@ -187,14 +202,14 @@ pub fn save_child(
         account(db, b, destination)?
     };
     if existing.as_deref().is_some_and(|old| old != peer_id) {
-        remove_child(db, b, id, clock)?;
+        remove_child(db, b, id, clock, authorization)?;
         existing = None;
     }
     let payee_from = payee(db, b, destination)?;
     let payee_to = payee(db, b, from)?;
     if let Some(peer) = existing {
         let other = ledger::get(db, b, &peer)?;
-        guard(db, b, &other, clock)?;
+        guard(db, b, &other, clock, authorization)?;
         if other["account_id"] != destination {
             return Err(Error::invalid(
                 "Unlink this split before choosing another transfer account",
@@ -225,7 +240,7 @@ pub fn save_child(
             for target in field_rows(db, b, &[id], "date", true)? {
                 // Local split clocks were just stamped; check only foreign aggregates.
                 if target["account_id"] != row["account_id"] {
-                    guard(db, b, &target, clock)?;
+                    guard(db, b, &target, clock, authorization)?;
                 }
                 apply_field(
                     db,
@@ -286,6 +301,7 @@ pub fn clone_child(
         other["account_id"].as_str().unwrap(),
         &peer_id,
         clock,
+        None,
     )?;
     db.execute("UPDATE transactions SET date=?3,category_id=?4,imported_payee=?5 WHERE budget_id=?1 AND id=?2",params![b,peer_id,other["date"].as_str(),other["category_id"].as_str(),other["imported_payee"].as_str()])?;
     Ok(())
@@ -297,11 +313,12 @@ pub fn promote_only_child(
     parent: &str,
     child: &Value,
     clock: &str,
+    authorization: Option<&protection::Authorization>,
 ) -> Result<(), Error> {
     let Some(peer) = child["transfer_id"].as_str() else {
         return Ok(());
     };
-    guard(db, b, &ledger::get(db, b, peer)?, clock)?;
+    guard(db, b, &ledger::get(db, b, peer)?, clock, authorization)?;
     db.execute(
         "UPDATE transactions SET transfer_id=?3,payee_id=?4,notes=?5 WHERE budget_id=?1 AND id=?2",
         params![

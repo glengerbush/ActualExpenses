@@ -59,6 +59,14 @@ impl Server {
                 .unwrap(),
         }
     }
+    fn restart(mut self) -> Self {
+        self.process.kill().unwrap();
+        self.process.wait().unwrap();
+        Self::with_data(std::mem::replace(
+            &mut self._data,
+            tempfile::tempdir().unwrap(),
+        ))
+    }
     fn get(&self, path: &str) -> Response {
         self.client
             .get(format!("{}{path}", self.url))
@@ -840,4 +848,349 @@ fn removed_parent_payee_changes_only_children_sharing_its_retained_identity() {
             "Unrelated blank child remains blank"
         );
     }
+}
+
+fn imported_large_splits() -> (Server, String, Value) {
+    let server = Server::start();
+    let imported: Value = server
+        .client
+        .post(format!("{}/api/v1/imports/actual", server.url))
+        .header("Idempotency-Key", "large-allocation-import")
+        .header("Content-Type", "application/zip")
+        .body(include_bytes!("../../tests/fixtures/reconciliation-large.zip").to_vec())
+        .send()
+        .unwrap()
+        .json()
+        .unwrap();
+    assert_eq!(imported["data"]["status"], "ready");
+    let activated = server.post(
+        &format!(
+            "/api/v1/imports/{}/activate",
+            imported["data"]["id"].as_str().unwrap()
+        ),
+        "activate-large",
+        json!({}),
+    );
+    assert_eq!(activated.status(), 201, "{}", activated.text().unwrap());
+    let root = format!(
+        "/api/v1/budgets/{}",
+        imported["data"]["budget_id"].as_str().unwrap()
+    );
+    let fixture: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/reconciliation-large.json"
+    ))
+    .unwrap();
+    (server, root, fixture)
+}
+
+#[test]
+fn imported_large_allocations_can_be_replaced_beyond_the_ordinary_body_limit() {
+    let (server, root, fixture) = imported_large_splits();
+    for case in fixture["accounts"].as_array().unwrap() {
+        let count = case["count"].as_u64().unwrap();
+        let path = format!(
+            "{root}/transactions/{}/splits",
+            case["parent"].as_str().unwrap()
+        );
+        let before: Value = server.get(&path).json().unwrap();
+        let children: Vec<Value> = before["data"]["children"].as_array().unwrap().iter().map(|c| json!({"id":c["id"],"amount":c["amount"],"notes":"Edited imported allocation", "payee_id":c["retained_payee_id"], "category_id":c["category_id"]})).collect();
+        let body = json!({"snapshot":before["snapshot"],"children":children});
+        if count == 1001 {
+            assert!(body.to_string().len() > 65536);
+        }
+        let result = server.post(&path, &format!("replace-{count}"), body.clone());
+        assert_eq!(result.status(), 200, "{}", result.text().unwrap());
+        let receipt: Value = server
+            .post(&path, &format!("replace-{count}"), body)
+            .json()
+            .unwrap();
+        let after: Value = server.get(&path).json().unwrap();
+        assert_eq!(receipt["data"], after["data"]);
+        assert_eq!(after["data"]["amount"], -i64::try_from(count).unwrap());
+        assert_eq!(
+            after["data"]["children"].as_array().unwrap().len() as u64,
+            count
+        );
+        for (old, new) in before["data"]["children"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .zip(after["data"]["children"].as_array().unwrap())
+        {
+            assert_eq!(new["id"], old["id"]);
+            assert_eq!(new["amount"], -1);
+            assert_eq!(new["notes"], "Edited imported allocation");
+            assert_eq!(new["category_id"], old["category_id"]);
+        }
+    }
+}
+
+#[test]
+fn sparse_imported_allocations_redistribute_remove_duplicate_and_detach_atomically() {
+    let (server, root, fixture) = imported_large_splits();
+    let case = &fixture["accounts"][1];
+    let path = format!(
+        "{root}/transactions/{}/splits",
+        case["parent"].as_str().unwrap()
+    );
+    let payee = "14000000-0000-4000-8000-000000000010";
+    let category = "14000000-0000-4000-8000-000000000011";
+    assert_eq!(
+        server
+            .post(
+                &format!("{root}/payees"),
+                "large-payee",
+                json!({"id":payee,"name":"Allocation payee"})
+            )
+            .status(),
+        201
+    );
+    assert_eq!(
+        server
+            .post(
+                &format!("{root}/categories"),
+                "large-category",
+                json!({"id":category,"name":"Allocation category","is_income":false})
+            )
+            .status(),
+        201
+    );
+    let before: Value = server.get(&path).json().unwrap();
+    let children = before["data"]["children"].as_array().unwrap();
+    let first = children[0]["id"].as_str().unwrap();
+    let last = children[1000]["id"].as_str().unwrap();
+    let body = json!({"snapshot":before["snapshot"],"allocation":"even","changes":{"upsert":[{"id":first,"amount":0,"notes":"Only this allocation changed","payee_id":payee,"category_id":category}],"remove":[last]}});
+    assert!(body.to_string().len() < 512);
+    let response = server.post(&path, "sparse-remove", body.clone());
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let receipt: Value = server.post(&path, "sparse-remove", body).json().unwrap();
+    let after: Value = server.get(&path).json().unwrap();
+    assert_eq!(receipt["data"], after["data"]);
+    let changed = after["data"]["children"].as_array().unwrap();
+    assert_eq!(changed.len(), 1000);
+    assert_eq!(changed[0]["amount"], -2);
+    assert_eq!(changed[0]["payee_id"], payee);
+    assert_eq!(changed[0]["category_id"], category);
+    assert_eq!(changed[0]["notes"], "Only this allocation changed");
+    assert_eq!(changed[999]["id"], children[999]["id"]);
+    assert_eq!(changed[999]["notes"], children[999]["notes"]);
+    assert_eq!(after["data"]["amount"], -1001);
+    // Duplicate IDs/unknown removals and invalid sums fail without partial field edits.
+    for (name, changes) in [
+        ("unknown-remove", json!({"remove":[last]})),
+        (
+            "duplicate-upsert",
+            json!({"upsert":[{"id":first,"amount":-2},{"id":first,"amount":-2}]}),
+        ),
+        (
+            "remove-upsert",
+            json!({"upsert":[{"id":first,"amount":-2}],"remove":[first]}),
+        ),
+        ("bad-sum", json!({"upsert":[{"id":first,"amount":1}]})),
+    ] {
+        let failed = server.post(&path,name,json!({"snapshot":after["snapshot"],"changes":changes,"fields":{"notes":"must roll back"}}));
+        assert_eq!(failed.status(), 400, "{}", failed.text().unwrap());
+        assert_eq!(server.get(&path).json::<Value>().unwrap(), after);
+    }
+    let duplicate_id = "14000000-0000-4000-8000-000000000001";
+    let duplicate_path = format!(
+        "{root}/transactions/{}/duplicate",
+        case["parent"].as_str().unwrap()
+    );
+    let duplicated = server.post(
+        &duplicate_path,
+        "duplicate-large",
+        json!({"id":duplicate_id}),
+    );
+    assert_eq!(duplicated.status(), 201, "{}", duplicated.text().unwrap());
+    let duplicate: Value = server
+        .get(&format!("{root}/transactions/{duplicate_id}/splits"))
+        .json()
+        .unwrap();
+    assert_eq!(duplicate["data"]["amount"], -1001);
+    assert_eq!(
+        duplicate["data"]["children"].as_array().unwrap().len(),
+        1000
+    );
+    for (source, copy) in changed
+        .iter()
+        .zip(duplicate["data"]["children"].as_array().unwrap())
+    {
+        assert_ne!(source["id"], copy["id"]);
+        assert_eq!(source["amount"], copy["amount"]);
+        assert_eq!(source["notes"], copy["notes"]);
+        assert_eq!(source["payee_id"], copy["payee_id"]);
+        assert_eq!(source["category_id"], copy["category_id"]);
+        assert_eq!(copy["reconciled"], false);
+        assert_eq!(copy["cleared"], false);
+    }
+    let current: Value = server.get(&path).json().unwrap();
+    let detached: Vec<Value> = changed[899..].iter().map(|c| c["id"].clone()).collect();
+    let result = server.post(
+        &path,
+        "detach-many",
+        json!({"snapshot":current["snapshot"],"action":"unsplit","detach":detached}),
+    );
+    assert_eq!(result.status(), 200, "{}", result.text().unwrap());
+    let remaining: Value = server.get(&path).json().unwrap();
+    assert_eq!(remaining["data"]["amount"], -900);
+    assert_eq!(remaining["data"]["children"].as_array().unwrap().len(), 899);
+    let register: Value = server
+        .get(&format!(
+            "{root}/transactions?account_id={}",
+            case["account"].as_str().unwrap()
+        ))
+        .json()
+        .unwrap();
+    assert_eq!(register["balances"]["total"], -2002);
+    // Companion eligibility stays strict after edits/duplication; detached ordinary rows are eligible.
+    let companion: Value = server
+        .get(&format!(
+            "{root}/companion?account_id={}&retain={},{},{}",
+            case["account"].as_str().unwrap(),
+            case["parent"].as_str().unwrap(),
+            duplicate_id,
+            first
+        ))
+        .json()
+        .unwrap();
+    assert_eq!(companion["data"]["retained"], json!([]));
+    assert_eq!(
+        companion["data"]["unavailable"].as_array().unwrap().len(),
+        3
+    );
+}
+
+#[test]
+fn sparse_large_protection_receipts_cancellation_and_native_epochs_stay_atomic() {
+    let (mut server, root, fixture) = imported_large_splits();
+    let case = &fixture["accounts"][1];
+    let path = format!(
+        "{root}/transactions/{}/splits",
+        case["parent"].as_str().unwrap()
+    );
+    let reconciliation = format!(
+        "{root}/accounts/{}/reconciliation",
+        case["account"].as_str().unwrap()
+    );
+    let preview: Value = server.get(&reconciliation).json().unwrap();
+    let lock = server.post(&reconciliation,"lock-large",json!({"action":"lock","snapshot":preview["data"]["snapshot"],"statement_balance":-1001,"date":"2026-02-28"}));
+    assert_eq!(lock.status(), 200, "{}", lock.text().unwrap());
+    let before: Value = server.get(&path).json().unwrap();
+    let child = before["data"]["children"][1000]["id"].as_str().unwrap();
+    let mut body = json!({"snapshot":before["snapshot"],"changes":{"upsert":[{"id":child,"amount":-1,"notes":"Protected final allocation"}]}});
+    let refusal = server.post(&path, "no-proof", body.clone());
+    assert_eq!(refusal.status(), 409, "{}", refusal.text().unwrap());
+    assert_eq!(server.get(&path).json::<Value>().unwrap(), before);
+    body["confirm_reconciled"] = json!(true);
+    body["reconciliation_token"] = before["reconciliation_token"].clone();
+    let response = server.post(&path, "protected-sparse", body.clone());
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let receipt: Value = response.json().unwrap();
+    assert!(
+        receipt["data"]["children"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|c| c["reconciled"] == true)
+    );
+    let current: Value = server.get(&path).json().unwrap();
+    let mut stale = body.clone();
+    stale["snapshot"] = current["snapshot"].clone();
+    assert_eq!(server.post(&path, "stale-protection", stale).status(), 409);
+    assert_eq!(server.get(&path).json::<Value>().unwrap(), current);
+    server = server.restart();
+    assert_eq!(
+        server
+            .post(&path, "protected-sparse", body.clone())
+            .json::<Value>()
+            .unwrap(),
+        receipt
+    );
+    let mut canceled = body.clone();
+    canceled["snapshot"] = current["snapshot"].clone();
+    canceled["reconciliation_token"] = current["reconciliation_token"].clone();
+    canceled["changes"]["upsert"][0]["notes"] = json!("Canceled large edit");
+    let cancellation = server
+        .client
+        .post(format!("{}{path}", server.url))
+        .header("Idempotency-Key", "cancel-large-sparse")
+        .header("X-Actual-Cancel-If-Uncommitted", "true")
+        .json(&canceled)
+        .send()
+        .unwrap();
+    assert_eq!(cancellation.status(), 409);
+    assert_eq!(
+        cancellation.json::<Value>().unwrap()["error"]["code"],
+        "operation_canceled"
+    );
+    server = server.restart();
+    assert_eq!(
+        server
+            .post(&path, "cancel-large-sparse", canceled.clone())
+            .json::<Value>()
+            .unwrap()["error"]["code"],
+        "operation_canceled"
+    );
+    assert_eq!(server.get(&path).json::<Value>().unwrap(), current);
+    let backup = server.post(
+        &format!("{root}/backups"),
+        "large-native",
+        json!({"label":"Large split allocation"}),
+    );
+    assert_eq!(backup.status(), 201, "{}", backup.text().unwrap());
+    let backup: Value = backup.json().unwrap();
+    let bytes = server
+        .get(&format!(
+            "{root}/backups/{}/download",
+            backup["data"]["id"].as_str().unwrap()
+        ))
+        .bytes()
+        .unwrap();
+    let target = Server::start();
+    let upload = target
+        .client
+        .post(format!("{}/api/v1/restores", target.url))
+        .header("Idempotency-Key", "large-native-stage")
+        .header("Content-Type", "application/zip")
+        .body(bytes.to_vec())
+        .send()
+        .unwrap();
+    assert_eq!(upload.status(), 201, "{}", upload.text().unwrap());
+    let staged: Value = upload.json().unwrap();
+    let activate = target.post(
+        &format!(
+            "{root}/restores/{}/activate",
+            staged["data"]["id"].as_str().unwrap()
+        ),
+        "large-native-activate",
+        json!({"confirm_name":"Large reconciled imports"}),
+    );
+    assert_eq!(activate.status(), 200, "{}", activate.text().unwrap());
+    let target = target.restart();
+    let restored: Value = target.get(&path).json().unwrap();
+    assert_eq!(restored["data"], current["data"]);
+    assert_ne!(restored["epoch"], current["epoch"]);
+    assert_eq!(
+        target
+            .post(&path, "protected-sparse", body)
+            .json::<Value>()
+            .unwrap(),
+        receipt
+    );
+    canceled["snapshot"] = restored["snapshot"].clone();
+    let fenced = target
+        .client
+        .post(format!("{}{path}", target.url))
+        .header("Idempotency-Key", "stale-epoch-sparse")
+        .header("X-Actual-Budget-Epoch", current["epoch"].as_str().unwrap())
+        .json(&canceled)
+        .send()
+        .unwrap();
+    assert_eq!(fenced.status(), 409);
+    assert_eq!(
+        fenced.json::<Value>().unwrap()["error"]["code"],
+        "budget_restored"
+    );
+    assert_eq!(target.get(&path).json::<Value>().unwrap(), restored);
 }

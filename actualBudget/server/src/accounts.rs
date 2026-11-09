@@ -447,6 +447,7 @@ fn execute(
                     .query_map(params![b, id], |r| r.get::<_, String>(0))?
                     .collect::<Result<Vec<_>, _>>()?;
                 for tx in ids {
+                    crate::reconciliation::protect(&crate::ledger::get(db, b, &tx)?, None)?;
                     crate::transfers::detach_for_account_deletion(db, b, &tx, &clock)?;
                     db.execute(
                         "UPDATE transactions SET tombstone=1 WHERE budget_id=?1 AND id=?2",

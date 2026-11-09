@@ -34,3 +34,62 @@ Combined acceptance still requires root's transfer/reconciliation/large-split jo
 Final private results: 11/11 HTTP bulk/history tests passed; `cargo clippy --locked --all-targets -- -D warnings` passed; format/diff checks passed. Browser bulk/history, register, register-recovery, concurrency, accounts, categories, payees/tags, metadata clock recovery, register settings and foundational creation/recovery suites passed. Existing request-count assertion now excludes auxiliary history reads, preserving its cursor-only register check. Existing split lost-response proxy forwards and compares the captured history owner; assertions wait for editor closure rather than previously visible unchanged register text.
 
 Final split browser regression passed, including immutable retry, stale-tab ownership, unsplit protection, retained removed-payee references and mobile layouts. Final changed-file Prettier check passed. The verified temporary node_modules symlink was removed before freeze; screenshot artifacts remain available locally for root review.
+
+## Financial composition — schema15, 2026-11-09
+
+Composed bulk/history checkpoint `f9e53f0` with sparse/protected transfer graph
+checkpoint `936ec6b`. Reconciliation12, transfer13 and locations14 precede
+history15. Transfer create/link and reconciliation/unlock now use the same owned
+receipt wrapper as ordinary/split mutations. Browser forms capture the durable
+engine owner before saving a new pending request; saved legacy requests retain
+their original absent owner. Exact retry/cancel/receipt identity stays immutable.
+
+Journal evidence captures the union of complete connected before/after active
+reciprocal-transfer/split components once per action. Exact row identities, all
+field versions and separate raw reconciliation generations guard inverses.
+Only explicitly captured IDs authorize protected inverse touches. A newer peer
+field, relationship, membership or lock refuses all writes and leaves the action
+cursor unchanged. Own unlock followed by undo cannot alias away a newer lock
+generation to authorize an earlier action. After a successful inverse, guards
+refresh for that same action's next navigation. Transfers are validated after
+the complete inverse. Ordinary field-only edits retain their existing unrelated
+newer-note merge behavior. Sparse expansion preserves untouched transfer fields.
+
+Public red/green: transfer creation initially failed the missing-history assertion
+(`/tmp/history-financial-red.log`); final creation/undo/redo and reconciliation
+lock/undo/redo pass. Both-leg selected deletion initially returned409
+(`/tmp/history-both-selected-red.log`); the exact pinned desktop message oracle
+`generate-bulk-transfer-pairs.mjs` shows two selected duplicate legs create TWO
+fresh pairs, while deleting both original legs succeeds. The rewrite preserves
+that duplication outcome and skips only roots removed by an earlier leg in the
+same deletion transaction, after every original selection was read live. Public
+financial assertions compare the executed fixture, then undo deletion.
+
+`cargo test --manifest-path actualBudget/server/Cargo.toml --test bulk_history`:
+18 pass (`/tmp/history-composed-final.log`), including confirmed protected pair
+undo/redo, remote peer-note/relock and own-unlock-inverse refusal,1001-child
+sparse edit/undo/redo/exact receipt replay, and genuine schema14 upgrade/archive.
+The schema14 fixtures were generated through immutable main `e9d4725` executable
+using public endpoints, with executable SHA256 recorded in fixture metadata.
+Original transfer/reconciliation/location receipts, ready source, protected rows
+and native archive survive; engine history remains excluded from portability.
+
+Large debug qualification uses a bounded30s timeout matching the existing
+1001-member transfer harness; no financial assertions were removed. Profiling
+found repeated graph/lineage work: adjacency/components now build once per action,
+lineage lookup batches per row, and row/version/seed statements are cached.
+Measured one debug1001 sparse POST at3.24s (operation1.10s, capture2.14s); inverse
+redo crossed the former generic5s client timeout. The final18-case run took16.32s
+total. These measurements are host/load dependent and are not product latency
+claims. A lightweight budget edge scan remains linear per owned action.
+Lineage storage still retains old inverse aliases; pruning/bounding those aliases
+needs separate qualification and is not claimed here.
+
+Paired-protection, reconciliation and bulk/history browser workflows pass
+(`/tmp/history-{paired,reconciliation,bulk}-browser.log`), including owner capture
+and identical owner on lost acknowledgement/reload/retry, and public history
+availability. Svelte check/build, autofixers, Clippy, served OpenAPI and detector
+pass (`/tmp/history-composed-*`). Existing bulk Impeccable finish review: ship;
+documenter found no changes, after five composed captures and two detail crops.
+Incumbent Operate design retained, no new shipping rasters. Root owns independent
+delta review and the stable-batch full suite/container qualification.

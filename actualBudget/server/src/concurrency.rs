@@ -41,7 +41,7 @@ fn now_ms() -> Result<i64, Error> {
     )
     .map_err(Error::internal)
 }
-fn parse_clock(value: &str) -> Result<(i64, u32), Error> {
+pub(crate) fn parse_clock(value: &str) -> Result<(i64, u32), Error> {
     let invalid = || {
         Error::new(
             StatusCode::BAD_REQUEST,
@@ -161,11 +161,9 @@ pub fn seed_field_version(
     clock: &str,
 ) -> Result<(), Error> {
     parse_clock(clock)?;
-    db.execute("INSERT INTO field_versions(budget_id,entity,entity_id,field,clock) VALUES(?1,?2,?3,?4,?5) ON CONFLICT(budget_id,entity,entity_id,field) DO UPDATE SET clock=excluded.clock WHERE excluded.clock>field_versions.clock",params![budget,entity,id,field,clock])?;
-    db.execute(
-        "UPDATE budget_sync SET clock=?2 WHERE budget_id=?1 AND clock<?2",
-        params![budget, clock],
-    )?;
+    db.prepare_cached("INSERT INTO field_versions(budget_id,entity,entity_id,field,clock) VALUES(?1,?2,?3,?4,?5) ON CONFLICT(budget_id,entity,entity_id,field) DO UPDATE SET clock=excluded.clock WHERE excluded.clock>field_versions.clock")?.execute(params![budget,entity,id,field,clock])?;
+    db.prepare_cached("UPDATE budget_sync SET clock=?2 WHERE budget_id=?1 AND clock<?2")?
+        .execute(params![budget, clock])?;
     Ok(())
 }
 pub fn stamp_new_transaction(db: &Connection, budget: &str, id: &str) -> Result<(), Error> {
@@ -188,16 +186,6 @@ pub fn versions(db: &Connection, budget: &str, id: &str) -> Result<Value, Error>
         values.insert(k, json!(v));
     }
     Ok(Value::Object(values))
-}
-pub fn decorate(db: &Connection, budget: &str, mut row: Value) -> Result<Value, Error> {
-    row["field_versions"] = versions(
-        db,
-        budget,
-        row["id"]
-            .as_str()
-            .ok_or_else(|| Error::internal("Missing transaction ID"))?,
-    )?;
-    Ok(row)
 }
 pub fn mark(db: &Connection, budget: &str, entity: &str, id: &str) -> Result<(), Error> {
     db.execute(
@@ -355,8 +343,16 @@ pub fn execute(
                         child["id"].as_str().unwrap(),
                         &edit_clock,
                     )?;
-                    crate::splits::stamp(db, budget, child["id"].as_str().unwrap(), &edit_clock)?;
                 }
+                crate::splits::stamp_many(
+                    db,
+                    budget,
+                    &children
+                        .iter()
+                        .map(|child| child["id"].as_str().unwrap())
+                        .collect::<Vec<_>>(),
+                    &edit_clock,
+                )?;
             }
             for field in FIELDS {
                 seed_field_version(db, budget, "transactions", &id, field, &edit_clock)?;
@@ -392,9 +388,33 @@ pub fn execute(
                     ));
                 }
             };
+            let transfer_proof = match patch
+                .as_object_mut()
+                .and_then(|p| p.remove("transfer_protection_token"))
+            {
+                None => None,
+                Some(Value::String(token)) if confirmed => Some(token),
+                _ => {
+                    return Err(Error::invalid(
+                        "transfer_protection_token requires confirm_reconciled=true",
+                    ));
+                }
+            };
             let hidden = deleted(db, budget, &id)?;
             if !hidden && crate::transfers::counterpart(db, budget, &id)?.is_some() {
-                return crate::transfers::patch(db, budget, &id, patch, &edit_clock);
+                return crate::transfers::patch(
+                    db,
+                    budget,
+                    &id,
+                    patch,
+                    &edit_clock,
+                    transfer_proof.as_deref(),
+                );
+            }
+            if transfer_proof.is_some() {
+                return Err(Error::invalid(
+                    "Transfer protection proof requires an active transfer",
+                ));
             }
             // Retired pair references are provenance, never propagation edges.
             // Keep valid local tombstone merges; a stale date-sync choice has no
@@ -525,7 +545,13 @@ pub fn execute(
             }
             let previous = ledger::get(db, budget, &id)?;
             if let Some(children) = previous["children"].as_array() {
-                crate::transfers::composition::guard_children(db, budget, children, &edit_clock)?;
+                crate::transfers::composition::guard_children(
+                    db,
+                    budget,
+                    children,
+                    &edit_clock,
+                    None,
+                )?;
             }
             ledger::delete(db, budget, &id)?;
             if let Some(children) = previous["children"].as_array() {

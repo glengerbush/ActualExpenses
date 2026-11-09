@@ -134,6 +134,18 @@ pub fn apply(
     };
     let mut outcomes = vec![];
     for (root, (parent, index)) in groups {
+        // Every selected group was read live before writes. A now-deleted root
+        // therefore belongs to the earlier leg of this same atomic deletion.
+        if input.action == "delete" {
+            let active: bool = db.query_row(
+                "SELECT tombstone=0 FROM transactions WHERE budget_id=?1 AND id=?2",
+                rusqlite::params![budget, root],
+                |r| r.get(0),
+            )?;
+            if !active {
+                continue;
+            }
+        }
         let mutation = if input.action == "duplicate" {
             sync::Mutation::Duplicate(root.clone(), input.duplicate_ids[index].clone())
         } else if input.action == "delete" && selected.contains(root.as_str()) {
@@ -156,6 +168,10 @@ pub fn apply(
                     continue;
                 }
                 let mut data = json!({"id":id,"amount":child["amount"],"payee_id":child.get("retained_payee_id").unwrap_or(&child["payee_id"]),"category_id":category.as_ref().unwrap_or(&child["category_id"]),"notes":child["notes"]});
+                if let Some(peer) = child["transfer_id"].as_str() {
+                    data["transfer_account_id"] = child["transfer_account_id"].clone();
+                    data["counterpart_id"] = json!(peer);
+                }
                 if chosen && input.action == "update" {
                     let child_patch = patch(child)?;
                     for (field, value) in child_patch.as_object().unwrap() {
@@ -189,6 +205,8 @@ pub fn apply(
                     confirm_reconciled: false,
                     reconciled_versions: BTreeMap::new(),
                     reconciliation_token: None,
+                    transfer_protection_token: None,
+                    changes: None,
                     fields: if fields.as_object().unwrap().is_empty() {
                         None
                     } else {

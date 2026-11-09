@@ -1,6 +1,7 @@
 //! Durable, opt-in engine history. Capture authoritative rows only; totals and
 //! cursors are recomputed. Receipt replay never enters capture a second time.
 mod bulk;
+mod graph;
 mod journal;
 mod routes;
 use crate::{error::Error, models::validate_id};

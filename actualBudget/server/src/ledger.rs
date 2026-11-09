@@ -265,15 +265,10 @@ pub fn get(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
     get_any(db, budget, id)
 }
 pub fn get_any(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
-    let row = db
-        .query_row(
-            &format!("{SELECT} WHERE t.budget_id=?1 AND t.id=?2"),
-            params![budget, id],
-            row,
-        )
-        .optional()?
-        .ok_or_else(Error::missing)?;
-    crate::splits::decorate(db, budget, crate::concurrency::decorate(db, budget, row)?)
+    get_many(db, budget, &[id.to_owned()])?
+        .into_iter()
+        .next()
+        .ok_or_else(Error::missing)
 }
 pub struct RegisterFilters<'a> {
     pub account: Option<&'a str>,
@@ -436,7 +431,7 @@ pub fn duplicate(db: &Connection, budget: &str, source: &str, id: &str) -> Resul
         )?;
         for child in previous["children"].as_array().unwrap() {
             let child_id = uuid::Uuid::new_v4().to_string();
-            db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,notes,payee_id,category_id,sort_order,parent_id,imported_payee) VALUES(?1,?2,?3,?4,?5,0,?6,?7,?8,?9,?10,?11)",params![budget,child_id,child["account_id"].as_str(),child["amount"].as_i64(),child["date"].as_str(),child["notes"].as_str(),child["payee_id"].as_str(),child["category_id"].as_str(),child["sort_order"].as_i64(),id,child["imported_payee"].as_str()])?;
+            db.prepare_cached("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,notes,payee_id,category_id,sort_order,parent_id,imported_payee) VALUES(?1,?2,?3,?4,?5,0,?6,?7,?8,?9,?10,?11)")?.execute(params![budget,child_id,child["account_id"].as_str(),child["amount"].as_i64(),child["date"].as_str(),child["notes"].as_str(),child["payee_id"].as_str(),child["category_id"].as_str(),child["sort_order"].as_i64(),id,child["imported_payee"].as_str()])?;
         }
     }
     get(db, budget, id)

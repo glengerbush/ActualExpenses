@@ -1,4 +1,4 @@
-use super::Owner;
+use super::{Owner, graph};
 use crate::{concurrency as sync, error::Error, ledger};
 use axum::http::StatusCode;
 use rusqlite::{
@@ -30,6 +30,8 @@ pub struct Change {
     before_versions: Value,
     after_versions: Value,
     members: Option<Vec<String>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    graph: Vec<graph::Guard>,
 }
 fn columns(db: &Connection, table: &str) -> Result<Vec<String>, Error> {
     if !TABLES.contains(&table) {
@@ -64,31 +66,37 @@ pub fn configure(db: &Connection) -> Result<(), Error> {
     }
     Ok(())
 }
-fn row(db: &Connection, budget: &str, table: &str, id: &str) -> Result<Value, Error> {
-    let columns = columns(db, table)?;
-    Ok(db
-        .query_row(
-            &format!("SELECT * FROM {table} WHERE budget_id=?1 AND id=?2"),
-            params![budget, id],
-            |r| {
-                let mut values = serde_json::Map::new();
-                for (i, column) in columns.iter().enumerate() {
-                    let value = match r.get_ref(i)? {
-                        ValueRef::Null => Value::Null,
-                        ValueRef::Integer(v) => json!(v),
-                        ValueRef::Real(v) => json!(v),
-                        ValueRef::Text(v) => json!(String::from_utf8_lossy(v)),
-                        ValueRef::Blob(_) => return Err(rusqlite::Error::InvalidQuery),
-                    };
-                    values.insert(column.clone(), value);
-                }
-                Ok(Value::Object(values))
-            },
-        )
+pub(super) fn row(db: &Connection, budget: &str, table: &str, id: &str) -> Result<Value, Error> {
+    if !TABLES.contains(&table) {
+        return Err(Error::internal("Unsupported history table"));
+    }
+    let mut query = db.prepare_cached(&format!(
+        "SELECT * FROM {table} WHERE budget_id=?1 AND id=?2"
+    ))?;
+    let columns = query
+        .column_names()
+        .iter()
+        .map(|c| c.to_string())
+        .collect::<Vec<_>>();
+    Ok(query
+        .query_row(params![budget, id], |r| {
+            let mut values = serde_json::Map::new();
+            for (i, column) in columns.iter().enumerate() {
+                let value = match r.get_ref(i)? {
+                    ValueRef::Null => Value::Null,
+                    ValueRef::Integer(v) => json!(v),
+                    ValueRef::Real(v) => json!(v),
+                    ValueRef::Text(v) => json!(String::from_utf8_lossy(v)),
+                    ValueRef::Blob(_) => return Err(rusqlite::Error::InvalidQuery),
+                };
+                values.insert(column.clone(), value);
+            }
+            Ok(Value::Object(values))
+        })
         .optional()?
         .unwrap_or(Value::Null))
 }
-fn versions(
+pub(super) fn versions(
     db: &Connection,
     budget: &str,
     table: &str,
@@ -102,8 +110,9 @@ fn versions(
         "parent_id",
         "reconciled",
         "splits",
+        "transfer_id",
     ];
-    let mut q = db.prepare(
+    let mut q = db.prepare_cached(
         "SELECT field,clock FROM field_versions WHERE budget_id=?1 AND entity=?2 AND entity_id=?3",
     )?;
     for pair in q.query_map(params![budget, table, id], |r| {
@@ -120,7 +129,7 @@ fn versions(
     Ok(Value::Object(values))
 }
 fn members(db: &Connection, budget: &str, id: &str) -> Result<Vec<String>, Error> {
-    Ok(db.prepare("SELECT id FROM transactions WHERE budget_id=?1 AND parent_id=?2 AND tombstone=0 ORDER BY id")?.query_map(params![budget,id],|r|r.get(0))?.collect::<Result<Vec<_>,_>>()?)
+    Ok(db.prepare_cached("SELECT id FROM transactions WHERE budget_id=?1 AND parent_id=?2 AND tombstone=0 ORDER BY id")?.query_map(params![budget,id],|r|r.get(0))?.collect::<Result<Vec<_>,_>>()?)
 }
 fn capture_guard(
     db: &Connection,
@@ -174,6 +183,7 @@ pub fn record(
     label: &str,
     operation: impl FnOnce(&Connection) -> Result<Value, Error>,
 ) -> Result<Value, Error> {
+    let before_edges = graph::edges(db, budget)?;
     db.execute("INSERT INTO history_context VALUES(?1)", [budget])?;
     let result = operation(db)?;
     db.execute("DELETE FROM history_context", [])?;
@@ -245,9 +255,31 @@ pub fn record(
             before_versions,
             after_versions,
             members: None,
+            graph: vec![],
         };
         capture_guard(db, budget, owner, &mut change)?;
         changes.push(change);
+    }
+    let after_edges = graph::edges(db, budget)?;
+    let mut graph_ids = BTreeSet::new();
+    let links = graph::adjacency(&[&before_edges, &after_edges]);
+    let mut visited = BTreeSet::new();
+    for change in changes.iter().filter(|c| c.table == "transactions") {
+        if visited.contains(&change.id) {
+            continue;
+        }
+        let connected = graph::connected(&links, std::slice::from_ref(&change.id));
+        visited.extend(connected.iter().cloned());
+        if connected.len() > 1
+            || change.full
+            || change.fields.iter().any(|f| f == "reconciled")
+            || change.after["reconciled"] == 1
+        {
+            graph_ids.extend(connected);
+        }
+    }
+    if let Some(change) = changes.iter_mut().find(|c| c.table == "transactions") {
+        change.graph = graph::capture(db, budget, owner, &graph_ids)?;
     }
     db.execute("DELETE FROM history_capture", [])?;
     if !changes.is_empty() {
@@ -268,7 +300,7 @@ pub fn state(db: &Connection, budget: &str, owner: &Owner) -> Result<Value, Erro
     }
     Ok(output)
 }
-fn conflict() -> Error {
+pub(super) fn conflict() -> Error {
     Error::new(
         StatusCode::CONFLICT,
         "history_conflict",
@@ -322,6 +354,11 @@ pub fn apply(
     )?;
     let mut changes: Vec<Change> = serde_json::from_str(&saved).map_err(Error::internal)?;
     for c in &changes {
+        graph::verify(db, budget, owner, &c.graph, clock)?;
+    }
+    let captured_protection: BTreeSet<&str> =
+        changes.iter().flat_map(|c| graph::ids(&c.graph)).collect();
+    for c in &changes {
         let current = row(db, budget, &c.table, &c.id)?;
         if versions(
             db,
@@ -368,11 +405,13 @@ pub fn apply(
         }
         if c.table == "transactions"
             && current["reconciled"] == 1
+            && !captured_protection.contains(c.id.as_str())
             && !c.fields.iter().any(|f| f == "reconciled")
         {
             return Err(conflict());
         }
     }
+    let epoch = crate::lifecycle::epoch(db, budget)?;
     let mut accounts = BTreeSet::new();
     for c in &changes {
         let target = if redo { &c.after } else { &c.before };
@@ -451,19 +490,10 @@ pub fn apply(
         for field in stamp_fields {
             sync::seed_field_version(db, budget, &c.table, &c.id, &field, clock)?;
             let lineage = target_versions[&field].as_str().unwrap_or(sync::ZERO);
-            db.execute(
-                "INSERT INTO history_lineage VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",
-                params![
-                    budget,
-                    owner.id,
-                    crate::lifecycle::epoch(db, budget)?,
-                    c.table,
-                    c.id,
-                    field,
-                    clock,
-                    lineage
-                ],
-            )?;
+            db.prepare_cached("INSERT INTO history_lineage VALUES(?1,?2,?3,?4,?5,?6,?7,?8)")?
+                .execute(params![
+                    budget, owner.id, epoch, c.table, c.id, field, clock, lineage
+                ])?;
         }
         sync::mark(db, budget, &c.table, &c.id)?;
         if c.table == "transactions" {
@@ -496,6 +526,7 @@ pub fn apply(
         }
     }
     crate::splits::validate(db, budget).map_err(|_| conflict())?;
+    crate::transfers::validate(db, budget).map_err(|_| conflict())?;
     crate::categories::validate_archive(db, budget).map_err(|_| conflict())?;
     crate::payees_tags::validate_archive(db, budget).map_err(|_| conflict())?;
     let invalid:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id WHERE t.budget_id=?1 AND t.tombstone=0 AND a.tombstone=1)",[budget],|r|r.get(0))?;
@@ -512,6 +543,7 @@ pub fn apply(
     ledger::validate_budget_total(db, budget)?;
     for c in &mut changes {
         capture_guard(db, budget, owner, c)?;
+        c.graph = graph::refresh(db, budget, owner, &c.graph)?;
     }
     db.execute(
         "UPDATE history_actions SET undone=?2,changes=?3 WHERE id=?1",
@@ -526,7 +558,7 @@ pub fn apply(
     )
 }
 
-fn normalize(
+pub(super) fn normalize(
     db: &Connection,
     budget: &str,
     owner: &Owner,
@@ -534,16 +566,23 @@ fn normalize(
     id: &str,
     mut values: Value,
 ) -> Result<Value, Error> {
-    let epoch = crate::lifecycle::epoch(db, budget)?;
     let map = values
         .as_object_mut()
         .ok_or_else(|| Error::internal("Invalid history versions"))?;
+    let mut query=db.prepare_cached("SELECT h.field,h.clock,h.lineage FROM history_lineage h JOIN budget_sync s ON s.budget_id=h.budget_id AND s.epoch=h.epoch WHERE h.budget_id=?1 AND h.owner=?2 AND h.entity=?3 AND h.entity_id=?4")?;
+    let aliases = query
+        .query_map(params![budget, owner.id, table, id], |r| {
+            Ok((
+                (r.get::<_, String>(0)?, r.get::<_, String>(1)?),
+                r.get::<_, String>(2)?,
+            ))
+        })?
+        .collect::<Result<std::collections::BTreeMap<_, _>, _>>()?;
     for (field, value) in map.iter_mut() {
         let clock = value
             .as_str()
             .ok_or_else(|| Error::internal("Invalid history clock"))?;
-        let lineage:Option<String>=db.query_row("SELECT lineage FROM history_lineage WHERE budget_id=?1 AND owner=?2 AND epoch=?3 AND entity=?4 AND entity_id=?5 AND field=?6 AND clock=?7",params![budget,owner.id,epoch,table,id,field,clock],|r|r.get(0)).optional()?;
-        if let Some(lineage) = lineage {
+        if let Some(lineage) = aliases.get(&(field.clone(), clock.to_owned())) {
             *value = json!(lineage);
         }
     }
@@ -554,6 +593,10 @@ fn normalize(
 fn label_for(scope: &str) -> &'static str {
     if scope.contains("/transactions/") && scope.ends_with("/bulk") {
         "Bulk transaction change"
+    } else if scope.ends_with("/reconciliation") || scope.ends_with("/unlock") {
+        "Reconcile account"
+    } else if scope.contains("/transfers") {
+        "Edit transfer"
     } else if scope.ends_with("/splits") {
         "Edit split"
     } else if scope.ends_with("/duplicate") {

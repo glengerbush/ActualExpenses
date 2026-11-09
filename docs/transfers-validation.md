@@ -204,3 +204,67 @@ All42 focused transfer/split/register/concurrency HTTP tests, served OpenAPI, Sv
 Merged reviewed main `963e893` into `da7c0a5`; migration order is register11, reconciliation12, transfers13. Native archive writer/reader and conversion reinspection retain both domains; legacy reconciliation expectations now assert the current report schema13. All35 reconciliation/split/transfer public tests, full reconciliation browser workflow, Svelte checks/autofixer, served OpenAPI, formatting and Clippy pass. Native test cases from both branches are retained.
 
 This checkpoint does not finish paired protection semantics: transfer edits currently require explicit unlock of every affected protected entry; confirmation across both legs and connected split membership needs the next integration pass. Large allocation editing and bulk-history joins remain assigned gates.
+
+## Connected reconciliation protection — 2026-11-09
+
+Transfer edits, linking and split structural recovery capture a complete active
+reciprocal-transfer/split component with a recursive CTE. Sorted member identities,
+relationships, reconciled flags and field versions form a bounded64-hex SHA256
+proof. Authorization is validated inside the receipt transaction before writes;
+protected touches require captured IDs, and original intent HLC must be newer
+than every captured reconciliation version. Membership changes and relocks reject
+stale proofs atomically. Forced account deletion cannot detach protected peers.
+Default proof fields remain omitted from old request receipt serialization.
+
+TransferForm and SplitEditor persist captured proof and clock with the immutable
+request. Confirmation never refreshes a pending retry. Native expense-only edits
+remain refused for transfer rows, even when a transfer proof is supplied.
+
+Existing public red/green evidence: `/tmp/paired15-{red,green}.log`,
+`/tmp/paired15-{split,link}-{red,green}.log`,
+`/tmp/paired15-browser-{red,green}.log`. Focused reconciliation/split/transfer
+HTTP suites pass (`/tmp/paired15-focused-http.log`); transfer suite23 includes
+connected graph changes, locked remote sibling, original-clock refusal,1001-child
+bounded proof and durable replay. Genuine pre-transfer schema12 migration,
+source retention, byte-exact old receipts and native archive roundtrip pass
+(`/tmp/paired15-schema12-{generation,test}.log`). Pinned public Actual oracle
+checks pass (`/tmp/paired15-oracle-check.log`). Native API checks pass
+(`/tmp/paired15-native.log`), including expense-only refusal with supplied proof.
+Svelte check/build, formatting, Clippy and served OpenAPI pass
+(`/tmp/paired15-{check,build,format-web,clippy,contract}.log`).
+
+Large sparse allocation composition and independent corrective review follow
+this checkpoint. Bulk/history and final root acceptance remain separate gates.
+
+## Large allocation composition — 2026-11-09
+
+Merged `cc19d48` into protected-graph checkpoint `0a9a767`. Sparse upsert/remove,
+100000-child ceiling,501-parameter batched stamping/removal and20-row editor
+pagination coexist with typed captured authorization. Batch removal carries the
+authorization through each linked counterpart operation. Untouched transfer
+allocations preserve destination and counterpart identities in sparse expansion.
+A public protected split-transfer regression now edits only an ordinary sibling
+through sparse upsert and checks the unchanged reciprocal amount/identity.
+
+Composition exposed a reproducible public5s split-read timeout: SQLite chose a
+budget scan before each recursive member. Connected-first CROSS JOIN preserves
+member semantics while forcing indexed traversal. Existing sparse imported
+allocation test failed before the correction (`/tmp/integrated14-15-sparse-retry.log`)
+and passed afterward (`/tmp/integrated14-15-sparse-green.log`). No timeout or
+assertion was weakened.
+
+Large allocation, split-transfer and paired-protection browser suites pass:
+`/tmp/integrated14-15-{large,split-transfer,protection}-browser.log`. Desktop/mobile
+captures under `actualBudget/web/test-results/` were inspected; existing layout
+and confirmation flow retained. Svelte check/build/autofixer, Impeccable detector
+(no findings), served OpenAPI and Clippy pass (`/tmp/integrated14-15-*`).
+All27 native public API tests pass (`/tmp/integrated14-15-native.log`).
+Final transfer23 cases, including the new protected sparse sibling check, pass
+(`/tmp/integrated14-15-transfers-final.log`). Split12 cases pass; the remaining
+large native restore activation exceeded the existing5s HTTP timeout both on
+this composition and unchanged `cc19d48` control
+(`/tmp/integrated14-15-{native-restore-retry,restore-control}.log`). The earlier
+`cc19d48` focused run passed that case (`/tmp/integrate14-15-http-pre.log`).
+No assertions or timeouts changed; stable-batch restore qualification remains
+with root. Eight reconciliation cases passed in `/tmp/integrated14-15-http.log`.
+Root owns the final stable-batch broad suite and independent review.

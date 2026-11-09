@@ -527,6 +527,13 @@
             "Refresh preferences before viewing amounts or entering new transactions. Saved requests keep their original amounts.",
           )}
         </p>
+        {#if !preferences.error}<button
+            onclick={() => {
+              if (!budget) return;
+              setReachable(navigator.onLine);
+              void openBudget(budget, account?.id);
+            }}>{t("Retry preferences")}</button
+          >{/if}
       </section>
       {#key budget.id + ":recovery:" + (account?.id ?? "all")}
         <Register

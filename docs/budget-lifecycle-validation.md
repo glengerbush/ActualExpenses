@@ -2,7 +2,7 @@
 
 Public seams: real Rust process HTTP API, browser workflows and exported native artifacts. No destination database queries or mocked financial engine.
 
-- `cargo test --manifest-path actualBudget/server/Cargo.toml`: 58 integration groups passed at the initial integrated08 checkpoint, zero skipped. Two subsequent focused management groups passed (interrupted transfers; automatic retention); final combined run belongs to root qualification.
+- `cargo test --manifest-path actualBudget/server/Cargo.toml`: root final backend run passed all60 public integration tests, zero skipped. Clippy across all targets with warnings denied and rustfmt check passed. Logs: `.scratch/060708-native-final.log`, `.scratch/060708-clippy-final.log`, `.scratch/060708-fmt-final.log`.
 - `--test budget_management`: restore rotates identity, preserves post-backup receipts, restores deleted budgets after restart; portable staging/new-server activation; automatic dirty/idle/restart; independent duplication; genuine schema5 upgrade with all14 exact receipt replays including raw ZIP; imported budget financial/settings/clocks/sourceZIP round-trip; interrupted export/upload with retry; three-current-day automatic retention preserving manual points.
 - Red→green: backup route404 before first slice; automatic deadline never produced a point before worker; genuine schema5 had no usable upgrade point before migration integration; account draft lacked captured epoch before browser guard.
 - `npm run check` and `npm run build` passed. `node tests/budget-epoch-browser.mjs` passed account/settings generation review and explicit fresh reapply, including delayed original rejection after a second restore. The previous date-recovery transaction retry UI changed with ticket07; its owner is adapting that existing test without weakening immutable date/key assertions.
@@ -20,3 +20,5 @@ Native archive/recovery design and future-domain registration are in `actualBudg
 - Fault image:`sha256:3032faf6c7eef828e3f8ffef7ae8cd77bd8d3058a25576aa167fe311b16ca945`,126852391bytes. Test containers, image and volume removed. Logs:`.scratch/060708-container-fault-final.log`. No live volume or deployment touched.
 
 Combined06/07/08 acceptance remains pending: Standards review found an offline-editor reconnect race in07; repair and integrated qualification are required before closure.
+
+Lifecycle UI finish review: initial disposition `fix` identified confirmation focus and missing selected archive filename. `ce1bdd6` resolves both. The browser regression verifies mobile200% confirmation focus/in-view and Cancel focus return; refreshed desktop/mobile archive captures show the filename. Verdict pass: `ship` for the two scored fixes. Documenter checked the source/styles/captures and preserved the incumbent design files; unrelated pre-existing documentation drift was not canonized. The separate07 chained-edit finding and preference-recovery qualification still prevent combined acceptance.

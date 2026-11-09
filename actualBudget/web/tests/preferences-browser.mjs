@@ -406,6 +406,13 @@ try {
   expect(accountWrites.length).toBe(2);
   expect(accountWrites[1]).toEqual(accountWrites[0]);
   expect(JSON.parse(accountWrites[0].body).opening_balance).toBe(1234);
+  await expect(
+    page.getByRole("button", { name: "Retry preferences" }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/preferences-recovery.png",
+    fullPage: true,
+  });
   await page.unroute("**/preferences**");
   await page.unroute(`**/api/v1/budgets/${budget}/accounts`);
   await page.getByRole("button", { name: "Retry preferences" }).click();

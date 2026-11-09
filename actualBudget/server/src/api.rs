@@ -45,8 +45,8 @@ pub fn router(store: Store) -> Router {
             axum::routing::post(duplicate_transaction),
         )
         .merge(crate::accounts::router())
-        .merge(crate::references::router())
         .merge(crate::categories::router())
+        .merge(crate::payees_tags::router())
         .merge(crate::preferences::router())
         .merge(concurrency::router())
         .merge(crate::companion::router())
@@ -141,6 +141,18 @@ async fn cancellation_scope(
                         | "/api/v1/budgets/{budget}/accounts/{id}/move"
                         | "/api/v1/budgets/{budget}/account-groups/{id}/move"
                 )
+                | (
+                    "POST",
+                    "/api/v1/budgets/{budget}/payees"
+                        | "/api/v1/budgets/{budget}/tags"
+                        | "/api/v1/budgets/{budget}/payees/batch"
+                        | "/api/v1/budgets/{budget}/tags/batch"
+                        | "/api/v1/budgets/{budget}/tags/discover"
+                )
+                | (
+                    "PATCH",
+                    "/api/v1/budgets/{budget}/payees/{id}" | "/api/v1/budgets/{budget}/tags/{id}"
+                )
                 | ("PATCH" | "DELETE", "/api/v1/budgets/{budget}")
                 | (
                     "POST",
@@ -165,7 +177,7 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports"],
+        "capabilities": ["budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "tags"],
         "openapi": "/api/v1/openapi.json"
     }))
 }
@@ -259,6 +271,8 @@ async fn create_account(
 #[serde(deny_unknown_fields)]
 struct TransactionQuery {
     account_id: Option<String>,
+    payee_id: Option<String>,
+    tag: Option<String>,
     as_of: Option<String>,
     #[serde(default = "default_limit")]
     limit: u32,
@@ -278,6 +292,12 @@ async fn list_transactions(
     let Query(query) = query.map_err(|_| Error::invalid("Invalid transaction query"))?;
     if let Some(id) = &query.account_id {
         validate_id(id)?;
+    }
+    if let Some(id) = &query.payee_id {
+        validate_id(id)?;
+    }
+    if let Some(tag) = &query.tag {
+        crate::payees_tags::validate_tag(tag)?;
     }
     if let Some(date) = &query.as_of {
         crate::models::validate_date(date)?;
@@ -306,8 +326,12 @@ async fn list_transactions(
                 ledger::list(
                     &read,
                     &budget,
-                    query.account_id.as_deref(),
-                    query.as_of.as_deref(),
+                    ledger::RegisterFilters {
+                        account: query.account_id.as_deref(),
+                        as_of: query.as_of.as_deref(),
+                        payee: query.payee_id.as_deref(),
+                        tag: query.tag.as_deref(),
+                    },
                     query.limit,
                     query.offset,
                     query.snapshot.as_deref(),

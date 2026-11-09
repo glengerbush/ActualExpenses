@@ -32,6 +32,8 @@ errors use `{ "error": { "code": ..., "message": ... } }`.
 - `GET/PATCH/DELETE /api/v1/budgets/{budget}/transactions/{id}`
 - `POST /api/v1/budgets/{budget}/transactions/{id}/duplicate`
 - `GET/POST /api/v1/budgets/{budget}/payees` and `/categories`
+- `GET/PATCH /api/v1/budgets/{budget}/payees/{id}` and `/tags/{id}`
+- `GET/POST /api/v1/budgets/{budget}/tags`; `POST /payees/batch`, `/tags/batch`, `/tags/discover` (budget-scoped)
 - `POST /api/v1/amounts/evaluate`
 - `GET/PATCH /api/v1/budgets/{budget}/preferences`
 - `GET /api/v1/budgets/{budget}/changes?cursor=...`
@@ -110,3 +112,5 @@ overflow rollback, and a genuine schema-1 database upgrade/backup fixture. See
 
 See [ordered edits and change cursors](CONCURRENCY.md) for clock, deletion,
 retention, explicit recovery and Android adapter boundaries.
+
+Payee/tag management, retained identities, filtering and recovery: [PAYEES-TAGS.md](PAYEES-TAGS.md).

@@ -21,6 +21,7 @@ pub const TABLES: &[&str] = &[
     "accounts",
     "payees",
     "category_groups",
+    "tags",
     "categories",
     "transactions",
     "budget_preferences",
@@ -138,7 +139,7 @@ pub fn capture(db: &Connection, budget: &str) -> Result<Vec<u8>, Error> {
     let body = serde_json::to_vec(&state).map_err(Error::internal)?;
     let mut entries = BTreeMap::from([("budget.json".to_owned(), body)]);
     entries.extend(blobs);
-    let manifest = json!({"format":"actualBudget","version":1,"schema_version":8,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
+    let manifest = json!({"format":"actualBudget","version":1,"schema_version":9,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
     if entries.len() + 1 > 1000
         || entries.values().map(Vec::len).sum::<usize>() + manifest.to_string().len() > MAX_EXPANDED
     {
@@ -214,7 +215,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || !matches!(manifest["schema_version"].as_u64(), Some(6..=8))
+        || !matches!(manifest["schema_version"].as_u64(), Some(6..=9))
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }
@@ -348,6 +349,79 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             ]);
         }
     }
+    if manifest["schema_version"].as_u64().unwrap() < 9 {
+        if state.tables.contains_key("tags") {
+            return Err(invalid("Unexpected legacy tags"));
+        }
+        state.tables.insert(
+            "tags".into(),
+            Table {
+                columns: [
+                    "budget_id",
+                    "id",
+                    "tag",
+                    "color",
+                    "description",
+                    "hidden",
+                    "tombstone",
+                ]
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
+                rows: vec![],
+            },
+        );
+        for (name, expected, additions, defaults) in [
+            (
+                "payees",
+                vec!["budget_id", "id", "name"],
+                vec![
+                    "favorite",
+                    "tombstone",
+                    "transfer_account_id",
+                    "category_id",
+                    "merged_into",
+                ],
+                vec![json!(0), json!(0), Value::Null, Value::Null, Value::Null],
+            ),
+            (
+                "transactions",
+                vec![
+                    "budget_id",
+                    "id",
+                    "account_id",
+                    "amount",
+                    "date",
+                    "cleared",
+                    "reconciled",
+                    "starting_balance",
+                    "payee_id",
+                    "category_id",
+                    "notes",
+                    "tombstone",
+                    "sort_order",
+                ],
+                vec!["imported_payee"],
+                vec![Value::Null],
+            ),
+        ] {
+            let table = state
+                .tables
+                .get_mut(name)
+                .ok_or_else(|| invalid("Missing legacy domain"))?;
+            if table.columns.iter().map(String::as_str).collect::<Vec<_>>() != expected
+                || table.rows.iter().any(|r| r.len() != expected.len())
+            {
+                return Err(invalid("Invalid legacy domain shape"));
+            }
+            table
+                .columns
+                .extend(additions.into_iter().map(str::to_owned));
+            for row in &mut table.rows {
+                row.extend(defaults.clone());
+            }
+        }
+    }
     if state.budget["id"] != manifest["budget_id"] {
         return Err(invalid("Budget identity differs from manifest"));
     }
@@ -388,7 +462,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
         .into_iter()
         .filter(|(name, _)| name.starts_with("blobs/"))
         .collect();
-    let validated = Validated {
+    let mut validated = Validated {
         state,
         blobs,
         legacy_category_metadata: matches!(manifest["schema_version"].as_u64(), Some(6 | 7)),
@@ -407,6 +481,42 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     )?;
     install_tables(&staging, &validated)
         .map_err(|e| invalid(format!("Archive data failed validation: {}", e.message)))?;
+    if manifest["schema_version"].as_u64().unwrap() < 9 {
+        crate::imports::backfill_payees_tags(&staging).map_err(|e| invalid(e.message))?;
+        // Only newly supported metadata is backfilled; old native fields, exact
+        // receipts and original source archives remain the supplied snapshot.
+        for table in ["payees", "tags", "transactions", "field_versions"] {
+            let mut query = staging.prepare(&format!(
+                "SELECT * FROM {table} WHERE budget_id=?1 ORDER BY rowid"
+            ))?;
+            let columns = query
+                .column_names()
+                .iter()
+                .map(|v| (*v).to_owned())
+                .collect::<Vec<_>>();
+            let rows = query
+                .query_map([&budget], |r| {
+                    (0..columns.len())
+                        .map(|i| match r.get_ref(i)? {
+                            ValueRef::Null => Ok(Value::Null),
+                            ValueRef::Integer(v) => Ok(json!(v)),
+                            ValueRef::Text(v) => Ok(json!(String::from_utf8_lossy(v))),
+                            _ => Err(rusqlite::Error::InvalidQuery),
+                        })
+                        .collect::<Result<Vec<_>, _>>()
+                })?
+                .collect::<Result<Vec<_>, _>>()?;
+            validated
+                .state
+                .tables
+                .insert(table.into(), Table { columns, rows });
+        }
+        validated.state.clock = staging.query_row(
+            "SELECT clock FROM budget_sync WHERE budget_id=?1",
+            [&budget],
+            |r| r.get(0),
+        )?;
+    }
     validate_financial_state(&staging, &budget)?;
     let mut clocks = staging.prepare("SELECT clock FROM field_versions WHERE budget_id=?1")?;
     for clock in clocks.query_map([&budget], |r| r.get::<_, String>(0))? {
@@ -534,6 +644,7 @@ pub fn validate_financial_state(db: &Connection, budget: &str) -> Result<(), Err
             validate_name(&name).map_err(|e| invalid(e.message))?;
         }
     }
+    crate::payees_tags::validate_archive(db, budget).map_err(|e| invalid(e.message))?;
     let invalid_groups:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM accounts a LEFT JOIN account_groups g ON g.budget_id=a.budget_id AND g.id=a.group_id WHERE a.budget_id=?1 AND a.group_id IS NOT NULL AND (g.id IS NULL OR g.tombstone=1))",[budget],|r|r.get(0))?;
     if invalid_groups {
         return Err(invalid("Invalid account group reference"));

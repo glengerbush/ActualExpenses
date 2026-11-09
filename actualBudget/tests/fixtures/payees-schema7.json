@@ -1,0 +1,135 @@
+{
+  "source_commit": "ae3911b",
+  "budget_id": "4f8c285b-3797-456a-8ed5-55dcb06bbb32",
+  "import_id": "ca3b43a4-3580-4399-9147-bed554e7fb06",
+  "payee_id": "11000000-0000-4000-8000-000000000099",
+  "transaction_id": "04000000-0000-4000-8000-000000000002",
+  "clock": "2026-11-08T20:00:00.000Z-0000-0000000000000011",
+  "patch": {
+    "notes": "Native note #Upgrade after import",
+    "payee_id": "11000000-0000-4000-8000-000000000099",
+    "amount": -1400
+  },
+  "receipt": {
+    "conflicts": [
+      {
+        "field": "amount",
+        "submitted_clock": "2026-11-08T20:00:00.000Z-0000-0000000000000011",
+        "winning_clock": "2026-11-08T23:27:13.822Z-0000-8e9471b631211c5d"
+      },
+      {
+        "field": "notes",
+        "submitted_clock": "2026-11-08T20:00:00.000Z-0000-0000000000000011",
+        "winning_clock": "2026-11-08T23:27:13.823Z-0000-8e9471b631211c5d"
+      },
+      {
+        "field": "payee_id",
+        "submitted_clock": "2026-11-08T20:00:00.000Z-0000-0000000000000011",
+        "winning_clock": "2026-11-08T23:27:13.763Z-0009-8e9471b631211c5d"
+      }
+    ],
+    "cursor": "c1e724584733f161d2f2bd4e3bb51a052e0000000000000012",
+    "data": {
+      "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+      "account_name": "Spending",
+      "amount": -1200,
+      "category_id": "ca062065-44a8-4b6e-b666-89b6ba19b5ff",
+      "category_is_income": false,
+      "category_name": "Food",
+      "cleared": true,
+      "date": "2026-01-02",
+      "field_versions": {
+        "account_id": "2026-11-08T23:27:13.763Z-000D-8e9471b631211c5d",
+        "amount": "2026-11-08T23:27:13.822Z-0000-8e9471b631211c5d",
+        "category_id": "2026-11-08T23:27:13.763Z-000A-8e9471b631211c5d",
+        "cleared": "2026-11-08T23:27:13.823Z-0001-8e9471b631211c5d",
+        "date": "2026-11-08T23:27:13.763Z-0007-8e9471b631211c5d",
+        "notes": "2026-11-08T23:27:13.823Z-0000-8e9471b631211c5d",
+        "payee_id": "2026-11-08T23:27:13.763Z-0009-8e9471b631211c5d",
+        "reconciled": "2026-11-08T23:27:13.763Z-000F-8e9471b631211c5d",
+        "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "id": "04000000-0000-4000-8000-000000000002",
+      "notes": "Corrected expense",
+      "payee_id": "0834e38a-14df-400a-bfd6-29df8258618b",
+      "payee_name": "Fixture shop",
+      "reconciled": false,
+      "sort_order": 4,
+      "starting_balance": false
+    },
+    "edit_clock": "2026-11-08T20:00:00.000Z-0000-0000000000000011"
+  },
+  "payee_receipt": {
+    "data": {
+      "id": "11000000-0000-4000-8000-000000000099",
+      "name": "Native payee after import"
+    }
+  },
+  "activation_receipt": {
+    "data": {
+      "budget_type": "tracking",
+      "id": "4f8c285b-3797-456a-8ed5-55dcb06bbb32",
+      "name": "Disposable actualBudget migration fixture"
+    }
+  },
+  "accounts": {
+    "data": [
+      {
+        "balance": 31434,
+        "closed": false,
+        "deleted": false,
+        "field_versions": {},
+        "group_id": null,
+        "id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+        "name": "Spending",
+        "notes": "",
+        "off_budget": false,
+        "sort_order": 0
+      },
+      {
+        "balance": -5000,
+        "closed": false,
+        "deleted": false,
+        "field_versions": {},
+        "group_id": null,
+        "id": "dbec986e-8154-43b3-86e7-8494d76ff0d3",
+        "name": "Reserve",
+        "notes": "",
+        "off_budget": true,
+        "sort_order": 1
+      }
+    ]
+  },
+  "transaction": {
+    "data": {
+      "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+      "account_name": "Spending",
+      "amount": -1200,
+      "category_id": "ca062065-44a8-4b6e-b666-89b6ba19b5ff",
+      "category_is_income": false,
+      "category_name": "Food",
+      "cleared": true,
+      "date": "2026-01-02",
+      "field_versions": {
+        "account_id": "2026-11-08T23:27:13.763Z-000D-8e9471b631211c5d",
+        "amount": "2026-11-08T23:27:13.822Z-0000-8e9471b631211c5d",
+        "category_id": "2026-11-08T23:27:13.763Z-000A-8e9471b631211c5d",
+        "cleared": "2026-11-08T23:27:13.823Z-0001-8e9471b631211c5d",
+        "date": "2026-11-08T23:27:13.763Z-0007-8e9471b631211c5d",
+        "notes": "2026-11-08T23:27:13.823Z-0000-8e9471b631211c5d",
+        "payee_id": "2026-11-08T23:27:13.763Z-0009-8e9471b631211c5d",
+        "reconciled": "2026-11-08T23:27:13.763Z-000F-8e9471b631211c5d",
+        "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "id": "04000000-0000-4000-8000-000000000002",
+      "notes": "Corrected expense",
+      "payee_id": "0834e38a-14df-400a-bfd6-29df8258618b",
+      "payee_name": "Fixture shop",
+      "reconciled": false,
+      "sort_order": 4,
+      "starting_balance": false
+    }
+  }
+}

@@ -29,6 +29,8 @@
   import AccountForm from "./lib/AccountForm.svelte";
   import AccountView from "./lib/AccountView.svelte";
   import AccountManagement from "./lib/AccountManagement.svelte";
+  import ReferenceManagement from "./lib/ReferenceManagement.svelte";
+  import { readReferenceDraft } from "./lib/reference-actions";
   import AccountNavigation from "./lib/AccountNavigation.svelte";
   import { readAccountDraft, sortedAccounts } from "./lib/account-actions";
   import Register from "./lib/Register.svelte";
@@ -56,6 +58,7 @@
   let error = $state("");
   let recoveryError = $state("");
   let form = $state<
+    | "references"
     | "organize"
     | "budget"
     | "account"
@@ -166,6 +169,11 @@
       }
       saveSelection(value.id, account?.id ?? accountId);
       try {
+        if (readReferenceDraft(value.id)) {
+          form = "references";
+          loading = false;
+          return;
+        }
         if (readAccountDraft(value.id)) {
           form = "organize";
           loading = false;
@@ -256,6 +264,7 @@
   }
   async function showForm(
     value:
+      | "references"
       | "organize"
       | "budget"
       | "account"
@@ -370,6 +379,11 @@
         disabled={!!form || loading || disconnected}>{t("Categories")}</button
       >
       <button
+        onclick={() => showForm("references")}
+        disabled={!!form || loading || disconnected || !compatible}
+        >{t("Payees and tags")}</button
+      >
+      <button
         class={{ current: form === "settings" }}
         aria-current={form === "settings" ? "page" : undefined}
         onclick={() => showForm("settings")}
@@ -462,6 +476,11 @@
         oncreated={budgetCreated}
         oncancel={() => showForm(null)}
       />
+    {:else if form === "references" && budget}{#key budget.id}<ReferenceManagement
+          budgetId={budget.id}
+          onchanged={refreshAccounts}
+          onclose={() => showForm(null)}
+        />{/key}
     {:else if form === "organize" && budget}{#key budget.id}<AccountManagement
           budgetId={budget.id}
           selectedId={account?.id ?? ""}

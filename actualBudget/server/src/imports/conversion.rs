@@ -285,6 +285,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         "accounts",
         "transactions",
         "payees",
+        "tags",
         "payee_mapping",
         "categories",
         "category_groups",
@@ -386,6 +387,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             "accounts",
             "transactions",
             "payees",
+            "tags",
             "categories",
             "category_groups",
             "preferences",
@@ -427,7 +429,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             }
         }
     }
-    let mut converted = json!({"name":name,"budget_type":"envelope","account_groups":[],"accounts":[],"payees":[],"categories":[],"category_groups":[],"transactions":[],"clocks":[]});
+    let mut converted = json!({"name":name,"budget_type":"envelope","account_groups":[],"accounts":[],"payees":[],"tags":[],"categories":[],"category_groups":[],"transactions":[],"clocks":[]});
     // Actual stores fractional ordering. Preserve its order with exact integer ranks.
     let ranked = |table: &str| -> Result<BTreeMap<String, i64>, Error> {
         let mut rows = array(&source, table).iter().collect::<Vec<_>>();
@@ -606,30 +608,22 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             text(row, "name")?
         };
         validate_name(name).map_err(|_| invalid("Invalid source payee name"))?;
-        requirement(
-            &mut requirements,
-            "payee_configuration",
-            usize::from(
-                flag(row, "tombstone")? || flag(row, "favorite")? || !row["category"].is_null(),
-            ),
-            true,
-            "Deleted/favorite payee or legacy category association requires its converter",
-        );
         if !row["transfer_acct"].is_null() {
             transfer_payees.insert(id);
-            continue;
         }
-        converted["payees"]
-            .as_array_mut()
-            .unwrap()
-            .push(json!({"id":id,"name":name}));
+        converted["payees"].as_array_mut().unwrap().push(json!({"id":id,"name":name,"favorite":flag(row,"favorite")?,"tombstone":flag(row,"tombstone")?,"transfer_account_id":row["transfer_acct"],"category_id":row["category"],"merged_into":Value::Null}));
+    }
+    for row in array(&source, "tags") {
+        validate_id(text(row, "id")?)?;
+        crate::payees_tags::validate_tag(text(row, "tag")?)?;
+        converted["tags"].as_array_mut().unwrap().push(json!({"id":row["id"],"tag":row["tag"],"color":row["color"],"description":row["description"],"hidden":flag(row,"hidden")?,"tombstone":flag(row,"tombstone")?}));
     }
     requirement(
         &mut requirements,
         "transfer_payees",
         transfer_payees.len(),
         false,
-        "Automatic transfer payees retained in original source and excluded from ordinary payee selection until transfers are supported",
+        "Transfer payee metadata preserved; excluded from ordinary payee selection",
     );
     let aliases = |table: &str, column: &str| -> Result<BTreeMap<String, String>, Error> {
         let mut map = BTreeMap::new();
@@ -642,6 +636,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         Ok(map)
     };
     let payee_map = aliases("payee_mapping", "targetId")?;
+
     let category_map = aliases("category_mapping", "transferId")?;
     let resolve = |value: &Value,
                    map: &BTreeMap<String, String>,
@@ -655,7 +650,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             .ok_or_else(|| invalid("Invalid reference identity"))?
             .to_owned();
         let mut visited = BTreeSet::new();
-        for _ in 0..128 {
+        loop {
             if !visited.insert(id.clone()) {
                 return Err(invalid("Alias cycle"));
             }
@@ -669,7 +664,6 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
                 }
             }
         }
-        Err(invalid("Alias chain exceeds supported depth"))
     };
     for category in converted["categories"].as_array_mut().unwrap() {
         if category["tombstone"] == true {
@@ -679,6 +673,12 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             } else {
                 target
             };
+        }
+    }
+    for row in converted["payees"].as_array_mut().unwrap() {
+        let target = resolve(&row["id"], &payee_map, &payee_ids)?;
+        if target != row["id"] {
+            row["merged_into"] = target;
         }
     }
     for id in payee_map.keys() {
@@ -768,7 +768,6 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
                 "schedule",
                 "financial_id",
                 "raw_synced_data",
-                "imported_description",
                 "type",
                 "location",
                 "error",
@@ -798,7 +797,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             true,
             "Transaction uses a transfer payee and requires transfer conversion",
         );
-        converted["transactions"].as_array_mut().unwrap().push(json!({"id":id,"account_id":account,"amount":amount,"date":date,"cleared":cleared,"reconciled":flag(row,"reconciled")?,"tombstone":tombstone,"starting_balance":flag(row,"starting_balance_flag")?,"payee_id":resolve(&row["description"],&payee_map,&payee_ids)?,"category_id":resolve(&row["category"],&category_map,&category_ids)?,"notes":row["notes"].as_str().unwrap_or(""),"sort_order":rank}));
+        converted["transactions"].as_array_mut().unwrap().push(json!({"id":id,"account_id":account,"amount":amount,"date":date,"cleared":cleared,"reconciled":flag(row,"reconciled")?,"tombstone":tombstone,"starting_balance":flag(row,"starting_balance_flag")?,"payee_id":resolve(&row["description"],&payee_map,&payee_ids)?,"category_id":resolve(&row["category"],&category_map,&category_ids)?,"notes":row["notes"].as_str().unwrap_or(""),"imported_payee":row["imported_description"],"sort_order":rank}));
     }
     let balances=totals.into_iter().map(|(account_id,sums)|{if sums.iter().any(|n|n.abs()>MAX_MONEY as i128){return Err(invalid("Account balance exceeds safe integer range"));}Ok(json!({"account_id":account_id,"total":sums[0] as i64,"cleared":sums[1] as i64,"uncleared":sums[2] as i64}))}).collect::<Result<Vec<_>,Error>>()?;
     let synced = array(&source, "preferences")
@@ -872,12 +871,17 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
     }
     for row in array(data, "payees") {
         db.execute(
-            "INSERT INTO payees(budget_id,id,name) VALUES(?1,?2,?3)",
-            params![budget, row["id"].as_str(), row["name"].as_str()],
+            "INSERT INTO payees(budget_id,id,name,favorite,tombstone,transfer_account_id,category_id,merged_into) VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",
+            params![budget, row["id"].as_str(), row["name"].as_str(),row["favorite"].as_bool().unwrap_or(false),row["tombstone"].as_bool().unwrap_or(false),row["transfer_account_id"].as_str(),row["category_id"].as_str(),row["merged_into"].as_str()],
         )?;
     }
     for row in array(data, "category_groups") {
         db.execute("INSERT INTO category_groups(budget_id,id,name,is_income,hidden,notes,sort_order,tombstone) VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",params![budget,row["id"].as_str(),row["name"].as_str(),row["is_income"].as_bool(),row["hidden"].as_bool().unwrap_or(false),row["notes"].as_str().unwrap_or(""),row["sort_order"].as_f64(),row["tombstone"].as_bool().unwrap_or(false)])?;
+    }
+    if let Some(rows) = data["tags"].as_array() {
+        for row in rows {
+            db.execute("INSERT INTO tags(budget_id,id,tag,color,description,hidden,tombstone) VALUES(?1,?2,?3,?4,?5,?6,?7)",params![budget,row["id"].as_str(),row["tag"].as_str(),row["color"].as_str(),row["description"].as_str(),row["hidden"].as_bool().unwrap_or(false),row["tombstone"].as_bool().unwrap_or(false)])?;
+        }
     }
     for row in array(data, "categories") {
         db.execute("INSERT INTO categories(budget_id,id,name,is_income,group_id,hidden,notes,sort_order,tombstone,replacement_id) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",params![budget,row["id"].as_str(),row["name"].as_str(),row["is_income"].as_bool(),row["group_id"].as_str(),row["hidden"].as_bool().unwrap_or(false),row["notes"].as_str().unwrap_or(""),row["sort_order"].as_f64(),row["tombstone"].as_bool().unwrap_or(false),row["replacement_id"].as_str()])?;
@@ -885,7 +889,7 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
     for row in array(data, "transactions") {
         let category =
             crate::categories::resolve(db, budget, row["category_id"].as_str().map(str::to_owned))?;
-        db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,reconciled,starting_balance,payee_id,category_id,notes,tombstone,sort_order) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13)",params![budget,row["id"].as_str(),row["account_id"].as_str(),row["amount"].as_i64(),row["date"].as_str(),row["cleared"].as_bool(),row["reconciled"].as_bool(),row["starting_balance"].as_bool(),row["payee_id"].as_str(),category,row["notes"].as_str(),row["tombstone"].as_bool(),row["sort_order"].as_i64()])?;
+        db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,reconciled,starting_balance,payee_id,category_id,notes,tombstone,sort_order,imported_payee) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14)",params![budget,row["id"].as_str(),row["account_id"].as_str(),row["amount"].as_i64(),row["date"].as_str(),row["cleared"].as_bool(),row["reconciled"].as_bool(),row["starting_balance"].as_bool(),row["payee_id"].as_str(),category,row["notes"].as_str(),row["tombstone"].as_bool(),row["sort_order"].as_i64(),row["imported_payee"].as_str()])?;
     }
     for row in array(data, "accounts") {
         ledger::refresh_account(db, budget, row["id"].as_str().unwrap())?;
@@ -929,6 +933,11 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
         let mapped = match (dataset, field) {
             ("transactions", "acct") => Some("account_id"),
             ("transactions", "description") => Some("payee_id"),
+            ("transactions", "imported_description") => Some("imported_payee"),
+            ("payees", "transfer_acct") => Some("transfer_account_id"),
+            ("payee_mapping", "targetId") => Some("merged_into"),
+            ("payees", "category") => Some("category_id"),
+            ("tags", "tag" | "color" | "description" | "hidden" | "tombstone") => Some(field),
             ("transactions", "category") => Some("category_id"),
             ("transactions", "starting_balance_flag") => Some("starting_balance"),
             (
@@ -947,7 +956,7 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
             }
             ("account_groups", "name" | "sort_order" | "tombstone") => Some(field),
             ("accounts", "name" | "closed" | "sort_order" | "tombstone")
-            | ("payees", "name")
+            | ("payees", "name" | "favorite" | "tombstone")
             | (
                 "categories" | "category_groups",
                 "name" | "is_income" | "hidden" | "sort_order" | "tombstone",
@@ -960,6 +969,8 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
                 budget,
                 if dataset == "notes" {
                     "accounts"
+                } else if dataset == "payee_mapping" {
+                    "payees"
                 } else {
                     dataset
                 },

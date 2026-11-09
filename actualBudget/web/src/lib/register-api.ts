@@ -13,6 +13,8 @@ export interface Transaction {
   notes: string;
   payee_id: string | null;
   payee_name: string | null;
+  imported_payee?: string | null;
+  retained_payee_id?: string | null;
   category_id: string | null;
   category_name: string | null;
   category_is_income: boolean | null;
@@ -64,11 +66,15 @@ export function registerPage(
   offset = 0,
   asOf = "",
   snapshot?: string,
+  payeeId = "",
+  tag = "",
 ) {
   const params = new URLSearchParams({ limit: "100", offset: String(offset) });
   if (accountId) params.set("account_id", accountId);
   if (asOf) params.set("as_of", asOf);
   if (snapshot) params.set("snapshot", snapshot);
+  if (payeeId) params.set("payee_id", payeeId);
+  if (tag) params.set("tag", tag);
   return request<RegisterPage>(`/budgets/${budgetId}/transactions?${params}`);
 }
 export async function references(

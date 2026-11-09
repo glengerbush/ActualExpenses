@@ -729,6 +729,9 @@
                 >{t("Create payee…")}</option
               ></select
             >
+            {#if initial?.imported_payee}<p class="hint">
+                {t("Imported payee")}: {initial.imported_payee}
+              </p>{/if}
             {#if draft.fields.payee === "new"}<label for="new-payee-name"
                 >{t("New payee name")}</label
               ><input

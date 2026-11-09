@@ -1,0 +1,237 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "tag_renames": [
+    {
+      "notes": "#Food ##Food #Foodie #food #Food#trip",
+      "old": "Food",
+      "next": "Meals",
+      "expected": "#Meals ##Food #Foodie #food #Meals#trip"
+    },
+    {
+      "notes": "#a.b #aXb ##a.b",
+      "old": "a.b",
+      "next": "x+y",
+      "expected": "#x+y #aXb ##a.b"
+    },
+    {
+      "notes": "#Food﻿#Foodtail",
+      "old": "Food",
+      "next": "Meals",
+      "expected": "#Meals﻿#Foodtail"
+    },
+    {
+      "notes": "##Food ###Food #Food#Food",
+      "old": "Food",
+      "next": "Meals",
+      "expected": "##Food ###Food #Meals#Meals"
+    }
+  ],
+  "snapshots": [
+    {
+      "step": "initial",
+      "payees": [
+        {
+          "id": "first",
+          "name": "CORNER SHOP 001",
+          "transfer": null,
+          "favorite": false
+        },
+        {
+          "id": "second",
+          "name": "Corner shop",
+          "transfer": null,
+          "favorite": false
+        },
+        {
+          "id": "transfer",
+          "name": "Spending",
+          "transfer": "account",
+          "favorite": false
+        }
+      ],
+      "transactions": [
+        {
+          "id": "tx1",
+          "payee": "first",
+          "imported_payee": "CARD CORNER 001",
+          "amount": -1250,
+          "notes": "#Food #Foodie ##Food #food #Food#trip"
+        },
+        {
+          "id": "tx2",
+          "payee": "second",
+          "imported_payee": null,
+          "amount": -275,
+          "notes": "#Food lunch"
+        }
+      ],
+      "tags": []
+    },
+    {
+      "step": "renamed",
+      "payees": [
+        {
+          "id": "first",
+          "name": "Corner Shop",
+          "transfer": null,
+          "favorite": false
+        },
+        {
+          "id": "second",
+          "name": "Corner shop",
+          "transfer": null,
+          "favorite": false
+        },
+        {
+          "id": "transfer",
+          "name": "Spending",
+          "transfer": "account",
+          "favorite": false
+        }
+      ],
+      "transactions": [
+        {
+          "id": "tx1",
+          "payee": "first",
+          "imported_payee": "CARD CORNER 001",
+          "amount": -1250,
+          "notes": "#Food #Foodie ##Food #food #Food#trip"
+        },
+        {
+          "id": "tx2",
+          "payee": "second",
+          "imported_payee": null,
+          "amount": -275,
+          "notes": "#Food lunch"
+        }
+      ],
+      "tags": []
+    },
+    {
+      "step": "merged",
+      "payees": [
+        {
+          "id": "first",
+          "name": "Corner Shop",
+          "transfer": null,
+          "favorite": false
+        },
+        {
+          "id": "transfer",
+          "name": "Spending",
+          "transfer": "account",
+          "favorite": false
+        }
+      ],
+      "transactions": [
+        {
+          "id": "tx1",
+          "payee": "first",
+          "imported_payee": "CARD CORNER 001",
+          "amount": -1250,
+          "notes": "#Food #Foodie ##Food #food #Food#trip"
+        },
+        {
+          "id": "tx2",
+          "payee": "first",
+          "imported_payee": null,
+          "amount": -275,
+          "notes": "#Food lunch"
+        }
+      ],
+      "tags": []
+    },
+    {
+      "step": "removed",
+      "payees": [
+        {
+          "id": "transfer",
+          "name": "Spending",
+          "transfer": "account",
+          "favorite": false
+        }
+      ],
+      "transactions": [
+        {
+          "id": "tx1",
+          "payee": null,
+          "imported_payee": "CARD CORNER 001",
+          "amount": -1250,
+          "notes": "#Food #Foodie ##Food #food #Food#trip"
+        },
+        {
+          "id": "tx2",
+          "payee": null,
+          "imported_payee": null,
+          "amount": -275,
+          "notes": "#Food lunch"
+        }
+      ],
+      "tags": []
+    },
+    {
+      "step": "tag-hidden",
+      "payees": [
+        {
+          "id": "transfer",
+          "name": "Spending",
+          "transfer": "account",
+          "favorite": false
+        }
+      ],
+      "transactions": [
+        {
+          "id": "tx1",
+          "payee": null,
+          "imported_payee": "CARD CORNER 001",
+          "amount": -1250,
+          "notes": "#Food #Foodie ##Food #food #Food#trip"
+        },
+        {
+          "id": "tx2",
+          "payee": null,
+          "imported_payee": null,
+          "amount": -275,
+          "notes": "#Food lunch"
+        }
+      ],
+      "tags": [
+        {
+          "tag": "Food",
+          "color": "#ff0000",
+          "description": "Meals",
+          "hidden": false
+        }
+      ]
+    },
+    {
+      "step": "tag-deleted-notes-retained",
+      "payees": [
+        {
+          "id": "transfer",
+          "name": "Spending",
+          "transfer": "account",
+          "favorite": false
+        }
+      ],
+      "transactions": [
+        {
+          "id": "tx1",
+          "payee": null,
+          "imported_payee": "CARD CORNER 001",
+          "amount": -1250,
+          "notes": "#Food #Foodie ##Food #food #Food#trip"
+        },
+        {
+          "id": "tx2",
+          "payee": null,
+          "imported_payee": null,
+          "amount": -275,
+          "notes": "#Food lunch"
+        }
+      ],
+      "tags": []
+    }
+  ]
+}

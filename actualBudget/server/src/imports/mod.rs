@@ -195,3 +195,96 @@ async fn activate(
     })).await?;
     Ok((StatusCode::CREATED, data(result)))
 }
+
+/// Add newly supported metadata without replaying source financial values or
+/// overwriting any native fields that existed before this migration.
+pub(crate) fn backfill_payees_tags(db: &rusqlite::Connection) -> Result<(), Error> {
+    // Unactivated stages have no native budget archive yet. Refresh their
+    // conversion without changing immutable upload receipts or original bytes.
+    let mut staged = db.prepare(
+        "SELECT id,original,archive_sha256 FROM staged_imports WHERE status<>'activated'",
+    )?;
+    let unactivated = staged
+        .query_map([], |r| {
+            Ok((
+                r.get::<_, String>(0)?,
+                r.get::<_, Vec<u8>>(1)?,
+                r.get::<_, String>(2)?,
+            ))
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
+    for (id, bytes, hash) in unactivated {
+        let Ok((mut report, data)) = conversion::inspect(&bytes) else {
+            continue;
+        };
+        report["archive_sha256"] = json!(hash);
+        let status = if report["requirements"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["blocking"] == true)
+        {
+            "blocked"
+        } else {
+            "ready"
+        };
+        db.execute(
+            "UPDATE staged_imports SET report=?2,conversion=?3,status=?4 WHERE id=?1",
+            params![id, report.to_string(), data.to_string(), status],
+        )?;
+    }
+
+    let mut q=db.prepare("SELECT s.budget_id,s.original FROM staged_imports s JOIN imported_sources i ON i.import_id=s.id WHERE s.status='activated' UNION SELECT budget_id,original FROM budget_provenance WHERE kind='actual-import' AND original IS NOT NULL")?;
+    let sources = q
+        .query_map([], |r| {
+            Ok((r.get::<_, String>(0)?, r.get::<_, Vec<u8>>(1)?))
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
+    for (budget, bytes) in sources {
+        let (_, data) = conversion::inspect(&bytes)?;
+        for p in data["payees"].as_array().unwrap() {
+            db.execute(
+                "INSERT OR IGNORE INTO payees(budget_id,id,name) VALUES(?1,?2,?3)",
+                params![budget, p["id"].as_str(), p["name"].as_str()],
+            )?;
+            db.execute("UPDATE payees SET favorite=?3,tombstone=?4,transfer_account_id=?5,category_id=?6,merged_into=?7 WHERE budget_id=?1 AND id=?2",params![budget,p["id"].as_str(),p["favorite"].as_bool(),p["tombstone"].as_bool(),p["transfer_account_id"].as_str(),p["category_id"].as_str(),p["merged_into"].as_str()])?;
+        }
+        for tag in data["tags"].as_array().unwrap() {
+            db.execute("INSERT INTO tags(budget_id,id,tag,color,description,hidden,tombstone) VALUES(?1,?2,?3,?4,?5,?6,?7)",params![budget,tag["id"].as_str(),tag["tag"].as_str(),tag["color"].as_str(),tag["description"].as_str(),tag["hidden"].as_bool(),tag["tombstone"].as_bool()])?;
+        }
+        for t in data["transactions"].as_array().unwrap() {
+            db.execute(
+                "UPDATE transactions SET imported_payee=?3 WHERE budget_id=?1 AND id=?2",
+                params![budget, t["id"].as_str(), t["imported_payee"].as_str()],
+            )?;
+        }
+        for c in data["clocks"].as_array().unwrap() {
+            let dataset = c["dataset"].as_str().unwrap();
+            let column = c["column"].as_str().unwrap();
+            let mapped = match (dataset, column) {
+                ("payees", "favorite" | "tombstone") => Some(column),
+                ("payees", "transfer_acct") => Some("transfer_account_id"),
+                ("payee_mapping", "targetId") => Some("merged_into"),
+                ("payees", "category") => Some("category_id"),
+                ("tags", "tag" | "color" | "description" | "hidden" | "tombstone") => Some(column),
+                ("transactions", "imported_description") => Some("imported_payee"),
+                _ => None,
+            };
+            if let Some(field) = mapped {
+                crate::concurrency::seed_field_version(
+                    db,
+                    &budget,
+                    if dataset == "payee_mapping" {
+                        "payees"
+                    } else {
+                        dataset
+                    },
+                    c["row"].as_str().unwrap(),
+                    field,
+                    c["timestamp"].as_str().unwrap(),
+                )?;
+            }
+        }
+    }
+    Ok(())
+}

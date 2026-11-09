@@ -287,7 +287,11 @@ pub fn execute(
     match mutation {
         Mutation::Create(input) => {
             let id = input.id.clone();
+            let new_payee = input.new_payee.as_ref().map(|p| p.id.clone());
             ledger::create(db, budget, *input)?;
+            if let Some(payee) = new_payee {
+                seed_field_version(db, budget, "payees", &payee, "name", &edit_clock)?;
+            }
             for field in FIELDS {
                 seed_field_version(db, budget, "transactions", &id, field, &edit_clock)?;
             }
@@ -344,10 +348,17 @@ pub fn execute(
                 }
             }
             if !accepted.is_empty() {
+                let new_payee = accepted
+                    .get("new_payee")
+                    .and_then(|v| v["id"].as_str())
+                    .map(str::to_owned);
                 if hidden {
                     ledger::update_hidden(db, budget, &id, Value::Object(accepted))?;
                 } else {
                     ledger::update(db, budget, &id, Value::Object(accepted))?;
+                }
+                if let Some(payee) = new_payee {
+                    seed_field_version(db, budget, "payees", &payee, "name", &edit_clock)?;
                 }
                 for field in changed_fields {
                     seed_field_version(db, budget, "transactions", &id, &field, &edit_clock)?;
@@ -559,11 +570,7 @@ pub fn read_changes(
             "accounts" => crate::accounts::get(db, budget, &id)?,
             "account_groups" => crate::accounts::get_group(db, budget, &id)?,
             "preferences" => crate::preferences::get_preferences(db, budget)?,
-            "payees" => db.query_row(
-                "SELECT name FROM payees WHERE budget_id=?1 AND id=?2",
-                params![budget, id],
-                |r| Ok(json!({"id":id,"name":r.get::<_,String>(0)?})),
-            )?,
+            "payees" | "tags" => crate::payees_tags::record(db, budget, &entity, &id)?,
             "categories" | "category_groups" => crate::categories::get(db, budget, &entity, &id)?,
             _ => return Err(Error::internal("Unknown change entity")),
         };

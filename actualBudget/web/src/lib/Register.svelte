@@ -172,6 +172,10 @@
   let loadGeneration = 0;
   let notice = $state("");
   let filterDate = $state("");
+  let filterPayee = $state(""),
+    filterTag = $state(""),
+    appliedPayee = $state(""),
+    appliedTag = $state("");
   let showForm = $state(false);
   let recoveredPending = $state(false);
   let editing = $state.raw<Transaction | null>(null);
@@ -182,6 +186,8 @@
     return refresh(asOf);
   }
   async function userRefresh(cutoff: string) {
+    appliedPayee = filterPayee;
+    appliedTag = filterTag.trim().replace(/^#/, "");
     setReachable(navigator.onLine);
     return refresh(cutoff);
   }
@@ -203,7 +209,7 @@
         }),
       ]);
       if (generation !== loadGeneration) return false;
-      if (cached) {
+      if (cached && !appliedPayee && !appliedTag) {
         register = cached.page;
         filterDate = cached.page.as_of ?? "";
         cachedAt = cached.savedAt;
@@ -225,14 +231,25 @@
         return !!cached;
       }
       const [page, referenceData] = await Promise.all([
-        registerPage(budgetId, accountId, 0, cutoff),
+        registerPage(
+          budgetId,
+          accountId,
+          0,
+          cutoff,
+          undefined,
+          appliedPayee,
+          appliedTag,
+        ),
         refreshBudget(budgetId),
       ]);
       if (generation !== loadGeneration) return false;
       for (const row of page.data) observeVersions(row.field_versions);
       register = page;
       try {
-        cachedAt = await saveView(budgetId, accountId, page);
+        cachedAt =
+          appliedPayee || appliedTag
+            ? null
+            : await saveView(budgetId, accountId, page);
       } catch (e) {
         cachedAt = null;
         error = errorMessage(e);
@@ -359,6 +376,8 @@
         previous.next_offset!,
         previous.as_of ?? "",
         previous.snapshot,
+        appliedPayee,
+        appliedTag,
       );
       if (generation === loadGeneration)
         register = { ...page, data: [...previous.data, ...page.data] };
@@ -584,7 +603,38 @@
         bind:value={filterDate}
         disabled={loading || busy}
       />
-      <button disabled={loading || busy}>{t("Apply")}</button>
+      <label for="register-payee-filter"
+        >{t("Payee")}<select
+          id="register-payee-filter"
+          bind:value={filterPayee}
+          disabled={loading || busy || disconnected}
+          ><option value="">All payees</option
+          >{#each payees as payee (payee.id)}<option value={payee.id}
+              >{payee.name}</option
+            >{/each}</select
+        ></label
+      >
+      <label for="register-tag-filter"
+        >{t("Tag")}<input
+          id="register-tag-filter"
+          bind:value={filterTag}
+          placeholder="Tag name"
+          disabled={loading || busy || disconnected}
+        /></label
+      >
+      <button disabled={loading || busy || disconnected}>{t("Apply")}</button>
+      {#if appliedPayee || appliedTag}<button
+          type="button"
+          onclick={() => {
+            filterPayee = "";
+            filterTag = "";
+            void userRefresh(filterDate);
+          }}
+          disabled={loading || busy || disconnected}
+          >Clear payee and tag filters</button
+        ><span class="hint"
+          >Balances include all transactions; the list is filtered.</span
+        >{/if}
       {#if asOf}<button
           type="button"
           onclick={() => {

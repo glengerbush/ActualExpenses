@@ -30,7 +30,7 @@ pub struct NewTransaction {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct NewReference {
-    id: String,
+    pub(crate) id: String,
     name: String,
     #[serde(default)]
     is_income: Option<bool>,
@@ -217,6 +217,7 @@ fn insert(
     resolve_new_references(db, budget, &mut input)?;
     input.category_id = crate::categories::resolve(db, budget, input.category_id)?;
     validate_references(db, budget, &input, None)?;
+    validate_payee_selection(db, budget, input.payee_id.as_deref(), None)?;
     if !preserve_latent_category
         && input.category_id.is_some()
         && db.query_row(
@@ -242,10 +243,10 @@ fn insert(
     apply_addition(db, budget, &input)?;
     get(db, budget, &input.id)
 }
-const SELECT: &str = "SELECT t.id,t.account_id,t.amount,t.date,t.cleared,t.reconciled,t.starting_balance,t.payee_id,p.name,t.category_id,c.name,c.is_income,t.notes,a.name,t.sort_order FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id";
+const SELECT: &str = "SELECT t.id,t.account_id,t.amount,t.date,t.cleared,t.reconciled,t.starting_balance,CASE WHEN p.tombstone=0 THEN t.payee_id END,CASE WHEN p.tombstone=0 THEN p.name END,t.category_id,c.name,c.is_income,t.notes,a.name,t.sort_order,t.imported_payee,t.payee_id FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id";
 fn row(r: &rusqlite::Row) -> rusqlite::Result<Value> {
     Ok(
-        json!({"id":r.get::<_,String>(0)?,"account_id":r.get::<_,String>(1)?,"amount":r.get::<_,i64>(2)?,"date":r.get::<_,String>(3)?,"cleared":r.get::<_,bool>(4)?,"reconciled":r.get::<_,bool>(5)?,"starting_balance":r.get::<_,bool>(6)?,"payee_id":r.get::<_,Option<String>>(7)?,"payee_name":r.get::<_,Option<String>>(8)?,"category_id":r.get::<_,Option<String>>(9)?,"category_name":r.get::<_,Option<String>>(10)?,"category_is_income":r.get::<_,Option<bool>>(11)?,"notes":r.get::<_,String>(12)?,"account_name":r.get::<_,String>(13)?,"sort_order":r.get::<_,i64>(14)?}),
+        json!({"id":r.get::<_,String>(0)?,"account_id":r.get::<_,String>(1)?,"amount":r.get::<_,i64>(2)?,"date":r.get::<_,String>(3)?,"cleared":r.get::<_,bool>(4)?,"reconciled":r.get::<_,bool>(5)?,"starting_balance":r.get::<_,bool>(6)?,"payee_id":r.get::<_,Option<String>>(7)?,"payee_name":r.get::<_,Option<String>>(8)?,"category_id":r.get::<_,Option<String>>(9)?,"category_name":r.get::<_,Option<String>>(10)?,"category_is_income":r.get::<_,Option<bool>>(11)?,"notes":r.get::<_,String>(12)?,"account_name":r.get::<_,String>(13)?,"sort_order":r.get::<_,i64>(14)?,"imported_payee":r.get::<_,Option<String>>(15)?,"retained_payee_id":r.get::<_,Option<String>>(16)?}),
     )
 }
 pub fn get(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
@@ -270,15 +271,26 @@ pub fn get_any(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> 
         .ok_or_else(Error::missing)?;
     crate::concurrency::decorate(db, budget, row)
 }
+pub struct RegisterFilters<'a> {
+    pub account: Option<&'a str>,
+    pub as_of: Option<&'a str>,
+    pub payee: Option<&'a str>,
+    pub tag: Option<&'a str>,
+}
 pub fn list(
     db: &Connection,
     budget: &str,
-    account: Option<&str>,
-    as_of: Option<&str>,
+    filters: RegisterFilters<'_>,
     limit: u32,
     offset: u32,
     expected_snapshot: Option<&str>,
 ) -> Result<Value, Error> {
+    let RegisterFilters {
+        account,
+        as_of,
+        payee,
+        tag,
+    } = filters;
     store::require_budget(db, budget)?;
     if let Some(account) = account {
         account_exists(db, budget, account)?;
@@ -324,27 +336,63 @@ pub fn list(
     };
     let filter = format!("WHERE t.budget_id=?1 AND t.tombstone=0{account_filter}{date_filter}");
     // Keep parameter slots stable while allowing SQLite to use the account/date indexes.
-    let filter = format!("{filter} AND (?2 IS NULL OR 1=1) AND (?3 IS NULL OR 1=1)");
+    let matched = if let Some(tag) = tag {
+        let mut q=db.prepare("SELECT id,notes FROM transactions WHERE budget_id=?1 AND tombstone=0 AND (?2 IS NULL OR account_id=?2)")?;
+        let ids = q
+            .query_map(params![budget, account], |r| {
+                Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
+            })?
+            .collect::<Result<Vec<_>, _>>()?
+            .into_iter()
+            .filter(|(_, notes)| {
+                crate::payees_tags::tags_in(notes)
+                    .iter()
+                    .any(|(_, _, value)| *value == tag)
+            })
+            .map(|(id, _)| id)
+            .collect::<Vec<_>>();
+        Some(serde_json::to_string(&ids).map_err(Error::internal)?)
+    } else {
+        None
+    };
+    let payee = payee
+        .map(|p| crate::payees_tags::canonical(db, budget, p))
+        .transpose()?;
+    let filter = format!(
+        "{filter} AND (?2 IS NULL OR 1=1) AND (?3 IS NULL OR 1=1) AND (?6 IS NULL OR t.id IN (SELECT value FROM json_each(?6))) AND (?7 IS NULL OR t.payee_id=?7)"
+    );
     let sql = format!(
         "{SELECT} {filter} ORDER BY t.date DESC,t.starting_balance ASC,t.sort_order DESC,t.id ASC LIMIT ?4 OFFSET ?5"
     );
     let mut statement = db.prepare(&sql)?;
-    let rows = statement.query_map(params![budget, account, as_of, limit + 1, offset], row)?;
+    let rows = statement.query_map(
+        params![budget, account, as_of, limit + 1, offset, matched, payee],
+        row,
+    )?;
     let mut rows = rows.collect::<Result<Vec<_>, _>>()?;
     let more = rows.len() > limit as usize;
     rows.truncate(limit as usize);
     let mut running = summary.total as i128;
-    if account.is_some() && offset > 0 {
+    if account.is_some() && offset > 0 && tag.is_none() && payee.is_none() {
         let mut preceding=db.prepare(&format!("SELECT t.amount FROM transactions t {filter} ORDER BY t.date DESC,t.starting_balance ASC,t.sort_order DESC,t.id ASC LIMIT ?4"))?;
-        for amount in preceding.query_map(params![budget, account, as_of, offset], |r| {
-            r.get::<_, i64>(0)
-        })? {
+        for amount in preceding.query_map(
+            params![
+                budget,
+                account,
+                as_of,
+                offset,
+                Option::<i64>::None,
+                matched,
+                payee
+            ],
+            |r| r.get::<_, i64>(0),
+        )? {
             running -= amount? as i128;
         }
     }
     for entry in &mut rows {
         *entry = crate::concurrency::decorate(db, budget, entry.take())?;
-        entry["running_balance"] = if account.is_some() {
+        entry["running_balance"] = if account.is_some() && tag.is_none() && payee.is_none() {
             json!(checked(running)?)
         } else {
             Value::Null
@@ -369,7 +417,7 @@ pub fn validate_patch(previous: &Value, patch: &Value) -> Result<NewTransaction,
     if fields.is_empty() {
         return Err(Error::invalid("Provide at least one field to edit"));
     }
-    let mut input = json!({"id":id,"account_id":previous["account_id"],"amount":previous["amount"],"date":previous["date"],"cleared":previous["cleared"],"notes":previous["notes"],"payee_id":previous["payee_id"],"category_id":previous["category_id"]});
+    let mut input = json!({"id":id,"account_id":previous["account_id"],"amount":previous["amount"],"date":previous["date"],"cleared":previous["cleared"],"notes":previous["notes"],"payee_id":previous.get("retained_payee_id").unwrap_or(&previous["payee_id"]),"category_id":previous["category_id"]});
     for (field, value) in fields {
         if ![
             "account_id",
@@ -430,6 +478,12 @@ fn update_row(
     let mut input = validate_patch(&previous, &patch)?;
     resolve_new_references(db, budget, &mut input)?;
     input.category_id = crate::categories::resolve(db, budget, input.category_id)?;
+    validate_payee_selection(
+        db,
+        budget,
+        input.payee_id.as_deref(),
+        previous["retained_payee_id"].as_str(),
+    )?;
     // Keep independent winning fields, including latent off-budget categories.
     validate_references(
         db,
@@ -479,7 +533,12 @@ pub fn duplicate(db: &Connection, budget: &str, source: &str, id: &str) -> Resul
     let input:NewTransaction=serde_json::from_value(json!({"id":id,"account_id":previous["account_id"],"amount":previous["amount"],"date":previous["date"],"cleared":false,"notes":previous["notes"],"payee_id":previous["payee_id"],"category_id":previous["category_id"]})).map_err(Error::internal)?;
     input.validate()?;
     // A merged off-budget row can retain independently ordered category data.
-    insert(db, budget, input, true)
+    insert(db, budget, input, true)?;
+    db.execute(
+        "UPDATE transactions SET imported_payee=?3 WHERE budget_id=?1 AND id=?2",
+        params![budget, id, previous["imported_payee"].as_str()],
+    )?;
+    get(db, budget, id)
 }
 
 fn resolve_new_references(
@@ -488,6 +547,9 @@ fn resolve_new_references(
     input: &mut NewTransaction,
 ) -> Result<(), Error> {
     store::require_budget(db, budget)?;
+    if let Some(id) = &input.payee_id {
+        input.payee_id = Some(crate::payees_tags::canonical(db, budget, id)?);
+    }
     for (table, new, selected) in [
         ("payees", &input.new_payee, &mut input.payee_id),
         ("categories", &input.new_category, &mut input.category_id),
@@ -501,6 +563,13 @@ fn resolve_new_references(
                 return Err(Error::conflict("The new reference ID already exists"));
             }
             if table == "payees" {
+                crate::payees_tags::duplicate(
+                    db,
+                    budget,
+                    "payees",
+                    &reference.id,
+                    &reference.name,
+                )?;
                 db.execute(
                     "INSERT INTO payees(budget_id,id,name) VALUES(?1,?2,?3)",
                     params![budget, reference.id, reference.name],
@@ -518,6 +587,28 @@ fn resolve_new_references(
                 crate::categories::stamp_new(db, budget, &reference.id)?;
             }
             *selected = Some(reference.id.clone());
+        }
+    }
+    Ok(())
+}
+
+fn validate_payee_selection(
+    db: &Connection,
+    budget: &str,
+    id: Option<&str>,
+    retained: Option<&str>,
+) -> Result<(), Error> {
+    if let Some(id) = id {
+        let payee = crate::payees_tags::record(db, budget, "payees", id)?;
+        if !payee["transfer_account_id"].is_null() {
+            return Err(Error::invalid(
+                "Transfer payees require a transfer operation",
+            ));
+        }
+        if payee["deleted"] == true && Some(id) != retained {
+            return Err(Error::invalid(
+                "This payee was removed. Choose an active payee.",
+            ));
         }
     }
     Ok(())

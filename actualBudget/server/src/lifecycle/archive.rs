@@ -20,6 +20,7 @@ pub const TABLES: &[&str] = &[
     "account_groups",
     "accounts",
     "payees",
+    "payee_locations",
     "category_groups",
     "tags",
     "categories",
@@ -68,6 +69,7 @@ pub struct BudgetArchive {
 }
 pub struct Validated {
     pub legacy_category_metadata: bool,
+    pub legacy_locations: bool,
     pub state: BudgetArchive,
     pub blobs: BTreeMap<String, Vec<u8>>,
 }
@@ -140,7 +142,7 @@ pub fn capture(db: &Connection, budget: &str) -> Result<Vec<u8>, Error> {
     let body = serde_json::to_vec(&state).map_err(Error::internal)?;
     let mut entries = BTreeMap::from([("budget.json".to_owned(), body)]);
     entries.extend(blobs);
-    let manifest = json!({"format":"actualBudget","version":1,"schema_version":11,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
+    let manifest = json!({"format":"actualBudget","version":1,"schema_version":12,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
     if entries.len() + 1 > 1000
         || entries.values().map(Vec::len).sum::<usize>() + manifest.to_string().len() > MAX_EXPANDED
     {
@@ -216,7 +218,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || !matches!(manifest["schema_version"].as_u64(), Some(6..=11))
+        || !matches!(manifest["schema_version"].as_u64(), Some(6..=12))
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }
@@ -240,6 +242,28 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             .ok_or_else(|| invalid("Missing budget data"))?,
     )
     .map_err(|_| invalid("Invalid budget state"))?;
+    if manifest["schema_version"].as_u64().is_some_and(|v| v < 12) {
+        if state.tables.contains_key("payee_locations") {
+            return Err(invalid("Unexpected legacy payee locations"));
+        }
+        state.tables.insert(
+            "payee_locations".into(),
+            Table {
+                columns: [
+                    "budget_id",
+                    "id",
+                    "payee_id",
+                    "latitude",
+                    "longitude",
+                    "created_at",
+                    "tombstone",
+                ]
+                .map(str::to_owned)
+                .to_vec(),
+                rows: vec![],
+            },
+        );
+    }
     if manifest["schema_version"].as_u64().is_some_and(|v| v < 11) {
         if state.tables.contains_key("register_settings") {
             return Err(invalid("Unexpected legacy register settings"));
@@ -490,6 +514,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     let mut validated = Validated {
         state,
         blobs,
+        legacy_locations: manifest["schema_version"].as_u64().is_some_and(|v| v < 12),
         legacy_category_metadata: matches!(manifest["schema_version"].as_u64(), Some(6 | 7)),
     };
     let mut staging = Connection::open_in_memory().map_err(Error::internal)?;
@@ -527,6 +552,42 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
                             ValueRef::Integer(v) => Ok(json!(v)),
                             ValueRef::Text(v) => Ok(json!(String::from_utf8_lossy(v))),
                             _ => Err(rusqlite::Error::InvalidQuery),
+                        })
+                        .collect::<Result<Vec<_>, _>>()
+                })?
+                .collect::<Result<Vec<_>, _>>()?;
+            validated
+                .state
+                .tables
+                .insert(table.into(), Table { columns, rows });
+        }
+        validated.state.clock = staging.query_row(
+            "SELECT clock FROM budget_sync WHERE budget_id=?1",
+            [&budget],
+            |r| r.get(0),
+        )?;
+    }
+    if validated.legacy_locations {
+        crate::payee_locations::enrich_legacy_imports(&staging, Some(&budget))
+            .map_err(|e| invalid(e.message))?;
+        for table in ["payee_locations", "field_versions", "staged_imports"] {
+            let mut query = staging.prepare(&format!(
+                "SELECT * FROM {table} WHERE budget_id=?1 ORDER BY rowid"
+            ))?;
+            let columns = query
+                .column_names()
+                .iter()
+                .map(|v| (*v).to_owned())
+                .collect::<Vec<_>>();
+            let rows = query
+                .query_map([&budget], |r| {
+                    (0..columns.len())
+                        .map(|i| match r.get_ref(i)? {
+                            ValueRef::Null => Ok(Value::Null),
+                            ValueRef::Integer(v) => Ok(json!(v)),
+                            ValueRef::Real(v) => Ok(json!(v)),
+                            ValueRef::Text(v) => Ok(json!(String::from_utf8_lossy(v))),
+                            ValueRef::Blob(v) => Ok(json!({"$blob":format!("blobs/{}",hash(v))})),
                         })
                         .collect::<Result<Vec<_>, _>>()
                 })?
@@ -606,6 +667,16 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
                             .map(SqlValue::Real)
                             .ok_or_else(|| invalid("Invalid category order"))
                     }
+                    Value::Number(v)
+                        if *table == "payee_locations"
+                            && ["latitude", "longitude"]
+                                .contains(&source.columns[index].as_str()) =>
+                    {
+                        v.as_f64()
+                            .filter(|n| n.is_finite())
+                            .map(SqlValue::Real)
+                            .ok_or_else(|| invalid("Invalid coordinates"))
+                    }
                     Value::Number(v) => v
                         .as_i64()
                         .map(SqlValue::Integer)
@@ -670,6 +741,7 @@ pub fn validate_financial_state(db: &Connection, budget: &str) -> Result<(), Err
             validate_name(&name).map_err(|e| invalid(e.message))?;
         }
     }
+    crate::payee_locations::validate_archive(db, budget).map_err(|e| invalid(e.message))?;
     crate::payees_tags::validate_archive(db, budget).map_err(|e| invalid(e.message))?;
     let invalid_groups:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM accounts a LEFT JOIN account_groups g ON g.budget_id=a.budget_id AND g.id=a.group_id WHERE a.budget_id=?1 AND a.group_id IS NOT NULL AND (g.id IS NULL OR g.tombstone=1))",[budget],|r|r.get(0))?;
     if invalid_groups {

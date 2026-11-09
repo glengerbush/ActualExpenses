@@ -48,6 +48,7 @@ pub fn router(store: Store) -> Router {
         .merge(crate::accounts::router())
         .merge(crate::categories::router())
         .merge(crate::payees_tags::router())
+        .merge(crate::payee_locations::router())
         .merge(crate::register_settings::router())
         .merge(crate::preferences::router())
         .merge(concurrency::router())
@@ -147,6 +148,7 @@ async fn cancellation_scope(
                 | (
                     "POST",
                     "/api/v1/budgets/{budget}/payees"
+                        | "/api/v1/budgets/{budget}/payee-locations"
                         | "/api/v1/budgets/{budget}/tags"
                         | "/api/v1/budgets/{budget}/payees/batch"
                         | "/api/v1/budgets/{budget}/tags/batch"
@@ -154,7 +156,9 @@ async fn cancellation_scope(
                 )
                 | (
                     "PATCH",
-                    "/api/v1/budgets/{budget}/payees/{id}" | "/api/v1/budgets/{budget}/tags/{id}"
+                    "/api/v1/budgets/{budget}/payees/{id}"
+                        | "/api/v1/budgets/{budget}/payee-locations/{id}"
+                        | "/api/v1/budgets/{budget}/tags/{id}"
                 )
                 | ("PATCH" | "DELETE", "/api/v1/budgets/{budget}")
                 | (
@@ -180,7 +184,7 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "tags", "splits", "register_queries", "register_settings"],
+        "capabilities": ["budgets", "accounts", "account_lifecycle", "account_cancellation", "category_cancellation", "account_groups", "opening_balances", "idempotency", "transactions", "payees", "categories", "category_management", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "transaction_receipt_lookup", "companion_expenses", "budget_epoch_preconditions", "budget_archives", "budget_lifecycle_cancellation", "budget_duplication", "custom_themes", "actual_imports", "payee_management", "reference_cancellation", "payee_locations", "location_cancellation", "tags", "splits", "register_queries", "register_settings"],
         "openapi": "/api/v1/openapi.json"
     }))
 }

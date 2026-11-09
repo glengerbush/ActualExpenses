@@ -110,6 +110,15 @@ def main():
                 check(path, template, "POST", reference, {"Idempotency-Key": kind}, 201)
                 check(path, template)
                 references[kind] = reference["id"]
+            locations = f"{budgets}/{budget_id}/payee-locations"
+            location_template = budgets + "/{budget}/payee-locations"
+            location = {"id": str(uuid.uuid4()), "payee_id": references["payees"], "latitude": 40.123456, "longitude": -74.123456}
+            check(locations, location_template, "POST", location, {"Idempotency-Key": "location"}, 201)
+            check(locations, location_template)
+            check(locations + "/" + location["id"], location_template + "/{id}")
+            check(locations + "/" + location["id"], location_template + "/{id}", "PATCH", {"deleted": True}, {"Idempotency-Key": "forget-location"})
+            check(locations, location_template, "POST", {**location,"latitude":91}, {"Idempotency-Key": "bad-location"}, 400)
+            check(locations, location_template, "POST", {**location,"id":str(uuid.uuid4())}, {"Idempotency-Key": "cancel-location", "X-Actual-Cancel-If-Uncommitted":"true"}, 409)
             categories = f"{budgets}/{budget_id}/categories"
             categories_template = budgets + "/{budget}/categories"
             category_groups = f"{budgets}/{budget_id}/category-groups"
@@ -173,6 +182,7 @@ def main():
             page = check(entries + "?limit=1", entries_template)
             changes_path = f"{budgets}/{budget_id}/changes"
             changes_template = budgets + "/{budget}/changes"
+            check(locations, location_template, "POST", {**location,"id":str(uuid.uuid4())}, {"Idempotency-Key":str(uuid.uuid4())}, 201)
             check(changes_path + "?cursor=" + page["snapshot"], changes_template)
             check(ordered_path, entry_template, "PATCH", {"notes": "Newer"},
                   {"Idempotency-Key": "ordered-new", "X-Actual-Edit-Clock": clock2})

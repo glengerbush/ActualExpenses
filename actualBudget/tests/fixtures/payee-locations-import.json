@@ -1,0 +1,140 @@
+{
+  "account": "3b4e7e5e-52ee-441f-8ee7-31b724e7a38b",
+  "payees": [
+    "baf16097-79f2-4ef4-96e5-5fc438a62718",
+    "bdaab9b2-ef0a-49f1-b3a7-b341c7fe26e5",
+    "7a0d5cf1-8ee6-4e8d-94a3-61e9cafb9bef",
+    "0e3c4454-42ca-4d03-b263-601499ee2460",
+    "64b560f5-2077-44eb-b03e-31449b568bf1",
+    "e1bd5dce-1b81-4e67-a842-180afb8d881a",
+    "ec930ef3-1872-4494-b4e1-c109b3921ea6",
+    "d9281448-7a2a-4d9e-87e4-443ebd212172",
+    "e3a12e54-248f-4579-899d-afc6c558d306",
+    "ef99551b-847b-4227-81dc-b056b4e6162a",
+    "0acb5fc4-20eb-4b03-849a-830921282fc9",
+    "1502799a-b719-4106-8918-f01a74394474",
+    "fdc9049b-3623-4765-927d-74c49b1e53df"
+  ],
+  "locations": [
+    {
+      "id": "e37edf18-b8ac-4287-9bb4-f59529e8408a",
+      "payee_id": "baf16097-79f2-4ef4-96e5-5fc438a62718",
+      "latitude": 40,
+      "longitude": -74
+    },
+    {
+      "id": "080e66d0-0f36-4f79-be34-9242c8097060",
+      "payee_id": "bdaab9b2-ef0a-49f1-b3a7-b341c7fe26e5",
+      "latitude": 40.0001,
+      "longitude": -74
+    },
+    {
+      "id": "8ed25f05-44c4-41ff-ab28-506fcca8200e",
+      "payee_id": "7a0d5cf1-8ee6-4e8d-94a3-61e9cafb9bef",
+      "latitude": 40.0002,
+      "longitude": -74
+    },
+    {
+      "id": "48b34542-db5d-46ed-abe8-2a3a11e29780",
+      "payee_id": "0e3c4454-42ca-4d03-b263-601499ee2460",
+      "latitude": 40.0003,
+      "longitude": -74
+    },
+    {
+      "id": "299e6191-f66c-459b-8b1e-519f156d4db4",
+      "payee_id": "64b560f5-2077-44eb-b03e-31449b568bf1",
+      "latitude": 40.0004,
+      "longitude": -74
+    },
+    {
+      "id": "1fa33ac0-9dbc-41bf-bcae-438e5cf1001b",
+      "payee_id": "e1bd5dce-1b81-4e67-a842-180afb8d881a",
+      "latitude": 40.0005,
+      "longitude": -74
+    },
+    {
+      "id": "e23e4d38-d15f-4d7c-9b27-9f7d83440d20",
+      "payee_id": "ec930ef3-1872-4494-b4e1-c109b3921ea6",
+      "latitude": 40.0006,
+      "longitude": -74
+    },
+    {
+      "id": "374ffb89-320c-4ede-a4ca-b1bf4d1df8ff",
+      "payee_id": "d9281448-7a2a-4d9e-87e4-443ebd212172",
+      "latitude": 40.0007,
+      "longitude": -74
+    },
+    {
+      "id": "8eaad289-035f-4e34-9823-f72b186c3035",
+      "payee_id": "e3a12e54-248f-4579-899d-afc6c558d306",
+      "latitude": 40.0008,
+      "longitude": -74
+    },
+    {
+      "id": "c12bb243-c04f-4b0b-9772-66b3965421e6",
+      "payee_id": "ef99551b-847b-4227-81dc-b056b4e6162a",
+      "latitude": 40.0009,
+      "longitude": -74
+    },
+    {
+      "id": "378e8cc1-e8f0-4b7a-b92d-513ff967a976",
+      "payee_id": "0acb5fc4-20eb-4b03-849a-830921282fc9",
+      "latitude": 40.001,
+      "longitude": -74
+    },
+    {
+      "id": "b6c57879-7735-4c44-a5b6-a615048656d8",
+      "payee_id": "baf16097-79f2-4ef4-96e5-5fc438a62718",
+      "latitude": 41,
+      "longitude": -74
+    },
+    {
+      "id": "31f453d3-be47-4287-ac56-30999c6d92e6",
+      "payee_id": "baf16097-79f2-4ef4-96e5-5fc438a62718",
+      "latitude": 40.00005,
+      "longitude": -74
+    },
+    {
+      "id": "b51c4bcf-d315-4e98-83c8-da07abf472a7",
+      "payee_id": "1502799a-b719-4106-8918-f01a74394474",
+      "latitude": 40.00449,
+      "longitude": -74
+    },
+    {
+      "id": "6e75d6bd-4afd-4045-99de-79996a7dfebe",
+      "payee_id": "fdc9049b-3623-4765-927d-74c49b1e53df",
+      "latitude": 40.0045,
+      "longitude": -74
+    }
+  ],
+  "labels": {
+    "baf16097-79f2-4ef4-96e5-5fc438a62718": "shop0",
+    "bdaab9b2-ef0a-49f1-b3a7-b341c7fe26e5": "shop1",
+    "7a0d5cf1-8ee6-4e8d-94a3-61e9cafb9bef": "shop2",
+    "0e3c4454-42ca-4d03-b263-601499ee2460": "shop3",
+    "64b560f5-2077-44eb-b03e-31449b568bf1": "shop4",
+    "e1bd5dce-1b81-4e67-a842-180afb8d881a": "shop5",
+    "ec930ef3-1872-4494-b4e1-c109b3921ea6": "shop6",
+    "d9281448-7a2a-4d9e-87e4-443ebd212172": "shop7",
+    "e3a12e54-248f-4579-899d-afc6c558d306": "shop8",
+    "ef99551b-847b-4227-81dc-b056b4e6162a": "shop9",
+    "0acb5fc4-20eb-4b03-849a-830921282fc9": "shop10",
+    "1502799a-b719-4106-8918-f01a74394474": "shop11",
+    "fdc9049b-3623-4765-927d-74c49b1e53df": "shop12",
+    "e37edf18-b8ac-4287-9bb4-f59529e8408a": "location0",
+    "080e66d0-0f36-4f79-be34-9242c8097060": "location1",
+    "8ed25f05-44c4-41ff-ab28-506fcca8200e": "location2",
+    "48b34542-db5d-46ed-abe8-2a3a11e29780": "location3",
+    "299e6191-f66c-459b-8b1e-519f156d4db4": "location4",
+    "1fa33ac0-9dbc-41bf-bcae-438e5cf1001b": "location5",
+    "e23e4d38-d15f-4d7c-9b27-9f7d83440d20": "location6",
+    "374ffb89-320c-4ede-a4ca-b1bf4d1df8ff": "location7",
+    "8eaad289-035f-4e34-9823-f72b186c3035": "location8",
+    "c12bb243-c04f-4b0b-9772-66b3965421e6": "location9",
+    "378e8cc1-e8f0-4b7a-b92d-513ff967a976": "location10",
+    "b6c57879-7735-4c44-a5b6-a615048656d8": "far-branch",
+    "31f453d3-be47-4287-ac56-30999c6d92e6": "second-near-branch",
+    "b51c4bcf-d315-4e98-83c8-da07abf472a7": "inside500",
+    "6e75d6bd-4afd-4045-99de-79996a7dfebe": "outside500"
+  }
+}

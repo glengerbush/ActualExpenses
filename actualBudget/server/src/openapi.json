@@ -22644,6 +22644,12 @@
           },
           "reset_next_date": {
             "type": "boolean"
+          },
+          "transfer_account_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "description": "Create/update only: resolve or create the account-managed transfer payee for this destination, atomically rewriting the core payee condition. No prior transfer transaction is required."
           }
         },
         "required": [

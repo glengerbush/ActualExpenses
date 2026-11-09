@@ -445,6 +445,27 @@ def main():
             assert canceled["error"]["code"] == "operation_canceled"
             assert schedule_command({"action": "catch-up", "through": schedule_today}, "schedule-cancel", 409,
                                     {"X-Actual-Receipt-Only": "true"}) == canceled
+            # First transfer schedule creates its managed payee without a dummy transfer.
+            schedule_peer, transfer_schedule = str(uuid.uuid4()), str(uuid.uuid4())
+            check(rr + "/accounts", account_template, "POST",
+                  {"id": schedule_peer, "name": "Schedule destination", "opening_balance": 0, "opening_date": schedule_today},
+                  {"Idempotency-Key": "schedule-destination"}, 201)
+            schedule_page = check(schedule_path, schedule_template)["data"]
+            schedule_command({"action": "create", "id": transfer_schedule, "snapshot": schedule_page["snapshot"],
+                              "transfer_account_id": schedule_peer,
+                              "conditions": [{"field": "account", "op": "is", "value": ra},
+                                             {"field": "amount", "op": "is", "value": -25},
+                                             {"field": "date", "op": "is", "value": schedule_today}]}, "schedule-transfer-create", 201)
+            schedule_page = check(schedule_path, schedule_template)["data"]
+            schedule_command({"action": "update", "id": transfer_schedule, "snapshot": schedule_page["snapshot"],
+                              "transfer_account_id": schedule_peer, "name": "Scheduled transfer"}, "schedule-transfer-update")
+            schedule_page = check(schedule_path, schedule_template)["data"]
+            transferred = schedule_command({"action": "post", "id": transfer_schedule, "snapshot": schedule_page["snapshot"],
+                                            "occurrence_date": schedule_today}, "schedule-transfer-post")
+            counterpart = transferred["data"]["transaction"]["transfer_id"]
+            assert counterpart is not None
+            check(rr + "/transactions/" + counterpart, budgets + "/{budget}/transactions/{id}")
+            check(rr + "/transactions?account_id=" + schedule_peer, budgets + "/{budget}/transactions")
 
             # Genuine released Android work validates the public handoff contract,
             # including dense order keys returned by the ordinary companion view.

@@ -39,6 +39,7 @@
     type SavedAction,
   } from "./register-storage";
   import TransferForm from "./TransferForm.svelte";
+  import SplitEditor from "./SplitEditor.svelte";
   import TransactionForm from "./TransactionForm.svelte";
   import DateInput from "./DateInput.svelte";
   import {
@@ -181,6 +182,10 @@
   let transferMode = $state<"create" | "edit" | "link" | "close" | null>(null);
   let recoveredPending = $state(false);
   let editing = $state.raw<Transaction | null>(null);
+  let splitEditor = $state<
+    { open: (row: Transaction) => Promise<void> } | undefined
+  >();
+  let splitActive = $state(false);
   let deleting = $state.raw<Transaction | null>(null);
   let deletionEpoch = $state<string | undefined>();
   let pending = $state<SavedAction | null>(null);
@@ -403,6 +408,10 @@
   }
   function open(transaction: Transaction | null) {
     if (transaction && disconnected) return;
+    if (transaction?.is_parent) {
+      void splitEditor?.open(transaction);
+      return;
+    }
     queued = null;
     editing = transaction;
     transferMode = transaction?.transfer_id ? "edit" : null;
@@ -444,7 +453,7 @@
       pending = { ...pending, clockRejected: false, attemptId: uuid() };
       saveRegisterAction(budgetId, pending);
       const submitted = pending;
-      if (row) {
+      if (row && !row.is_parent && !row.parent_id) {
         const preview = {
           ...row,
           id:
@@ -564,8 +573,12 @@
     <h2 id="register-title">{t("Transactions")}</h2>
     <button
       onclick={refreshChanges}
-      disabled={loading || busy || showForm || !!pending || !!recoveryError}
-      >{t("Refresh transactions")}</button
+      disabled={loading ||
+        busy ||
+        showForm ||
+        splitActive ||
+        !!pending ||
+        !!recoveryError}>{t("Refresh transactions")}</button
     >
     <button
       class="primary"
@@ -574,6 +587,7 @@
         busy ||
         !!pending ||
         showForm ||
+        splitActive ||
         accounts.length === 0 ||
         !!recoveryError ||
         !preferences.hasUsableShared ||
@@ -586,6 +600,7 @@
         loading ||
         busy ||
         showForm ||
+        splitActive ||
         !!pending ||
         !!recoveryError ||
         !preferences.hasUsableShared ||
@@ -600,6 +615,7 @@
           loading ||
           busy ||
           showForm ||
+          splitActive ||
           !!pending ||
           !!recoveryError ||
           !preferences.hasUsableShared ||
@@ -760,20 +776,21 @@
           </p>
           {#if item.offlineCreated && item.pending.method !== "DELETE"}<button
               onclick={() => void editQueued(item)}
-              disabled={showForm || busy || !!item.blocked}
+              disabled={showForm || splitActive || busy || !!item.blocked}
               >{t("Edit pending expense")}</button
             ><button
               onclick={() => void deleteQueued(item)}
-              disabled={showForm || busy || !!item.blocked}
+              disabled={showForm || splitActive || busy || !!item.blocked}
               >{t("Delete pending expense")}</button
             >{/if}
           <button
             onclick={() => void retryQueued(item)}
-            disabled={showForm || busy}>{t("Retry pending expense")}</button
+            disabled={showForm || splitActive || busy}
+            >{t("Retry pending expense")}</button
           >
           {#if item.blocked}<button
               onclick={() => void retryQueued(item, true)}
-              disabled={showForm || busy}
+              disabled={showForm || splitActive || busy}
               >{t("Cancel pending change safely")}</button
             >{/if}
         </div>{/each}
@@ -811,6 +828,16 @@
       />
     {/if}
   {/if}
+  <SplitEditor
+    {budgetId}
+    bind:this={splitEditor}
+    {accounts}
+    {payees}
+    {categories}
+    {disconnected}
+    bind:active={splitActive}
+    oncomplete={() => changed()}
+  />
   {#if loading}<p role="status">{t("Loading transactions…")}</p>{/if}
   {#if register?.data.length && preferences.hasUsableShared && viewMatchesEpoch}
     <table class="register-table">
@@ -839,8 +866,10 @@
                 >{/if}</td
             >
             <td data-label={t("Category")}
-              >{row.category_name ??
-                (row.transfer_id ? "Transfer" : t("Uncategorized"))}</td
+              >{row.is_parent
+                ? `${row.children?.length ?? 0} splits`
+                : (row.category_name ??
+                  (row.transfer_id ? "Transfer" : t("Uncategorized")))}</td
             ><td class="number amount" data-label={t("Amount")}
               >{formatAmount(row.amount)}</td
             >
@@ -861,6 +890,7 @@
                   loading ||
                   busy ||
                   showForm ||
+                  splitActive ||
                   !!pending ||
                   !!recoveryError ||
                   !preferences.hasUsableShared ||
@@ -868,11 +898,28 @@
                 aria-label={`${t("Edit")} ${description(row)}`}
                 >{t("Edit")}</button
               ><button
+                onclick={() => {
+                  void splitEditor?.open(row);
+                }}
+                disabled={disconnected ||
+                  loading ||
+                  busy ||
+                  showForm ||
+                  splitActive ||
+                  !!pending ||
+                  !!recoveryError ||
+                  row.reconciled ||
+                  row.starting_balance}
+                >{row.is_parent
+                  ? t("Edit splits")
+                  : t("Split transaction")}</button
+              ><button
                 onclick={() => void runAction("duplicate", row)}
                 disabled={disconnected ||
                   loading ||
                   busy ||
                   showForm ||
+                  splitActive ||
                   !!pending ||
                   !!recoveryError ||
                   !preferences.hasUsableShared}
@@ -887,6 +934,7 @@
                   loading ||
                   busy ||
                   showForm ||
+                  splitActive ||
                   !!pending ||
                   !!recoveryError ||
                   !preferences.hasUsableShared ||
@@ -900,6 +948,7 @@
                     loading ||
                     busy ||
                     showForm ||
+                    splitActive ||
                     !!pending ||
                     !!recoveryError ||
                     row.reconciled}>Link transfer</button

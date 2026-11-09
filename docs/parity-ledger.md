@@ -45,14 +45,14 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 20 | 13 | Transactions, payees and categories | Pending feature acceptance |
 | 21 | 12 | Transactions, payees and categories | Pending feature acceptance |
 | 22 | 12, 16 | Transactions, payees and categories | Pending feature acceptance |
-| 23 | 14 | Transactions, payees and categories | Pending feature acceptance |
+| 23 | 14 | Transactions, payees and categories | [14: split allocations, unsplit/recombine, pinned fixtures and recovery](splits-validation.md); register12/undo13 integration and root review pending |
 | 24 | 15 | Transactions, payees and categories | Pending feature acceptance |
 | 25 | 15 | Transactions, payees and categories | Pending feature acceptance |
 | 26 | 25 | Transactions, payees and categories | Pending feature acceptance |
-| 27 | 03, 11 | Transactions, payees and categories | [03: payee creation/selection and references](register-validation.md); payee management pending 11 |
-| 28 | 11, 19 | Transactions, payees and categories | Pending feature acceptance |
+| 27 | 03, 11 | Transactions, payees and categories | [11: payee management, aliases, retained references and Android choices](payees-tags-validation.md) |
+| 28 | 11, 19 | Transactions, payees and categories | [11: payee management and metadata](payees-tags-validation.md); associated rules/learning pending19 |
 | 29 | 46 | Transactions, payees and categories | Pending feature acceptance |
-| 30 | 11 | Transactions, payees and categories | Pending feature acceptance |
+| 30 | 11 | Transactions, payees and categories | [11: exact tag discovery, management, visibility, filtering and migration](payees-tags-validation.md) |
 | 31 | 03, 10 | Transactions, payees and categories | [10: groups/order/hiding, notes, history-preserving merge/delete and legacy migration](0910-validation.md) |
 | 32 | 03, 10 | Transactions, payees and categories | [10: signed refunds/reimbursements, uncategorized drilldowns and exact reassignment](0910-validation.md) |
 | 33 | 17, 18 | Tracking, envelope and automation | Pending feature acceptance |
@@ -117,7 +117,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 92 | 06 | Android and offline expense capture | [06: pending/latest-backdated retention](android-api-validation.md) |
 | 93 | 06 | Android and offline expense capture | [06: amount-only, optional fields and automatic clearing](android-api-validation.md) |
 | 94 | 19, 20 | Android and offline expense capture | Pending feature acceptance |
-| 95 | 06, 14, 15 | Android and offline expense capture | [06: current eligibility filters and unsupported-feature activation guards](android-api-validation.md); split/transfer predicates must extend before14/15 activation |
+| 95 | 06, 14, 15 | Android and offline expense capture | [06: current eligibility filters and unsupported-feature activation guards](android-api-validation.md); [14: split parent/child exclusion and pending recovery](splits-validation.md); transfer predicate must extend before15 activation |
 | 96 | 20 | Android and offline expense capture | Pending feature acceptance |
 | 97 | 20 | Android and offline expense capture | Pending feature acceptance |
 | 98 | 20, 50 | Android and offline expense capture | Pending feature acceptance |

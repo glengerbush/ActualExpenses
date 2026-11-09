@@ -62,6 +62,11 @@ impl Server {
             .client
             .request(method.parse().unwrap(), format!("{}{path}", self.url))
             .header("Idempotency-Key", key);
+        // Restore validates and installs a complete archive. This bounds test
+        // completion under parallel CI load; resource timings are measured separately.
+        if path.contains("/restores/") && path.ends_with("/activate") {
+            r = r.timeout(Duration::from_secs(30));
+        }
         if let Some(clock) = clock {
             r = r.header("X-Actual-Edit-Clock", clock);
         }

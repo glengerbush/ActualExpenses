@@ -1,5 +1,9 @@
 package org.actualexpenses.android
 
+import android.graphics.Bitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.test.platform.app.InstrumentationRegistry
+import java.io.File
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.junit4.StateRestorationTester
@@ -18,6 +22,16 @@ class ExpenseWorkflowTest {
     private val actions = RecordingActions()
     private val account = Choice("spending", "Spending")
     private val state = ExpenseUiState(screen = Screen.EXPENSES, selectedAccount = account, accounts = listOf(account), online = true)
+
+    @Test fun rejectedSplitEditHasExplicitRecoveryOutsideExpenseList() {
+        compose.setContent { ActualExpensesTheme { ExpensesScreen(state.copy(splitRecovery=true,pendingCount=1),actions) } }
+        compose.onNodeWithText("This expense became a split.",substring=true).assertIsDisplayed()
+        compose.onNodeWithText("Discard rejected expense edit").assertIsDisplayed()
+        val directory=File(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null),"review").apply{mkdirs()}
+        File(directory,"split-recovery.png").outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+        compose.onNodeWithText("Discard rejected expense edit").performClick()
+        compose.runOnIdle {assertTrue(actions.discardedSplit)}
+    }
 
     @Test fun amountOnlyExpenseNeedsNoOptionalFields() {
         compose.setContent { ActualExpensesTheme { ExpensesScreen(state, actions) } }
@@ -167,6 +181,8 @@ class ExpenseWorkflowTest {
         override fun refresh() = Unit
         override fun save(form: ExpenseForm) { saved = form; saveCount++ }
         override fun delete(session: EditSession, operationId: String) { deleted = session.transactionId;deletedSession=session }
+        var discardedSplit = false
+        override fun discardRejectedSplitEdit() {discardedSplit=true}
         override fun dismissMessage() = Unit
     }
 }

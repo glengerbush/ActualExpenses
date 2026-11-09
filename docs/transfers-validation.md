@@ -1,6 +1,7 @@
 # Ticket15 validation and handoff
 
-Isolated tree `ticket15`, base570806f; no commits, production data, deploys or APK
+Isolated tree `ticket15`, base570806f; candidate committed by root as `a3d9508`.
+No production data, deploys or APK
 identity/signing changes. Skills: implement/TDD, Impeccable, Svelte writer/core.
 Public API/browser/native seams were authorized by the parent task. Existing
 Operate surface extended inline; delegated brief supplied purpose and constraints.
@@ -70,3 +71,14 @@ Ticket12 query/hydration integration, ticket14 split-transfer composition,
 ticket13 atomic undo, ticket16 reconciliation guards, final schema renumbering,
 combined full validation and independent review. Ordinary transfer implementation
 is reviewable; this document does not claim full rewrite or whole-ticket acceptance.
+
+Root merged main `c69d215` (split schema10) into this isolated tree, renumbering
+transfers to provisional schema11. Main remains unchanged by transfer work.
+Both import generator modes survive; archive defaults compose schema6–10;
+transaction hydration and native exclusion retain split and transfer fields.
+Shared register actions disable while a split editor owns the draft.
+Focused merge checks: 9 split +6 transfer public tests,23 native API tests,
+served OpenAPI, Rust check/fmt, Svelte check/autofixer pass. Evidence:
+`/tmp/merge14-15-{tests,contract,webcheck2,autofixer}.log`,
+`/tmp/native14-15-merged.log`. Combined split-transfer financial behavior still
+requires implementation, tests and review; the merge alone does not satisfy it.

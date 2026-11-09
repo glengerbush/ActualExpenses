@@ -108,7 +108,7 @@ pub fn account_exists(db: &Connection, budget: &str, account: &str) -> Result<()
     }
     Ok(())
 }
-fn validate_references(
+pub(crate) fn validate_references(
     db: &Connection,
     budget: &str,
     input: &NewTransaction,
@@ -181,7 +181,7 @@ fn budget_balances(db: &Connection, budget: &str) -> Result<Balances, Error> {
 }
 pub fn refresh_account(db: &Connection, budget: &str, account: &str) -> Result<(), Error> {
     let mut balances = Balances::default();
-    let mut query=db.prepare("SELECT amount,cleared FROM transactions WHERE budget_id=?1 AND account_id=?2 AND tombstone=0 ORDER BY date ASC,starting_balance DESC,sort_order ASC,id DESC")?;
+    let mut query=db.prepare("SELECT amount,cleared FROM transactions WHERE budget_id=?1 AND account_id=?2 AND tombstone=0 AND parent_id IS NULL ORDER BY date ASC,starting_balance DESC,sort_order ASC,id DESC")?;
     for row in query.query_map(params![budget, account], |r| {
         Ok((r.get::<_, i64>(0)?, r.get::<_, bool>(1)?))
     })? {
@@ -243,10 +243,10 @@ fn insert(
     apply_addition(db, budget, &input)?;
     get(db, budget, &input.id)
 }
-const SELECT: &str = "SELECT t.id,t.account_id,t.amount,t.date,t.cleared,t.reconciled,t.starting_balance,CASE WHEN p.tombstone=0 THEN t.payee_id END,CASE WHEN p.tombstone=0 THEN COALESCE((SELECT name FROM accounts WHERE budget_id=t.budget_id AND id=p.transfer_account_id),p.name) END,t.category_id,c.name,c.is_income,t.notes,a.name,t.sort_order,t.imported_payee,t.payee_id,t.transfer_id FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id";
+const SELECT: &str = "SELECT t.id,t.account_id,t.amount,t.date,t.cleared,t.reconciled,t.starting_balance,CASE WHEN p.tombstone=0 THEN t.payee_id END,CASE WHEN p.tombstone=0 THEN COALESCE((SELECT name FROM accounts WHERE budget_id=t.budget_id AND id=p.transfer_account_id),p.name) END,t.category_id,c.name,c.is_income,t.notes,a.name,t.sort_order,t.imported_payee,t.payee_id,t.transfer_id,t.is_parent,t.parent_id FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id";
 fn row(r: &rusqlite::Row) -> rusqlite::Result<Value> {
     Ok(
-        json!({"id":r.get::<_,String>(0)?,"account_id":r.get::<_,String>(1)?,"amount":r.get::<_,i64>(2)?,"date":r.get::<_,String>(3)?,"cleared":r.get::<_,bool>(4)?,"reconciled":r.get::<_,bool>(5)?,"starting_balance":r.get::<_,bool>(6)?,"payee_id":r.get::<_,Option<String>>(7)?,"payee_name":r.get::<_,Option<String>>(8)?,"category_id":r.get::<_,Option<String>>(9)?,"category_name":r.get::<_,Option<String>>(10)?,"category_is_income":r.get::<_,Option<bool>>(11)?,"notes":r.get::<_,String>(12)?,"account_name":r.get::<_,String>(13)?,"sort_order":r.get::<_,i64>(14)?,"imported_payee":r.get::<_,Option<String>>(15)?,"retained_payee_id":r.get::<_,Option<String>>(16)?,"transfer_id":r.get::<_,Option<String>>(17)?}),
+        json!({"id":r.get::<_,String>(0)?,"account_id":r.get::<_,String>(1)?,"amount":r.get::<_,i64>(2)?,"date":r.get::<_,String>(3)?,"cleared":r.get::<_,bool>(4)?,"reconciled":r.get::<_,bool>(5)?,"starting_balance":r.get::<_,bool>(6)?,"payee_id":r.get::<_,Option<String>>(7)?,"payee_name":r.get::<_,Option<String>>(8)?,"category_id":r.get::<_,Option<String>>(9)?,"category_name":r.get::<_,Option<String>>(10)?,"category_is_income":r.get::<_,Option<bool>>(11)?,"notes":r.get::<_,String>(12)?,"account_name":r.get::<_,String>(13)?,"sort_order":r.get::<_,i64>(14)?,"imported_payee":r.get::<_,Option<String>>(15)?,"retained_payee_id":r.get::<_,Option<String>>(16)?,"transfer_id":r.get::<_,Option<String>>(17)?,"is_parent":r.get::<_,bool>(18)?,"parent_id":r.get::<_,Option<String>>(19)?}),
     )
 }
 pub fn get(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
@@ -269,7 +269,7 @@ pub fn get_any(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> 
         )
         .optional()?
         .ok_or_else(Error::missing)?;
-    crate::concurrency::decorate(db, budget, row)
+    crate::splits::decorate(db, budget, crate::concurrency::decorate(db, budget, row)?)
 }
 pub struct RegisterFilters<'a> {
     pub account: Option<&'a str>,
@@ -310,7 +310,7 @@ pub fn list(
         }
     } else {
         let mut sums = [0_i128; 3];
-        let mut statement=db.prepare("SELECT amount,cleared FROM transactions WHERE budget_id=?1 AND tombstone=0 AND (?2 IS NULL OR account_id=?2) AND date<=?3")?;
+        let mut statement=db.prepare("SELECT amount,cleared FROM transactions WHERE budget_id=?1 AND tombstone=0 AND parent_id IS NULL AND (?2 IS NULL OR account_id=?2) AND date<=?3")?;
         for row in statement.query_map(params![budget, account, as_of], |r| {
             Ok((r.get::<_, i64>(0)?, r.get::<_, bool>(1)?))
         })? {
@@ -334,7 +334,9 @@ pub fn list(
     } else {
         ""
     };
-    let filter = format!("WHERE t.budget_id=?1 AND t.tombstone=0{account_filter}{date_filter}");
+    let filter = format!(
+        "WHERE t.budget_id=?1 AND t.tombstone=0 AND t.parent_id IS NULL{account_filter}{date_filter}"
+    );
     // Keep parameter slots stable while allowing SQLite to use the account/date indexes.
     let matched = if let Some(tag) = tag {
         let mut q=db.prepare("SELECT id,notes FROM transactions WHERE budget_id=?1 AND tombstone=0 AND (?2 IS NULL OR account_id=?2)")?;
@@ -391,7 +393,11 @@ pub fn list(
         }
     }
     for entry in &mut rows {
-        *entry = crate::concurrency::decorate(db, budget, entry.take())?;
+        *entry = crate::splits::decorate(
+            db,
+            budget,
+            crate::concurrency::decorate(db, budget, entry.take())?,
+        )?;
         entry["running_balance"] = if account.is_some() && tag.is_none() && payee.is_none() {
             json!(checked(running)?)
         } else {
@@ -515,6 +521,11 @@ fn update_row(
 }
 pub fn delete(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
     let previous = get(db, budget, id)?;
+    if !previous["parent_id"].is_null() {
+        return Err(Error::invalid(
+            "Delete a child through its parent split and allocate the remainder",
+        ));
+    }
     if previous["reconciled"] == true {
         return Err(Error::conflict(
             "Unlock the reconciled transaction before deleting",
@@ -538,6 +549,16 @@ pub fn duplicate(db: &Connection, budget: &str, source: &str, id: &str) -> Resul
         "UPDATE transactions SET imported_payee=?3 WHERE budget_id=?1 AND id=?2",
         params![budget, id, previous["imported_payee"].as_str()],
     )?;
+    if previous["is_parent"] == true {
+        db.execute(
+            "UPDATE transactions SET is_parent=1 WHERE budget_id=?1 AND id=?2",
+            params![budget, id],
+        )?;
+        for child in previous["children"].as_array().unwrap() {
+            let child_id = uuid::Uuid::new_v4().to_string();
+            db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,notes,payee_id,category_id,sort_order,parent_id,imported_payee) VALUES(?1,?2,?3,?4,?5,0,?6,?7,?8,?9,?10,?11)",params![budget,child_id,child["account_id"].as_str(),child["amount"].as_i64(),child["date"].as_str(),child["notes"].as_str(),child["payee_id"].as_str(),child["category_id"].as_str(),child["sort_order"].as_i64(),id,child["imported_payee"].as_str()])?;
+        }
+    }
     get(db, budget, id)
 }
 
@@ -592,7 +613,7 @@ fn resolve_new_references(
     Ok(())
 }
 
-fn validate_payee_selection(
+pub(crate) fn validate_payee_selection(
     db: &Connection,
     budget: &str,
     id: Option<&str>,

@@ -81,7 +81,7 @@ async fn view(
             // Transfer exclusion precedes activation and applies to retained IDs too.
             let mut statement = read.prepare(
                 "SELECT id FROM transactions WHERE budget_id=?1 AND account_id=?2
-             AND tombstone=0 AND reconciled=0 AND amount<0 AND transfer_id IS NULL
+             AND tombstone=0 AND reconciled=0 AND amount<0 AND transfer_id IS NULL AND is_parent=0 AND parent_id IS NULL
              ORDER BY date DESC,sort_order DESC,id ASC LIMIT 10",
             )?;
             let ids = statement
@@ -118,7 +118,7 @@ async fn view(
 fn eligible(db: &Connection, budget: &str, account: &str, id: &str) -> Result<bool, Error> {
     Ok(db.query_row(
         "SELECT EXISTS(SELECT 1 FROM transactions WHERE budget_id=?1 AND account_id=?2
-         AND id=?3 AND tombstone=0 AND reconciled=0 AND amount<0 AND transfer_id IS NULL)",
+         AND id=?3 AND tombstone=0 AND reconciled=0 AND amount<0 AND transfer_id IS NULL AND is_parent=0 AND parent_id IS NULL)",
         params![budget, account, id],
         |row| row.get(0),
     )?)

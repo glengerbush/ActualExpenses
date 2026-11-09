@@ -25,6 +25,86 @@ try {
       "--host-resolver-rules=MAP actualbudget.test 127.0.0.1",
     ],
   });
+  for (const action of ["deliver", "delete"]) {
+    const context = await browser.newContext(),
+      page = await context.newPage(),
+      budget = randomUUID(),
+      account = randomUUID();
+    await create("/budgets", { id: budget, name: `Reload pending ${action}` });
+    await create(`/budgets/${budget}/accounts`, {
+      id: account,
+      name: "Spending",
+      opening_balance: 10000,
+      opening_date: "2026-01-01",
+    });
+    await page.goto(server.url);
+    await page.evaluate(
+      ({ budget, account }) =>
+        localStorage.setItem(
+          "actualBudget.selection",
+          JSON.stringify({ budgetId: budget, accountId: account }),
+        ),
+      { budget, account },
+    );
+    await page.reload();
+    await expect(page.getByTestId("register-total")).toHaveText("100.00");
+    await context.route("**/api/v1/**", (route) => route.abort());
+    await page.evaluate(() => dispatchEvent(new Event("offline")));
+    await page
+      .getByRole("button", { name: "Add transaction", exact: true })
+      .click();
+    await page.getByLabel("Amount", { exact: true }).fill("1");
+    await page
+      .getByLabel("Notes", { exact: true })
+      .fill("Reloaded pending expense");
+    await page
+      .getByRole("button", { name: "Save transaction", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Edit pending expense", exact: true })
+      .click();
+    await page.getByLabel("Amount", { exact: true }).fill("2");
+    await page.reload();
+    await expect(page.getByLabel("Amount", { exact: true })).toHaveValue("2");
+    await page.evaluate(() => dispatchEvent(new Event("offline")));
+    await page
+      .getByRole("button", { name: "Save transaction", exact: true })
+      .click();
+    await expect(page.locator(".transaction-form")).toHaveCount(0);
+    await expect(page.getByTestId("pending-expenses")).toContainText("-2.00");
+    await expect(
+      page.getByRole("button", { name: "Delete pending expense", exact: true }),
+    ).toBeVisible();
+    await page
+      .getByRole("button", { name: "Edit pending expense", exact: true })
+      .click();
+    await page.getByLabel("Amount", { exact: true }).fill("3");
+    await page
+      .getByRole("button", { name: "Save transaction", exact: true })
+      .click();
+    await expect(page.getByTestId("pending-expenses")).toContainText("-3.00");
+    if (action === "delete") {
+      await page
+        .getByRole("button", { name: "Delete pending expense", exact: true })
+        .click();
+      await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+    }
+    await context.unroute("**/api/v1/**");
+    await page.evaluate(() => dispatchEvent(new Event("online")));
+    await expect(page.getByTestId("pending-expenses")).toHaveCount(0);
+    await expect(page.getByTestId("register-total")).toHaveText(
+      action === "delete" ? "100.00" : "97.00",
+    );
+    const rows = (
+      await (await fetch(api + `/api/v1/budgets/${budget}/transactions`)).json()
+    ).data.filter((row) => !row.starting_balance);
+    expect(rows).toHaveLength(action === "delete" ? 0 : 1);
+    if (action === "deliver") expect(rows[0].amount).toBe(-300);
+    console.log(
+      `PASS reloaded unsent editor retains subsequent offline edit/${action} eligibility`,
+    );
+    await context.close();
+  }
   for (const mode of ["revert", "mixed", "claimed", "cancel", "handoff"]) {
     const context = await browser.newContext(),
       page = await context.newPage(),

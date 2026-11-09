@@ -161,7 +161,10 @@ export async function enqueue(input: {
         const original = await result<OutboxEntry | undefined>(
           store.get(input.replace.key),
         );
-        if (original) validate(original);
+        if (original) {
+          validate(original);
+          entry.offlineCreated = original.offlineCreated;
+        }
         if (original && !original.attempted) {
           if (original.revision !== input.replace.revision)
             throw new OfflineStateError(
@@ -177,20 +180,18 @@ export async function enqueue(input: {
           await result(store.delete(original.key));
           if (input.replace.empty) {
             await result(
-              tx
-                .objectStore("receipts")
-                .put(
-                  {
-                    version: 1,
-                    budgetId: entry.budgetId,
-                    key: entry.key,
-                    at: new Date().toISOString(),
-                    message: "Unsent edit removed.",
-                    pending: entry.pending,
-                    draft: entry.draft,
-                  } satisfies DeliveryReceipt,
-                  entry.key,
-                ),
+              tx.objectStore("receipts").put(
+                {
+                  version: 1,
+                  budgetId: entry.budgetId,
+                  key: entry.key,
+                  at: new Date().toISOString(),
+                  message: "Unsent edit removed.",
+                  pending: entry.pending,
+                  draft: entry.draft,
+                } satisfies DeliveryReceipt,
+                entry.key,
+              ),
             );
             return entry;
           }

@@ -86,15 +86,19 @@ def verify_web_assets(base):
 
 
 def main():
+    project = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--image", help="Test an already-built image instead of building")
-    parser.add_argument("--browser", action="store_true",
-                        help="Also run web browser acceptance against the container (requires web test dependencies)")
+    browser_checks = parser.add_mutually_exclusive_group()
+    browser_checks.add_argument("--browser", action="store_true",
+                                help="Run the complete browser acceptance suite")
+    browser_checks.add_argument("--browser-test", action="append",
+                                choices=sorted(path.name for path in (project / "web/tests").glob("*.mjs")),
+                                help="Run a selected browser script; repeat for related regressions")
     args = parser.parse_args()
     prefix = "actualbudget-smoke-" + uuid.uuid4().hex
     container, volume = prefix + "-app", prefix + "-data"
     image = args.image or prefix + ":test"
-    project = Path(__file__).resolve().parents[1]
     try:
         if not args.image:
             docker("build", "--tag", image, "--file", str(project / "Dockerfile"),
@@ -133,10 +137,15 @@ def main():
         opening = transactions[0]
         assert opening["amount"] == 123456 and opening["date"] == "2026-11-08", opening
         assert opening["starting_balance"] is True, opening
-        if args.browser:
+        if args.browser or args.browser_test:
             environment = dict(os.environ, ACTUALBUDGET_TEST_URL=f"http://actualbudget.test:{urlsplit(base).port}")
-            subprocess.run(["npm", "--prefix", str(project / "web"), "run", "test:browser"],
-                           env=environment, check=True)
+            if args.browser:
+                subprocess.run(["npm", "--prefix", str(project / "web"), "run", "test:browser"],
+                               env=environment, check=True)
+            else:
+                for script in args.browser_test:
+                    subprocess.run(["node", str(project / "web/tests" / script)],
+                                   cwd=project / "web", env=environment, check=True)
         print("PASS: plain HTTP, no login, bundled web assets, exact opening balance, "
               "persistence and idempotent retry after container replacement")
         print(docker("image", "inspect", "--format",

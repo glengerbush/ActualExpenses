@@ -1,0 +1,76 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "archive_sha256": "6f93a6392cea84f5a2bdb05641b086ca027f54b83fd9b6fed2fe2fb36fd4d826",
+  "raw_deleted_schedule_link": {
+    "schedule": "SCHEDULE",
+    "tombstone": 1
+  },
+  "snapshots": [
+    {
+      "step": "linked",
+      "rows": [
+        {
+          "id": "PAYMENT",
+          "account": "ACCOUNT",
+          "payee": "PAYEE",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-09",
+          "notes": "Original payment",
+          "cleared": true,
+          "reconciled": false,
+          "schedule": "SCHEDULE"
+        }
+      ],
+      "active_schedule_count": 1,
+      "unlinked_query_ids": [],
+      "balance": -100
+    },
+    {
+      "step": "schedule deleted, payment retained",
+      "rows": [
+        {
+          "id": "PAYMENT",
+          "account": "ACCOUNT",
+          "payee": "PAYEE",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-09",
+          "notes": "Original payment",
+          "cleared": true,
+          "reconciled": false,
+          "schedule": null
+        }
+      ],
+      "active_schedule_count": 0,
+      "unlinked_query_ids": [
+        "PAYMENT"
+      ],
+      "balance": -100
+    },
+    {
+      "step": "historical link removed",
+      "rows": [
+        {
+          "id": "PAYMENT",
+          "account": "ACCOUNT",
+          "payee": "PAYEE",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-09",
+          "notes": "Original payment",
+          "cleared": true,
+          "reconciled": false,
+          "schedule": null
+        }
+      ],
+      "active_schedule_count": 0,
+      "unlinked_query_ids": [
+        "PAYMENT"
+      ],
+      "balance": -100
+    }
+  ]
+}

@@ -29,6 +29,8 @@ export interface SplitDraft {
     notes: string;
     cleared: boolean;
   };
+  confirmedReconciled?: boolean;
+  reconciliationToken?: string;
   pending: PendingMutation | null;
 }
 async function database(): Promise<IDBDatabase> {

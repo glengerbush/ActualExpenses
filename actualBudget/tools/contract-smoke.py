@@ -84,6 +84,14 @@ def main():
             check(accounts, account_template)
             check(f"{budgets}/{uuid.uuid4()}/accounts", account_template, expected=404)
             check(f"{budgets}/{budget_id}/transactions?account_id={account_id}", budgets + "/{budget}/transactions")
+            reconcile_path = accounts + "/" + account_id + "/reconciliation"
+            reconcile_template = account_template + "/{id}/reconciliation"
+            progress = check(reconcile_path, reconcile_template)["data"]
+            check(reconcile_path, reconcile_template, "POST", {"action":"lock", "statement_balance":12345, "snapshot":progress["snapshot"], "date":"2026-10-15"}, {"Idempotency-Key":"reconcile"})
+            entry = check(f"{budgets}/{budget_id}/transactions?account_id={account_id}", budgets + "/{budget}/transactions")["data"][0]
+            unlock_path = f"{budgets}/{budget_id}/transactions/{entry['id']}/unlock"
+            protection = check(f"{budgets}/{budget_id}/transactions/{entry['id']}/splits", budgets + "/{budget}/transactions/{id}/splits")["reconciliation_token"]
+            check(unlock_path, budgets + "/{budget}/transactions/{id}/unlock", "POST", {"reconciliation_token":protection}, {"Idempotency-Key":"unlock"})
             register_settings_path=f"{budgets}/{budget_id}/register-settings"
             register_settings_template=budgets+"/{budget}/register-settings"
             register_settings=check(register_settings_path,register_settings_template)["data"]

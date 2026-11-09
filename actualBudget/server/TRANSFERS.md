@@ -1,6 +1,6 @@
 # Linked transfers
 
-Ticket15, stories24/25/39/95. Provisional schema12 after register schema11; reconciliation integration will renumber transfers to13.
+Ticket15, stories24/25/39/95. Schema13 after register11 and reconciliation12.
 
 `POST /budgets/{budget}/transfers` accepts client-generated `id`, `counterpart_id`,
 `account_id`, `to_account_id`, signed integer `amount`, calendar `date`, optional

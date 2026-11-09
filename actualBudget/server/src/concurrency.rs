@@ -372,6 +372,26 @@ pub fn execute(
             )
         }
         Mutation::Patch(id, mut patch) => {
+            let confirmed = match patch
+                .as_object_mut()
+                .and_then(|p| p.remove("confirm_reconciled"))
+            {
+                None => false,
+                Some(Value::Bool(v)) => v,
+                _ => return Err(Error::invalid("confirm_reconciled must be boolean")),
+            };
+            let confirmed_version = match patch
+                .as_object_mut()
+                .and_then(|p| p.remove("reconciled_version"))
+            {
+                None => None,
+                Some(Value::String(version)) if confirmed => Some(version),
+                _ => {
+                    return Err(Error::invalid(
+                        "reconciled_version must be a string accompanying confirm_reconciled=true",
+                    ));
+                }
+            };
             let hidden = deleted(db, budget, &id)?;
             if !hidden && crate::transfers::counterpart(db, budget, &id)?.is_some() {
                 return crate::transfers::patch(db, budget, &id, patch, &edit_clock);
@@ -429,7 +449,20 @@ pub fn execute(
                 if hidden {
                     ledger::update_hidden(db, budget, &id, Value::Object(accepted))?;
                 } else {
-                    ledger::update(db, budget, &id, Value::Object(accepted))?;
+                    if let Some(version) = confirmed_version.as_deref() {
+                        ledger::update_confirmed(
+                            db,
+                            budget,
+                            &id,
+                            Value::Object(accepted),
+                            crate::reconciliation::Confirmation {
+                                version,
+                                clock: &edit_clock,
+                            },
+                        )?;
+                    } else {
+                        ledger::update(db, budget, &id, Value::Object(accepted))?;
+                    }
                 }
                 if let Some(payee) = new_payee {
                     seed_field_version(db, budget, "payees", &payee, "name", &edit_clock)?;

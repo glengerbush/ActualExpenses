@@ -491,7 +491,6 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             "account_sync_source",
             "type",
             "last_sync",
-            "last_reconciled",
             "bank_sync_status",
         ]
         .iter()
@@ -501,7 +500,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             "account_configuration",
             usize::from(unsupported),
             true,
-            "Bank or reconciliation metadata needs its feature converter",
+            "Bank metadata needs its feature converter",
         );
         let notes = array(&source, "notes")
             .iter()
@@ -518,7 +517,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             None if row["account_group_id"].is_null() => Value::Null,
             _ => return Err(invalid("Invalid account group reference")),
         };
-        converted["accounts"].as_array_mut().unwrap().push(json!({"id":id,"name":name,"off_budget":flag(row,"offbudget")?,"closed":flag(row,"closed")?,"notes":notes,"group_id":group,"sort_order":account_order[id],"tombstone":flag(row,"tombstone")?}));
+        converted["accounts"].as_array_mut().unwrap().push(json!({"id":id,"name":name,"off_budget":flag(row,"offbudget")?,"closed":flag(row,"closed")?,"notes":notes,"group_id":group,"sort_order":account_order[id],"tombstone":flag(row,"tombstone")?,"last_reconciled":crate::reconciliation::source_timestamp(&row["last_reconciled"])?}));
     }
     let other_notes = array(&source, "notes")
         .iter()
@@ -897,7 +896,7 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
         db.execute("INSERT INTO account_groups(budget_id,id,name,sort_order,tombstone) VALUES(?1,?2,?3,?4,?5)",params![budget,row["id"].as_str(),row["name"].as_str(),row["sort_order"].as_i64(),row["tombstone"].as_bool()])?;
     }
     for row in array(data, "accounts") {
-        db.execute("INSERT INTO accounts(budget_id,id,name,notes,off_budget,closed,group_id,sort_order,tombstone) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9)",params![budget,row["id"].as_str(),row["name"].as_str(),row["notes"].as_str(),row["off_budget"].as_bool(),row["closed"].as_bool(),row["group_id"].as_str(),row["sort_order"].as_i64().unwrap_or(0),row["tombstone"].as_bool().unwrap_or(false)])?;
+        db.execute("INSERT INTO accounts(budget_id,id,name,notes,off_budget,closed,group_id,sort_order,tombstone,last_reconciled) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",params![budget,row["id"].as_str(),row["name"].as_str(),row["notes"].as_str(),row["off_budget"].as_bool(),row["closed"].as_bool(),row["group_id"].as_str(),row["sort_order"].as_i64().unwrap_or(0),row["tombstone"].as_bool().unwrap_or(false),row["last_reconciled"].as_str()])?;
     }
     for row in array(data, "payees") {
         db.execute(
@@ -993,7 +992,7 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
                 Some("notes")
             }
             ("account_groups", "name" | "sort_order" | "tombstone") => Some(field),
-            ("accounts", "name" | "closed" | "sort_order" | "tombstone")
+            ("accounts", "name" | "closed" | "sort_order" | "tombstone" | "last_reconciled")
             | ("payees", "name" | "favorite" | "tombstone")
             | (
                 "categories" | "category_groups",

@@ -56,7 +56,7 @@ fn versions(db: &Connection, budget: &str, entity: &str, id: &str) -> Result<Val
     Ok(Value::Object(values))
 }
 pub fn get(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
-    let mut value=db.query_row("SELECT a.name,a.notes,a.off_budget,a.closed,COALESCE(t.total,0),a.group_id,a.sort_order,a.tombstone FROM accounts a LEFT JOIN ledger_totals t ON t.budget_id=a.budget_id AND t.account_id=a.id WHERE a.budget_id=?1 AND a.id=?2",params![budget,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?,"notes":r.get::<_,String>(1)?,"off_budget":r.get::<_,bool>(2)?,"closed":r.get::<_,bool>(3)?,"balance":r.get::<_,i64>(4)?,"group_id":r.get::<_,Option<String>>(5)?,"sort_order":r.get::<_,i64>(6)?,"deleted":r.get::<_,bool>(7)?}))).optional()?.ok_or_else(Error::missing)?;
+    let mut value=db.query_row("SELECT a.name,a.notes,a.off_budget,a.closed,COALESCE(t.total,0),a.group_id,a.sort_order,a.tombstone,a.last_reconciled FROM accounts a LEFT JOIN ledger_totals t ON t.budget_id=a.budget_id AND t.account_id=a.id WHERE a.budget_id=?1 AND a.id=?2",params![budget,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?,"notes":r.get::<_,String>(1)?,"off_budget":r.get::<_,bool>(2)?,"closed":r.get::<_,bool>(3)?,"balance":r.get::<_,i64>(4)?,"group_id":r.get::<_,Option<String>>(5)?,"sort_order":r.get::<_,i64>(6)?,"deleted":r.get::<_,bool>(7)?,"last_reconciled":r.get::<_,Option<String>>(8)?}))).optional()?.ok_or_else(Error::missing)?;
     value["field_versions"] = versions(db, budget, "accounts", id)?;
     Ok(value)
 }

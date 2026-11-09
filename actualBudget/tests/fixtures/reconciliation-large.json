@@ -1,0 +1,16 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "accounts": [
+    {
+      "account": "9be9b0cc-7c44-4207-817d-7c1ad9572858",
+      "parent": "16160000-0000-4000-8000-000001010000",
+      "count": 101
+    },
+    {
+      "account": "1fc28434-32fe-4a0b-a11b-b1474d3938bd",
+      "parent": "16160000-0000-4000-8000-000010010000",
+      "count": 1001
+    }
+  ]
+}

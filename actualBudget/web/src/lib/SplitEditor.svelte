@@ -94,6 +94,7 @@
         data: Transaction;
         snapshot: string;
         epoch: string;
+        reconciliation_token: string;
       }>(`/budgets/${budgetId}/transactions/${parent.id}/splits`);
       parent = current.data;
       const format = captureAmountFormat();
@@ -122,6 +123,7 @@
         parent,
         snapshot: current.snapshot,
         epoch: current.epoch,
+        reconciliationToken: current.reconciliation_token,
         format,
         children,
         fields: {
@@ -236,6 +238,14 @@
               "Save split edits before unsplitting. Your draft is retained.",
             );
         }
+        const protectedRows = [
+          draft.parent,
+          ...(draft.parent.children ?? []),
+        ].filter((row) => row.reconciled);
+        if (protectedRows.length && !draft.confirmedReconciled)
+          throw new Error(
+            "Confirm editing this reconciled split, or unlock it first.",
+          );
         for (const child of draft.parent.children ?? [])
           observeVersions(child.field_versions);
         const fields = {
@@ -251,6 +261,21 @@
           budgetEpoch: draft.epoch,
           body: {
             snapshot: draft.snapshot,
+            ...(protectedRows.length
+              ? {
+                  confirm_reconciled: true,
+                  ...(draft.reconciliationToken
+                    ? { reconciliation_token: draft.reconciliationToken }
+                    : {
+                        reconciled_versions: Object.fromEntries(
+                          protectedRows.map((row) => [
+                            row.id,
+                            row.field_versions?.reconciled,
+                          ]),
+                        ),
+                      }),
+                }
+              : {}),
             action,
             allocation,
             detach,
@@ -366,6 +391,20 @@
       oninput={() => void persist()}
       onchange={() => void persist()}
     >
+      {#if draft.parent.reconciled || draft.parent.children?.some((row) => row.reconciled)}
+        <label class="checkbox"
+          ><input
+            type="checkbox"
+            bind:checked={draft.confirmedReconciled}
+            disabled={busy || !!draft.pending || recovery}
+          />{t("Confirm editing this reconciled split")}</label
+        >
+        <p class="hint">
+          {t(
+            "This changes settled entries. The transaction and its splits stay locked.",
+          )}
+        </p>
+      {/if}
       <fieldset disabled={busy || !!draft.pending || recovery}>
         <legend>{t("Transaction")}</legend>
         <div class="split-fields">

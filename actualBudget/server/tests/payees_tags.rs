@@ -650,7 +650,12 @@ fn genuine_schema7_database_and_archive_backfill_preserve_native_edits_and_recei
         for (key, value) in expected["transaction"]["data"].as_object().unwrap() {
             assert_eq!(&tx["data"][key], value, "{key}");
         }
-        assert_eq!(s.get(&format!("{root}/accounts")), expected["accounts"]);
+        let mut accounts = s.get(&format!("{root}/accounts"));
+        for account in accounts["data"].as_array_mut().unwrap() {
+            assert!(account["last_reconciled"].is_null());
+            account.as_object_mut().unwrap().remove("last_reconciled");
+        }
+        assert_eq!(accounts, expected["accounts"]);
         assert_eq!(
             ok(s.write(
                 "PATCH",

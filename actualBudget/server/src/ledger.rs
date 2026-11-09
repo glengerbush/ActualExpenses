@@ -322,7 +322,7 @@ pub fn validate_patch(previous: &Value, patch: &Value) -> Result<NewTransaction,
     Ok(input)
 }
 pub fn update(db: &Connection, budget: &str, id: &str, patch: Value) -> Result<Value, Error> {
-    update_row(db, budget, id, patch, false)
+    update_row(db, budget, id, patch, false, None)
 }
 pub fn update_hidden(
     db: &Connection,
@@ -330,7 +330,16 @@ pub fn update_hidden(
     id: &str,
     patch: Value,
 ) -> Result<Value, Error> {
-    update_row(db, budget, id, patch, true)
+    update_row(db, budget, id, patch, true, None)
+}
+pub fn update_confirmed(
+    db: &Connection,
+    budget: &str,
+    id: &str,
+    patch: Value,
+    confirmation: crate::reconciliation::Confirmation<'_>,
+) -> Result<Value, Error> {
+    update_row(db, budget, id, patch, false, Some(confirmation))
 }
 fn update_row(
     db: &Connection,
@@ -338,16 +347,15 @@ fn update_row(
     id: &str,
     patch: Value,
     hidden: bool,
+    confirmation: Option<crate::reconciliation::Confirmation<'_>>,
 ) -> Result<Value, Error> {
     let previous = if hidden {
         get_any(db, budget, id)?
     } else {
         get(db, budget, id)?
     };
-    if previous["reconciled"] == true && !hidden {
-        return Err(Error::conflict(
-            "Unlock the reconciled transaction before editing",
-        ));
+    if !hidden {
+        crate::reconciliation::protect(&previous, confirmation)?;
     }
     let mut input = validate_patch(&previous, &patch)?;
     resolve_new_references(db, budget, &mut input)?;
@@ -398,11 +406,11 @@ pub fn delete(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
             "Delete a child through its parent split and allocate the remainder",
         ));
     }
-    if previous["reconciled"] == true {
-        return Err(Error::conflict(
-            "Unlock the reconciled transaction before deleting",
-        ));
-    }
+    crate::reconciliation::protect_members(
+        &crate::reconciliation::members(db, budget, id)?,
+        None,
+        crate::concurrency::ZERO,
+    )?;
     db.execute(
         "UPDATE transactions SET tombstone=1 WHERE budget_id=?1 AND id=?2",
         params![budget, id],

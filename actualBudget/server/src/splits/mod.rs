@@ -19,7 +19,7 @@ use axum::{
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -68,6 +68,12 @@ pub struct Change {
     pub detach: Vec<String>,
     #[serde(default)]
     pub fields: Option<Value>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub confirm_reconciled: bool,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub reconciled_versions: BTreeMap<String, String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reconciliation_token: Option<String>,
 }
 pub fn router() -> Router<Store> {
     Router::new().route(
@@ -81,7 +87,7 @@ async fn view(
 ) -> Result<Json<Value>, Error> {
     validate_id(&budget)?;
     validate_id(&id)?;
-    Ok(Json(store.run(move|db|{let tx=db.transaction()?;Ok(json!({"data":ledger::get(&tx,&budget,&id)?,"snapshot":concurrency::cursor(&tx,&budget)?,"epoch":crate::lifecycle::epoch(&tx,&budget)?}))}).await?))
+    Ok(Json(store.run(move|db|{let tx=db.transaction()?;Ok(json!({"data":ledger::get(&tx,&budget,&id)?,"snapshot":concurrency::cursor(&tx,&budget)?,"epoch":crate::lifecycle::epoch(&tx,&budget)?,"reconciliation_token":crate::reconciliation::protection_token(&budget,&crate::reconciliation::members(&tx,&budget,&id)?)}))}).await?))
 }
 async fn change(
     State(store): State<Store>,
@@ -93,7 +99,11 @@ async fn change(
     validate_id(&budget)?;
     validate_id(&id)?;
     let Json(input) = input.map_err(api::json_error)?;
-    if input.snapshot.len() != 50 || input.children.len() > 100 || input.detach.len() > 100 {
+    if input.snapshot.len() != 50
+        || input.children.len() > 100
+        || input.detach.len() > 100
+        || input.reconciled_versions.len() > 101
+    {
         return Err(Error::invalid(
             "Invalid split snapshot or more than 100 children",
         ));
@@ -259,13 +269,27 @@ pub fn apply(
     if !parent["parent_id"].is_null() {
         return Err(Error::invalid("Edit children through their parent split"));
     }
-    if parent["reconciled"] == true {
-        return Err(Error::conflict(
-            "Unlock the reconciled transaction before editing",
+    if !input.confirm_reconciled
+        && (!input.reconciled_versions.is_empty() || input.reconciliation_token.is_some())
+    {
+        return Err(Error::invalid(
+            "Reconciliation proof requires confirm_reconciled=true",
         ));
     }
     if !parent["transfer_id"].is_null() {
         return Err(Error::invalid("A transfer cannot become a split parent"));
+    }
+    let members = crate::reconciliation::members(db, budget, id)?;
+    if let Some(token) = input.reconciliation_token.as_deref() {
+        crate::reconciliation::verify_token(budget, &members, token, clock)?;
+    } else {
+        crate::reconciliation::protect_members(
+            &members,
+            input
+                .confirm_reconciled
+                .then_some(&input.reconciled_versions),
+            clock,
+        )?;
     }
     if parent["starting_balance"] == true {
         return Err(Error::invalid("Opening balances cannot be split"));
@@ -304,7 +328,20 @@ pub fn apply(
                 "Save transaction edits before unsplitting children",
             ));
         }
-        parent = ledger::update(db, budget, id, fields)?;
+        parent = if input.confirm_reconciled {
+            let version = parent["field_versions"]["reconciled"]
+                .as_str()
+                .unwrap_or(concurrency::ZERO);
+            ledger::update_confirmed(
+                db,
+                budget,
+                id,
+                fields,
+                crate::reconciliation::Confirmation { version, clock },
+            )?
+        } else {
+            ledger::update(db, budget, id, fields)?
+        };
     }
     let account = parent["account_id"].as_str().unwrap();
     let total = parent["amount"].as_i64().unwrap();
@@ -416,6 +453,10 @@ pub fn apply(
                     return Err(Error::invalid("Off-budget splits cannot have categories"));
                 }
                 db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,notes,payee_id,category_id,sort_order,parent_id) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11) ON CONFLICT(budget_id,id) DO UPDATE SET account_id=excluded.account_id,amount=excluded.amount,date=excluded.date,cleared=excluded.cleared,notes=excluded.notes,payee_id=excluded.payee_id,category_id=excluded.category_id,sort_order=excluded.sort_order",params![budget,child.id,account,child.amount,parent["date"].as_str(),parent["cleared"].as_bool(),child.notes,child.payee_id,child.category_id,-(index as i64)-1,id])?;
+                db.execute(
+                    "UPDATE transactions SET reconciled=?3 WHERE budget_id=?1 AND id=?2",
+                    params![budget, child.id, parent["reconciled"].as_bool()],
+                )?;
                 stamp(db, budget, &child.id, clock)?;
                 if let (Some(destination), Some(peer)) =
                     (&child.transfer_account_id, &child.counterpart_id)

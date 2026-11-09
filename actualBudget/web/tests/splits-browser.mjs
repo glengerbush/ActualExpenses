@@ -126,7 +126,10 @@ try {
     .getByRole("button", { name: "Retry saved split", exact: true })
     .click();
   await expect(page.getByText("2 splits", { exact: true })).toBeVisible();
-  expect(attempts.length).toBe(2);
+  await expect.poll(() => attempts.length).toBe(2);
+  await expect(
+    page.getByRole("button", { name: "Retry saved split", exact: true }),
+  ).toHaveCount(0);
   expect(attempts[1]).toEqual(attempts[0]);
   await page.unroute("**/transactions/*/splits");
   await page.getByRole("button", { name: "Edit splits", exact: true }).click();

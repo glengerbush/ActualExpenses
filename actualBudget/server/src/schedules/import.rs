@@ -159,7 +159,11 @@ pub fn import_clock(db: &Connection, b: &str, data: &Value, row: &Value) -> Resu
             .as_array()
             .into_iter()
             .flatten()
-            .find(|s| s["id"] == id && s["field"] == field)
+            .find(|s| {
+                s["id"] == id
+                    && (s["field"] == field
+                        || matches!(field, "local_next_date_ts" | "base_next_date_ts"))
+            })
         {
             sync::seed_field_version(
                 db,

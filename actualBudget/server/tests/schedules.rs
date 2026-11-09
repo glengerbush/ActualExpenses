@@ -1071,3 +1071,57 @@ fn already_linked_imported_manual_occurrence_is_acknowledged_without_a_second_pu
     assert_eq!(after["data"], before["data"]);
     assert_eq!(after["balances"], before["balances"]);
 }
+
+#[test]
+fn imported_schedule_generation_selector_clocks_guard_effective_next_date() {
+    let oracle: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/schedules-generation.json"
+    ))
+    .unwrap();
+    for stage in oracle["stages"].as_array().unwrap() {
+        let server = Server::start();
+        let archive = std::fs::read(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../tests/fixtures")
+                .join(stage["archive"].as_str().unwrap()),
+        )
+        .unwrap();
+        let response = server
+            .client
+            .post(format!("{}/api/v1/imports/actual", server.url))
+            .header("Idempotency-Key", "generation-import")
+            .header("Content-Type", "application/zip")
+            .body(archive)
+            .send()
+            .unwrap();
+        assert_eq!(response.status(), 201);
+        let import: Value = response.json().unwrap();
+        let id = import["data"]["id"].as_str().unwrap();
+        let b = import["data"]["budget_id"].as_str().unwrap();
+        let activated = server.post(
+            &format!("/api/v1/imports/{id}/activate"),
+            "activate",
+            json!({}),
+        );
+        assert_eq!(activated.status(), 201, "{}", activated.text().unwrap());
+        let path = format!("/api/v1/budgets/{b}/schedules");
+        let before: Value = server.get(&path).json().unwrap();
+        assert_eq!(
+            before["data"]["schedules"][0]["next_date"],
+            stage["next_date"]
+        );
+        let response=server.client.post(format!("{}/api/v1/budgets/{b}/schedules/commands",server.url)).header("Idempotency-Key","equal-selector-generation").header("X-Actual-Edit-Clock",stage["guard_clock"].as_str().unwrap()).header("X-Actual-Budget-Epoch",before["data"]["epoch"].as_str().unwrap()).json(&json!({"action":"skip","id":oracle["schedule_id"],"occurrence_date":stage["next_date"],"snapshot":before["data"]["snapshot"]})).send().unwrap();
+        assert_eq!(
+            response.status(),
+            409,
+            "{}: {}",
+            stage["name"],
+            response.text().unwrap()
+        );
+        assert_eq!(
+            server.get(&path).json::<Value>().unwrap(),
+            before,
+            "Refused generation must change neither schedule nor cursor"
+        );
+    }
+}

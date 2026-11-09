@@ -1191,7 +1191,7 @@ fn genuine_schema14_upgrade_and_archive_keep_original_receipts_without_portable_
         .unwrap()
         .json::<Value>()
         .unwrap();
-    assert_eq!(upload["data"]["report"]["schema_version"], 16);
+    assert_eq!(upload["data"]["report"]["schema_version"], 17);
     let restored = target.post(
         &format!(
             "{root}/restores/{}/activate",

@@ -16,7 +16,7 @@ Five focused native integration cases pass in `/tmp/schedules-native-overdue.log
 | [Enlarged dark phone](screenshots/schedules-native/dark-large.png) |1080×2400,420dpi,dark,font scale2.0|`/tmp/schedules21-native-dark-large.log`|
 | [Tablet](screenshots/schedules-native/tablet.png) |1600×2560,240dpi,light,font scale1.0|`/tmp/schedules21-native-tablet.log`|
 
-Root's Impeccable native audit found readable recovery text, reachable controls, preserved expense capture and no material clipping or overlap. The tablet retains the existing bounded content column. Large-font content scrolls. Independent review is pending.
+Root's Impeccable native audit found readable recovery text, reachable controls, preserved expense capture and no material clipping or overlap. The tablet retains the existing bounded content column. Large-font content scrolls. Independent Standards/Spec and Impeccable review passes at `ba18361`: ship this bounded native recovery surface, no material fixes. System bars and the other limits below remain excluded; no design-guidance change was needed.
 
 The opt-in instrumentation argument `scheduleCapture=true` emits `SCHEDULE_CAPTURE_READY` after Compose settles and holds the fixture for10 seconds. The host waits one further second for composition before `adb exec-out screencap -p`; ordinary tests incur no capture delay. APK and instrumentation compilation pass in `/tmp/schedules21-native-render-build.log` and `/tmp/schedules21-native-capture-build.log`.
 

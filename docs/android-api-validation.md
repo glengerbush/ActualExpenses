@@ -1,5 +1,7 @@
 # Android API transition: ticket 06
 
+Accepted through `d77a46b`; [06–08 acceptance](060708-validation.md) records final tests, artifacts and resolved independent reviews.
+
 This slice replaces the companion's active transport with actualBudget API v1. Production replacement remains gated on the remaining tickets. Legacy migration is not claimed.
 
 ## Behavior and persistence
@@ -47,4 +49,4 @@ Review artifacts (ignored local output): `.scratch/android06/screenshots/final-l
 
 Final local evidence: `/tmp/actualexpenses06-final2-build.log` (Gradle successful, 25 tests/zero skips, debug + instrumentation APKs and lint); `/tmp/actualexpenses06-device-final.log` (API 36: 11 passed); `/tmp/actualexpenses06-device-api26.log` (API 26: 11 passed); `/tmp/actualexpenses06-device-dark2x.log` and `/tmp/actualexpenses06-device-tablet.log` (one real flow each, passed); `/tmp/actualexpenses06-companion.log` (public Rust companion test, passed). Companion fragment and served OpenAPI paths/schema compare equal. `git diff --check` passed. Application build/signing settings and manifest have no diff. API 26 screenshots are also in `.scratch/android06/screenshots/api26/`.
 
-Root independently inspected the phone setup, dark200% editor and tablet acknowledged-expense captures: labels/actions remain readable and reachable; native Material controls and the existing focused workflow are preserved. Root checked the API36 instrumentation result (`OK (11 tests)`). Combined06/07/08 acceptance remains pending07 review and final integrated browser qualification.
+Root independently inspected the phone setup, dark200% editor and tablet acknowledged-expense captures: labels/actions remain readable and reachable; native Material controls and the existing focused workflow are preserved. Root checked the API36 instrumentation result (`OK (11 tests)`). Final combined review and qualification passed; see the acceptance record.

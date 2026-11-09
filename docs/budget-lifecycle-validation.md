@@ -1,5 +1,7 @@
 # Ticket 08 validation
 
+Accepted through `d77a46b`; [06–08 acceptance](060708-validation.md) records final tests, artifacts and resolved independent reviews.
+
 Public seams: real Rust process HTTP API, browser workflows and exported native artifacts. No destination database queries or mocked financial engine.
 
 - `cargo test --manifest-path actualBudget/server/Cargo.toml`: root final backend run passed all60 public integration tests, zero skipped. Clippy across all targets with warnings denied and rustfmt check passed. Logs: `.scratch/060708-native-final.log`, `.scratch/060708-clippy-final.log`, `.scratch/060708-fmt-final.log`.
@@ -19,7 +21,7 @@ Native archive/recovery design and future-domain registration are in `actualBudg
 - Separate disposable Docker volume: SIGKILL while the restore request is still in flight (explicitly asserted). Restart yields whole old/new state; identical retries return one committed restore generation and preserve the original backup. This tests process interruption, not a physical power-loss guarantee.
 - Fault image:`sha256:3032faf6c7eef828e3f8ffef7ae8cd77bd8d3058a25576aa167fe311b16ca945`,126852391bytes. Test containers, image and volume removed. Logs:`.scratch/060708-container-fault-final.log`. No live volume or deployment touched.
 
-Combined06/07/08 acceptance remains pending: Standards review found an offline-editor reconnect race in07; repair and integrated qualification are required before closure.
+The initial combined review found an offline-editor reconnect race; the final acceptance record documents its resolution.
 
 Lifecycle UI finish review: initial disposition `fix` identified confirmation focus and missing selected archive filename. `ce1bdd6` resolves both. The browser regression verifies mobile200% confirmation focus/in-view and Cancel focus return; refreshed desktop/mobile archive captures show the filename. Verdict pass: `ship` for the two scored fixes. Documenter checked the source/styles/captures and preserved the incumbent design files; unrelated pre-existing documentation drift was not canonized. This UI verdict does not close the separate07 functional review findings.
 

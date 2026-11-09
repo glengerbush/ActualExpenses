@@ -25,13 +25,13 @@ Each feature owner records a baseline source/function, independent fixture and e
 | --- | --- | --- | --- |
 | 1 | 02, 52 | Budget files, backups and migration | [02: fresh HTTP web/API entry without login](open-budget-validation.md); final audit pending |
 | 2 | 02, 52 | Budget files, backups and migration | [02: no app credentials, sessions or identity flows in replacement](open-budget-validation.md); Android transition/final audit pending |
-| 3 | 02, 08 | Budget files, backups and migration | [02: create/select persistent budgets](open-budget-validation.md); rename/close/delete/duplicate pending 08; duplication confirmed in pinned `budgetfiles/app.ts::duplicateBudget` and `DuplicateFileModal.tsx` |
-| 4 | 02, 08, 43 | Budget files, backups and migration | [02: remembered selection/drafts](open-budget-validation.md); [43: shared/device preferences and conversion](../actualBudget/web/docs/preferences-validation.md); budget management pending 08 |
+| 3 | 02, 08 | Budget files, backups and migration | [02: create/select](open-budget-validation.md); [08: rename/close/delete/duplicate with independent identity](budget-lifecycle-validation.md) |
+| 4 | 02, 08, 43 | Budget files, backups and migration | [02: remembered selection/drafts](open-budget-validation.md); [43: preferences](../actualBudget/web/docs/preferences-validation.md); [08: budget management](budget-lifecycle-validation.md) |
 | 5 | 04, 50 | Budget files, backups and migration | [04: staged ordinary-ledger import with retained source/IDs](import-validation.md); complete migration qualification pending 50 |
-| 6 | 08, 50 | Budget files, backups and migration | Pending feature acceptance |
+| 6 | 08, 50 | Budget files, backups and migration | [08: portable native archives and staged restore](budget-lifecycle-validation.md); complete migration qualification pending50 |
 | 7 | 27 | Budget files, backups and migration | Pending feature acceptance |
-| 8 | 08 | Budget files, backups and migration | Pending feature acceptance |
-| 9 | 04, 08, 50 | Budget files, backups and migration | [04: corrupt/encrypted rejection and retained blocked input](import-validation.md); backup/full migration pending 08/50 |
+| 8 | 08 | Budget files, backups and migration | [08: automatic/manual/pre-upgrade recovery and fault-safe restore](budget-lifecycle-validation.md) |
+| 9 | 04, 08, 50 | Budget files, backups and migration | [04: retained/rejected source validation](import-validation.md); [08: checksummed archive validation and pre-action recovery](budget-lifecycle-validation.md); complete migration qualification pending50 |
 | 10 | 02, 09 | Accounts and reconciliation | [02: on/off-budget creation, notes and seven independent opening-balance cases](open-budget-validation.md); account management pending 09 |
 | 11 | 09 | Accounts and reconciliation | Pending feature acceptance |
 | 12 | 03, 09, 12 | Accounts and reconciliation | [03: exact account and running balances](register-validation.md); organization and register customization pending 09/12 |
@@ -79,7 +79,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 54 | 25, 26 | File imports and bank providers | Pending feature acceptance |
 | 55 | 25 | File imports and bank providers | Pending feature acceptance |
 | 56 | 25, 26 | File imports and bank providers | Pending feature acceptance |
-| 57 | 08, 25 | File imports and bank providers | Pending feature acceptance |
+| 57 | 08, 25 | File imports and bank providers | [08: native budget export](budget-lifecycle-validation.md); CSV export pending25 |
 | 58 | 28, 29, 30 | File imports and bank providers | Pending feature acceptance |
 | 59 | 31, 32 | File imports and bank providers | Pending feature acceptance |
 | 60 | 28, 29, 30, 31, 32 | File imports and bank providers | Pending feature acceptance |
@@ -105,19 +105,19 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 80 | 31, 32, 35, 36, 37, 39, 41, 42, 43 | Settings and accessible workflows | [43: preserved opt-in flags and currency gating](../actualBudget/web/docs/preferences-validation.md); remaining experimental features pending assigned tickets |
 | 81 | 49 | Settings and accessible workflows | Pending feature acceptance |
 | 82 | 03, 43, 49, 51 | Settings and accessible workflows | [03: retained forms and durable retry](register-validation.md); [43: settings/storage/connection recovery](../actualBudget/web/docs/preferences-validation.md); repair and whole-app qualification pending 49/51 |
-| 83 | 07, 20 | Android and offline expense capture | Pending feature acceptance |
-| 84 | 07, 20 | Android and offline expense capture | Pending feature acceptance |
-| 85 | 07, 20 | Android and offline expense capture | Pending feature acceptance |
-| 86 | 07, 20 | Android and offline expense capture | Pending feature acceptance |
-| 87 | 05, 07, 20, 49 | Android and offline expense capture | [05: durable exact receipts and safe interrupted retry/cancellation](concurrency-validation.md); offline/Android/cache workflows pending 07/20/49 |
-| 88 | 05, 07, 20 | Android and offline expense capture | [05: per-field HLC convergence and superseded-field feedback](concurrency-validation.md); offline/Android integration pending 07/20 |
-| 89 | 05, 07, 20 | Android and offline expense capture | [05: unpublished deletion guard and pinned published-tombstone behavior](concurrency-validation.md); offline/Android integration pending 07/20 |
-| 90 | 06 | Android and offline expense capture | Pending feature acceptance |
-| 91 | 06 | Android and offline expense capture | Pending feature acceptance |
-| 92 | 06 | Android and offline expense capture | Pending feature acceptance |
-| 93 | 06 | Android and offline expense capture | Pending feature acceptance |
+| 83 | 07, 20 | Android and offline expense capture | [07: dated cache before network and unchanged-checkpoint efficiency](offline-web-validation.md); Android upgrade qualification pending20 |
+| 84 | 07, 20 | Android and offline expense capture | [07: durable ordinary offline capture using cached references](offline-web-validation.md); Android upgrade qualification pending20 |
+| 85 | 07, 20 | Android and offline expense capture | [07: unsent editing/deletion, editor reload and replacement races](offline-web-validation.md); Android upgrade qualification pending20 |
+| 86 | 07, 20 | Android and offline expense capture | [07: interrupted online edits retained](offline-web-validation.md); Android upgrade qualification pending20 |
+| 87 | 05, 07, 20, 49 | Android and offline expense capture | [05: exact receipts](concurrency-validation.md); [07: durable outbox, restart and immutable replay](offline-web-validation.md); Android upgrade/cache repair pending20/49 |
+| 88 | 05, 07, 20 | Android and offline expense capture | [05: per-field HLC](concurrency-validation.md); [07: offline merge and superseded feedback](offline-web-validation.md); Android upgrade qualification pending20 |
+| 89 | 05, 07, 20 | Android and offline expense capture | [05: deletion ordering](concurrency-validation.md); [07: queued deletion/cancellation recovery](offline-web-validation.md); Android upgrade qualification pending20 |
+| 90 | 06 | Android and offline expense capture | [06: no-login server/budget/account selection](android-api-validation.md) |
+| 91 | 06 | Android and offline expense capture | [06: remembered account and bounded latest-ten selection](android-api-validation.md) |
+| 92 | 06 | Android and offline expense capture | [06: pending/latest-backdated retention](android-api-validation.md) |
+| 93 | 06 | Android and offline expense capture | [06: amount-only, optional fields and automatic clearing](android-api-validation.md) |
 | 94 | 19, 20 | Android and offline expense capture | Pending feature acceptance |
-| 95 | 06 | Android and offline expense capture | Pending feature acceptance |
+| 95 | 06, 14, 15 | Android and offline expense capture | [06: current eligibility filters and unsupported-feature activation guards](android-api-validation.md); split/transfer predicates must extend before14/15 activation |
 | 96 | 20 | Android and offline expense capture | Pending feature acceptance |
 | 97 | 20 | Android and offline expense capture | Pending feature acceptance |
 | 98 | 20, 50 | Android and offline expense capture | Pending feature acceptance |
@@ -128,7 +128,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 103 | 01, 48, 53 | Public API, deployment and resources | [01: independent application layout](foundation-validation.md); [48: independent APK/container versions and release automation](release-validation.md); final deployment qualification pending 53 |
 | 104 | 01, 48, 53 | Public API, deployment and resources | [01: original Android identity preserved](foundation-validation.md); [48: original APK signer and container signature verified](release-validation.md); final deployment qualification pending 53 |
 | 105 | 48, 53 | Public API, deployment and resources | [48: manual image pull/restart release path, no automatic deployment](release-validation.md); full cutover rehearsal pending 53 |
-| 106 | 04, 08, 50, 53 | Public API, deployment and resources | [04: staged conversion audit and byte-identical retained source](import-validation.md); backup/full migration/cutover pending 08/50/53 |
+| 106 | 04, 08, 50, 53 | Public API, deployment and resources | [04: staged conversion](import-validation.md); [08: archives/recovery/rollback faults](budget-lifecycle-validation.md); complete migration/cutover qualification pending50/53 |
 | 107 | 51 | Public API, deployment and resources | Pending feature acceptance |
 
 ## Foundation evidence

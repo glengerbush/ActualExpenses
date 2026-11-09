@@ -1,5 +1,7 @@
 # Ticket 07 — cached views and durable expense delivery
 
+Accepted through `d77a46b`; [06–08 acceptance](060708-validation.md) records final tests, artifacts and resolved independent reviews.
+
 Public browser tests run the real Rust binary and built static app at insecure `http://actualbudget.test`, using disposable server data and browser storage. No service worker, HTTPS, SharedArrayBuffer, or login is required.
 
 ## Observable behavior

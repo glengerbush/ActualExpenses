@@ -1,4 +1,4 @@
-# Android upgrade handoff (ticket20, implementation in progress)
+# Android upgrade handoff (ticket20)
 
 The released `2b25b07` client stores Actual CRDT messages, not API-v1 requests. Each message has its own HLC. A single API edit-clock header cannot represent it. The upgrade leaves `expenses.state` and Keystore alias `actualexpenses.state.v1` intact.
 
@@ -20,4 +20,28 @@ Cached source values are a pending projection, not current server authority. Aft
 
 The independent `generate-android-order.mjs` oracle executes eight public Actual26.10 snapshots for equal orders, backward captures, an intervening native anchor and a late purchase below the latest ten. Existing native anchors have no upstream physical-order counterpart; their preserved native position is an explicit bridge policy.
 
-Core checkpoint checks are focused, not final qualification. Device signed-upgrade/reinstall, denied-background/foreground recovery, routing, rendered recovery UI and final consolidated checks remain required before acceptance.
+Final qualification and review are recorded in [android-upgrade-validation.md](android-upgrade-validation.md). The device harness uses a disposable API36 emulator and the genuine released `2b25b07` APK, followed by the new APK with the same application ID and disposable debug certificate. It does not exercise production signing or a physical handset.
+
+## Reproducing the disposable device flow
+
+`UpgradeSeedDeviceTest#seedReleasedEncryptedState` requires `upgradeCase=pending` and runs against the released target APK using its real encrypted store. The test APK includes only synthetic fixture assets. Force-stop the old target immediately before installation; retain `no_backup/expenses.state` and update `files/review/android20-original.sha256` to that exact boundary. Normal released-app Snackbar dismissal can rewrite unchanged JSON with a new AES/GCM IV and object-key order. The new app must preserve the boundary ciphertext exactly; the harness also compares every decoded original state value and message array against the genuine fixture.
+
+Start a fresh API fixture (never point the harness at existing budget data):
+
+```sh
+python3 actualBudget/tools/android-upgrade-device.py \
+  --binary actualBudget/server/target/debug/actualbudget-server \
+  --output /tmp/android20-fresh
+```
+
+Install the old APK and new test APK with `adb -s emulator-5580 install -r`, seed using `am instrument -w -e class org.actualexpenses.android.UpgradeSeedDeviceTest#seedReleasedEncryptedState -e upgradeCase pending org.actualexpenses.android.test/androidx.test.runner.AndroidJUnitRunner`, establish the force-stopped boundary, then install the new target APK with `install -r`. APK application IDs, versions and certificate digests must match before upgrade. Keep both encrypted files when repeating the signed installation.
+
+Run `UpgradeRecoveryDeviceTest#recoverThroughVisibleControlsAndRetainInterruptedDelivery` with `fixtureServer` set to the emitted emulator URL and `fixtureBudget` set to its budget UUID. The proxy commits the first original operation, severs its acknowledgement, then refuses delivery. It records original body bytes, operation IDs, individual messages and epoch headers in `events.json`. HTTP responses explicitly close connections; an earlier diagnostic proxy omitted that framing and failed before discovery, without financial effects.
+
+Set the disposable app's `RUN_ANY_IN_BACKGROUND` app-op to `ignore`, set standby bucket `restricted`, and force-stop it. Allow fixture delivery through `POST /__fixture__/allow`; observe no requests while background delivery is denied. Reinstall the same signed new APK and verify both encrypted files are unchanged before starting it. `UpgradeRecoveryDeviceTest#foregroundRecoveryAfterSignedReinstall` resumes pending work in the foreground without changing its request identity. `GET /__fixture__/verify` compares the complete delivered ledger and balances against the independently executed Actual oracle, and checks exact retry body/epoch identity across all four operations.
+
+For an idle check, explicitly allow the background app-op, set the standby bucket active, let pending one-time work finish, and observe requests, encrypted-file digest and `dumpsys jobscheduler` over a bounded interval. The recorded 35-second window had zero requests, zero cache rewrites, zero registered app jobs and zero periodic app jobs. Denied-background recovery is a separate observed window, not an inference from idle behavior.
+
+`android-route-relays.py --fixture /tmp/android20-fresh/config.json --address <host-LAN-IP> --address <host-tailnet-IP> --output /tmp/android20-routes.json` exposes only the disposable fixture through those explicit local addresses. `UpgradeRecoveryDeviceTest#migrationReplayOverLanAndTailnetAddresses`, with comma-separated `fixtureRoutes` and the original `fixtureBudget`, uses fresh in-memory adapters reading the untouched old encrypted source. Persistent prepared requests are never retargeted. The API36 run reached real host LAN and Tailscale interface addresses through emulator networking and replayed identical receipts; this is routing-equivalence evidence, not a physical-phone or remote encrypted-hop claim.
+
+Recovery captures use `UpgradeRecoveryDeviceTest#captureRecovery` with an explicit `captureName`. Final rendered evidence covers light phone, settled dark at 200% text and tablet; transient busy captures are diagnostic. The signed upgrade, interrupted acknowledgement, denied-background/reinstall/foreground recovery and routing tests passed. Terminate only the fixture/relay PIDs created for this run and stop the disposable emulator afterward; retain reports and screenshots. No user account, live volume, production secret, release version or signing configuration changes are required.

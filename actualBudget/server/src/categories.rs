@@ -215,14 +215,14 @@ fn validate(value: &Value, table: &str, create: bool) -> Result<(), Error> {
     Ok(())
 }
 fn membership(db: &Connection, budget: &str, value: &Value, table: &str) -> Result<(), Error> {
-    if table == "categories" {
-        if let Some(group) = value["group_id"].as_str() {
-            let g = get(db, budget, "category_groups", group)?;
-            if g["deleted"] == true || g["is_income"] != value["is_income"] {
-                return Err(Error::invalid(
-                    "Category and active group must have the same income/expense type",
-                ));
-            }
+    if table == "categories"
+        && let Some(group) = value["group_id"].as_str()
+    {
+        let g = get(db, budget, "category_groups", group)?;
+        if g["deleted"] == true || g["is_income"] != value["is_income"] {
+            return Err(Error::invalid(
+                "Category and active group must have the same income/expense type",
+            ));
         }
     }
     Ok(())
@@ -556,12 +556,12 @@ fn delete(
                 "A category was edited after this group deletion; review current state",
             ));
         }
-        if let Some(target) = replacement {
-            if get(db, budget, "categories", target)?["is_income"] != source["is_income"] {
-                return Err(Error::invalid(
-                    "Group contains different category types; reassign categories separately",
-                ));
-            }
+        if let Some(target) = replacement
+            && get(db, budget, "categories", target)?["is_income"] != source["is_income"]
+        {
+            return Err(Error::invalid(
+                "Group contains different category types; reassign categories separately",
+            ));
         }
         let mut q =
             db.prepare("SELECT id FROM transactions WHERE budget_id=?1 AND category_id=?2")?;
@@ -628,12 +628,12 @@ pub fn validate_archive(db: &Connection, budget: &str) -> Result<(), Error> {
             if row["notes"].as_str().unwrap().chars().count() > 10000 {
                 return Err(Error::invalid("Category notes exceed limit"));
             }
-            if row["deleted"] != true && table == "categories" {
-                if let Some(group) = row["group_id"].as_str() {
-                    if get(db, budget, "category_groups", group)?["deleted"] == true {
-                        return Err(Error::invalid("Active category references a deleted group"));
-                    }
-                }
+            if row["deleted"] != true
+                && table == "categories"
+                && let Some(group) = row["group_id"].as_str()
+                && get(db, budget, "category_groups", group)?["deleted"] == true
+            {
+                return Err(Error::invalid("Active category references a deleted group"));
             }
             if table == "categories" {
                 resolve(db, budget, Some(id))?;

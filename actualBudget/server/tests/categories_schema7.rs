@@ -91,11 +91,21 @@ fn qualify(server: &Server, expected: &Value) {
     for domain in ["accounts", "account-groups", "transactions"] {
         let mut current = server.get(&format!("{base}/{domain}"))["data"].clone();
         if domain == "transactions" {
-            for row in current.as_array_mut().unwrap() {
+            let previous = expected["transactions"].as_array().unwrap();
+            let mut running: i64 = previous
+                .iter()
+                .map(|row| row["amount"].as_i64().unwrap())
+                .sum();
+            assert_eq!(current.as_array().unwrap().len(), previous.len());
+            for (row, saved) in current.as_array_mut().unwrap().iter_mut().zip(previous) {
                 assert!(row["imported_payee"].is_null());
                 assert_eq!(row["retained_payee_id"], row["payee_id"]);
+                assert_eq!(row["running_balance"], running);
+                running -= saved["amount"].as_i64().unwrap();
                 row.as_object_mut().unwrap().remove("imported_payee");
                 row.as_object_mut().unwrap().remove("retained_payee_id");
+                row.as_object_mut().unwrap().remove("category_group_name");
+                row["running_balance"] = saved["running_balance"].clone();
             }
         }
         assert_eq!(current, expected[domain.replace('-', "_")], "{domain}");

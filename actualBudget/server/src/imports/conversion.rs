@@ -291,6 +291,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         "category_groups",
         "category_mapping",
         "preferences",
+        "transaction_filters",
         "notes",
         "messages_crdt",
         "messages_pending",
@@ -391,6 +392,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             "categories",
             "category_groups",
             "preferences",
+            "transaction_filters",
             "notes",
         ]
         .contains(&table.as_str())
@@ -810,10 +812,22 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         }
         converted["budget_type"] = kind.clone();
     }
+    let (register_settings, unsupported) = crate::register_settings::convert_actual(&source);
+    converted["register_settings"] =
+        serde_json::to_value(register_settings).map_err(Error::internal)?;
+    for key in unsupported {
+        requirement(
+            &mut requirements,
+            &format!("register:{key}"),
+            1,
+            true,
+            "Register setting has unsupported semantics; original source retained",
+        );
+    }
     let prefs = preferences::convert_actual(&json!({"synced":synced}))?;
     converted["preferences"] = prefs["shared"].clone();
     for (key, _) in prefs["unmapped"]["synced"].as_object().unwrap() {
-        if key != "budgetType" {
+        if key != "budgetType" && !crate::register_settings::imported_preference(key) {
             requirement(
                 &mut requirements,
                 &format!("preference:{key}"),
@@ -909,6 +923,12 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
         "INSERT INTO budget_preferences(budget_id,settings,revision) VALUES(?1,?2,0)",
         params![budget, data["preferences"].to_string()],
     )?;
+    if let Some(settings) = data.get("register_settings") {
+        db.execute(
+            "INSERT INTO register_settings(budget_id,settings,revision) VALUES(?1,?2,0)",
+            params![budget, settings.to_string()],
+        )?;
+    }
     for row in array(data, "clocks") {
         let dataset = row["dataset"].as_str().unwrap();
         let field = row["column"].as_str().unwrap();

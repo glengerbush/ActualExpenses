@@ -781,7 +781,12 @@ fn assert_legacy_import_metadata(s: &Server, budget: &str, post_import: Option<&
             "Added after import"
         );
         let actual = s.get(&format!("{base}/transactions"));
-        for before in expected["transactions"].as_array().unwrap() {
+        let previous_rows = expected["transactions"].as_array().unwrap();
+        let mut running: i64 = previous_rows
+            .iter()
+            .map(|row| row["amount"].as_i64().unwrap())
+            .sum();
+        for before in previous_rows {
             let after = actual["data"]
                 .as_array()
                 .unwrap()
@@ -790,6 +795,10 @@ fn assert_legacy_import_metadata(s: &Server, budget: &str, post_import: Option<&
                 .unwrap();
             assert!(after["imported_payee"].is_null());
             assert_eq!(after["retained_payee_id"], before["payee_id"]);
+            // The new all-account register exposes chronological balances;
+            // compute them independently from the immutable old snapshot.
+            assert_eq!(after["running_balance"], running);
+            running -= before["amount"].as_i64().unwrap();
             let mut original_shape = after.clone();
             original_shape
                 .as_object_mut()
@@ -799,6 +808,11 @@ fn assert_legacy_import_metadata(s: &Server, budget: &str, post_import: Option<&
                 .as_object_mut()
                 .unwrap()
                 .remove("retained_payee_id");
+            original_shape
+                .as_object_mut()
+                .unwrap()
+                .remove("category_group_name");
+            original_shape["running_balance"] = before["running_balance"].clone();
             assert_eq!(&original_shape, before);
         }
     }

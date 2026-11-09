@@ -84,6 +84,11 @@ def main():
             check(accounts, account_template)
             check(f"{budgets}/{uuid.uuid4()}/accounts", account_template, expected=404)
             check(f"{budgets}/{budget_id}/transactions?account_id={account_id}", budgets + "/{budget}/transactions")
+            register_settings_path=f"{budgets}/{budget_id}/register-settings"
+            register_settings_template=budgets+"/{budget}/register-settings"
+            register_settings=check(register_settings_path,register_settings_template)["data"]
+            check(register_settings_path,register_settings_template,"PATCH",{"revision":0,"settings":{"views":{},"saved_filters":[]}}, {"Idempotency-Key":"register-settings","X-Actual-Budget-Epoch":register_settings["epoch"]})
+            check(register_settings_path,register_settings_template,"PATCH",{"revision":0,"settings":{"views":{},"saved_filters":[]}}, {"Idempotency-Key":"stale-register-settings","X-Actual-Budget-Epoch":register_settings["epoch"]},409)
             group_path = f"{budgets}/{budget_id}/account-groups"
             group_template = budgets + "/{budget}/account-groups"
             group_id = str(uuid.uuid4())

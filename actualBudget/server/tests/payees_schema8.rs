@@ -98,10 +98,23 @@ fn qualify(server: &Server, expected: &Value) {
         let actual = actual["data"].as_array().unwrap();
         let old = expected[domain.replace('-', "_")].as_array().unwrap();
         assert_eq!(actual.len(), old.len(), "{domain}");
+        let mut running: i64 = if domain == "transactions" {
+            old.iter().map(|row| row["amount"].as_i64().unwrap()).sum()
+        } else {
+            0
+        };
         for (row, saved) in actual.iter().zip(old) {
-            // New fields may be added, but every original value, order and HLC survives.
+            // Persisted values, ordering and HLCs survive. All-account running
+            // balances are newly derived from the original snapshot amounts.
             for (field, value) in saved.as_object().unwrap() {
+                if domain == "transactions" && field == "running_balance" {
+                    assert_eq!(row[field], running);
+                    continue;
+                }
                 assert_eq!(&row[field], value, "{domain}/{} {field}", saved["id"]);
+            }
+            if domain == "transactions" {
+                running -= saved["amount"].as_i64().unwrap();
             }
         }
     }

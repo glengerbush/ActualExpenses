@@ -331,6 +331,11 @@ try {
     );
     expect(response.ok).toBe(true);
     await page.reload();
+    // Cached views are intentionally usable before refresh. Wait until the new
+    // server format is visible before opening a form, which captures its format.
+    await expect(page.getByTestId("register-total")).toContainText(
+      number_format === "space-comma" ? /,\d{2}$/ : /\.\d{2}$/,
+    );
     await page
       .getByRole("button", { name: "Add transaction", exact: true })
       .click();

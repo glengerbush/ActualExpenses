@@ -139,7 +139,7 @@ pub fn capture(db: &Connection, budget: &str) -> Result<Vec<u8>, Error> {
     let body = serde_json::to_vec(&state).map_err(Error::internal)?;
     let mut entries = BTreeMap::from([("budget.json".to_owned(), body)]);
     entries.extend(blobs);
-    let manifest = json!({"format":"actualBudget","version":1,"schema_version":9,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
+    let manifest = json!({"format":"actualBudget","version":1,"schema_version":10,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
     if entries.len() + 1 > 1000
         || entries.values().map(Vec::len).sum::<usize>() + manifest.to_string().len() > MAX_EXPANDED
     {
@@ -215,7 +215,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || !matches!(manifest["schema_version"].as_u64(), Some(6..=9))
+        || !matches!(manifest["schema_version"].as_u64(), Some(6..=10))
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }
@@ -422,6 +422,21 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             }
         }
     }
+    if manifest["schema_version"].as_u64().unwrap() < 10 {
+        let table = state
+            .tables
+            .get_mut("transactions")
+            .ok_or_else(|| invalid("Missing transactions"))?;
+        if table.columns.last().map(String::as_str) != Some("imported_payee")
+            || table.rows.iter().any(|r| r.len() != table.columns.len())
+        {
+            return Err(invalid("Invalid legacy transactions"));
+        }
+        table.columns.push("transfer_id".into());
+        for row in &mut table.rows {
+            row.push(Value::Null);
+        }
+    }
     if state.budget["id"] != manifest["budget_id"] {
         return Err(invalid("Budget identity differs from manifest"));
     }
@@ -623,6 +638,7 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
     Ok(())
 }
 pub fn validate_financial_state(db: &Connection, budget: &str) -> Result<(), Error> {
+    crate::transfers::validate(db, budget)?;
     for table in [
         "accounts",
         "account_groups",

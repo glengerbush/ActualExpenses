@@ -157,7 +157,12 @@ class ApiExpenseService(
                         canEdit(id),
                     )
                 },
-            payees = choices(payees),
+            payees =
+                choices(payees).filter {
+                    payees[it.id]?.let { row ->
+                        row["deleted"]?.asBoolean != true && row.text("transfer_account_id") == null
+                    } == true
+                },
             categories =
                 choices(saved.categories).filter {
                     saved.categories[it.id]?.let { row ->
@@ -935,6 +940,7 @@ class ApiExpenseService(
     private fun eligible(row: JsonObject) =
         row.long("amount") < 0 &&
             row["reconciled"]?.asBoolean != true &&
+            row.text("transfer_id") == null &&
             row["deleted"]?.asBoolean != true
 
     private fun JsonObject.text(key: String) = get(key)?.takeUnless { it.isJsonNull }?.asString

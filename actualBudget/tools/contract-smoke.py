@@ -272,6 +272,21 @@ def main():
                   {"confirm_name": "Contract fixture"}, {"Idempotency-Key": "native-activate", "X-Actual-Budget-Epoch": recovered["epoch"]})
             check("/api/v1/restores", "/api/v1/restores", "POST", b"invalid ZIP",
                   {"Content-Type": "application/zip", "Idempotency-Key": "invalid-native-stage"}, 422)
+            transfer_budget, cash, card = (str(uuid.uuid4()) for _ in range(3))
+            check(budgets, budgets, "POST", {"id": transfer_budget, "name": "Transfer contracts"}, {"Idempotency-Key": "transfer-budget"}, 201)
+            transfer_root = f"{budgets}/{transfer_budget}"
+            for identity, name in [(cash,"Cash"),(card,"Card")]:
+                check(transfer_root+"/accounts", account_template, "POST", {"id": identity,"name":name,"opening_balance":0,"opening_date":"2026-01-01"}, {"Idempotency-Key":identity}, 201)
+            first, second = str(uuid.uuid4()), str(uuid.uuid4())
+            pair = {"id":first,"counterpart_id":second,"account_id":cash,"to_account_id":card,"amount":-100,"date":"2026-01-01"}
+            check(transfer_root+"/transfers", root_template+"/transfers", "POST", pair, {"Idempotency-Key":"pair"}, 201)
+            check(transfer_root+"/transactions/"+first, entries_template+"/{id}", "PATCH", {"date":"2026-02-01","sync_transfer_date":True}, {"Idempotency-Key":"pair-date"})
+            check(transfer_root+"/transactions/"+first, entries_template+"/{id}", "DELETE", None, {"Idempotency-Key":"pair-delete"})
+            first, second = str(uuid.uuid4()), str(uuid.uuid4())
+            for identity, account, amount in [(first,cash,-100),(second,card,100)]:
+                check(transfer_root+"/transactions", entries_template, "POST", {"id":identity,"account_id":account,"amount":amount,"date":"2026-01-01"}, {"Idempotency-Key":identity}, 201)
+            check(transfer_root+"/transfers/link", root_template+"/transfers/link", "POST", {"id":first,"counterpart_id":second}, {"Idempotency-Key":"pair-link"})
+            check(transfer_root+"/accounts/"+cash+"/close", account_template+"/{id}/close", "POST", {"id":str(uuid.uuid4()),"counterpart_id":str(uuid.uuid4()),"to_account_id":card,"date":"2026-02-01","expected_balance":-100}, {"Idempotency-Key":"transfer-close"})
             print("PASS: served OpenAPI schemas validate real success, validation, conflict, origin and missing-resource responses")
         finally:
             process.terminate()

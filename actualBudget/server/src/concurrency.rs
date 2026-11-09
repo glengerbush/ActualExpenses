@@ -190,6 +190,9 @@ pub fn versions(db: &Connection, budget: &str, id: &str) -> Result<Value, Error>
     Ok(Value::Object(values))
 }
 pub fn decorate(db: &Connection, budget: &str, mut row: Value) -> Result<Value, Error> {
+    if row["transfer_id"].is_null() {
+        row.as_object_mut().unwrap().remove("transfer_id");
+    }
     row["field_versions"] = versions(
         db,
         budget,
@@ -306,6 +309,9 @@ pub fn execute(
             )
         }
         Mutation::Duplicate(source, id) => {
+            if crate::transfers::counterpart(db, budget, &source)?.is_some() {
+                return crate::transfers::duplicate(db, budget, &source, &id, &edit_clock);
+            }
             ledger::duplicate(db, budget, &source, &id)?;
             for field in FIELDS {
                 seed_field_version(db, budget, "transactions", &id, field, &edit_clock)?;
@@ -321,6 +327,9 @@ pub fn execute(
             )
         }
         Mutation::Patch(id, patch) => {
+            if crate::transfers::counterpart(db, budget, &id)?.is_some() {
+                return crate::transfers::patch(db, budget, &id, patch, &edit_clock);
+            }
             let hidden = deleted(db, budget, &id)?;
             let previous = if hidden {
                 ledger::get_any(db, budget, &id)?
@@ -376,6 +385,9 @@ pub fn execute(
             success(db, budget, result, &edit_clock, conflicts, StatusCode::OK)
         }
         Mutation::Delete(id) => {
+            if crate::transfers::counterpart(db, budget, &id)?.is_some() {
+                return crate::transfers::delete(db, budget, &id, &edit_clock);
+            }
             if deleted(db, budget, &id)? {
                 return refusal(
                     db,

@@ -33,6 +33,7 @@ export const featureNames = [
 ] as const;
 export type FeatureName = (typeof featureNames)[number];
 export interface SharedPreferences {
+  sync_transfer_date?: boolean;
   number_format: NumberFormat;
   date_format: DateFormat;
   hide_fraction: boolean;

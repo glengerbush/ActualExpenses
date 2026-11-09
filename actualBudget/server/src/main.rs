@@ -15,6 +15,7 @@ mod payees_tags;
 mod preferences;
 mod store;
 mod themes;
+mod transfers;
 use std::path::PathBuf;
 #[tokio::main(worker_threads = 2)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

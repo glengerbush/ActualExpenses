@@ -1,5 +1,6 @@
 import { request } from "./api";
 export interface Transaction {
+  transfer_id?: string | null;
   id: string;
   field_versions?: Record<string, string>;
   deleted?: boolean;

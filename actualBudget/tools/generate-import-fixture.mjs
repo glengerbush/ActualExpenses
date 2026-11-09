@@ -13,9 +13,10 @@ import { setTimeout as delay, setImmediate as yieldLoop } from 'node:timers/prom
 const requireOracle = createRequire(new URL('../../actualExpenses/tools/compatibility/package.json', import.meta.url));
 const api = requireOracle('@actual-app/api');
 const accountFixture = process.argv.includes('--accounts');
+const transferFixture = process.argv.includes('--transfers');
 let root;
-const archivePath = fileURLToPath(new URL(accountFixture ? '../tests/fixtures/import-accounts-26.10.0.zip' : '../tests/fixtures/import-26.10.0.zip', import.meta.url));
-const manifestPath = fileURLToPath(new URL(accountFixture ? '../tests/fixtures/import-accounts-26.10.0.json' : '../tests/fixtures/import-26.10.0.json', import.meta.url));
+const archivePath = fileURLToPath(new URL(transferFixture ? '../tests/fixtures/import-transfers-26.10.0.zip' : accountFixture ? '../tests/fixtures/import-accounts-26.10.0.zip' : '../tests/fixtures/import-26.10.0.zip', import.meta.url));
+const manifestPath = fileURLToPath(new URL(transferFixture ? '../tests/fixtures/import-transfers-26.10.0.json' : accountFixture ? '../tests/fixtures/import-accounts-26.10.0.json' : '../tests/fixtures/import-26.10.0.json', import.meta.url));
 const inspector = fileURLToPath(new URL('./inspect-actual-archive.py', import.meta.url));
 const unsupportedArchivePath = archivePath.replace('import-26', 'import-unsupported-rule-26');
 const unsupportedManifestPath = manifestPath.replace('import-26', 'import-unsupported-rule-26');
@@ -103,7 +104,7 @@ async function verifyPublicImport(archive, expected) {
 }
 try {
   if (check) {
-    for (const [archive, manifest] of (accountFixture ? [[archivePath, manifestPath]] : [[archivePath, manifestPath], [unsupportedArchivePath, unsupportedManifestPath]])) {
+    for (const [archive, manifest] of ((accountFixture || transferFixture) ? [[archivePath, manifestPath]] : [[archivePath, manifestPath], [unsupportedArchivePath, unsupportedManifestPath]])) {
       const expected = JSON.parse(await readFile(manifest, 'utf8'));
       assert.deepEqual(inspect(archive), expected.inspection, 'Archive bytes, source schema, IDs, clocks or retained records changed');
       await verifyPublicImport(await readFile(archive), expected);
@@ -145,6 +146,17 @@ try {
       assert.ok(performance.now() < deadline, 'Public API mutation visibility timed out');
       await yieldLoop();
     }
+    if (transferFixture) {
+      const transferPayee = (await api.getPayees()).find(p => p.transfer_acct === reserve).id;
+      await api.addTransactions(spending,[{id:id(60),date:'2026-02-01',amount:-700,payee:transferPayee,category,notes:'Transfer before correction'}],{runTransfers:true});
+      await api.updateTransaction(id(60),{amount:-900,notes:'Transfer corrected'});
+      const deadline=performance.now()+5000;
+      while(!(await api.getTransactions(reserve)).some(t=>t.transfer_id===id(60)&&t.amount===900)) {
+        assert.ok(performance.now()<deadline,'Public transfer correction did not settle'); await yieldLoop();
+      }
+      await api.setPreference('sync-transfer-date','true');
+      await api.sync();
+    }
     if (accountFixture) {
       const group = await api.createAccountGroup({ name: 'Daily accounts' });
       const removedGroup = await api.createAccountGroup({ name: 'Removed group' });
@@ -167,9 +179,9 @@ try {
     expected.inspection = inspect(generated);
     assert.ok(expected.inspection.latest_field_clocks.length > 0, 'Genuine synced field clocks required');
     assert.ok(expected.inspection.latest_field_clocks.some(row => row.row === id(4) && row.column === 'tombstone' && row.value === 'N:1'), 'Published deletion clock required');
-    assert.equal(expected.public.balances.find(row => row.account_id === spending).total, 31434);
-    assert.equal(expected.public.balances.find(row => row.account_id === reserve).total, -5000);
-    if (!accountFixture) {
+    assert.equal(expected.public.balances.find(row => row.account_id === spending).total, transferFixture ? 30534 : 31434);
+    assert.equal(expected.public.balances.find(row => row.account_id === reserve).total, transferFixture ? -4100 : -5000);
+    if (!accountFixture && !transferFixture) {
     // A genuine later-feature record proves the limited importer must report and
     // retain unsupported data instead of silently losing it.
     await api.createRule({ stage: null, conditionsOp: 'and', conditions: [{ field: 'payee', op: 'is', value: payee }], actions: [{ op: 'set', field: 'category', value: category }] });

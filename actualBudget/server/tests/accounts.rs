@@ -940,7 +940,7 @@ fn every_metadata_cancellation_route_is_durable_without_advancing_snapshot() {
     assert_eq!(s.get(&format!("{root}/accounts"))["data"], json!([]));
     for (method, path) in [
         ("GET", format!("{root}/accounts")),
-        ("POST", format!("{root}/payees")),
+        ("GET", format!("{root}/payees")),
         ("POST", "/api/v1/budgets".to_owned()),
     ] {
         let response = s

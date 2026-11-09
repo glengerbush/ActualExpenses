@@ -763,7 +763,6 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             || flag(row, "isChild")?
             || flag(row, "pending")?
             || [
-                "transferred_id",
                 "parent_id",
                 "schedule",
                 "financial_id",
@@ -779,25 +778,42 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             "transaction_features",
             usize::from(unsupported),
             true,
-            "Split, transfer, schedule or imported/bank metadata requires its converter",
+            "Split, schedule or imported/bank metadata requires its converter",
         );
         if !tombstone {
             sums[0] += amount as i128;
             sums[if cleared { 1 } else { 2 }] += amount as i128;
         }
-        let mapped_payee = resolve(&row["description"], &payee_map, &payee_ids)?;
-        requirement(
-            &mut requirements,
-            "transfer_payee_transaction",
-            usize::from(
-                mapped_payee
-                    .as_str()
-                    .is_some_and(|id| transfer_payees.contains(id)),
-            ),
-            true,
-            "Transaction uses a transfer payee and requires transfer conversion",
-        );
-        converted["transactions"].as_array_mut().unwrap().push(json!({"id":id,"account_id":account,"amount":amount,"date":date,"cleared":cleared,"reconciled":flag(row,"reconciled")?,"tombstone":tombstone,"starting_balance":flag(row,"starting_balance_flag")?,"payee_id":resolve(&row["description"],&payee_map,&payee_ids)?,"category_id":resolve(&row["category"],&category_map,&category_ids)?,"notes":row["notes"].as_str().unwrap_or(""),"imported_payee":row["imported_description"],"sort_order":rank}));
+        converted["transactions"].as_array_mut().unwrap().push(json!({"id":id,"account_id":account,"amount":amount,"date":date,"cleared":cleared,"reconciled":flag(row,"reconciled")?,"tombstone":tombstone,"starting_balance":flag(row,"starting_balance_flag")?,"payee_id":resolve(&row["description"],&payee_map,&payee_ids)?,"category_id":resolve(&row["category"],&category_map,&category_ids)?,"notes":row["notes"].as_str().unwrap_or(""),"imported_payee":row["imported_description"],"transfer_id":row["transferred_id"],"sort_order":rank}));
+    }
+    converted["transfer_version"] = json!(1);
+    for row in array(&converted, "transactions")
+        .iter()
+        .filter(|r| r["tombstone"] == false)
+    {
+        if let Some(id) = row["transfer_id"].as_str() {
+            let other = array(&converted, "transactions")
+                .iter()
+                .find(|r| r["id"] == id)
+                .ok_or_else(|| invalid("Missing transfer counterpart"))?;
+            let payee = array(&converted, "payees")
+                .iter()
+                .find(|p| p["id"] == row["payee_id"])
+                .ok_or_else(|| invalid("Missing transfer payee"))?;
+            if other["transfer_id"] != row["id"]
+                || other["tombstone"] == true
+                || other["account_id"] == row["account_id"]
+                || other["amount"].as_i64().unwrap() != -row["amount"].as_i64().unwrap()
+                || payee["transfer_account_id"] != other["account_id"]
+            {
+                return Err(invalid("Invalid reciprocal transfer pair"));
+            }
+        } else if row["payee_id"]
+            .as_str()
+            .is_some_and(|p| transfer_payees.contains(p))
+        {
+            return Err(invalid("Transfer payee has no linked transaction"));
+        }
     }
     let balances=totals.into_iter().map(|(account_id,sums)|{if sums.iter().any(|n|n.abs()>MAX_MONEY as i128){return Err(invalid("Account balance exceeds safe integer range"));}Ok(json!({"account_id":account_id,"total":sums[0] as i64,"cleared":sums[1] as i64,"uncleared":sums[2] as i64}))}).collect::<Result<Vec<_>,Error>>()?;
     let synced = array(&source, "preferences")
@@ -889,7 +905,7 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
     for row in array(data, "transactions") {
         let category =
             crate::categories::resolve(db, budget, row["category_id"].as_str().map(str::to_owned))?;
-        db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,reconciled,starting_balance,payee_id,category_id,notes,tombstone,sort_order,imported_payee) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14)",params![budget,row["id"].as_str(),row["account_id"].as_str(),row["amount"].as_i64(),row["date"].as_str(),row["cleared"].as_bool(),row["reconciled"].as_bool(),row["starting_balance"].as_bool(),row["payee_id"].as_str(),category,row["notes"].as_str(),row["tombstone"].as_bool(),row["sort_order"].as_i64(),row["imported_payee"].as_str()])?;
+        db.execute("INSERT INTO transactions(budget_id,id,account_id,amount,date,cleared,reconciled,starting_balance,payee_id,category_id,notes,tombstone,sort_order,imported_payee,transfer_id) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)",params![budget,row["id"].as_str(),row["account_id"].as_str(),row["amount"].as_i64(),row["date"].as_str(),row["cleared"].as_bool(),row["reconciled"].as_bool(),row["starting_balance"].as_bool(),row["payee_id"].as_str(),category,row["notes"].as_str(),row["tombstone"].as_bool(),row["sort_order"].as_i64(),row["imported_payee"].as_str(),row["transfer_id"].as_str()])?;
     }
     for row in array(data, "accounts") {
         ledger::refresh_account(db, budget, row["id"].as_str().unwrap())?;
@@ -933,6 +949,7 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
         let mapped = match (dataset, field) {
             ("transactions", "acct") => Some("account_id"),
             ("transactions", "description") => Some("payee_id"),
+            ("transactions", "transferred_id") => Some("transfer_id"),
             ("transactions", "imported_description") => Some("imported_payee"),
             ("payees", "transfer_acct") => Some("transfer_account_id"),
             ("payee_mapping", "targetId") => Some("merged_into"),

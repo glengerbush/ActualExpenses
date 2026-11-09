@@ -89,11 +89,16 @@ fn qualify(server: &Server, expected: &Value) {
     let base = format!("/api/v1/budgets/{budget}");
     // Exact schema7 public snapshots retain account order, membership, notes and HLCs.
     for domain in ["accounts", "account-groups", "transactions"] {
-        assert_eq!(
-            server.get(&format!("{base}/{domain}"))["data"],
-            expected[domain.replace('-', "_")],
-            "{domain}"
-        );
+        let mut current = server.get(&format!("{base}/{domain}"))["data"].clone();
+        if domain == "transactions" {
+            for row in current.as_array_mut().unwrap() {
+                assert!(row["imported_payee"].is_null());
+                assert_eq!(row["retained_payee_id"], row["payee_id"]);
+                row.as_object_mut().unwrap().remove("imported_payee");
+                row.as_object_mut().unwrap().remove("retained_payee_id");
+            }
+        }
+        assert_eq!(current, expected[domain.replace('-', "_")], "{domain}");
     }
     let native = server.get(&format!(
         "{base}/categories/{}",

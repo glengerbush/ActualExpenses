@@ -38,6 +38,7 @@
     clearRegisterAction,
     type SavedAction,
   } from "./register-storage";
+  import TransferForm from "./TransferForm.svelte";
   import TransactionForm from "./TransactionForm.svelte";
   import DateInput from "./DateInput.svelte";
   import {
@@ -177,6 +178,7 @@
     appliedPayee = $state(""),
     appliedTag = $state("");
   let showForm = $state(false);
+  let transferMode = $state<"create" | "edit" | "link" | "close" | null>(null);
   let recoveredPending = $state(false);
   let editing = $state.raw<Transaction | null>(null);
   let deleting = $state.raw<Transaction | null>(null);
@@ -284,7 +286,12 @@
     recoveryError = "";
     try {
       const saved = readTransactionDraft(budgetId);
-      showForm = !!saved;
+      transferMode = localStorage.getItem(
+        `actualBudget.transfers.v1.${budgetId}`,
+      )
+        ? "create"
+        : null;
+      showForm = !!saved || !!transferMode;
       recoveredPending = !!saved?.pending;
       pending = readRegisterAction(budgetId);
     } catch (e) {
@@ -305,6 +312,7 @@
 
   async function changed(message = "") {
     showForm = false;
+    transferMode = null;
     editing = null;
     queued = null;
     deleting = null;
@@ -397,6 +405,16 @@
     if (transaction && disconnected) return;
     queued = null;
     editing = transaction;
+    transferMode = transaction?.transfer_id ? "edit" : null;
+    showForm = true;
+    deleting = null;
+  }
+  function openTransfer(
+    mode: "create" | "link" | "close",
+    row: Transaction | null = null,
+  ) {
+    transferMode = mode;
+    editing = row;
     showForm = true;
     deleting = null;
   }
@@ -562,6 +580,34 @@
         !viewMatchesEpoch ||
         !compatible}>{t("Add transaction")}</button
     >
+    <button
+      onclick={() => openTransfer("create")}
+      disabled={disconnected ||
+        loading ||
+        busy ||
+        showForm ||
+        !!pending ||
+        !!recoveryError ||
+        !preferences.hasUsableShared ||
+        !viewMatchesEpoch ||
+        !compatible ||
+        accounts.filter((a) => !a.closed && !a.deleted).length < 2}
+      >Move money</button
+    >
+    {#if accountId}<button
+        onclick={() => openTransfer("close")}
+        disabled={disconnected ||
+          loading ||
+          busy ||
+          showForm ||
+          !!pending ||
+          !!recoveryError ||
+          !preferences.hasUsableShared ||
+          !viewMatchesEpoch ||
+          !compatible ||
+          accounts.filter((a) => !a.closed && !a.deleted).length < 2}
+        >Transfer balance and close</button
+      >{/if}
   </div>
   {#if register && preferences.hasUsableShared && viewMatchesEpoch}
     <dl class="register-balances">
@@ -733,22 +779,37 @@
         </div>{/each}
     </section>{/if}
   {#if showForm && (accounts.length || recoveredPending) && !recoveryError}
-    <TransactionForm
-      {budgetId}
-      {accounts}
-      {payees}
-      {categories}
-      initial={editing}
-      {queued}
-      {disconnected}
-      defaultAccountId={accountId}
-      oncomplete={(_transaction, message) => void changed(message)}
-      oncancel={() => {
-        showForm = false;
-        editing = null;
-        queued = null;
-      }}
-    />
+    {#if transferMode}<TransferForm
+        {budgetId}
+        {accounts}
+        {categories}
+        mode={transferMode}
+        initial={editing}
+        defaultAccountId={accountId}
+        oncomplete={(message) => void changed(message)}
+        oncancel={() => {
+          showForm = false;
+          transferMode = null;
+          editing = null;
+        }}
+      />
+    {:else}<TransactionForm
+        {budgetId}
+        {accounts}
+        {payees}
+        {categories}
+        initial={editing}
+        {queued}
+        {disconnected}
+        defaultAccountId={accountId}
+        oncomplete={(_transaction, message) => void changed(message)}
+        oncancel={() => {
+          showForm = false;
+          editing = null;
+          queued = null;
+        }}
+      />
+    {/if}
   {/if}
   {#if loading}<p role="status">{t("Loading transactions…")}</p>{/if}
   {#if register?.data.length && preferences.hasUsableShared && viewMatchesEpoch}
@@ -778,7 +839,8 @@
                 >{/if}</td
             >
             <td data-label={t("Category")}
-              >{row.category_name ?? t("Uncategorized")}</td
+              >{row.category_name ??
+                (row.transfer_id ? "Transfer" : t("Uncategorized"))}</td
             ><td class="number amount" data-label={t("Amount")}
               >{formatAmount(row.amount)}</td
             >
@@ -831,12 +893,27 @@
                   row.reconciled}
                 aria-label={`${t("Delete")} ${description(row)}`}
                 >{t("Delete")}</button
-              ></td
+              >
+              {#if !row.transfer_id && !row.starting_balance}<button
+                  onclick={() => openTransfer("link", row)}
+                  disabled={disconnected ||
+                    loading ||
+                    busy ||
+                    showForm ||
+                    !!pending ||
+                    !!recoveryError ||
+                    row.reconciled}>Link transfer</button
+                >{/if}</td
             >
           </tr>
           {#if deleting?.id === row.id}<tr class="delete-confirmation"
               ><td colspan={8}
-                ><p>{t("Delete this transaction?")} {description(row)}</p>
+                ><p>
+                  {row.transfer_id
+                    ? "Delete both sides of this transfer?"
+                    : t("Delete this transaction?")}
+                  {description(row)}
+                </p>
                 <button
                   onclick={() => void runAction("delete", row)}
                   disabled={busy}>{t("Confirm delete")}</button

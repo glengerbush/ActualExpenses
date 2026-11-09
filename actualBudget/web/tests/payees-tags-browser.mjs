@@ -307,8 +307,8 @@ try {
   await page
     .getByRole("button", { name: "Add condition", exact: true })
     .click();
-  await page.getByLabel("Field 1", { exact: true }).selectOption("notes");
-  await page.getByLabel("Operator 1", { exact: true }).selectOption("hasTags");
+  await page.getByLabel(/^Field 1/).selectOption("notes");
+  await page.getByLabel(/^Operator 1/).selectOption("hasTags");
   await page.getByLabel("Value 1", { exact: true }).fill("Meals");
   await page
     .getByRole("button", { name: "Apply filters and columns", exact: true })

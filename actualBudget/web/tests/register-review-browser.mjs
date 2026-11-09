@@ -325,9 +325,18 @@ try {
     });
     expect(upload.status).toBe(201);
     const staged = (await upload.json()).data;
-    expect(staged.status).toBe("ready");
+    // Container suites share one server; the public import endpoint deduplicates
+    // this same fixture after register-query has already activated it.
+    expect(["ready", "activated"]).toContain(staged.status);
     const imported = await call(`/imports/${staged.id}/activate`, {});
-    const budget = imported.id;
+    const source = await call(`/budgets/${imported.id}`);
+    const copy = await call(
+      `/budgets/${imported.id}/duplicate`,
+      { id: randomUUID(), name: "Imported identity filter review" },
+      "POST",
+      { "X-Actual-Budget-Epoch": source.epoch },
+    );
+    const budget = copy.id;
     const context = await browser.newContext(),
       page = await context.newPage();
     await page.goto(server.url);

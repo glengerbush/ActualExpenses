@@ -1,0 +1,1003 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "calendar": [
+    {
+      "name": "daily count",
+      "as_of": "2026-11-06",
+      "config": {
+        "start": "2026-11-06",
+        "frequency": "daily",
+        "endMode": "after_n_occurrences",
+        "endOccurrences": 4
+      },
+      "dates": [
+        "2026-11-06",
+        "2026-11-07",
+        "2026-11-08",
+        "2026-11-09"
+      ]
+    },
+    {
+      "name": "weekly interval",
+      "as_of": "2026-11-06",
+      "config": {
+        "start": "2026-11-06",
+        "frequency": "weekly",
+        "interval": 2,
+        "endMode": "never"
+      },
+      "dates": [
+        "2026-11-06",
+        "2026-11-20",
+        "2026-12-04",
+        "2026-12-18",
+        "2027-01-01",
+        "2027-01-15",
+        "2027-01-29",
+        "2027-02-12",
+        "2027-02-26",
+        "2027-03-12",
+        "2027-03-26",
+        "2027-04-09",
+        "2027-04-23",
+        "2027-05-07",
+        "2027-05-21",
+        "2027-06-04"
+      ]
+    },
+    {
+      "name": "day31 skips months",
+      "as_of": "2026-11-06",
+      "config": {
+        "start": "2026-10-31",
+        "frequency": "monthly",
+        "endMode": "never"
+      },
+      "dates": [
+        "2026-12-31",
+        "2027-01-31",
+        "2027-03-31",
+        "2027-05-31",
+        "2027-07-31",
+        "2027-08-31",
+        "2027-10-31",
+        "2027-12-31",
+        "2028-01-31",
+        "2028-03-31",
+        "2028-05-31",
+        "2028-07-31",
+        "2028-08-31",
+        "2028-10-31",
+        "2028-12-31",
+        "2029-01-31"
+      ]
+    },
+    {
+      "name": "last day leap year",
+      "as_of": "2026-11-06",
+      "config": {
+        "start": "2026-11-01",
+        "frequency": "monthly",
+        "patterns": [
+          {
+            "type": "day",
+            "value": -1
+          }
+        ],
+        "endMode": "never"
+      },
+      "dates": [
+        "2026-11-30",
+        "2026-12-31",
+        "2027-01-31",
+        "2027-02-28",
+        "2027-03-31",
+        "2027-04-30",
+        "2027-05-31",
+        "2027-06-30",
+        "2027-07-31",
+        "2027-08-31",
+        "2027-09-30",
+        "2027-10-31",
+        "2027-11-30",
+        "2027-12-31",
+        "2028-01-31",
+        "2028-02-29"
+      ]
+    },
+    {
+      "name": "mixed monthly patterns",
+      "as_of": "2026-11-06",
+      "config": {
+        "start": "2026-11-01",
+        "frequency": "monthly",
+        "patterns": [
+          {
+            "type": "day",
+            "value": 15
+          },
+          {
+            "type": "MO",
+            "value": 1
+          }
+        ],
+        "endMode": "after_n_occurrences",
+        "endOccurrences": 3
+      },
+      "dates": [
+        "2026-11-15",
+        "2026-12-07",
+        "2026-12-15",
+        "2027-01-04",
+        "2027-01-15"
+      ]
+    },
+    {
+      "name": "specific multiple days",
+      "as_of": "2026-11-06",
+      "config": {
+        "start": "2026-11-01",
+        "frequency": "monthly",
+        "patterns": [
+          {
+            "type": "day",
+            "value": 1
+          },
+          {
+            "type": "day",
+            "value": 15
+          }
+        ],
+        "endMode": "never"
+      },
+      "dates": [
+        "2026-11-15",
+        "2026-12-01",
+        "2026-12-15",
+        "2027-01-01",
+        "2027-01-15",
+        "2027-02-01",
+        "2027-02-15",
+        "2027-03-01",
+        "2027-03-15",
+        "2027-04-01",
+        "2027-04-15",
+        "2027-05-01",
+        "2027-05-15",
+        "2027-06-01",
+        "2027-06-15",
+        "2027-07-01"
+      ]
+    },
+    {
+      "name": "weekend before",
+      "as_of": "2026-11-06",
+      "config": {
+        "start": "2026-11-07",
+        "frequency": "daily",
+        "skipWeekend": true,
+        "weekendSolveMode": "before",
+        "endMode": "after_n_occurrences",
+        "endOccurrences": 5
+      },
+      "dates": [
+        "2026-11-06",
+        "2026-11-06",
+        "2026-11-09",
+        "2026-11-10",
+        "2026-11-11"
+      ]
+    },
+    {
+      "name": "weekend after",
+      "as_of": "2026-11-06",
+      "config": {
+        "start": "2026-11-07",
+        "frequency": "daily",
+        "skipWeekend": true,
+        "weekendSolveMode": "after",
+        "endMode": "after_n_occurrences",
+        "endOccurrences": 5
+      },
+      "dates": [
+        "2026-11-09",
+        "2026-11-09",
+        "2026-11-09",
+        "2026-11-10",
+        "2026-11-11"
+      ]
+    },
+    {
+      "name": "end date inclusive",
+      "as_of": "2026-11-06",
+      "config": {
+        "start": "2026-11-06",
+        "frequency": "daily",
+        "endMode": "on_date",
+        "endDate": "2026-11-08"
+      },
+      "dates": [
+        "2026-11-06",
+        "2026-11-07",
+        "2026-11-08"
+      ]
+    },
+    {
+      "name": "last weekday",
+      "as_of": "2026-11-06",
+      "config": {
+        "start": "2026-11-01",
+        "frequency": "monthly",
+        "patterns": [
+          {
+            "type": "FR",
+            "value": -1
+          }
+        ],
+        "endMode": "never"
+      },
+      "dates": [
+        "2026-11-27",
+        "2026-12-25",
+        "2027-01-29",
+        "2027-02-26",
+        "2027-03-26",
+        "2027-04-30",
+        "2027-05-28",
+        "2027-06-25",
+        "2027-07-30",
+        "2027-08-27",
+        "2027-09-24",
+        "2027-10-29",
+        "2027-11-26",
+        "2027-12-31",
+        "2028-01-28",
+        "2028-02-25"
+      ]
+    },
+    {
+      "name": "yearly leap day",
+      "as_of": "2026-11-06",
+      "config": {
+        "start": "2024-02-29",
+        "frequency": "yearly",
+        "endMode": "never"
+      },
+      "dates": [
+        "2028-02-29",
+        "2032-02-29",
+        "2036-02-29",
+        "2040-02-29",
+        "2044-02-29",
+        "2048-02-29",
+        "2052-02-29",
+        "2056-02-29",
+        "2060-02-29",
+        "2064-02-29",
+        "2068-02-29",
+        "2072-02-29",
+        "2076-02-29",
+        "2080-02-29",
+        "2084-02-29",
+        "2088-02-29"
+      ]
+    }
+  ],
+  "snapshots": [
+    {
+      "step": "created",
+      "as_of": "2026-11-06",
+      "schedules": [
+        {
+          "id": "21220000-0000-4000-8000-000000000001",
+          "next_date": "2026-11-06",
+          "completed": false,
+          "posts_transaction": true,
+          "rule": "<generated-1>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000002",
+          "next_date": "2026-11-06",
+          "completed": false,
+          "posts_transaction": false,
+          "rule": "<generated-2>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000003",
+          "next_date": "2026-11-07",
+          "completed": false,
+          "posts_transaction": true,
+          "rule": "<generated-3>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000004",
+          "next_date": "2026-11-06",
+          "completed": false,
+          "posts_transaction": false,
+          "rule": "<generated-4>"
+        }
+      ],
+      "transactions": []
+    },
+    {
+      "step": "manual post",
+      "as_of": "2026-11-06",
+      "schedules": [
+        {
+          "id": "21220000-0000-4000-8000-000000000001",
+          "next_date": "2026-11-06",
+          "completed": false,
+          "posts_transaction": true,
+          "rule": "<generated-1>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000002",
+          "next_date": "2026-11-06",
+          "completed": false,
+          "posts_transaction": false,
+          "rule": "<generated-2>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000003",
+          "next_date": "2026-11-07",
+          "completed": false,
+          "posts_transaction": true,
+          "rule": "<generated-3>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000004",
+          "next_date": "2026-11-06",
+          "completed": false,
+          "posts_transaction": false,
+          "rule": "<generated-4>"
+        }
+      ],
+      "transactions": [
+        {
+          "id": "<generated-5>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-06",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000002",
+          "transfer_id": null
+        }
+      ]
+    },
+    {
+      "step": "weekend skipped",
+      "as_of": "2026-11-06",
+      "schedules": [
+        {
+          "id": "21220000-0000-4000-8000-000000000001",
+          "next_date": "2026-11-06",
+          "completed": false,
+          "posts_transaction": true,
+          "rule": "<generated-1>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000002",
+          "next_date": "2026-11-06",
+          "completed": false,
+          "posts_transaction": false,
+          "rule": "<generated-2>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000003",
+          "next_date": "2026-11-07",
+          "completed": false,
+          "posts_transaction": true,
+          "rule": "<generated-3>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000004",
+          "next_date": "2026-12-07",
+          "completed": false,
+          "posts_transaction": false,
+          "rule": "<generated-4>"
+        }
+      ],
+      "transactions": [
+        {
+          "id": "<generated-5>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-06",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000002",
+          "transfer_id": null
+        }
+      ]
+    },
+    {
+      "step": "catch up",
+      "as_of": "2026-11-09",
+      "schedules": [
+        {
+          "id": "21220000-0000-4000-8000-000000000001",
+          "next_date": "2026-11-09",
+          "completed": false,
+          "posts_transaction": true,
+          "rule": "<generated-1>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000002",
+          "next_date": "2026-11-06",
+          "completed": true,
+          "posts_transaction": false,
+          "rule": "<generated-2>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000003",
+          "next_date": "2026-11-07",
+          "completed": false,
+          "posts_transaction": true,
+          "rule": "<generated-3>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000004",
+          "next_date": "2026-12-07",
+          "completed": false,
+          "posts_transaction": false,
+          "rule": "<generated-4>"
+        }
+      ],
+      "transactions": [
+        {
+          "id": "<generated-5>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-06",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000002",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-6>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-06",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-7>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-07",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-8>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-07",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000003",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-9>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-08",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-10>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-09",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        }
+      ]
+    },
+    {
+      "step": "repeat same day",
+      "as_of": "2026-11-09",
+      "schedules": [
+        {
+          "id": "21220000-0000-4000-8000-000000000001",
+          "next_date": "2026-11-09",
+          "completed": false,
+          "posts_transaction": true,
+          "rule": "<generated-1>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000002",
+          "next_date": "2026-11-06",
+          "completed": true,
+          "posts_transaction": false,
+          "rule": "<generated-2>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000003",
+          "next_date": "2026-11-07",
+          "completed": true,
+          "posts_transaction": true,
+          "rule": "<generated-3>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000004",
+          "next_date": "2026-12-07",
+          "completed": false,
+          "posts_transaction": false,
+          "rule": "<generated-4>"
+        }
+      ],
+      "transactions": [
+        {
+          "id": "<generated-5>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-06",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000002",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-6>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-06",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-7>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-07",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-8>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-07",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000003",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-9>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-08",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-10>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-09",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        }
+      ]
+    },
+    {
+      "step": "next day",
+      "as_of": "2026-11-10",
+      "schedules": [
+        {
+          "id": "21220000-0000-4000-8000-000000000001",
+          "next_date": "2026-11-10",
+          "completed": false,
+          "posts_transaction": true,
+          "rule": "<generated-1>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000002",
+          "next_date": "2026-11-06",
+          "completed": true,
+          "posts_transaction": false,
+          "rule": "<generated-2>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000003",
+          "next_date": "2026-11-07",
+          "completed": true,
+          "posts_transaction": true,
+          "rule": "<generated-3>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000004",
+          "next_date": "2026-12-07",
+          "completed": false,
+          "posts_transaction": false,
+          "rule": "<generated-4>"
+        }
+      ],
+      "transactions": [
+        {
+          "id": "<generated-5>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-06",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000002",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-6>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-06",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-7>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-07",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-8>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-07",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000003",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-9>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-08",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-10>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-09",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-11>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-10",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        }
+      ]
+    },
+    {
+      "step": "completed",
+      "as_of": "2026-11-10",
+      "schedules": [
+        {
+          "id": "21220000-0000-4000-8000-000000000001",
+          "next_date": "2026-11-10",
+          "completed": true,
+          "posts_transaction": true,
+          "rule": "<generated-1>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000002",
+          "next_date": "2026-11-06",
+          "completed": true,
+          "posts_transaction": false,
+          "rule": "<generated-2>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000003",
+          "next_date": "2026-11-07",
+          "completed": true,
+          "posts_transaction": true,
+          "rule": "<generated-3>"
+        },
+        {
+          "id": "21220000-0000-4000-8000-000000000004",
+          "next_date": "2026-12-07",
+          "completed": false,
+          "posts_transaction": false,
+          "rule": "<generated-4>"
+        }
+      ],
+      "transactions": [
+        {
+          "id": "<generated-5>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-06",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000002",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-6>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-06",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-7>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-07",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-8>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-07",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000003",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-9>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-08",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-10>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-09",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        },
+        {
+          "id": "<generated-11>",
+          "account": "<account>",
+          "payee": "<payee>",
+          "category": null,
+          "amount": -100,
+          "date": "2026-11-10",
+          "notes": null,
+          "cleared": false,
+          "schedule": "21220000-0000-4000-8000-000000000001",
+          "transfer_id": null
+        }
+      ]
+    }
+  ],
+  "ids": {
+    "account": "<account>",
+    "peer": "<peer>",
+    "payee": "<payee>",
+    "category": "<category>"
+  },
+  "created": [
+    {
+      "id": "21220000-0000-4000-8000-000000000001",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "<account>"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "<payee>"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": -100
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": {
+            "start": "2026-11-06",
+            "frequency": "daily",
+            "endMode": "after_n_occurrences",
+            "endOccurrences": 5
+          }
+        }
+      ],
+      "name": "Schedule 1",
+      "posts_transaction": true
+    },
+    {
+      "id": "21220000-0000-4000-8000-000000000002",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "<account>"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "<payee>"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": -100
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-06"
+        }
+      ],
+      "name": "Schedule 2",
+      "posts_transaction": false
+    },
+    {
+      "id": "21220000-0000-4000-8000-000000000003",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "<account>"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "<payee>"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": -100
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-07"
+        }
+      ],
+      "name": "Schedule 3",
+      "posts_transaction": true
+    },
+    {
+      "id": "21220000-0000-4000-8000-000000000004",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "<account>"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "<payee>"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": -100
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": {
+            "start": "2026-11-07",
+            "frequency": "monthly",
+            "skipWeekend": true,
+            "weekendSolveMode": "before",
+            "endMode": "never"
+          }
+        }
+      ],
+      "name": "Schedule 4",
+      "posts_transaction": false
+    }
+  ]
+}

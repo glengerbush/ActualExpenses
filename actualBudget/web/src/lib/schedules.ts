@@ -1,6 +1,6 @@
 import type { Condition } from "./register-query";
 import type { RuleAction } from "./rules";
-import type { PendingMutation } from "./register-api";
+import type { PendingMutation, Transaction } from "./register-api";
 import type { AmountFormat } from "./money";
 import { validClock } from "./edit-clock";
 export type Schedule = {
@@ -42,6 +42,7 @@ export type ScheduleDraft = {
   original: Schedule | null;
   format: AmountFormat;
   pending: PendingMutation | null;
+  transactions?: Transaction[];
 };
 export const schedulesKey = (budget: string) =>
   `actualBudget.schedules.v1.${budget}`;
@@ -69,6 +70,9 @@ export function readScheduleDraft(budget: string): ScheduleDraft | null {
       "skip",
       "catch-up",
       "settings",
+      "link",
+      "unlink",
+      "convert",
     ].includes(String(d.body.action)) ||
     !/^[0-9a-f]{32}$/.test(d.epoch) ||
     typeof d.snapshot !== "string" ||
@@ -92,3 +96,42 @@ export function readScheduleDraft(budget: string): ScheduleDraft | null {
     );
   return d;
 }
+
+export type ScheduleMatches = {
+  transactions: Transaction[];
+  total_count: number;
+  next_offset: number | null;
+  snapshot: string;
+  epoch: string;
+};
+export type ScheduleSuggestion = {
+  id: string;
+  account_id: string;
+  payee_id: string | null;
+  date: Record<string, unknown>;
+  amount: number;
+  conditions: Condition[];
+};
+export type ScheduleDiscovery = {
+  suggestions: ScheduleSuggestion[];
+  total_count: number;
+  next_offset: number | null;
+  snapshot: string;
+  epoch: string;
+  as_of: string;
+};
+export type ConversionPreview = {
+  transaction: Transaction | Record<string, unknown>;
+  conditions: Condition[];
+  actions: RuleAction[];
+  removed_transaction_ids: string[];
+  affected_transactions: Transaction[];
+  protected_count: number;
+  is_future: boolean;
+  is_beyond_window: boolean;
+  days_until_transaction: number;
+  upcoming_days: number;
+  as_of: string;
+  snapshot: string;
+  epoch: string;
+};

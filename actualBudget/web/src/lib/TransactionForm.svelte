@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { ConversionContext } from "./future-conversion";
+  import { draftKey } from "./register-api";
   import { historyOwner } from "./history-owner";
   import {
     entries,
@@ -62,6 +64,7 @@
     defaultAccountId = null,
     oncomplete,
     oncancel,
+    onschedule,
   }: {
     budgetId: string;
     accounts: Account[];
@@ -73,6 +76,7 @@
     defaultAccountId?: string | null;
     oncomplete: (transaction: Transaction | null, notice?: string) => void;
     oncancel: () => void;
+    onschedule?: (context: ConversionContext) => void;
   } = $props();
   let draft = $state<Draft | null>(null);
   let associations = $state.raw<Record<string, string>>({});
@@ -515,6 +519,77 @@
       draft.fields.amount = formatAmountInput(Math.abs(amount), draft.format);
       draft.amountDirty = true;
       persist(draft);
+    } catch (e) {
+      error = errorMessage(e);
+    } finally {
+      busy = false;
+    }
+  }
+  async function scheduleFuture() {
+    if (
+      !draft ||
+      draft.original ||
+      draft.pending ||
+      draft.replaces ||
+      queued ||
+      busy ||
+      externalChanged ||
+      locationDependency ||
+      !onschedule
+    )
+      return;
+    busy = true;
+    error = "";
+    try {
+      const f = draft.fields,
+        date = parseDateInput(f.date, draft.dateFormat);
+      if (!validDate(date) || date <= today())
+        throw new Error("Choose a future calendar date.");
+      const amount = await entryAmount(f.amount);
+      const transaction: Record<string, unknown> = {
+        id: draft.id,
+        account_id: f.account_id,
+        date,
+        amount: (f.direction === "expense" ? -1 : 1) * Math.abs(amount),
+        notes: f.notes,
+        cleared: f.cleared,
+        payee_id: f.payee === "new" ? null : f.payee || null,
+        category_id:
+          selectedAccount?.off_budget || f.category === "new"
+            ? null
+            : f.category || null,
+      };
+      if (f.payee === "new") {
+        if (!f.newPayee.trim()) throw new Error("Enter a payee name.");
+        transaction.new_payee = {
+          id: draft.referenceIds.payee,
+          name: f.newPayee.trim(),
+        };
+      }
+      if (f.category === "new" && !selectedAccount?.off_budget) {
+        if (!f.newCategory.trim()) throw new Error("Enter a category name.");
+        transaction.new_category = {
+          id: draft.referenceIds.category,
+          name: f.newCategory.trim(),
+          is_income: f.categoryIncome,
+        };
+      }
+      if (!draft.budgetEpoch)
+        throw new Error(
+          "Reconnect to confirm the budget generation before converting.",
+        );
+      clearTimeout(ruleTimer);
+      persist(draft);
+      onschedule({
+        source: { transaction },
+        epoch: draft.budgetEpoch,
+        snapshot: null,
+        format: $state.snapshot(draft.format),
+        dateFormat: draft.dateFormat,
+        clock: draft.editClock,
+        sourceDraftKey: draftKey(budgetId),
+        sourceDraftRaw: localStorage.getItem(draftKey(budgetId)) ?? undefined,
+      });
     } catch (e) {
       error = errorMessage(e);
     } finally {
@@ -1148,6 +1223,14 @@
           Finish or cancel the new payee’s location change before saving this
           transaction. Other payees remain available.
         </p>{/if}
+      {#if onschedule && !draft.original && !draft.replaces && !queued && !draft.pending && parseDateInput(draft.fields.date, draft.dateFormat) > today()}<button
+          type="button"
+          onclick={scheduleFuture}
+          disabled={busy ||
+            externalChanged ||
+            locationDependency ||
+            disconnected}>Schedule future transaction</button
+        >{/if}
       <div class="actions">
         <button class="primary" disabled={busy || locationDependency}
           >{busy

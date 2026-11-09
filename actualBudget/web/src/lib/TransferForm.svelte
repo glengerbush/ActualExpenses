@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { ConversionContext } from "./future-conversion";
   import { historyOwner } from "./history-owner";
   import { onMount, tick } from "svelte";
   import DateInput from "./DateInput.svelte";
@@ -68,6 +69,7 @@
     defaultAccountId = null,
     oncomplete,
     oncancel,
+    onschedule,
   }: {
     budgetId: string;
     accounts: Account[];
@@ -77,6 +79,7 @@
     defaultAccountId?: string | null;
     oncomplete: (notice: string) => void;
     oncancel: () => void;
+    onschedule?: (context: ConversionContext) => void;
   } = $props();
   let draft = $state<Draft | null>(null);
   let error = $state("");
@@ -290,6 +293,51 @@
       error = errorMessage(e);
     } finally {
       busy = false;
+    }
+  }
+  function scheduleFuture() {
+    if (
+      !draft ||
+      draft.mode !== "create" ||
+      draft.pending ||
+      busy ||
+      !ready ||
+      !onschedule
+    )
+      return;
+    error = "";
+    try {
+      const date = parseDateInput(draft.date, draft.dateFormat),
+        amount = parseAmount(draft.amount, draft.format);
+      if (!validDate(date) || date <= today())
+        throw new Error("Choose a future calendar date.");
+      if (amount === null) throw new Error("Enter an exact amount.");
+      if (!draft.destination || draft.source === draft.destination)
+        throw new Error("Choose a different destination account.");
+      persist();
+      onschedule({
+        source: {
+          transaction: {
+            id: draft.id,
+            account_id: draft.source,
+            date,
+            amount,
+            notes: draft.notes,
+            cleared: draft.cleared,
+            category_id: draft.category || null,
+            payee_id: null,
+          },
+          transfer_account_id: draft.destination,
+        },
+        epoch: draft.epoch,
+        snapshot: null,
+        format: $state.snapshot(draft.format),
+        dateFormat: draft.dateFormat,
+        sourceDraftKey: storageKey(),
+        sourceDraftRaw: localStorage.getItem(storageKey()) ?? undefined,
+      });
+    } catch (e) {
+      error = errorMessage(e);
     }
   }
   async function send(cancel = false) {
@@ -622,6 +670,11 @@
           The original request is saved. Retry unchanged or cancel it before
           editing.
         </p>{/if}
+      {#if onschedule && draft.mode === "create" && !draft.pending && parseDateInput(draft.date, draft.dateFormat) > today()}<button
+          type="button"
+          onclick={scheduleFuture}
+          disabled={busy || offline || !ready}>Schedule future transfer</button
+        >{/if}
       <div class="actions">
         <button
           class="primary"

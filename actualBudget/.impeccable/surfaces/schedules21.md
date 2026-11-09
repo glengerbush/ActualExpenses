@@ -19,4 +19,4 @@ FIRST VIEWPORT: Heading/Close, feedback and refresh/create/post-overdue/settings
 
 FORM: Incumbent Operate extension; no replacement visual world. seed: none.
 
-FINISH: Svelte check/autofixer, manual detector, rendered desktop/390px/200%/dark captures, public browser retained-draft/stale-snapshot/action/posting/recovery tests. Root owns consolidated independent review. This brief covers posting21; matching/discovery/conversion22 extend it after their backend is ready.
+FINISH: Svelte check/autofixer, manual detector, rendered desktop/390px/200%/dark captures, public browser retained-draft/stale-snapshot/action/posting/recovery tests. Root owns consolidated independent review. Matching/discovery22 extend the same divider lists with explicit selected payments and original-snapshot confirmation. Future conversion reuses the transaction/transfer forms and shows the complete affected graph, horizon warning and immutable request recovery before replacing a future purchase. Discovery is read-only; creating/linking never merges existing payments. No new design tokens or raster assets.

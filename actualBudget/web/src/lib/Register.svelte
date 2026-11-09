@@ -36,7 +36,13 @@
     type Account,
   } from "./api";
   import { t } from "./i18n.svelte";
-  import { formatAmount, formatDate, formatAmountInput } from "./money";
+  import {
+    formatAmount,
+    formatDate,
+    formatAmountInput,
+    captureAmountFormat,
+    today,
+  } from "./money";
   import { preferences } from "./preferences.svelte";
   import {
     readTransactionDraft,
@@ -59,6 +65,8 @@
     type RegisterQuery,
   } from "./register-query";
   import TransactionForm from "./TransactionForm.svelte";
+  import FutureConversion from "./FutureConversion.svelte";
+  import { readConversion, type ConversionContext } from "./future-conversion";
   import DateInput from "./DateInput.svelte";
   import {
     registerPage,
@@ -320,6 +328,11 @@
   let notice = $state("");
   let filterDate = $state("");
   let showForm = $state(false);
+  let futureContext = $state.raw<ConversionContext | null>(null);
+  function scheduleFuture(context: ConversionContext) {
+    futureContext = context;
+    showForm = true;
+  }
   let transferMode = $state<"create" | "edit" | "link" | "close" | null>(null);
   let recoveredPending = $state(false);
   let editing = $state.raw<Transaction | null>(null);
@@ -440,7 +453,8 @@
       )
         ? "create"
         : null;
-      showForm = !!saved || !!transferMode;
+      futureContext = readConversion(budgetId);
+      showForm = !!saved || !!transferMode || !!futureContext;
       recoveredPending = !!saved?.pending;
       pending = readRegisterAction(budgetId);
     } catch (e) {
@@ -1003,7 +1017,22 @@
             >{/if}
         </div>{/each}
     </section>{/if}
-  {#if showForm && (accounts.length || recoveredPending) && !recoveryError}
+  {#if futureContext && !recoveryError}<FutureConversion
+      {budgetId}
+      {accounts}
+      {payees}
+      {categories}
+      context={futureContext}
+      oncomplete={async (message) => {
+        await changed(message);
+        futureContext = null;
+      }}
+      onclose={() => {
+        futureContext = null;
+        recover();
+      }}
+    />
+  {:else if showForm && (accounts.length || recoveredPending) && !recoveryError}
     {#if transferMode}<TransferForm
         {budgetId}
         {accounts}
@@ -1011,6 +1040,7 @@
         mode={transferMode}
         initial={editing}
         defaultAccountId={accountId}
+        onschedule={scheduleFuture}
         oncomplete={(message) => void changed(message)}
         oncancel={() => {
           showForm = false;
@@ -1028,6 +1058,7 @@
         {queued}
         {disconnected}
         defaultAccountId={accountId}
+        onschedule={scheduleFuture}
         oncomplete={(_transaction, message) => void changed(message)}
         oncancel={() => {
           showForm = false;
@@ -1168,7 +1199,28 @@
                     !preferences.hasUsableShared}
                   aria-label={`${t("Edit")} ${description(row)}`}
                   >{t("Edit")}</button
-                >{#if row.reconciled}<button
+                >{#if row.date > today() && !row.parent_id && !row.starting_balance}<button
+                    onclick={() =>
+                      scheduleFuture({
+                        source: { transaction_id: row.id },
+                        snapshot: register!.snapshot,
+                        epoch: preferences.budgetEpoch!,
+                        format: captureAmountFormat(),
+                        dateFormat: preferences.shared.date_format,
+                      })}
+                    disabled={disconnected ||
+                      loading ||
+                      busy ||
+                      showForm ||
+                      splitActive ||
+                      bulkActive ||
+                      !!pending ||
+                      !!recoveryError ||
+                      !viewMatchesEpoch ||
+                      queue.some((item) => item.row.id === row.id)}
+                    aria-label={`Schedule future ${description(row)}`}
+                    >Schedule future transaction</button
+                  >{/if}{#if row.reconciled}<button
                     onclick={() => void beginUnlock(row)}
                     disabled={disconnected ||
                       loading ||

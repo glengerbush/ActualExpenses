@@ -22,6 +22,9 @@
   import RegisterCondition from "./RegisterCondition.svelte";
   import RuleAction from "./RuleAction.svelte";
   import DateInput from "./DateInput.svelte";
+  import ScheduleMatches from "./ScheduleMatches.svelte";
+  import type { ScheduleDiscovery, ScheduleSuggestion } from "./schedules";
+  import type { Transaction } from "./register-api";
   import { foregroundSchedules, readScheduleJob } from "./schedule-foreground";
   let {
     budgetId,
@@ -60,6 +63,16 @@
       next_from: string | null;
       snapshot: string;
     } | null>(null);
+  type MatchContext = {
+    schedule: Schedule | null;
+    conditions: Condition[];
+    snapshot: string;
+    epoch: string;
+    linked: boolean;
+  };
+  let matchingContext = $state.raw<MatchContext | null>(null),
+    discovery = $state.raw<ScheduleDiscovery | null>(null),
+    discoveryOffset = $state(0);
   let checkpoint: string | null = null;
   let conditions = $derived((draft?.body.conditions ?? []) as Condition[]),
     actions = $derived((draft?.body.actions ?? []) as Action[]);
@@ -80,10 +93,12 @@
   function field(key: string, value: unknown) {
     if (!draft || draft.pending || busy) return;
     try {
-      save({
-        ...$state.snapshot(draft),
-        body: { ...$state.snapshot(draft.body), [key]: value },
-      });
+      const body = { ...$state.snapshot(draft.body), [key]: value };
+      if (key === "conditions") {
+        delete body.transaction_ids;
+        matchingContext = null;
+      }
+      save({ ...$state.snapshot(draft), body });
       dates = [];
       error = "";
     } catch (e) {
@@ -121,6 +136,8 @@
       categories = c;
       groups = g;
       details = null;
+      matchingContext = null;
+      discovery = null;
     } catch (e) {
       error = errorMessage(e);
     } finally {
@@ -355,6 +372,138 @@
       busy = false;
     }
   }
+  function matchPayments(row?: Schedule, linked = false) {
+    if (!view || busy) return;
+    if (
+      draft &&
+      (!editing || draft.pending || draft.body.action !== "create")
+    ) {
+      error = "Finish the saved schedule work before matching another entry.";
+      return;
+    }
+    matchingContext = {
+      schedule: row ?? null,
+      conditions: structuredClone(
+        row?.conditions ?? $state.snapshot(conditions),
+      ),
+      snapshot: row ? view.snapshot : (draft?.snapshot ?? view.snapshot),
+      epoch: row ? view.epoch : (draft?.epoch ?? view.epoch),
+      linked,
+    };
+  }
+  function stagePayments(selection: {
+    action: "attach" | "link" | "unlink";
+    ids: string[];
+    transactions: Transaction[];
+    schedule: Schedule | null;
+    snapshot: string;
+    epoch: string;
+  }) {
+    if (selection.action === "attach") {
+      if (
+        !draft ||
+        draft.pending ||
+        draft.body.action !== "create" ||
+        draft.snapshot !== selection.snapshot
+      ) {
+        error =
+          "Reopen the original schedule draft before selecting these payments.";
+        return;
+      }
+      try {
+        save({
+          ...$state.snapshot(draft),
+          body: {
+            ...$state.snapshot(draft.body),
+            transaction_ids: selection.ids,
+          },
+          transactions: selection.transactions,
+        });
+        matchingContext = null;
+        notice = `${selection.ids.length} payments selected. Save the schedule to link them atomically.`;
+      } catch (e) {
+        error = errorMessage(e);
+      }
+      return;
+    }
+    if (draft) {
+      error = "Finish the saved schedule work first.";
+      return;
+    }
+    if (!selection.schedule) return;
+    try {
+      save({
+        version: 1,
+        epoch: selection.epoch,
+        snapshot: selection.snapshot,
+        body: {
+          action: selection.action,
+          id: selection.schedule.id,
+          transaction_ids: selection.ids,
+        },
+        original: selection.schedule,
+        transactions: selection.transactions,
+        format: captureAmountFormat(),
+        pending: null,
+      });
+      matchingContext = null;
+      notice = "";
+      error = "";
+    } catch (e) {
+      error = errorMessage(e);
+    }
+  }
+  async function discover(offset = 0) {
+    if (!view || busy) return;
+    busy = true;
+    error = "";
+    try {
+      discovery = (
+        await request<{ data: ScheduleDiscovery }>(
+          `/budgets/${budgetId}/schedules/discovery?snapshot=${view.snapshot}&offset=${offset}&limit=20${filter ? "&account_id=" + filter : ""}`,
+        )
+      ).data;
+      discoveryOffset = offset;
+    } catch (e) {
+      error = errorMessage(e);
+    } finally {
+      busy = false;
+    }
+  }
+  function suggestion(row: ScheduleSuggestion) {
+    if (!discovery || draft || busy) return;
+    try {
+      save({
+        version: 1,
+        epoch: discovery.epoch,
+        snapshot: discovery.snapshot,
+        body: {
+          action: "create",
+          id: row.id,
+          name: "",
+          posts_transaction: false,
+          conditions: row.conditions,
+          actions: [],
+        },
+        original: null,
+        format: captureAmountFormat(),
+        pending: null,
+      });
+      matchingContext = {
+        schedule: null,
+        conditions: structuredClone(row.conditions),
+        snapshot: discovery.snapshot,
+        epoch: discovery.epoch,
+        linked: false,
+      };
+      discovery = null;
+      notice =
+        "Review the suggested conditions and choose existing payments to link. No money is posted when creating a manual schedule.";
+      error = "";
+    } catch (e) {
+      error = errorMessage(e);
+    }
+  }
   async function occurrences(row: Schedule, from?: string) {
     if (!view) return;
     busy = true;
@@ -412,6 +561,8 @@
       onclick={() =>
         open("settings", undefined, { upcoming_length: view?.upcoming_length })}
       disabled={busy || !!draft || !view}>Upcoming settings</button
+    ><button onclick={() => discover()} disabled={busy || !!draft || !view}
+      >Find recurring payments</button
     >
   </div>
   {#if automaticPending}<section aria-label="Automatic schedule recovery">
@@ -446,7 +597,11 @@
                 ? "Skip next occurrence"
                 : draft.body.action === "delete"
                   ? "Delete schedule"
-                  : "Upcoming settings"}
+                  : draft.body.action === "link"
+                    ? "Link selected payments"
+                    : draft.body.action === "unlink"
+                      ? "Unlink selected payments"
+                      : "Upcoming settings"}
       </h2>
       {#if draft.pending}<p>
           This original request is saved. Retry checks the same request;
@@ -573,6 +728,15 @@
                 >{/each}</select
             ></label
           >
+          {#if draft.body.action === "create"}<button
+              onclick={() => matchPayments()}
+              disabled={busy}>Match existing payments</button
+            >{/if}
+          {#if draft.body.transaction_ids}<p>
+              {(draft.body.transaction_ids as string[]).length} existing payments
+              will link when this schedule is saved. Linking does not merge or delete
+              them.
+            </p>{/if}
           <h3>Additional rule actions</h3>
           {#each actions as action, index (index)}<div class="condition">
               <RuleAction
@@ -643,6 +807,11 @@
                 >{/each}</select
             ></label
           >
+        {:else if ["link", "unlink"].includes(String(draft.body.action))}<p>
+            {(draft.body.transaction_ids as string[]).length} selected payments ·
+            {draft.original?.name ?? "Schedule"}. Paired legs change their links
+            together. Amounts, dates, categories and notes are retained.
+          </p>
         {:else}<p>
             {draft.original?.name ?? "Scheduled transaction"} · {String(
               draft.body.occurrence_date ?? draft.original?.next_date ?? "",
@@ -662,6 +831,16 @@
               one-time occurrence cannot be skipped.
             </p>{/if}{/if}
       </fieldset>
+      {#if draft.transactions?.length}<details open>
+          <summary>Captured payment selection</summary>
+          <ul>
+            {#each draft.transactions as row (row.id)}<li>
+                {row.date} · {formatAmount(row.amount)} · {row.account_name} · {row.payee_name ??
+                  "No payee"} · {row.category_name ?? "No category"} · {row.notes ||
+                  "No notes"}{row.transfer_id ? " · Paired entry" : ""}
+              </li>{/each}
+          </ul>
+        </details>{/if}
       <div class="toolbar">
         <button class="primary" onclick={() => send()} disabled={busy || broken}
           >{draft.pending
@@ -674,6 +853,53 @@
           >{:else}<button onclick={discard} disabled={busy}
             >Discard draft</button
           >{/if}
+      </div>
+    </section>{/if}
+  {#if matchingContext}{#key matchingContext}<ScheduleMatches
+        {budgetId}
+        context={matchingContext}
+        {accounts}
+        {payees}
+        onstage={stagePayments}
+        onclose={() => (matchingContext = null)}
+      />{/key}{/if}
+  {#if discovery}<section aria-labelledby="schedule-discovery-title">
+      <h2 id="schedule-discovery-title">Suggested recurring payments</h2>
+      <p>
+        Patterns from confirmed history as of {discovery.as_of}. Review a
+        suggestion and its matching payments before creating a schedule. Nothing
+        is posted by this read.
+      </p>
+      <ul>
+        {#each discovery.suggestions as row (row.id)}<li>
+            <strong
+              >{payees.find((p) => p.id === row.payee_id)?.name ?? "No payee"} · {formatAmount(
+                row.amount,
+              )}</strong
+            >
+            <p>
+              {accounts.find((a) => a.id === row.account_id)?.name ?? "Account"} ·
+              {String(row.date.frequency)}{row.date.interval
+                ? ` every ${String(row.date.interval)}`
+                : ""} · Starts {String(row.date.start)}
+            </p>
+            <button onclick={() => suggestion(row)} disabled={busy || !!draft}
+              >Review suggestion</button
+            >
+          </li>{:else}<li>
+            No recurring pattern was found in the confirmed history.
+          </li>{/each}
+      </ul>
+      <div class="toolbar">
+        <button
+          disabled={busy || discoveryOffset === 0}
+          onclick={() => discover(Math.max(0, discoveryOffset - 20))}
+          >Previous suggestions</button
+        ><button
+          disabled={busy || discovery.next_offset === null}
+          onclick={() => discover(discovery!.next_offset!)}
+          >Next suggestions</button
+        >
       </div>
     </section>{/if}
   <label class="account-filter"
@@ -712,6 +938,12 @@
               disabled={!!draft || busy}>Edit {row.name ?? "schedule"}</button
             ><button onclick={() => occurrences(row)} disabled={busy}
               >Occurrences</button
+            ><button
+              onclick={() => matchPayments(row)}
+              disabled={busy || !!draft}>Match payments</button
+            ><button
+              onclick={() => matchPayments(row, true)}
+              disabled={busy || !!draft}>Linked payments</button
             >{#if !row.completed}<button
                 onclick={() =>
                   open("post", row, { occurrence_date: row.next_date })}

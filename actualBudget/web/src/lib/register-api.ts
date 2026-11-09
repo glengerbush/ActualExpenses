@@ -1,6 +1,7 @@
 import type { RegisterQuery } from "./register-query";
 import { request } from "./api";
 export interface Transaction {
+  schedule_id?: string | null;
   transfer_id?: string | null;
   transfer_account_id?: string | null;
   is_parent?: boolean;

@@ -4,13 +4,21 @@ import { startServer } from "./server.mjs";
 const server = await startServer(),
   native = server.url.replace("actualbudget.test", "127.0.0.1");
 let browser;
-async function write(method, path, body, clock, key = randomUUID()) {
+async function write(
+  method,
+  path,
+  body,
+  clock,
+  key = randomUUID(),
+  identity = {},
+) {
   return fetch(native + "/api/v1" + path, {
     method,
     headers: {
       "Content-Type": "application/json",
       "Idempotency-Key": key,
       ...(clock ? { "X-Actual-Edit-Clock": clock } : {}),
+      ...identity,
     },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
@@ -125,6 +133,11 @@ try {
       request.postDataJSON(),
       request.headers()["x-actual-edit-clock"],
       request.headers()["idempotency-key"],
+      Object.fromEntries(
+        Object.entries(request.headers()).filter(([name]) =>
+          ["x-actual-history-owner", "x-actual-budget-epoch"].includes(name),
+        ),
+      ),
     );
     expect(committed.status).toBe(200);
     const outcome = await committed.json();

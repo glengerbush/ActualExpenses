@@ -133,3 +133,16 @@ keyboard/blur/Enter and ISO compatibility remain unchanged and pass
 (`/tmp/date-clock-green.log`). Date-recovery's year-change immutable-retry
 workflow also passes (`/tmp/date-clock-recovery.log`). Product clock guards and
 calendar expectations are unchanged; no endpoint responses are intercepted.
+
+## Captured request forwarding harness correction
+
+Container receipt-feedback exposed an artificial idempotency conflict: manual
+committed delivery copied body/key/clock but omitted the captured history owner
+and epoch, so the browser's original retry correctly differed. The helper now
+forwards those exact captured headers when present; legacy headerless setup and
+remote writes retain their original shape. Audit found the same omission in the
+large-split lost-ack header allowlist; corrected it and included owner in retry
+equality checks. Other captured forwarders already spread original headers or
+forward the complete identity. No product code or financial assertion changed.
+Receipt feedback and1001-child large split browsers pass
+(`/tmp/identity-receipt-feedback-green.log`, `/tmp/identity-large-split.log`).

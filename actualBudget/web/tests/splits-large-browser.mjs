@@ -98,6 +98,7 @@ try {
       key: request.headers()["idempotency-key"],
       clock: request.headers()["x-actual-edit-clock"],
       epoch: request.headers()["x-actual-budget-epoch"],
+      owner: request.headers()["x-actual-history-owner"],
     });
     if (attempts.length === 1) {
       const response = await fetch(
@@ -111,6 +112,7 @@ try {
                 "idempotency-key",
                 "x-actual-edit-clock",
                 "x-actual-budget-epoch",
+                "x-actual-history-owner",
               ].includes(key),
             ),
           ),

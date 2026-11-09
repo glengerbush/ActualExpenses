@@ -94,6 +94,7 @@
         data: Transaction;
         snapshot: string;
         epoch: string;
+        reconciliation_token: string;
       }>(`/budgets/${budgetId}/transactions/${parent.id}/splits`);
       parent = current.data;
       const format = captureAmountFormat();
@@ -113,6 +114,8 @@
             : c.payee_id) ?? "",
         category_id: c.category_id ?? "",
         notes: parent.children?.length ? c.notes : "",
+        transfer_account_id: c.transfer_account_id ?? "",
+        counterpart_id: c.transfer_id ?? "",
       }));
       const next: SplitDraft = {
         budgetId,
@@ -120,6 +123,7 @@
         parent,
         snapshot: current.snapshot,
         epoch: current.epoch,
+        reconciliationToken: current.reconciliation_token,
         format,
         children,
         fields: {
@@ -224,7 +228,9 @@
                 (child.payee_id || null) !==
                   (previous.retained_payee_id ?? previous.payee_id) ||
                 (child.category_id || null) !== previous.category_id ||
-                child.notes !== previous.notes
+                child.notes !== previous.notes ||
+                (child.transfer_account_id || null) !==
+                  (previous.transfer_account_id ?? null)
               );
             });
           if (changed)
@@ -232,6 +238,14 @@
               "Save split edits before unsplitting. Your draft is retained.",
             );
         }
+        const protectedRows = [
+          draft.parent,
+          ...(draft.parent.children ?? []),
+        ].filter((row) => row.reconciled);
+        if (protectedRows.length && !draft.confirmedReconciled)
+          throw new Error(
+            "Confirm editing this reconciled split, or unlock it first.",
+          );
         for (const child of draft.parent.children ?? [])
           observeVersions(child.field_versions);
         const fields = {
@@ -247,6 +261,21 @@
           budgetEpoch: draft.epoch,
           body: {
             snapshot: draft.snapshot,
+            ...(protectedRows.length
+              ? {
+                  confirm_reconciled: true,
+                  ...(draft.reconciliationToken
+                    ? { reconciliation_token: draft.reconciliationToken }
+                    : {
+                        reconciled_versions: Object.fromEntries(
+                          protectedRows.map((row) => [
+                            row.id,
+                            row.field_versions?.reconciled,
+                          ]),
+                        ),
+                      }),
+                }
+              : {}),
             action,
             allocation,
             detach,
@@ -256,7 +285,11 @@
                 ? draft.children.map((c) => ({
                     ...c,
                     amount: parseAmount(c.amount || "0", draft!.format),
-                    payee_id: c.payee_id || null,
+                    payee_id: c.transfer_account_id ? null : c.payee_id || null,
+                    transfer_account_id: c.transfer_account_id || undefined,
+                    counterpart_id: c.transfer_account_id
+                      ? c.counterpart_id
+                      : undefined,
                     category_id: c.category_id || null,
                   }))
                 : [],
@@ -294,6 +327,26 @@
     } finally {
       busy = false;
     }
+  }
+  function setTransfer(
+    child: SplitDraft["children"][number],
+    destination: string,
+  ) {
+    const original = draft?.parent.children?.find((row) => row.id === child.id);
+    child.transfer_account_id = destination;
+    child.counterpart_id = destination
+      ? original?.transfer_account_id === destination
+        ? (original.transfer_id ?? uuid())
+        : uuid()
+      : "";
+    child.payee_id = "";
+    if (
+      destination &&
+      accounts.find((a) => a.id === destination)?.off_budget ===
+        accounts.find((a) => a.id === draft?.fields.account_id)?.off_budget
+    )
+      child.category_id = "";
+    persist();
   }
   async function close() {
     if (!draft || draft.pending || busy) return;
@@ -338,6 +391,20 @@
       oninput={() => void persist()}
       onchange={() => void persist()}
     >
+      {#if draft.parent.reconciled || draft.parent.children?.some((row) => row.reconciled)}
+        <label class="checkbox"
+          ><input
+            type="checkbox"
+            bind:checked={draft.confirmedReconciled}
+            disabled={busy || !!draft.pending || recovery}
+          />{t("Confirm editing this reconciled split")}</label
+        >
+        <p class="hint">
+          {t(
+            "This changes settled entries. The transaction and its splits stay locked.",
+          )}
+        </p>
+      {/if}
       <fieldset disabled={busy || !!draft.pending || recovery}>
         <legend>{t("Transaction")}</legend>
         <div class="split-fields">
@@ -397,7 +464,21 @@
               /></label
             >
             <label
+              >Transfer to<select
+                aria-label={`Split ${index + 1} transfer to`}
+                value={child.transfer_account_id ?? ""}
+                onchange={(event) =>
+                  setTransfer(child, event.currentTarget.value)}
+              >
+                <option value="">No transfer</option>
+                {#each accounts.filter((a) => a.id !== draft?.fields.account_id && ((!a.closed && !a.deleted) || a.id === child.transfer_account_id)) as account (account.id)}
+                  <option value={account.id}>{account.name}</option>
+                {/each}
+              </select></label
+            >
+            <label
               >{t("Payee")}<select
+                disabled={!!child.transfer_account_id}
                 aria-label={`Split ${index + 1} payee`}
                 bind:value={child.payee_id}
                 ><option value="">{t("No payee")}</option
@@ -411,6 +492,11 @@
             <label
               >{t("Category")}<select
                 aria-label={`Split ${index + 1} category`}
+                disabled={!!child.transfer_account_id &&
+                  accounts.find((a) => a.id === child.transfer_account_id)
+                    ?.off_budget ===
+                    accounts.find((a) => a.id === draft?.fields.account_id)
+                      ?.off_budget}
                 bind:value={child.category_id}
                 ><option value="">{t("Uncategorized")}</option
                 >{#each categories as c (c.id)}<option value={c.id}
@@ -426,6 +512,11 @@
               /></label
             >
           </div>
+          {#if child.transfer_account_id}<p class="hint">
+              Saving keeps an opposite entry in the selected account. Removing
+              this split also removes its paired entry. A paired split
+              allocation stays, unlinked.
+            </p>{/if}
           <button
             type="button"
             onclick={() => {

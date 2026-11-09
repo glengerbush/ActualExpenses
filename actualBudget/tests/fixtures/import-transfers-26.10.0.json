@@ -1,0 +1,1723 @@
+{
+  "oracle": "@actual-app/api@26.10.0 + @actual-app/sync-server@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "generated_at": "2026-11-09T04:06:54.513Z",
+  "public": {
+    "accounts": [
+      {
+        "id": "0f3aa0f3-2a93-468b-9bac-7b680c47e237",
+        "name": "Reserve",
+        "offbudget": true,
+        "closed": false,
+        "balance_current": null,
+        "account_group_id": null
+      },
+      {
+        "id": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+        "name": "Spending",
+        "offbudget": false,
+        "closed": false,
+        "balance_current": null,
+        "account_group_id": null
+      }
+    ],
+    "transactions": [
+      {
+        "id": "04000000-0000-4000-8000-000000000001",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+        "category": null,
+        "amount": 20000,
+        "payee": null,
+        "notes": "Income",
+        "date": "2026-01-01",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794197214280,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "subtransactions": []
+      },
+      {
+        "id": "04000000-0000-4000-8000-000000000002",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+        "category": "27facf96-bea0-495e-837b-b8f59a8c3c1f",
+        "amount": -1200,
+        "payee": "38d92a19-bbe3-4bc7-8071-829e5434bfba",
+        "notes": "Corrected expense",
+        "date": "2026-01-02",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794197213256,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "subtransactions": []
+      },
+      {
+        "id": "04000000-0000-4000-8000-000000000003",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+        "category": "27facf96-bea0-495e-837b-b8f59a8c3c1f",
+        "amount": 234,
+        "payee": "38d92a19-bbe3-4bc7-8071-829e5434bfba",
+        "notes": "Refund",
+        "date": "2026-01-03",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794197212232,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "subtransactions": []
+      },
+      {
+        "id": "04000000-0000-4000-8000-000000000005",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+        "category": null,
+        "amount": -100,
+        "payee": null,
+        "notes": "Future expense",
+        "date": "2027-01-01",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794197210184,
+        "cleared": false,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "subtransactions": []
+      },
+      {
+        "id": "04000000-0000-4000-8000-000000000060",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+        "category": "27facf96-bea0-495e-837b-b8f59a8c3c1f",
+        "amount": -900,
+        "payee": "0855e3fe-7de0-415a-9c7c-9e2ead1aaee0",
+        "notes": "Transfer corrected",
+        "date": "2026-02-01",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": "ec9f621d-bfb6-44b2-b0a0-9c2fe4f868f9",
+        "sort_order": 1794197214450,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "subtransactions": []
+      },
+      {
+        "id": "12c9e149-ac1c-42a7-80cb-7dfd3bd09bcc",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "0f3aa0f3-2a93-468b-9bac-7b680c47e237",
+        "category": null,
+        "amount": -5000,
+        "payee": "1ccd41da-2e16-40ad-9a14-3ab1b49da9bf",
+        "notes": null,
+        "date": "2026-11-08",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": true,
+        "transfer_id": null,
+        "sort_order": 1794197214048,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "subtransactions": []
+      },
+      {
+        "id": "b2dc2b70-db9a-4143-ab9b-4031a5e230c5",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+        "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+        "amount": 12500,
+        "payee": "1ccd41da-2e16-40ad-9a14-3ab1b49da9bf",
+        "notes": null,
+        "date": "2026-11-08",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": true,
+        "transfer_id": null,
+        "sort_order": 1794197214043,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "subtransactions": []
+      },
+      {
+        "id": "ec9f621d-bfb6-44b2-b0a0-9c2fe4f868f9",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "0f3aa0f3-2a93-468b-9bac-7b680c47e237",
+        "category": null,
+        "amount": 900,
+        "payee": "8ee309a3-c570-4c3b-ad60-07c349cf69cb",
+        "notes": "Transfer corrected",
+        "date": "2026-02-01",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": "04000000-0000-4000-8000-000000000060",
+        "sort_order": 1794197214459,
+        "cleared": false,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "subtransactions": []
+      }
+    ],
+    "balances": [
+      {
+        "account_id": "0f3aa0f3-2a93-468b-9bac-7b680c47e237",
+        "total": -4100,
+        "cleared": -5000,
+        "uncleared": 900
+      },
+      {
+        "account_id": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+        "total": 30534,
+        "cleared": 30634,
+        "uncleared": -100
+      }
+    ],
+    "payees": [
+      {
+        "id": "0855e3fe-7de0-415a-9c7c-9e2ead1aaee0",
+        "name": "Reserve",
+        "transfer_acct": "0f3aa0f3-2a93-468b-9bac-7b680c47e237"
+      },
+      {
+        "id": "1ccd41da-2e16-40ad-9a14-3ab1b49da9bf",
+        "name": "Starting Balance",
+        "transfer_acct": null
+      },
+      {
+        "id": "38d92a19-bbe3-4bc7-8071-829e5434bfba",
+        "name": "Fixture shop",
+        "transfer_acct": null
+      },
+      {
+        "id": "8ee309a3-c570-4c3b-ad60-07c349cf69cb",
+        "name": "Spending",
+        "transfer_acct": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6"
+      }
+    ],
+    "categories": [
+      {
+        "id": "27facf96-bea0-495e-837b-b8f59a8c3c1f",
+        "name": "Food",
+        "is_income": false,
+        "hidden": false,
+        "group_id": "752459b4-1b51-407a-bb19-82ef30f9a69e"
+      },
+      {
+        "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+        "name": "Income",
+        "is_income": true,
+        "hidden": false,
+        "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+      },
+      {
+        "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+        "name": "Starting Balances",
+        "is_income": true,
+        "hidden": false,
+        "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+      }
+    ],
+    "category_groups": [
+      {
+        "id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+        "name": "Income",
+        "is_income": true,
+        "hidden": false,
+        "categories": [
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      {
+        "id": "752459b4-1b51-407a-bb19-82ef30f9a69e",
+        "name": "Everyday",
+        "is_income": false,
+        "hidden": false,
+        "categories": [
+          {
+            "id": "27facf96-bea0-495e-837b-b8f59a8c3c1f",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "752459b4-1b51-407a-bb19-82ef30f9a69e"
+          }
+        ]
+      }
+    ],
+    "preferences": {
+      "budgetType": "tracking",
+      "numberFormat": "comma-dot",
+      "dateFormat": "yyyy-MM-dd",
+      "hideFraction": "false",
+      "defaultCurrencyCode": "USD",
+      "sync-transfer-date": "true"
+    },
+    "rules": []
+  },
+  "inspection": {
+    "archive_bytes": 18818,
+    "archive_sha256": "c67872abb84692535392b2d29a9024293b8f238c0fa424c49b57369a9dd357c3",
+    "database_sha256": "a934dbd8b9ed4c16d93a2f9155729b6ba85dcc8c57be2695cf4f2a8ce6f0beae",
+    "latest_field_clocks": [
+      {
+        "column": "value",
+        "dataset": "preferences",
+        "row": "budgetType",
+        "timestamp": "2026-11-09T04:06:54.207Z-0000-b83fb58d4c911e5c",
+        "value": "S:tracking"
+      },
+      {
+        "column": "value",
+        "dataset": "preferences",
+        "row": "dateFormat",
+        "timestamp": "2026-11-09T04:06:54.242Z-0000-b83fb58d4c911e5c",
+        "value": "S:yyyy-MM-dd"
+      },
+      {
+        "column": "value",
+        "dataset": "preferences",
+        "row": "defaultCurrencyCode",
+        "timestamp": "2026-11-09T04:06:54.246Z-0000-b83fb58d4c911e5c",
+        "value": "S:USD"
+      },
+      {
+        "column": "value",
+        "dataset": "preferences",
+        "row": "hideFraction",
+        "timestamp": "2026-11-09T04:06:54.244Z-0000-b83fb58d4c911e5c",
+        "value": "S:false"
+      },
+      {
+        "column": "value",
+        "dataset": "preferences",
+        "row": "numberFormat",
+        "timestamp": "2026-11-09T04:06:54.239Z-0000-b83fb58d4c911e5c",
+        "value": "S:comma-dot"
+      },
+      {
+        "column": "value",
+        "dataset": "preferences",
+        "row": "sync-transfer-date",
+        "timestamp": "2026-11-09T04:06:54.492Z-0000-b83fb58d4c911e5c",
+        "value": "S:true"
+      },
+      {
+        "column": "acct",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000001",
+        "timestamp": "2026-11-09T04:06:54.281Z-0004-b83fb58d4c911e5c",
+        "value": "S:dadbd1fc-921f-4d04-9882-3c9b4d4c95e6"
+      },
+      {
+        "column": "amount",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000001",
+        "timestamp": "2026-11-09T04:06:54.281Z-0001-b83fb58d4c911e5c",
+        "value": "N:20000"
+      },
+      {
+        "column": "cleared",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000001",
+        "timestamp": "2026-11-09T04:06:54.281Z-0002-b83fb58d4c911e5c",
+        "value": "N:1"
+      },
+      {
+        "column": "date",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000001",
+        "timestamp": "2026-11-09T04:06:54.281Z-0000-b83fb58d4c911e5c",
+        "value": "N:20260101"
+      },
+      {
+        "column": "notes",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000001",
+        "timestamp": "2026-11-09T04:06:54.281Z-0003-b83fb58d4c911e5c",
+        "value": "S:Income"
+      },
+      {
+        "column": "reconciled",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000001",
+        "timestamp": "2026-11-09T04:06:54.281Z-0006-b83fb58d4c911e5c",
+        "value": "N:0"
+      },
+      {
+        "column": "sort_order",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000001",
+        "timestamp": "2026-11-09T04:06:54.281Z-0005-b83fb58d4c911e5c",
+        "value": "N:1794197214280"
+      },
+      {
+        "column": "acct",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000002",
+        "timestamp": "2026-11-09T04:06:54.281Z-000D-b83fb58d4c911e5c",
+        "value": "S:dadbd1fc-921f-4d04-9882-3c9b4d4c95e6"
+      },
+      {
+        "column": "amount",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000002",
+        "timestamp": "2026-11-09T04:06:54.361Z-0000-b83fb58d4c911e5c",
+        "value": "N:-1200"
+      },
+      {
+        "column": "category",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000002",
+        "timestamp": "2026-11-09T04:06:54.281Z-000A-b83fb58d4c911e5c",
+        "value": "S:27facf96-bea0-495e-837b-b8f59a8c3c1f"
+      },
+      {
+        "column": "cleared",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000002",
+        "timestamp": "2026-11-09T04:06:54.361Z-0002-b83fb58d4c911e5c",
+        "value": "N:1"
+      },
+      {
+        "column": "date",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000002",
+        "timestamp": "2026-11-09T04:06:54.281Z-0007-b83fb58d4c911e5c",
+        "value": "N:20260102"
+      },
+      {
+        "column": "description",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000002",
+        "timestamp": "2026-11-09T04:06:54.281Z-0009-b83fb58d4c911e5c",
+        "value": "S:38d92a19-bbe3-4bc7-8071-829e5434bfba"
+      },
+      {
+        "column": "notes",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000002",
+        "timestamp": "2026-11-09T04:06:54.361Z-0001-b83fb58d4c911e5c",
+        "value": "S:Corrected expense"
+      },
+      {
+        "column": "reconciled",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000002",
+        "timestamp": "2026-11-09T04:06:54.281Z-000F-b83fb58d4c911e5c",
+        "value": "N:0"
+      },
+      {
+        "column": "sort_order",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000002",
+        "timestamp": "2026-11-09T04:06:54.281Z-000E-b83fb58d4c911e5c",
+        "value": "N:1794197213256"
+      },
+      {
+        "column": "acct",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000003",
+        "timestamp": "2026-11-09T04:06:54.281Z-0016-b83fb58d4c911e5c",
+        "value": "S:dadbd1fc-921f-4d04-9882-3c9b4d4c95e6"
+      },
+      {
+        "column": "amount",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000003",
+        "timestamp": "2026-11-09T04:06:54.281Z-0011-b83fb58d4c911e5c",
+        "value": "N:234"
+      },
+      {
+        "column": "category",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000003",
+        "timestamp": "2026-11-09T04:06:54.281Z-0013-b83fb58d4c911e5c",
+        "value": "S:27facf96-bea0-495e-837b-b8f59a8c3c1f"
+      },
+      {
+        "column": "cleared",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000003",
+        "timestamp": "2026-11-09T04:06:54.281Z-0014-b83fb58d4c911e5c",
+        "value": "N:1"
+      },
+      {
+        "column": "date",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000003",
+        "timestamp": "2026-11-09T04:06:54.281Z-0010-b83fb58d4c911e5c",
+        "value": "N:20260103"
+      },
+      {
+        "column": "description",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000003",
+        "timestamp": "2026-11-09T04:06:54.281Z-0012-b83fb58d4c911e5c",
+        "value": "S:38d92a19-bbe3-4bc7-8071-829e5434bfba"
+      },
+      {
+        "column": "notes",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000003",
+        "timestamp": "2026-11-09T04:06:54.281Z-0015-b83fb58d4c911e5c",
+        "value": "S:Refund"
+      },
+      {
+        "column": "reconciled",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000003",
+        "timestamp": "2026-11-09T04:06:54.281Z-0018-b83fb58d4c911e5c",
+        "value": "N:0"
+      },
+      {
+        "column": "sort_order",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000003",
+        "timestamp": "2026-11-09T04:06:54.281Z-0017-b83fb58d4c911e5c",
+        "value": "N:1794197212232"
+      },
+      {
+        "column": "acct",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000004",
+        "timestamp": "2026-11-09T04:06:54.281Z-001D-b83fb58d4c911e5c",
+        "value": "S:dadbd1fc-921f-4d04-9882-3c9b4d4c95e6"
+      },
+      {
+        "column": "amount",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000004",
+        "timestamp": "2026-11-09T04:06:54.281Z-001A-b83fb58d4c911e5c",
+        "value": "N:-99"
+      },
+      {
+        "column": "cleared",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000004",
+        "timestamp": "2026-11-09T04:06:54.281Z-001B-b83fb58d4c911e5c",
+        "value": "N:0"
+      },
+      {
+        "column": "date",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000004",
+        "timestamp": "2026-11-09T04:06:54.281Z-0019-b83fb58d4c911e5c",
+        "value": "N:20260104"
+      },
+      {
+        "column": "notes",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000004",
+        "timestamp": "2026-11-09T04:06:54.281Z-001C-b83fb58d4c911e5c",
+        "value": "S:Published deletion"
+      },
+      {
+        "column": "reconciled",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000004",
+        "timestamp": "2026-11-09T04:06:54.281Z-001F-b83fb58d4c911e5c",
+        "value": "N:0"
+      },
+      {
+        "column": "sort_order",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000004",
+        "timestamp": "2026-11-09T04:06:54.281Z-001E-b83fb58d4c911e5c",
+        "value": "N:1794197211208"
+      },
+      {
+        "column": "tombstone",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000004",
+        "timestamp": "2026-11-09T04:06:54.376Z-0000-b83fb58d4c911e5c",
+        "value": "N:1"
+      },
+      {
+        "column": "acct",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000005",
+        "timestamp": "2026-11-09T04:06:54.281Z-0024-b83fb58d4c911e5c",
+        "value": "S:dadbd1fc-921f-4d04-9882-3c9b4d4c95e6"
+      },
+      {
+        "column": "amount",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000005",
+        "timestamp": "2026-11-09T04:06:54.281Z-0021-b83fb58d4c911e5c",
+        "value": "N:-100"
+      },
+      {
+        "column": "cleared",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000005",
+        "timestamp": "2026-11-09T04:06:54.281Z-0022-b83fb58d4c911e5c",
+        "value": "N:0"
+      },
+      {
+        "column": "date",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000005",
+        "timestamp": "2026-11-09T04:06:54.281Z-0020-b83fb58d4c911e5c",
+        "value": "N:20270101"
+      },
+      {
+        "column": "notes",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000005",
+        "timestamp": "2026-11-09T04:06:54.281Z-0023-b83fb58d4c911e5c",
+        "value": "S:Future expense"
+      },
+      {
+        "column": "reconciled",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000005",
+        "timestamp": "2026-11-09T04:06:54.281Z-0026-b83fb58d4c911e5c",
+        "value": "N:0"
+      },
+      {
+        "column": "sort_order",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000005",
+        "timestamp": "2026-11-09T04:06:54.281Z-0025-b83fb58d4c911e5c",
+        "value": "N:1794197210184"
+      },
+      {
+        "column": "acct",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000060",
+        "timestamp": "2026-11-09T04:06:54.451Z-0001-b83fb58d4c911e5c",
+        "value": "S:dadbd1fc-921f-4d04-9882-3c9b4d4c95e6"
+      },
+      {
+        "column": "amount",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000060",
+        "timestamp": "2026-11-09T04:06:54.471Z-0000-b83fb58d4c911e5c",
+        "value": "N:-900"
+      },
+      {
+        "column": "category",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000060",
+        "timestamp": "2026-11-09T04:06:54.450Z-0003-b83fb58d4c911e5c",
+        "value": "S:27facf96-bea0-495e-837b-b8f59a8c3c1f"
+      },
+      {
+        "column": "cleared",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000060",
+        "timestamp": "2026-11-09T04:06:54.451Z-0002-b83fb58d4c911e5c",
+        "value": "N:1"
+      },
+      {
+        "column": "date",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000060",
+        "timestamp": "2026-11-09T04:06:54.450Z-0000-b83fb58d4c911e5c",
+        "value": "N:20260201"
+      },
+      {
+        "column": "description",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000060",
+        "timestamp": "2026-11-09T04:06:54.450Z-0002-b83fb58d4c911e5c",
+        "value": "S:0855e3fe-7de0-415a-9c7c-9e2ead1aaee0"
+      },
+      {
+        "column": "notes",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000060",
+        "timestamp": "2026-11-09T04:06:54.471Z-0001-b83fb58d4c911e5c",
+        "value": "S:Transfer corrected"
+      },
+      {
+        "column": "reconciled",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000060",
+        "timestamp": "2026-11-09T04:06:54.451Z-0004-b83fb58d4c911e5c",
+        "value": "N:0"
+      },
+      {
+        "column": "sort_order",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000060",
+        "timestamp": "2026-11-09T04:06:54.451Z-0003-b83fb58d4c911e5c",
+        "value": "N:1794197214450"
+      },
+      {
+        "column": "transferred_id",
+        "dataset": "transactions",
+        "row": "04000000-0000-4000-8000-000000000060",
+        "timestamp": "2026-11-09T04:06:54.459Z-0009-b83fb58d4c911e5c",
+        "value": "S:ec9f621d-bfb6-44b2-b0a0-9c2fe4f868f9"
+      },
+      {
+        "column": "acct",
+        "dataset": "transactions",
+        "row": "ec9f621d-bfb6-44b2-b0a0-9c2fe4f868f9",
+        "timestamp": "2026-11-09T04:06:54.482Z-0000-b83fb58d4c911e5c",
+        "value": "S:0f3aa0f3-2a93-468b-9bac-7b680c47e237"
+      },
+      {
+        "column": "amount",
+        "dataset": "transactions",
+        "row": "ec9f621d-bfb6-44b2-b0a0-9c2fe4f868f9",
+        "timestamp": "2026-11-09T04:06:54.482Z-0003-b83fb58d4c911e5c",
+        "value": "N:900"
+      },
+      {
+        "column": "cleared",
+        "dataset": "transactions",
+        "row": "ec9f621d-bfb6-44b2-b0a0-9c2fe4f868f9",
+        "timestamp": "2026-11-09T04:06:54.459Z-0006-b83fb58d4c911e5c",
+        "value": "N:0"
+      },
+      {
+        "column": "date",
+        "dataset": "transactions",
+        "row": "ec9f621d-bfb6-44b2-b0a0-9c2fe4f868f9",
+        "timestamp": "2026-11-09T04:06:54.459Z-0003-b83fb58d4c911e5c",
+        "value": "N:20260201"
+      },
+      {
+        "column": "description",
+        "dataset": "transactions",
+        "row": "ec9f621d-bfb6-44b2-b0a0-9c2fe4f868f9",
+        "timestamp": "2026-11-09T04:06:54.482Z-0001-b83fb58d4c911e5c",
+        "value": "S:8ee309a3-c570-4c3b-ad60-07c349cf69cb"
+      },
+      {
+        "column": "notes",
+        "dataset": "transactions",
+        "row": "ec9f621d-bfb6-44b2-b0a0-9c2fe4f868f9",
+        "timestamp": "2026-11-09T04:06:54.482Z-0002-b83fb58d4c911e5c",
+        "value": "S:Transfer corrected"
+      },
+      {
+        "column": "reconciled",
+        "dataset": "transactions",
+        "row": "ec9f621d-bfb6-44b2-b0a0-9c2fe4f868f9",
+        "timestamp": "2026-11-09T04:06:54.459Z-0008-b83fb58d4c911e5c",
+        "value": "N:0"
+      },
+      {
+        "column": "schedule",
+        "dataset": "transactions",
+        "row": "ec9f621d-bfb6-44b2-b0a0-9c2fe4f868f9",
+        "timestamp": "2026-11-09T04:06:54.482Z-0004-b83fb58d4c911e5c",
+        "value": "0:"
+      },
+      {
+        "column": "sort_order",
+        "dataset": "transactions",
+        "row": "ec9f621d-bfb6-44b2-b0a0-9c2fe4f868f9",
+        "timestamp": "2026-11-09T04:06:54.459Z-0007-b83fb58d4c911e5c",
+        "value": "N:1794197214459"
+      },
+      {
+        "column": "transferred_id",
+        "dataset": "transactions",
+        "row": "ec9f621d-bfb6-44b2-b0a0-9c2fe4f868f9",
+        "timestamp": "2026-11-09T04:06:54.459Z-0004-b83fb58d4c911e5c",
+        "value": "S:04000000-0000-4000-8000-000000000060"
+      }
+    ],
+    "metadata": {
+      "budgetName": "Disposable actualBudget migration fixture",
+      "cloudFileId": "d9efe2c2-2a38-4b10-ad74-f388ca10085b",
+      "groupId": "14821e5d-533b-49fb-aefe-e4a65a50aea9",
+      "id": "Disposable-actualBudget-migration-fixture-4227541",
+      "lastScheduleRun": "2026-11-08",
+      "lastSyncedTimestamp": "2026-11-09T04:06:54.492Z-0000-b83fb58d4c911e5c",
+      "lastUploaded": "2026-11-08",
+      "resetClock": true,
+      "userId": "13f2c6fd-ab21-49cf-8688-3c69a8daf025"
+    },
+    "records": {
+      "account_groups": [],
+      "accounts": [
+        {
+          "account_group_id": null,
+          "account_id": null,
+          "account_sync_source": null,
+          "balance_available": null,
+          "balance_current": null,
+          "balance_limit": null,
+          "bank": null,
+          "bank_sync_status": null,
+          "closed": 0,
+          "id": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+          "last_reconciled": null,
+          "last_sync": null,
+          "mask": null,
+          "name": "Spending",
+          "offbudget": 0,
+          "official_name": null,
+          "sort_order": 16384,
+          "subtype": null,
+          "tombstone": 0,
+          "type": null
+        },
+        {
+          "account_group_id": null,
+          "account_id": null,
+          "account_sync_source": null,
+          "balance_available": null,
+          "balance_current": null,
+          "balance_limit": null,
+          "bank": null,
+          "bank_sync_status": null,
+          "closed": 0,
+          "id": "0f3aa0f3-2a93-468b-9bac-7b680c47e237",
+          "last_reconciled": null,
+          "last_sync": null,
+          "mask": null,
+          "name": "Reserve",
+          "offbudget": 1,
+          "official_name": null,
+          "sort_order": 16384,
+          "subtype": null,
+          "tombstone": 0,
+          "type": null
+        }
+      ],
+      "categories": [
+        {
+          "cat_group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+          "cleanup_def": null,
+          "goal_def": null,
+          "hidden": 0,
+          "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+          "is_income": 1,
+          "name": "Income",
+          "sort_order": 32768,
+          "template_settings": "{\"source\": \"notes\"}",
+          "tombstone": 0
+        },
+        {
+          "cat_group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+          "cleanup_def": null,
+          "goal_def": null,
+          "hidden": 0,
+          "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+          "is_income": 1,
+          "name": "Starting Balances",
+          "sort_order": 32768,
+          "template_settings": "{\"source\": \"notes\"}",
+          "tombstone": 0
+        },
+        {
+          "cat_group": "752459b4-1b51-407a-bb19-82ef30f9a69e",
+          "cleanup_def": null,
+          "goal_def": null,
+          "hidden": 0,
+          "id": "27facf96-bea0-495e-837b-b8f59a8c3c1f",
+          "is_income": 0,
+          "name": "Food",
+          "sort_order": 16384,
+          "template_settings": "{\"source\": \"notes\"}",
+          "tombstone": 0
+        }
+      ],
+      "category_groups": [
+        {
+          "hidden": 0,
+          "id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+          "is_income": 1,
+          "name": "Income",
+          "sort_order": 32768,
+          "tombstone": 0
+        },
+        {
+          "hidden": 0,
+          "id": "752459b4-1b51-407a-bb19-82ef30f9a69e",
+          "is_income": 0,
+          "name": "Everyday",
+          "sort_order": 49152,
+          "tombstone": 0
+        }
+      ],
+      "category_mapping": [
+        {
+          "id": "541836f1-e756-4473-a5d0-6c1d3f06c7fa",
+          "transferId": "541836f1-e756-4473-a5d0-6c1d3f06c7fa"
+        },
+        {
+          "id": "af375fd4-d759-46b3-bffe-74a856151d57",
+          "transferId": "af375fd4-d759-46b3-bffe-74a856151d57"
+        },
+        {
+          "id": "d4b0f075-3343-4408-91ed-fae94f74e5bf",
+          "transferId": "d4b0f075-3343-4408-91ed-fae94f74e5bf"
+        },
+        {
+          "id": "29ec2c58-8cd3-42fe-9187-7b5dfe0f70a6",
+          "transferId": "29ec2c58-8cd3-42fe-9187-7b5dfe0f70a6"
+        },
+        {
+          "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+          "transferId": "3c1699a5-522a-435e-86dc-93d900a14f0e"
+        },
+        {
+          "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+          "transferId": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2"
+        },
+        {
+          "id": "6bbd8472-25d4-4cee-8a11-5bd9f7e83d61",
+          "transferId": "6bbd8472-25d4-4cee-8a11-5bd9f7e83d61"
+        },
+        {
+          "id": "27facf96-bea0-495e-837b-b8f59a8c3c1f",
+          "transferId": "27facf96-bea0-495e-837b-b8f59a8c3c1f"
+        }
+      ],
+      "messages_clock": [
+        {
+          "clock": "{\"timestamp\":\"2026-11-09T04:06:54.492Z-0000-b83fb58d4c911e5c\",\"merkle\":{\"2\":{\"0\":{\"0\":{\"2\":{\"0\":{\"2\":{\"1\":{\"0\":{\"2\":{\"0\":{\"1\":{\"2\":{\"1\":{\"0\":{\"1\":{\"0\":{\"hash\":-1039637415},\"hash\":-1039637415},\"hash\":-1039637415},\"hash\":-1039637415},\"hash\":-1039637415},\"hash\":-1039637415},\"hash\":-1039637415},\"hash\":-1039637415},\"hash\":-1039637415},\"hash\":-1039637415},\"hash\":-1039637415},\"hash\":-1039637415},\"hash\":-1039637415},\"hash\":-1039637415},\"hash\":-1039637415},\"hash\":-1039637415},\"hash\":-1039637415}}",
+          "id": 1
+        }
+      ],
+      "messages_pending": [],
+      "payee_mapping": [
+        {
+          "id": "8ee309a3-c570-4c3b-ad60-07c349cf69cb",
+          "targetId": "8ee309a3-c570-4c3b-ad60-07c349cf69cb"
+        },
+        {
+          "id": "1ccd41da-2e16-40ad-9a14-3ab1b49da9bf",
+          "targetId": "1ccd41da-2e16-40ad-9a14-3ab1b49da9bf"
+        },
+        {
+          "id": "0855e3fe-7de0-415a-9c7c-9e2ead1aaee0",
+          "targetId": "0855e3fe-7de0-415a-9c7c-9e2ead1aaee0"
+        },
+        {
+          "id": "38d92a19-bbe3-4bc7-8071-829e5434bfba",
+          "targetId": "38d92a19-bbe3-4bc7-8071-829e5434bfba"
+        }
+      ],
+      "payees": [
+        {
+          "category": null,
+          "favorite": 0,
+          "id": "8ee309a3-c570-4c3b-ad60-07c349cf69cb",
+          "learn_categories": 1,
+          "name": "",
+          "tombstone": 0,
+          "transfer_acct": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6"
+        },
+        {
+          "category": null,
+          "favorite": 0,
+          "id": "1ccd41da-2e16-40ad-9a14-3ab1b49da9bf",
+          "learn_categories": 1,
+          "name": "Starting Balance",
+          "tombstone": 0,
+          "transfer_acct": null
+        },
+        {
+          "category": null,
+          "favorite": 0,
+          "id": "0855e3fe-7de0-415a-9c7c-9e2ead1aaee0",
+          "learn_categories": 1,
+          "name": "",
+          "tombstone": 0,
+          "transfer_acct": "0f3aa0f3-2a93-468b-9bac-7b680c47e237"
+        },
+        {
+          "category": null,
+          "favorite": 0,
+          "id": "38d92a19-bbe3-4bc7-8071-829e5434bfba",
+          "learn_categories": 1,
+          "name": "Fixture shop",
+          "tombstone": 0,
+          "transfer_acct": null
+        }
+      ],
+      "preferences": [
+        {
+          "id": "budgetType",
+          "value": "tracking"
+        },
+        {
+          "id": "numberFormat",
+          "value": "comma-dot"
+        },
+        {
+          "id": "dateFormat",
+          "value": "yyyy-MM-dd"
+        },
+        {
+          "id": "hideFraction",
+          "value": "false"
+        },
+        {
+          "id": "defaultCurrencyCode",
+          "value": "USD"
+        },
+        {
+          "id": "sync-transfer-date",
+          "value": "true"
+        }
+      ],
+      "transactions": [
+        {
+          "acct": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+          "amount": 12500,
+          "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+          "cleared": 1,
+          "date": 20261108,
+          "description": "1ccd41da-2e16-40ad-9a14-3ab1b49da9bf",
+          "error": null,
+          "financial_id": null,
+          "id": "b2dc2b70-db9a-4143-ab9b-4031a5e230c5",
+          "imported_description": null,
+          "isChild": 0,
+          "isParent": 0,
+          "location": null,
+          "notes": null,
+          "parent_id": null,
+          "pending": 0,
+          "raw_synced_data": null,
+          "reconciled": 0,
+          "schedule": null,
+          "sort_order": 1794197214043,
+          "starting_balance_flag": 1,
+          "tombstone": 0,
+          "transferred_id": null,
+          "type": null
+        },
+        {
+          "acct": "0f3aa0f3-2a93-468b-9bac-7b680c47e237",
+          "amount": -5000,
+          "category": null,
+          "cleared": 1,
+          "date": 20261108,
+          "description": "1ccd41da-2e16-40ad-9a14-3ab1b49da9bf",
+          "error": null,
+          "financial_id": null,
+          "id": "12c9e149-ac1c-42a7-80cb-7dfd3bd09bcc",
+          "imported_description": null,
+          "isChild": 0,
+          "isParent": 0,
+          "location": null,
+          "notes": null,
+          "parent_id": null,
+          "pending": 0,
+          "raw_synced_data": null,
+          "reconciled": 0,
+          "schedule": null,
+          "sort_order": 1794197214048,
+          "starting_balance_flag": 1,
+          "tombstone": 0,
+          "transferred_id": null,
+          "type": null
+        },
+        {
+          "acct": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+          "amount": 20000,
+          "category": null,
+          "cleared": 1,
+          "date": 20260101,
+          "description": null,
+          "error": null,
+          "financial_id": null,
+          "id": "04000000-0000-4000-8000-000000000001",
+          "imported_description": null,
+          "isChild": 0,
+          "isParent": 0,
+          "location": null,
+          "notes": "Income",
+          "parent_id": null,
+          "pending": 0,
+          "raw_synced_data": null,
+          "reconciled": 0,
+          "schedule": null,
+          "sort_order": 1794197214280,
+          "starting_balance_flag": 0,
+          "tombstone": 0,
+          "transferred_id": null,
+          "type": null
+        },
+        {
+          "acct": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+          "amount": -1200,
+          "category": "27facf96-bea0-495e-837b-b8f59a8c3c1f",
+          "cleared": 1,
+          "date": 20260102,
+          "description": "38d92a19-bbe3-4bc7-8071-829e5434bfba",
+          "error": null,
+          "financial_id": null,
+          "id": "04000000-0000-4000-8000-000000000002",
+          "imported_description": null,
+          "isChild": 0,
+          "isParent": 0,
+          "location": null,
+          "notes": "Corrected expense",
+          "parent_id": null,
+          "pending": 0,
+          "raw_synced_data": null,
+          "reconciled": 0,
+          "schedule": null,
+          "sort_order": 1794197213256,
+          "starting_balance_flag": 0,
+          "tombstone": 0,
+          "transferred_id": null,
+          "type": null
+        },
+        {
+          "acct": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+          "amount": 234,
+          "category": "27facf96-bea0-495e-837b-b8f59a8c3c1f",
+          "cleared": 1,
+          "date": 20260103,
+          "description": "38d92a19-bbe3-4bc7-8071-829e5434bfba",
+          "error": null,
+          "financial_id": null,
+          "id": "04000000-0000-4000-8000-000000000003",
+          "imported_description": null,
+          "isChild": 0,
+          "isParent": 0,
+          "location": null,
+          "notes": "Refund",
+          "parent_id": null,
+          "pending": 0,
+          "raw_synced_data": null,
+          "reconciled": 0,
+          "schedule": null,
+          "sort_order": 1794197212232,
+          "starting_balance_flag": 0,
+          "tombstone": 0,
+          "transferred_id": null,
+          "type": null
+        },
+        {
+          "acct": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+          "amount": -99,
+          "category": null,
+          "cleared": 0,
+          "date": 20260104,
+          "description": null,
+          "error": null,
+          "financial_id": null,
+          "id": "04000000-0000-4000-8000-000000000004",
+          "imported_description": null,
+          "isChild": 0,
+          "isParent": 0,
+          "location": null,
+          "notes": "Published deletion",
+          "parent_id": null,
+          "pending": 0,
+          "raw_synced_data": null,
+          "reconciled": 0,
+          "schedule": null,
+          "sort_order": 1794197211208,
+          "starting_balance_flag": 0,
+          "tombstone": 1,
+          "transferred_id": null,
+          "type": null
+        },
+        {
+          "acct": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+          "amount": -100,
+          "category": null,
+          "cleared": 0,
+          "date": 20270101,
+          "description": null,
+          "error": null,
+          "financial_id": null,
+          "id": "04000000-0000-4000-8000-000000000005",
+          "imported_description": null,
+          "isChild": 0,
+          "isParent": 0,
+          "location": null,
+          "notes": "Future expense",
+          "parent_id": null,
+          "pending": 0,
+          "raw_synced_data": null,
+          "reconciled": 0,
+          "schedule": null,
+          "sort_order": 1794197210184,
+          "starting_balance_flag": 0,
+          "tombstone": 0,
+          "transferred_id": null,
+          "type": null
+        },
+        {
+          "acct": "dadbd1fc-921f-4d04-9882-3c9b4d4c95e6",
+          "amount": -900,
+          "category": "27facf96-bea0-495e-837b-b8f59a8c3c1f",
+          "cleared": 1,
+          "date": 20260201,
+          "description": "0855e3fe-7de0-415a-9c7c-9e2ead1aaee0",
+          "error": null,
+          "financial_id": null,
+          "id": "04000000-0000-4000-8000-000000000060",
+          "imported_description": null,
+          "isChild": 0,
+          "isParent": 0,
+          "location": null,
+          "notes": "Transfer corrected",
+          "parent_id": null,
+          "pending": 0,
+          "raw_synced_data": null,
+          "reconciled": 0,
+          "schedule": null,
+          "sort_order": 1794197214450,
+          "starting_balance_flag": 0,
+          "tombstone": 0,
+          "transferred_id": "ec9f621d-bfb6-44b2-b0a0-9c2fe4f868f9",
+          "type": null
+        },
+        {
+          "acct": "0f3aa0f3-2a93-468b-9bac-7b680c47e237",
+          "amount": 900,
+          "category": null,
+          "cleared": 0,
+          "date": 20260201,
+          "description": "8ee309a3-c570-4c3b-ad60-07c349cf69cb",
+          "error": null,
+          "financial_id": null,
+          "id": "ec9f621d-bfb6-44b2-b0a0-9c2fe4f868f9",
+          "imported_description": null,
+          "isChild": 0,
+          "isParent": 0,
+          "location": null,
+          "notes": "Transfer corrected",
+          "parent_id": null,
+          "pending": 0,
+          "raw_synced_data": null,
+          "reconciled": 0,
+          "schedule": null,
+          "sort_order": 1794197214459,
+          "starting_balance_flag": 0,
+          "tombstone": 0,
+          "transferred_id": "04000000-0000-4000-8000-000000000060",
+          "type": null
+        }
+      ]
+    },
+    "tables": {
+      "__meta__": {
+        "columns": [
+          "key",
+          "value"
+        ],
+        "count": 1,
+        "sql": "CREATE TABLE __meta__ (key TEXT PRIMARY KEY, value TEXT)"
+      },
+      "__migrations__": {
+        "columns": [
+          "id"
+        ],
+        "count": 60,
+        "sql": "CREATE TABLE __migrations__ (id INT PRIMARY KEY NOT NULL)"
+      },
+      "account_groups": {
+        "columns": [
+          "id",
+          "name",
+          "sort_order",
+          "tombstone"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE account_groups\n  (id TEXT PRIMARY KEY,\n   name TEXT,\n   sort_order REAL,\n   tombstone INTEGER DEFAULT 0)",
+        "tombstones": 0
+      },
+      "accounts": {
+        "columns": [
+          "id",
+          "account_id",
+          "name",
+          "balance_current",
+          "balance_available",
+          "balance_limit",
+          "mask",
+          "official_name",
+          "subtype",
+          "bank",
+          "offbudget",
+          "closed",
+          "tombstone",
+          "sort_order",
+          "type",
+          "account_sync_source",
+          "last_sync",
+          "last_reconciled",
+          "bank_sync_status",
+          "account_group_id"
+        ],
+        "count": 2,
+        "sql": "CREATE TABLE accounts\n   (id TEXT PRIMARY KEY,\n    account_id TEXT,\n    name TEXT,\n    balance_current INTEGER,\n    balance_available INTEGER,\n    balance_limit INTEGER,\n    mask TEXT,\n    official_name TEXT,\n    subtype TEXT,\n    bank TEXT,\n    offbudget INTEGER DEFAULT 0,\n    closed INTEGER DEFAULT 0,\n    tombstone INTEGER DEFAULT 0, sort_order REAL, type TEXT, account_sync_source TEXT, last_sync text, last_reconciled text, bank_sync_status text, account_group_id TEXT DEFAULT NULL)",
+        "tombstones": 0
+      },
+      "banks": {
+        "columns": [
+          "id",
+          "bank_id",
+          "name",
+          "tombstone"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE banks\n (id TEXT PRIMARY KEY,\n  bank_id TEXT,\n  name TEXT,\n  tombstone INTEGER DEFAULT 0)",
+        "tombstones": 0
+      },
+      "categories": {
+        "columns": [
+          "id",
+          "name",
+          "is_income",
+          "cat_group",
+          "sort_order",
+          "tombstone",
+          "hidden",
+          "goal_def",
+          "template_settings",
+          "cleanup_def"
+        ],
+        "count": 3,
+        "sql": "CREATE TABLE categories\n (id TEXT PRIMARY KEY,\n  name TEXT,\n  is_income INTEGER DEFAULT 0,\n  cat_group TEXT,\n  sort_order REAL,\n  tombstone INTEGER DEFAULT 0, hidden BOOLEAN NOT NULL DEFAULT 0, goal_def TEXT DEFAULT null, template_settings JSON DEFAULT '{\"source\": \"notes\"}', cleanup_def TEXT DEFAULT NULL)",
+        "tombstones": 0
+      },
+      "category_groups": {
+        "columns": [
+          "id",
+          "name",
+          "is_income",
+          "sort_order",
+          "tombstone",
+          "hidden"
+        ],
+        "count": 2,
+        "sql": "CREATE TABLE category_groups\n   (id TEXT PRIMARY KEY,\n    name TEXT,\n    is_income INTEGER DEFAULT 0,\n    sort_order REAL,\n    tombstone INTEGER DEFAULT 0, hidden BOOLEAN NOT NULL DEFAULT 0)",
+        "tombstones": 0
+      },
+      "category_mapping": {
+        "columns": [
+          "id",
+          "transferId"
+        ],
+        "count": 8,
+        "sql": "CREATE TABLE category_mapping\n  (id TEXT PRIMARY KEY,\n   transferId TEXT)"
+      },
+      "cleanup_groups": {
+        "columns": [
+          "id",
+          "name",
+          "tombstone"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE cleanup_groups\n  (id TEXT PRIMARY KEY,\n   name TEXT NOT NULL,\n   tombstone INTEGER DEFAULT 0)",
+        "tombstones": 0
+      },
+      "created_budgets": {
+        "columns": [
+          "month"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE created_budgets (month TEXT PRIMARY KEY)"
+      },
+      "custom_reports": {
+        "columns": [
+          "id",
+          "name",
+          "start_date",
+          "end_date",
+          "date_static",
+          "date_range",
+          "mode",
+          "group_by",
+          "balance_type",
+          "show_empty",
+          "show_offbudget",
+          "show_hidden",
+          "show_uncategorized",
+          "selected_categories",
+          "graph_type",
+          "conditions",
+          "conditions_op",
+          "metadata",
+          "interval",
+          "color_scheme",
+          "tombstone",
+          "include_current",
+          "sort_by",
+          "trim_intervals",
+          "show_trend_lines"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE custom_reports\n  (\n    id TEXT PRIMARY KEY,\n    name TEXT,\n    start_date TEXT,\n    end_date TEXT,\n    date_static INTEGER DEFAULT 0,\n    date_range TEXT,\n    mode TEXT DEFAULT 'total',\n    group_by TEXT DEFAULT 'Category',\n    balance_type TEXT DEFAULT 'Expense',\n    show_empty INTEGER DEFAULT 0,\n    show_offbudget INTEGER DEFAULT 0,\n    show_hidden INTEGER DEFAULT 0,\n    show_uncategorized INTEGER DEFAULT 0,\n    selected_categories TEXT,\n    graph_type TEXT DEFAULT 'BarGraph',\n    conditions TEXT,\n    conditions_op TEXT DEFAULT 'and',\n    metadata TEXT,\n    interval TEXT DEFAULT 'Monthly',\n    color_scheme TEXT,\n    tombstone INTEGER DEFAULT 0\n  , include_current INTEGER DEFAULT 0, sort_by TEXT DEFAULT 'desc', trim_intervals INTEGER DEFAULT 0, show_trend_lines INTEGER DEFAULT 0)",
+        "tombstones": 0
+      },
+      "dashboard": {
+        "columns": [
+          "id",
+          "type",
+          "width",
+          "height",
+          "x",
+          "y",
+          "meta",
+          "tombstone",
+          "dashboard_page_id"
+        ],
+        "count": 12,
+        "sql": "CREATE TABLE dashboard\n        (id TEXT PRIMARY KEY,\n         type TEXT,\n         width INTEGER,\n         height INTEGER,\n         x INTEGER,\n         y INTEGER,\n         meta TEXT,\n         tombstone INTEGER DEFAULT 0, dashboard_page_id TEXT)",
+        "tombstones": 0
+      },
+      "dashboard_pages": {
+        "columns": [
+          "id",
+          "name",
+          "tombstone"
+        ],
+        "count": 1,
+        "sql": "CREATE TABLE dashboard_pages\n        (id TEXT PRIMARY KEY,\n         name TEXT,\n         tombstone INTEGER DEFAULT 0)",
+        "tombstones": 0
+      },
+      "kvcache": {
+        "columns": [
+          "key",
+          "value"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE kvcache (key TEXT PRIMARY KEY, value TEXT)"
+      },
+      "kvcache_key": {
+        "columns": [
+          "id",
+          "key"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE kvcache_key (id INTEGER PRIMARY KEY, key REAL)"
+      },
+      "messages_clock": {
+        "columns": [
+          "id",
+          "clock"
+        ],
+        "count": 1,
+        "sql": "CREATE TABLE messages_clock (id INTEGER PRIMARY KEY, clock TEXT)"
+      },
+      "messages_crdt": {
+        "columns": [
+          "id",
+          "timestamp",
+          "dataset",
+          "row",
+          "column",
+          "value"
+        ],
+        "count": 75,
+        "sql": "CREATE TABLE messages_crdt\n (id INTEGER PRIMARY KEY,\n  timestamp TEXT NOT NULL UNIQUE,\n  dataset TEXT NOT NULL,\n  row TEXT NOT NULL,\n  column TEXT NOT NULL,\n  value BLOB NOT NULL)"
+      },
+      "messages_pending": {
+        "columns": [
+          "dataset",
+          "row",
+          "column",
+          "timestamp",
+          "value"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE messages_pending\n    (dataset TEXT NOT NULL,\n     row TEXT NOT NULL,\n     column TEXT NOT NULL,\n     timestamp TEXT NOT NULL,\n     -- Serialized string form, e.g. \"S:hello\" (see `serializeValue`)\n     value TEXT NOT NULL,\n     PRIMARY KEY (dataset, row, column))"
+      },
+      "notes": {
+        "columns": [
+          "id",
+          "note"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE notes\n  (id TEXT PRIMARY KEY,\n   note TEXT)"
+      },
+      "payee_locations": {
+        "columns": [
+          "id",
+          "payee_id",
+          "latitude",
+          "longitude",
+          "created_at",
+          "tombstone"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE payee_locations (\n      id TEXT PRIMARY KEY,\n      payee_id TEXT,\n      latitude REAL,\n      longitude REAL,\n      created_at INTEGER,\n      tombstone INTEGER DEFAULT 0\n    )",
+        "tombstones": 0
+      },
+      "payee_mapping": {
+        "columns": [
+          "id",
+          "targetId"
+        ],
+        "count": 4,
+        "sql": "CREATE TABLE payee_mapping\n  (id TEXT PRIMARY KEY,\n   targetId TEXT)"
+      },
+      "payees": {
+        "columns": [
+          "id",
+          "name",
+          "category",
+          "tombstone",
+          "transfer_acct",
+          "favorite",
+          "learn_categories"
+        ],
+        "count": 4,
+        "sql": "CREATE TABLE payees\n  (id TEXT PRIMARY KEY,\n   name TEXT,\n   category TEXT,\n   tombstone INTEGER DEFAULT 0,\n   transfer_acct TEXT, favorite INTEGER DEFAULT 0 DEFAULT FALSE, learn_categories BOOLEAN DEFAULT 1)",
+        "tombstones": 0
+      },
+      "pending_transactions": {
+        "columns": [
+          "id",
+          "acct",
+          "amount",
+          "description",
+          "date"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE pending_transactions\n  (id TEXT PRIMARY KEY,\n   acct INTEGER,\n   amount INTEGER,\n   description TEXT,\n   date TEXT,\n   FOREIGN KEY(acct) REFERENCES accounts(id))"
+      },
+      "preferences": {
+        "columns": [
+          "id",
+          "value"
+        ],
+        "count": 6,
+        "sql": "CREATE TABLE preferences\n       (id TEXT PRIMARY KEY,\n        value TEXT)"
+      },
+      "reflect_budgets": {
+        "columns": [
+          "id",
+          "month",
+          "category",
+          "amount",
+          "carryover",
+          "goal",
+          "long_goal"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE reflect_budgets\n  (id TEXT PRIMARY KEY,\n   month INTEGER,\n   category TEXT,\n   amount INTEGER DEFAULT 0,\n   carryover INTEGER DEFAULT 0, goal INTEGER DEFAULT null, long_goal INTEGER DEFAULT null)"
+      },
+      "rules": {
+        "columns": [
+          "id",
+          "stage",
+          "conditions",
+          "actions",
+          "tombstone",
+          "conditions_op"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE rules\n  (id TEXT PRIMARY KEY,\n   stage TEXT,\n   conditions TEXT,\n   actions TEXT,\n   tombstone INTEGER DEFAULT 0, conditions_op TEXT DEFAULT 'and')",
+        "tombstones": 0
+      },
+      "schedules": {
+        "columns": [
+          "id",
+          "rule",
+          "active",
+          "completed",
+          "posts_transaction",
+          "tombstone",
+          "name",
+          "custom_upcoming_length",
+          "sort_order"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE schedules\n  (id TEXT PRIMARY KEY,\n   rule TEXT,\n   active INTEGER DEFAULT 0,\n   completed INTEGER DEFAULT 0,\n   posts_transaction INTEGER DEFAULT 0,\n   tombstone INTEGER DEFAULT 0, name TEXT DEFAULT NULL, custom_upcoming_length TEXT DEFAULT NULL, sort_order REAL DEFAULT 0)",
+        "tombstones": 0
+      },
+      "schedules_json_paths": {
+        "columns": [
+          "schedule_id",
+          "payee",
+          "account",
+          "amount",
+          "date"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE schedules_json_paths\n  (schedule_id TEXT PRIMARY KEY,\n   payee TEXT,\n   account TEXT,\n   amount TEXT,\n   date TEXT)"
+      },
+      "schedules_next_date": {
+        "columns": [
+          "id",
+          "schedule_id",
+          "local_next_date",
+          "local_next_date_ts",
+          "base_next_date",
+          "base_next_date_ts",
+          "tombstone"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE schedules_next_date\n  (id TEXT PRIMARY KEY,\n   schedule_id TEXT,\n   local_next_date INTEGER,\n   local_next_date_ts INTEGER,\n   base_next_date INTEGER,\n   base_next_date_ts INTEGER, tombstone INTEGER DEFAULT 0)",
+        "tombstones": 0
+      },
+      "sqlite_stat1": {
+        "columns": [
+          "tbl",
+          "idx",
+          "stat"
+        ],
+        "count": 4,
+        "sql": "CREATE TABLE sqlite_stat1(tbl,idx,stat)"
+      },
+      "sqlite_stat4": {
+        "columns": [
+          "tbl",
+          "idx",
+          "neq",
+          "nlt",
+          "ndlt",
+          "sample"
+        ],
+        "count": 31,
+        "sql": "CREATE TABLE sqlite_stat4(tbl,idx,neq,nlt,ndlt,sample)"
+      },
+      "tags": {
+        "columns": [
+          "id",
+          "tag",
+          "color",
+          "description",
+          "tombstone",
+          "hidden"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE tags(\n  id TEXT PRIMARY KEY,\n  tag TEXT UNIQUE,\n  color TEXT,\n  description TEXT\n, tombstone integer DEFAULT 0, hidden BOOLEAN DEFAULT 0)",
+        "tombstones": 0
+      },
+      "transaction_filters": {
+        "columns": [
+          "id",
+          "name",
+          "conditions",
+          "conditions_op",
+          "tombstone"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE transaction_filters\n  (id TEXT PRIMARY KEY,\n   name TEXT,\n   conditions TEXT,\n   conditions_op TEXT DEFAULT 'and',\n   tombstone INTEGER DEFAULT 0)",
+        "tombstones": 0
+      },
+      "transactions": {
+        "columns": [
+          "id",
+          "isParent",
+          "isChild",
+          "acct",
+          "category",
+          "amount",
+          "description",
+          "notes",
+          "date",
+          "financial_id",
+          "type",
+          "location",
+          "error",
+          "imported_description",
+          "starting_balance_flag",
+          "transferred_id",
+          "sort_order",
+          "tombstone",
+          "cleared",
+          "pending",
+          "parent_id",
+          "schedule",
+          "reconciled",
+          "raw_synced_data"
+        ],
+        "count": 9,
+        "sql": "CREATE TABLE transactions\n  (id TEXT PRIMARY KEY,\n   isParent INTEGER DEFAULT 0,\n   isChild INTEGER DEFAULT 0,\n   acct TEXT,\n   category TEXT,\n   amount INTEGER,\n   description TEXT,\n   notes TEXT,\n   date INTEGER,\n   financial_id TEXT,\n   type TEXT,\n   location TEXT,\n   error TEXT,\n   imported_description TEXT,\n   starting_balance_flag INTEGER DEFAULT 0,\n   transferred_id TEXT,\n   sort_order REAL,\n   tombstone INTEGER DEFAULT 0, cleared INTEGER DEFAULT 1, pending INTEGER DEFAULT 0, parent_id TEXT, schedule TEXT, reconciled INTEGER DEFAULT 0, raw_synced_data text)",
+        "tombstones": 1
+      },
+      "zero_budget_months": {
+        "columns": [
+          "id",
+          "buffered"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE zero_budget_months\n  (id TEXT PRIMARY KEY,\n   buffered INTEGER DEFAULT 0)"
+      },
+      "zero_budgets": {
+        "columns": [
+          "id",
+          "month",
+          "category",
+          "amount",
+          "carryover",
+          "goal",
+          "long_goal"
+        ],
+        "count": 0,
+        "sql": "CREATE TABLE zero_budgets\n  (id TEXT PRIMARY KEY,\n   month INTEGER,\n   category TEXT,\n   amount INTEGER DEFAULT 0,\n   carryover INTEGER DEFAULT 0, goal INTEGER DEFAULT null, long_goal INTEGER DEFAULT null)"
+      }
+    }
+  }
+}

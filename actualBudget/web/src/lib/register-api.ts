@@ -1,9 +1,12 @@
 import type { RegisterQuery } from "./register-query";
 import { request } from "./api";
 export interface Transaction {
+  transfer_id?: string | null;
+  transfer_account_id?: string | null;
   is_parent?: boolean;
   parent_id?: string | null;
   children?: Transaction[];
+  reconciliation_token?: string;
   id: string;
   field_versions?: Record<string, string>;
   deleted?: boolean;
@@ -29,6 +32,7 @@ export interface Transaction {
 export interface Reference {
   id: string;
   name: string;
+  transfer_account_id?: string | null;
   is_income?: boolean;
   hidden?: boolean;
   group_hidden?: boolean;
@@ -87,12 +91,15 @@ export function registerPage(
 export async function references(
   budgetId: string,
   kind: "payees" | "categories" | "category-groups",
+  { includeTransfers = false }: { includeTransfers?: boolean } = {},
 ): Promise<Reference[]> {
   const items: Reference[] = [];
   let offset: number | null = 0;
   do {
     const page: { data: Reference[]; next_offset: number | null } =
-      await request(`/budgets/${budgetId}/${kind}?limit=1000&offset=${offset}`);
+      await request(
+        `/budgets/${budgetId}/${kind}?limit=1000&offset=${offset}${kind === "payees" && includeTransfers ? "&include_transfers=true" : ""}`,
+      );
     items.push(...page.data);
     offset = page.next_offset;
   } while (offset !== null);

@@ -1,8 +1,9 @@
 # Payee locations — ticket46
 
-Private slice based on5a9efa1; independent root Standards/Spec and Impeccable
-finish/documentation review, migration renumbering and integration remain gates.
-No commit, release, deployment or production data access.
+Slice based on5a9efa1, committed as89560a8 and composed with1713c33.
+Independent Standards/Spec reviews pass; final Impeccable finish/documentation
+and integrated batch qualification remain gates. No release, deployment or
+production data access.
 
 Delivered: multiple saved locations; explicit Request/Save capture; local500m
 nearest-ten suggestions and branch-specific forgetting; atomic optional new payee;
@@ -25,8 +26,8 @@ and rejects an out-of-range coordinate before activation.
 `generate-locations-schema11.py` uses a private immutable5a9efa1 executable.
 SQLite/native ZIP are genuine outputs, with no schema rewriting. Tests verify
 native accounts/receipts, default empty locations, old blocked source stage
-refresh and unchanged original blocked upload receipt. Schema12 is provisional;
-root must renumber after other financial integrations.
+refresh and unchanged original blocked upload receipt. Final integration assigns
+locations schema14 after reconciliation12 and transfers13.
 
 ## Verification
 
@@ -78,9 +79,9 @@ drift was reported to root and left untouched.
 
 ## Integration notes
 
-- Private migration `012_locations.sql`; archive current/max12, pre12 defaults,
-  migration hook index11, lifecycle restore report and OpenAPI enum must move
-  together when root assigns the final number.
+- Final migration `014_locations.sql`; archive current/max14, pre14 location
+  defaults, migration hook index13, lifecycle restore report and OpenAPI enum
+  move together. Earlier reconciliation/transfer defaults retain their versions.
 - Shared touchpoints: API route/cancellation/capability registry; changes union;
   source conversion/install; lifecycle clear/archive; TransactionForm composition;
   browser package script and native public-API test. No companion contract changes.
@@ -97,4 +98,12 @@ Independent review and integration gates above remain open.
 
 Review found that widening the window hid a saved location request and its retry/cancel actions. A real-browser regression reproduced this after reload. Recovery, in-flight/error states and completion feedback now remain visible on desktop; fresh location discovery remains a mobile surface. The regression additionally waits until the request has fully settled before checking completion feedback, exposing and correcting a brief-success-only state.
 
-Complete focused location browser workflow, Svelte checking/build/autofixer and diff whitespace checks pass. Root inspected `desktop-recovery.png` and `desktop-recovered.png`; both are included in the final review packet. Logs `/tmp/locations46-desktop-{recovery-red,feedback-red,recovery-green}.log`. Independent code and Impeccable finish reviews remain pending.
+Complete focused location browser workflow, Svelte checking/build/autofixer and diff whitespace checks pass. Root inspected `desktop-recovery.png` and `desktop-recovered.png`; both are included in the final review packet. Logs `/tmp/locations46-desktop-{recovery-red,feedback-red,recovery-green}.log`.
+
+## Integrated evidence — 2026-11-09
+
+- Independent Standards and Spec reviewers passed the composed working tree with no findings. Spec review independently checked genuine schema13 upgrade, atomic creation/forgetting, protected transfer refusal, original receipts and unchanged companion projection.
+- 31 focused public HTTP cases pass: locations6, reconciliation8, transfers17. Native integration freshly executed27 cases, zero failures/errors/skips. No device-test claim.
+- Location, payee/tag and reconciliation browser workflows pass. Svelte check/build, served OpenAPI, warnings-denied Clippy and Rustfmt pass. Logs `/tmp/locations46-integrated-{http,native,browser,payees-browser,reconciliation-browser,web-check,web-build,contract,clippy,fmt}.log`.
+- `tools/generate-locations-schema13.py` generates genuine SQLite/native ZIP fixtures through immutable1713c33, recording executable SHA256. Upgrade/restore preserves protected transfer rows, locked account state and exact original receipts; previously blocked location upload receipts replay unchanged while stage inspection becomes ready. No database/version rewriting. Logs `/tmp/locations46-schema13-{fixture,upgrade}.log`.
+- Full suite and production container qualification will run once after the financial integration batch; earlier baseline browser failures above are retained as historical evidence, not treated as passing.

@@ -109,7 +109,7 @@ fn budget_and_exact_opening_balance_survive_process_restart_without_login() {
     let accounts: Value = server.get(&accounts).json().unwrap();
     assert_eq!(
         accounts["data"][0],
-        json!({"id":ACCOUNT,"name":"Spending","notes":"Cash expenses","off_budget":false,"closed":false,"balance":-12345,"group_id":null,"sort_order":0,"deleted":false,"field_versions":{}})
+        json!({"id":ACCOUNT,"name":"Spending","notes":"Cash expenses","off_budget":false,"closed":false,"balance":-12345,"group_id":null,"sort_order":0,"deleted":false,"last_reconciled":null,"field_versions":{}})
     );
 }
 #[test]

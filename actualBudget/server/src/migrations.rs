@@ -15,7 +15,9 @@ const MIGRATIONS: &[&str] = &[
     include_str!("migrations/009_payees_tags.sql"),
     include_str!("splits/schema.sql"),
     include_str!("migrations/011_register_settings.sql"),
-    include_str!("migrations/012_locations.sql"),
+    include_str!("migrations/012_reconciliation.sql"),
+    include_str!("migrations/013_transfers.sql"),
+    include_str!("migrations/014_locations.sql"),
 ];
 pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
@@ -34,7 +36,7 @@ pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     let tx = db.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     for (index, sql) in MIGRATIONS.iter().enumerate().skip(version as usize) {
         tx.execute_batch(sql)?;
-        if index == 11 {
+        if index == 13 {
             crate::payee_locations::enrich_legacy_imports(&tx, None)?;
         }
         if index == 10 {

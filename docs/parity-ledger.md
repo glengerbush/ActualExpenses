@@ -34,7 +34,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 9 | 04, 08, 50 | Budget files, backups and migration | [04: retained/rejected source validation](import-validation.md); [08: checksummed archive validation and pre-action recovery](budget-lifecycle-validation.md); complete migration qualification pending50 |
 | 10 | 02, 09 | Accounts and reconciliation | [02: on/off-budget creation and opening balances](open-budget-validation.md); [09: organization, closure and notes](0910-validation.md) |
 | 11 | 09 | Accounts and reconciliation | [09: grouping/order, closed visibility, deletion and native recovery](0910-validation.md) |
-| 12 | 03, 09, 12 | Accounts and reconciliation | [03: exact account and running balances](register-validation.md); [09: organization](0910-validation.md); register customization pending12 |
+| 12 | 03, 09, 12 | Accounts and reconciliation | [03: exact account and running balances](register-validation.md); [09: organization](0910-validation.md); [12: accepted register customization and filtered totals](register-query-validation.md) |
 | 13 | 16 | Accounts and reconciliation | Pending feature acceptance |
 | 14 | 16 | Accounts and reconciliation | Pending feature acceptance |
 | 15 | 16 | Accounts and reconciliation | Pending feature acceptance |
@@ -43,9 +43,9 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 18 | 03, 52 | Transactions, payees and categories | [03: exact financial values, dates and calculator baseline](register-validation.md); whole-feature audit pending 52 |
 | 19 | 03, 13 | Transactions, payees and categories | [03: ordinary transaction field edits and retry recovery](register-validation.md); bulk/undo pending 13 |
 | 20 | 13 | Transactions, payees and categories | Pending feature acceptance |
-| 21 | 12 | Transactions, payees and categories | Pending feature acceptance |
-| 22 | 12, 16 | Transactions, payees and categories | Pending feature acceptance |
-| 23 | 14 | Transactions, payees and categories | [14: split allocations, unsplit/recombine, pinned fixtures and recovery](splits-validation.md); register12/undo13 integration and root review pending |
+| 21 | 12 | Transactions, payees and categories | [12: accepted search, sorting, compound filters and saved views](register-query-validation.md) |
+| 22 | 12, 16 | Transactions, payees and categories | [12: accepted visibility and register balances](register-query-validation.md); reconciliation16 acceptance pending |
+| 23 | 14 | Transactions, payees and categories | [14: split allocations, unsplit/recombine, pinned fixtures and recovery](splits-validation.md); query12 integration and corrective review pass; undo13/transfer15 integration pending |
 | 24 | 15 | Transactions, payees and categories | Pending feature acceptance |
 | 25 | 15 | Transactions, payees and categories | Pending feature acceptance |
 | 26 | 25 | Transactions, payees and categories | Pending feature acceptance |
@@ -100,7 +100,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 75 | 43, 51 | Settings and accessible workflows | [43: number/date/currency/decimal/week-start controls](../actualBudget/web/docs/preferences-validation.md); whole-app qualification pending 51 |
 | 76 | 43, 44 | Settings and accessible workflows | [43: built-in appearance](../actualBudget/web/docs/preferences-validation.md); [44: catalog/custom themes, source preservation and recovery](../actualBudget/web/docs/custom-theme-contract.md) |
 | 77 | 43 | Settings and accessible workflows | [43: released language catalogs, device scope and retry](../actualBudget/web/docs/preferences-validation.md) |
-| 78 | 12, 45 | Settings and accessible workflows | Pending feature acceptance |
+| 78 | 12, 45 | Settings and accessible workflows | [12: accepted remembered register views](register-query-validation.md); privacy/navigation/help45 acceptance pending |
 | 79 | 45 | Settings and accessible workflows | Pending feature acceptance |
 | 80 | 31, 32, 35, 36, 37, 39, 41, 42, 43 | Settings and accessible workflows | [43: preserved opt-in flags and currency gating](../actualBudget/web/docs/preferences-validation.md); remaining experimental features pending assigned tickets |
 | 81 | 49 | Settings and accessible workflows | Pending feature acceptance |

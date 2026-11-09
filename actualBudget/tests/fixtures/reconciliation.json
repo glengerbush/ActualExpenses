@@ -1,0 +1,167 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "orchestration_sha256": "da00774e458201d7e97aeeb51f7090fdceb52c47acb270fea4c923b767019c01",
+  "snapshots": [
+    {
+      "step": "debt-initial",
+      "transactions": [
+        {
+          "amount": -10000,
+          "date": "2026-01-01",
+          "cleared": true,
+          "reconciled": false,
+          "notes": ""
+        },
+        {
+          "amount": -300,
+          "date": "2026-02-28",
+          "cleared": false,
+          "reconciled": false,
+          "notes": ""
+        }
+      ],
+      "total": -10300,
+      "cleared": -10000,
+      "uncleared": -300
+    },
+    {
+      "step": "debt-adjusted",
+      "transactions": [
+        {
+          "amount": -10000,
+          "date": "2026-01-01",
+          "cleared": true,
+          "reconciled": false,
+          "notes": ""
+        },
+        {
+          "amount": -2500,
+          "date": "2026-02-28",
+          "cleared": true,
+          "reconciled": false,
+          "notes": "Reconciliation balance adjustment"
+        },
+        {
+          "amount": -300,
+          "date": "2026-02-28",
+          "cleared": false,
+          "reconciled": false,
+          "notes": ""
+        }
+      ],
+      "total": -12800,
+      "cleared": -12500,
+      "uncleared": -300
+    },
+    {
+      "step": "debt-locked",
+      "transactions": [
+        {
+          "amount": -10000,
+          "date": "2026-01-01",
+          "cleared": true,
+          "reconciled": true,
+          "notes": ""
+        },
+        {
+          "amount": -2500,
+          "date": "2026-02-28",
+          "cleared": true,
+          "reconciled": true,
+          "notes": "Reconciliation balance adjustment"
+        },
+        {
+          "amount": -300,
+          "date": "2026-02-28",
+          "cleared": false,
+          "reconciled": false,
+          "notes": ""
+        }
+      ],
+      "total": -12800,
+      "cleared": -12500,
+      "uncleared": -300
+    },
+    {
+      "step": "debt-confirmed-edit",
+      "transactions": [
+        {
+          "amount": -10000,
+          "date": "2026-01-01",
+          "cleared": true,
+          "reconciled": true,
+          "notes": ""
+        },
+        {
+          "amount": -2500,
+          "date": "2026-02-28",
+          "cleared": true,
+          "reconciled": true,
+          "notes": "Confirmed"
+        },
+        {
+          "amount": -300,
+          "date": "2026-02-28",
+          "cleared": false,
+          "reconciled": false,
+          "notes": ""
+        }
+      ],
+      "total": -12800,
+      "cleared": -12500,
+      "uncleared": -300
+    },
+    {
+      "step": "debt-unlocked",
+      "transactions": [
+        {
+          "amount": -10000,
+          "date": "2026-01-01",
+          "cleared": true,
+          "reconciled": true,
+          "notes": ""
+        },
+        {
+          "amount": -2500,
+          "date": "2026-02-28",
+          "cleared": true,
+          "reconciled": false,
+          "notes": "Confirmed"
+        },
+        {
+          "amount": -300,
+          "date": "2026-02-28",
+          "cleared": false,
+          "reconciled": false,
+          "notes": ""
+        }
+      ],
+      "total": -12800,
+      "cleared": -12500,
+      "uncleared": -300
+    },
+    {
+      "step": "asset-revalued",
+      "transactions": [
+        {
+          "amount": 350000,
+          "date": "2026-02-28",
+          "cleared": true,
+          "reconciled": true,
+          "notes": "Reconciliation balance adjustment"
+        },
+        {
+          "amount": 23110000,
+          "date": "2026-01-01",
+          "cleared": true,
+          "reconciled": true,
+          "notes": ""
+        }
+      ],
+      "total": 23460000,
+      "cleared": 23460000,
+      "uncleared": 0
+    }
+  ]
+}

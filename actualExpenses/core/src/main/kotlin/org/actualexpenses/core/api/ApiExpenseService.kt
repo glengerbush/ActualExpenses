@@ -527,7 +527,7 @@ class ApiExpenseService(
                             it.notice = "Deletion cancelled: a newer edit kept this expense."
                         }
                     } else {
-                        if (failure.code == "split_transaction") change { it.pending.first { pending -> pending.id == op.id }.splitRejected = true }
+                        if (failure.code in setOf("split_transaction", "transfer_transaction")) change { it.pending.first { pending -> pending.id == op.id }.splitRejected = true }
                         throw failure
                     }
                 }
@@ -572,7 +572,7 @@ class ApiExpenseService(
                             it.notice = "Deletion cancelled: a newer edit kept this expense."
                         }
                     else -> {
-                        if (failure.code == "split_transaction") change { it.pending.first { pending -> pending.id == op.id }.splitRejected = true }
+                        if (failure.code in setOf("split_transaction", "transfer_transaction")) change { it.pending.first { pending -> pending.id == op.id }.splitRejected = true }
                         throw failure
                     }
                 }
@@ -584,16 +584,16 @@ class ApiExpenseService(
     fun discardRejectedSplitEdit() = syncLock.withLock {
         ready()
         val op = saved.pending.firstOrNull() ?: return@withLock
-        require(op.splitRejected) { "Refresh to verify the rejected split edit first." }
+        require(op.splitRejected) { "Refresh to verify the rejected expense change first." }
         val api = BudgetApi(saved.server, transport)
         try {
             acknowledge(op, api.request(op.path, op.method, op.body, op.id, op.clock, op.epoch, receiptOnly = true))
         } catch (failure: BudgetApiException) {
-            if (failure.code != "split_transaction") throw failure
+            if (failure.code !in setOf("split_transaction", "transfer_transaction")) throw failure
             change {
                 it.pending.removeAll { pending -> pending.id == op.id }
                 it.rows.remove(op.transactionId)
-                it.notice = "Rejected expense edit discarded. Review the split in actualBudget."
+                it.notice = "Rejected expense change discarded. Review the transaction in actualBudget."
             }
         }
         blocked = false
@@ -970,6 +970,7 @@ class ApiExpenseService(
             row["is_parent"]?.asBoolean != true &&
             row.text("parent_id") == null &&
             row["reconciled"]?.asBoolean != true &&
+            row.text("transfer_id") == null &&
             row["deleted"]?.asBoolean != true
 
     private fun JsonObject.text(key: String) = get(key)?.takeUnless { it.isJsonNull }?.asString

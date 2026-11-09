@@ -31,6 +31,7 @@ pub fn convert_actual(input: &Value) -> Result<Value, Error> {
     let mut unmapped_global = Map::new();
     for (key, value) in synced {
         let mapped = match key.as_str() {
+            "sync-transfer-date" => Some("sync_transfer_date"),
             "numberFormat" => Some("number_format"),
             "dateFormat" => Some("date_format"),
             "hideFraction" => Some("hide_fraction"),
@@ -42,7 +43,7 @@ pub fn convert_actual(input: &Value) -> Result<Value, Error> {
         };
         if let Some(mapped) = mapped {
             let converted = match mapped {
-                "hide_fraction" | "currency_space" => match value {
+                "sync_transfer_date" | "hide_fraction" | "currency_space" => match value {
                     Value::Bool(_) => Some(value.clone()),
                     Value::String(v) if v == "true" || v == "false" => Some(json!(v == "true")),
                     _ => None,

@@ -656,3 +656,100 @@ fn source_clocks_preserve_forget_order_and_invalid_coordinates_reject_before_act
         1
     );
 }
+
+#[test]
+fn genuine_schema13_upgrade_retains_protected_transfer_state_and_original_receipts() {
+    let fixture: Value =
+        serde_json::from_str(include_str!("../../tests/fixtures/locations-schema13.json")).unwrap();
+    let budget = fixture["budget"]["data"]["id"].as_str().unwrap();
+    let root = format!("/api/v1/budgets/{budget}");
+    let account = fixture["account"]["id"].as_str().unwrap();
+    for from_archive in [false, true] {
+        let data = tempfile::tempdir().unwrap();
+        if !from_archive {
+            std::fs::write(
+                data.path().join("actualbudget.sqlite3"),
+                include_bytes!("../../tests/fixtures/locations-schema13.sqlite3"),
+            )
+            .unwrap();
+        }
+        let s = Server::open(data);
+        if from_archive {
+            let stage = ok(s
+                .client
+                .post(format!("{}/api/v1/restores", s.url))
+                .header("Idempotency-Key", "schema13")
+                .header("Content-Type", "application/zip")
+                .body(include_bytes!("../../tests/fixtures/locations-schema13.zip").to_vec())
+                .send()
+                .unwrap());
+            assert_eq!(stage["data"]["report"]["schema_version"], 14);
+            ok(s.write(
+                "POST",
+                &format!(
+                    "{root}/restores/{}/activate",
+                    stage["data"]["id"].as_str().unwrap()
+                ),
+                "activate13",
+                None,
+                json!({"confirm_name":fixture["budget"]["data"]["name"]}),
+            ));
+        }
+        assert_eq!(
+            s.get(&format!("{root}/accounts/{account}"))["data"],
+            fixture["account"]
+        );
+        for row in fixture["rows"].as_array().unwrap() {
+            assert_eq!(
+                s.get(&format!(
+                    "{root}/transactions/{}",
+                    row["id"].as_str().unwrap()
+                ))["data"],
+                *row
+            );
+        }
+        assert_eq!(
+            ok(s.write(
+                "POST",
+                &format!("{root}/transfers"),
+                "transfer13",
+                None,
+                fixture["transfer_body"].clone()
+            )),
+            fixture["transfer"]
+        );
+        assert_eq!(
+            ok(s.write(
+                "POST",
+                &format!("{root}/accounts/{account}/reconciliation"),
+                "reconcile13",
+                None,
+                fixture["reconciliation_body"].clone()
+            )),
+            fixture["reconciliation"]
+        );
+        assert_eq!(s.get(&format!("{root}/payee-locations"))["data"], json!([]));
+        assert_eq!(
+            s.get(&format!("{root}/companion?account_id={account}"))["data"]["recent"],
+            json!([])
+        );
+        if !from_archive {
+            let replay = ok(s
+                .client
+                .post(format!("{}/api/v1/imports/actual", s.url))
+                .header("Idempotency-Key", "blocked-locations13")
+                .header("Content-Type", "application/zip")
+                .body(include_bytes!("../../tests/fixtures/payee-locations-import.zip").to_vec())
+                .send()
+                .unwrap());
+            assert_eq!(replay, fixture["stage"]);
+            assert_eq!(
+                s.get(&format!(
+                    "/api/v1/imports/{}",
+                    fixture["stage"]["data"]["id"].as_str().unwrap()
+                ))["data"]["status"],
+                "ready"
+            );
+        }
+    }
+}

@@ -41,7 +41,7 @@ fn now_ms() -> Result<i64, Error> {
     )
     .map_err(Error::internal)
 }
-fn parse_clock(value: &str) -> Result<(i64, u32), Error> {
+pub(crate) fn parse_clock(value: &str) -> Result<(i64, u32), Error> {
     let invalid = || {
         Error::new(
             StatusCode::BAD_REQUEST,
@@ -189,16 +189,6 @@ pub fn versions(db: &Connection, budget: &str, id: &str) -> Result<Value, Error>
     }
     Ok(Value::Object(values))
 }
-pub fn decorate(db: &Connection, budget: &str, mut row: Value) -> Result<Value, Error> {
-    row["field_versions"] = versions(
-        db,
-        budget,
-        row["id"]
-            .as_str()
-            .ok_or_else(|| Error::internal("Missing transaction ID"))?,
-    )?;
-    Ok(row)
-}
 pub fn mark(db: &Connection, budget: &str, entity: &str, id: &str) -> Result<(), Error> {
     db.execute(
         "UPDATE budget_sync SET sequence=sequence+1 WHERE budget_id=?1",
@@ -313,9 +303,15 @@ pub fn execute(
         Mutation::Duplicate(source, id) => {
             let duplicate = ledger::duplicate(db, budget, &source, &id)?;
             if let Some(children) = duplicate["children"].as_array() {
-                for child in children {
-                    crate::splits::stamp(db, budget, child["id"].as_str().unwrap(), &edit_clock)?;
-                }
+                crate::splits::stamp_many(
+                    db,
+                    budget,
+                    &children
+                        .iter()
+                        .map(|child| child["id"].as_str().unwrap())
+                        .collect::<Vec<_>>(),
+                    &edit_clock,
+                )?;
             }
             for field in FIELDS {
                 seed_field_version(db, budget, "transactions", &id, field, &edit_clock)?;

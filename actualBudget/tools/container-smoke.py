@@ -85,6 +85,36 @@ def verify_web_assets(base):
             assert response.read(), f"Empty bundled asset: {path}"
 
 
+def verify_receipts(base):
+    assert "transaction_receipt_lookup" in request(base, "/api/v1/info")["data"]["capabilities"]
+    budget_id, account_id = str(uuid.uuid4()), str(uuid.uuid4())
+    root = f"/api/v1/budgets/{budget_id}"
+    request(base, "/api/v1/budgets", {"id": budget_id, "name": "Container receipts"},
+            {"Idempotency-Key": str(uuid.uuid4())})
+    request(base, root + "/accounts", {
+        "id": account_id, "name": "Cash", "opening_balance": 0, "opening_date": "2026-01-01",
+    }, {"Idempotency-Key": str(uuid.uuid4())})
+    body = {"id": str(uuid.uuid4()), "account_id": account_id,
+            "amount": -125, "date": "2026-01-01"}
+    headers = {"Idempotency-Key": str(uuid.uuid4()),
+               "X-Actual-Edit-Clock": "2026-01-01T00:00:00.000Z-0000-0000000000000001"}
+    probe_headers = {**headers, "X-Actual-Receipt-Only": "true"}
+    before = request(base, root + "/checkpoint")
+    try:
+        request(base, root + "/transactions", body, probe_headers)
+        raise AssertionError("Receipt lookup must not apply an unknown transaction")
+    except urllib.error.HTTPError as error:
+        assert error.code == 404, error.code
+        assert json.load(error)["error"]["code"] == "operation_uncommitted"
+    assert request(base, root + "/checkpoint") == before
+    saved = request(base, root + "/transactions", body, headers)
+    after = request(base, root + "/checkpoint")
+    assert request(base, root + "/transactions", body, probe_headers) == saved
+    assert request(base, root + "/checkpoint") == after
+    assert len(request(base, root + "/transactions")["data"]) == 1
+    print("PASS: read-only receipt miss preserves identity; committed outcome replays without writes")
+
+
 def main():
     project = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser(description=__doc__)
@@ -137,6 +167,7 @@ def main():
         opening = transactions[0]
         assert opening["amount"] == 123456 and opening["date"] == "2026-11-08", opening
         assert opening["starting_balance"] is True, opening
+        verify_receipts(base)
         if args.browser or args.browser_test:
             environment = dict(os.environ, ACTUALBUDGET_TEST_URL=f"http://actualbudget.test:{urlsplit(base).port}")
             if args.browser:

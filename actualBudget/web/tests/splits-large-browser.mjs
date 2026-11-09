@@ -1,10 +1,13 @@
 import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import { readFile, mkdir } from "node:fs/promises";
+import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { startServer } from "./server.mjs";
 const server = await startServer();
 const api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
-let browser;
+let browser, diagnosticPage;
+const attempts = [],
+  responses = [],
+  pageErrors = [];
 async function call(path, body) {
   const response = await fetch(api + path, {
     method: body ? "POST" : "GET",
@@ -55,6 +58,21 @@ try {
   const page = await browser.newPage({
     viewport: { width: 1280, height: 960 },
   });
+  diagnosticPage = page;
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("response", async (response) => {
+    if (
+      !response.url().endsWith(path) ||
+      response.request().method() !== "POST"
+    )
+      return;
+    const body = await response.text().catch((error) => String(error));
+    responses.push({
+      phase: "browser",
+      status: response.status(),
+      body: response.ok() ? `success ${body.length} bytes` : body,
+    });
+  });
   await page.goto(server.url);
   await page
     .locator(".budget-list button")
@@ -89,7 +107,6 @@ try {
   await expect(
     page.getByLabel("Split 1001 notes", { exact: true }),
   ).toHaveValue("Last imported allocation edited");
-  const attempts = [];
   await page.route("**/transactions/*/splits", async (route) => {
     const request = route.request();
     if (request.method() !== "POST") return route.continue();
@@ -119,7 +136,13 @@ try {
           body: request.postData(),
         },
       );
-      expect(response.ok, await response.text()).toBe(true);
+      const body = await response.text();
+      responses.push({
+        phase: "manual-commit",
+        status: response.status,
+        body: response.ok ? `success ${body.length} bytes` : body,
+      });
+      expect(response.ok, body).toBe(true);
       return route.abort();
     }
     return route.continue();
@@ -192,6 +215,30 @@ try {
   console.log(
     "PASS large split browser: 1001 imported allocations, bounded rendering, last-child edit, sparse immutable retry/reload, add/distribute, keyboard and mobile",
   );
+} catch (error) {
+  if (diagnosticPage) {
+    await mkdir("test-results", { recursive: true });
+    const diagnostics = {
+      attempts,
+      responses,
+      pageErrors,
+      alerts: await diagnosticPage.getByRole("alert").allTextContents(),
+    };
+    await writeFile(
+      "test-results/splits-large-failure.html",
+      await diagnosticPage.content(),
+    );
+    await writeFile(
+      "test-results/splits-large-failure.json",
+      JSON.stringify(diagnostics, null, 2),
+    );
+    await diagnosticPage.screenshot({
+      path: "test-results/splits-large-failure.png",
+      fullPage: true,
+    });
+    console.error("Large split failure:", JSON.stringify(diagnostics));
+  }
+  throw error;
 } finally {
   await browser?.close();
   await server.stop();

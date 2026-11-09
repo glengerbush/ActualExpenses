@@ -146,3 +146,24 @@ equality checks. Other captured forwarders already spread original headers or
 forward the complete identity. No product code or financial assertion changed.
 Receipt feedback and1001-child large split browsers pass
 (`/tmp/identity-receipt-feedback-green.log`, `/tmp/identity-large-split.log`).
+
+## Large-split release retry investigation
+
+The first production tail reached large-split lost-ack retry, then its editor
+remained open for30s. That run captured no DOM, alert or response diagnostics;
+its cause remains unexplained (`/tmp/batch13-16-46-container-tail.log`). No
+product correction, added retry or timeout extension is claimed.
+
+The harness now saves failure-only DOM, screenshot, original attempts, response
+status/error bodies and visible alerts under `web/test-results/splits-large-failure.*`.
+Two focused runs on the identical release image passed, followed by a shared
+server ordinary-splits→large-splits run passing both workflows
+(`/tmp/large-split-release-diagnosis.log`,
+`/tmp/large-split-release-diagnosis-2.log`,
+`/tmp/large-split-release-after-splits.log`). Image SHA256
+`457a61cd7d5f96a27218eb45b76af1d25ce39592d6982627e8ad521a6b5476d8`,
+132015446 bytes, runtime user10001:10001. Each run used disposable volumes and
+verified persistence across container replacement plus receipt replay. All
+financial/retry assertions remain unchanged. Owned resources and diagnosis
+image alias were removed. Root's independent remaining12 production groups
+also passed; the initial unexplained failure remains recorded honestly.

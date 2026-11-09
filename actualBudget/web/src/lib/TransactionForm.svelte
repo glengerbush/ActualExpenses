@@ -125,6 +125,21 @@
   function persist(value: Draft) {
     saveTransactionDraft(value);
   }
+  function restoreEditorBaseline(value: Draft) {
+    const replacement = value.replaces;
+    if (!replacement || value.pending) return;
+    if (replacement.baseline === undefined)
+      replacement.baseline = $state.snapshot(value.original);
+    value.original = { ...$state.snapshot(replacement.row) };
+    const originalBody = replacement.pending.body as Record<string, unknown>;
+    for (const [kind, field] of [
+      ["new_payee", "payee_id"],
+      ["new_category", "category_id"],
+    ] as const) {
+      const created = originalBody?.[kind] as { id: string } | undefined;
+      if (created) value.original[field] = created.id;
+    }
+  }
   function load() {
     error = "";
     try {
@@ -134,6 +149,8 @@
           ...structuredClone(queued.draft),
           draftId: uuid(),
           referenceIds: { payee: uuid(), category: uuid() },
+          original: structuredClone(queued.row),
+          amountDirty: false,
           pending: null,
           editClock: undefined,
           replaces: {
@@ -141,11 +158,15 @@
             revision: queued.revision,
             row: structuredClone(queued.row),
             pending: structuredClone(queued.pending),
+            baseline: structuredClone(queued.draft.original),
           },
         };
+        restoreEditorBaseline(draft);
         persist(draft);
       } else if (saved) {
         draft = saved;
+        restoreEditorBaseline(draft);
+        persist(draft);
         restored = true;
       } else {
         if (!preferences.hasUsableShared)
@@ -284,7 +305,10 @@
       persist(draft);
     }
     const f = draft.fields;
-    if ((!offlineStatus.reachable || disconnected) && !draft.original) {
+    if (
+      (!offlineStatus.reachable || disconnected) &&
+      (!draft.original || draft.replaces || queued?.offlineCreated)
+    ) {
       if (
         f.direction !== "expense" ||
         f.payee === "new" ||
@@ -300,7 +324,8 @@
       (!offlineStatus.reachable || disconnected) &&
       draft.original &&
       !draft.beganOnline &&
-      !queued?.offlineCreated
+      !queued?.offlineCreated &&
+      !draft.replaces
     )
       throw new Error(t("Reconnect before editing a saved transaction."));
     const date = parseDateInput(f.date, draft.dateFormat);
@@ -336,6 +361,30 @@
         name: f.newCategory.trim(),
         is_income: f.categoryIncome,
       };
+    }
+    if (draft.replaces) {
+      const originalBody = draft.replaces.pending.body as Record<
+        string,
+        unknown
+      >;
+      for (const [kind, field] of [
+        ["new_payee", "payee_id"],
+        ["new_category", "category_id"],
+      ] as const) {
+        const created = originalBody?.[kind] as
+          { id: string; name: string; is_income?: boolean } | undefined;
+        const desired = body[kind] as
+          { name: string; is_income?: boolean } | undefined;
+        if (
+          created &&
+          desired &&
+          created.name === desired.name &&
+          created.is_income === desired.is_income
+        ) {
+          delete body[kind];
+          body[field] = created.id;
+        }
+      }
     }
     if (draft.original) {
       for (const key of Object.keys(body))
@@ -438,74 +487,72 @@
         persist(draft);
       }
       const replacement = draft.replaces;
-      const originalRow = replacement
-        ? { ...$state.snapshot(replacement.row) }
-        : null;
-      const adjusted = { ...(pending.body as Record<string, unknown>) };
-      if (replacement && originalRow) {
-        const originalBody = replacement.pending.body as Record<
-          string,
-          unknown
-        >;
+      let replacementPending = pending;
+      if (replacement) {
+        const delta = pending.body as Record<string, unknown>;
+        const body = {
+          ...(replacement.pending.body as Record<string, unknown>),
+          ...delta,
+        };
         for (const [kind, field] of [
           ["new_payee", "payee_id"],
           ["new_category", "category_id"],
         ] as const) {
-          const created = originalBody?.[kind] as
-            { id: string; name: string; is_income?: boolean } | undefined;
-          if (!created) continue;
-          originalRow[field] = created.id;
-          const desired = adjusted[kind] as
-            { name: string; is_income?: boolean } | undefined;
-          if (
-            desired &&
-            desired.name === created.name &&
-            desired.is_income === created.is_income
-          ) {
-            delete adjusted[kind];
-            adjusted[field] = created.id;
-          }
+          if (Object.hasOwn(delta, field) && !Object.hasOwn(delta, kind))
+            delete body[kind];
         }
-      }
-      const patchBody = originalRow
-        ? Object.fromEntries(
-            Object.entries(adjusted).filter(
-              ([key, value]) =>
-                key !== "id" &&
-                JSON.stringify(value) !==
-                  JSON.stringify(originalRow[key as keyof Transaction]),
-            ),
-          )
-        : null;
-      if (patchBody && Object.keys(patchBody).length === 0) {
-        clearTransactionDraft(draft);
-        oncancel();
-        return;
+        if (replacement.pending.method === "PATCH" && replacement.baseline) {
+          for (const key of Object.keys(body))
+            if (
+              key in replacement.baseline &&
+              JSON.stringify(body[key]) ===
+                JSON.stringify(replacement.baseline[key as keyof Transaction])
+            )
+              delete body[key];
+        }
+        replacementPending = {
+          ...pending,
+          path: replacement.pending.path,
+          method: replacement.pending.method,
+          body,
+        };
+        submittedDraft.pending = replacementPending;
       }
       const savedEntry = await enqueue({
         budgetId,
-        pending: $state.snapshot(pending),
+        pending: $state.snapshot(replacementPending),
         row: preview(pending),
         draft: $state.snapshot(submittedDraft),
         offlineCreated:
           queued?.offlineCreated ??
           (!draft.original &&
             (!draft.beganOnline || disconnected || !offlineStatus.reachable)),
-        replace: replacement,
+        replace: replacement
+          ? {
+              key: replacement.key,
+              revision: replacement.revision,
+              baseline: $state.snapshot(replacement.baseline ?? null),
+              empty:
+                replacementPending.method === "PATCH" &&
+                Object.keys(replacementPending.body as Record<string, unknown>)
+                  .length === 0,
+            }
+          : undefined,
         afterAttempt: replacement
           ? {
-              pending: {
-                ...pending,
-                path: `/budgets/${budgetId}/transactions/${draft.id}`,
-                method: "PATCH",
-                body: patchBody,
-              },
-              original: originalRow!,
+              pending: $state.snapshot(pending),
+              original: $state.snapshot(draft.original!),
             }
           : undefined,
         dependsOn: queued?.attempted ? queued.key : undefined,
       });
-      draft = { ...submittedDraft, pending: savedEntry.pending };
+      draft = {
+        ...submittedDraft,
+        original: savedEntry.draft
+          ? savedEntry.draft.original
+          : submittedDraft.original,
+        pending: savedEntry.pending,
+      };
       await deliverPending();
       const receipt = (await receipts(budgetId)).find((r) =>
         sameMutation(r.pending, savedEntry.pending),
@@ -635,7 +682,10 @@
                 () => draft!.fields.direction, (v) => update("direction", v)
               }
               ><option value="expense">{t("Expense")}</option><option
-                disabled={disconnected && !draft.original}
+                disabled={disconnected &&
+                  (!draft.original ||
+                    !!draft.replaces ||
+                    !!queued?.offlineCreated)}
                 value="income">{t("Income or refund")}</option
               ></select
             >

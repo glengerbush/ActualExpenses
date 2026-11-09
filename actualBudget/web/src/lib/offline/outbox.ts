@@ -100,7 +100,12 @@ export async function enqueue(input: {
   row: Transaction;
   draft?: TransactionDraft | null;
   offlineCreated: boolean;
-  replace?: { key: string; revision: string };
+  replace?: {
+    key: string;
+    revision: string;
+    baseline: Transaction | null;
+    empty: boolean;
+  };
   afterAttempt?: { pending: PendingMutation; original: Transaction };
   dependsOn?: string;
 }): Promise<OutboxEntry> {
@@ -162,7 +167,33 @@ export async function enqueue(input: {
             throw new OfflineStateError(
               "This pending expense changed in another tab. Your edited draft has been kept; review the current pending expense before replacing it.",
             );
+          entry.dependsOn = original.dependsOn;
+          if (entry.draft)
+            entry.draft = {
+              ...entry.draft,
+              original: input.replace.baseline,
+              pending: entry.pending,
+            };
           await result(store.delete(original.key));
+          if (input.replace.empty) {
+            await result(
+              tx
+                .objectStore("receipts")
+                .put(
+                  {
+                    version: 1,
+                    budgetId: entry.budgetId,
+                    key: entry.key,
+                    at: new Date().toISOString(),
+                    message: "Unsent edit removed.",
+                    pending: entry.pending,
+                    draft: entry.draft,
+                  } satisfies DeliveryReceipt,
+                  entry.key,
+                ),
+            );
+            return entry;
+          }
         } else {
           const receipt = original
             ? undefined

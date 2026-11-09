@@ -45,6 +45,7 @@ export interface TransactionDraft {
     revision: string;
     row: Transaction;
     pending: PendingMutation;
+    baseline?: Transaction | null;
   };
 }
 export type SavedAction = PendingMutation & {
@@ -187,6 +188,11 @@ function validDraft(value: unknown, budget: string): value is TransactionDraft {
       !isObject(value.replaces.row) ||
       value.replaces.row.id !== value.id ||
       !Number.isSafeInteger(value.replaces.row.amount) ||
+      (value.replaces.baseline !== undefined &&
+        value.replaces.baseline !== null &&
+        (!isObject(value.replaces.baseline) ||
+          value.replaces.baseline.id !== value.id ||
+          !Number.isSafeInteger(value.replaces.baseline.amount))) ||
       !validPending(value.replaces.pending, budget) ||
       value.replaces.pending.key !== value.replaces.key)
   )

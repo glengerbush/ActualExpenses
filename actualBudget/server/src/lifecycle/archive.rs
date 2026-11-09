@@ -17,6 +17,7 @@ use zip::{ZipArchive, ZipWriter, write::SimpleFileOptions};
 pub const MAX_ARCHIVE: usize = 64 * 1024 * 1024;
 const MAX_EXPANDED: usize = 256 * 1024 * 1024;
 pub const TABLES: &[&str] = &[
+    "account_groups",
     "accounts",
     "payees",
     "categories",
@@ -135,7 +136,7 @@ pub fn capture(db: &Connection, budget: &str) -> Result<Vec<u8>, Error> {
     let body = serde_json::to_vec(&state).map_err(Error::internal)?;
     let mut entries = BTreeMap::from([("budget.json".to_owned(), body)]);
     entries.extend(blobs);
-    let manifest = json!({"format":"actualBudget","version":1,"schema_version":6,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
+    let manifest = json!({"format":"actualBudget","version":1,"schema_version":7,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
     if entries.len() + 1 > 1000
         || entries.values().map(Vec::len).sum::<usize>() + manifest.to_string().len() > MAX_EXPANDED
     {
@@ -211,7 +212,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || manifest["schema_version"] != 6
+        || !matches!(manifest["schema_version"].as_u64(), Some(6 | 7))
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }
@@ -229,12 +230,66 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             return Err(invalid("Archive checksum mismatch"));
         }
     }
-    let state: BudgetArchive = serde_json::from_slice(
+    let mut state: BudgetArchive = serde_json::from_slice(
         entries
             .get("budget.json")
             .ok_or_else(|| invalid("Missing budget data"))?,
     )
     .map_err(|_| invalid("Invalid budget state"))?;
+    // Schema 6 remains restorable. Only its exact old shape gains the new defaults.
+    if manifest["schema_version"] == 6 {
+        if state.tables.contains_key("account_groups") {
+            return Err(invalid("Unexpected schema 6 account groups"));
+        }
+        state.tables.insert(
+            "account_groups".into(),
+            Table {
+                columns: ["budget_id", "id", "name", "sort_order", "tombstone"]
+                    .iter()
+                    .map(|s| s.to_string())
+                    .collect(),
+                rows: vec![],
+            },
+        );
+        let accounts = state
+            .tables
+            .get_mut("accounts")
+            .ok_or_else(|| invalid("Missing accounts"))?;
+        let expected = ["budget_id", "id", "name", "notes", "off_budget", "closed"];
+        if accounts
+            .columns
+            .iter()
+            .map(String::as_str)
+            .collect::<Vec<_>>()
+            != expected
+        {
+            return Err(invalid("Unsupported schema 6 accounts"));
+        }
+        if accounts.rows.iter().any(|row| row.len() != 6) {
+            return Err(invalid("Invalid schema 6 account row"));
+        }
+        accounts.columns.extend(
+            ["group_id", "sort_order", "tombstone"]
+                .iter()
+                .map(|s| s.to_string()),
+        );
+        let mut order: Vec<_> = accounts
+            .rows
+            .iter()
+            .enumerate()
+            .map(|(i, row)| {
+                (
+                    i,
+                    row[2].as_str().unwrap_or("").to_owned(),
+                    row[1].as_str().unwrap_or("").to_owned(),
+                )
+            })
+            .collect();
+        order.sort_by(|a, b| (&a.1, &a.2).cmp(&(&b.1, &b.2)));
+        for (rank, (i, _, _)) in order.into_iter().enumerate() {
+            accounts.rows[i].extend([Value::Null, json!(rank), json!(0)]);
+        }
+    }
     if state.budget["id"] != manifest["budget_id"] {
         return Err(invalid("Budget identity differs from manifest"));
     }
@@ -383,7 +438,7 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
     Ok(())
 }
 pub fn validate_financial_state(db: &Connection, budget: &str) -> Result<(), Error> {
-    for table in ["accounts", "payees", "categories"] {
+    for table in ["accounts", "account_groups", "payees", "categories"] {
         let mut rows = db.prepare(&format!("SELECT id,name FROM {table} WHERE budget_id=?1"))?;
         for row in rows.query_map([budget], |r| {
             Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
@@ -392,6 +447,14 @@ pub fn validate_financial_state(db: &Connection, budget: &str) -> Result<(), Err
             crate::models::validate_id(&id).map_err(|e| invalid(e.message))?;
             validate_name(&name).map_err(|e| invalid(e.message))?;
         }
+    }
+    let invalid_groups:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM accounts a LEFT JOIN account_groups g ON g.budget_id=a.budget_id AND g.id=a.group_id WHERE a.budget_id=?1 AND a.group_id IS NOT NULL AND (g.id IS NULL OR g.tombstone=1))",[budget],|r|r.get(0))?;
+    if invalid_groups {
+        return Err(invalid("Invalid account group reference"));
+    }
+    let visible_deleted:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id WHERE t.budget_id=?1 AND t.tombstone=0 AND a.tombstone=1)",[budget],|r|r.get(0))?;
+    if visible_deleted {
+        return Err(invalid("Deleted account has visible history"));
     }
     let mut notes = db.prepare("SELECT notes FROM accounts WHERE budget_id=?1")?;
     for text in notes.query_map([budget], |r| r.get::<_, String>(0))? {

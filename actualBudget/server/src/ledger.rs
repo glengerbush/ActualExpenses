@@ -100,7 +100,7 @@ fn checked(value: i128) -> Result<i64, Error> {
 pub fn account_exists(db: &Connection, budget: &str, account: &str) -> Result<(), Error> {
     store::require_budget(db, budget)?;
     if !db.query_row(
-        "SELECT EXISTS(SELECT 1 FROM accounts WHERE budget_id=?1 AND id=?2)",
+        "SELECT EXISTS(SELECT 1 FROM accounts WHERE budget_id=?1 AND id=?2 AND tombstone=0)",
         params![budget, account],
         |r| r.get::<_, bool>(0),
     )? {

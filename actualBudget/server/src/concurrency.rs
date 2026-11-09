@@ -97,7 +97,11 @@ pub fn header(headers: &HeaderMap) -> Result<Option<String>, Error> {
         })
         .transpose()
 }
-fn clock(db: &Connection, budget: &str, proposed: Option<&str>) -> Result<String, Error> {
+pub(crate) fn clock(
+    db: &Connection,
+    budget: &str,
+    proposed: Option<&str>,
+) -> Result<String, Error> {
     let now = now_ms()?;
     let (last, node): (String, String) = db.query_row(
         "SELECT clock,node FROM budget_sync WHERE budget_id=?1",
@@ -505,7 +509,7 @@ pub fn read_changes(
     };
     let mut data = vec![];
     for (entity, id, _) in rows {
-        let value=match entity.as_str(){"transactions"=>if deleted(db,budget,&id)?{tombstone(db,budget,&id)?}else{ledger::get(db,budget,&id)?},"accounts"=>db.query_row("SELECT a.name,a.notes,a.off_budget,a.closed,COALESCE(t.total,0) FROM accounts a LEFT JOIN ledger_totals t ON t.budget_id=a.budget_id AND t.account_id=a.id WHERE a.budget_id=?1 AND a.id=?2",params![budget,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?,"notes":r.get::<_,String>(1)?,"off_budget":r.get::<_,bool>(2)?,"closed":r.get::<_,bool>(3)?,"balance":r.get::<_,i64>(4)?})))?,"preferences"=>crate::preferences::get_preferences(db,budget)?,"payees"=>db.query_row("SELECT name FROM payees WHERE budget_id=?1 AND id=?2",params![budget,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?})))?,"categories"=>db.query_row("SELECT name,is_income FROM categories WHERE budget_id=?1 AND id=?2",params![budget,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?,"is_income":r.get::<_,bool>(1)?})))?,_=>return Err(Error::internal("Unknown change entity"))};
+        let value=match entity.as_str(){"transactions"=>if deleted(db,budget,&id)?{tombstone(db,budget,&id)?}else{ledger::get(db,budget,&id)?},"accounts"=>crate::accounts::get(db,budget,&id)?,"account_groups"=>crate::accounts::get_group(db,budget,&id)?,"preferences"=>crate::preferences::get_preferences(db,budget)?,"payees"=>db.query_row("SELECT name FROM payees WHERE budget_id=?1 AND id=?2",params![budget,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?})))?,"categories"=>db.query_row("SELECT name,is_income FROM categories WHERE budget_id=?1 AND id=?2",params![budget,id],|r|Ok(json!({"id":id,"name":r.get::<_,String>(0)?,"is_income":r.get::<_,bool>(1)?})))?,_=>return Err(Error::internal("Unknown change entity"))};
         data.push(json!({"entity":entity,"id":id,"data":value}));
     }
     Ok(json!({"data":data,"next_cursor":next,"has_more":more}))

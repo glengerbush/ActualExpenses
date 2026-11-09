@@ -6,12 +6,23 @@
     account,
     budgetId,
     onchanged,
-  }: { account: Account; budgetId: string; onchanged: () => Promise<void> } =
-    $props();
+    onorganize,
+  }: {
+    account: Account;
+    budgetId: string;
+    onchanged: () => Promise<void>;
+    onorganize: () => void;
+  } = $props();
 </script>
 
 <section aria-labelledby="account-title">
-  <h1 id="account-title">{account.name}</h1>
+  <div class="page-heading">
+    <h1 id="account-title">{account.name}</h1>
+    <button onclick={onorganize}>{t("Organize accounts")}</button>
+  </div>
+  {#if account.closed}<p role="status">
+      {t("Closed account. History is retained.")}
+    </p>{/if}
   <p class="muted">{account.off_budget ? t("Off budget") : t("On budget")}</p>
   {#if account.notes}<dl class="account-summary">
       <div>

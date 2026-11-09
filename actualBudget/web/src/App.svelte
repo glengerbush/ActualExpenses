@@ -21,12 +21,16 @@
     saveSelection,
     type Budget,
     type Account,
+    type AccountGroup,
   } from "./lib/api";
   import { formatAmount } from "./lib/money";
   import { readDraft } from "./lib/drafts";
   import BudgetForm from "./lib/BudgetForm.svelte";
   import AccountForm from "./lib/AccountForm.svelte";
   import AccountView from "./lib/AccountView.svelte";
+  import AccountManagement from "./lib/AccountManagement.svelte";
+  import AccountNavigation from "./lib/AccountNavigation.svelte";
+  import { readAccountDraft, sortedAccounts } from "./lib/account-actions";
   import Register from "./lib/Register.svelte";
   import Settings from "./lib/Settings.svelte";
   import ThemeRecovery from "./lib/themes/ThemeRecovery.svelte";
@@ -44,12 +48,14 @@
   let navigation = 0;
   let budgets = $state.raw<Budget[]>([]);
   let accounts = $state.raw<Account[]>([]);
+  let accountGroups = $state.raw<AccountGroup[]>([]);
   let budget = $state.raw<Budget | null>(null);
   let account = $state.raw<Account | null>(null);
   let loading = $state(true);
   let error = $state("");
   let recoveryError = $state("");
   let form = $state<
+    | "organize"
     | "budget"
     | "account"
     | "settings"
@@ -144,7 +150,8 @@
       });
       if (generation !== navigation) return;
       if (cached) {
-        accounts = cached.accounts;
+        accounts = sortedAccounts(cached.accounts);
+        accountGroups = cached.account_groups ?? [];
         account = accounts.find((item) => item.id === accountId) ?? null;
         preferences.useCachedBudget(
           value.id,
@@ -157,6 +164,11 @@
       }
       saveSelection(value.id, account?.id ?? accountId);
       try {
+        if (readAccountDraft(value.id)) {
+          form = "organize";
+          loading = false;
+          return;
+        }
         if (readDraft({ kind: "account", budget_id: value.id })) {
           form = "account";
           loading = false;
@@ -179,7 +191,8 @@
       }
       const fresh = await refreshBudget(value.id);
       if (generation !== navigation) return;
-      accounts = fresh.accounts;
+      accounts = sortedAccounts(fresh.accounts);
+      accountGroups = fresh.account_groups ?? [];
       account = accounts.find((item) => item.id === accountId) ?? null;
       preferences.useCachedBudget(
         value.id,
@@ -241,6 +254,7 @@
   }
   async function showForm(
     value:
+      | "organize"
       | "budget"
       | "account"
       | "settings"
@@ -301,7 +315,8 @@
     const generation = navigation;
     const updated = await refreshBudget(budgetId);
     if (budget?.id !== budgetId || generation !== navigation) return;
-    accounts = updated.accounts;
+    accounts = sortedAccounts(updated.accounts);
+    accountGroups = updated.account_groups ?? [];
     account = updated.accounts.find((item) => item.id === account?.id) ?? null;
     cachedAt = updated.savedAt;
   }
@@ -338,25 +353,15 @@
           ? t("Tracking budget")
           : t("Envelope budget")}
       </p>
-      <nav aria-label={t("Accounts")}>
-        <button
-          class={{ current: !account && !form }}
-          aria-current={!account && !form ? "page" : undefined}
-          onclick={() => selectAccount(null)}
-          disabled={!!form || loading}>{t("All accounts")}</button
-        >
-        {#each accounts as item (item.id)}<button
-            class={{ current: account?.id === item.id && !form }}
-            aria-current={account?.id === item.id && !form ? "page" : undefined}
-            onclick={() => selectAccount(item)}
-            disabled={!!form || loading}
-            ><span>{item.name}</span><span class="nav-amount"
-              >{preferences.hasUsableShared
-                ? formatAmount(item.balance)
-                : "—"}</span
-            ></button
-          >{/each}
-      </nav>
+      {#key budget.id}<AccountNavigation
+          budgetId={budget.id}
+          {accounts}
+          groups={accountGroups}
+          selectedId={account?.id ?? null}
+          disabled={!!form || loading}
+          onselect={selectAccount}
+        />{/key}
+
       <button
         class={{ current: form === "settings" }}
         aria-current={form === "settings" ? "page" : undefined}
@@ -450,6 +455,12 @@
         oncreated={budgetCreated}
         oncancel={() => showForm(null)}
       />
+    {:else if form === "organize" && budget}{#key budget.id}<AccountManagement
+          budgetId={budget.id}
+          selectedId={account?.id ?? ""}
+          onchanged={refreshAccounts}
+          onclose={() => showForm(null)}
+        />{/key}
     {:else if form === "account" && budget}<AccountForm
         budgetId={budget.id}
         oncreated={accountCreated}
@@ -546,6 +557,7 @@
         {account}
         budgetId={budget.id}
         onchanged={refreshAccounts}
+        onorganize={() => showForm("organize")}
       />
     {:else}
       <div class="page-heading">
@@ -553,6 +565,11 @@
           <h1>{t("Accounts")}</h1>
           <p class="muted">{budget.name}</p>
         </div>
+        <button
+          onclick={() => showForm("organize")}
+          disabled={disconnected || !compatible}
+          >{t("Organize accounts")}</button
+        >
         <button
           class="primary"
           onclick={() => showForm("account")}
@@ -574,7 +591,10 @@
                   ><td
                     ><button
                       class="text-button"
-                      onclick={() => selectAccount(item)}>{item.name}</button
+                      onclick={() => selectAccount(item)}
+                      >{item.name}{item.closed
+                        ? " — " + t("Closed")
+                        : ""}</button
                     ></td
                   ><td class="muted"
                     >{item.off_budget ? t("Off budget") : t("On budget")}</td

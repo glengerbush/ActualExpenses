@@ -68,9 +68,15 @@ pub fn require_budget(db: &Connection, id: &str) -> Result<(), Error> {
 }
 pub fn accounts(db: &Connection, budget: &str) -> Result<Value, Error> {
     require_budget(db, budget)?;
-    let mut stmt=db.prepare("SELECT a.id,a.name,a.notes,a.off_budget,a.closed,COALESCE(t.total,0) FROM accounts a LEFT JOIN ledger_totals t ON t.budget_id=a.budget_id AND t.account_id=a.id WHERE a.budget_id=?1 ORDER BY a.name,a.id")?;
-    let rows=stmt.query_map([budget],|row|Ok(json!({"id":row.get::<_,String>(0)?,"name":row.get::<_,String>(1)?,"notes":row.get::<_,String>(2)?,"off_budget":row.get::<_,bool>(3)?,"closed":row.get::<_,bool>(4)?,"balance":row.get::<_,i64>(5)?})))?;
-    Ok(json!(rows.collect::<Result<Vec<_>, _>>()?))
+    let mut stmt=db.prepare("SELECT id FROM accounts WHERE budget_id=?1 AND tombstone=0 ORDER BY off_budget,sort_order,id")?;
+    let ids = stmt
+        .query_map([budget], |r| r.get::<_, String>(0))?
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(json!(
+        ids.iter()
+            .map(|id| crate::accounts::get(db, budget, id))
+            .collect::<Result<Vec<_>, _>>()?
+    ))
 }
 pub fn create_budget(db: &Connection, input: NewBudget) -> Result<Value, Error> {
     let tx = db;
@@ -102,7 +108,7 @@ pub fn create_account(db: &Connection, budget: &str, input: NewAccount) -> Resul
         return Err(Error::conflict("Account ID already exists"));
     }
     tx.execute(
-        "INSERT INTO accounts(budget_id,id,name,notes,off_budget) VALUES(?1,?2,?3,?4,?5)",
+        "INSERT INTO accounts(budget_id,id,name,notes,off_budget,sort_order) VALUES(?1,?2,?3,?4,?5,(SELECT COALESCE(MAX(sort_order),-1)+1 FROM accounts WHERE budget_id=?1))",
         params![budget, input.id, input.name, input.notes, input.off_budget],
     )?;
     if input.opening_balance != 0 {
@@ -129,9 +135,7 @@ pub fn create_account(db: &Connection, budget: &str, input: NewAccount) -> Resul
     }
     crate::ledger::refresh_account(db, budget, &input.id)?;
     crate::ledger::validate_budget_total(db, budget)?;
-    Ok(
-        json!({"id":input.id,"name":input.name,"notes":input.notes,"off_budget":input.off_budget,"closed":false,"balance":input.opening_balance}),
-    )
+    crate::accounts::get(db, budget, &input.id)
 }
 
 pub fn write(

@@ -109,7 +109,7 @@ fn budget_and_exact_opening_balance_survive_process_restart_without_login() {
     let accounts: Value = server.get(&accounts).json().unwrap();
     assert_eq!(
         accounts["data"][0],
-        json!({"id":ACCOUNT,"name":"Spending","notes":"Cash expenses","off_budget":false,"closed":false,"balance":-12345})
+        json!({"id":ACCOUNT,"name":"Spending","notes":"Cash expenses","off_budget":false,"closed":false,"balance":-12345,"group_id":null,"sort_order":0,"deleted":false,"field_versions":{}})
     );
 }
 #[test]
@@ -869,7 +869,13 @@ fn schema_one_upgrade_preserves_data_replay_and_restorable_backup() {
     assert_eq!(original["data"][0]["notes"], "Schema one data");
     let replay=server.post(&path,"account",json!({"id":account,"name":"Preserved account","opening_balance":-12345,"opening_date":"2024-02-29","notes":"Schema one data"}));
     assert_eq!(replay.status(), 201);
-    assert_eq!(replay.json::<Value>().unwrap()["data"], original["data"][0]);
+    // Historical receipts stay byte-equivalent; fresh reads include schema 7 metadata.
+    assert_eq!(
+        replay.json::<Value>().unwrap()["data"],
+        json!({"id":account,"name":"Preserved account","notes":"Schema one data","off_budget":false,"closed":false,"balance":-12345})
+    );
+    assert_eq!(original["data"][0]["group_id"], Value::Null);
+    assert_eq!(original["data"][0]["deleted"], false);
     let backups = std::fs::read_dir(server.data.path().join("backups"))
         .unwrap()
         .collect::<Result<Vec<_>, _>>()

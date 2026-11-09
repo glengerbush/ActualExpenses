@@ -12,9 +12,10 @@ import { setTimeout as delay, setImmediate as yieldLoop } from 'node:timers/prom
 
 const requireOracle = createRequire(new URL('../../actualExpenses/tools/compatibility/package.json', import.meta.url));
 const api = requireOracle('@actual-app/api');
+const accountFixture = process.argv.includes('--accounts');
 let root;
-const archivePath = fileURLToPath(new URL('../tests/fixtures/import-26.10.0.zip', import.meta.url));
-const manifestPath = fileURLToPath(new URL('../tests/fixtures/import-26.10.0.json', import.meta.url));
+const archivePath = fileURLToPath(new URL(accountFixture ? '../tests/fixtures/import-accounts-26.10.0.zip' : '../tests/fixtures/import-26.10.0.zip', import.meta.url));
+const manifestPath = fileURLToPath(new URL(accountFixture ? '../tests/fixtures/import-accounts-26.10.0.json' : '../tests/fixtures/import-26.10.0.json', import.meta.url));
 const inspector = fileURLToPath(new URL('./inspect-actual-archive.py', import.meta.url));
 const unsupportedArchivePath = archivePath.replace('import-26', 'import-unsupported-rule-26');
 const unsupportedManifestPath = manifestPath.replace('import-26', 'import-unsupported-rule-26');
@@ -41,6 +42,7 @@ async function publicSnapshot() {
   }
   const sorted = rows => rows.sort((a, b) => a.id.localeCompare(b.id));
   return {
+    ...(accountFixture ? { account_groups: await api.getAccountGroups(), notes: await Promise.all(accounts.map(account => api.getNote(account.id))) } : {}),
     accounts, transactions: sorted(transactions), balances,
     payees: sorted(await api.getPayees()), categories: sorted(await api.getCategories()),
     category_groups: sorted(await api.getCategoryGroups()), preferences: await api.getPreferences(), rules: sorted(await api.getRules()),
@@ -101,7 +103,7 @@ async function verifyPublicImport(archive, expected) {
 }
 try {
   if (check) {
-    for (const [archive, manifest] of [[archivePath, manifestPath], [unsupportedArchivePath, unsupportedManifestPath]]) {
+    for (const [archive, manifest] of (accountFixture ? [[archivePath, manifestPath]] : [[archivePath, manifestPath], [unsupportedArchivePath, unsupportedManifestPath]])) {
       const expected = JSON.parse(await readFile(manifest, 'utf8'));
       assert.deepEqual(inspect(archive), expected.inspection, 'Archive bytes, source schema, IDs, clocks or retained records changed');
       await verifyPublicImport(await readFile(archive), expected);
@@ -143,6 +145,21 @@ try {
       assert.ok(performance.now() < deadline, 'Public API mutation visibility timed out');
       await yieldLoop();
     }
+    if (accountFixture) {
+      const group = await api.createAccountGroup({ name: 'Daily accounts' });
+      const removedGroup = await api.createAccountGroup({ name: 'Removed group' });
+      await api.updateAccount(spending, { name: 'Daily spending', account_group_id: group });
+      await api.updateAccount(reserve, { account_group_id: group });
+      await api.updateNote(spending, 'Imported account note\nRetain history');
+      const closed = await api.createAccount({ name: 'Closed history', offbudget: false }, 0);
+      await api.addTransactions(closed, [{ id: id(21), amount: 2500, date: '2026-01-01', cleared: true }, { id: id(22), amount: -2500, date: '2026-01-02', cleared: true }]);
+      await api.closeAccount(closed);
+      const empty = await api.createAccount({ name: 'Deleted empty', offbudget: true }, 0);
+      await api.closeAccount(empty);
+      await api.deleteAccountGroup(removedGroup);
+      await api.setPreference('flags.newSidebarUI', 'true');
+      await api.sync();
+    }
     const expected = { oracle: '@actual-app/api@26.10.0 + @actual-app/sync-server@26.10.0', source_commit: '2bebdbaae0b701120a8cad9d56aafd64fa04c577', generated_at: new Date().toISOString(), public: await publicSnapshot() };
     const generated = join(root, 'generated.zip');
     const archive = await api.exportBudget();
@@ -152,6 +169,7 @@ try {
     assert.ok(expected.inspection.latest_field_clocks.some(row => row.row === id(4) && row.column === 'tombstone' && row.value === 'N:1'), 'Published deletion clock required');
     assert.equal(expected.public.balances.find(row => row.account_id === spending).total, 31434);
     assert.equal(expected.public.balances.find(row => row.account_id === reserve).total, -5000);
+    if (!accountFixture) {
     // A genuine later-feature record proves the limited importer must report and
     // retain unsupported data instead of silently losing it.
     await api.createRule({ stage: null, conditionsOp: 'and', conditions: [{ field: 'payee', op: 'is', value: payee }], actions: [{ op: 'set', field: 'category', value: category }] });
@@ -166,6 +184,7 @@ try {
     await verifyPublicImport(unsupportedArchive, unsupported);
     await writeFile(unsupportedArchivePath, unsupportedArchive);
     await writeFile(unsupportedManifestPath, JSON.stringify(unsupported, null, 2) + '\n');
+    } else await verifyPublicImport(archive, expected);
     await writeFile(archivePath, archive);
     await writeFile(manifestPath, JSON.stringify(expected, null, 2) + '\n');
     console.log('Wrote public export fixture and independent public financial/identity/HLC roundtrip manifest');

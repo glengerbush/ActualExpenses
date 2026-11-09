@@ -60,6 +60,9 @@ try {
   await api.addTransactions(spending, [{ id: alias('09000000-0000-4000-8000-000000000005', 'transaction-5'), date: '2026-01-02', amount: -8750, cleared: false }]);
   await api.closeAccount(spending);
   await snapshot('zero-balance-with-history-closed');
+  await api.deleteAccount(spending);
+  assert.equal((await api.getAccounts()).find(a => a.id === spending)?.closed, true, 'Deleting an already-closed account is a no-op');
+  assert.equal((await api.getTransactions(spending)).length, 3);
   await api.reopenAccount(spending);
   await snapshot('reopened-with-history');
   await api.closeAccount(empty);

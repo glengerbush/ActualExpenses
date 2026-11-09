@@ -1,4 +1,10 @@
-import { request, RequestError, type Account, type Budget } from "../api";
+import {
+  request,
+  RequestError,
+  type Account,
+  type AccountGroup,
+  type Budget,
+} from "../api";
 import { changes, type Reference, type RegisterPage } from "../register-api";
 import type { SharedPreferences } from "../preferences/types";
 import { validShared } from "../preferences/validation";
@@ -21,6 +27,7 @@ export interface BudgetCache {
   origin: string;
   budgetId: string;
   accounts: Account[];
+  account_groups?: AccountGroup[];
   payees: Reference[];
   categories: Reference[];
   preferences: SharedPreferences;
@@ -152,11 +159,11 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
       data: { snapshot: string; epoch: string; generation: number };
     }>(`/budgets/${id}/checkpoint`);
     const cached = await readBudget(id).catch(() => null);
-    if (cached?.snapshot === checkpoint.snapshot) {
+    if (cached?.account_groups && cached.snapshot === checkpoint.snapshot) {
       setReachable(true);
       return cached;
     }
-    if (cached && cached.epoch === checkpoint.epoch) {
+    if (cached?.account_groups && cached.epoch === checkpoint.epoch) {
       try {
         const next = structuredClone(cached);
         let complete = false;
@@ -168,9 +175,12 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
                 throw new Error("Invalid changed preferences");
               next.preferences = change.data;
             } else if (
-              ["accounts", "payees", "categories"].includes(change.entity)
+              ["accounts", "account_groups", "payees", "categories"].includes(
+                change.entity,
+              )
             ) {
-              const key = change.entity as "accounts" | "payees" | "categories";
+              const key = change.entity as
+                "accounts" | "account_groups" | "payees" | "categories";
               const value = change.data as Account & { deleted?: boolean };
               if (
                 !value ||
@@ -209,16 +219,20 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
       }
     }
     try {
-      const [accounts, payees, categories, prefs] = await Promise.all([
-        request<{ data: Account[] }>(
-          `/budgets/${id}/accounts?${new URLSearchParams({ snapshot: checkpoint.snapshot })}`,
-        ).then((response) => response.data),
-        referencePages<Reference>(id, "payees", checkpoint.snapshot),
-        referencePages<Reference>(id, "categories", checkpoint.snapshot),
-        request<{ data: SharedPreferences }>(
-          `/budgets/${id}/preferences?${new URLSearchParams({ snapshot: checkpoint.snapshot })}`,
-        ),
-      ]);
+      const [accounts, payees, categories, prefs, account_groups] =
+        await Promise.all([
+          request<{ data: Account[] }>(
+            `/budgets/${id}/accounts?${new URLSearchParams({ snapshot: checkpoint.snapshot })}`,
+          ).then((response) => response.data),
+          referencePages<Reference>(id, "payees", checkpoint.snapshot),
+          referencePages<Reference>(id, "categories", checkpoint.snapshot),
+          request<{ data: SharedPreferences }>(
+            `/budgets/${id}/preferences?${new URLSearchParams({ snapshot: checkpoint.snapshot })}`,
+          ),
+          request<{ data: AccountGroup[] }>(
+            `/budgets/${id}/account-groups?${new URLSearchParams({ snapshot: checkpoint.snapshot })}`,
+          ).then((response) => response.data),
+        ]);
       if (!validShared(prefs.data))
         throw new Error("The server returned invalid display preferences.");
       setReachable(true);
@@ -227,6 +241,7 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
         origin: location.origin,
         budgetId: id,
         accounts,
+        account_groups,
         payees,
         categories,
         preferences: prefs.data,

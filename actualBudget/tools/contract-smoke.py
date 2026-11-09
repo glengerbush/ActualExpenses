@@ -84,6 +84,17 @@ def main():
             check(accounts, account_template)
             check(f"{budgets}/{uuid.uuid4()}/accounts", account_template, expected=404)
             check(f"{budgets}/{budget_id}/transactions?account_id={account_id}", budgets + "/{budget}/transactions")
+            group_path = f"{budgets}/{budget_id}/account-groups"
+            group_template = budgets + "/{budget}/account-groups"
+            group_id = str(uuid.uuid4())
+            check(group_path, group_template, "POST", {"id": group_id, "name": "Account group"}, {"Idempotency-Key": "group"}, 201)
+            check(group_path, group_template)
+            check(group_path + "/" + group_id, group_template + "/{id}", "PATCH", {"name": "Renamed group"}, {"Idempotency-Key": "group-name"})
+            check(accounts + "/" + account_id, account_template + "/{id}", "PATCH", {"notes": "Account contract", "group_id": group_id}, {"Idempotency-Key": "account-edit"})
+            check(accounts + "/" + account_id, account_template + "/{id}")
+            check(accounts + "/" + account_id + "/move", account_template + "/{id}/move", "POST", {"before_id": None}, {"Idempotency-Key": "account-move"})
+            check(group_path + "/" + group_id + "/move", group_template + "/{id}/move", "POST", {"before_id": None}, {"Idempotency-Key": "group-move"})
+            check(group_path + "/" + group_id, group_template + "/{id}", "DELETE", {}, {"Idempotency-Key": "group-delete"})
             references = {}
             for kind in ("payees", "categories"):
                 path = f"{budgets}/{budget_id}/{kind}"

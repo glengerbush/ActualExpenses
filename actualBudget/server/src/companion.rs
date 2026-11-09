@@ -71,7 +71,7 @@ async fn view(
             let snapshot = concurrency::cursor(&read, &budget)?;
             concurrency::check_snapshot(&read, &budget, query.snapshot.as_deref())?;
             let exists: bool = read.query_row(
-                "SELECT EXISTS(SELECT 1 FROM accounts WHERE budget_id=?1 AND id=?2 AND closed=0)",
+                "SELECT EXISTS(SELECT 1 FROM accounts WHERE budget_id=?1 AND id=?2 AND closed=0 AND tombstone=0)",
                 params![budget, query.account_id],
                 |row| row.get(0),
             )?;

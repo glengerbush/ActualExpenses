@@ -1,0 +1,56 @@
+{
+  "source": "Public schema-6 actualBudget server backup download before ticket09; fresh disposable dataset",
+  "source_binary_sha256": "6bd180f67500b62cecfe8da4ab297bd0e88810bf26d1b10333594738d05adadc",
+  "server_info": {
+    "api_version": 1,
+    "authentication": "none",
+    "capabilities": [
+      "budgets",
+      "accounts",
+      "opening_balances",
+      "idempotency",
+      "transactions",
+      "payees",
+      "categories",
+      "amount_calculator",
+      "preferences",
+      "field_ordering",
+      "change_cursors",
+      "transaction_cancellation",
+      "companion_expenses",
+      "budget_epoch_preconditions",
+      "budget_archives",
+      "budget_lifecycle_cancellation",
+      "budget_duplication",
+      "custom_themes",
+      "actual_imports"
+    ],
+    "name": "actualBudget",
+    "openapi": "/api/v1/openapi.json",
+    "version": "0.1.0"
+  },
+  "budget_id": "96000000-0000-4000-8000-000000000001",
+  "account_id": "96000000-0000-4000-8000-000000000002",
+  "accounts": [
+    {
+      "balance": 12345,
+      "closed": false,
+      "id": "96000000-0000-4000-8000-000000000002",
+      "name": "Legacy spending",
+      "notes": "Schema six account note",
+      "off_budget": false
+    }
+  ],
+  "manifest": {
+    "budget_id": "96000000-0000-4000-8000-000000000001",
+    "entries": {
+      "budget.json": {
+        "bytes": 4471,
+        "sha256": "ee7acd8401f6c3d7600fcd9bfcad18b1602a412a30bd8d005e7053f9ba6e47e1"
+      }
+    },
+    "format": "actualBudget",
+    "schema_version": 6,
+    "version": 1
+  }
+}

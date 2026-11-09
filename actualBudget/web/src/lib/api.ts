@@ -12,6 +12,17 @@ export interface Account {
   closed: boolean;
   balance: number;
   notes?: string;
+  group_id?: string | null;
+  sort_order?: number;
+  deleted?: boolean;
+  field_versions?: Record<string, string>;
+}
+export interface AccountGroup {
+  id: string;
+  name: string;
+  sort_order: number;
+  deleted?: boolean;
+  field_versions?: Record<string, string>;
 }
 export interface NewAccount {
   id: string;

@@ -270,6 +270,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
     let mut counts = Map::new();
     let mut requirements = Vec::new();
     const LOADED: &[&str] = &[
+        "account_groups",
         "accounts",
         "transactions",
         "payees",
@@ -285,7 +286,6 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
     const NONBLOCKING: &[&str] = &[
         "__meta__",
         "__migrations__",
-        "account_groups",
         "category_groups",
         "category_mapping",
         "payee_mapping",
@@ -342,6 +342,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             source.insert(table.clone(), json!(rows(&db, table)?));
         }
         if ![
+            "account_groups",
             "accounts",
             "transactions",
             "payees",
@@ -377,7 +378,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         "Additional archive entries require explicit conversion; original bytes retained",
     );
     let source = Value::Object(source);
-    for table in ["category_groups", "preferences", "notes"] {
+    for table in ["category_groups", "account_groups", "preferences", "notes"] {
         let mut identities = BTreeSet::new();
         for row in array(&source, table) {
             if !identities.insert(text(row, "id")?) {
@@ -385,7 +386,45 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             }
         }
     }
-    let mut converted = json!({"name":name,"budget_type":"envelope","accounts":[],"payees":[],"categories":[],"transactions":[],"clocks":[]});
+    let mut converted = json!({"name":name,"budget_type":"envelope","account_groups":[],"accounts":[],"payees":[],"categories":[],"transactions":[],"clocks":[]});
+    // Actual stores fractional ordering. Preserve its order with exact integer ranks.
+    let ranked = |table: &str| -> Result<BTreeMap<String, i64>, Error> {
+        let mut rows = array(&source, table).iter().collect::<Vec<_>>();
+        if rows
+            .iter()
+            .any(|r| !r["sort_order"].is_null() && r["sort_order"].as_f64().is_none())
+        {
+            return Err(invalid("Invalid account ordering"));
+        }
+        rows.sort_by(|a, b| {
+            a["sort_order"]
+                .as_f64()
+                .partial_cmp(&b["sort_order"].as_f64())
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a["id"].as_str().cmp(&b["id"].as_str()))
+        });
+        rows.into_iter()
+            .enumerate()
+            .map(|(i, r)| Ok((text(r, "id")?.to_owned(), i as i64)))
+            .collect()
+    };
+    let account_order = ranked("accounts")?;
+    let group_order = ranked("account_groups")?;
+    let mut live_groups = BTreeSet::new();
+    for row in array(&source, "account_groups") {
+        let id = text(row, "id")?;
+        validate_id(id).map_err(|_| invalid("Invalid account group identity"))?;
+        let name = text(row, "name")?;
+        validate_name(name).map_err(|_| invalid("Invalid account group name"))?;
+        let tombstone = flag(row, "tombstone")?;
+        if !tombstone {
+            live_groups.insert(id);
+        }
+        converted["account_groups"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({"id":id,"name":name,"sort_order":group_order[id],"tombstone":tombstone}));
+    }
     let mut accounts = BTreeMap::new();
     for row in array(&source, "accounts") {
         let id = text(row, "id")?;
@@ -405,7 +444,6 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             "bank",
             "account_id",
             "account_sync_source",
-            "account_group_id",
             "type",
             "last_sync",
             "last_reconciled",
@@ -416,16 +454,26 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         requirement(
             &mut requirements,
             "account_configuration",
-            usize::from(unsupported || flag(row, "tombstone")?),
+            usize::from(unsupported),
             true,
-            "Bank, group or deleted-account data needs its feature converter",
+            "Bank or reconciliation metadata needs its feature converter",
         );
         let notes = array(&source, "notes")
             .iter()
             .find(|note| note["id"] == id)
             .and_then(|note| note["note"].as_str())
             .unwrap_or("");
-        converted["accounts"].as_array_mut().unwrap().push(json!({"id":id,"name":name,"off_budget":flag(row,"offbudget")?,"closed":flag(row,"closed")?,"notes":notes}));
+        if notes.chars().count() > 10000 {
+            return Err(invalid("Account notes exceed 10000 characters"));
+        }
+        let group = match row["account_group_id"].as_str() {
+            Some(id) if live_groups.contains(id) => json!(id),
+            Some(id) if group_order.contains_key(id) => Value::Null,
+            Some(_) => return Err(invalid("Account group is missing")),
+            None if row["account_group_id"].is_null() => Value::Null,
+            _ => return Err(invalid("Invalid account group reference")),
+        };
+        converted["accounts"].as_array_mut().unwrap().push(json!({"id":id,"name":name,"off_budget":flag(row,"offbudget")?,"closed":flag(row,"closed")?,"notes":notes,"group_id":group,"sort_order":account_order[id],"tombstone":flag(row,"tombstone")?}));
     }
     let other_notes = array(&source, "notes")
         .iter()
@@ -629,6 +677,9 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         validate_date(&date).map_err(|_| invalid("Invalid transaction date"))?;
         let cleared = flag(row, "cleared")?;
         let tombstone = flag(row, "tombstone")?;
+        if !tombstone && flag(accounts[account], "tombstone")? {
+            return Err(invalid("Deleted account has visible transactions"));
+        }
         let unsupported = flag(row, "isParent")?
             || flag(row, "isChild")?
             || flag(row, "pending")?
@@ -734,8 +785,11 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
         "INSERT INTO budgets(id,name,budget_type) VALUES(?1,?2,?3)",
         params![budget, data["name"].as_str(), data["budget_type"].as_str()],
     )?;
+    for row in array(data, "account_groups") {
+        db.execute("INSERT INTO account_groups(budget_id,id,name,sort_order,tombstone) VALUES(?1,?2,?3,?4,?5)",params![budget,row["id"].as_str(),row["name"].as_str(),row["sort_order"].as_i64(),row["tombstone"].as_bool()])?;
+    }
     for row in array(data, "accounts") {
-        db.execute("INSERT INTO accounts(budget_id,id,name,notes,off_budget,closed) VALUES(?1,?2,?3,?4,?5,?6)",params![budget,row["id"].as_str(),row["name"].as_str(),row["notes"].as_str(),row["off_budget"].as_bool(),row["closed"].as_bool()])?;
+        db.execute("INSERT INTO accounts(budget_id,id,name,notes,off_budget,closed,group_id,sort_order,tombstone) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9)",params![budget,row["id"].as_str(),row["name"].as_str(),row["notes"].as_str(),row["off_budget"].as_bool(),row["closed"].as_bool(),row["group_id"].as_str(),row["sort_order"].as_i64().unwrap_or(0),row["tombstone"].as_bool().unwrap_or(false)])?;
     }
     for row in array(data, "payees") {
         db.execute(
@@ -786,7 +840,16 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
                 "amount" | "date" | "notes" | "cleared" | "reconciled" | "tombstone",
             ) => Some(field),
             ("accounts", "offbudget") => Some("off_budget"),
-            ("accounts", "name" | "closed")
+            ("accounts", "account_group_id") => Some("group_id"),
+            ("notes", "note")
+                if array(data, "accounts")
+                    .iter()
+                    .any(|a| a["id"] == row["row"]) =>
+            {
+                Some("notes")
+            }
+            ("account_groups", "name" | "sort_order" | "tombstone") => Some(field),
+            ("accounts", "name" | "closed" | "sort_order" | "tombstone")
             | ("payees", "name")
             | ("categories", "name" | "is_income") => Some(field),
             _ => None,
@@ -795,7 +858,11 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
             crate::concurrency::seed_field_version(
                 db,
                 budget,
-                dataset,
+                if dataset == "notes" {
+                    "accounts"
+                } else {
+                    dataset
+                },
                 row["row"].as_str().unwrap(),
                 mapped,
                 row["timestamp"].as_str().unwrap(),

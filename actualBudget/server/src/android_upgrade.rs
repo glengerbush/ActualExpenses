@@ -115,7 +115,8 @@ async fn operation(
                 if cancel {
                     return concurrency::canceled(db, &budget);
                 }
-                apply(db, &budget, &key, handoff)
+                let body = apply(db, &budget, &key, handoff)?;
+                Ok(json!({"response_status":200,"response_body":body}))
             })
         })
         .await

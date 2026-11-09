@@ -16,6 +16,7 @@ import selectors
 import subprocess
 import tempfile
 import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 
@@ -367,6 +368,39 @@ def main():
             check(rr+"/rules/rename-payee",rt+"/rename-payee","POST",{"snapshot":snapshot,"payee_id":rp,"imported_payees":["RAW SHOP"]},{"Idempotency-Key":"rule-rename"})
             snapshot=check(rr+"/rules",rt)["snapshot"]
             check(rr+"/rules/"+rid,rt+"/{id}","DELETE",{"snapshot":snapshot},{"Idempotency-Key":"delete-rule"})
+
+            # Genuine released Android work validates the public handoff contract,
+            # including dense order keys returned by the ordinary companion view.
+            legacy_dir = project / "tests/fixtures/android-upgrade"
+            legacy = json.loads((legacy_dir / "pending.state.json").read_text())
+            staged = check(imports + "/actual", imports + "/actual", "POST",
+                           (legacy_dir / "pending.zip").read_bytes(),
+                           {"Idempotency-Key": "android-source", "Content-Type": "application/zip"}, 201)["data"]
+            check(imports + "/" + staged["id"] + "/activate", imports + "/{id}/activate", "POST", {},
+                  {"Idempotency-Key": "android-activate"}, 201)
+            discovery = "/api/v1/android-upgrade/sources"
+            source = {"file_id": legacy["budget"]["fileId"], "group_id": legacy["budget"]["groupId"]}
+            candidates = check(discovery + "?" + urllib.parse.urlencode(source), discovery)["data"]
+            candidate = next(item for item in candidates if item["id"] == staged["budget_id"])
+            check(discovery + "?file_id=invalid&group_id=" + source["group_id"], discovery, expected=400)
+            upgrade_root = budgets + "/" + candidate["id"]
+            upgrade_path = upgrade_root + "/android-upgrade/operations"
+            upgrade_template = budgets + "/{budget}/android-upgrade/operations"
+            body_schema = contract["paths"][upgrade_template]["post"]["requestBody"]["content"]["application/json"]["schema"]
+            body_validator = Draft202012Validator({**body_schema, "components": contract["components"]}, format_checker=FormatChecker())
+            for operation in legacy["pending"]:
+                handoff = {"source": source, "epoch": candidate["epoch"], "operation": operation}
+                body_validator.validate(handoff)
+                headers = {"Idempotency-Key": operation["id"]}
+                check(upgrade_path, upgrade_template, "POST", handoff,
+                      {**headers, "X-Actual-Receipt-Only": "true"}, 404)
+                outcome = check(upgrade_path, upgrade_template, "POST", handoff, headers)
+                replay = check(upgrade_path, upgrade_template, "POST", handoff,
+                               {**headers, "X-Actual-Receipt-Only": "true"})
+                assert replay == outcome, "Original operation receipt changed"
+            check(upgrade_root + "/companion?account_id=" + legacy["accountId"], budgets + "/{budget}/companion")
+            check(upgrade_path, upgrade_template, "POST", handoff,
+                  {**headers, "X-Actual-Edit-Clock": "2026-11-08T23:50:10.000Z-0000-bbbbbbbbbbbbbbbb"}, 400)
             print("PASS: served OpenAPI schemas validate real success, validation, conflict, origin and missing-resource responses")
         finally:
             process.terminate()

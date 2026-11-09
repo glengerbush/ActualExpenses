@@ -150,6 +150,9 @@ fn legacy_identity_maps_only_exact_source_and_each_field_keeps_original_order() 
     let response = server.post(&path, "10000000-0000-4000-8000-000000000020", body.clone());
     assert_eq!(response.status(), 200, "{}", response.text().unwrap());
     let receipt: Value = response.json().unwrap();
+    assert_eq!(receipt["data"]["id"], id);
+    assert_eq!(receipt["outcome"], "reconciled");
+    assert_eq!(receipt["conflicts"][0]["field"], "amount");
     let tx = server.get(&endpoint).json::<Value>().unwrap();
     assert_eq!(tx["data"]["amount"], -1100);
     assert_eq!(tx["data"]["notes"], "local note");

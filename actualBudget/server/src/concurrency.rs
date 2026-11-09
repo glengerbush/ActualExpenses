@@ -78,6 +78,15 @@ pub fn validate_import_clock(value: &str) -> Result<(), Error> {
 pub fn import_clock_ahead(value: &str) -> Result<bool, Error> {
     Ok(parse_clock(value)?.0 - now_ms()? > 300_000)
 }
+pub fn cancel_header(headers: &HeaderMap) -> Result<bool, Error> {
+    match headers.get("X-Actual-Cancel-If-Uncommitted") {
+        None => Ok(false),
+        Some(value) if value == "true" => Ok(true),
+        Some(_) => Err(Error::invalid(
+            "X-Actual-Cancel-If-Uncommitted must be true when supplied",
+        )),
+    }
+}
 pub fn header(headers: &HeaderMap) -> Result<Option<String>, Error> {
     headers
         .get("X-Actual-Edit-Clock")
@@ -243,9 +252,18 @@ pub fn execute(
     db: &Connection,
     budget: &str,
     proposed: Option<&str>,
+    cancel_if_uncommitted: bool,
     mutation: Mutation,
 ) -> Result<Value, Error> {
     store::require_budget(db, budget)?;
+    if cancel_if_uncommitted {
+        // This outcome is written by the same receipt transaction as normal mutations.
+        // A delayed original request must replay this fence instead of applying its edit.
+        return Ok(outcome(
+            StatusCode::CONFLICT,
+            json!({"error":{"code":"operation_canceled","message":"This change was canceled before it was saved."}}),
+        ));
+    }
     let edit_clock = clock(db, budget, proposed)?;
     match mutation {
         Mutation::Create(input) => {

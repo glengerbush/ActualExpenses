@@ -149,6 +149,26 @@ def main():
             check(changes_path + "?cursor=" + page["snapshot"], changes_template)
             check(changes_path + "?cursor=invalid", changes_template, expected=409)
 
+            # Cancellation either replays a receipt or durably fences delayed delivery.
+            cancel = {"X-Actual-Cancel-If-Uncommitted": "true"}
+            check(entries, entries_template, "POST", ordered,
+                  {"Idempotency-Key": "ordered-create", "X-Actual-Edit-Clock": zero, **cancel}, 201)
+            canceled = {**transaction, "id": str(uuid.uuid4())}
+            operations = [
+                (entries, entries_template, "POST", canceled),
+                (ordered_path, entry_template, "PATCH", {"notes": "Canceled edit"}),
+                (ordered_path, entry_template, "DELETE", None),
+                (ordered_path + "/duplicate", entry_template + "/duplicate", "POST", {"id": str(uuid.uuid4())}),
+            ]
+            for index, (path, template, method, body) in enumerate(operations):
+                headers = {"Idempotency-Key": f"cancel-{index}", "X-Actual-Edit-Clock": clock2}
+                outcome = check(path, template, method, body, {**headers, **cancel}, 409)
+                assert outcome["error"]["code"] == "operation_canceled", outcome
+                assert check(path, template, method, body, headers, 409) == outcome
+            check(entries + "/" + canceled["id"], entry_template, expected=404)
+            check(entries, entries_template, "POST", canceled,
+                  {"Idempotency-Key": "invalid-cancel", "X-Actual-Cancel-If-Uncommitted": "false"}, 400)
+
             # Import HTTP responses use the unchanged pinned public export fixture.
             imports = "/api/v1/imports"
             stage = check(imports + "/actual", imports + "/actual", "POST",

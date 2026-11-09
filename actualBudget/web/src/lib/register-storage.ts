@@ -4,6 +4,8 @@ import { dateFormats, type DateFormat } from "./preferences/types";
 import {
   draftKey,
   actionKey,
+  cancellationRequested,
+  clearCancellation,
   type PendingMutation,
   type Transaction,
 } from "./register-api";
@@ -74,6 +76,11 @@ function validPending(
   budget: string,
 ): value is PendingMutation {
   if (!isObject(value) || !uuid(value.key) || typeof value.path !== "string")
+    return false;
+  if (
+    value.cancelRequested !== undefined &&
+    typeof value.cancelRequested !== "boolean"
+  )
     return false;
   if (value.attemptId !== undefined && !uuid(value.attemptId)) return false;
   if (value.edit_clock !== undefined && !validClock(value.edit_clock))
@@ -187,6 +194,8 @@ export function readTransactionDraft(budget: string): TransactionDraft | null {
     throw new Error(
       "The saved transaction draft could not be validated for this budget and server. It has been kept unchanged; no mutation will be sent.",
     );
+  if (stored.pending && cancellationRequested(stored.pending))
+    stored.pending.cancelRequested = true;
   return stored;
 }
 export function saveTransactionDraft(
@@ -204,8 +213,8 @@ export function saveTransactionDraft(
     );
   if (
     stored?.pending &&
-    !equal(stored.pending, draft.pending) &&
-    !equal(stored.pending, acknowledged)
+    !equalPending(stored.pending, draft.pending) &&
+    !equalPending(stored.pending, acknowledged)
   )
     throw new Error(
       "An unconfirmed transaction is already saved. Reload and retry it before changing its details.",
@@ -219,7 +228,6 @@ export function saveTransactionDraft(
 export function clearTransactionDraft(
   draft: TransactionDraft,
   acknowledged = false,
-  rejectedOnly = false,
 ): void {
   const stored = readTransactionDraft(draft.budgetId);
   if (!stored) return;
@@ -229,17 +237,11 @@ export function clearTransactionDraft(
     );
   if (
     stored.pending &&
-    (!acknowledged || !equal(stored.pending, draft.pending))
+    (!acknowledged || !equalPending(stored.pending, draft.pending))
   )
     throw new Error("Retry the saved transaction before discarding its draft.");
-  if (
-    rejectedOnly &&
-    (!stored.clockRejected || stored.attemptId !== draft.attemptId)
-  )
-    throw new Error(
-      "Another retry may have reached the server. Reload and retry the saved transaction.",
-    );
   localStorage.removeItem(draftKey(draft.budgetId));
+  if (acknowledged && draft.pending) clearCancellation(draft.pending);
 }
 export function readRegisterAction(budget: string): SavedAction | null {
   const stored = read(actionKey(budget));
@@ -257,7 +259,9 @@ export function readRegisterAction(budget: string): SavedAction | null {
     throw new Error(
       "The saved register action could not be validated. It has been kept unchanged; retry recovery before making changes.",
     );
-  return stored.pending as unknown as SavedAction;
+  const pending = stored.pending as unknown as SavedAction;
+  if (cancellationRequested(pending)) pending.cancelRequested = true;
+  return pending;
 }
 export function saveRegisterAction(budget: string, pending: SavedAction): void {
   const stored = readRegisterAction(budget);
@@ -277,7 +281,6 @@ export function saveRegisterAction(budget: string, pending: SavedAction): void {
 export function clearRegisterAction(
   budget: string,
   pending: SavedAction,
-  rejectedOnly = false,
 ): void {
   const stored = readRegisterAction(budget);
   if (!stored) return;
@@ -285,19 +288,33 @@ export function clearRegisterAction(
     throw new Error(
       "Another register action is saved. Reload before continuing.",
     );
-  if (
-    rejectedOnly &&
-    (!stored.clockRejected || stored.attemptId !== pending.attemptId)
-  )
-    throw new Error(
-      "Another retry may have reached the server. Reload and retry the saved action.",
-    );
   localStorage.removeItem(actionKey(budget));
+  clearCancellation(pending);
 }
 
 function equalAction(a: SavedAction, b: SavedAction) {
   return equal(
-    { ...a, clockRejected: undefined, attemptId: undefined },
-    { ...b, clockRejected: undefined, attemptId: undefined },
+    {
+      ...a,
+      clockRejected: undefined,
+      attemptId: undefined,
+      cancelRequested: undefined,
+    },
+    {
+      ...b,
+      clockRejected: undefined,
+      attemptId: undefined,
+      cancelRequested: undefined,
+    },
+  );
+}
+
+function equalPending(
+  a: PendingMutation | null | undefined,
+  b: PendingMutation | null | undefined,
+) {
+  return equal(
+    a ? { ...a, cancelRequested: undefined } : a,
+    b ? { ...b, cancelRequested: undefined } : b,
   );
 }

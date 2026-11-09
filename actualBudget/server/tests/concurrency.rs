@@ -761,3 +761,116 @@ fn concurrent_account_and_category_edits_converge_in_both_orders() {
         );
     }
 }
+
+#[test]
+fn cancellation_atomically_fences_late_originals_and_replays_committed_outcomes() {
+    let s = Server::start();
+    let path = setup(&s);
+    let create_path = format!("/api/v1/budgets/{B}/transactions");
+    let created_id = "30000000-0000-4000-8000-000000000030";
+    let duplicate_id = "30000000-0000-4000-8000-000000000031";
+    let operations = [
+        (
+            "POST",
+            create_path.clone(),
+            "cancel-create",
+            json!({"id":created_id,"account_id":A,"amount":-200,"date":"2026-01-01"}),
+        ),
+        (
+            "PATCH",
+            path.clone(),
+            "cancel-patch",
+            json!({"notes":"must not apply"}),
+        ),
+        ("DELETE", path.clone(), "cancel-delete", Value::Null),
+        (
+            "POST",
+            format!("{path}/duplicate"),
+            "cancel-duplicate",
+            json!({"id":duplicate_id}),
+        ),
+    ];
+    let mut outcomes = vec![];
+    for (method, url, key, body) in &operations {
+        let mut request = s
+            .client
+            .request(method.parse().unwrap(), format!("{}{url}", s.url))
+            .header("Idempotency-Key", *key)
+            .header("X-Actual-Edit-Clock", C1)
+            .header("X-Actual-Cancel-If-Uncommitted", "true");
+        if !body.is_null() {
+            request = request.json(body);
+        }
+        let response = request.send().unwrap();
+        assert_eq!(response.status(), 409, "{key}");
+        let response: Value = response.json().unwrap();
+        assert_eq!(response["error"]["code"], "operation_canceled");
+        outcomes.push(response);
+    }
+    let s = s.restart();
+    for ((method, url, key, body), outcome) in operations.iter().zip(outcomes) {
+        let response = s.write(method, url, key, Some(C1), body.clone());
+        assert_eq!(response.status(), 409);
+        assert_eq!(response.json::<Value>().unwrap(), outcome);
+    }
+    assert_eq!(s.get(&create_path)["data"].as_array().unwrap().len(), 1);
+    assert_eq!(s.get(&path)["data"]["notes"], "");
+    let original = s
+        .write(
+            "PATCH",
+            &path,
+            "already-saved",
+            Some(C2),
+            json!({"notes":"saved before cancel"}),
+        )
+        .json::<Value>()
+        .unwrap();
+    let canceled = s
+        .client
+        .patch(format!("{}{path}", s.url))
+        .header("Idempotency-Key", "already-saved")
+        .header("X-Actual-Edit-Clock", C2)
+        .header("X-Actual-Cancel-If-Uncommitted", "true")
+        .json(&json!({"notes":"saved before cancel"}))
+        .send()
+        .unwrap();
+    assert_eq!(canceled.status(), 200);
+    assert_eq!(canceled.json::<Value>().unwrap(), original);
+    let invalid = s
+        .client
+        .patch(format!("{}{path}", s.url))
+        .header("Idempotency-Key", "bad-cancel-header")
+        .header("X-Actual-Cancel-If-Uncommitted", "false")
+        .json(&json!({"notes":"invalid"}))
+        .send()
+        .unwrap();
+    assert_eq!(invalid.status(), 400);
+    let unsupported = s
+        .client
+        .get(format!("{}/api/v1/info", s.url))
+        .header("X-Actual-Cancel-If-Uncommitted", "true")
+        .send()
+        .unwrap();
+    assert_eq!(unsupported.status(), 400);
+    assert!(
+        s.get("/api/v1/info")["data"]["capabilities"]
+            .as_array()
+            .unwrap()
+            .contains(&json!("transaction_cancellation"))
+    );
+    let changed = s
+        .client
+        .patch(format!("{}{path}", s.url))
+        .header("Idempotency-Key", "already-saved")
+        .header("X-Actual-Edit-Clock", C2)
+        .header("X-Actual-Cancel-If-Uncommitted", "true")
+        .json(&json!({"notes":"different payload"}))
+        .send()
+        .unwrap();
+    assert_eq!(changed.status(), 409);
+    assert_eq!(
+        changed.json::<Value>().unwrap()["error"]["code"],
+        "idempotency_conflict"
+    );
+    assert_eq!(s.get(&path)["data"]["notes"], "saved before cancel");
+}

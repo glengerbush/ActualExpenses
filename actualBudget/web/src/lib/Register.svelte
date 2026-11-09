@@ -24,6 +24,7 @@
     changes,
     references,
     mutate,
+    requestCancellation,
     type RegisterPage,
     type Transaction,
     type Reference,
@@ -230,7 +231,8 @@
             pending = null;
             if (
               e.code === "deletion_superseded" ||
-              e.code === "transaction_deleted"
+              e.code === "transaction_deleted" ||
+              e.code === "operation_canceled"
             )
               terminalNotice = error;
           }
@@ -246,19 +248,56 @@
     if ((acknowledged || terminalNotice) && !pending)
       await changed(terminalNotice);
   }
-  function recoverClock() {
+  async function recoverClock() {
     if (busy || (pending && !pending.clockRejected)) return;
+    if (pending) {
+      busy = true;
+      error = "";
+      let resolved = false;
+      let terminalNotice = "";
+      try {
+        pending = {
+          ...pending,
+          cancelRequested: true,
+          clockRejected: false,
+          attemptId: uuid(),
+        };
+        requestCancellation(pending);
+        saveRegisterAction(budgetId, pending);
+        await mutate(pending, true);
+        terminalNotice = t(
+          "This change was already saved. Its saved result has been restored.",
+        );
+        resolved = true;
+      } catch (e) {
+        if (
+          e instanceof RequestError &&
+          !e.uncertain &&
+          e.code === "operation_canceled"
+        ) {
+          resolved = true;
+          terminalNotice = errorMessage(e);
+        } else error = errorMessage(e);
+      }
+      if (resolved) {
+        try {
+          clearRegisterAction(budgetId, pending);
+          pending = null;
+          resetCorrectedClock();
+          localClockProblem = false;
+        } catch (e) {
+          error = errorMessage(e);
+          resolved = false;
+        }
+      }
+      busy = false;
+      if (resolved) await changed(terminalNotice);
+      return;
+    }
     try {
       resetCorrectedClock();
-      if (pending) {
-        clearRegisterAction(budgetId, pending, true);
-        pending = null;
-      }
       localClockProblem = false;
       error = "";
-      notice = t(
-        "Rejected action discarded. You can start a new action with the corrected device time.",
-      );
     } catch (e) {
       error = errorMessage(e);
     }
@@ -343,7 +382,7 @@
   {/if}
   {#if pending?.clockRejected}<p role="status">
       {t(
-        "This action was rejected before making changes. Retry keeps its original edit time; discard it after correcting the device time to start again.",
+        "This attempt was rejected. Correct the device time before retrying. Discard asks the server to cancel it; an already saved change will be restored.",
       )}
     </p>
     <button onclick={recoverClock} disabled={busy}
@@ -363,7 +402,9 @@
   {#if pending}<div class="pending-action">
       {#if !pending.clockRejected}<p role="status">
           {t(
-            "The outcome is unconfirmed. Retry this saved request before making another change.",
+            pending.cancelRequested
+              ? "Cancellation is not confirmed. Retry to learn whether the change was canceled or already saved."
+              : "The outcome is unconfirmed. Retry this saved request before making another change.",
           )}
         </p>{/if}
       <p>{pending.description}</p>

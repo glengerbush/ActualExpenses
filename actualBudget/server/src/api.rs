@@ -12,6 +12,7 @@ use axum::{
         rejection::{JsonRejection, PathRejection, QueryRejection},
     },
     http::{HeaderMap, StatusCode},
+    response::IntoResponse,
     routing::{any, get},
 };
 use serde_json::{Value, json};
@@ -58,7 +59,42 @@ pub fn router(store: Store) -> Router {
                 "HTTP method not supported",
             )
         })
+        .layer(axum::middleware::from_fn(cancellation_scope))
         .with_state(store)
+}
+async fn cancellation_scope(
+    request: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> axum::response::Response {
+    if request
+        .headers()
+        .contains_key("X-Actual-Cancel-If-Uncommitted")
+    {
+        if let Err(error) = concurrency::cancel_header(request.headers()) {
+            return error.into_response();
+        }
+        let path = request
+            .extensions()
+            .get::<axum::extract::MatchedPath>()
+            .map(|path| path.as_str())
+            .unwrap_or("");
+        if !matches!(
+            (request.method().as_str(), path),
+            ("POST", "/api/v1/budgets/{budget}/transactions")
+                | (
+                    "PATCH" | "DELETE",
+                    "/api/v1/budgets/{budget}/transactions/{id}"
+                )
+                | (
+                    "POST",
+                    "/api/v1/budgets/{budget}/transactions/{id}/duplicate"
+                )
+        ) {
+            return Error::invalid("Cancellation is supported only for transaction mutations")
+                .into_response();
+        }
+    }
+    next.run(request).await
 }
 fn data(value: Value) -> Json<Value> {
     Json(json!({"data":value}))
@@ -69,7 +105,7 @@ async fn info() -> Json<Value> {
         "version": env!("CARGO_PKG_VERSION"),
         "api_version": 1,
         "authentication": "none",
-        "capabilities": ["budgets", "accounts", "opening_balances", "idempotency", "transactions", "payees", "categories", "amount_calculator", "preferences", "field_ordering", "change_cursors", "custom_themes", "actual_imports"],
+        "capabilities": ["budgets", "accounts", "opening_balances", "idempotency", "transactions", "payees", "categories", "amount_calculator", "preferences", "field_ordering", "change_cursors", "transaction_cancellation", "custom_themes", "actual_imports"],
         "openapi": "/api/v1/openapi.json"
     }))
 }
@@ -233,6 +269,7 @@ async fn create_transaction(
     input.validate()?;
     let key = idempotency_key(&headers)?;
     let clock = concurrency::header(&headers)?;
+    let cancel = concurrency::cancel_header(&headers)?;
     let payload = serde_json::to_string(&input).map_err(Error::internal)?;
     store
         .run(move |db| {
@@ -248,6 +285,7 @@ async fn create_transaction(
                         db,
                         &budget,
                         clock.as_deref(),
+                        cancel,
                         Mutation::Create(Box::new(input)),
                     )
                 },
@@ -283,6 +321,7 @@ async fn update_transaction(
     let Json(input) = input.map_err(json_error)?;
     let key = idempotency_key(&headers)?;
     let clock = concurrency::header(&headers)?;
+    let cancel = concurrency::cancel_header(&headers)?;
     let payload = input.to_string();
     store
         .run(move |db| {
@@ -294,7 +333,13 @@ async fn update_transaction(
                 clock.as_deref(),
                 StatusCode::OK,
                 |db| {
-                    concurrency::execute(db, &budget, clock.as_deref(), Mutation::Patch(id, input))
+                    concurrency::execute(
+                        db,
+                        &budget,
+                        clock.as_deref(),
+                        cancel,
+                        Mutation::Patch(id, input),
+                    )
                 },
             )
         })
@@ -308,6 +353,7 @@ async fn delete_transaction(
     let (budget, id) = transaction_path(path)?;
     let key = idempotency_key(&headers)?;
     let clock = concurrency::header(&headers)?;
+    let cancel = concurrency::cancel_header(&headers)?;
     store
         .run(move |db| {
             concurrency::write(
@@ -317,7 +363,15 @@ async fn delete_transaction(
                 "null",
                 clock.as_deref(),
                 StatusCode::OK,
-                |db| concurrency::execute(db, &budget, clock.as_deref(), Mutation::Delete(id)),
+                |db| {
+                    concurrency::execute(
+                        db,
+                        &budget,
+                        clock.as_deref(),
+                        cancel,
+                        Mutation::Delete(id),
+                    )
+                },
             )
         })
         .await
@@ -338,6 +392,7 @@ async fn duplicate_transaction(
     validate_id(&input.id)?;
     let key = idempotency_key(&headers)?;
     let clock = concurrency::header(&headers)?;
+    let cancel = concurrency::cancel_header(&headers)?;
     let payload = serde_json::to_string(&input).map_err(Error::internal)?;
     store
         .run(move |db| {
@@ -353,6 +408,7 @@ async fn duplicate_transaction(
                         db,
                         &budget,
                         clock.as_deref(),
+                        cancel,
                         Mutation::Duplicate(source, input.id),
                     )
                 },

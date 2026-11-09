@@ -603,6 +603,18 @@
               "$ref": "#/components/schemas/EditClock"
             },
             "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Atomically return the original receipt or record terminal operation_canceled409 before any edit. Keep original method/path/body/idempotency key/edit clock unchanged. The cancellation header is excluded from the operation fingerprint; delayed original attempts replay the cancellation. Lost acknowledgement requires unchanged retry. Supported only on transaction mutation routes."
           }
         ],
         "requestBody": {
@@ -678,7 +690,7 @@
             }
           },
           "409": {
-            "description": "Existing identity or idempotency payload conflict",
+            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
             "content": {
               "application/json": {
                 "schema": {
@@ -886,6 +898,18 @@
               "$ref": "#/components/schemas/EditClock"
             },
             "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Atomically return the original receipt or record terminal operation_canceled409 before any edit. Keep original method/path/body/idempotency key/edit clock unchanged. The cancellation header is excluded from the operation fingerprint; delayed original attempts replay the cancellation. Lost acknowledgement requires unchanged retry. Supported only on transaction mutation routes."
           }
         ],
         "requestBody": {
@@ -961,7 +985,7 @@
             }
           },
           "409": {
-            "description": "Existing identity or idempotency payload conflict",
+            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
             "content": {
               "application/json": {
                 "schema": {
@@ -1052,6 +1076,18 @@
               "$ref": "#/components/schemas/EditClock"
             },
             "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Atomically return the original receipt or record terminal operation_canceled409 before any edit. Keep original method/path/body/idempotency key/edit clock unchanged. The cancellation header is excluded from the operation fingerprint; delayed original attempts replay the cancellation. Lost acknowledgement requires unchanged retry. Supported only on transaction mutation routes."
           }
         ],
         "responses": {
@@ -1117,7 +1153,7 @@
             }
           },
           "409": {
-            "description": "Existing identity or idempotency payload conflict",
+            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
             "content": {
               "application/json": {
                 "schema": {
@@ -1210,6 +1246,18 @@
               "$ref": "#/components/schemas/EditClock"
             },
             "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Atomically return the original receipt or record terminal operation_canceled409 before any edit. Keep original method/path/body/idempotency key/edit clock unchanged. The cancellation header is excluded from the operation fingerprint; delayed original attempts replay the cancellation. Lost acknowledgement requires unchanged retry. Supported only on transaction mutation routes."
           }
         ],
         "requestBody": {
@@ -1296,7 +1344,7 @@
             }
           },
           "409": {
-            "description": "Existing identity or idempotency payload conflict",
+            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
             "content": {
               "application/json": {
                 "schema": {
@@ -3286,6 +3334,10 @@
           "deleted": {
             "const": true,
             "description": "Only mutation responses for already published tombstones; fields may merge without restoring visibility."
+          },
+          "sort_order": {
+            "type": "integer",
+            "description": "Stable display ordering on fresh reads and new mutation outcomes. Historical exact receipt replays may omit it."
           }
         },
         "required": [

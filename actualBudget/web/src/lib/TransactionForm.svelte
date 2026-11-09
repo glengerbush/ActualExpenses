@@ -15,6 +15,7 @@
   import { calculateAmount } from "./calculator";
   import {
     mutate,
+    requestCancellation,
     type Transaction,
     type Reference,
     type PendingMutation,
@@ -276,7 +277,10 @@
             const rejected = { ...draft, clockRejected: true };
             persist(rejected);
             draft = rejected;
-          } else if (e.code === "transaction_deleted") {
+          } else if (
+            e.code === "transaction_deleted" ||
+            e.code === "operation_canceled"
+          ) {
             clearTransactionDraft(draft, true);
             deletedRemotely = true;
             notice = error;
@@ -295,14 +299,55 @@
     }
     if (completed || deletedRemotely) oncomplete(completed, notice);
   }
-  function recoverClock(discard = false) {
+  async function recoverClock(discard = false) {
     if (!draft || busy || (draft.pending && !draft.clockRejected)) return;
+    if (discard && draft.pending && draft.clockRejected) {
+      busy = true;
+      error = "";
+      let resolved = false;
+      let completed: Transaction | null = null;
+      let notice = "";
+      try {
+        draft = {
+          ...draft,
+          pending: { ...draft.pending!, cancelRequested: true },
+          clockRejected: false,
+          attemptId: uuid(),
+        };
+        requestCancellation(draft.pending!);
+        persist(draft);
+        const response = await mutate<Transaction>(draft.pending!, true);
+        completed = response.data;
+        notice = t(
+          "This change was already saved. Its saved result has been restored.",
+        );
+        resolved = true;
+      } catch (e) {
+        if (
+          e instanceof RequestError &&
+          !e.uncertain &&
+          e.code === "operation_canceled"
+        ) {
+          resolved = true;
+          notice = errorMessage(e);
+        } else error = errorMessage(e);
+      }
+      if (resolved) {
+        try {
+          clearTransactionDraft(draft, true);
+          resetCorrectedClock();
+        } catch (e) {
+          error = errorMessage(e);
+          resolved = false;
+        }
+      }
+      busy = false;
+      if (resolved) oncomplete(completed, notice);
+      return;
+    }
     try {
       resetCorrectedClock();
-      if (discard && draft.clockRejected) {
-        clearTransactionDraft(draft, true, true);
-        oncancel();
-      } else if (!draft.pending) {
+      if (!draft.pending) {
         draft.editClock = undefined;
         persist(draft);
         localClockProblem = false;
@@ -470,12 +515,14 @@
       {#if error}<p class="error" role="alert">{error}</p>{/if}
       {#if draft.pending && !draft.clockRejected && !busy}<p role="status">
           {t(
-            "The outcome is unconfirmed. Retry this saved request before changing its details.",
+            draft.pending.cancelRequested
+              ? "Cancellation is not confirmed. Retry to learn whether the change was canceled or already saved."
+              : "The outcome is unconfirmed. Retry this saved request before changing its details.",
           )}
         </p>{/if}
       {#if draft.clockRejected}<p role="status">
           {t(
-            "The server rejected this request before making changes. Correct the device time. Retry keeps its original edit time; discard this rejected edit to start again.",
+            "This attempt was rejected. Correct the device time before retrying. Discard asks the server to cancel it; an already saved change will be restored.",
           )}
         </p>
         <button type="button" onclick={() => recoverClock(true)} disabled={busy}

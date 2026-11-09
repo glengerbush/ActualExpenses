@@ -35,6 +35,7 @@ export interface PendingMutation {
   method: "POST" | "PATCH" | "DELETE";
   key: string;
   edit_clock?: string;
+  cancelRequested?: boolean;
   body?: unknown;
 }
 export function registerPage(
@@ -64,7 +65,38 @@ export async function references(
   } while (offset !== null);
   return items;
 }
-export function mutate<T>(pending: PendingMutation) {
+function cancellationKey(pending: PendingMutation) {
+  return `actualBudget.cancel.v1.${JSON.stringify([pending.method, pending.path, pending.key])}`;
+}
+export function cancellationRequested(pending: PendingMutation): boolean {
+  return (
+    pending.cancelRequested === true ||
+    localStorage.getItem(cancellationKey(pending)) === "true"
+  );
+}
+export function requestCancellation(pending: PendingMutation): void {
+  // Separate monotonic intent survives stale primary-draft writes in another tab.
+  localStorage.setItem(cancellationKey(pending), "true");
+  pending.cancelRequested = true;
+}
+export function clearCancellation(pending: PendingMutation): void {
+  localStorage.removeItem(cancellationKey(pending));
+}
+export async function mutate<T>(
+  pending: PendingMutation,
+  cancelIfUncommitted = false,
+) {
+  cancelIfUncommitted ||= cancellationRequested(pending);
+  if (cancelIfUncommitted) {
+    requestCancellation(pending);
+    const { data } = await request<{ data: { capabilities?: string[] } }>(
+      "/info",
+    );
+    if (!data.capabilities?.includes("transaction_cancellation"))
+      throw new Error(
+        "This server does not support safe cancellation. The saved request has been kept for retry.",
+      );
+  }
   return request<{
     data: T;
     conflicts?: {
@@ -73,6 +105,7 @@ export function mutate<T>(pending: PendingMutation) {
       winning_clock: string;
     }[];
     edit_clock?: string;
+    cancelRequested?: boolean;
     cursor?: string;
   }>(
     pending.path,
@@ -80,6 +113,7 @@ export function mutate<T>(pending: PendingMutation) {
     pending.key,
     pending.method,
     pending.edit_clock,
+    cancelIfUncommitted,
   );
 }
 export function draftKey(budgetId: string) {

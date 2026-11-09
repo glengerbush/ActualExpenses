@@ -231,6 +231,7 @@ try {
   page.on("request", (r) => {
     if (
       r.method() === "POST" &&
+      !r.headers()["x-actual-cancel-if-uncommitted"] &&
       r.url().endsWith(`/budgets/${budget}/transactions`)
     )
       clockRequests.push({
@@ -277,7 +278,11 @@ try {
   await page.clock.setSystemTime(new Date(Date.now() + 600_000));
   const actionRequests = [];
   page.on("request", (r) => {
-    if (r.method() === "POST" && r.url().endsWith("/duplicate"))
+    if (
+      r.method() === "POST" &&
+      !r.headers()["x-actual-cancel-if-uncommitted"] &&
+      r.url().endsWith("/duplicate")
+    )
       actionRequests.push({
         key: r.headers()["idempotency-key"],
         clock: r.headers()["x-actual-edit-clock"],
@@ -452,13 +457,6 @@ try {
       delayedPage.getByRole("button", { name: discardName, exact: true }),
     ).toHaveCount(0);
     await delayedPage.close();
-    // A tab still showing the earlier rejection cannot discard the new attempt.
-    await stalePage
-      .getByRole("button", { name: discardName, exact: true })
-      .click();
-    expect(
-      await page.evaluate((key) => localStorage.getItem(key), storageKey),
-    ).not.toBeNull();
     await stalePage.close();
     await page.reload();
     await expect(retry).toBeVisible();
@@ -475,6 +473,232 @@ try {
     expect(rows.filter((row) => row.id === sent[0].body.id)).toHaveLength(1);
     await recoveryContext.close();
   }
+  // A rejected newer retry cannot authorize a local discard while an older attempt is held.
+  // Server cancellation either fences that older request or recovers its committed receipt.
+  for (const kind of ["transaction", "action"])
+    for (const alreadyCommitted of [false, true]) {
+      const overlap = await browser.newContext();
+      const a = await overlap.newPage();
+      await a.goto(server.url);
+      await a.evaluate(
+        ({ budget, account }) =>
+          localStorage.setItem(
+            "actualBudget.selection",
+            JSON.stringify({ budgetId: budget, accountId: account }),
+          ),
+        { budget, account },
+      );
+      await a.reload();
+      if (kind === "transaction") {
+        await a
+          .getByRole("button", { name: "Add transaction", exact: true })
+          .click();
+        await a.getByLabel("Amount", { exact: true }).fill("1");
+      }
+      const horizon = Date.now() + 5000;
+      await a.evaluate(
+        (horizon) =>
+          localStorage.setItem(
+            "actualBudget.clock.v1",
+            new Date(horizon).toISOString() + "-FFFE-0000000000000001",
+          ),
+        horizon,
+      );
+      const pattern =
+        kind === "transaction"
+          ? `**/api/v1/budgets/${budget}/transactions`
+          : `**/api/v1/budgets/${budget}/transactions/*/duplicate`;
+      const matches = (request) =>
+        request.method() === "POST" &&
+        (kind === "transaction"
+          ? request.url().endsWith(`/budgets/${budget}/transactions`)
+          : request.url().endsWith("/duplicate"));
+      const firstRequest = a.waitForRequest(matches);
+      const retryName =
+        kind === "transaction"
+          ? "Retry saved transaction"
+          : "Retry saved action";
+      const discardName =
+        kind === "transaction"
+          ? "Discard rejected edit"
+          : "Discard rejected action";
+      if (kind === "transaction")
+        await a
+          .getByRole("button", { name: "Save transaction", exact: true })
+          .click();
+      else
+        await a
+          .getByRole("button", { name: /^Duplicate / })
+          .first()
+          .click();
+      const original = await firstRequest;
+      const identity = (request) => ({
+        key: request.headers()["idempotency-key"],
+        clock: request.headers()["x-actual-edit-clock"],
+        body: request.postDataJSON(),
+      });
+      await expect(
+        a.getByRole("button", { name: discardName, exact: true }),
+      ).toBeVisible();
+      let release, held, delayedStatus;
+      const gate = new Promise((resolve) => {
+        release = resolve;
+      });
+      const intercepted = new Promise((resolve) => {
+        held = resolve;
+      });
+      async function forward(route) {
+        const request = route.request();
+        expect(identity(request)).toEqual(identity(original));
+        const url = new URL(request.url());
+        const headers = { ...request.headers(), host: url.host };
+        url.hostname = "127.0.0.1";
+        return route.fetch({ url: url.href, headers });
+      }
+      await a.route(pattern, async (route) => {
+        if (!matches(route.request())) return route.continue();
+        held();
+        await gate;
+        const response = await forward(route);
+        delayedStatus = response.status();
+        await route.abort("failed");
+      });
+      await a.getByRole("button", { name: retryName, exact: true }).click();
+      await intercepted;
+      const b = await overlap.newPage();
+      await b.goto(server.url);
+      await b.getByRole("button", { name: retryName, exact: true }).click();
+      await expect(
+        b.getByRole("button", { name: discardName, exact: true }),
+      ).toBeVisible();
+      if (alreadyCommitted) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.max(0, horizon + 50 - Date.now())),
+        );
+        release();
+        await expect.poll(() => delayedStatus).toBe(201);
+      }
+      let cancellationStatus,
+        cancelAttempts = 0;
+      await b.route(pattern, async (route) => {
+        if (!route.request().headers()["x-actual-cancel-if-uncommitted"])
+          return route.continue();
+        cancelAttempts++;
+        if (!alreadyCommitted && cancelAttempts === 1)
+          return route.abort("failed"); // Cancellation never reached server.
+        const response = await forward(route);
+        cancellationStatus = response.status();
+        if (cancelAttempts === (alreadyCommitted ? 1 : 2))
+          await route.abort("failed"); // Cancellation committed, acknowledgement lost.
+        else await route.fulfill({ response });
+      });
+      await b.getByRole("button", { name: discardName, exact: true }).click();
+      await expect(
+        b.getByRole("button", { name: retryName, exact: true }),
+      ).toBeEnabled();
+      if (!alreadyCommitted) {
+        expect(cancellationStatus).toBeUndefined();
+        await b.reload();
+        await b.getByRole("button", { name: retryName, exact: true }).click();
+        await expect(
+          b.getByRole("button", { name: retryName, exact: true }),
+        ).toBeEnabled();
+        expect(cancelAttempts).toBe(2);
+      }
+      expect(cancellationStatus).toBe(alreadyCommitted ? 201 : 409);
+      if (!alreadyCommitted) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.max(0, horizon + 50 - Date.now())),
+        );
+        release();
+        await expect.poll(() => delayedStatus).toBe(409);
+      }
+      await b.reload();
+      await expect(
+        b.getByRole("button", { name: retryName, exact: true }),
+      ).toBeVisible();
+      await b.getByRole("button", { name: retryName, exact: true }).click();
+      await expect(
+        b.getByRole("button", { name: "Add transaction", exact: true }),
+      ).toBeEnabled();
+      await expect(
+        b.getByRole("button", { name: retryName, exact: true }),
+      ).toHaveCount(0);
+      const rows = (
+        await (
+          await fetch(native + `/api/v1/budgets/${budget}/transactions`)
+        ).json()
+      ).data;
+      expect(
+        rows.filter((row) => row.id === original.postDataJSON().id),
+      ).toHaveLength(alreadyCommitted ? 1 : 0);
+      if (!alreadyCommitted)
+        await expect(
+          b.getByText("This change was canceled before it was saved.", {
+            exact: true,
+          }),
+        ).toBeVisible();
+      await overlap.close();
+    }
+  // Older API1 servers must never receive an unrecognized cancellation header as an edit.
+  const unsupportedContext = await browser.newContext();
+  const unsupportedPage = await unsupportedContext.newPage();
+  await unsupportedPage.clock.install({ time: new Date(Date.now() + 600_000) });
+  await unsupportedPage.goto(server.url);
+  await unsupportedPage.evaluate(
+    ({ budget, account }) =>
+      localStorage.setItem(
+        "actualBudget.selection",
+        JSON.stringify({ budgetId: budget, accountId: account }),
+      ),
+    { budget, account },
+  );
+  await unsupportedPage.reload();
+  await unsupportedPage
+    .getByRole("button", { name: "Add transaction", exact: true })
+    .click();
+  await unsupportedPage.getByLabel("Amount", { exact: true }).fill("1");
+  await unsupportedPage
+    .getByRole("button", { name: "Save transaction", exact: true })
+    .click();
+  await expect(
+    unsupportedPage.getByRole("button", {
+      name: "Discard rejected edit",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await unsupportedPage.route("**/api/v1/info", (route) =>
+    route.fulfill({ json: { data: { api_version: 1, capabilities: [] } } }),
+  );
+  let unsupportedWrites = 0;
+  unsupportedPage.on("request", (request) => {
+    if (
+      request.method() === "POST" &&
+      request.url().endsWith(`/budgets/${budget}/transactions`)
+    )
+      unsupportedWrites++;
+  });
+  await unsupportedPage
+    .getByRole("button", { name: "Discard rejected edit", exact: true })
+    .click();
+  await expect(
+    unsupportedPage.getByText(
+      "This server does not support safe cancellation. The saved request has been kept for retry.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await unsupportedPage.reload();
+  await unsupportedPage
+    .getByRole("button", { name: "Retry saved transaction", exact: true })
+    .click();
+  await expect(
+    unsupportedPage.getByText(
+      "This server does not support safe cancellation. The saved request has been kept for retry.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  expect(unsupportedWrites).toBe(0);
+  await unsupportedContext.close();
   // Editing unrelated fields must not erase a latent off-budget category.
   const off = randomUUID(),
     category = randomUUID(),

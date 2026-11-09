@@ -38,6 +38,29 @@ and prepare a new one. Discard resets only the local generator; other pending
 operations retain their captured clocks. An unsent form can explicitly use the
 corrected device time without discarding its fields. No reset changes OS time.
 
+### Safe cancellation after rejection
+
+Clients require the `transaction_cancellation` capability before requesting
+cancellation. Send the original transaction mutation method/path/key/body/edit
+clock unchanged, adding `X-Actual-Cancel-If-Uncommitted: true`. Other header values
+and use outside transaction mutation routes fail validation. The control header
+is deliberately outside the operation fingerprint.
+
+Inside the same receipt transaction, an existing outcome wins. Otherwise record
+terminal HTTP409 `operation_canceled` without applying the mutation. Late original
+requests replay this fence. If an older request already committed, cancellation
+returns that original result and the browser restores the saved result instead
+of claiming it was discarded. Concurrent first attempts and retries cannot bypass
+this server decision.
+
+Cancellation intent is persisted separately under the operation identity before
+sending. Retries consult this monotonic intent even if another tab rewrites the
+primary draft; original financial fields and edit ordering remain unchanged.
+A lost cancellation request or acknowledgement keeps the pending operation and
+retries cancellation after reload. Only an authoritative receipt or cancellation
+fence permits clearing matching saved work. A confirmed clock rejection alone
+cannot prove another in-flight attempt will not commit.
+
 ## Deletion boundary
 
 Before publishing a deletion, compare its original clock with every known field

@@ -36,6 +36,7 @@ export async function request<T>(
     ? "GET"
     : "POST",
   editClock?: string,
+  cancelIfUncommitted = false,
 ): Promise<T> {
   const mutation = method !== "GET";
   let response: Response;
@@ -48,6 +49,9 @@ export async function request<T>(
         ...(editClock === undefined
           ? {}
           : { "X-Actual-Edit-Clock": editClock }),
+        ...(cancelIfUncommitted
+          ? { "X-Actual-Cancel-If-Uncommitted": "true" }
+          : {}),
       },
       body: body === undefined ? undefined : JSON.stringify(body),
       signal: AbortSignal.timeout(15000),

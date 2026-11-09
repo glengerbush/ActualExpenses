@@ -374,6 +374,16 @@
               ]
             },
             "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -756,6 +766,16 @@
               ]
             },
             "description": "Requires transaction_receipt_lookup capability. Read-only reconciliation using the original method/path/body/key/edit clock/epoch. Known receipts return their original status/body before budget generation and account availability checks. Unknown requests return 404 operation_uncommitted without mutation, cancellation, clock advancement or consuming the key. Cannot combine with X-Actual-Cancel-If-Uncommitted; supported only on transaction POST/PATCH/DELETE."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -1081,6 +1101,16 @@
               "pattern": "^[0-9a-f]{32}$"
             },
             "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -1291,6 +1321,16 @@
               ]
             },
             "description": "Requires transaction_receipt_lookup capability. Read-only reconciliation using the original method/path/body/key/edit clock/epoch. Known receipts return their original status/body before budget generation and account availability checks. Unknown requests return 404 operation_uncommitted without mutation, cancellation, clock advancement or consuming the key. Cannot combine with X-Actual-Cancel-If-Uncommitted; supported only on transaction POST/PATCH/DELETE."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "responses": {
@@ -1481,6 +1521,16 @@
               "pattern": "^[0-9a-f]{32}$"
             },
             "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -1873,6 +1923,16 @@
               "const": "true"
             },
             "description": "Requires reference_cancellation capability. Send original method/path/key/body/clock/epoch unchanged. Replays committed receipt or durably fences this operation with operation_canceled."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -2231,6 +2291,16 @@
               ]
             },
             "description": "Requires advertised category_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -5801,6 +5871,16 @@
               ]
             },
             "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "responses": {
@@ -6006,6 +6086,16 @@
               ]
             },
             "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "responses": {
@@ -6203,6 +6293,16 @@
               ]
             },
             "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "responses": {
@@ -6408,6 +6508,16 @@
               ]
             },
             "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "responses": {
@@ -6596,6 +6706,16 @@
               ]
             },
             "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "responses": {
@@ -6898,6 +7018,16 @@
               ]
             },
             "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "responses": {
@@ -7091,6 +7221,16 @@
               ]
             },
             "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "responses": {
@@ -7279,6 +7419,16 @@
               ]
             },
             "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "responses": {
@@ -7574,6 +7724,16 @@
               ]
             },
             "description": "Requires advertised account_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "responses": {
@@ -7882,6 +8042,16 @@
               ]
             },
             "description": "Requires advertised category_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -8047,6 +8217,16 @@
               ]
             },
             "description": "Requires advertised category_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -8379,6 +8559,16 @@
               ]
             },
             "description": "Requires advertised category_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -8670,6 +8860,16 @@
               ]
             },
             "description": "Requires advertised category_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -8835,6 +9035,16 @@
               ]
             },
             "description": "Requires advertised category_cancellation capability. Preserve original method/path/body/key/edit clock/epoch. Atomically return original receipt first, otherwise record terminal 409 operation_canceled before epoch checks or clock/financial mutation. Persist cancellation intent across reload and stale tabs; lost acknowledgement retries the original identity with this header."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -9302,6 +9512,16 @@
               "const": "true"
             },
             "description": "Requires reference_cancellation capability. Send original method/path/key/body/clock/epoch unchanged. Replays committed receipt or durably fences this operation with operation_canceled."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -9492,6 +9712,16 @@
               "const": "true"
             },
             "description": "Requires reference_cancellation capability. Send original method/path/key/body/clock/epoch unchanged. Replays committed receipt or durably fences this operation with operation_canceled."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -10007,6 +10237,16 @@
               "const": "true"
             },
             "description": "Requires reference_cancellation capability. Send original method/path/key/body/clock/epoch unchanged. Replays committed receipt or durably fences this operation with operation_canceled."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -10368,6 +10608,16 @@
               "const": "true"
             },
             "description": "Requires reference_cancellation capability. Send original method/path/key/body/clock/epoch unchanged. Replays committed receipt or durably fences this operation with operation_canceled."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -10581,6 +10831,16 @@
               "const": "true"
             },
             "description": "Requires reference_cancellation capability. Send original method/path/key/body/clock/epoch unchanged. Replays committed receipt or durably fences this operation with operation_canceled."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -10870,6 +11130,16 @@
               "const": "true"
             },
             "description": "Requires reference_cancellation capability. Send original method/path/key/body/clock/epoch unchanged. Replays committed receipt or durably fences this operation with operation_canceled."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -11074,6 +11344,16 @@
               "pattern": "^[0-9a-f]{32}$"
             },
             "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
           }
         ],
         "requestBody": {
@@ -11490,6 +11770,549 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/transactions/bulk": {
+      "post": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Atomically return the original receipt or record terminal operation_canceled409 before any edit. Keep original method/path/body/idempotency key/edit clock unchanged. The cancellation header is excluded from the operation fingerprint; delayed original attempts replay the cancellation. Lost acknowledgement requires unchanged retry. Supported only on transaction mutation routes."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
+          },
+          {
+            "name": "X-Actual-Receipt-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Read original outcome before epoch/precondition checks. Unknown operation returns404 operation_uncommitted without a write. Cannot combine with cancellation."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkTransactionChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MutationConflict"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Committed or replayed original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "edit_clock",
+                    "cursor"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "affected_count"
+                      ],
+                      "properties": {
+                        "affected_count": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "ids": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        },
+                        "entries": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        },
+                        "action_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "history": {
+                          "$ref": "#/components/schemas/HistoryState"
+                        },
+                        "aggregate_count": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "cursor": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "description": "Online only. Effects, versions, balances, history and receipt commit atomically. Validation/conflict rolls back all entries. Keep method/path/body/key/clock/owner/epoch unchanged across retry, lookup and cancellation. Bulk requires selected register snapshot; individual children are selectable. All changes to one split coalesce before final validation. Duplicate selections within one split create one complete duplicate; deleting a parent includes children, deleting its last child recombines. Unbalanced split outcomes reject atomically. Account/date/cleared fields require parent selection. Undo guards changed values and generations; unrelated newer fields survive. Structural operations guard full touched rows and split membership. Newer overlapping/protected changes reject whole group with409 history_conflict; stale action returns409 history_changed. Successful new actions truncate redo; failure/cancellation/replay do not. Receipts never expire blindly.",
+        "summary": "Atomically update, duplicate or delete selected register entries"
+      }
+    },
+    "/api/v1/budgets/{budget}/history/{direction}": {
+      "post": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Atomically return the original receipt or record terminal operation_canceled409 before any edit. Keep original method/path/body/idempotency key/edit clock unchanged. The cancellation header is excluded from the operation fingerprint; delayed original attempts replay the cancellation. Lost acknowledgement requires unchanged retry. Supported only on transaction mutation routes."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
+          },
+          {
+            "name": "X-Actual-Receipt-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Read original outcome before epoch/precondition checks. Unknown operation returns404 operation_uncommitted without a write. Cannot combine with cancellation."
+          },
+          {
+            "name": "direction",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "undo",
+                "redo"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HistoryNavigate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MutationConflict"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Committed or replayed original result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "edit_clock",
+                    "cursor"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "affected_count"
+                      ],
+                      "properties": {
+                        "affected_count": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "ids": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        },
+                        "entries": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        },
+                        "action_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "history": {
+                          "$ref": "#/components/schemas/HistoryState"
+                        },
+                        "aggregate_count": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "cursor": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "description": "Online only. Effects, versions, balances, history and receipt commit atomically. Validation/conflict rolls back all entries. Keep method/path/body/key/clock/owner/epoch unchanged across retry, lookup and cancellation. Bulk requires selected register snapshot; individual children are selectable. All changes to one split coalesce before final validation. Duplicate selections within one split create one complete duplicate; deleting a parent includes children, deleting its last child recombines. Unbalanced split outcomes reject atomically. Account/date/cleared fields require parent selection. Undo guards changed values and generations; unrelated newer fields survive. Structural operations guard full touched rows and split membership. Newer overlapping/protected changes reject whole group with409 history_conflict; stale action returns409 history_changed. Successful new actions truncate redo; failure/cancellation/replay do not. Receipts never expire blindly.",
+        "summary": "Undo or redo one original action group"
+      }
+    },
+    "/api/v1/budgets/{budget}/history": {
+      "get": {
+        "summary": "Read client engine history in current budget epoch",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Available undo and redo actions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/HistoryState"
+                    }
+                  }
                 }
               }
             }
@@ -14347,6 +15170,277 @@
             "pattern": "^[0-9a-f]{32}$"
           }
         }
+      },
+      "BulkTransactionChange": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "snapshot",
+          "action",
+          "ids"
+        ],
+        "properties": {
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "update",
+              "duplicate",
+              "delete"
+            ]
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "minItems": 1,
+            "maxItems": 100,
+            "uniqueItems": true
+          },
+          "fields": {
+            "$ref": "#/components/schemas/BulkTransactionFields"
+          },
+          "duplicate_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "maxItems": 100,
+            "uniqueItems": true,
+            "description": "Required only for duplicate; one stable new parent ID per selected ID. Server-generated split children replay from receipt."
+          },
+          "notes": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "mode"
+            ],
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "replace",
+                  "prepend",
+                  "append",
+                  "find_replace"
+                ]
+              },
+              "find": {
+                "type": "string",
+                "maxLength": 2048
+              },
+              "use_regex": {
+                "type": "boolean",
+                "default": false
+              }
+            },
+            "description": "Applies fields.notes as replacement/text. Find-and-replace uses ECMAScript global non-u replacement semantics with bounded work. Invalid/over-complex patterns reject atomically."
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "action": {
+                  "const": "update"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "fields"
+              ]
+            },
+            "else": {
+              "not": {
+                "required": [
+                  "fields"
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "action": {
+                  "const": "duplicate"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "duplicate_ids"
+              ],
+              "properties": {
+                "duplicate_ids": {
+                  "minItems": 1
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "duplicate_ids": {
+                  "maxItems": 0
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "notes"
+              ]
+            },
+            "then": {
+              "properties": {
+                "action": {
+                  "const": "update"
+                },
+                "fields": {
+                  "required": [
+                    "notes"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "description": "Select 1\u2013100 parent or child entries. Split selections are grouped before applying; final allocations must equal the parent. Duplicate parent+children produces one split using the first selected member destination ID. Child account/date/cleared changes require parent selected too. Notes modes apply per selected entry."
+      },
+      "HistoryNavigate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action_id"
+        ],
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "HistoryAction": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "HistoryState": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "undo",
+          "redo",
+          "limit",
+          "epoch",
+          "edit_clock"
+        ],
+        "properties": {
+          "undo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HistoryAction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "redo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HistoryAction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "type": "integer",
+            "const": 20
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "edit_clock": {
+            "$ref": "#/components/schemas/EditClock"
+          }
+        }
+      },
+      "BulkTransactionFields": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "cleared": {
+            "type": "boolean",
+            "default": false
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 10000,
+            "default": ""
+          },
+          "payee_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "minProperties": 1
       }
     }
   }

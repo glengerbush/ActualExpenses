@@ -95,19 +95,21 @@ async fn change(
         ));
     }
     let key = api::idempotency_key(&headers)?;
+    let owner = crate::history::owner_header(&headers)?;
     let clock = concurrency::header(&headers)?;
     let cancel = concurrency::cancel_header(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;
     let payload = serde_json::to_string(&input).map_err(Error::internal)?;
     store
         .run(move |db| {
-            concurrency::write(
+            concurrency::write_owned(
                 db,
                 &format!("POST /budgets/{budget}/transactions/{id}/splits"),
                 &key,
                 &payload,
                 clock.as_deref(),
                 StatusCode::OK,
+                owner.as_ref(),
                 |db| {
                     concurrency::execute(
                         db,

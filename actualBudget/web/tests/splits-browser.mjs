@@ -76,6 +76,9 @@ try {
   await page
     .getByRole("button", { name: "Distribute and save", exact: true })
     .click();
+  await expect(
+    page.getByRole("heading", { name: "Split transaction", exact: true }),
+  ).toHaveCount(0);
   await expect(page.getByText("2 splits", { exact: true })).toBeVisible();
   const register = await call(base + "/transactions");
   expect(register.balances.total).toBe(-5001);
@@ -94,6 +97,7 @@ try {
       key: r.headers()["idempotency-key"],
       clock: r.headers()["x-actual-edit-clock"],
       epoch: r.headers()["x-actual-budget-epoch"],
+      owner: r.headers()["x-actual-history-owner"],
     });
     if (attempts.length === 1) {
       const response = await fetch(
@@ -105,6 +109,7 @@ try {
             "Idempotency-Key": r.headers()["idempotency-key"],
             "X-Actual-Edit-Clock": r.headers()["x-actual-edit-clock"],
             "X-Actual-Budget-Epoch": r.headers()["x-actual-budget-epoch"],
+            "X-Actual-History-Owner": r.headers()["x-actual-history-owner"],
           },
           body: r.postData(),
         },
@@ -125,7 +130,13 @@ try {
   await page
     .getByRole("button", { name: "Retry saved split", exact: true })
     .click();
+  await expect(
+    page.getByRole("heading", { name: "Split transaction", exact: true }),
+  ).toHaveCount(0);
   await expect(page.getByText("2 splits", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Retry saved split", exact: true }),
+  ).toHaveCount(0);
   expect(attempts.length).toBe(2);
   expect(attempts[1]).toEqual(attempts[0]);
   await page.unroute("**/transactions/*/splits");
@@ -171,6 +182,9 @@ try {
     .getByRole("button", { name: "Refresh unchanged transaction", exact: true })
     .click();
   await page.getByRole("button", { name: "Save splits", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Split transaction", exact: true }),
+  ).toHaveCount(0);
   await expect(page.getByText("2 splits", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Edit splits", exact: true }).click();
   await expect(page.getByLabel("Split 1 notes", { exact: true })).toHaveValue(
@@ -227,6 +241,9 @@ try {
     }
   }
   await page.getByRole("button", { name: "Save splits", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Split transaction", exact: true }),
+  ).toHaveCount(0);
   await expect(page.getByText("2 splits", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Edit splits", exact: true }).click();
   await mkdir("../../.scratch/ticket14-visuals", { recursive: true });
@@ -299,6 +316,9 @@ try {
     });
   }
   await page.getByRole("button", { name: "Save splits", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Split transaction", exact: true }),
+  ).toHaveCount(0);
   await expect(page.getByText("2 splits", { exact: true })).toBeVisible();
   const retained = (await call(splitPath)).data;
   expect(retained.retained_payee_id).toBe(childPayee.id);

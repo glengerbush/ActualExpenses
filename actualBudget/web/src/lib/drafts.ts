@@ -1,3 +1,4 @@
+import { historyOwner } from "./history-owner";
 import { uuid, type Budget, type NewAccount } from "./api";
 import { parseDateInput } from "./dates";
 import {
@@ -45,7 +46,7 @@ export interface AccountDraft extends BaseDraft {
   budget_id: string;
   budget_epoch?: string;
   fields: AccountFields;
-  pending: { key: string; body: NewAccount } | null;
+  pending: { key: string; body: NewAccount; historyOwner?: string } | null;
 }
 export type CreationDraft = BudgetDraft | AccountDraft;
 const prefix = "actualBudget.creation.v1.";
@@ -111,7 +112,9 @@ function calendarDate(value: string): boolean {
     d <= [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1]
   );
 }
-export function prepareSubmission(draft: CreationDraft): CreationDraft {
+export async function prepareSubmission(
+  draft: CreationDraft,
+): Promise<CreationDraft> {
   if (draft.pending) return draft;
   if (!draft.fields.name.trim())
     throw new Error(
@@ -140,6 +143,7 @@ export function prepareSubmission(draft: CreationDraft): CreationDraft {
     fields: { ...draft.fields, date },
     pending: {
       key: draft.draft_id,
+      historyOwner: await historyOwner(),
       body: {
         id: draft.draft_id,
         name: draft.fields.name.trim(),

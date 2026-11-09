@@ -140,6 +140,7 @@ async fn mutate(
     let action = parts.get(6).copied().unwrap_or("create").to_owned();
     let Json(body) = input.map_err(json_error)?;
     let key = idempotency_key(&headers)?;
+    let owner = crate::history::owner_header(&headers)?;
     let proposed = concurrency::header(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;
     let cancel = concurrency::cancel_header(&headers)?;
@@ -167,7 +168,7 @@ async fn mutate(
         body.to_string()
     };
     s.run(move |db| {
-        concurrency::write(
+        concurrency::write_owned(
             db,
             &scope,
             &key,
@@ -178,6 +179,7 @@ async fn mutate(
             } else {
                 StatusCode::OK
             },
+            owner.as_ref(),
             |db| {
                 if cancel {crate::lifecycle::metadata(db,&b,true)?;return Ok(json!({"response_status":409,"response_body":{"error":{"code":"operation_canceled","message":"This change was canceled before it was saved."}}}));}
                 crate::lifecycle::require_epoch(db, &b, epoch.as_deref())?;

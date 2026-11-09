@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { historyOwner } from "./history-owner";
   import { onMount, tick } from "svelte";
   import { request, uuid, errorMessage, RequestError } from "./api";
   import {
@@ -253,6 +254,7 @@
         operation.edit_clock,
         localStorage.getItem(cancelKey(operation)) === "true",
         operation.budgetEpoch,
+        operation.historyOwner,
       );
       if (!ownsSavedDraft()) return;
       pending = null;
@@ -302,6 +304,8 @@
       return;
     }
     try {
+      const owner = await historyOwner();
+      if (!draft || pending || busy) return;
       const values = {
         name: draft.name,
         group_id: draft.group_id || null,
@@ -326,6 +330,7 @@
         path: `/budgets/${budgetId}/${draft.kind}${draft.id ? `/${draft.id}` : ""}`,
         method: deleting ? "DELETE" : draft.id ? "PATCH" : "POST",
         key: uuid(),
+        historyOwner: owner,
         edit_clock: nextEditClock(draft.original?.field_versions),
         budgetEpoch: draft.epoch,
         body,

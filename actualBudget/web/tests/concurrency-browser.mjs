@@ -160,7 +160,11 @@ try {
   // Unchanged refresh uses one cursor request, not the full register/reference endpoints.
   const requests = [];
   a.page.on("request", (r) => {
-    if (r.method() === "GET" && r.url().includes("/api/v1/"))
+    if (
+      r.method() === "GET" &&
+      r.url().includes("/api/v1/") &&
+      !r.url().endsWith("/history")
+    )
       requests.push(r.url());
   });
   await a.page

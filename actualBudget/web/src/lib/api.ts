@@ -51,6 +51,7 @@ export async function request<T>(
   editClock?: string,
   cancelIfUncommitted = false,
   budgetEpoch?: string,
+  historyOwner?: string,
 ): Promise<T> {
   const mutation = method !== "GET";
   let response: Response;
@@ -66,6 +67,9 @@ export async function request<T>(
         ...(budgetEpoch === undefined
           ? {}
           : { "X-Actual-Budget-Epoch": budgetEpoch }),
+        ...(historyOwner === undefined
+          ? {}
+          : { "X-Actual-History-Owner": historyOwner }),
         ...(cancelIfUncommitted
           ? { "X-Actual-Cancel-If-Uncommitted": "true" }
           : {}),

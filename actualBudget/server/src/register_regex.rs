@@ -199,3 +199,137 @@ pub(crate) fn escape(value: &str) -> String {
     }
     out
 }
+
+pub(crate) fn replacement_budget() -> Budget {
+    Budget {
+        remaining: Arc::new(AtomicU64::new(REQUEST_WORK)),
+        failure: Arc::new(AtomicU8::new(0)),
+    }
+}
+impl Pattern {
+    /// ECMAScript String.replaceAll substitution over bounded non-u UTF-16 matches.
+    pub(crate) fn replace_all(
+        &self,
+        text: &str,
+        replacement: &str,
+        budget: &Budget,
+    ) -> Result<String, Error> {
+        let text: Vec<u16> = text.encode_utf16().collect();
+        let replacement: Vec<u16> = replacement.encode_utf16().collect();
+        if text.len() > TEXT_UNITS || replacement.len() > TEXT_UNITS {
+            return Err(Failure::Budget.api_error());
+        }
+        let mut output = Vec::new();
+        let mut position = 0;
+        let mut last = 0;
+        while position <= text.len() {
+            budget
+                .charge(regress::INTERRUPT_INTERVAL as u64 + self.units + text.len() as u64)
+                .map_err(|e| e.api_error())?;
+            let mut polls = 0;
+            let found = self
+                .regex
+                .find_from_ucs2_interruptible(&text, position, || {
+                    polls += 1;
+                    polls >= MATCH_POLLS
+                        || budget.charge(regress::INTERRUPT_INTERVAL as u64).is_err()
+                })
+                .map_err(|_| Failure::Budget.api_error())?;
+            let Some(found) = found else {
+                break;
+            };
+            output.extend_from_slice(&text[last..found.range.start]);
+            expand_substitution(&mut output, &text, &replacement, &found)?;
+            if output.len() > TEXT_UNITS {
+                return Err(Error::invalid("Replacement notes exceed 10000 characters"));
+            }
+            last = found.range.end;
+            position = if found.range.is_empty() {
+                found.range.end + 1
+            } else {
+                found.range.end
+            };
+        }
+        output.extend_from_slice(&text[last..]);
+        String::from_utf16(&output)
+            .map_err(|_| Error::invalid("Replacement would produce an unpaired Unicode surrogate"))
+    }
+}
+fn expand_substitution(
+    output: &mut Vec<u16>,
+    text: &[u16],
+    replacement: &[u16],
+    found: &regress::Match,
+) -> Result<(), Error> {
+    let mut i = 0;
+    while i < replacement.len() {
+        if output.len() > TEXT_UNITS {
+            return Err(Error::invalid("Replacement notes exceed 10000 characters"));
+        }
+        if replacement[i] != u16::from(b'$') || i + 1 == replacement.len() {
+            output.push(replacement[i]);
+            i += 1;
+            continue;
+        }
+        let next = replacement[i + 1];
+        let range = match next {
+            n if n == u16::from(b'$') => {
+                output.push(n);
+                i += 2;
+                continue;
+            }
+            n if n == u16::from(b'&') => Some(found.range.clone()),
+            n if n == u16::from(b'`') => Some(0..found.range.start),
+            n if n == u16::from(b'\'') => Some(found.range.end..text.len()),
+            n if n == u16::from(b'<') && found.named_groups().next().is_some() => {
+                if let Some(end) = replacement[i + 2..]
+                    .iter()
+                    .position(|c| *c == u16::from(b'>'))
+                {
+                    let name = String::from_utf16_lossy(&replacement[i + 2..i + 2 + end]);
+                    if let Some(range) = found.named_group(&name) {
+                        output.extend_from_slice(&text[range]);
+                    }
+                    i += end + 3;
+                    continue;
+                } else {
+                    None
+                }
+            }
+            n if (u16::from(b'0')..=u16::from(b'9')).contains(&n) => {
+                let mut group = (n - u16::from(b'0')) as usize;
+                let mut digits = 1;
+                if i + 2 < replacement.len()
+                    && (u16::from(b'0')..=u16::from(b'9')).contains(&replacement[i + 2])
+                {
+                    let two = group * 10 + (replacement[i + 2] - u16::from(b'0')) as usize;
+                    if two > 0 && two <= found.captures.len() {
+                        group = two;
+                        digits = 2;
+                    }
+                }
+                if group > 0 && group <= found.captures.len() {
+                    if let Some(range) = found.group(group) {
+                        output.extend_from_slice(&text[range]);
+                    }
+                    i += digits + 1;
+                    continue;
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        };
+        if let Some(range) = range {
+            output.extend_from_slice(&text[range]);
+            i += 2;
+        } else {
+            output.push(replacement[i]);
+            i += 1;
+        }
+    }
+    if output.len() > TEXT_UNITS {
+        return Err(Error::invalid("Replacement notes exceed 10000 characters"));
+    }
+    Ok(())
+}

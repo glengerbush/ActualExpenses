@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { historyOwner } from "./history-owner";
   import {
     entries,
     enqueue,
@@ -399,6 +400,7 @@
       path: `/budgets/${budgetId}/transactions${draft.original ? `/${draft.id}` : ""}`,
       method: draft.original ? "PATCH" : "POST",
       key: draft.draftId,
+      historyOwner: await historyOwner(),
       edit_clock: draft.editClock,
       budgetEpoch: draft.budgetEpoch,
       body,

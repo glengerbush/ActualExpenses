@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { historyOwner } from "./history-owner";
   import { onMount, tick } from "svelte";
   import {
     uuid,
@@ -243,6 +244,7 @@
           path: `/budgets/${budgetId}/transactions/${draft.parent.id}/splits`,
           method: "POST",
           key: uuid(),
+          historyOwner: await historyOwner(),
           edit_clock: nextEditClock(draft.parent.field_versions),
           budgetEpoch: draft.epoch,
           body: {

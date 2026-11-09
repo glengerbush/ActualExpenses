@@ -653,3 +653,48 @@ pub(crate) fn decorate_many(
     }
     Ok(())
 }
+
+/// Opt-in history; owner and captured epoch are part of immutable receipt identity.
+// Keeps the existing receipt API plus its explicit history owner.
+#[allow(clippy::too_many_arguments)]
+pub fn write_owned(
+    db: &mut Connection,
+    scope: &str,
+    key: &str,
+    payload: &str,
+    clock: Option<&str>,
+    status: StatusCode,
+    owner: Option<&crate::history::Owner>,
+    operation: impl FnOnce(&Connection) -> Result<Value, Error>,
+) -> Result<(StatusCode, Json<Value>), Error> {
+    let payload = crate::history::payload(payload, owner);
+    write(db, scope, key, &payload, clock, status, |db| {
+        if let Some(owner) = owner {
+            let budget = scope
+                .split('/')
+                .nth(2)
+                .ok_or_else(|| Error::internal("Missing history budget"))?;
+            crate::history::record(db, budget, owner, scope, operation)
+        } else {
+            operation(db)
+        }
+    })
+}
+pub fn receipt_owned(
+    db: &Connection,
+    scope: &str,
+    key: &str,
+    payload: &str,
+    clock: Option<&str>,
+    status: StatusCode,
+    owner: Option<&crate::history::Owner>,
+) -> Result<(StatusCode, Json<Value>), Error> {
+    receipt(
+        db,
+        scope,
+        key,
+        &crate::history::payload(payload, owner),
+        clock,
+        status,
+    )
+}

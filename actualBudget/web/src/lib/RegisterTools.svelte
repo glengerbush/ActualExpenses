@@ -16,6 +16,7 @@
     budgetId,
     accountId,
     disconnected,
+    locked = false,
     accounts,
     payees,
     categories,
@@ -25,6 +26,7 @@
     budgetId: string;
     accountId: string | null;
     disconnected: boolean;
+    locked?: boolean;
     accounts: Reference[];
     payees: Reference[];
     categories: Reference[];
@@ -305,7 +307,7 @@
     {#if !accountId}<label
         >Account scope<select
           bind:value={query.account_scope}
-          disabled={busy || disconnected || !!pending}
+          disabled={busy || locked || disconnected || !!pending}
           onchange={changeScope}
           ><option value="all">All accounts</option><option value="onbudget"
             >On budget</option
@@ -319,13 +321,13 @@
         type="search"
         bind:value={query.search}
         maxlength="500"
-        disabled={busy || disconnected || !!pending}
+        disabled={busy || locked || disconnected || !!pending}
       /></label
     >
     <label
       >Sort by<select
         bind:value={query.sort}
-        disabled={busy || disconnected || !!pending}
+        disabled={busy || locked || disconnected || !!pending}
         ><option value="date">Date</option><option value="amount">Amount</option
         ><option value="payee">Payee</option><option value="category"
           >Category</option
@@ -339,13 +341,13 @@
     <label
       >Order<select
         bind:value={query.direction}
-        disabled={busy || disconnected || !!pending}
+        disabled={busy || locked || disconnected || !!pending}
         ><option value="desc">Descending</option><option value="asc"
           >Ascending</option
         ></select
       ></label
     >
-    <button disabled={busy || disconnected || !!pending}
+    <button disabled={busy || locked || disconnected || !!pending}
       >Find transactions</button
     >
   </form>
@@ -355,7 +357,7 @@
     }}
   >
     <summary>Filters and columns</summary>
-    <fieldset disabled={busy || disconnected || !!pending}>
+    <fieldset disabled={busy || locked || disconnected || !!pending}>
       <legend>Visibility</legend>
       <label class="check"
         ><input type="checkbox" bind:checked={extraBalances} />Show cleared and
@@ -370,7 +372,7 @@
         reconciled transactions</label
       >
     </fieldset>
-    <fieldset disabled={busy || disconnected || !!pending}>
+    <fieldset disabled={busy || locked || disconnected || !!pending}>
       <legend>Compound filter</legend>
       <label
         >Match<select bind:value={query.filter.op}
@@ -453,7 +455,7 @@
         disabled={query.filter.conditions.length >= 20}>Add condition</button
       >
     </fieldset>
-    <fieldset disabled={busy || disconnected || !!pending}>
+    <fieldset disabled={busy || locked || disconnected || !!pending}>
       <legend>Columns</legend>
       <div class="columns">
         {#each Object.entries(columnLabels) as [id, label] (id)}<label
@@ -473,7 +475,11 @@
         {#each columns as column, index (column)}<li>
             {columnLabels[column]}
             <button
-              disabled={busy || disconnected || !!pending || index === 0}
+              disabled={busy ||
+                locked ||
+                disconnected ||
+                !!pending ||
+                index === 0}
               onclick={() => {
                 [columns[index - 1], columns[index]] = [
                   columns[index],
@@ -485,11 +491,13 @@
       </ol>
     </details>
     <div class="actions">
-      <button onclick={apply} disabled={busy || disconnected || !!pending}
+      <button
+        onclick={apply}
+        disabled={busy || locked || disconnected || !!pending}
         >Apply filters and columns</button
       ><button
         onclick={() => void save()}
-        disabled={busy || disconnected || !!pending || !settings}
+        disabled={busy || locked || disconnected || !!pending || !settings}
         >Save view</button
       ><button
         onclick={() => {
@@ -497,10 +505,13 @@
           columns = [...defaultColumns];
           void apply();
         }}
-        disabled={busy || disconnected || !!pending}>Reset view</button
+        disabled={busy || locked || disconnected || !!pending}
+        >Reset view</button
       >
     </div>
-    <fieldset disabled={busy || disconnected || !!pending || !settings}>
+    <fieldset
+      disabled={busy || locked || disconnected || !!pending || !settings}
+    >
       <legend>Saved filters</legend>
       <div class="search-row">
         <label
@@ -529,11 +540,12 @@
       Register settings request saved on this device. Retry before making
       another change.
     </p>
-    <button disabled={busy || disconnected} onclick={() => void save()}
-      >Retry register settings</button
+    <button
+      disabled={busy || locked || disconnected}
+      onclick={() => void save()}>Retry register settings</button
     >{/if}
   {#if rejected || !settings}<button
-      disabled={busy || disconnected}
+      disabled={busy || locked || disconnected}
       onclick={reloadRejected}>Reload register settings</button
     >{/if}
   {#if notice}<p role="status">{notice}</p>{/if}

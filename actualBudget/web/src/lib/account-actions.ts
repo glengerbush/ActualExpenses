@@ -2,6 +2,7 @@ import { type Account, type AccountGroup } from "./api";
 export const accountDraftKey = (budget: string) =>
   `actualBudget.accounts.v1.${budget}`;
 export interface AccountIntent {
+  historyOwner?: string;
   path: string;
   body: Record<string, unknown>;
   key: string;

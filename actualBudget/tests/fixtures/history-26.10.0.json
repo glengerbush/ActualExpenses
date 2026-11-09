@@ -1,0 +1,74 @@
+{
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "undo_sha256": "2b664e329d843c8022f935d131b7a88a40f85b3e64904faed50f8aeffd5deafe",
+  "noteCases": [
+    {
+      "text": "Shop 12 / Shop 34",
+      "find": "Shop",
+      "replace": "Market",
+      "use_regex": false,
+      "expected": "Market 12 / Market 34"
+    },
+    {
+      "text": "Shop 12 / Shop 34",
+      "find": "(\\d+)",
+      "replace": "[$1]",
+      "use_regex": true,
+      "expected": "Shop [12] / Shop [34]"
+    },
+    {
+      "text": "a1 b2",
+      "find": "(?<letter>[ab])(\\d)",
+      "replace": "$<letter>:$2:$$:$&",
+      "use_regex": true,
+      "expected": "a:1:$:a1 b:2:$:b2"
+    },
+    {
+      "text": "abc",
+      "find": "b",
+      "replace": "$`-$&-$'",
+      "use_regex": false,
+      "expected": "aa-b-cc"
+    },
+    {
+      "text": "😀",
+      "find": ".",
+      "replace": "x",
+      "use_regex": true,
+      "expected": "xx"
+    },
+    {
+      "text": "ab",
+      "find": "(?=.)",
+      "replace": "_",
+      "use_regex": true,
+      "expected": "_a_b"
+    },
+    {
+      "text": "abc",
+      "find": "",
+      "replace": "ignored",
+      "use_regex": false,
+      "expected": "abc"
+    },
+    {
+      "text": "a1",
+      "find": "(a)",
+      "replace": "$01-$10-$0",
+      "use_regex": true,
+      "expected": "a-a0-$01"
+    }
+  ],
+  "ordinary": {
+    "firstUndo": -1234,
+    "secondUndo": 0,
+    "firstRedo": -1234,
+    "secondRedo": -5678
+  },
+  "retention": {
+    "twentyUndo": 5,
+    "exhaustedUndo": 5,
+    "twentyRedo": 25,
+    "branchRedo": 900
+  }
+}

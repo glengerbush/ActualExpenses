@@ -1,5 +1,6 @@
 import { uuid } from "./api";
 export interface ReferenceIntent {
+  historyOwner?: string;
   path: string;
   method: "POST" | "PATCH";
   body: Record<string, unknown>;

@@ -69,7 +69,8 @@ export class CreationSession<D extends CreationDraft, Result> {
         throw new Error(
           "Reconnect before creating a budget or account. Your draft is saved.",
         );
-      const submitted = prepareSubmission(this.draft) as D;
+      this.busy = true;
+      const submitted = (await prepareSubmission(this.draft)) as D;
       saveDraft(submitted);
       this.draft = submitted;
       this.busy = true;
@@ -85,6 +86,9 @@ export class CreationSession<D extends CreationDraft, Result> {
         undefined,
         false,
         submitted.kind === "account" ? submitted.budget_epoch : undefined,
+        submitted.kind === "account"
+          ? submitted.pending!.historyOwner
+          : undefined,
       );
       acknowledged = true;
       if (submitted.kind === "account") {

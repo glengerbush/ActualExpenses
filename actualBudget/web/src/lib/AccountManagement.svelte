@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { historyOwner } from "./history-owner";
   import { onMount } from "svelte";
   import MarkdownNotes from "./MarkdownNotes.svelte";
   import {
@@ -131,6 +132,7 @@
         pending.clock,
         localStorage.getItem(accountCancelKey(pending)) === "true",
         pending.epoch,
+        pending.historyOwner,
       );
       acknowledged = true;
       await snapshot();
@@ -210,12 +212,15 @@
       return;
     }
     try {
+      const owner = await historyOwner();
+      if (!draft || draft.pending || busy) return;
       await send({
         path: `/budgets/${budgetId}/${path}`,
         body,
         method,
         message,
         key: uuid(),
+        historyOwner: owner,
         clock: nextEditClock(versions),
         epoch: draft.epoch,
       });

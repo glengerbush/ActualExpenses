@@ -45,6 +45,7 @@ export interface RegisterPage {
   snapshot: string;
 }
 export interface PendingMutation {
+  historyOwner?: string;
   path: string;
   method: "POST" | "PATCH" | "DELETE";
   key: string;
@@ -65,6 +66,7 @@ export function sameMutation(
     value.key,
     value.edit_clock ?? null,
     value.budgetEpoch ?? null,
+    value.historyOwner ?? null,
     value.body ?? null,
   ];
   return JSON.stringify(identity(a)) === JSON.stringify(identity(b));
@@ -148,6 +150,7 @@ export async function mutate<T>(
     pending.edit_clock,
     cancelIfUncommitted,
     pending.budgetEpoch,
+    pending.historyOwner,
   );
 }
 export function draftKey(budgetId: string) {

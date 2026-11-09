@@ -91,6 +91,8 @@ export function validPending(
     typeof value.cancelRequested !== "boolean"
   )
     return false;
+  if (value.historyOwner !== undefined && !uuid(value.historyOwner))
+    return false;
   if (value.attemptId !== undefined && !uuid(value.attemptId)) return false;
   if (value.edit_clock !== undefined && !validClock(value.edit_clock))
     return false;
@@ -196,6 +198,8 @@ function validDraft(value: unknown, budget: string): value is TransactionDraft {
       !validPending(value.replaces.pending, budget) ||
       value.replaces.pending.key !== value.replaces.key)
   )
+    return false;
+  if (value.historyOwner !== undefined && !uuid(value.historyOwner))
     return false;
   if (value.attemptId !== undefined && !uuid(value.attemptId)) return false;
   if (value.editClock !== undefined && !validClock(value.editClock))

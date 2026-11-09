@@ -5,6 +5,7 @@ mod categories;
 mod companion;
 mod concurrency;
 mod error;
+mod history;
 mod imports;
 mod ledger;
 mod lifecycle;

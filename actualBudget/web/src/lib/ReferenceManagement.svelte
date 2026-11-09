@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { historyOwner } from "./history-owner";
   import { onMount } from "svelte";
   import { t } from "./i18n.svelte";
   import { request, uuid, errorMessage, RequestError } from "./api";
@@ -164,11 +165,14 @@
     try {
       if (!navigator.onLine || !offlineStatus.reachable)
         throw new Error("Reconnect before managing payees or tags.");
+      const owner = await historyOwner();
+      if (!draft || locked) return;
       const intent: ReferenceIntent = {
         path: `/budgets/${budgetId}/${path}`,
         body,
         key: uuid(),
         method,
+        historyOwner: owner,
         clock: nextEditClock(),
         epoch: draft.epoch,
       };
@@ -207,6 +211,7 @@
         intent.clock,
         localStorage.getItem(referenceCancelKey(intent)) === "true",
         intent.epoch,
+        intent.historyOwner,
       );
       notice = result.conflicts?.length
         ? "A newer edit was retained. Review the refreshed record."

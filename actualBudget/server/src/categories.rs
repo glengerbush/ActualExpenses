@@ -327,6 +327,7 @@ async fn write(
         }
     }
     let key = idempotency_key(&headers)?;
+    let owner = crate::history::owner_header(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;
     let proposed = sync::header(&headers)?;
     let cancel = sync::cancel_header(&headers)?;
@@ -367,13 +368,14 @@ async fn write(
     };
     store
         .run(move |db| {
-            sync::write(
+            sync::write_owned(
                 db,
                 &scope,
                 &key,
                 &payload,
                 proposed.as_deref(),
                 status,
+                owner.as_ref(),
                 |db| {
                     if cancel {
                         return sync::canceled(db, &budget);

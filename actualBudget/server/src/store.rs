@@ -28,6 +28,7 @@ impl Store {
         )?;
         crate::migrations::apply(&mut db, directory)?;
         crate::lifecycle::automatic::configure(&db)?;
+        crate::history::configure(&db)?;
         let store = Self {
             db: Arc::new(Mutex::new(db)),
             worker: Arc::new(Semaphore::new(1)),

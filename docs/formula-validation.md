@@ -123,3 +123,26 @@ Checkpoint exclusions: preferences/volatile evaluation-time integration, card
 and named-query editing/rendering/import flows, served contracts, representative
 companion checks and all42 rule/template integration are still unfinished.
 No whole-ticket or release qualification is claimed here.
+
+## Root runtime review and composition
+
+Reviewed065c94d and79e6ba9 against pinned production prefetch/evaluation code;
+composed with reviewed crossover backend as393bfb3. Trusted-only bytecode,
+fresh bounded runtime, ICU comparison work, SQL limits, financial prefetch,
+snapshot ownership and scoped goal/calendar helper changes reviewed. No new
+standards finding remains at this checkpoint.
+
+Independent composed build and asset reproduction pass:
+`/tmp/formula-crossover-compose-build.log`, `/tmp/formula-root-assets.log`.
+Public forty source outcomes and ten nonzero budget outcomes pass, with unchanged
+ledger/checkpoints, in `/tmp/formula-crossover-compose-core.log` and
+`/tmp/formula-crossover-compose-budget.log`. Matrix refusal followed by fresh SUM
+and original NAME-error recovery passes `/tmp/formula-crossover-compose-limits.log`.
+Previously reviewed source producers were reused, not regenerated.
+
+Open spec finding: category extraction currently returns a request error for
+invalid regex; pinned source treats that condition as nonmatching. Assigned to
+the feature owner with a bounded whole-hook witness. The owner's ongoing query
+metadata/imported-payee supplement and preference/volatile-time/UI/contracts
+work are not covered by this checkpoint. Final image must retain bundled runtime
+notices. No whole41 completion claim.

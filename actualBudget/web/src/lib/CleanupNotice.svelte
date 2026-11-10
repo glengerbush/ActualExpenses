@@ -10,7 +10,9 @@
         ? "Cleanup saved with warnings. Review the affected pools below."
         : "Some cleanup funds or pool connections need attention."
       : notification.message === "cleanup-up-to-date"
-        ? "No cleanup allocation changes are needed."
+        ? committed
+          ? "Cleanup complete."
+          : "Cleanup review complete. Review the allocations below."
         : notification.message === "cleanup-applied"
           ? committed
             ? "Cleanup reallocated the available funds."

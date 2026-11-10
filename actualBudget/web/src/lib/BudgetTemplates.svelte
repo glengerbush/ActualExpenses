@@ -894,8 +894,9 @@
                     ></tr
                   >{:else}<tr
                     ><td colspan="4"
-                      >No eligible changes. Existing allocations are skipped
-                      unless explicitly overwritten or selected.</td
+                      >{draft.mode === "cleanup"
+                        ? "No allocations need to change. Review any cleanup warnings above."
+                        : "No eligible changes. Existing allocations are skipped unless explicitly overwritten or selected."}</td
                     ></tr
                   >{/each}</tbody
               >

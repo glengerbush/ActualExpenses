@@ -176,6 +176,9 @@
             >{#each kinds as [value, label] (value)}<option {value}
                 >{label}</option
               >{/each}</select
+          ><span class="selected-rule"
+            >Selected: {kinds.find(([value]) => value === row.type)?.[1] ??
+              String(row.type)}</span
           ></label
         >
         {#if !["goal", "limit", "remainder"].includes(String(row.type))}<label
@@ -386,6 +389,15 @@
 </fieldset>
 
 <style>
+  .selected-rule {
+    display: none;
+  }
+  @media (max-width: 40rem) {
+    .selected-rule {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+  }
   .template-editor {
     border: 0;
     padding: 0;

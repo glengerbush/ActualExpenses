@@ -13,6 +13,7 @@
     type ReportQuery,
     type Projection,
   } from "./reports";
+  import CrossoverWidget from "./CrossoverWidget.svelte";
   import SankeyWidget from "./SankeyWidget.svelte";
   import BudgetAnalysisWidget from "./BudgetAnalysisWidget.svelte";
   import ForecastWidget from "./ForecastWidget.svelte";
@@ -52,6 +53,7 @@
               "balance-forecast-card": t("Balance forecast"),
               "budget-analysis-card": t("Budget Analysis"),
               "sankey-card": t("Sankey"),
+              "crossover-card": t("Crossover Point"),
               "markdown-card": t("Text"),
               "custom-report": String(
                 report?.config.name || t("Saved custom report"),
@@ -221,6 +223,12 @@
       {disconnected}
     />
   {:else if type === "sankey-card"}<SankeyWidget
+      {budgetId}
+      {document}
+      {epoch}
+      {disconnected}
+    />
+  {:else if type === "crossover-card"}<CrossoverWidget
       {budgetId}
       {document}
       {epoch}

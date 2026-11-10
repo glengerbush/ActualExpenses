@@ -241,6 +241,16 @@
           showForm("reports");
         },
       });
+    result.push({
+      id: "crossover",
+      label: "Crossover Point",
+      disabled: locked || !compatible,
+      run: async () => {
+        await writeValue(`view:reporting-tab:${budget!.id}`, "crossover");
+        reportEntryKey++;
+        showForm("reports");
+      },
+    });
     const views = [
       ["planning", "Budget", false],
       ["categories", "Categories", disconnected],

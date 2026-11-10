@@ -29,6 +29,7 @@ mod splits;
 mod store;
 mod themes;
 mod transfers;
+mod transaction_imports;
 use std::path::PathBuf;
 #[tokio::main(worker_threads = 2)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

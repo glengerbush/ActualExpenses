@@ -773,14 +773,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         if flag(row, "isChild")? != row["parent_id"].is_string() {
             return Err(invalid("Split child flag and parent identifier disagree"));
         }
-        let unsupported = flag(row, "pending")?
-            || [
-                "financial_id",
-                "raw_synced_data",
-                "type",
-                "location",
-                "error",
-            ]
+        let unsupported = ["type", "location", "error"]
             .iter()
             .any(|field| !row[*field].is_null());
         requirement(
@@ -856,6 +849,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
                 && prefs["unmapped"]["synced"][key]
                     .as_str()
                     .is_some_and(|s| s.len() <= 32))
+            && !crate::transaction_imports::imported_preference(key)
             && key != "learn-categories"
             && !crate::register_settings::imported_preference(key)
         {
@@ -910,6 +904,8 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             .cloned(),
     );
     converted["budgeting"] = crate::budgeting::convert_actual(&source)?;
+    converted["transaction_imports"] = crate::transaction_imports::convert(&source)?;
+    converted["transaction_imports_version"] = json!(1);
     converted["automations"] = crate::budgeting::templates::convert(&source)?;
     converted["automations_version"] = json!(1);
     converted["budgeting_version"] = json!(1);
@@ -984,11 +980,13 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
             params![budget, settings.to_string()],
         )?;
     }
+    crate::transaction_imports::install(db, budget, &data["transaction_imports"])?;
     crate::budgeting::install_actual(db, budget, &data["budgeting"])?;
     crate::budgeting::templates::install(db, budget, &data["automations"])?;
     crate::rules::install_actual(db, budget, &data["rules"])?;
     crate::schedules::install_actual(db, budget, &data["schedules"])?;
     for row in array(data, "clocks") {
+        crate::transaction_imports::import_clock(db, budget, row)?;
         crate::budgeting::import_clock(db, budget, &data["budgeting"], row)?;
         crate::budgeting::templates::clock(db, budget, row)?;
         crate::rules::import_clock(db, budget, row)?;

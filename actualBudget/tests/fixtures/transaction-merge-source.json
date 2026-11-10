@@ -1,0 +1,4420 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "source_files": {
+    "packages/loot-core/src/server/transactions/merge.ts": "2baecb44746a623f4905bbff3a678e101dae3dc27988d2d739e4ad60489b84b5",
+    "packages/loot-core/src/shared/merge.ts": "632c78f0511bc1252b60e4df594c97065e426b36f7f07d1a950d039ca220d8c6"
+  },
+  "cases": [
+    {
+      "id": "earlier-kept",
+      "input": {
+        "id": "earlier-kept",
+        "a": {
+          "date": "2026-11-08"
+        },
+        "b": {}
+      },
+      "ids": {
+        "cash": "7576a3ac-b857-46ae-bddd-1c045888df18",
+        "card": "66f818d7-9d53-4572-adf7-2012a263ab59",
+        "off": "8c1719af-9818-44f9-900e-76ee64a525c0",
+        "other": "5819a132-603e-4491-9f64-9476729e3ffb",
+        "cafe": "b3816553-ecbe-4de5-aaf3-12098b4eceff",
+        "group": "4590b1ec-7b93-476f-80d1-5ee1040e445e",
+        "category": "b0b1fe01-c3db-4947-9cc5-5ba4ff3498a8",
+        "a": "25270000-0000-4000-8000-000000000001",
+        "b": "25270000-0000-4000-8000-000000000002"
+      },
+      "archive": {
+        "filename": "transaction-merge-earlier-kept-26.10.zip",
+        "sha256": "d11ca1774ba2e9fd62195f6e61fb2c276befe8247b33e13ff094de0a039b2b53"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000002",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "7576a3ac-b857-46ae-bddd-1c045888df18",
+            "category": "b0b1fe01-c3db-4947-9cc5-5ba4ff3498a8",
+            "amount": -1234,
+            "payee": "b3816553-ecbe-4de5-aaf3-12098b4eceff",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000001",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "7576a3ac-b857-46ae-bddd-1c045888df18",
+            "category": "b0b1fe01-c3db-4947-9cc5-5ba4ff3498a8",
+            "amount": -1234,
+            "payee": "b3816553-ecbe-4de5-aaf3-12098b4eceff",
+            "notes": "a",
+            "date": "2026-11-08",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "7576a3ac-b857-46ae-bddd-1c045888df18",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "8c1719af-9818-44f9-900e-76ee64a525c0",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "66f818d7-9d53-4572-adf7-2012a263ab59",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "5819a132-603e-4491-9f64-9476729e3ffb",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "b3816553-ecbe-4de5-aaf3-12098b4eceff",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "1b6c7638-c504-4952-a9a9-09e6472f333e",
+            "name": "cash",
+            "transfer_acct": "7576a3ac-b857-46ae-bddd-1c045888df18"
+          },
+          {
+            "id": "e6d840ee-0dc5-41c0-b573-96a514f94928",
+            "name": "card",
+            "transfer_acct": "66f818d7-9d53-4572-adf7-2012a263ab59"
+          },
+          {
+            "id": "e1ef4f49-df00-48ce-b1d7-4a23d823733f",
+            "name": "other",
+            "transfer_acct": "5819a132-603e-4491-9f64-9476729e3ffb"
+          },
+          {
+            "id": "74659025-ea3b-45fd-ac2d-1defebf02f66",
+            "name": "off",
+            "transfer_acct": "8c1719af-9818-44f9-900e-76ee64a525c0"
+          }
+        ],
+        "categories": [
+          {
+            "id": "b0b1fe01-c3db-4947-9cc5-5ba4ff3498a8",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "4590b1ec-7b93-476f-80d1-5ee1040e445e"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "kept": "25270000-0000-4000-8000-000000000001",
+      "error": null,
+      "after": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000001",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "7576a3ac-b857-46ae-bddd-1c045888df18",
+            "category": "b0b1fe01-c3db-4947-9cc5-5ba4ff3498a8",
+            "amount": -1234,
+            "payee": "b3816553-ecbe-4de5-aaf3-12098b4eceff",
+            "notes": "a",
+            "date": "2026-11-08",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "7576a3ac-b857-46ae-bddd-1c045888df18",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "8c1719af-9818-44f9-900e-76ee64a525c0",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "66f818d7-9d53-4572-adf7-2012a263ab59",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "5819a132-603e-4491-9f64-9476729e3ffb",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "b3816553-ecbe-4de5-aaf3-12098b4eceff",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "1b6c7638-c504-4952-a9a9-09e6472f333e",
+            "name": "cash",
+            "transfer_acct": "7576a3ac-b857-46ae-bddd-1c045888df18"
+          },
+          {
+            "id": "e6d840ee-0dc5-41c0-b573-96a514f94928",
+            "name": "card",
+            "transfer_acct": "66f818d7-9d53-4572-adf7-2012a263ab59"
+          },
+          {
+            "id": "e1ef4f49-df00-48ce-b1d7-4a23d823733f",
+            "name": "other",
+            "transfer_acct": "5819a132-603e-4491-9f64-9476729e3ffb"
+          },
+          {
+            "id": "74659025-ea3b-45fd-ac2d-1defebf02f66",
+            "name": "off",
+            "transfer_acct": "8c1719af-9818-44f9-900e-76ee64a525c0"
+          }
+        ],
+        "categories": [
+          {
+            "id": "b0b1fe01-c3db-4947-9cc5-5ba4ff3498a8",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "4590b1ec-7b93-476f-80d1-5ee1040e445e"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "equal-date-second-kept",
+      "input": {
+        "id": "equal-date-second-kept",
+        "a": {},
+        "b": {}
+      },
+      "ids": {
+        "cash": "db2eab10-4b6a-48d9-b433-8b05ea56922c",
+        "card": "4dea54ec-a0b0-4196-8814-fa8101b43962",
+        "off": "074c70a4-adcb-4a8c-90fc-3cc62d9a64f7",
+        "other": "65cf5960-ee78-41cc-96e4-14485eb5a23c",
+        "cafe": "3023bfe0-3489-46a6-8fee-d99bf07be316",
+        "group": "f837dbf3-4517-4a18-b04a-c5a1d590c088",
+        "category": "3a3914e7-5e1b-427a-8b75-e11ce4718945",
+        "a": "25270000-0000-4000-8000-000000000101",
+        "b": "25270000-0000-4000-8000-000000000102"
+      },
+      "archive": {
+        "filename": "transaction-merge-equal-date-second-kept-26.10.zip",
+        "sha256": "5f529fcfb5ae1442422d54b891db1958b6a83c56f9166bf2c100a2351fc9bd12"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000101",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "db2eab10-4b6a-48d9-b433-8b05ea56922c",
+            "category": "3a3914e7-5e1b-427a-8b75-e11ce4718945",
+            "amount": -1234,
+            "payee": "3023bfe0-3489-46a6-8fee-d99bf07be316",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000102",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "db2eab10-4b6a-48d9-b433-8b05ea56922c",
+            "category": "3a3914e7-5e1b-427a-8b75-e11ce4718945",
+            "amount": -1234,
+            "payee": "3023bfe0-3489-46a6-8fee-d99bf07be316",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "db2eab10-4b6a-48d9-b433-8b05ea56922c",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "074c70a4-adcb-4a8c-90fc-3cc62d9a64f7",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "4dea54ec-a0b0-4196-8814-fa8101b43962",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "65cf5960-ee78-41cc-96e4-14485eb5a23c",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "3023bfe0-3489-46a6-8fee-d99bf07be316",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "7a1118a2-6580-4166-8e9f-a6a69e18d879",
+            "name": "cash",
+            "transfer_acct": "db2eab10-4b6a-48d9-b433-8b05ea56922c"
+          },
+          {
+            "id": "cf1fe691-c091-4494-9f38-97df7303fc6e",
+            "name": "card",
+            "transfer_acct": "4dea54ec-a0b0-4196-8814-fa8101b43962"
+          },
+          {
+            "id": "89812671-2e0d-4e85-b82c-c027df46ebd0",
+            "name": "other",
+            "transfer_acct": "65cf5960-ee78-41cc-96e4-14485eb5a23c"
+          },
+          {
+            "id": "1e6761c3-8d30-49af-a1c3-837ba58f6cfc",
+            "name": "off",
+            "transfer_acct": "074c70a4-adcb-4a8c-90fc-3cc62d9a64f7"
+          }
+        ],
+        "categories": [
+          {
+            "id": "3a3914e7-5e1b-427a-8b75-e11ce4718945",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "f837dbf3-4517-4a18-b04a-c5a1d590c088"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "kept": "25270000-0000-4000-8000-000000000102",
+      "error": null,
+      "after": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000102",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "db2eab10-4b6a-48d9-b433-8b05ea56922c",
+            "category": "3a3914e7-5e1b-427a-8b75-e11ce4718945",
+            "amount": -1234,
+            "payee": "3023bfe0-3489-46a6-8fee-d99bf07be316",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "db2eab10-4b6a-48d9-b433-8b05ea56922c",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "074c70a4-adcb-4a8c-90fc-3cc62d9a64f7",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "4dea54ec-a0b0-4196-8814-fa8101b43962",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "65cf5960-ee78-41cc-96e4-14485eb5a23c",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "3023bfe0-3489-46a6-8fee-d99bf07be316",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "7a1118a2-6580-4166-8e9f-a6a69e18d879",
+            "name": "cash",
+            "transfer_acct": "db2eab10-4b6a-48d9-b433-8b05ea56922c"
+          },
+          {
+            "id": "cf1fe691-c091-4494-9f38-97df7303fc6e",
+            "name": "card",
+            "transfer_acct": "4dea54ec-a0b0-4196-8814-fa8101b43962"
+          },
+          {
+            "id": "89812671-2e0d-4e85-b82c-c027df46ebd0",
+            "name": "other",
+            "transfer_acct": "65cf5960-ee78-41cc-96e4-14485eb5a23c"
+          },
+          {
+            "id": "1e6761c3-8d30-49af-a1c3-837ba58f6cfc",
+            "name": "off",
+            "transfer_acct": "074c70a4-adcb-4a8c-90fc-3cc62d9a64f7"
+          }
+        ],
+        "categories": [
+          {
+            "id": "3a3914e7-5e1b-427a-8b75-e11ce4718945",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "f837dbf3-4517-4a18-b04a-c5a1d590c088"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bank-id-kept",
+      "input": {
+        "id": "bank-id-kept",
+        "a": {
+          "date": "2026-11-08",
+          "imported_payee": "Manual import"
+        },
+        "b": {
+          "imported_id": "bank-1"
+        }
+      },
+      "ids": {
+        "cash": "dfdb6e30-1107-47d2-b4e9-c1fd0112c621",
+        "card": "cd25d62e-c60f-45eb-a689-f9599addee90",
+        "off": "01f99c0c-59a8-4817-8875-259fdb372014",
+        "other": "b42752b4-454b-419e-95db-2495440968bc",
+        "cafe": "5317a04f-b2b6-4b76-bdd0-93f0f7c3706c",
+        "group": "c486fbfa-30f0-4731-968e-b4b87d9293c8",
+        "category": "a27c6302-61aa-40b8-ab02-00e43e1dae5a",
+        "a": "25270000-0000-4000-8000-000000000201",
+        "b": "25270000-0000-4000-8000-000000000202"
+      },
+      "archive": {
+        "filename": "transaction-merge-bank-id-kept-26.10.zip",
+        "sha256": "9a1e53ea538481d28681c150205b5c0512b23d29de2a7092a59db7bf815bd9ab"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000202",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "dfdb6e30-1107-47d2-b4e9-c1fd0112c621",
+            "category": "a27c6302-61aa-40b8-ab02-00e43e1dae5a",
+            "amount": -1234,
+            "payee": "5317a04f-b2b6-4b76-bdd0-93f0f7c3706c",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000201",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "dfdb6e30-1107-47d2-b4e9-c1fd0112c621",
+            "category": "a27c6302-61aa-40b8-ab02-00e43e1dae5a",
+            "amount": -1234,
+            "payee": "5317a04f-b2b6-4b76-bdd0-93f0f7c3706c",
+            "notes": "a",
+            "date": "2026-11-08",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Manual import",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "dfdb6e30-1107-47d2-b4e9-c1fd0112c621",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "01f99c0c-59a8-4817-8875-259fdb372014",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "cd25d62e-c60f-45eb-a689-f9599addee90",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "b42752b4-454b-419e-95db-2495440968bc",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "5317a04f-b2b6-4b76-bdd0-93f0f7c3706c",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "98c8a768-b993-4b7b-8b28-0741522e64c2",
+            "name": "cash",
+            "transfer_acct": "dfdb6e30-1107-47d2-b4e9-c1fd0112c621"
+          },
+          {
+            "id": "e8e440f8-850a-475a-96f3-f6bae41c407a",
+            "name": "card",
+            "transfer_acct": "cd25d62e-c60f-45eb-a689-f9599addee90"
+          },
+          {
+            "id": "ca01c457-0d9b-44a2-9924-cf3df679a1f4",
+            "name": "other",
+            "transfer_acct": "b42752b4-454b-419e-95db-2495440968bc"
+          },
+          {
+            "id": "75b4490d-39d3-44a3-956a-29caebf3379c",
+            "name": "off",
+            "transfer_acct": "01f99c0c-59a8-4817-8875-259fdb372014"
+          }
+        ],
+        "categories": [
+          {
+            "id": "a27c6302-61aa-40b8-ab02-00e43e1dae5a",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "c486fbfa-30f0-4731-968e-b4b87d9293c8"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "kept": "25270000-0000-4000-8000-000000000202",
+      "error": null,
+      "after": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000202",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "dfdb6e30-1107-47d2-b4e9-c1fd0112c621",
+            "category": "a27c6302-61aa-40b8-ab02-00e43e1dae5a",
+            "amount": -1234,
+            "payee": "5317a04f-b2b6-4b76-bdd0-93f0f7c3706c",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "dfdb6e30-1107-47d2-b4e9-c1fd0112c621",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "01f99c0c-59a8-4817-8875-259fdb372014",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "cd25d62e-c60f-45eb-a689-f9599addee90",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "b42752b4-454b-419e-95db-2495440968bc",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "5317a04f-b2b6-4b76-bdd0-93f0f7c3706c",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "98c8a768-b993-4b7b-8b28-0741522e64c2",
+            "name": "cash",
+            "transfer_acct": "dfdb6e30-1107-47d2-b4e9-c1fd0112c621"
+          },
+          {
+            "id": "e8e440f8-850a-475a-96f3-f6bae41c407a",
+            "name": "card",
+            "transfer_acct": "cd25d62e-c60f-45eb-a689-f9599addee90"
+          },
+          {
+            "id": "ca01c457-0d9b-44a2-9924-cf3df679a1f4",
+            "name": "other",
+            "transfer_acct": "b42752b4-454b-419e-95db-2495440968bc"
+          },
+          {
+            "id": "75b4490d-39d3-44a3-956a-29caebf3379c",
+            "name": "off",
+            "transfer_acct": "01f99c0c-59a8-4817-8875-259fdb372014"
+          }
+        ],
+        "categories": [
+          {
+            "id": "a27c6302-61aa-40b8-ab02-00e43e1dae5a",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "c486fbfa-30f0-4731-968e-b4b87d9293c8"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "imported-payee-kept",
+      "input": {
+        "id": "imported-payee-kept",
+        "a": {
+          "date": "2026-11-08"
+        },
+        "b": {
+          "imported_payee": "Bank Cafe"
+        }
+      },
+      "ids": {
+        "cash": "52bc6e2e-01a1-4a4a-b792-575eebf50005",
+        "card": "d069dd1e-48fa-41f1-b61f-bcc827ceaa0b",
+        "off": "4400bb90-35fe-4332-ac15-69d04133a37f",
+        "other": "de3204e1-ff9c-410a-8b08-88b22bb0237b",
+        "cafe": "9f52c9ea-7ebb-4b8c-8626-3ecd5a4e1388",
+        "group": "26bd0c8a-e49b-488e-b083-c26944d8bf8c",
+        "category": "bb606985-5d1a-497c-a02d-c286d51553c3",
+        "a": "25270000-0000-4000-8000-000000000301",
+        "b": "25270000-0000-4000-8000-000000000302"
+      },
+      "archive": {
+        "filename": "transaction-merge-imported-payee-kept-26.10.zip",
+        "sha256": "8ad03098e9b6b42f6c240bdcdceb49080338b1da5b9b7fc34bc3c4f788382985"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000302",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "52bc6e2e-01a1-4a4a-b792-575eebf50005",
+            "category": "bb606985-5d1a-497c-a02d-c286d51553c3",
+            "amount": -1234,
+            "payee": "9f52c9ea-7ebb-4b8c-8626-3ecd5a4e1388",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Bank Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000301",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "52bc6e2e-01a1-4a4a-b792-575eebf50005",
+            "category": "bb606985-5d1a-497c-a02d-c286d51553c3",
+            "amount": -1234,
+            "payee": "9f52c9ea-7ebb-4b8c-8626-3ecd5a4e1388",
+            "notes": "a",
+            "date": "2026-11-08",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "52bc6e2e-01a1-4a4a-b792-575eebf50005",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "4400bb90-35fe-4332-ac15-69d04133a37f",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "d069dd1e-48fa-41f1-b61f-bcc827ceaa0b",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "de3204e1-ff9c-410a-8b08-88b22bb0237b",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "9f52c9ea-7ebb-4b8c-8626-3ecd5a4e1388",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "38f43dbc-4cef-4a0d-ab5f-8a87361d8c26",
+            "name": "cash",
+            "transfer_acct": "52bc6e2e-01a1-4a4a-b792-575eebf50005"
+          },
+          {
+            "id": "dcce7521-9dd9-49b2-981a-043aa48d715d",
+            "name": "card",
+            "transfer_acct": "d069dd1e-48fa-41f1-b61f-bcc827ceaa0b"
+          },
+          {
+            "id": "b1d2308a-8155-4ed6-978b-3307a96a5d7d",
+            "name": "other",
+            "transfer_acct": "de3204e1-ff9c-410a-8b08-88b22bb0237b"
+          },
+          {
+            "id": "ea87d515-f2fa-4d5a-bb0f-95aa8818a51e",
+            "name": "off",
+            "transfer_acct": "4400bb90-35fe-4332-ac15-69d04133a37f"
+          }
+        ],
+        "categories": [
+          {
+            "id": "bb606985-5d1a-497c-a02d-c286d51553c3",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "26bd0c8a-e49b-488e-b083-c26944d8bf8c"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "kept": "25270000-0000-4000-8000-000000000302",
+      "error": null,
+      "after": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000302",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "52bc6e2e-01a1-4a4a-b792-575eebf50005",
+            "category": "bb606985-5d1a-497c-a02d-c286d51553c3",
+            "amount": -1234,
+            "payee": "9f52c9ea-7ebb-4b8c-8626-3ecd5a4e1388",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Bank Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "52bc6e2e-01a1-4a4a-b792-575eebf50005",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "4400bb90-35fe-4332-ac15-69d04133a37f",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "d069dd1e-48fa-41f1-b61f-bcc827ceaa0b",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "de3204e1-ff9c-410a-8b08-88b22bb0237b",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "9f52c9ea-7ebb-4b8c-8626-3ecd5a4e1388",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "38f43dbc-4cef-4a0d-ab5f-8a87361d8c26",
+            "name": "cash",
+            "transfer_acct": "52bc6e2e-01a1-4a4a-b792-575eebf50005"
+          },
+          {
+            "id": "dcce7521-9dd9-49b2-981a-043aa48d715d",
+            "name": "card",
+            "transfer_acct": "d069dd1e-48fa-41f1-b61f-bcc827ceaa0b"
+          },
+          {
+            "id": "b1d2308a-8155-4ed6-978b-3307a96a5d7d",
+            "name": "other",
+            "transfer_acct": "de3204e1-ff9c-410a-8b08-88b22bb0237b"
+          },
+          {
+            "id": "ea87d515-f2fa-4d5a-bb0f-95aa8818a51e",
+            "name": "off",
+            "transfer_acct": "4400bb90-35fe-4332-ac15-69d04133a37f"
+          }
+        ],
+        "categories": [
+          {
+            "id": "bb606985-5d1a-497c-a02d-c286d51553c3",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "26bd0c8a-e49b-488e-b083-c26944d8bf8c"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fill-empty-and-or-status",
+      "input": {
+        "id": "fill-empty-and-or-status",
+        "a": {
+          "date": "2026-11-08",
+          "notes": "",
+          "payee": null,
+          "category": null
+        },
+        "b": {
+          "cleared": true,
+          "reconciled": true
+        }
+      },
+      "ids": {
+        "cash": "97ccada0-40b3-42e7-b564-9a9e2c4192b7",
+        "card": "aa4c0dc0-d087-4256-a4a3-dfa6857e0b4f",
+        "off": "388363cf-d5d9-4b78-9c16-e9523ece7149",
+        "other": "2acd7c9e-6576-44da-9026-b276afc48dc8",
+        "cafe": "8c19f4fa-4e73-48e3-9e31-5dd16a473dff",
+        "group": "288bcced-3d85-4b81-8eef-ed3209b872cd",
+        "category": "a413a197-e807-4da2-9695-24eaade07c4c",
+        "a": "25270000-0000-4000-8000-000000000401",
+        "b": "25270000-0000-4000-8000-000000000402"
+      },
+      "archive": {
+        "filename": "transaction-merge-fill-empty-and-or-status-26.10.zip",
+        "sha256": "b6086080aa2e8e63ced64af420814f6df21b302348086b9e91d99afd65a52f43"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000402",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "97ccada0-40b3-42e7-b564-9a9e2c4192b7",
+            "category": "a413a197-e807-4da2-9695-24eaade07c4c",
+            "amount": -1234,
+            "payee": "8c19f4fa-4e73-48e3-9e31-5dd16a473dff",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": true,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000401",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "97ccada0-40b3-42e7-b564-9a9e2c4192b7",
+            "category": null,
+            "amount": -1234,
+            "payee": null,
+            "notes": "",
+            "date": "2026-11-08",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "97ccada0-40b3-42e7-b564-9a9e2c4192b7",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "388363cf-d5d9-4b78-9c16-e9523ece7149",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "aa4c0dc0-d087-4256-a4a3-dfa6857e0b4f",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "2acd7c9e-6576-44da-9026-b276afc48dc8",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "8c19f4fa-4e73-48e3-9e31-5dd16a473dff",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "f2dac871-f259-4a4e-b139-510a873be8d8",
+            "name": "cash",
+            "transfer_acct": "97ccada0-40b3-42e7-b564-9a9e2c4192b7"
+          },
+          {
+            "id": "41cbef02-2e40-4043-8cf9-0cbdc801fdd9",
+            "name": "card",
+            "transfer_acct": "aa4c0dc0-d087-4256-a4a3-dfa6857e0b4f"
+          },
+          {
+            "id": "74ead886-7602-48c0-960b-7df930901e2d",
+            "name": "other",
+            "transfer_acct": "2acd7c9e-6576-44da-9026-b276afc48dc8"
+          },
+          {
+            "id": "685ea856-d057-419d-bc9c-0ec51e5099df",
+            "name": "off",
+            "transfer_acct": "388363cf-d5d9-4b78-9c16-e9523ece7149"
+          }
+        ],
+        "categories": [
+          {
+            "id": "a413a197-e807-4da2-9695-24eaade07c4c",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "288bcced-3d85-4b81-8eef-ed3209b872cd"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "kept": "25270000-0000-4000-8000-000000000401",
+      "error": null,
+      "after": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000401",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "97ccada0-40b3-42e7-b564-9a9e2c4192b7",
+            "category": "a413a197-e807-4da2-9695-24eaade07c4c",
+            "amount": -1234,
+            "payee": "8c19f4fa-4e73-48e3-9e31-5dd16a473dff",
+            "notes": "b",
+            "date": "2026-11-08",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": true,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "97ccada0-40b3-42e7-b564-9a9e2c4192b7",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "388363cf-d5d9-4b78-9c16-e9523ece7149",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "aa4c0dc0-d087-4256-a4a3-dfa6857e0b4f",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "2acd7c9e-6576-44da-9026-b276afc48dc8",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "8c19f4fa-4e73-48e3-9e31-5dd16a473dff",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "f2dac871-f259-4a4e-b139-510a873be8d8",
+            "name": "cash",
+            "transfer_acct": "97ccada0-40b3-42e7-b564-9a9e2c4192b7"
+          },
+          {
+            "id": "41cbef02-2e40-4043-8cf9-0cbdc801fdd9",
+            "name": "card",
+            "transfer_acct": "aa4c0dc0-d087-4256-a4a3-dfa6857e0b4f"
+          },
+          {
+            "id": "74ead886-7602-48c0-960b-7df930901e2d",
+            "name": "other",
+            "transfer_acct": "2acd7c9e-6576-44da-9026-b276afc48dc8"
+          },
+          {
+            "id": "685ea856-d057-419d-bc9c-0ec51e5099df",
+            "name": "off",
+            "transfer_acct": "388363cf-d5d9-4b78-9c16-e9523ece7149"
+          }
+        ],
+        "categories": [
+          {
+            "id": "a413a197-e807-4da2-9695-24eaade07c4c",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "288bcced-3d85-4b81-8eef-ed3209b872cd"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "split-reparented",
+      "input": {
+        "id": "split-reparented",
+        "a": {
+          "imported_id": "bank-1"
+        },
+        "b": {
+          "split": true
+        }
+      },
+      "ids": {
+        "cash": "a1fc1695-3d2f-4e4e-9fc7-e2bf29c16466",
+        "card": "3d9e37f3-0c5c-4d87-9f2d-24c9a92c7ac7",
+        "off": "c1d9d070-e168-4f46-9ad5-058454d59e36",
+        "other": "f7e306de-3d5e-47b3-9855-5740fac25772",
+        "cafe": "5583bbfd-967f-4e70-afaf-ba4a712cc4e7",
+        "group": "b47e32ff-b59e-4de7-ac7d-47a1540cd3da",
+        "category": "faba9896-f3dc-4e62-832a-75cb259757fc",
+        "a": "25270000-0000-4000-8000-000000000501",
+        "b": "25270000-0000-4000-8000-000000000502"
+      },
+      "archive": {
+        "filename": "transaction-merge-split-reparented-26.10.zip",
+        "sha256": "2f5fc01af1cdf87377c9577c3d5f5662e227fed2017b9cdbf4bcb160ec815aff"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000501",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "a1fc1695-3d2f-4e4e-9fc7-e2bf29c16466",
+            "category": "faba9896-f3dc-4e62-832a-75cb259757fc",
+            "amount": -1234,
+            "payee": "5583bbfd-967f-4e70-afaf-ba4a712cc4e7",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000502",
+            "is_parent": true,
+            "is_child": false,
+            "parent_id": null,
+            "account": "a1fc1695-3d2f-4e4e-9fc7-e2bf29c16466",
+            "category": null,
+            "amount": -1234,
+            "payee": "5583bbfd-967f-4e70-afaf-ba4a712cc4e7",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000520",
+            "is_parent": false,
+            "is_child": true,
+            "parent_id": "25270000-0000-4000-8000-000000000502",
+            "account": "a1fc1695-3d2f-4e4e-9fc7-e2bf29c16466",
+            "category": "faba9896-f3dc-4e62-832a-75cb259757fc",
+            "amount": -500,
+            "payee": "5583bbfd-967f-4e70-afaf-ba4a712cc4e7",
+            "notes": "b first",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 0,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000521",
+            "is_parent": false,
+            "is_child": true,
+            "parent_id": "25270000-0000-4000-8000-000000000502",
+            "account": "a1fc1695-3d2f-4e4e-9fc7-e2bf29c16466",
+            "category": "faba9896-f3dc-4e62-832a-75cb259757fc",
+            "amount": -734,
+            "payee": "5583bbfd-967f-4e70-afaf-ba4a712cc4e7",
+            "notes": "b second",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": -1,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "a1fc1695-3d2f-4e4e-9fc7-e2bf29c16466",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "c1d9d070-e168-4f46-9ad5-058454d59e36",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "3d9e37f3-0c5c-4d87-9f2d-24c9a92c7ac7",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "f7e306de-3d5e-47b3-9855-5740fac25772",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "5583bbfd-967f-4e70-afaf-ba4a712cc4e7",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "02f27ff0-b865-4204-9978-0a22300caacd",
+            "name": "cash",
+            "transfer_acct": "a1fc1695-3d2f-4e4e-9fc7-e2bf29c16466"
+          },
+          {
+            "id": "d61bf85c-09be-4950-8cd1-5cb41341feb4",
+            "name": "card",
+            "transfer_acct": "3d9e37f3-0c5c-4d87-9f2d-24c9a92c7ac7"
+          },
+          {
+            "id": "a9c92e52-aaca-41a5-ada6-75959ecc27b0",
+            "name": "other",
+            "transfer_acct": "f7e306de-3d5e-47b3-9855-5740fac25772"
+          },
+          {
+            "id": "31a49f79-eec0-444e-a405-669d00d10cfb",
+            "name": "off",
+            "transfer_acct": "c1d9d070-e168-4f46-9ad5-058454d59e36"
+          }
+        ],
+        "categories": [
+          {
+            "id": "faba9896-f3dc-4e62-832a-75cb259757fc",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "b47e32ff-b59e-4de7-ac7d-47a1540cd3da"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "kept": "25270000-0000-4000-8000-000000000501",
+      "error": null,
+      "after": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000501",
+            "is_parent": true,
+            "is_child": false,
+            "parent_id": null,
+            "account": "a1fc1695-3d2f-4e4e-9fc7-e2bf29c16466",
+            "category": null,
+            "amount": -1234,
+            "payee": "5583bbfd-967f-4e70-afaf-ba4a712cc4e7",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000520",
+            "is_parent": false,
+            "is_child": true,
+            "parent_id": "25270000-0000-4000-8000-000000000501",
+            "account": "a1fc1695-3d2f-4e4e-9fc7-e2bf29c16466",
+            "category": "faba9896-f3dc-4e62-832a-75cb259757fc",
+            "amount": -500,
+            "payee": "5583bbfd-967f-4e70-afaf-ba4a712cc4e7",
+            "notes": "b first",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 0,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000521",
+            "is_parent": false,
+            "is_child": true,
+            "parent_id": "25270000-0000-4000-8000-000000000501",
+            "account": "a1fc1695-3d2f-4e4e-9fc7-e2bf29c16466",
+            "category": "faba9896-f3dc-4e62-832a-75cb259757fc",
+            "amount": -734,
+            "payee": "5583bbfd-967f-4e70-afaf-ba4a712cc4e7",
+            "notes": "b second",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": -1,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "a1fc1695-3d2f-4e4e-9fc7-e2bf29c16466",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "c1d9d070-e168-4f46-9ad5-058454d59e36",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "3d9e37f3-0c5c-4d87-9f2d-24c9a92c7ac7",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "f7e306de-3d5e-47b3-9855-5740fac25772",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "5583bbfd-967f-4e70-afaf-ba4a712cc4e7",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "02f27ff0-b865-4204-9978-0a22300caacd",
+            "name": "cash",
+            "transfer_acct": "a1fc1695-3d2f-4e4e-9fc7-e2bf29c16466"
+          },
+          {
+            "id": "d61bf85c-09be-4950-8cd1-5cb41341feb4",
+            "name": "card",
+            "transfer_acct": "3d9e37f3-0c5c-4d87-9f2d-24c9a92c7ac7"
+          },
+          {
+            "id": "a9c92e52-aaca-41a5-ada6-75959ecc27b0",
+            "name": "other",
+            "transfer_acct": "f7e306de-3d5e-47b3-9855-5740fac25772"
+          },
+          {
+            "id": "31a49f79-eec0-444e-a405-669d00d10cfb",
+            "name": "off",
+            "transfer_acct": "c1d9d070-e168-4f46-9ad5-058454d59e36"
+          }
+        ],
+        "categories": [
+          {
+            "id": "faba9896-f3dc-4e62-832a-75cb259757fc",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "b47e32ff-b59e-4de7-ac7d-47a1540cd3da"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "both-splits-keeper-children",
+      "input": {
+        "id": "both-splits-keeper-children",
+        "a": {
+          "imported_id": "bank-1",
+          "split": true
+        },
+        "b": {
+          "split": true
+        }
+      },
+      "ids": {
+        "cash": "7ab4f16a-0f5b-4ab5-b150-d9ebc7607a68",
+        "card": "b6eafad0-f978-42fe-a6a6-a5e118651597",
+        "off": "7debd056-fb55-46c3-ac76-011fb1818ab6",
+        "other": "f5c2c4ec-93b2-42fd-91ab-3870d0e8a037",
+        "cafe": "62345977-43ab-4144-9a5d-2d1968f50d86",
+        "group": "7552957d-1e6c-495f-ae08-769364c929c6",
+        "category": "5f265cee-ba6a-4fe1-97fa-1e3abd605e87",
+        "a": "25270000-0000-4000-8000-000000000601",
+        "b": "25270000-0000-4000-8000-000000000602"
+      },
+      "archive": {
+        "filename": "transaction-merge-both-splits-keeper-children-26.10.zip",
+        "sha256": "884f54add746110620d9e45a09c2cb8612dc32da925e2ce0944ccc49502bdb83"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000601",
+            "is_parent": true,
+            "is_child": false,
+            "parent_id": null,
+            "account": "7ab4f16a-0f5b-4ab5-b150-d9ebc7607a68",
+            "category": null,
+            "amount": -1234,
+            "payee": "62345977-43ab-4144-9a5d-2d1968f50d86",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000602",
+            "is_parent": true,
+            "is_child": false,
+            "parent_id": null,
+            "account": "7ab4f16a-0f5b-4ab5-b150-d9ebc7607a68",
+            "category": null,
+            "amount": -1234,
+            "payee": "62345977-43ab-4144-9a5d-2d1968f50d86",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000610",
+            "is_parent": false,
+            "is_child": true,
+            "parent_id": "25270000-0000-4000-8000-000000000601",
+            "account": "7ab4f16a-0f5b-4ab5-b150-d9ebc7607a68",
+            "category": "5f265cee-ba6a-4fe1-97fa-1e3abd605e87",
+            "amount": -500,
+            "payee": "62345977-43ab-4144-9a5d-2d1968f50d86",
+            "notes": "a first",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 0,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000620",
+            "is_parent": false,
+            "is_child": true,
+            "parent_id": "25270000-0000-4000-8000-000000000602",
+            "account": "7ab4f16a-0f5b-4ab5-b150-d9ebc7607a68",
+            "category": "5f265cee-ba6a-4fe1-97fa-1e3abd605e87",
+            "amount": -500,
+            "payee": "62345977-43ab-4144-9a5d-2d1968f50d86",
+            "notes": "b first",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 0,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000611",
+            "is_parent": false,
+            "is_child": true,
+            "parent_id": "25270000-0000-4000-8000-000000000601",
+            "account": "7ab4f16a-0f5b-4ab5-b150-d9ebc7607a68",
+            "category": "5f265cee-ba6a-4fe1-97fa-1e3abd605e87",
+            "amount": -734,
+            "payee": "62345977-43ab-4144-9a5d-2d1968f50d86",
+            "notes": "a second",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": -1,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000621",
+            "is_parent": false,
+            "is_child": true,
+            "parent_id": "25270000-0000-4000-8000-000000000602",
+            "account": "7ab4f16a-0f5b-4ab5-b150-d9ebc7607a68",
+            "category": "5f265cee-ba6a-4fe1-97fa-1e3abd605e87",
+            "amount": -734,
+            "payee": "62345977-43ab-4144-9a5d-2d1968f50d86",
+            "notes": "b second",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": -1,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "7ab4f16a-0f5b-4ab5-b150-d9ebc7607a68",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "7debd056-fb55-46c3-ac76-011fb1818ab6",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "b6eafad0-f978-42fe-a6a6-a5e118651597",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "f5c2c4ec-93b2-42fd-91ab-3870d0e8a037",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "62345977-43ab-4144-9a5d-2d1968f50d86",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "5670e1f4-4352-47c7-8db4-9d23f47508f1",
+            "name": "cash",
+            "transfer_acct": "7ab4f16a-0f5b-4ab5-b150-d9ebc7607a68"
+          },
+          {
+            "id": "9d04668f-fdee-4bdb-808c-03a774d916ba",
+            "name": "card",
+            "transfer_acct": "b6eafad0-f978-42fe-a6a6-a5e118651597"
+          },
+          {
+            "id": "8a2924b9-e6a0-49fa-9a3a-25009f0f96db",
+            "name": "other",
+            "transfer_acct": "f5c2c4ec-93b2-42fd-91ab-3870d0e8a037"
+          },
+          {
+            "id": "cc536bc7-560a-4913-a97c-cc1ff0abbb24",
+            "name": "off",
+            "transfer_acct": "7debd056-fb55-46c3-ac76-011fb1818ab6"
+          }
+        ],
+        "categories": [
+          {
+            "id": "5f265cee-ba6a-4fe1-97fa-1e3abd605e87",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "7552957d-1e6c-495f-ae08-769364c929c6"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "kept": "25270000-0000-4000-8000-000000000601",
+      "error": null,
+      "after": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000601",
+            "is_parent": true,
+            "is_child": false,
+            "parent_id": null,
+            "account": "7ab4f16a-0f5b-4ab5-b150-d9ebc7607a68",
+            "category": null,
+            "amount": -1234,
+            "payee": "62345977-43ab-4144-9a5d-2d1968f50d86",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000610",
+            "is_parent": false,
+            "is_child": true,
+            "parent_id": "25270000-0000-4000-8000-000000000601",
+            "account": "7ab4f16a-0f5b-4ab5-b150-d9ebc7607a68",
+            "category": "5f265cee-ba6a-4fe1-97fa-1e3abd605e87",
+            "amount": -500,
+            "payee": "62345977-43ab-4144-9a5d-2d1968f50d86",
+            "notes": "a first",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 0,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000611",
+            "is_parent": false,
+            "is_child": true,
+            "parent_id": "25270000-0000-4000-8000-000000000601",
+            "account": "7ab4f16a-0f5b-4ab5-b150-d9ebc7607a68",
+            "category": "5f265cee-ba6a-4fe1-97fa-1e3abd605e87",
+            "amount": -734,
+            "payee": "62345977-43ab-4144-9a5d-2d1968f50d86",
+            "notes": "a second",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": -1,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "7ab4f16a-0f5b-4ab5-b150-d9ebc7607a68",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "7debd056-fb55-46c3-ac76-011fb1818ab6",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "b6eafad0-f978-42fe-a6a6-a5e118651597",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "f5c2c4ec-93b2-42fd-91ab-3870d0e8a037",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "62345977-43ab-4144-9a5d-2d1968f50d86",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "5670e1f4-4352-47c7-8db4-9d23f47508f1",
+            "name": "cash",
+            "transfer_acct": "7ab4f16a-0f5b-4ab5-b150-d9ebc7607a68"
+          },
+          {
+            "id": "9d04668f-fdee-4bdb-808c-03a774d916ba",
+            "name": "card",
+            "transfer_acct": "b6eafad0-f978-42fe-a6a6-a5e118651597"
+          },
+          {
+            "id": "8a2924b9-e6a0-49fa-9a3a-25009f0f96db",
+            "name": "other",
+            "transfer_acct": "f5c2c4ec-93b2-42fd-91ab-3870d0e8a037"
+          },
+          {
+            "id": "cc536bc7-560a-4913-a97c-cc1ff0abbb24",
+            "name": "off",
+            "transfer_acct": "7debd056-fb55-46c3-ac76-011fb1818ab6"
+          }
+        ],
+        "categories": [
+          {
+            "id": "5f265cee-ba6a-4fe1-97fa-1e3abd605e87",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "7552957d-1e6c-495f-ae08-769364c929c6"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "transfer-and-manual-onbudget",
+      "input": {
+        "id": "transfer-and-manual-onbudget",
+        "a": {
+          "transfer": "card"
+        },
+        "b": {
+          "imported_id": "bank-1"
+        }
+      },
+      "ids": {
+        "cash": "c6c64371-5f90-452b-92a1-c9d8093c2a48",
+        "card": "f93ffb78-748d-4393-9774-54db91a146a9",
+        "off": "0d5d443b-fca2-47e8-8097-4bb0af36ed4c",
+        "other": "4b12d8c7-a969-4946-9bed-6d3843df1ece",
+        "cafe": "05dd6559-0296-4e33-b4ad-3fad8b7fe5ab",
+        "group": "bfe41ab0-89df-418b-9d9d-36c36c1b4aee",
+        "category": "309372a5-52c3-4b7f-ae19-155cf7457736",
+        "a": "25270000-0000-4000-8000-000000000701",
+        "b": "25270000-0000-4000-8000-000000000702"
+      },
+      "archive": {
+        "filename": "transaction-merge-transfer-and-manual-onbudget-26.10.zip",
+        "sha256": "70a5945dd3ce4e307f7f268a5f68e2a8ffdb722be523e94d24710a1e16dbfbbe"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000701",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "c6c64371-5f90-452b-92a1-c9d8093c2a48",
+            "category": null,
+            "amount": -1234,
+            "payee": "0d1113be-27b8-4137-9ea9-0165f391cc0b",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "2905b91f-7ba3-4a69-be7b-2b1a4264b51e",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000702",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "c6c64371-5f90-452b-92a1-c9d8093c2a48",
+            "category": "309372a5-52c3-4b7f-ae19-155cf7457736",
+            "amount": -1234,
+            "payee": "05dd6559-0296-4e33-b4ad-3fad8b7fe5ab",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "2905b91f-7ba3-4a69-be7b-2b1a4264b51e",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "f93ffb78-748d-4393-9774-54db91a146a9",
+            "category": null,
+            "amount": 1234,
+            "payee": "f2fd9a94-6780-4bf3-bb7b-08e49f9dcd77",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "25270000-0000-4000-8000-000000000701",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "c6c64371-5f90-452b-92a1-c9d8093c2a48",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "0d5d443b-fca2-47e8-8097-4bb0af36ed4c",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "f93ffb78-748d-4393-9774-54db91a146a9",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "4b12d8c7-a969-4946-9bed-6d3843df1ece",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "05dd6559-0296-4e33-b4ad-3fad8b7fe5ab",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "f2fd9a94-6780-4bf3-bb7b-08e49f9dcd77",
+            "name": "cash",
+            "transfer_acct": "c6c64371-5f90-452b-92a1-c9d8093c2a48"
+          },
+          {
+            "id": "0d1113be-27b8-4137-9ea9-0165f391cc0b",
+            "name": "card",
+            "transfer_acct": "f93ffb78-748d-4393-9774-54db91a146a9"
+          },
+          {
+            "id": "5df7ac86-1502-4381-9446-ca475555901d",
+            "name": "other",
+            "transfer_acct": "4b12d8c7-a969-4946-9bed-6d3843df1ece"
+          },
+          {
+            "id": "edb88bbc-2d70-4e26-b9d8-6ebf7c1b2de5",
+            "name": "off",
+            "transfer_acct": "0d5d443b-fca2-47e8-8097-4bb0af36ed4c"
+          }
+        ],
+        "categories": [
+          {
+            "id": "309372a5-52c3-4b7f-ae19-155cf7457736",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "bfe41ab0-89df-418b-9d9d-36c36c1b4aee"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "kept": "25270000-0000-4000-8000-000000000702",
+      "error": null,
+      "after": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000702",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "c6c64371-5f90-452b-92a1-c9d8093c2a48",
+            "category": null,
+            "amount": -1234,
+            "payee": "0d1113be-27b8-4137-9ea9-0165f391cc0b",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "2905b91f-7ba3-4a69-be7b-2b1a4264b51e",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "2905b91f-7ba3-4a69-be7b-2b1a4264b51e",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "f93ffb78-748d-4393-9774-54db91a146a9",
+            "category": null,
+            "amount": 1234,
+            "payee": "f2fd9a94-6780-4bf3-bb7b-08e49f9dcd77",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "25270000-0000-4000-8000-000000000702",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "c6c64371-5f90-452b-92a1-c9d8093c2a48",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "0d5d443b-fca2-47e8-8097-4bb0af36ed4c",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "f93ffb78-748d-4393-9774-54db91a146a9",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "4b12d8c7-a969-4946-9bed-6d3843df1ece",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "05dd6559-0296-4e33-b4ad-3fad8b7fe5ab",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "f2fd9a94-6780-4bf3-bb7b-08e49f9dcd77",
+            "name": "cash",
+            "transfer_acct": "c6c64371-5f90-452b-92a1-c9d8093c2a48"
+          },
+          {
+            "id": "0d1113be-27b8-4137-9ea9-0165f391cc0b",
+            "name": "card",
+            "transfer_acct": "f93ffb78-748d-4393-9774-54db91a146a9"
+          },
+          {
+            "id": "5df7ac86-1502-4381-9446-ca475555901d",
+            "name": "other",
+            "transfer_acct": "4b12d8c7-a969-4946-9bed-6d3843df1ece"
+          },
+          {
+            "id": "edb88bbc-2d70-4e26-b9d8-6ebf7c1b2de5",
+            "name": "off",
+            "transfer_acct": "0d5d443b-fca2-47e8-8097-4bb0af36ed4c"
+          }
+        ],
+        "categories": [
+          {
+            "id": "309372a5-52c3-4b7f-ae19-155cf7457736",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "bfe41ab0-89df-418b-9d9d-36c36c1b4aee"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "transfer-and-manual-offbudget",
+      "input": {
+        "id": "transfer-and-manual-offbudget",
+        "a": {
+          "transfer": "off"
+        },
+        "b": {
+          "imported_id": "bank-1"
+        }
+      },
+      "ids": {
+        "cash": "144047a2-9ec0-461c-a6e6-927e34096264",
+        "card": "10d66850-52a5-4e81-ac08-6f1a99b2810c",
+        "off": "64ce3c59-22f2-4cea-b368-9cc1b475dee7",
+        "other": "fa0f721b-0f0d-4ec7-92b0-efb4808485aa",
+        "cafe": "1f48a3d9-7a0b-4caf-81e1-6651963edf7a",
+        "group": "204c3534-b405-4e6c-98d6-34f1919295b5",
+        "category": "45e362be-fbdd-43eb-83bf-ce7d2781de23",
+        "a": "25270000-0000-4000-8000-000000000801",
+        "b": "25270000-0000-4000-8000-000000000802"
+      },
+      "archive": {
+        "filename": "transaction-merge-transfer-and-manual-offbudget-26.10.zip",
+        "sha256": "35e35575adee14d31d1bb58a0835ab9c07318638f65e32015fec67a8d0d25d5b"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000801",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "144047a2-9ec0-461c-a6e6-927e34096264",
+            "category": "45e362be-fbdd-43eb-83bf-ce7d2781de23",
+            "amount": -1234,
+            "payee": "fd8ded67-fe06-4dfc-bf5f-38fb52136fa2",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "8a3ec83b-c2f3-4e3f-96e5-55f02a299bfe",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000802",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "144047a2-9ec0-461c-a6e6-927e34096264",
+            "category": "45e362be-fbdd-43eb-83bf-ce7d2781de23",
+            "amount": -1234,
+            "payee": "1f48a3d9-7a0b-4caf-81e1-6651963edf7a",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "8a3ec83b-c2f3-4e3f-96e5-55f02a299bfe",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "64ce3c59-22f2-4cea-b368-9cc1b475dee7",
+            "category": null,
+            "amount": 1234,
+            "payee": "b0dbd0c1-1aec-4f91-be4c-05a9295fe581",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "25270000-0000-4000-8000-000000000801",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "144047a2-9ec0-461c-a6e6-927e34096264",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "64ce3c59-22f2-4cea-b368-9cc1b475dee7",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "10d66850-52a5-4e81-ac08-6f1a99b2810c",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "fa0f721b-0f0d-4ec7-92b0-efb4808485aa",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "1f48a3d9-7a0b-4caf-81e1-6651963edf7a",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "b0dbd0c1-1aec-4f91-be4c-05a9295fe581",
+            "name": "cash",
+            "transfer_acct": "144047a2-9ec0-461c-a6e6-927e34096264"
+          },
+          {
+            "id": "644bfacf-a21a-4788-8e47-34448509eb9e",
+            "name": "card",
+            "transfer_acct": "10d66850-52a5-4e81-ac08-6f1a99b2810c"
+          },
+          {
+            "id": "917f44b0-a5bc-4755-8b9f-c21ce3019549",
+            "name": "other",
+            "transfer_acct": "fa0f721b-0f0d-4ec7-92b0-efb4808485aa"
+          },
+          {
+            "id": "fd8ded67-fe06-4dfc-bf5f-38fb52136fa2",
+            "name": "off",
+            "transfer_acct": "64ce3c59-22f2-4cea-b368-9cc1b475dee7"
+          }
+        ],
+        "categories": [
+          {
+            "id": "45e362be-fbdd-43eb-83bf-ce7d2781de23",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "204c3534-b405-4e6c-98d6-34f1919295b5"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "kept": "25270000-0000-4000-8000-000000000802",
+      "error": null,
+      "after": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000802",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "144047a2-9ec0-461c-a6e6-927e34096264",
+            "category": "45e362be-fbdd-43eb-83bf-ce7d2781de23",
+            "amount": -1234,
+            "payee": "fd8ded67-fe06-4dfc-bf5f-38fb52136fa2",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "8a3ec83b-c2f3-4e3f-96e5-55f02a299bfe",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "8a3ec83b-c2f3-4e3f-96e5-55f02a299bfe",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "64ce3c59-22f2-4cea-b368-9cc1b475dee7",
+            "category": null,
+            "amount": 1234,
+            "payee": "b0dbd0c1-1aec-4f91-be4c-05a9295fe581",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "25270000-0000-4000-8000-000000000802",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "144047a2-9ec0-461c-a6e6-927e34096264",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "64ce3c59-22f2-4cea-b368-9cc1b475dee7",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "10d66850-52a5-4e81-ac08-6f1a99b2810c",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "fa0f721b-0f0d-4ec7-92b0-efb4808485aa",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "1f48a3d9-7a0b-4caf-81e1-6651963edf7a",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "b0dbd0c1-1aec-4f91-be4c-05a9295fe581",
+            "name": "cash",
+            "transfer_acct": "144047a2-9ec0-461c-a6e6-927e34096264"
+          },
+          {
+            "id": "644bfacf-a21a-4788-8e47-34448509eb9e",
+            "name": "card",
+            "transfer_acct": "10d66850-52a5-4e81-ac08-6f1a99b2810c"
+          },
+          {
+            "id": "917f44b0-a5bc-4755-8b9f-c21ce3019549",
+            "name": "other",
+            "transfer_acct": "fa0f721b-0f0d-4ec7-92b0-efb4808485aa"
+          },
+          {
+            "id": "fd8ded67-fe06-4dfc-bf5f-38fb52136fa2",
+            "name": "off",
+            "transfer_acct": "64ce3c59-22f2-4cea-b368-9cc1b475dee7"
+          }
+        ],
+        "categories": [
+          {
+            "id": "45e362be-fbdd-43eb-83bf-ce7d2781de23",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "204c3534-b405-4e6c-98d6-34f1919295b5"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "two-transfers-same-peer",
+      "input": {
+        "id": "two-transfers-same-peer",
+        "a": {
+          "transfer": "card",
+          "date": "2026-11-08"
+        },
+        "b": {
+          "transfer": "card"
+        }
+      },
+      "ids": {
+        "cash": "11a78643-29dd-453f-a105-f90cbddc792e",
+        "card": "4e7e0a48-b248-4577-9592-b431d0a93f63",
+        "off": "76f0ecd3-8a5c-437d-a9ec-05b20c122b8e",
+        "other": "31eb82b8-4788-4420-a75c-a8af20ab047c",
+        "cafe": "bd64e0f1-6ce6-48fa-938c-77f4319fcde0",
+        "group": "bb432fc6-8766-4adb-bf44-97f36e8174b0",
+        "category": "0305b9e8-15b4-4f94-b019-44e4feb82e5c",
+        "a": "25270000-0000-4000-8000-000000000901",
+        "b": "25270000-0000-4000-8000-000000000902"
+      },
+      "archive": {
+        "filename": "transaction-merge-two-transfers-same-peer-26.10.zip",
+        "sha256": "90d3f55141275ffa1851cc76843aeb5d1f19b2ea3a4a8a856274209a6d295713"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000902",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "11a78643-29dd-453f-a105-f90cbddc792e",
+            "category": null,
+            "amount": -1234,
+            "payee": "7ef52879-103a-47a1-b8cb-f13aedd4f781",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "575382f7-acae-4d54-b579-8833c03e6ce6",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "575382f7-acae-4d54-b579-8833c03e6ce6",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "4e7e0a48-b248-4577-9592-b431d0a93f63",
+            "category": null,
+            "amount": 1234,
+            "payee": "b6c9bf07-29da-411d-a332-9ab6483a99ea",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "25270000-0000-4000-8000-000000000902",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000000901",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "11a78643-29dd-453f-a105-f90cbddc792e",
+            "category": null,
+            "amount": -1234,
+            "payee": "7ef52879-103a-47a1-b8cb-f13aedd4f781",
+            "notes": "a",
+            "date": "2026-11-08",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "6f7727d7-067a-44d2-86b4-f19886e51684",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "6f7727d7-067a-44d2-86b4-f19886e51684",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "4e7e0a48-b248-4577-9592-b431d0a93f63",
+            "category": null,
+            "amount": 1234,
+            "payee": "b6c9bf07-29da-411d-a332-9ab6483a99ea",
+            "notes": "a",
+            "date": "2026-11-08",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "25270000-0000-4000-8000-000000000901",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "11a78643-29dd-453f-a105-f90cbddc792e",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "76f0ecd3-8a5c-437d-a9ec-05b20c122b8e",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "4e7e0a48-b248-4577-9592-b431d0a93f63",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "31eb82b8-4788-4420-a75c-a8af20ab047c",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "bd64e0f1-6ce6-48fa-938c-77f4319fcde0",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "b6c9bf07-29da-411d-a332-9ab6483a99ea",
+            "name": "cash",
+            "transfer_acct": "11a78643-29dd-453f-a105-f90cbddc792e"
+          },
+          {
+            "id": "7ef52879-103a-47a1-b8cb-f13aedd4f781",
+            "name": "card",
+            "transfer_acct": "4e7e0a48-b248-4577-9592-b431d0a93f63"
+          },
+          {
+            "id": "c45cbebf-0678-48df-a534-69284c8e89c4",
+            "name": "other",
+            "transfer_acct": "31eb82b8-4788-4420-a75c-a8af20ab047c"
+          },
+          {
+            "id": "252366af-80bb-4e51-8f55-b4c8f73f7f93",
+            "name": "off",
+            "transfer_acct": "76f0ecd3-8a5c-437d-a9ec-05b20c122b8e"
+          }
+        ],
+        "categories": [
+          {
+            "id": "0305b9e8-15b4-4f94-b019-44e4feb82e5c",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "bb432fc6-8766-4adb-bf44-97f36e8174b0"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "kept": "25270000-0000-4000-8000-000000000901",
+      "error": null,
+      "after": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000000901",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "11a78643-29dd-453f-a105-f90cbddc792e",
+            "category": null,
+            "amount": -1234,
+            "payee": "7ef52879-103a-47a1-b8cb-f13aedd4f781",
+            "notes": "a",
+            "date": "2026-11-08",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "6f7727d7-067a-44d2-86b4-f19886e51684",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "6f7727d7-067a-44d2-86b4-f19886e51684",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "4e7e0a48-b248-4577-9592-b431d0a93f63",
+            "category": null,
+            "amount": 1234,
+            "payee": "b6c9bf07-29da-411d-a332-9ab6483a99ea",
+            "notes": "a",
+            "date": "2026-11-08",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "25270000-0000-4000-8000-000000000901",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "11a78643-29dd-453f-a105-f90cbddc792e",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "76f0ecd3-8a5c-437d-a9ec-05b20c122b8e",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "4e7e0a48-b248-4577-9592-b431d0a93f63",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "31eb82b8-4788-4420-a75c-a8af20ab047c",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "bd64e0f1-6ce6-48fa-938c-77f4319fcde0",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "b6c9bf07-29da-411d-a332-9ab6483a99ea",
+            "name": "cash",
+            "transfer_acct": "11a78643-29dd-453f-a105-f90cbddc792e"
+          },
+          {
+            "id": "7ef52879-103a-47a1-b8cb-f13aedd4f781",
+            "name": "card",
+            "transfer_acct": "4e7e0a48-b248-4577-9592-b431d0a93f63"
+          },
+          {
+            "id": "c45cbebf-0678-48df-a534-69284c8e89c4",
+            "name": "other",
+            "transfer_acct": "31eb82b8-4788-4420-a75c-a8af20ab047c"
+          },
+          {
+            "id": "252366af-80bb-4e51-8f55-b4c8f73f7f93",
+            "name": "off",
+            "transfer_acct": "76f0ecd3-8a5c-437d-a9ec-05b20c122b8e"
+          }
+        ],
+        "categories": [
+          {
+            "id": "0305b9e8-15b4-4f94-b019-44e4feb82e5c",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "bb432fc6-8766-4adb-bf44-97f36e8174b0"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "different-amounts-rejected",
+      "input": {
+        "id": "different-amounts-rejected",
+        "a": {},
+        "b": {
+          "amount": -999
+        },
+        "reject": true
+      },
+      "ids": {
+        "cash": "1729bbb3-bb0f-477d-9e80-adf806406c08",
+        "card": "333febf9-e050-4b4c-8694-dc0f16fe2e1e",
+        "off": "f70e4142-8245-4e9c-96f9-01cb971e0bc6",
+        "other": "d2b62c51-7917-4ce4-9b87-aa33dbf933e0",
+        "cafe": "42962e42-3c83-4062-81e1-2c7916f98220",
+        "group": "9931fd10-a1ca-4016-bbc6-16f858151be3",
+        "category": "770d16b4-879c-4960-9d2f-c075535a64f5",
+        "a": "25270000-0000-4000-8000-000000001001",
+        "b": "25270000-0000-4000-8000-000000001002"
+      },
+      "archive": {
+        "filename": "transaction-merge-different-amounts-rejected-26.10.zip",
+        "sha256": "f65bbb3c17afa1919561248dcf21b509bfbe30845e974765eec5e7003b0d0067"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000001001",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "1729bbb3-bb0f-477d-9e80-adf806406c08",
+            "category": "770d16b4-879c-4960-9d2f-c075535a64f5",
+            "amount": -1234,
+            "payee": "42962e42-3c83-4062-81e1-2c7916f98220",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000001002",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "1729bbb3-bb0f-477d-9e80-adf806406c08",
+            "category": "770d16b4-879c-4960-9d2f-c075535a64f5",
+            "amount": -999,
+            "payee": "42962e42-3c83-4062-81e1-2c7916f98220",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "1729bbb3-bb0f-477d-9e80-adf806406c08",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "f70e4142-8245-4e9c-96f9-01cb971e0bc6",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "333febf9-e050-4b4c-8694-dc0f16fe2e1e",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "d2b62c51-7917-4ce4-9b87-aa33dbf933e0",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "42962e42-3c83-4062-81e1-2c7916f98220",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "59092927-2c89-4971-9136-0a6c22f9bbd4",
+            "name": "cash",
+            "transfer_acct": "1729bbb3-bb0f-477d-9e80-adf806406c08"
+          },
+          {
+            "id": "3c641fc5-1de5-486a-9aaf-e7276f2e1003",
+            "name": "card",
+            "transfer_acct": "333febf9-e050-4b4c-8694-dc0f16fe2e1e"
+          },
+          {
+            "id": "3aa10306-e49a-4c63-8b18-70adebabe7de",
+            "name": "other",
+            "transfer_acct": "d2b62c51-7917-4ce4-9b87-aa33dbf933e0"
+          },
+          {
+            "id": "c07eaece-deb0-4742-8285-ceab13822d86",
+            "name": "off",
+            "transfer_acct": "f70e4142-8245-4e9c-96f9-01cb971e0bc6"
+          }
+        ],
+        "categories": [
+          {
+            "id": "770d16b4-879c-4960-9d2f-c075535a64f5",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "9931fd10-a1ca-4016-bbc6-16f858151be3"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "kept": null,
+      "error": "Cannot merge transactions with different amounts",
+      "after": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000001001",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "1729bbb3-bb0f-477d-9e80-adf806406c08",
+            "category": "770d16b4-879c-4960-9d2f-c075535a64f5",
+            "amount": -1234,
+            "payee": "42962e42-3c83-4062-81e1-2c7916f98220",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000001002",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "1729bbb3-bb0f-477d-9e80-adf806406c08",
+            "category": "770d16b4-879c-4960-9d2f-c075535a64f5",
+            "amount": -999,
+            "payee": "42962e42-3c83-4062-81e1-2c7916f98220",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "1729bbb3-bb0f-477d-9e80-adf806406c08",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "f70e4142-8245-4e9c-96f9-01cb971e0bc6",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "333febf9-e050-4b4c-8694-dc0f16fe2e1e",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "d2b62c51-7917-4ce4-9b87-aa33dbf933e0",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "42962e42-3c83-4062-81e1-2c7916f98220",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "59092927-2c89-4971-9136-0a6c22f9bbd4",
+            "name": "cash",
+            "transfer_acct": "1729bbb3-bb0f-477d-9e80-adf806406c08"
+          },
+          {
+            "id": "3c641fc5-1de5-486a-9aaf-e7276f2e1003",
+            "name": "card",
+            "transfer_acct": "333febf9-e050-4b4c-8694-dc0f16fe2e1e"
+          },
+          {
+            "id": "3aa10306-e49a-4c63-8b18-70adebabe7de",
+            "name": "other",
+            "transfer_acct": "d2b62c51-7917-4ce4-9b87-aa33dbf933e0"
+          },
+          {
+            "id": "c07eaece-deb0-4742-8285-ceab13822d86",
+            "name": "off",
+            "transfer_acct": "f70e4142-8245-4e9c-96f9-01cb971e0bc6"
+          }
+        ],
+        "categories": [
+          {
+            "id": "770d16b4-879c-4960-9d2f-c075535a64f5",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "9931fd10-a1ca-4016-bbc6-16f858151be3"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "different-accounts-rejected",
+      "input": {
+        "id": "different-accounts-rejected",
+        "a": {},
+        "b": {
+          "account": "card"
+        },
+        "reject": true
+      },
+      "ids": {
+        "cash": "5e22bea4-e77e-4fa7-b850-f91014e63f01",
+        "card": "f66df692-3fd6-4373-8ae6-5d46cc1559ab",
+        "off": "ec7b3757-4fe7-46c9-a59f-d9846b642e24",
+        "other": "16072be2-b025-4056-9224-509067cc363e",
+        "cafe": "52ad3d7e-5062-4075-ba5e-866e7a0a8d35",
+        "group": "540b1a4a-f3dc-4e98-9007-72353c495a03",
+        "category": "d0b64693-ac87-4aad-855f-f652f260f646",
+        "a": "25270000-0000-4000-8000-000000001101",
+        "b": "25270000-0000-4000-8000-000000001102"
+      },
+      "archive": {
+        "filename": "transaction-merge-different-accounts-rejected-26.10.zip",
+        "sha256": "25daad8bcd82c8991a70df894747557feeac02670b7f30bd2580ad86fc2f80af"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000001101",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "5e22bea4-e77e-4fa7-b850-f91014e63f01",
+            "category": "d0b64693-ac87-4aad-855f-f652f260f646",
+            "amount": -1234,
+            "payee": "52ad3d7e-5062-4075-ba5e-866e7a0a8d35",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000001102",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "f66df692-3fd6-4373-8ae6-5d46cc1559ab",
+            "category": "d0b64693-ac87-4aad-855f-f652f260f646",
+            "amount": -1234,
+            "payee": "52ad3d7e-5062-4075-ba5e-866e7a0a8d35",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "5e22bea4-e77e-4fa7-b850-f91014e63f01",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "ec7b3757-4fe7-46c9-a59f-d9846b642e24",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "f66df692-3fd6-4373-8ae6-5d46cc1559ab",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "16072be2-b025-4056-9224-509067cc363e",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "52ad3d7e-5062-4075-ba5e-866e7a0a8d35",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "772055c1-d8d7-4665-8208-68a4d4c4a6ed",
+            "name": "cash",
+            "transfer_acct": "5e22bea4-e77e-4fa7-b850-f91014e63f01"
+          },
+          {
+            "id": "f8773df5-8ac4-4838-bba5-ea5a1f8999f7",
+            "name": "card",
+            "transfer_acct": "f66df692-3fd6-4373-8ae6-5d46cc1559ab"
+          },
+          {
+            "id": "5bcd1c89-276a-4c7a-ab5c-b9e6481900b8",
+            "name": "other",
+            "transfer_acct": "16072be2-b025-4056-9224-509067cc363e"
+          },
+          {
+            "id": "f3a17311-443e-4dae-9d77-69b99461bf79",
+            "name": "off",
+            "transfer_acct": "ec7b3757-4fe7-46c9-a59f-d9846b642e24"
+          }
+        ],
+        "categories": [
+          {
+            "id": "d0b64693-ac87-4aad-855f-f652f260f646",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "540b1a4a-f3dc-4e98-9007-72353c495a03"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "kept": null,
+      "error": "Cannot merge transactions from different accounts",
+      "after": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000001101",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "5e22bea4-e77e-4fa7-b850-f91014e63f01",
+            "category": "d0b64693-ac87-4aad-855f-f652f260f646",
+            "amount": -1234,
+            "payee": "52ad3d7e-5062-4075-ba5e-866e7a0a8d35",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000001102",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "f66df692-3fd6-4373-8ae6-5d46cc1559ab",
+            "category": "d0b64693-ac87-4aad-855f-f652f260f646",
+            "amount": -1234,
+            "payee": "52ad3d7e-5062-4075-ba5e-866e7a0a8d35",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "5e22bea4-e77e-4fa7-b850-f91014e63f01",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "ec7b3757-4fe7-46c9-a59f-d9846b642e24",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "f66df692-3fd6-4373-8ae6-5d46cc1559ab",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "16072be2-b025-4056-9224-509067cc363e",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "52ad3d7e-5062-4075-ba5e-866e7a0a8d35",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "772055c1-d8d7-4665-8208-68a4d4c4a6ed",
+            "name": "cash",
+            "transfer_acct": "5e22bea4-e77e-4fa7-b850-f91014e63f01"
+          },
+          {
+            "id": "f8773df5-8ac4-4838-bba5-ea5a1f8999f7",
+            "name": "card",
+            "transfer_acct": "f66df692-3fd6-4373-8ae6-5d46cc1559ab"
+          },
+          {
+            "id": "5bcd1c89-276a-4c7a-ab5c-b9e6481900b8",
+            "name": "other",
+            "transfer_acct": "16072be2-b025-4056-9224-509067cc363e"
+          },
+          {
+            "id": "f3a17311-443e-4dae-9d77-69b99461bf79",
+            "name": "off",
+            "transfer_acct": "ec7b3757-4fe7-46c9-a59f-d9846b642e24"
+          }
+        ],
+        "categories": [
+          {
+            "id": "d0b64693-ac87-4aad-855f-f652f260f646",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "540b1a4a-f3dc-4e98-9007-72353c495a03"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "different-transfer-peers-rejected",
+      "input": {
+        "id": "different-transfer-peers-rejected",
+        "a": {
+          "transfer": "card"
+        },
+        "b": {
+          "transfer": "other"
+        },
+        "reject": true
+      },
+      "ids": {
+        "cash": "d652e048-c133-436f-aaca-c6cdf8951d82",
+        "card": "7cd02b0e-cba4-4d2e-9646-348584411b67",
+        "off": "22582510-ddce-465d-8ae0-63988de49b4b",
+        "other": "bbe7027f-fc31-4c0c-917d-534d437e9113",
+        "cafe": "d10efd6b-55f5-4687-859d-c97bf8e38df1",
+        "group": "6e753108-3f0b-4fc5-9164-0ca760a77dfc",
+        "category": "ee3a8632-4c03-4d3a-8755-d30eeabfe069",
+        "a": "25270000-0000-4000-8000-000000001201",
+        "b": "25270000-0000-4000-8000-000000001202"
+      },
+      "archive": {
+        "filename": "transaction-merge-different-transfer-peers-rejected-26.10.zip",
+        "sha256": "85e8a3d21e19d092d00417d7a56531fa557532f194f1d6568e0d7f5dcc63b210"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000001201",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "d652e048-c133-436f-aaca-c6cdf8951d82",
+            "category": null,
+            "amount": -1234,
+            "payee": "35005c30-36f6-4938-b83c-ff109f7c64be",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "cd6deaa3-8f32-4cad-a875-cc87e43989d6",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000001202",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "d652e048-c133-436f-aaca-c6cdf8951d82",
+            "category": null,
+            "amount": -1234,
+            "payee": "89cc088c-e5e4-45b4-8998-7245a5e34f6b",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "32da6504-486b-4e60-b078-4f1660da45c9",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "32da6504-486b-4e60-b078-4f1660da45c9",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "bbe7027f-fc31-4c0c-917d-534d437e9113",
+            "category": null,
+            "amount": 1234,
+            "payee": "7b67672c-f724-4327-aec9-242c36714e58",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "25270000-0000-4000-8000-000000001202",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "cd6deaa3-8f32-4cad-a875-cc87e43989d6",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "7cd02b0e-cba4-4d2e-9646-348584411b67",
+            "category": null,
+            "amount": 1234,
+            "payee": "7b67672c-f724-4327-aec9-242c36714e58",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "25270000-0000-4000-8000-000000001201",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "d652e048-c133-436f-aaca-c6cdf8951d82",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "22582510-ddce-465d-8ae0-63988de49b4b",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "7cd02b0e-cba4-4d2e-9646-348584411b67",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "bbe7027f-fc31-4c0c-917d-534d437e9113",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "d10efd6b-55f5-4687-859d-c97bf8e38df1",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "7b67672c-f724-4327-aec9-242c36714e58",
+            "name": "cash",
+            "transfer_acct": "d652e048-c133-436f-aaca-c6cdf8951d82"
+          },
+          {
+            "id": "35005c30-36f6-4938-b83c-ff109f7c64be",
+            "name": "card",
+            "transfer_acct": "7cd02b0e-cba4-4d2e-9646-348584411b67"
+          },
+          {
+            "id": "89cc088c-e5e4-45b4-8998-7245a5e34f6b",
+            "name": "other",
+            "transfer_acct": "bbe7027f-fc31-4c0c-917d-534d437e9113"
+          },
+          {
+            "id": "9dd818b3-9747-484f-b5a6-f8911a9a4dc2",
+            "name": "off",
+            "transfer_acct": "22582510-ddce-465d-8ae0-63988de49b4b"
+          }
+        ],
+        "categories": [
+          {
+            "id": "ee3a8632-4c03-4d3a-8755-d30eeabfe069",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "6e753108-3f0b-4fc5-9164-0ca760a77dfc"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "kept": null,
+      "error": "Cannot merge transfers to different accounts",
+      "after": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000001201",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "d652e048-c133-436f-aaca-c6cdf8951d82",
+            "category": null,
+            "amount": -1234,
+            "payee": "35005c30-36f6-4938-b83c-ff109f7c64be",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "cd6deaa3-8f32-4cad-a875-cc87e43989d6",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000001202",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "d652e048-c133-436f-aaca-c6cdf8951d82",
+            "category": null,
+            "amount": -1234,
+            "payee": "89cc088c-e5e4-45b4-8998-7245a5e34f6b",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "32da6504-486b-4e60-b078-4f1660da45c9",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "32da6504-486b-4e60-b078-4f1660da45c9",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "bbe7027f-fc31-4c0c-917d-534d437e9113",
+            "category": null,
+            "amount": 1234,
+            "payee": "7b67672c-f724-4327-aec9-242c36714e58",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "25270000-0000-4000-8000-000000001202",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "cd6deaa3-8f32-4cad-a875-cc87e43989d6",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "7cd02b0e-cba4-4d2e-9646-348584411b67",
+            "category": null,
+            "amount": 1234,
+            "payee": "7b67672c-f724-4327-aec9-242c36714e58",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": "25270000-0000-4000-8000-000000001201",
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "d652e048-c133-436f-aaca-c6cdf8951d82",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "22582510-ddce-465d-8ae0-63988de49b4b",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "7cd02b0e-cba4-4d2e-9646-348584411b67",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "bbe7027f-fc31-4c0c-917d-534d437e9113",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "d10efd6b-55f5-4687-859d-c97bf8e38df1",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "7b67672c-f724-4327-aec9-242c36714e58",
+            "name": "cash",
+            "transfer_acct": "d652e048-c133-436f-aaca-c6cdf8951d82"
+          },
+          {
+            "id": "35005c30-36f6-4938-b83c-ff109f7c64be",
+            "name": "card",
+            "transfer_acct": "7cd02b0e-cba4-4d2e-9646-348584411b67"
+          },
+          {
+            "id": "89cc088c-e5e4-45b4-8998-7245a5e34f6b",
+            "name": "other",
+            "transfer_acct": "bbe7027f-fc31-4c0c-917d-534d437e9113"
+          },
+          {
+            "id": "9dd818b3-9747-484f-b5a6-f8911a9a4dc2",
+            "name": "off",
+            "transfer_acct": "22582510-ddce-465d-8ae0-63988de49b4b"
+          }
+        ],
+        "categories": [
+          {
+            "id": "ee3a8632-4c03-4d3a-8755-d30eeabfe069",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "6e753108-3f0b-4fc5-9164-0ca760a77dfc"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "duplicate-selection-rejected",
+      "input": {
+        "id": "duplicate-selection-rejected",
+        "a": {},
+        "b": {},
+        "duplicate": true,
+        "reject": true
+      },
+      "ids": {
+        "cash": "9fafff11-55b1-45eb-be6a-119adc130393",
+        "card": "f1ff95f3-1eb9-47a5-9120-012a62a78c74",
+        "off": "c8680672-7114-42eb-beea-70fdce9801df",
+        "other": "aa544c76-46b0-4dc1-bbb5-fea743937e45",
+        "cafe": "099945bc-995d-49c7-99b8-f0a9d975023f",
+        "group": "eb0c86f4-1dde-4749-a040-17b0923ef13c",
+        "category": "fd51c31c-1380-4049-9952-28987462bf3c",
+        "a": "25270000-0000-4000-8000-000000001301",
+        "b": "25270000-0000-4000-8000-000000001302"
+      },
+      "archive": {
+        "filename": "transaction-merge-duplicate-selection-rejected-26.10.zip",
+        "sha256": "a648fc8f36c87ebcfc3e0c65f688791269eb27745ded9749ae289d2ee33a0145"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000001301",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "9fafff11-55b1-45eb-be6a-119adc130393",
+            "category": "fd51c31c-1380-4049-9952-28987462bf3c",
+            "amount": -1234,
+            "payee": "099945bc-995d-49c7-99b8-f0a9d975023f",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000001302",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "9fafff11-55b1-45eb-be6a-119adc130393",
+            "category": "fd51c31c-1380-4049-9952-28987462bf3c",
+            "amount": -1234,
+            "payee": "099945bc-995d-49c7-99b8-f0a9d975023f",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "9fafff11-55b1-45eb-be6a-119adc130393",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "c8680672-7114-42eb-beea-70fdce9801df",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "f1ff95f3-1eb9-47a5-9120-012a62a78c74",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "aa544c76-46b0-4dc1-bbb5-fea743937e45",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "099945bc-995d-49c7-99b8-f0a9d975023f",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "343cfb8b-e948-4265-9b65-a50de5922fe3",
+            "name": "cash",
+            "transfer_acct": "9fafff11-55b1-45eb-be6a-119adc130393"
+          },
+          {
+            "id": "c8725e1f-fa4a-4922-aafc-34855e34c48b",
+            "name": "card",
+            "transfer_acct": "f1ff95f3-1eb9-47a5-9120-012a62a78c74"
+          },
+          {
+            "id": "387cd97f-066e-42e5-8f9b-d4fa77a7fbf1",
+            "name": "other",
+            "transfer_acct": "aa544c76-46b0-4dc1-bbb5-fea743937e45"
+          },
+          {
+            "id": "5719174d-f6d8-4243-b307-74cf4a5eb267",
+            "name": "off",
+            "transfer_acct": "c8680672-7114-42eb-beea-70fdce9801df"
+          }
+        ],
+        "categories": [
+          {
+            "id": "fd51c31c-1380-4049-9952-28987462bf3c",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "eb0c86f4-1dde-4749-a040-17b0923ef13c"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "kept": null,
+      "error": "Merging is only possible with 2 distinct transactions, but found [{\"id\":\"25270000-0000-4000-8000-000000001301\"},{\"id\":\"25270000-0000-4000-8000-000000001301\"}]",
+      "after": {
+        "transactions": [
+          {
+            "id": "25270000-0000-4000-8000-000000001301",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "9fafff11-55b1-45eb-be6a-119adc130393",
+            "category": "fd51c31c-1380-4049-9952-28987462bf3c",
+            "amount": -1234,
+            "payee": "099945bc-995d-49c7-99b8-f0a9d975023f",
+            "notes": "a",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          },
+          {
+            "id": "25270000-0000-4000-8000-000000001302",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "9fafff11-55b1-45eb-be6a-119adc130393",
+            "category": "fd51c31c-1380-4049-9952-28987462bf3c",
+            "amount": -1234,
+            "payee": "099945bc-995d-49c7-99b8-f0a9d975023f",
+            "notes": "b",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null
+          }
+        ],
+        "accounts": [
+          {
+            "id": "9fafff11-55b1-45eb-be6a-119adc130393",
+            "name": "cash",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "c8680672-7114-42eb-beea-70fdce9801df",
+            "name": "off",
+            "offbudget": true,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "f1ff95f3-1eb9-47a5-9120-012a62a78c74",
+            "name": "card",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "aa544c76-46b0-4dc1-bbb5-fea743937e45",
+            "name": "other",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "099945bc-995d-49c7-99b8-f0a9d975023f",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "343cfb8b-e948-4265-9b65-a50de5922fe3",
+            "name": "cash",
+            "transfer_acct": "9fafff11-55b1-45eb-be6a-119adc130393"
+          },
+          {
+            "id": "c8725e1f-fa4a-4922-aafc-34855e34c48b",
+            "name": "card",
+            "transfer_acct": "f1ff95f3-1eb9-47a5-9120-012a62a78c74"
+          },
+          {
+            "id": "387cd97f-066e-42e5-8f9b-d4fa77a7fbf1",
+            "name": "other",
+            "transfer_acct": "aa544c76-46b0-4dc1-bbb5-fea743937e45"
+          },
+          {
+            "id": "5719174d-f6d8-4243-b307-74cf4a5eb267",
+            "name": "off",
+            "transfer_acct": "c8680672-7114-42eb-beea-70fdce9801df"
+          }
+        ],
+        "categories": [
+          {
+            "id": "fd51c31c-1380-4049-9952-28987462bf3c",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "eb0c86f4-1dde-4749-a040-17b0923ef13c"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    }
+  ]
+}

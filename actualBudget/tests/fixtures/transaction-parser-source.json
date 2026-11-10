@@ -1,0 +1,1639 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "source_files": {
+    "packages/loot-core/src/server/transactions/import/parse-file.ts": "d42416f6611d5c210096fa1e48e21163c5847f9b8c6bbff672369a6e0d81c5a9",
+    "packages/loot-core/src/server/transactions/import/ofx2json.ts": "e39561d612f0d7a481b903f17578734b1b538108339c50cd95ea857cb541c005",
+    "packages/loot-core/src/server/transactions/import/qif2json.ts": "b5c90e8d5f631808fcc40303cfda40c410d7f3e4cfe7eb3e6dc43361b9466294",
+    "packages/loot-core/src/server/transactions/import/xmlcamt2json.ts": "42b68200f78a7ce2a03b5986c1bf1a7c024f8cef2fa1ff54086e81e82fad4e89"
+  },
+  "diagnostic_normalization": "Only error.internal stack frames after its first line are omitted.",
+  "cases": [
+    {
+      "id": "data.ofx",
+      "filename": "data.ofx",
+      "source_file": "packages/loot-core/src/mocks/files/data.ofx",
+      "sha256": "36243bbd61e3e9917bbdc6fd146c1869c50484ec6ae3b21ce46b191b75440fd9",
+      "bytes_base64": "T0ZYSEVBREVSOjEwMA0KREFUQTpPRlhTR01MDQpWRVJTSU9OOjEwMg0KU0VDVVJJVFk6Tk9ORQ0KRU5DT0RJTkc6VVNBU0NJSQ0KQ0hBUlNFVDoxMjUyDQpDT01QUkVTU0lPTjpOT05FDQpPTERGSUxFVUlEOk5PTkUNCk5FV0ZJTEVVSUQ6Tk9ORQ0KDQo8T0ZYPg0KPFNJR05PTk1TR1NSU1YxPg0KPFNPTlJTPg0KPFNUQVRVUz4NCjxDT0RFPjANCjxTRVZFUklUWT5JTkZPDQo8L1NUQVRVUz4NCjxEVFNFUlZFUj4yMDE5MDEyNDIxMjg1MS4wMDBbMDpVVENdDQo8TEFOR1VBR0U+RU5HDQo8RFRBQ0NUVVA+MjAxOTAxMjQyMTI4NTEuMDAwWzA6VVRDXQ0KPEZJPg0KPE9SRz5CYW5rIG9mIEFtZXJpY2ENCjxGSUQ+NTk1OQ0KPC9GST4NCjxJTlRVLkJJRD42NTI2DQo8SU5UVS5VU0VSSUQ+amxvbmdzdGVyMDMNCjwvU09OUlM+DQo8L1NJR05PTk1TR1NSU1YxPg0KPEJBTktNU0dTUlNWMT4NCjxTVE1UVFJOUlM+DQo8VFJOVUlEPjANCjxTVEFUVVM+DQo8Q09ERT4wDQo8U0VWRVJJVFk+SU5GTw0KPC9TVEFUVVM+DQo8U1RNVFJTPg0KPENVUkRFRj5VU0QNCjxCQU5LQUNDVEZST00+DQo8QkFOS0lEPjAxMjM0NTY3OA0KPEFDQ1RJRD4xMjM0NTY3ODkxMjMNCjxBQ0NUVFlQRT5DSEVDS0lORw0KPC9CQU5LQUNDVEZST00+DQo8QkFOS1RSQU5MSVNUPg0KPERUU1RBUlQ+MjAxOTAxMTkxMjAwMDANCjxEVEVORD4yMDE5MDEyNDEyMDAwMA0KPFNUTVRUUk4+DQo8VFJOVFlQRT5ERUJJVA0KPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwDQo8VFJOQU1UPi0zMC4wMA0KPEZJVElEPjAwMDkyOTkwMTIyLTMwLjAwMDE5MDEyMzEyNzk4LjAxDQo8TkFNRT5QQVRJRU5UIEZJUlNUIFRPS0VOIDAxLzIyIFBVUkNIQQ0KPC9TVE1UVFJOPg0KPFNUTVRUUk4+DQo8VFJOVFlQRT5ERUJJVA0KPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwDQo8VFJOQU1UPi0zLjc3DQo8RklUSUQ+MDAwOTI5OTAxMjEtMy43NzAxOTAxMjMxMjgyOC4wMQ0KPE5BTUU+U1RBUkJVQ0tTIFNUT1JFIDA3NjA0IDAxLzIxIFBVUkMNCjwvU1RNVFRSTj4NCjxTVE1UVFJOPg0KPFRSTlRZUEU+REVCSVQNCjxEVFBPU1RFRD4yMDE5MDEyMzEyMDAwMA0KPFRSTkFNVD4tOS42Mg0KPEZJVElEPjAwMDkyOTkwMTIxLTkuNjIwMTkwMTIzMTI4MzEuNzgNCjxOQU1FPlNUQVJCVUNLUyBTVE9SRSAwNzYwNCAwMS8yMSBQVVJDDQo8L1NUTVRUUk4+DQo8U1RNVFRSTj4NCjxUUk5UWVBFPkRFQklUDQo8RFRQT1NURUQ+MjAxOTAxMjIxMjAwMDANCjxUUk5BTVQ+LTExNS45OQ0KPEZJVElEPjAwMDkwMjMxODAwLTExNS45OTAxOTAxMjIxMjg0MS40MA0KPE5BTUU+VkVSSVpPTiBERVM6UEFZTUVOVFJFQyBJRDpYWFhYWDMNCjwvU1RNVFRSTj4NCjxTVE1UVFJOPg0KPFRSTlRZUEU+REVCSVQNCjxEVFBPU1RFRD4yMDE5MDEyMjEyMDAwMA0KPFRSTkFNVD4tMTAuMzQNCjxGSVRJRD4wMDA5Mjk5MDEyMC0xMC4zNDAxOTAxMjIxMjk1Ny4zOQ0KPE5BTUU+VVJCQU4gRkFSTUhPVVNFIE5PIDIgMDEvMTkgUFVSQ0gNCjwvU1RNVFRSTj4NCjxTVE1UVFJOPg0KPFRSTlRZUEU+REVCSVQNCjxEVFBPU1RFRD4yMDE5MDEyMjEyMDAwMA0KPFRSTkFNVD4tMjIuNTMNCjxGSVRJRD4wMDA5Mjk5MDEyMC0yMi41MzAxOTAxMjIxMjk2Ny43Mw0KPE5BTUU+VVJCQU4gRkFSTUhPVVNFIE5PIDIgMDEvMTkgUFVSQ0gNCjwvU1RNVFRSTj4NCjxTVE1UVFJOPg0KPFRSTlRZUEU+REVCSVQNCjxEVFBPU1RFRD4yMDE5MDEyMjEyMDAwMA0KPFRSTkFNVD4tMTA4LjcxDQo8RklUSUQ+MDAwOTI5OTAxMTktMTA4LjcxMDE5MDEyMjEyOTkwLjI2DQo8TkFNRT5UTU9CSUxFKkFVVE8gUEFZIDAxLzE5IFBVUkNIQVNFIA0KPC9TVE1UVFJOPg0KPFNUTVRUUk4+DQo8VFJOVFlQRT5ERUJJVA0KPERUUE9TVEVEPjIwMTkwMTIyMTIwMDAwDQo8VFJOQU1UPi0yNS4wMA0KPEZJVElEPjAwMDkyOTkwMTE4LTI1LjAwMDE5MDEyMjEzMDk4Ljk3DQo8TkFNRT5DT1VOVFkgV0FTVEUgMDEvMTggUFVSQ0hBU0UgODA0LQ0KPC9TVE1UVFJOPg0KPFNUTVRUUk4+DQo8VFJOVFlQRT5ERUJJVA0KPERUUE9TVEVEPjIwMTkwMTIyMTIwMDAwDQo8VFJOQU1UPi0zMi4zOA0KPEZJVElEPjAwMDkyOTkwMTE4LTMyLjM4MDE5MDEyMjEzMTIzLjk3DQo8TkFNRT5SRUdFTkNZIE1BUlQgQ0lUR08gMDEvMTggUFVSQ0hBUw0KPC9TVE1UVFJOPg0KPFNUTVRUUk4+DQo8VFJOVFlQRT5ERUJJVA0KPERUUE9TVEVEPjIwMTkwMTIyMTIwMDAwDQo8VFJOQU1UPi02LjA3DQo8RklUSUQ+MDAwOTI5OTAxMTctNi4wNzAxOTAxMjIxMzE1Ni4zNQ0KPE5BTUU+Q0hJQ0stRklMLUEgIzAxMzQyIDAxLzE3IFBVUkNIQVMNCjwvU1RNVFRSTj4NCjwvQkFOS1RSQU5MSVNUPg0KPExFREdFUkJBTD4NCjxCQUxBTVQ+MTI3OTguMDENCjxEVEFTT0Y+MjAxOTAxMjQyMTI4NTENCjwvTEVER0VSQkFMPg0KPC9TVE1UUlM+DQo8L1NUTVRUUk5SUz4NCjwvQkFOS01TR1NSU1YxPg0KPC9PRlg+DQo=",
+      "options": {
+        "importNotes": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -30,
+            "imported_id": "00092990122-30.00019012312798.01",
+            "date": "2019-01-23",
+            "payee_name": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "imported_payee": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "notes": null
+          },
+          {
+            "amount": -3.77,
+            "imported_id": "00092990121-3.77019012312828.01",
+            "date": "2019-01-23",
+            "payee_name": "STARBUCKS STORE 07604 01/21 PURC",
+            "imported_payee": "STARBUCKS STORE 07604 01/21 PURC",
+            "notes": null
+          },
+          {
+            "amount": -9.62,
+            "imported_id": "00092990121-9.62019012312831.78",
+            "date": "2019-01-23",
+            "payee_name": "STARBUCKS STORE 07604 01/21 PURC",
+            "imported_payee": "STARBUCKS STORE 07604 01/21 PURC",
+            "notes": null
+          },
+          {
+            "amount": -115.99,
+            "imported_id": "00090231800-115.99019012212841.40",
+            "date": "2019-01-22",
+            "payee_name": "VERIZON DES:PAYMENTREC ID:XXXXX3",
+            "imported_payee": "VERIZON DES:PAYMENTREC ID:XXXXX3",
+            "notes": null
+          },
+          {
+            "amount": -10.34,
+            "imported_id": "00092990120-10.34019012212957.39",
+            "date": "2019-01-22",
+            "payee_name": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "imported_payee": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "notes": null
+          },
+          {
+            "amount": -22.53,
+            "imported_id": "00092990120-22.53019012212967.73",
+            "date": "2019-01-22",
+            "payee_name": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "imported_payee": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "notes": null
+          },
+          {
+            "amount": -108.71,
+            "imported_id": "00092990119-108.71019012212990.26",
+            "date": "2019-01-22",
+            "payee_name": "TMOBILE*AUTO PAY 01/19 PURCHASE",
+            "imported_payee": "TMOBILE*AUTO PAY 01/19 PURCHASE",
+            "notes": null
+          },
+          {
+            "amount": -25,
+            "imported_id": "00092990118-25.00019012213098.97",
+            "date": "2019-01-22",
+            "payee_name": "COUNTY WASTE 01/18 PURCHASE 804-",
+            "imported_payee": "COUNTY WASTE 01/18 PURCHASE 804-",
+            "notes": null
+          },
+          {
+            "amount": -32.38,
+            "imported_id": "00092990118-32.38019012213123.97",
+            "date": "2019-01-22",
+            "payee_name": "REGENCY MART CITGO 01/18 PURCHAS",
+            "imported_payee": "REGENCY MART CITGO 01/18 PURCHAS",
+            "notes": null
+          },
+          {
+            "amount": -6.07,
+            "imported_id": "00092990117-6.07019012213156.35",
+            "date": "2019-01-22",
+            "payee_name": "CHICK-FIL-A #01342 01/17 PURCHAS",
+            "imported_payee": "CHICK-FIL-A #01342 01/17 PURCHAS",
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "data.qfx",
+      "filename": "data.qfx",
+      "source_file": "packages/loot-core/src/mocks/files/data.qfx",
+      "sha256": "36243bbd61e3e9917bbdc6fd146c1869c50484ec6ae3b21ce46b191b75440fd9",
+      "bytes_base64": "T0ZYSEVBREVSOjEwMA0KREFUQTpPRlhTR01MDQpWRVJTSU9OOjEwMg0KU0VDVVJJVFk6Tk9ORQ0KRU5DT0RJTkc6VVNBU0NJSQ0KQ0hBUlNFVDoxMjUyDQpDT01QUkVTU0lPTjpOT05FDQpPTERGSUxFVUlEOk5PTkUNCk5FV0ZJTEVVSUQ6Tk9ORQ0KDQo8T0ZYPg0KPFNJR05PTk1TR1NSU1YxPg0KPFNPTlJTPg0KPFNUQVRVUz4NCjxDT0RFPjANCjxTRVZFUklUWT5JTkZPDQo8L1NUQVRVUz4NCjxEVFNFUlZFUj4yMDE5MDEyNDIxMjg1MS4wMDBbMDpVVENdDQo8TEFOR1VBR0U+RU5HDQo8RFRBQ0NUVVA+MjAxOTAxMjQyMTI4NTEuMDAwWzA6VVRDXQ0KPEZJPg0KPE9SRz5CYW5rIG9mIEFtZXJpY2ENCjxGSUQ+NTk1OQ0KPC9GST4NCjxJTlRVLkJJRD42NTI2DQo8SU5UVS5VU0VSSUQ+amxvbmdzdGVyMDMNCjwvU09OUlM+DQo8L1NJR05PTk1TR1NSU1YxPg0KPEJBTktNU0dTUlNWMT4NCjxTVE1UVFJOUlM+DQo8VFJOVUlEPjANCjxTVEFUVVM+DQo8Q09ERT4wDQo8U0VWRVJJVFk+SU5GTw0KPC9TVEFUVVM+DQo8U1RNVFJTPg0KPENVUkRFRj5VU0QNCjxCQU5LQUNDVEZST00+DQo8QkFOS0lEPjAxMjM0NTY3OA0KPEFDQ1RJRD4xMjM0NTY3ODkxMjMNCjxBQ0NUVFlQRT5DSEVDS0lORw0KPC9CQU5LQUNDVEZST00+DQo8QkFOS1RSQU5MSVNUPg0KPERUU1RBUlQ+MjAxOTAxMTkxMjAwMDANCjxEVEVORD4yMDE5MDEyNDEyMDAwMA0KPFNUTVRUUk4+DQo8VFJOVFlQRT5ERUJJVA0KPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwDQo8VFJOQU1UPi0zMC4wMA0KPEZJVElEPjAwMDkyOTkwMTIyLTMwLjAwMDE5MDEyMzEyNzk4LjAxDQo8TkFNRT5QQVRJRU5UIEZJUlNUIFRPS0VOIDAxLzIyIFBVUkNIQQ0KPC9TVE1UVFJOPg0KPFNUTVRUUk4+DQo8VFJOVFlQRT5ERUJJVA0KPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwDQo8VFJOQU1UPi0zLjc3DQo8RklUSUQ+MDAwOTI5OTAxMjEtMy43NzAxOTAxMjMxMjgyOC4wMQ0KPE5BTUU+U1RBUkJVQ0tTIFNUT1JFIDA3NjA0IDAxLzIxIFBVUkMNCjwvU1RNVFRSTj4NCjxTVE1UVFJOPg0KPFRSTlRZUEU+REVCSVQNCjxEVFBPU1RFRD4yMDE5MDEyMzEyMDAwMA0KPFRSTkFNVD4tOS42Mg0KPEZJVElEPjAwMDkyOTkwMTIxLTkuNjIwMTkwMTIzMTI4MzEuNzgNCjxOQU1FPlNUQVJCVUNLUyBTVE9SRSAwNzYwNCAwMS8yMSBQVVJDDQo8L1NUTVRUUk4+DQo8U1RNVFRSTj4NCjxUUk5UWVBFPkRFQklUDQo8RFRQT1NURUQ+MjAxOTAxMjIxMjAwMDANCjxUUk5BTVQ+LTExNS45OQ0KPEZJVElEPjAwMDkwMjMxODAwLTExNS45OTAxOTAxMjIxMjg0MS40MA0KPE5BTUU+VkVSSVpPTiBERVM6UEFZTUVOVFJFQyBJRDpYWFhYWDMNCjwvU1RNVFRSTj4NCjxTVE1UVFJOPg0KPFRSTlRZUEU+REVCSVQNCjxEVFBPU1RFRD4yMDE5MDEyMjEyMDAwMA0KPFRSTkFNVD4tMTAuMzQNCjxGSVRJRD4wMDA5Mjk5MDEyMC0xMC4zNDAxOTAxMjIxMjk1Ny4zOQ0KPE5BTUU+VVJCQU4gRkFSTUhPVVNFIE5PIDIgMDEvMTkgUFVSQ0gNCjwvU1RNVFRSTj4NCjxTVE1UVFJOPg0KPFRSTlRZUEU+REVCSVQNCjxEVFBPU1RFRD4yMDE5MDEyMjEyMDAwMA0KPFRSTkFNVD4tMjIuNTMNCjxGSVRJRD4wMDA5Mjk5MDEyMC0yMi41MzAxOTAxMjIxMjk2Ny43Mw0KPE5BTUU+VVJCQU4gRkFSTUhPVVNFIE5PIDIgMDEvMTkgUFVSQ0gNCjwvU1RNVFRSTj4NCjxTVE1UVFJOPg0KPFRSTlRZUEU+REVCSVQNCjxEVFBPU1RFRD4yMDE5MDEyMjEyMDAwMA0KPFRSTkFNVD4tMTA4LjcxDQo8RklUSUQ+MDAwOTI5OTAxMTktMTA4LjcxMDE5MDEyMjEyOTkwLjI2DQo8TkFNRT5UTU9CSUxFKkFVVE8gUEFZIDAxLzE5IFBVUkNIQVNFIA0KPC9TVE1UVFJOPg0KPFNUTVRUUk4+DQo8VFJOVFlQRT5ERUJJVA0KPERUUE9TVEVEPjIwMTkwMTIyMTIwMDAwDQo8VFJOQU1UPi0yNS4wMA0KPEZJVElEPjAwMDkyOTkwMTE4LTI1LjAwMDE5MDEyMjEzMDk4Ljk3DQo8TkFNRT5DT1VOVFkgV0FTVEUgMDEvMTggUFVSQ0hBU0UgODA0LQ0KPC9TVE1UVFJOPg0KPFNUTVRUUk4+DQo8VFJOVFlQRT5ERUJJVA0KPERUUE9TVEVEPjIwMTkwMTIyMTIwMDAwDQo8VFJOQU1UPi0zMi4zOA0KPEZJVElEPjAwMDkyOTkwMTE4LTMyLjM4MDE5MDEyMjEzMTIzLjk3DQo8TkFNRT5SRUdFTkNZIE1BUlQgQ0lUR08gMDEvMTggUFVSQ0hBUw0KPC9TVE1UVFJOPg0KPFNUTVRUUk4+DQo8VFJOVFlQRT5ERUJJVA0KPERUUE9TVEVEPjIwMTkwMTIyMTIwMDAwDQo8VFJOQU1UPi02LjA3DQo8RklUSUQ+MDAwOTI5OTAxMTctNi4wNzAxOTAxMjIxMzE1Ni4zNQ0KPE5BTUU+Q0hJQ0stRklMLUEgIzAxMzQyIDAxLzE3IFBVUkNIQVMNCjwvU1RNVFRSTj4NCjwvQkFOS1RSQU5MSVNUPg0KPExFREdFUkJBTD4NCjxCQUxBTVQ+MTI3OTguMDENCjxEVEFTT0Y+MjAxOTAxMjQyMTI4NTENCjwvTEVER0VSQkFMPg0KPC9TVE1UUlM+DQo8L1NUTVRUUk5SUz4NCjwvQkFOS01TR1NSU1YxPg0KPC9PRlg+DQo=",
+      "options": {
+        "importNotes": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -30,
+            "imported_id": "00092990122-30.00019012312798.01",
+            "date": "2019-01-23",
+            "payee_name": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "imported_payee": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "notes": null
+          },
+          {
+            "amount": -3.77,
+            "imported_id": "00092990121-3.77019012312828.01",
+            "date": "2019-01-23",
+            "payee_name": "STARBUCKS STORE 07604 01/21 PURC",
+            "imported_payee": "STARBUCKS STORE 07604 01/21 PURC",
+            "notes": null
+          },
+          {
+            "amount": -9.62,
+            "imported_id": "00092990121-9.62019012312831.78",
+            "date": "2019-01-23",
+            "payee_name": "STARBUCKS STORE 07604 01/21 PURC",
+            "imported_payee": "STARBUCKS STORE 07604 01/21 PURC",
+            "notes": null
+          },
+          {
+            "amount": -115.99,
+            "imported_id": "00090231800-115.99019012212841.40",
+            "date": "2019-01-22",
+            "payee_name": "VERIZON DES:PAYMENTREC ID:XXXXX3",
+            "imported_payee": "VERIZON DES:PAYMENTREC ID:XXXXX3",
+            "notes": null
+          },
+          {
+            "amount": -10.34,
+            "imported_id": "00092990120-10.34019012212957.39",
+            "date": "2019-01-22",
+            "payee_name": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "imported_payee": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "notes": null
+          },
+          {
+            "amount": -22.53,
+            "imported_id": "00092990120-22.53019012212967.73",
+            "date": "2019-01-22",
+            "payee_name": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "imported_payee": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "notes": null
+          },
+          {
+            "amount": -108.71,
+            "imported_id": "00092990119-108.71019012212990.26",
+            "date": "2019-01-22",
+            "payee_name": "TMOBILE*AUTO PAY 01/19 PURCHASE",
+            "imported_payee": "TMOBILE*AUTO PAY 01/19 PURCHASE",
+            "notes": null
+          },
+          {
+            "amount": -25,
+            "imported_id": "00092990118-25.00019012213098.97",
+            "date": "2019-01-22",
+            "payee_name": "COUNTY WASTE 01/18 PURCHASE 804-",
+            "imported_payee": "COUNTY WASTE 01/18 PURCHASE 804-",
+            "notes": null
+          },
+          {
+            "amount": -32.38,
+            "imported_id": "00092990118-32.38019012213123.97",
+            "date": "2019-01-22",
+            "payee_name": "REGENCY MART CITGO 01/18 PURCHAS",
+            "imported_payee": "REGENCY MART CITGO 01/18 PURCHAS",
+            "notes": null
+          },
+          {
+            "amount": -6.07,
+            "imported_id": "00092990117-6.07019012213156.35",
+            "date": "2019-01-22",
+            "payee_name": "CHICK-FIL-A #01342 01/17 PURCHAS",
+            "imported_payee": "CHICK-FIL-A #01342 01/17 PURCHAS",
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "credit-card.ofx",
+      "filename": "credit-card.ofx",
+      "source_file": "packages/loot-core/src/mocks/files/credit-card.ofx",
+      "sha256": "f793d79668d4177086df8eb8fa8b680b3e601ed27f3f1b88850d7dd8dfe1691c",
+      "bytes_base64": "T0ZYSEVBREVSOjEwMApEQVRBOk9GWFNHTUwKVkVSU0lPTjoxMDIKU0VDVVJJVFk6Tk9ORQpFTkNPRElORzpVU0FTQ0lJCkNIQVJTRVQ6MTI1MgpDT01QUkVTU0lPTjpOT05FCk9MREZJTEVVSUQ6Tk9ORQpORVdGSUxFVUlEOk5PTkUKCjxPRlg+PFNJR05PTk1TR1NSU1YxPjxTT05SUz48U1RBVFVTPjxDT0RFPjA8U0VWRVJJVFk+SU5GTzwvU1RBVFVTPjxEVFNFUlZFUj4yMDIzMDQwNzEyMDAwMFswOkdNVF08TEFOR1VBR0U+RU5HPEZJPjxPUkc+QXBwbGUgQ2FyZDxGSUQ+MTIzNDU8L0ZJPjwvU09OUlM+PC9TSUdOT05NU0dTUlNWMT48Q1JFRElUQ0FSRE1TR1NSU1YxPjxDQ1NUTVRUUk5SUz48VFJOVUlEPjA8U1RBVFVTPjxDT0RFPjA8U0VWRVJJVFk+SU5GTzwvU1RBVFVTPjxDQ1NUTVRSUz48Q1VSREVGPlVTRDxDQ0FDQ1RGUk9NPjxBQ0NUSUQ+N2RjNmEyZmQtMjEyNC00NTdhLWExNDwvQ0NBQ0NURlJPTT48QkFOS1RSQU5MSVNUPjxEVFNUQVJUPjIwMjMwMzAxMTIwMDAwWzA6R01UXTxEVEVORD4yMDIzMDMzMTEyMDAwMFswOkdNVF08U1RNVFRSTj48VFJOVFlQRT5ERUJJVDxEVFBPU1RFRD4yMDIzMDMzMDEyMDAwMFswOkdNVF08VFJOQU1UPi02LjAwPEZJVElEPjU3ZjkxZGNhLTA0NjAtNDY5Mi1iZTkwLTg0MTY1YjcwMDI8TkFNRT5MT1VJU0lBTkEgU1RBVEUgTVVTRVVNNzUxIFBMQUNFIEpPSE4gUEFVTCBORVcgT1JMRUFOUyA3MDExNi0zMjA1TEEgVVNBPC9TVE1UVFJOPjwvQkFOS1RSQU5MSVNUPjxMRURHRVJCQUw+PEJBTEFNVD4tOTY1NC4wMTxEVEFTT0Y+MjAyMzAzMzExMjAwMDBbMDpHTVRdPC9MRURHRVJCQUw+PEFWQUlMQkFMPjxCQUxBTVQ+MTE3My4wMjxEVEFTT0Y+MjAyMzAzMzExMjAwMDBbMDpHTVRdPC9BVkFJTEJBTD48L0NDU1RNVFJTPjwvQ0NTVE1UVFJOUlM+PC9DUkVESVRDQVJETVNHU1JTVjE+PC9PRlg+Cg==",
+      "options": {
+        "importNotes": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -6,
+            "imported_id": "57f91dca-0460-4692-be90-84165b7002",
+            "date": "2023-03-30",
+            "payee_name": "LOUISIANA STATE MUSEUM751 PLACE JOHN PAUL NEW ORLEANS 70116-3205LA USA",
+            "imported_payee": "LOUISIANA STATE MUSEUM751 PLACE JOHN PAUL NEW ORLEANS 70116-3205LA USA",
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "data-multi-decimal.ofx",
+      "filename": "data-multi-decimal.ofx",
+      "source_file": "packages/loot-core/src/mocks/files/data-multi-decimal.ofx",
+      "sha256": "f597ea3c5c28cc1c4581613a9ca1de1e511ebbad2c6770edf5a91bbcb45470e3",
+      "bytes_base64": "T0ZYSEVBREVSOjEwMApEQVRBOk9GWFNHTUwKVkVSU0lPTjoxMDIKU0VDVVJJVFk6Tk9ORQpFTkNPRElORzpVU0FTQ0lJCkNIQVJTRVQ6MTI1MgpDT01QUkVTU0lPTjpOT05FCk9MREZJTEVVSUQ6Tk9ORQpORVdGSUxFVUlEOk5PTkUKCjxPRlg+CiAgPFNJR05PTk1TR1NSU1YxPgogICAgPFNPTlJTPgogICAgICA8U1RBVFVTPgogICAgICAgIDxDT0RFPjAKICAgICAgICA8U0VWRVJJVFk+SU5GTwogICAgICA8L1NUQVRVUz4KICAgICAgPERUU0VSVkVSPjIwMTkwMTI0MjEyODUxLjAwMFswOlVUQ10KICAgICAgPExBTkdVQUdFPkVORwogICAgICA8RFRBQ0NUVVA+MjAxOTAxMjQyMTI4NTEuMDAwWzA6VVRDXQogICAgICA8Rkk+CiAgICAgICAgPE9SRz5CYW5rIG9mIEFtZXJpY2EKICAgICAgICA8RklEPjU5NTkKICAgICAgPC9GST4KICAgICAgPElOVFUuQklEPjY1MjYKICAgICAgPElOVFUuVVNFUklEPmpsb25nc3RlcjAzCiAgICA8L1NPTlJTPgogIDwvU0lHTk9OTVNHU1JTVjE+CiAgPEJBTktNU0dTUlNWMT4KICAgIDxTVE1UVFJOUlM+CiAgICAgIDxUUk5VSUQ+MAogICAgICA8U1RBVFVTPgogICAgICAgIDxDT0RFPjAKICAgICAgICA8U0VWRVJJVFk+SU5GTwogICAgICA8L1NUQVRVUz4KICAgICAgPFNUTVRSUz4KICAgICAgICA8Q1VSREVGPlVTRAogICAgICAgIDxCQU5LQUNDVEZST00+CiAgICAgICAgICA8QkFOS0lEPjAxMjM0NTY3OAogICAgICAgICAgPEFDQ1RJRD4xMjM0NTY3ODkxMjMKICAgICAgICAgIDxBQ0NUVFlQRT5DSEVDS0lORwogICAgICAgIDwvQkFOS0FDQ1RGUk9NPgogICAgICAgIDxCQU5LVFJBTkxJU1Q+CiAgICAgICAgICA8RFRTVEFSVD4yMDE5MDExOTEyMDAwMAogICAgICAgICAgPERURU5EPjIwMTkwMTI0MTIwMDAwCiAgICAgICAgICA8U1RNVFRSTj4KICAgICAgICAgICAgPFRSTlRZUEU+REVCSVQKICAgICAgICAgICAgPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCiAgICAgICAgICAgIDxUUk5BTVQ+LTMwLjAwMAogICAgICAgICAgICA8RklUSUQ+MDAwOTI5OTAxMjItMzAuMDAwMTkwMTIzMTI3OTguMDEKICAgICAgICAgICAgPE5BTUU+UEFUSUVOVCBGSVJTVCBUT0tFTiAwMS8yMiBQVVJDSEEKICAgICAgICAgIDwvU1RNVFRSTj4KICAgICAgICAgIDxTVE1UVFJOPgogICAgICAgICAgICA8VFJOVFlQRT5ERUJJVAogICAgICAgICAgICA8RFRQT1NURUQ+MjAxOTAxMjMxMjAwMDAKICAgICAgICAgICAgPFRSTkFNVD4tMy43NzAwMAogICAgICAgICAgICA8RklUSUQ+MDAwOTI5OTAxMjEtMy43NzAxOTAxMjMxMjgyOC4wMQogICAgICAgICAgICA8TkFNRT5TVEFSQlVDS1MgU1RPUkUgMDc2MDQgMDEvMjEgUFVSQwogICAgICAgICAgPC9TVE1UVFJOPgogICAgICAgIDwvQkFOS1RSQU5MSVNUPgogICAgICA8L1NUTVRSUz4KICAgIDwvU1RNVFRSTlJTPgogIDwvQkFOS01TR1NSU1YxPgo8L09GWD4K",
+      "options": {
+        "importNotes": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -30,
+            "imported_id": "00092990122-30.00019012312798.01",
+            "date": "2019-01-23",
+            "payee_name": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "imported_payee": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "notes": null
+          },
+          {
+            "amount": -3.77,
+            "imported_id": "00092990121-3.77019012312828.01",
+            "date": "2019-01-23",
+            "payee_name": "STARBUCKS STORE 07604 01/21 PURC",
+            "imported_payee": "STARBUCKS STORE 07604 01/21 PURC",
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "data-payee-memo.ofx",
+      "filename": "data-payee-memo.ofx",
+      "source_file": "packages/loot-core/src/mocks/files/data-payee-memo.ofx",
+      "sha256": "bbce9403c39275b1382b4eda2f227e11ec9d5ddff28ceb8b0c773c39e8805592",
+      "bytes_base64": "T0ZYSEVBREVSOjEwMApEQVRBOk9GWFNHTUwKVkVSU0lPTjoxMDIKU0VDVVJJVFk6Tk9ORQpFTkNPRElORzpVU0FTQ0lJCkNIQVJTRVQ6MTI1MgpDT01QUkVTU0lPTjpOT05FCk9MREZJTEVVSUQ6Tk9ORQpORVdGSUxFVUlEOk5PTkUKCjxPRlg+CjxTSUdOT05NU0dTUlNWMT4KPFNPTlJTPgo8U1RBVFVTPgo8Q09ERT4wCjxTRVZFUklUWT5JTkZPCjwvU1RBVFVTPgo8RFRTRVJWRVI+MjAxOTAxMjQyMTI4NTEuMDAwWzA6VVRDXQo8TEFOR1VBR0U+RU5HCjwvU09OUlM+CjwvU0lHTk9OTVNHU1JTVjE+CjxCQU5LTVNHU1JTVjE+CjxTVE1UVFJOUlM+CjxUUk5VSUQ+MAo8U1RBVFVTPgo8Q09ERT4wCjxTRVZFUklUWT5JTkZPCjwvU1RBVFVTPgo8U1RNVFJTPgo8Q1VSREVGPlVTRAo8QkFOS0FDQ1RGUk9NPgo8QkFOS0lEPjAxMjM0NTY3OAo8QUNDVElEPjEyMzQ1Njc4OTEyMwo8QUNDVFRZUEU+Q0hFQ0tJTkcKPC9CQU5LQUNDVEZST00+CjxCQU5LVFJBTkxJU1Q+CjxEVFNUQVJUPjIwMTkwMTE5MTIwMDAwCjxEVEVORD4yMDE5MDEyNDEyMDAwMAo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCjxUUk5BTVQ+LTEwLjAwCjxGSVRJRD50ZXN0LW5hbWUtYW5kLW1lbW8KPE5BTUU+UGF5ZWUgTmFtZQo8TUVNTz5NZW1vIFRleHQKPC9TVE1UVFJOPgo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCjxUUk5BTVQ+LTIwLjAwCjxGSVRJRD50ZXN0LW5hbWUtb25seQo8TkFNRT5QYXllZSBOYW1lIE9ubHkKPC9TVE1UVFJOPgo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCjxUUk5BTVQ+LTMwLjAwCjxGSVRJRD50ZXN0LW1lbW8tb25seQo8TUVNTz5NZW1vIE9ubHkgVGV4dAo8L1NUTVRUUk4+CjxTVE1UVFJOPgo8VFJOVFlQRT5ERUJJVAo8RFRQT1NURUQ+MjAxOTAxMjMxMjAwMDAKPFRSTkFNVD4tNDAuMDAKPEZJVElEPnRlc3QtbmVpdGhlcgo8L1NUTVRUUk4+CjwvQkFOS1RSQU5MSVNUPgo8TEVER0VSQkFMPgo8QkFMQU1UPjEwMDAuMDAKPERUQVNPRj4yMDE5MDEyNDIxMjg1MQo8L0xFREdFUkJBTD4KPC9TVE1UUlM+CjwvU1RNVFRSTlJTPgo8L0JBTktNU0dTUlNWMT4KPC9PRlg+Cg==",
+      "options": {
+        "importNotes": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -10,
+            "imported_id": "test-name-and-memo",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": "Memo Text"
+          },
+          {
+            "amount": -20,
+            "imported_id": "test-name-only",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null
+          },
+          {
+            "amount": -30,
+            "imported_id": "test-memo-only",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": "Memo Only Text"
+          },
+          {
+            "amount": -40,
+            "imported_id": "test-neither",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "data-payee-memo.ofx-swap",
+      "filename": "data-payee-memo.ofx",
+      "source_file": "packages/loot-core/src/mocks/files/data-payee-memo.ofx",
+      "sha256": "bbce9403c39275b1382b4eda2f227e11ec9d5ddff28ceb8b0c773c39e8805592",
+      "bytes_base64": "T0ZYSEVBREVSOjEwMApEQVRBOk9GWFNHTUwKVkVSU0lPTjoxMDIKU0VDVVJJVFk6Tk9ORQpFTkNPRElORzpVU0FTQ0lJCkNIQVJTRVQ6MTI1MgpDT01QUkVTU0lPTjpOT05FCk9MREZJTEVVSUQ6Tk9ORQpORVdGSUxFVUlEOk5PTkUKCjxPRlg+CjxTSUdOT05NU0dTUlNWMT4KPFNPTlJTPgo8U1RBVFVTPgo8Q09ERT4wCjxTRVZFUklUWT5JTkZPCjwvU1RBVFVTPgo8RFRTRVJWRVI+MjAxOTAxMjQyMTI4NTEuMDAwWzA6VVRDXQo8TEFOR1VBR0U+RU5HCjwvU09OUlM+CjwvU0lHTk9OTVNHU1JTVjE+CjxCQU5LTVNHU1JTVjE+CjxTVE1UVFJOUlM+CjxUUk5VSUQ+MAo8U1RBVFVTPgo8Q09ERT4wCjxTRVZFUklUWT5JTkZPCjwvU1RBVFVTPgo8U1RNVFJTPgo8Q1VSREVGPlVTRAo8QkFOS0FDQ1RGUk9NPgo8QkFOS0lEPjAxMjM0NTY3OAo8QUNDVElEPjEyMzQ1Njc4OTEyMwo8QUNDVFRZUEU+Q0hFQ0tJTkcKPC9CQU5LQUNDVEZST00+CjxCQU5LVFJBTkxJU1Q+CjxEVFNUQVJUPjIwMTkwMTE5MTIwMDAwCjxEVEVORD4yMDE5MDEyNDEyMDAwMAo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCjxUUk5BTVQ+LTEwLjAwCjxGSVRJRD50ZXN0LW5hbWUtYW5kLW1lbW8KPE5BTUU+UGF5ZWUgTmFtZQo8TUVNTz5NZW1vIFRleHQKPC9TVE1UVFJOPgo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCjxUUk5BTVQ+LTIwLjAwCjxGSVRJRD50ZXN0LW5hbWUtb25seQo8TkFNRT5QYXllZSBOYW1lIE9ubHkKPC9TVE1UVFJOPgo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCjxUUk5BTVQ+LTMwLjAwCjxGSVRJRD50ZXN0LW1lbW8tb25seQo8TUVNTz5NZW1vIE9ubHkgVGV4dAo8L1NUTVRUUk4+CjxTVE1UVFJOPgo8VFJOVFlQRT5ERUJJVAo8RFRQT1NURUQ+MjAxOTAxMjMxMjAwMDAKPFRSTkFNVD4tNDAuMDAKPEZJVElEPnRlc3QtbmVpdGhlcgo8L1NUTVRUUk4+CjwvQkFOS1RSQU5MSVNUPgo8TEVER0VSQkFMPgo8QkFMQU1UPjEwMDAuMDAKPERUQVNPRj4yMDE5MDEyNDIxMjg1MQo8L0xFREdFUkJBTD4KPC9TVE1UUlM+CjwvU1RNVFRSTlJTPgo8L0JBTktNU0dTUlNWMT4KPC9PRlg+Cg==",
+      "options": {
+        "importNotes": true,
+        "swapPayeeAndMemo": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -10,
+            "imported_id": "test-name-and-memo",
+            "date": "2019-01-23",
+            "payee_name": "Memo Text",
+            "imported_payee": "Memo Text",
+            "notes": "Payee Name"
+          },
+          {
+            "amount": -20,
+            "imported_id": "test-name-only",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": "Payee Name Only"
+          },
+          {
+            "amount": -30,
+            "imported_id": "test-memo-only",
+            "date": "2019-01-23",
+            "payee_name": "Memo Only Text",
+            "imported_payee": "Memo Only Text",
+            "notes": null
+          },
+          {
+            "amount": -40,
+            "imported_id": "test-neither",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "data-payee-memo.ofx-no-notes",
+      "filename": "data-payee-memo.ofx",
+      "source_file": "packages/loot-core/src/mocks/files/data-payee-memo.ofx",
+      "sha256": "bbce9403c39275b1382b4eda2f227e11ec9d5ddff28ceb8b0c773c39e8805592",
+      "bytes_base64": "T0ZYSEVBREVSOjEwMApEQVRBOk9GWFNHTUwKVkVSU0lPTjoxMDIKU0VDVVJJVFk6Tk9ORQpFTkNPRElORzpVU0FTQ0lJCkNIQVJTRVQ6MTI1MgpDT01QUkVTU0lPTjpOT05FCk9MREZJTEVVSUQ6Tk9ORQpORVdGSUxFVUlEOk5PTkUKCjxPRlg+CjxTSUdOT05NU0dTUlNWMT4KPFNPTlJTPgo8U1RBVFVTPgo8Q09ERT4wCjxTRVZFUklUWT5JTkZPCjwvU1RBVFVTPgo8RFRTRVJWRVI+MjAxOTAxMjQyMTI4NTEuMDAwWzA6VVRDXQo8TEFOR1VBR0U+RU5HCjwvU09OUlM+CjwvU0lHTk9OTVNHU1JTVjE+CjxCQU5LTVNHU1JTVjE+CjxTVE1UVFJOUlM+CjxUUk5VSUQ+MAo8U1RBVFVTPgo8Q09ERT4wCjxTRVZFUklUWT5JTkZPCjwvU1RBVFVTPgo8U1RNVFJTPgo8Q1VSREVGPlVTRAo8QkFOS0FDQ1RGUk9NPgo8QkFOS0lEPjAxMjM0NTY3OAo8QUNDVElEPjEyMzQ1Njc4OTEyMwo8QUNDVFRZUEU+Q0hFQ0tJTkcKPC9CQU5LQUNDVEZST00+CjxCQU5LVFJBTkxJU1Q+CjxEVFNUQVJUPjIwMTkwMTE5MTIwMDAwCjxEVEVORD4yMDE5MDEyNDEyMDAwMAo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCjxUUk5BTVQ+LTEwLjAwCjxGSVRJRD50ZXN0LW5hbWUtYW5kLW1lbW8KPE5BTUU+UGF5ZWUgTmFtZQo8TUVNTz5NZW1vIFRleHQKPC9TVE1UVFJOPgo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCjxUUk5BTVQ+LTIwLjAwCjxGSVRJRD50ZXN0LW5hbWUtb25seQo8TkFNRT5QYXllZSBOYW1lIE9ubHkKPC9TVE1UVFJOPgo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCjxUUk5BTVQ+LTMwLjAwCjxGSVRJRD50ZXN0LW1lbW8tb25seQo8TUVNTz5NZW1vIE9ubHkgVGV4dAo8L1NUTVRUUk4+CjxTVE1UVFJOPgo8VFJOVFlQRT5ERUJJVAo8RFRQT1NURUQ+MjAxOTAxMjMxMjAwMDAKPFRSTkFNVD4tNDAuMDAKPEZJVElEPnRlc3QtbmVpdGhlcgo8L1NUTVRUUk4+CjwvQkFOS1RSQU5MSVNUPgo8TEVER0VSQkFMPgo8QkFMQU1UPjEwMDAuMDAKPERUQVNPRj4yMDE5MDEyNDIxMjg1MQo8L0xFREdFUkJBTD4KPC9TVE1UUlM+CjwvU1RNVFRSTlJTPgo8L0JBTktNU0dTUlNWMT4KPC9PRlg+Cg==",
+      "options": {
+        "importNotes": false
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -10,
+            "imported_id": "test-name-and-memo",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": null
+          },
+          {
+            "amount": -20,
+            "imported_id": "test-name-only",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null
+          },
+          {
+            "amount": -30,
+            "imported_id": "test-memo-only",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null
+          },
+          {
+            "amount": -40,
+            "imported_id": "test-neither",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "data-payee-memo.ofx-fallback",
+      "filename": "data-payee-memo.ofx",
+      "source_file": "packages/loot-core/src/mocks/files/data-payee-memo.ofx",
+      "sha256": "bbce9403c39275b1382b4eda2f227e11ec9d5ddff28ceb8b0c773c39e8805592",
+      "bytes_base64": "T0ZYSEVBREVSOjEwMApEQVRBOk9GWFNHTUwKVkVSU0lPTjoxMDIKU0VDVVJJVFk6Tk9ORQpFTkNPRElORzpVU0FTQ0lJCkNIQVJTRVQ6MTI1MgpDT01QUkVTU0lPTjpOT05FCk9MREZJTEVVSUQ6Tk9ORQpORVdGSUxFVUlEOk5PTkUKCjxPRlg+CjxTSUdOT05NU0dTUlNWMT4KPFNPTlJTPgo8U1RBVFVTPgo8Q09ERT4wCjxTRVZFUklUWT5JTkZPCjwvU1RBVFVTPgo8RFRTRVJWRVI+MjAxOTAxMjQyMTI4NTEuMDAwWzA6VVRDXQo8TEFOR1VBR0U+RU5HCjwvU09OUlM+CjwvU0lHTk9OTVNHU1JTVjE+CjxCQU5LTVNHU1JTVjE+CjxTVE1UVFJOUlM+CjxUUk5VSUQ+MAo8U1RBVFVTPgo8Q09ERT4wCjxTRVZFUklUWT5JTkZPCjwvU1RBVFVTPgo8U1RNVFJTPgo8Q1VSREVGPlVTRAo8QkFOS0FDQ1RGUk9NPgo8QkFOS0lEPjAxMjM0NTY3OAo8QUNDVElEPjEyMzQ1Njc4OTEyMwo8QUNDVFRZUEU+Q0hFQ0tJTkcKPC9CQU5LQUNDVEZST00+CjxCQU5LVFJBTkxJU1Q+CjxEVFNUQVJUPjIwMTkwMTE5MTIwMDAwCjxEVEVORD4yMDE5MDEyNDEyMDAwMAo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCjxUUk5BTVQ+LTEwLjAwCjxGSVRJRD50ZXN0LW5hbWUtYW5kLW1lbW8KPE5BTUU+UGF5ZWUgTmFtZQo8TUVNTz5NZW1vIFRleHQKPC9TVE1UVFJOPgo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCjxUUk5BTVQ+LTIwLjAwCjxGSVRJRD50ZXN0LW5hbWUtb25seQo8TkFNRT5QYXllZSBOYW1lIE9ubHkKPC9TVE1UVFJOPgo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCjxUUk5BTVQ+LTMwLjAwCjxGSVRJRD50ZXN0LW1lbW8tb25seQo8TUVNTz5NZW1vIE9ubHkgVGV4dAo8L1NUTVRUUk4+CjxTVE1UVFJOPgo8VFJOVFlQRT5ERUJJVAo8RFRQT1NURUQ+MjAxOTAxMjMxMjAwMDAKPFRSTkFNVD4tNDAuMDAKPEZJVElEPnRlc3QtbmVpdGhlcgo8L1NUTVRUUk4+CjwvQkFOS1RSQU5MSVNUPgo8TEVER0VSQkFMPgo8QkFMQU1UPjEwMDAuMDAKPERUQVNPRj4yMDE5MDEyNDIxMjg1MQo8L0xFREdFUkJBTD4KPC9TVE1UUlM+CjwvU1RNVFRSTlJTPgo8L0JBTktNU0dTUlNWMT4KPC9PRlg+Cg==",
+      "options": {
+        "importNotes": true,
+        "fallbackMissingPayeeToMemo": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -10,
+            "imported_id": "test-name-and-memo",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": "Memo Text"
+          },
+          {
+            "amount": -20,
+            "imported_id": "test-name-only",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null
+          },
+          {
+            "amount": -30,
+            "imported_id": "test-memo-only",
+            "date": "2019-01-23",
+            "payee_name": "Memo Only Text",
+            "imported_payee": "Memo Only Text",
+            "notes": null
+          },
+          {
+            "amount": -40,
+            "imported_id": "test-neither",
+            "date": "2019-01-23",
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "data.qif",
+      "filename": "data.qif",
+      "source_file": "packages/loot-core/src/mocks/files/data.qif",
+      "sha256": "547529ca4bade87b4f1c36e2cbccd78daf0e48ed8c5ef90263f468fcc55cc663",
+      "bytes_base64": "IVR5cGU6QmFuaw0KRDEyLzE5LzE4DQpQQ09VTlRZIFdBU1RFIDEyLzE4IFBVUkNIQVNFIDgwNC04NDM5Mjg4IFZBDQpULTI1LjAwDQpDKg0KXg0KRDEyLzE5LzE4DQpQw7VTU0VMRE9SRiBLw5ZMTiBTQUxPTiAtIExJQkJJRSBHUiAxMi8xOCBQVVJDSEFTRSBSSUNITU9ORCBWQQ0KVC00NS4wMA0KQyoNCl4NCkQxMi8xOS8xOA0KUExPRlQgMDg0NSBDSEVTIDEyLzE5IFBVUkNIQVNFIFJJQ0hNT05EIFZBDQpULTMxLjMzDQpDKg0KXg0KRDEyLzE5LzE4DQpQVEFSR0VUIFQtIDExMzAgMTIvMTkgUFVSQ0hBU0UgUmljaG1vbmQgVkENClQtNi4zMQ0KQyoNCl4NCkQxMi8xOS8xOA0KUFRBUkdFVCBERUJJVCBDUkQgQUNIIFRSQU4gQ08gSUQ6WFhYWFgxNTE3MCBQT1MgVEFSR0VUIC0xMDE4IFJJQ0hNT05EIFYNClQtNDEuOTINCkMqDQpeDQpEMTIvMTkvMTgNClBUQVJHRVQgREVCSVQgQ1JEIERFUzpBQ0ggVFJBTiBJRDpYWFhYWDAzNzA3MjM5OTEgSU5ETjpTIExPTkcgOTMyMSBDTyBJDQpULTI0LjAxDQpDKg0KXg0KRDEyLzE5LzE4DQpQVEFSR0VUIERFQklUIENSRCBERVM6QUNIIFRSQU4gSUQ6WFhYWFgwMzcwNzIzOTkxIElORE46UyBMT05HIDk3MDMgQ08gSQ0KVC0xMi4wMA0KQyoNCl4NCkQxMi8yMC8xOA0KUEJLT0ZBTUVSSUNBIE1PQklMRSAxMi8yMCAzNzA1MzQwMjUwIERFUE9TSVQgKk1PQklMRSBWQQ0KVDg3NC44NQ0KQyoNCl4NCkQxMi8yMC8xOA0KUEFNQVpPTi5DT00qTTIxS0QwSEEwIEFNIDEyLzE5IFBVUkNIQVNFIEFNWk4uQ09NL0JJTEwgV0ENClQtMTIuNjMNCkMqDQpeDQpEMTIvMjAvMTgNClBUQVJHRVQgREVCSVQgQ1JEIERFUzpBQ0ggVFJBTiBJRDpYWFhYWDAzNzA3MjM5OTEgSU5ETjpTIExPTkcgNjQ4NiBDTyBJDQpULTM2LjAwDQpDKg0KXg0KRDEyLzIxLzE4DQpQU1RBUkJVQ0tTIFNUT1JFIDA3NjA0IDEyLzE5IFBVUkNIQVNFIFJJQ0hNT05EIFZBDQpULTUuMjENCkMqDQpeDQpEMTIvMjEvMTgNClBBTUFaT04uQ09NKk0yMzY0MzFFMiBBTSAxMi8xOSBQVVJDSEFTRSBBTVpOLkNPTS9CSUxMIFdBDQpULTM0LjcwDQpDKg0KXg0KRDEyLzIxLzE4DQpQU1RBUkJVQ0tTIFNUT1JFIDA3NjA0IDEyLzE5IFBVUkNIQVNFIFJJQ0hNT05EIFZBDQpULTUuNDENCkMqDQpeDQpEMTIvMjEvMTgNClBBTUFaT04uQ09NKk0yMDhQOThVMSBBTSAxMi8xOSBQVVJDSEFTRSBBTVpOLkNPTS9CSUxMIFdBDQpULTEwNS4yOQ0KQyoNCl4NCkQxMi8yMS8xOA0KUEFNQVpPTi5DT00qTTI5UUY3TTcxIEFNIDEyLzE5IFBVUkNIQVNFIEFNWk4uQ09NL0JJTEwgV0ENClQtNy4zNg0KQyoNCl4NCkQxMi8yMS8xOA0KUEFNQVpPTi5DT00qTTIwVkIxODUxIEFNIDEyLzIwIFBVUkNIQVNFIEFNWk4uQ09NL0JJTEwgV0ENClQtMTIuODUNCkMqDQpeDQpEMTIvMjEvMTgNClBBTVpOIE1LVFAgVVMqTTI3SEg1MUMyIDEyLzIwIFBVUkNIQVNFIEFNWk4uQ09NL0JJTEwgV0ENClQtMTIuOTkNCkMqDQpeDQpEMTIvMjEvMTgNClBDVlMvUEhBUk0gMDE1NCAxMi8yMSBQVVJDSEFTRSBSSUNITU9ORCBWQQ0KVC02Mi43OA0KQyoNCl4NCg==",
+      "options": {
+        "importNotes": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -25,
+            "date": "12/19/18",
+            "payee_name": "COUNTY WASTE 12/18 PURCHASE 804-8439288 VA",
+            "imported_payee": "COUNTY WASTE 12/18 PURCHASE 804-8439288 VA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -45,
+            "date": "12/19/18",
+            "payee_name": "õSSELDORF KÖLN SALON - LIBBIE GR 12/18 PURCHASE RICHMOND VA",
+            "imported_payee": "õSSELDORF KÖLN SALON - LIBBIE GR 12/18 PURCHASE RICHMOND VA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -31.33,
+            "date": "12/19/18",
+            "payee_name": "LOFT 0845 CHES 12/19 PURCHASE RICHMOND VA",
+            "imported_payee": "LOFT 0845 CHES 12/19 PURCHASE RICHMOND VA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -6.31,
+            "date": "12/19/18",
+            "payee_name": "TARGET T- 1130 12/19 PURCHASE Richmond VA",
+            "imported_payee": "TARGET T- 1130 12/19 PURCHASE Richmond VA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -41.92,
+            "date": "12/19/18",
+            "payee_name": "TARGET DEBIT CRD ACH TRAN CO ID:XXXXX15170 POS TARGET -1018 RICHMOND V",
+            "imported_payee": "TARGET DEBIT CRD ACH TRAN CO ID:XXXXX15170 POS TARGET -1018 RICHMOND V",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -24.01,
+            "date": "12/19/18",
+            "payee_name": "TARGET DEBIT CRD DES:ACH TRAN ID:XXXXX0370723991 INDN:S LONG 9321 CO I",
+            "imported_payee": "TARGET DEBIT CRD DES:ACH TRAN ID:XXXXX0370723991 INDN:S LONG 9321 CO I",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -12,
+            "date": "12/19/18",
+            "payee_name": "TARGET DEBIT CRD DES:ACH TRAN ID:XXXXX0370723991 INDN:S LONG 9703 CO I",
+            "imported_payee": "TARGET DEBIT CRD DES:ACH TRAN ID:XXXXX0370723991 INDN:S LONG 9703 CO I",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": 874.85,
+            "date": "12/20/18",
+            "payee_name": "BKOFAMERICA MOBILE 12/20 3705340250 DEPOSIT *MOBILE VA",
+            "imported_payee": "BKOFAMERICA MOBILE 12/20 3705340250 DEPOSIT *MOBILE VA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -12.63,
+            "date": "12/20/18",
+            "payee_name": "AMAZON.COM*M21KD0HA0 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "imported_payee": "AMAZON.COM*M21KD0HA0 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -36,
+            "date": "12/20/18",
+            "payee_name": "TARGET DEBIT CRD DES:ACH TRAN ID:XXXXX0370723991 INDN:S LONG 6486 CO I",
+            "imported_payee": "TARGET DEBIT CRD DES:ACH TRAN ID:XXXXX0370723991 INDN:S LONG 6486 CO I",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -5.21,
+            "date": "12/21/18",
+            "payee_name": "STARBUCKS STORE 07604 12/19 PURCHASE RICHMOND VA",
+            "imported_payee": "STARBUCKS STORE 07604 12/19 PURCHASE RICHMOND VA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -34.7,
+            "date": "12/21/18",
+            "payee_name": "AMAZON.COM*M236431E2 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "imported_payee": "AMAZON.COM*M236431E2 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -5.41,
+            "date": "12/21/18",
+            "payee_name": "STARBUCKS STORE 07604 12/19 PURCHASE RICHMOND VA",
+            "imported_payee": "STARBUCKS STORE 07604 12/19 PURCHASE RICHMOND VA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -105.29,
+            "date": "12/21/18",
+            "payee_name": "AMAZON.COM*M208P98U1 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "imported_payee": "AMAZON.COM*M208P98U1 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -7.36,
+            "date": "12/21/18",
+            "payee_name": "AMAZON.COM*M29QF7M71 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "imported_payee": "AMAZON.COM*M29QF7M71 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -12.85,
+            "date": "12/21/18",
+            "payee_name": "AMAZON.COM*M20VB1851 AM 12/20 PURCHASE AMZN.COM/BILL WA",
+            "imported_payee": "AMAZON.COM*M20VB1851 AM 12/20 PURCHASE AMZN.COM/BILL WA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -12.99,
+            "date": "12/21/18",
+            "payee_name": "AMZN MKTP US*M27HH51C2 12/20 PURCHASE AMZN.COM/BILL WA",
+            "imported_payee": "AMZN MKTP US*M27HH51C2 12/20 PURCHASE AMZN.COM/BILL WA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -62.78,
+            "date": "12/21/18",
+            "payee_name": "CVS/PHARM 0154 12/21 PURCHASE RICHMOND VA",
+            "imported_payee": "CVS/PHARM 0154 12/21 PURCHASE RICHMOND VA",
+            "category": null,
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "data-payee-memo.qif",
+      "filename": "data-payee-memo.qif",
+      "source_file": "packages/loot-core/src/mocks/files/data-payee-memo.qif",
+      "sha256": "9768e56f3d0e53fa0e4015d8707205d6ebea54776c93fba4f84346ae3ae9a855",
+      "bytes_base64": "IVR5cGU6QmFuawpEMDEvMjMvMjAxOQpQUGF5ZWUgTmFtZQpNTm90ZSBUZXh0ClQtMTAuMDAKXgpEMDEvMjMvMjAxOQpQUGF5ZWUgTmFtZSBPbmx5ClQtMjAuMDAKXgpEMDEvMjMvMjAxOQpNTm90ZSBPbmx5IFRleHQKVC0zMC4wMApeCkQwMS8yMy8yMDE5ClQtNDAuMDAKXgo=",
+      "options": {
+        "importNotes": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -10,
+            "date": "01/23/2019",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "category": null,
+            "notes": "Note Text"
+          },
+          {
+            "amount": -20,
+            "date": "01/23/2019",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -30,
+            "date": "01/23/2019",
+            "payee_name": null,
+            "imported_payee": null,
+            "category": null,
+            "notes": "Note Only Text"
+          },
+          {
+            "amount": -40,
+            "date": "01/23/2019",
+            "payee_name": null,
+            "imported_payee": null,
+            "category": null,
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "data-payee-memo.qif-swap",
+      "filename": "data-payee-memo.qif",
+      "source_file": "packages/loot-core/src/mocks/files/data-payee-memo.qif",
+      "sha256": "9768e56f3d0e53fa0e4015d8707205d6ebea54776c93fba4f84346ae3ae9a855",
+      "bytes_base64": "IVR5cGU6QmFuawpEMDEvMjMvMjAxOQpQUGF5ZWUgTmFtZQpNTm90ZSBUZXh0ClQtMTAuMDAKXgpEMDEvMjMvMjAxOQpQUGF5ZWUgTmFtZSBPbmx5ClQtMjAuMDAKXgpEMDEvMjMvMjAxOQpNTm90ZSBPbmx5IFRleHQKVC0zMC4wMApeCkQwMS8yMy8yMDE5ClQtNDAuMDAKXgo=",
+      "options": {
+        "importNotes": true,
+        "swapPayeeAndMemo": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -10,
+            "date": "01/23/2019",
+            "payee_name": "Note Text",
+            "imported_payee": "Note Text",
+            "category": null,
+            "notes": "Payee Name"
+          },
+          {
+            "amount": -20,
+            "date": "01/23/2019",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -30,
+            "date": "01/23/2019",
+            "payee_name": "Note Only Text",
+            "imported_payee": "Note Only Text",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -40,
+            "date": "01/23/2019",
+            "category": null,
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "data-payee-memo.qif-no-notes",
+      "filename": "data-payee-memo.qif",
+      "source_file": "packages/loot-core/src/mocks/files/data-payee-memo.qif",
+      "sha256": "9768e56f3d0e53fa0e4015d8707205d6ebea54776c93fba4f84346ae3ae9a855",
+      "bytes_base64": "IVR5cGU6QmFuawpEMDEvMjMvMjAxOQpQUGF5ZWUgTmFtZQpNTm90ZSBUZXh0ClQtMTAuMDAKXgpEMDEvMjMvMjAxOQpQUGF5ZWUgTmFtZSBPbmx5ClQtMjAuMDAKXgpEMDEvMjMvMjAxOQpNTm90ZSBPbmx5IFRleHQKVC0zMC4wMApeCkQwMS8yMy8yMDE5ClQtNDAuMDAKXgo=",
+      "options": {
+        "importNotes": false
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -10,
+            "date": "01/23/2019",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -20,
+            "date": "01/23/2019",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -30,
+            "date": "01/23/2019",
+            "payee_name": null,
+            "imported_payee": null,
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -40,
+            "date": "01/23/2019",
+            "payee_name": null,
+            "imported_payee": null,
+            "category": null,
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "qif-category.qif",
+      "filename": "qif-category.qif",
+      "source_file": "packages/loot-core/src/mocks/files/qif-category.qif",
+      "sha256": "cc74a6e4d65b53d3d20f2809cd22d887a7c94243f3880f49e865f7dc93e7bda4",
+      "bytes_base64": "IVR5cGU6QmFuawpENi8yNC8yMDI0ClQtMTAwLjU4ClBPdXRsZXQKTFVzdWFsIEV4cGVuc2VzOlNob3BwaW5nCk1QYXkgRGVzaWduZXIgT3V0bGV0Cl4KRDYvMjMvMjAyNApULTIwLjE1ClBHcm9jZXJpZXNZb3UKTEdyb2NlcmllcwpNUGF5IEdyb2NlcmllcwpeCg==",
+      "options": {
+        "importNotes": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -100.58,
+            "date": "6/24/2024",
+            "payee_name": "Outlet",
+            "imported_payee": "Outlet",
+            "category": "Shopping",
+            "notes": "Pay Designer Outlet"
+          },
+          {
+            "amount": -20.15,
+            "date": "6/23/2024",
+            "payee_name": "GroceriesYou",
+            "imported_payee": "GroceriesYou",
+            "category": "Groceries",
+            "notes": "Pay Groceries"
+          }
+        ]
+      }
+    },
+    {
+      "id": "8859-1.qfx",
+      "filename": "8859-1.qfx",
+      "source_file": "packages/loot-core/src/mocks/files/8859-1.qfx",
+      "sha256": "6013f693bb7b387cbbdffa0bcf5fb8983593cdbee7b847a5ac342abc2780cce3",
+      "bytes_base64": "T0ZYSEVBREVSOjEwMApEQVRBOk9GWFNHTUwKVkVSU0lPTjoxMDIKU0VDVVJJVFk6VFlQRTEKRU5DT0RJTkc6VVNBU0NJSQpDSEFSU0VUOjg4NTktMQpDT01QUkVTU0lPTjpOT05FCk9MREZJTEVVSUQ6Tk9ORQpORVdGSUxFVUlEOk5PTkUKPE9GWD4KPFNJR05PTk1TR1NSU1YxPgo8U09OUlM+CjxTVEFUVVM+CjxDT0RFPjAKPFNFVkVSSVRZPklORk8KPE1FU1NBR0U+T0sKPC9TVEFUVVM+CjxEVFNFUlZFUj4yMDIyMTAyMDIzMTU1Ngo8VVNFUktFWT4zQUFBQUFBQUFBQUFBQUEKPElOVFUuQklEPjAwOTk5CjxMQU5HVUFHRT5GUkEKPC9TT05SUz4KPC9TSUdOT05NU0dTUlNWMT4KPEJBTktNU0dTUlNWMT4KPFNUTVRUUk5SUz4KPFRSTlVJRD5BQUFBLTIwMjIxMDIwMjMxNTU2MTQzNTcKPFNUQVRVUz4KPENPREU+MAo8U0VWRVJJVFk+SU5GTwo8TUVTU0FHRT5PSwo8L1NUQVRVUz4KPFNUTVRSUz4KPENVUkRFRj5DQUQKPEJBTktBQ0NURlJPTT4KPEJBTktJRD43MDAwMTIzNDUKPEJSQU5DSElEPjAwNTU2NjYKPEFDQ1RJRD45OTktMTIzNDUtMDA1NTY2Ni1FT1AKPEFDQ1RUWVBFPkNIRUNLSU5HCjwvQkFOS0FDQ1RGUk9NPgo8QkFOS1RSQU5MSVNUPgo8RFRTVEFSVD4yMDIyMTAxOTEyMDAwMAo8RFRFTkQ+MjAyMjEwMTkxMjAwMDAKPFNUTVRUUk4+CjxUUk5UWVBFPkRFQklUCjxEVFBPU1RFRD4yMDIyMTAxOTEyMDAwMAo8VFJOQU1UPi0yMC4wMAo8RklUSUQ+d1NvS3VDUzc3CjxOQU1FPlBhaWVtZW50IGZhY3R1cmUvQ2FydGUgcHLpcGF56WUKPE1FTU8+TeltbyB0ZXN0OiDgwOfpyejq6/T7CjwvU1RNVFRSTj4KPC9CQU5LVFJBTkxJU1Q+CjxMRURHRVJCQUw+CjxCQUxBTVQ+OTk5OS45OQo8RFRBU09GPjIwMjIxMDIwMjMxNTU2CjwvTEVER0VSQkFMPgo8QVZBSUxCQUw+CjxCQUxBTVQ+OTk5OS45OQo8RFRBU09GPjIwMjIxMDIwMjMxNTU2CjwvQVZBSUxCQUw+CjwvU1RNVFJTPgo8L1NUTVRUUk5SUz4KPC9CQU5LTVNHU1JTVjE+CjwvT0ZYPgo=",
+      "options": {
+        "importNotes": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -20,
+            "imported_id": "wSoKuCS77",
+            "date": "2022-10-19",
+            "payee_name": "Paiement facture/Carte prépayée",
+            "imported_payee": "Paiement facture/Carte prépayée",
+            "notes": "Mémo test: àÀçéÉèêëôû"
+          }
+        ]
+      }
+    },
+    {
+      "id": "1252.qfx",
+      "filename": "1252.qfx",
+      "source_file": "packages/loot-core/src/mocks/files/1252.qfx",
+      "sha256": "5cc9ca7da6e8cad68481bef50ac83fd894513ce4473b3803f58504b5a841fb8a",
+      "bytes_base64": "T0ZYSEVBREVSOjEwMApEQVRBOk9GWFNHTUwKVkVSU0lPTjoxMDIKU0VDVVJJVFk6VFlQRTEKRU5DT0RJTkc6VVNBU0NJSQpDSEFSU0VUOjEyNTIKQ09NUFJFU1NJT046Tk9ORQpPTERGSUxFVUlEOk5PTkUKTkVXRklMRVVJRDpOT05FCjxPRlg+CjxTSUdOT05NU0dTUlNWMT4KPFNPTlJTPgo8U1RBVFVTPgo8Q09ERT4wCjxTRVZFUklUWT5JTkZPCjxNRVNTQUdFPk9LCjwvU1RBVFVTPgo8RFRTRVJWRVI+MjAyMjEwMjAyMzE1NTYKPFVTRVJLRVk+M0FBQUFBQUFBQUFBQUFBCjxJTlRVLkJJRD4wMDk5OQo8TEFOR1VBR0U+RlJBCjwvU09OUlM+CjwvU0lHTk9OTVNHU1JTVjE+CjxCQU5LTVNHU1JTVjE+CjxTVE1UVFJOUlM+CjxUUk5VSUQ+QUFBQS0yMDIyMTAyMDIzMTU1NjE0MzU3CjxTVEFUVVM+CjxDT0RFPjAKPFNFVkVSSVRZPklORk8KPE1FU1NBR0U+T0sKPC9TVEFUVVM+CjxTVE1UUlM+CjxDVVJERUY+Q0FECjxCQU5LQUNDVEZST00+CjxCQU5LSUQ+NzAwMDEyMzQ1CjxCUkFOQ0hJRD4wMDU1NjY2CjxBQ0NUSUQ+OTk5LTEyMzQ1LTAwNTU2NjYtRU9QCjxBQ0NUVFlQRT5DSEVDS0lORwo8L0JBTktBQ0NURlJPTT4KPEJBTktUUkFOTElTVD4KPERUU1RBUlQ+MjAyMjEwMTkxMjAwMDAKPERURU5EPjIwMjIxMDE5MTIwMDAwCjxTVE1UVFJOPgo8VFJOVFlQRT5ERUJJVAo8RFRQT1NURUQ+MjAyMjEwMTkxMjAwMDAKPFRSTkFNVD4tMjAuMDAKPEZJVElEPmNhZmUxMjUyeHgKPE5BTUU+Q2Fm6SBN6XRybyCAdXJvCjxNRU1PPlBhaWVtZW50IDWAIJcgZOliaXQKPC9TVE1UVFJOPgo8L0JBTktUUkFOTElTVD4KPExFREdFUkJBTD4KPEJBTEFNVD45OTk5Ljk5CjxEVEFTT0Y+MjAyMjEwMjAyMzE1NTYKPC9MRURHRVJCQUw+CjxBVkFJTEJBTD4KPEJBTEFNVD45OTk5Ljk5CjxEVEFTT0Y+MjAyMjEwMjAyMzE1NTYKPC9BVkFJTEJBTD4KPC9TVE1UUlM+CjwvU1RNVFRSTlJTPgo8L0JBTktNU0dTUlNWMT4KPC9PRlg+Cg==",
+      "options": {
+        "importNotes": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -20,
+            "imported_id": "cafe1252xx",
+            "date": "2022-10-19",
+            "payee_name": "Café Métro €uro",
+            "imported_payee": "Café Métro €uro",
+            "notes": "Paiement 5€ — débit"
+          }
+        ]
+      }
+    },
+    {
+      "id": "utf-8.qfx",
+      "filename": "utf-8.qfx",
+      "source_file": "packages/loot-core/src/mocks/files/utf-8.qfx",
+      "sha256": "e64b0cc2e8083bb1d7bc1961525130ad484a80549c5a9d710d4b5a1f80561d5d",
+      "bytes_base64": "T0ZYSEVBREVSOjEwMApEQVRBOk9GWFNHTUwKVkVSU0lPTjoxMDIKU0VDVVJJVFk6VFlQRTEKRU5DT0RJTkc6VVRGLTgKQ0hBUlNFVDpOT05FCkNPTVBSRVNTSU9OOk5PTkUKT0xERklMRVVJRDpOT05FCk5FV0ZJTEVVSUQ6Tk9ORQo8T0ZYPgo8U0lHTk9OTVNHU1JTVjE+CjxTT05SUz4KPFNUQVRVUz4KPENPREU+MAo8U0VWRVJJVFk+SU5GTwo8TUVTU0FHRT5PSwo8L1NUQVRVUz4KPERUU0VSVkVSPjIwMjIxMDIwMjMxNTU2CjxVU0VSS0VZPjNBQUFBQUFBQUFBQUFBQQo8SU5UVS5CSUQ+MDA5OTkKPExBTkdVQUdFPkZSQQo8L1NPTlJTPgo8L1NJR05PTk1TR1NSU1YxPgo8QkFOS01TR1NSU1YxPgo8U1RNVFRSTlJTPgo8VFJOVUlEPkFBQUEtMjAyMjEwMjAyMzE1NTYxNDM1Nwo8U1RBVFVTPgo8Q09ERT4wCjxTRVZFUklUWT5JTkZPCjxNRVNTQUdFPk9LCjwvU1RBVFVTPgo8U1RNVFJTPgo8Q1VSREVGPkNBRAo8QkFOS0FDQ1RGUk9NPgo8QkFOS0lEPjcwMDAxMjM0NQo8QlJBTkNISUQ+MDA1NTY2Ngo8QUNDVElEPjk5OS0xMjM0NS0wMDU1NjY2LUVPUAo8QUNDVFRZUEU+Q0hFQ0tJTkcKPC9CQU5LQUNDVEZST00+CjxCQU5LVFJBTkxJU1Q+CjxEVFNUQVJUPjIwMjIxMDE5MTIwMDAwCjxEVEVORD4yMDIyMTAxOTEyMDAwMAo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMjIxMDE5MTIwMDAwCjxUUk5BTVQ+LTIwLjAwCjxGSVRJRD5jYWZlVXRmOHh4CjxOQU1FPkNhZsOpIE3DqXRybyDigqx1cm8KPE1FTU8+UGFpZW1lbnQgNeKCrCDigJQgZMOpYml0CjwvU1RNVFRSTj4KPC9CQU5LVFJBTkxJU1Q+CjxMRURHRVJCQUw+CjxCQUxBTVQ+OTk5OS45OQo8RFRBU09GPjIwMjIxMDIwMjMxNTU2CjwvTEVER0VSQkFMPgo8QVZBSUxCQUw+CjxCQUxBTVQ+OTk5OS45OQo8RFRBU09GPjIwMjIxMDIwMjMxNTU2CjwvQVZBSUxCQUw+CjwvU1RNVFJTPgo8L1NUTVRUUk5SUz4KPC9CQU5LTVNHU1JTVjE+CjwvT0ZYPgo=",
+      "options": {
+        "importNotes": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -20,
+            "imported_id": "cafeUtf8xx",
+            "date": "2022-10-19",
+            "payee_name": "Café Métro €uro",
+            "imported_payee": "Café Métro €uro",
+            "notes": "Paiement 5€ — débit"
+          }
+        ]
+      }
+    },
+    {
+      "id": "html-vals.qfx",
+      "filename": "html-vals.qfx",
+      "source_file": "packages/loot-core/src/mocks/files/html-vals.qfx",
+      "sha256": "4801c0a63a3140d68f0fcb11df1edb656c6f7649457178c98614288d8e1e9ff9",
+      "bytes_base64": "T0ZYSEVBREVSOjEwMApEQVRBOk9GWFNHTUwKVkVSU0lPTjoxMDIKU0VDVVJJVFk6Tk9ORQpFTkNPRElORzpVU0FTQ0lJCkNIQVJTRVQ6MTI1MgpDT01QUkVTU0lPTjpOT05FCk9MREZJTEVVSUQ6Tk9ORQpORVdGSUxFVUlEOk5PTkUKCjxPRlg+PFNJR05PTk1TR1NSU1YxPjxTT05SUz48U1RBVFVTPjxDT0RFPjA8U0VWRVJJVFk+SU5GTzxNRVNTQUdFPk9LPC9TVEFUVVM+PERUU0VSVkVSPjIwMjMxMTA2MDIzNTE4PExBTkdVQUdFPkVORzxEVFBST0ZVUD4yMDIzMTEwNjAyMzUxODxEVEFDQ1RVUD4yMDIzMTEwNjAyMzUxODxJTlRVLkJJRD4wMDAwNTwvU09OUlM+PC9TSUdOT05NU0dTUlNWMT4KPEJBTktNU0dTUlNWMT48U1RNVFRSTlJTPjxUUk5VSUQ+MjAyMzExMDYwMjM1MTg8U1RBVFVTPjxDT0RFPjA8U0VWRVJJVFk+SU5GTzxNRVNTQUdFPk9LPC9TVEFUVVM+CjxTVE1UUlM+PENVUkRFRj5DQUQ8QkFOS0FDQ1RGUk9NPjxCQU5LSUQ+MDAwMDAwMDAwPEFDQ1RJRD4wMDAwMCAwMC0wMDAwMDxBQ0NUVFlQRT5DSEVDS0lORzwvQkFOS0FDQ1RGUk9NPgo8QkFOS1RSQU5MSVNUPjxEVFNUQVJUPjIwMTkwNzMxMTIwMDAwPERURU5EPjIwMjMxMDMxMTIwMDAwCjxTVE1UVFJOPjxUUk5UWVBFPkRFQklUPERUUE9TVEVEPjIwMjMwNTA5MTIwMDAwLjAwMFstNTpFU1RdPFRSTkFNVD4tMS4wMDxGSVRJRD4yMzEyOTEzMDAzMjMzMzM5NjI3OTI3MDAwMDxOQU1FPjAwMDAwMDAwMDAwMDAwMDxNRU1PPlBSRUFVVEhPUklaRUQgREVCSVQ7Qi5DLiBIWURSTyAmYW1wOyBQT1dFUiBBVVRIT1JJVFk7RWxlY3Ryb25pYyBGdW5kcyBUcmFuc2ZlcjwvU1RNVFRSTj4KPFNUTVRUUk4+PFRSTlRZUEU+REVCSVQ8RFRQT1NURUQ+MjAyMzAzMDExMjAwMDAuMDAwWy01OkVTVF08VFJOQU1UPi0xLjAwPEZJVElEPjIzMDYwMDYxMDMyNTQ5NTU0NTk2NTMwMDAwPE5BTUU+VFBBWSAmYW1wO2x0O0RFRlRQWU1UJmFtcDtndDs8TUVNTz5QUkVBVVRIT1JJWkVEIERFQklUO0xVWE1PUkUgUkVBTFRZIFBQVFkgTUdNVDtFbGVjdHJvbmljIEZ1bmRzIFRyYW5zZmVyPC9TVE1UVFJOPgo8L0JBTktUUkFOTElTVD48TEVER0VSQkFMPjxCQUxBTVQ+MTExMS4xMTxEVEFTT0Y+MjAyMzExMDYwMjM1MTg8L0xFREdFUkJBTD48QVZBSUxCQUw+PEJBTEFNVD4xMTExLjExPERUQVNPRj4yMDIzMTEwNjAyMzUxODwvQVZBSUxCQUw+PC9TVE1UUlM+PC9TVE1UVFJOUlM+PC9CQU5LTVNHU1JTVjE+PC9PRlg+Cg==",
+      "options": {
+        "importNotes": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -1,
+            "imported_id": "23129130032333396279270000",
+            "date": "2023-05-09",
+            "payee_name": "000000000000000",
+            "imported_payee": "000000000000000",
+            "notes": "PREAUTHORIZED DEBIT;B.C. HYDRO & POWER AUTHORITY;Electronic Funds Transfer"
+          },
+          {
+            "amount": -1,
+            "imported_id": "23060061032549554596530000",
+            "date": "2023-03-01",
+            "payee_name": "TPAY &lt;DEFTPYMT&gt;",
+            "imported_payee": "TPAY &lt;DEFTPYMT&gt;",
+            "notes": "PREAUTHORIZED DEBIT;LUXMORE REALTY PPTY MGMT;Electronic Funds Transfer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "camt/camt.053.xml",
+      "filename": "camt.053.xml",
+      "source_file": "packages/loot-core/src/mocks/files/camt/camt.053.xml",
+      "sha256": "639ac650d68b841703b00bad582a40c40a8f568cb256f53437df0c2a6a1340c1",
+      "bytes_base64": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPERvY3VtZW50CiAgICB4c2k6c2NoZW1hTG9jYXRpb249InVybjppc286c3RkOmlzbzoyMDAyMjp0ZWNoOnhzZDpjYW10LjA1My4wMDEuMDQgY2FtdC4wNTMuMDAxLjA0LnhzZCIKICAgIHhtbG5zPSJ1cm46aXNvOnN0ZDppc286MjAwMjI6dGVjaDp4c2Q6Y2FtdC4wNTMuMDAxLjA0IgogICAgeG1sbnM6eHNpPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYS1pbnN0YW5jZSI+CgogICAgPEJrVG9Dc3RtclN0bXQ+CiAgICAgICAgPEdycEhkcj4KICAgICAgICAgICAgPE1zZ0lkPjA1M0QyMDE0LTAxLTAzVDIyOjAxOjQyLjBOMTQwMDAwMDAxPC9Nc2dJZD4KICAgICAgICAgICAgPENyZUR0VG0+MjAxNC0wMS0wM1QyMjowMTozNi4wKzAxOjAwPC9DcmVEdFRtPgogICAgICAgICAgICA8TXNnUGdudG4+CiAgICAgICAgICAgICAgICA8UGdOYj4xPC9QZ05iPgogICAgICAgICAgICAgICAgPExhc3RQZ0luZD50cnVlPC9MYXN0UGdJbmQ+CiAgICAgICAgICAgIDwvTXNnUGdudG4+CiAgICAgICAgPC9HcnBIZHI+CiAgICAgICAgPFN0bXQ+CiAgICAgICAgICAgIDxJZD4wMzUyQzUzMjAxNDAxMDMyMjAxNDI8L0lkPgogICAgICAgICAgICA8RWxjdHJuY1NlcU5iPjE0MDAwMDAwMTwvRWxjdHJuY1NlcU5iPgogICAgICAgICAgICA8Q3JlRHRUbT4yMDE0LTAxLTAzVDIyOjAxOjM2LjArMDE6MDA8L0NyZUR0VG0+CiAgICAgICAgICAgIDxBY2N0PgogICAgICAgICAgICAgICAgPElkPgogICAgICAgICAgICAgICAgICAgIDxJQkFOPkRFMTQ3NDA2MTgxMzAwMDAwMzM2MjY8L0lCQU4+CiAgICAgICAgICAgICAgICA8L0lkPgogICAgICAgICAgICAgICAgPENjeT5FVVI8L0NjeT4KICAgICAgICAgICAgICAgIDxPd25yPgogICAgICAgICAgICAgICAgICAgIDxObT5UZXN0a29udG8gTnVtbWVyIDE8L05tPgogICAgICAgICAgICAgICAgPC9Pd25yPgogICAgICAgICAgICAgICAgPFN2Y3I+CiAgICAgICAgICAgICAgICAgICAgPEZpbkluc3RuSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgIDxCSUM+R0VOT0RFRjFQRks8L0JJQz4KICAgICAgICAgICAgICAgICAgICAgICAgPE5tPlZSLUJhbmsgUm90dGFsLUlubiBlRzwvTm0+CiAgICAgICAgICAgICAgICAgICAgICAgIDxPdGhyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPElkPkRFIDEyOTI2Nzk0NzwvSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8SXNzcj5VbXNTdElkPC9Jc3NyPgogICAgICAgICAgICAgICAgICAgICAgICA8L090aHI+CiAgICAgICAgICAgICAgICAgICAgPC9GaW5JbnN0bklkPgogICAgICAgICAgICAgICAgPC9TdmNyPgogICAgICAgICAgICA8L0FjY3Q+CiAgICAgICAgICAgIDxCYWw+CiAgICAgICAgICAgICAgICA8VHA+CiAgICAgICAgICAgICAgICAgICAgPENkT3JQcnRyeT4KICAgICAgICAgICAgICAgICAgICAgICAgPENkPlBSQ0Q8L0NkPgogICAgICAgICAgICAgICAgICAgIDwvQ2RPclBydHJ5PgogICAgICAgICAgICAgICAgPC9UcD4KICAgICAgICAgICAgICAgIDxBbXQgQ2N5PSJFVVIiPjI0LjE2PC9BbXQ+CiAgICAgICAgICAgICAgICA8Q2R0RGJ0SW5kPkNSRFQ8L0NkdERidEluZD4KICAgICAgICAgICAgICAgIDxEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxNC0wMS0wMzwvRHQ+CiAgICAgICAgICAgICAgICA8L0R0PgogICAgICAgICAgICA8L0JhbD4KICAgICAgICAgICAgPEJhbD4KICAgICAgICAgICAgICAgIDxUcD4KICAgICAgICAgICAgICAgICAgICA8Q2RPclBydHJ5PgogICAgICAgICAgICAgICAgICAgICAgICA8Q2Q+Q0xCRDwvQ2Q+CiAgICAgICAgICAgICAgICAgICAgPC9DZE9yUHJ0cnk+CiAgICAgICAgICAgICAgICA8L1RwPgogICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+MjcuNjE8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+Q1JEVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPER0PgogICAgICAgICAgICAgICAgICAgIDxEdD4yMDE0LTAxLTAzPC9EdD4KICAgICAgICAgICAgICAgIDwvRHQ+CiAgICAgICAgICAgIDwvQmFsPgogICAgICAgICAgICA8TnRyeT4KICAgICAgICAgICAgICAgIDxBbXQgQ2N5PSJFVVIiPjAuNjA8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+Q1JEVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxMy0xMi0zMDwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTMtMTItMzA8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj4yMDEzMTIzMDAxMTUzODcwMDAwPC9BY2N0U3ZjclJlZj4KICAgICAgICAgICAgICAgIDxCa1R4Q2QgLz4KICAgICAgICAgICAgICAgIDxOdHJ5RHRscz4KICAgICAgICAgICAgICAgICAgICA8VHhEdGxzPgogICAgICAgICAgICAgICAgICAgICAgICA8UmVmcz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxFbmRUb0VuZElkPlNUWlYtRXRFMjgxMjIwMTMtMTE6MjktMTwvRW5kVG9FbmRJZD4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SZWZzPgogICAgICAgICAgICAgICAgICAgICAgICA8QmtUeENkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPFBydHJ5PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxDZD5OTVNDKzA1MTwvQ2Q+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPElzc3I+WktBPC9Jc3NyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9QcnRyeT4KICAgICAgICAgICAgICAgICAgICAgICAgPC9Ca1R4Q2Q+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8RGJ0cj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Tm0+VGVzdGtvbnRvIE51bW1lciAyPC9ObT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvRGJ0cj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxEYnRyQWNjdD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8SWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxJQkFOPkRFNTg3NDA2MTgxMzAxMDAwMzM2MjY8L0lCQU4+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9JZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvRGJ0ckFjY3Q+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VWx0bXREYnRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxObT5rZWluZSBJbmZvcm1hdGlvbiB2b3JoYW5kZW48L05tPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9VbHRtdERidHI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Q2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Tm0+VGVzdGtvbnRvIE51bW1lciAxPC9ObT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvQ2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxDZHRyQWNjdD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8SWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxJQkFOPkRFMTQ3NDA2MTgxMzAwMDAwMzM2MjY8L0lCQU4+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9JZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvQ2R0ckFjY3Q+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VWx0bXRDZHRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxObT5UZXN0a29udG8gMTwvTm0+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L1VsdG10Q2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbHRkQWd0cz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxEYnRyQWd0PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxGaW5JbnN0bklkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8QklDPkdFTk9ERUYxUEZLPC9CSUM+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9GaW5JbnN0bklkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9EYnRyQWd0PgogICAgICAgICAgICAgICAgICAgICAgICA8L1JsdGRBZ3RzPgogICAgICAgICAgICAgICAgICAgICAgICA8Um10SW5mPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPFVzdHJkPlNhbW1sZXIgYXVzIFRlc3RrbnRvIDIgWndlaXRlIFVlYmVyd2Vpc3VuZyBFUkVGOgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFNUWlYtRXRFMjgxMjIwMTMtMTE6MjktMSBJQkFOOiBERTU4NzQwNjE4MTMwMTAwMDMzNjI2IEJJQzoKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBHRU5PREVGMVBGSyBBQldFOiBUZXN0a29udG8gMTwvVXN0cmQ+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvUm10SW5mPgogICAgICAgICAgICAgICAgICAgIDwvVHhEdGxzPgogICAgICAgICAgICAgICAgPC9OdHJ5RHRscz4KICAgICAgICAgICAgPC9OdHJ5PgogICAgICAgICAgICA8TnRyeT4KICAgICAgICAgICAgICAgIDxBbXQgQ2N5PSJFVVIiPjAuNTA8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+Q1JEVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxMy0xMi0zMDwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8IS0tIFZhbER0IGRlbGliZXJhdGVseSBvbWl0dGVkIC0tPgogICAgICAgICAgICAgICAgPEFjY3RTdmNyUmVmPjIwMTMxMjMwMDExNTM4NzAwMDE8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+U1RaVi1FdEUyODEyMjAxMy0xMToyOS0yPC9FbmRUb0VuZElkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JlZnM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxCa1R4Q2Q+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8UHJ0cnk+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPENkPk5NU0MrMDUxPC9DZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8SXNzcj5aS0E8L0lzc3I+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L1BydHJ5PgogICAgICAgICAgICAgICAgICAgICAgICA8L0JrVHhDZD4KICAgICAgICAgICAgICAgICAgICAgICAgPFJsdGRQdGllcz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxEYnRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxObT5UZXN0a29udG8gTnVtbWVyIDI8L05tPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9EYnRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPERidHJBY2N0PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxJZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPElCQU4+REU1ODc0MDYxODEzMDEwMDAzMzYyNjwvSUJBTj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L0lkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9EYnRyQWNjdD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxVbHRtdERidHI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPE5tPmtlaW5lIEluZm9ybWF0aW9uIHZvcmhhbmRlbjwvTm0+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L1VsdG10RGJ0cj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxDZHRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxObT5UZXN0a29udG8gTnVtbWVyIDE8L05tPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9DZHRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPENkdHJBY2N0PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxJZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPElCQU4+REUxNDc0MDYxODEzMDAwMDAzMzYyNjwvSUJBTj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L0lkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9DZHRyQWNjdD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxVbHRtdENkdHI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPE5tPlRlc3Rrb250byAxPC9ObT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvVWx0bXRDZHRyPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JsdGRQdGllcz4KICAgICAgICAgICAgICAgICAgICAgICAgPFJsdGRBZ3RzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPERidHJBZ3Q+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPEZpbkluc3RuSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxCSUM+R0VOT0RFRjFQRks8L0JJQz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L0Zpbkluc3RuSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L0RidHJBZ3Q+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvUmx0ZEFndHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbXRJbmY+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VXN0cmQ+U2FtbWxlciBhdXMgVGVzdGtvbnRvIDIgRXJzdGUgVWViZXJ3ZWlzdW5nIEVSRUY6CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgU1RaVi1FdEUyODEyMjAxMy0xMToyOS0yIElCQU46IERFNTg3NDA2MTgxMzAxMDAwMzM2MjYgQklDOgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEdFTk9ERUYxUEZLIEFCV0U6IFRlc3Rrb250byAxPC9Vc3RyZD4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbXRJbmY+CiAgICAgICAgICAgICAgICAgICAgPC9UeER0bHM+CiAgICAgICAgICAgICAgICA8L050cnlEdGxzPgogICAgICAgICAgICA8L050cnk+CiAgICAgICAgICAgIDxOdHJ5PgogICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+ODkuODU8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAyNC0wMy0xMjwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMjQtMDMtMTE8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj42NDAzODc4MTAxMjQwNzIvMjwvQWNjdFN2Y3JSZWY+CiAgICAgICAgICAgICAgICA8QmtUeENkPgogICAgICAgICAgICAgICAgICAgIDxEb21uPgogICAgICAgICAgICAgICAgICAgICAgICA8Q2Q+UE1OVDwvQ2Q+CiAgICAgICAgICAgICAgICAgICAgICAgIDxGbWx5PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPENkPkNDUkQ8L0NkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPFN1YkZtbHlDZD5QT1NEPC9TdWJGbWx5Q2Q+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvRm1seT4KICAgICAgICAgICAgICAgICAgICA8L0RvbW4+CiAgICAgICAgICAgICAgICA8L0JrVHhDZD4KICAgICAgICAgICAgICAgIDxOdHJ5RHRscz4KICAgICAgICAgICAgICAgICAgICA8VHhEdGxzPgogICAgICAgICAgICAgICAgICAgICAgICA8UmVmcz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxNc2dJZD40OTQuODQ0PC9Nc2dJZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxFbmRUb0VuZElkPlZTREIgNDM5NSA5MDYxPC9FbmRUb0VuZElkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JlZnM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxBbXQgQ2N5PSJFVVIiPjg5Ljg1PC9BbXQ+CiAgICAgICAgICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgICAgIDwvVHhEdGxzPgogICAgICAgICAgICAgICAgPC9OdHJ5RHRscz4KICAgICAgICAgICAgICAgIDxBZGR0bE50cnlJbmY+U3VwZXJtYXJrdCBBPC9BZGR0bE50cnlJbmY+CiAgICAgICAgICAgIDwvTnRyeT4KICAgICAgICAgICAgPE50cnk+CiAgICAgICAgICAgICAgICA8QW10IENjeT0iRVVSIj4xLjIwPC9BbXQ+CiAgICAgICAgICAgICAgICA8Q2R0RGJ0SW5kPkNSRFQ8L0NkdERidEluZD4KICAgICAgICAgICAgICAgIDxTdHM+Qk9PSzwvU3RzPgogICAgICAgICAgICAgICAgPEJvb2tnRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTQtMDEtMDc8L0R0PgogICAgICAgICAgICAgICAgPC9Cb29rZ0R0PgogICAgICAgICAgICAgICAgPFZhbER0PgogICAgICAgICAgICAgICAgICAgIDxEdD4yMDE0LTAxLTA1PC9EdD4KICAgICAgICAgICAgICAgIDwvVmFsRHQ+CiAgICAgICAgICAgICAgICA8QWNjdFN2Y3JSZWY+MjAxNDAxMDUwOTU3MjQxMDAwMDwvQWNjdFN2Y3JSZWY+CiAgICAgICAgICAgICAgICA8QmtUeENkIC8+CiAgICAgICAgICAgICAgICA8TnRyeUR0bHM+CiAgICAgICAgICAgICAgICAgICAgPFR4RHRscz4KICAgICAgICAgICAgICAgICAgICAgICAgPFJlZnM+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8TXNnSWQ+MjAxNDAxMDcxMzU2MzUwNjAxODM8L01zZ0lkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+U1RaVi1FdEUyNzEyMjAxMy0xMTowNS0yPC9FbmRUb0VuZElkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPE1uZHRJZD5NYW5kYXQyMDEzMTIyNzwvTW5kdElkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JlZnM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxCa1R4Q2Q+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8UHJ0cnk+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPENkPk5NU0MrODM1PC9DZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8SXNzcj5aS0E8L0lzc3I+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L1BydHJ5PgogICAgICAgICAgICAgICAgICAgICAgICA8L0JrVHhDZD4KICAgICAgICAgICAgICAgICAgICAgICAgPFJtdEluZj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxVc3RyZD5SZXRvdXJlIFNFUEEgTGFzdHNjaHJpZnQgdm9tIDAzLjAxLjIwMTQsIFJ1ZWNrZ2FiZWdydW5kOiBNRDA2CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTGFzdHNjaHJpZnR3aWRlcnNwcnVjaCBkdXJjaCBkZW4gWmFobHVuZ3NwZmxpY2h0aWdlbiBFUkVGOgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFNUWlYtRXRFMjcxMjIwMTMtMTE8L1VzdHJkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPFVzdHJkPjowNS0yIENSRUQ6IERFNzlaWlowMDAwMDAwMDU4NCBJQkFOOiBERTE0NzQwNjE4MTMwMDAwMDMzNjI2IEJJQzoKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBHRU5PREVGMVBGSyBBQldFOiBUZXN0a29udG88L1VzdHJkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JtdEluZj4KICAgICAgICAgICAgICAgICAgICAgICAgPFJ0ckluZj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxPcmdubEJrVHhDZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8UHJ0cnk+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxDZD4xMDU8L0NkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8SXNzcj5aS0E8L0lzc3I+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9QcnRyeT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvT3JnbmxCa1R4Q2Q+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8T3JndHI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPElkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8T3JnSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8QklDT3JCRUk+R0VOT0RFRjFQRks8L0JJQ09yQkVJPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L09yZ0lkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L09yZ3RyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPFJzbj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Q2Q+TUQwNjwvQ2Q+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L1Jzbj4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SdHJJbmY+CiAgICAgICAgICAgICAgICAgICAgPC9UeER0bHM+CiAgICAgICAgICAgICAgICA8L050cnlEdGxzPgogICAgICAgICAgICA8L050cnk+CiAgICAgICAgICAgIDxOdHJ5PgogICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+ODA8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAyNC0wMy0xMjwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMjQtMDMtMTI8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj4zNjc0MDY3MTUwMjQwNzIvMTwvQWNjdFN2Y3JSZWY+CiAgICAgICAgICAgICAgICA8QmtUeENkPgogICAgICAgICAgICAgICAgICAgIDxEb21uPgogICAgICAgICAgICAgICAgICAgICAgICA8Q2Q+UE1OVDwvQ2Q+CiAgICAgICAgICAgICAgICAgICAgICAgIDxGbWx5PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPENkPklDRFQ8L0NkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPFN1YkZtbHlDZD5BVVRUPC9TdWJGbWx5Q2Q+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvRm1seT4KICAgICAgICAgICAgICAgICAgICA8L0RvbW4+CiAgICAgICAgICAgICAgICA8L0JrVHhDZD4KICAgICAgICAgICAgICAgIDxOdHJ5RHRscz4KICAgICAgICAgICAgICAgICAgICA8VHhEdGxzPgogICAgICAgICAgICAgICAgICAgICAgICA8UmVmcz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxNc2dJZD40NDguMTA2LjwvTXNnSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8SW5zdHJJZD4yMDI0MDMxMTA5PC9JbnN0cklkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+MjAyNDAzMTwvRW5kVG9FbmRJZD4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SZWZzPgogICAgICAgICAgICAgICAgICAgICAgICA8QW10IENjeT0iRVVSIj44MDwvQW10PgogICAgICAgICAgICAgICAgICAgICAgICA8Q2R0RGJ0SW5kPkRCSVQ8L0NkdERidEluZD4KICAgICAgICAgICAgICAgICAgICAgICAgPEFtdER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8SW5zdGRBbXQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+ODA8L0FtdD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvSW5zdGRBbXQ+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvQW10RHRscz4KICAgICAgICAgICAgICAgICAgICAgICAgPFJsdGRQdGllcz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxDZHRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxObT5SZWdhPC9ObT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8UHN0bEFkcj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPFN0cnRObT5Qb3N0ZmFjaDwvU3RydE5tPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8QmxkZ05iPjEyMjwvQmxkZ05iPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8UHN0Q2Q+NTU1NTwvUHN0Q2Q+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxUd25ObT5GbHVnaGFmZW48L1R3bk5tPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Q3RyeT5DSDwvQ3RyeT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L1BzdGxBZHI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L0NkdHI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Q2R0ckFjY3Q+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPElkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8SUJBTj5DSDgwMzAwMDAwMDwvSUJBTj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L0lkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9DZHRyQWNjdD4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbHRkQWd0cz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxDZHRyQWd0PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxGaW5JbnN0bklkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Q2xyU3lzTW1iSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Q2xyU3lzSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPENkPkNIU0lDPC9DZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvQ2xyU3lzSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8TW1iSWQ+MTwvTW1iSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvQ2xyU3lzTW1iSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9GaW5JbnN0bklkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9DZHRyQWd0PgogICAgICAgICAgICAgICAgICAgICAgICA8L1JsdGRBZ3RzPgogICAgICAgICAgICAgICAgICAgICAgICA8Um10SW5mPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPFN0cmQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPENkdHJSZWZJbmY+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxUcD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxDZE9yUHJ0cnk+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPFBydHJ5PlFSUjwvUHJ0cnk+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L0NkT3JQcnRyeT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9UcD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPFJlZj4wMDI0NjI8L1JlZj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L0NkdHJSZWZJbmY+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L1N0cmQ+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvUm10SW5mPgogICAgICAgICAgICAgICAgICAgICAgICA8Umx0ZER0cz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxJbnRyQmtTdHRsbUR0PjIwMjQtMDMtMTI8L0ludHJCa1N0dGxtRHQ+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvUmx0ZER0cz4KICAgICAgICAgICAgICAgICAgICA8L1R4RHRscz4KICAgICAgICAgICAgICAgIDwvTnRyeUR0bHM+CiAgICAgICAgICAgICAgICA8QWRkdGxOdHJ5SW5mPlJlZ2E8L0FkZHRsTnRyeUluZj4KICAgICAgICAgICAgPC9OdHJ5PgogICAgICAgICAgICA8TnRyeT4KICAgICAgICAgICAgICAgIDxBbXQgQ2N5PSJFVVIiPjMuNDU8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+Q1JEVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxNC0wMS0wMzwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTQtMDEtMDM8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj4yMDE0MDEwMzAzMjYzNDAwMDAwPC9BY2N0U3ZjclJlZj4KICAgICAgICAgICAgICAgIDxCa1R4Q2QgLz4KICAgICAgICAgICAgICAgIDxOdHJ5RHRscz4KICAgICAgICAgICAgICAgICAgICA8QnRjaD4KICAgICAgICAgICAgICAgICAgICAgICAgPFBtdEluZklkPlNUWlYtUG1JbmYyNzEyMjAxMy0xMTowNS0yPC9QbXRJbmZJZD4KICAgICAgICAgICAgICAgICAgICAgICAgPE5iT2ZUeHM+MjwvTmJPZlR4cz4KICAgICAgICAgICAgICAgICAgICA8L0J0Y2g+CiAgICAgICAgICAgICAgICAgICAgPFR4RHRscz4KICAgICAgICAgICAgICAgICAgICAgICAgPFJlZnM+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8TXNnSWQ+U1RaVi1Nc2cyNzEyMjAxMy0xMTowNTwvTXNnSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8RW5kVG9FbmRJZD5TVFpWLUV0RTI3MTIyMDEzLTExOjA1LTE8L0VuZFRvRW5kSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8TW5kdElkPk1hbmRhdDIwMTMxMjI3PC9NbmR0SWQ+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvUmVmcz4KICAgICAgICAgICAgICAgICAgICAgICAgPEFtdER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VHhBbXQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+Mi4yNTwvQW10PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9UeEFtdD4KICAgICAgICAgICAgICAgICAgICAgICAgPC9BbXREdGxzPgogICAgICAgICAgICAgICAgICAgICAgICA8QmtUeENkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPFBydHJ5PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxDZD5ORERUKzA3MTwvQ2Q+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPElzc3I+WktBPC9Jc3NyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9QcnRyeT4KICAgICAgICAgICAgICAgICAgICAgICAgPC9Ca1R4Q2Q+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8RGJ0cj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Tm0+VGVzdGtvbnRvIE51bW1lciAyPC9ObT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvRGJ0cj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxEYnRyQWNjdD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8SWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxJQkFOPkRFNTg3NDA2MTgxMzAxMDAwMzM2MjY8L0lCQU4+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9JZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvRGJ0ckFjY3Q+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VWx0bXREYnRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxObT5UZXN0a29udG88L05tPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9VbHRtdERidHI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Q2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Tm0+VGVzdGtvbnRvIE51bW1lciAxPC9ObT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvQ2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxDZHRyQWNjdD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8SWQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxJQkFOPkRFMTQ3NDA2MTgxMzAwMDAwMzM2MjY8L0lCQU4+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9JZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvQ2R0ckFjY3Q+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VWx0bXRDZHRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxObT5rZWluZSBJbmZvcm1hdGlvbiB2b3JoYW5kZW48L05tPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9VbHRtdENkdHI+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvUmx0ZFB0aWVzPgogICAgICAgICAgICAgICAgICAgICAgICA8Um10SW5mPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPFVzdHJkPkxhc3RzY2hyaWZ0IDIuIFphaGx1bmcgVEFOOjc0NzIxNiA8L1VzdHJkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JtdEluZj4KICAgICAgICAgICAgICAgICAgICA8L1R4RHRscz4KICAgICAgICAgICAgICAgICAgICA8VHhEdGxzPgogICAgICAgICAgICAgICAgICAgICAgICA8UmVmcz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxNc2dJZD5TVFpWLU1zZzI3MTIyMDEzLTExOjA1PC9Nc2dJZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxFbmRUb0VuZElkPlNUWlYtRXRFMjcxMjIwMTMtMTE6MDUtMjwvRW5kVG9FbmRJZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxNbmR0SWQ+TWFuZGF0MjAxMzEyMjc8L01uZHRJZD4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SZWZzPgogICAgICAgICAgICAgICAgICAgICAgICA8QW10RHRscz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxUeEFtdD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8QW10IENjeT0iRVVSIj4xLjIwPC9BbXQ+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L1R4QW10PgogICAgICAgICAgICAgICAgICAgICAgICA8L0FtdER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxCa1R4Q2Q+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8UHJ0cnk+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPENkPk5ERFQrMDcxPC9DZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8SXNzcj5aS0E8L0lzc3I+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L1BydHJ5PgogICAgICAgICAgICAgICAgICAgICAgICA8L0JrVHhDZD4KICAgICAgICAgICAgICAgICAgICAgICAgPFJsdGRQdGllcz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxEYnRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxObT5UZXN0a29udG8gTnVtbWVyIDI8L05tPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9EYnRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPERidHJBY2N0PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxJZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPElCQU4+REU1ODc0MDYxODEzMDEwMDAzMzYyNjwvSUJBTj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L0lkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9EYnRyQWNjdD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxVbHRtdERidHI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPE5tPlRlc3Rrb250bzwvTm0+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L1VsdG10RGJ0cj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxDZHRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxObT5UZXN0a29udG8gTnVtbWVyIDE8L05tPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9DZHRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPENkdHJBY2N0PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxJZD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPElCQU4+REUxNDc0MDYxODEzMDAwMDAzMzYyNjwvSUJBTj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L0lkPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9DZHRyQWNjdD4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxVbHRtdENkdHI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPE5tPmtlaW5lIEluZm9ybWF0aW9uIHZvcmhhbmRlbjwvTm0+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L1VsdG10Q2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbXRJbmY+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VXN0cmQ+TGFzdHNjaHJpZnQgMS4gWmFobHVuZyBUQU46NzQ3MjE2IDwvVXN0cmQ+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvUm10SW5mPgogICAgICAgICAgICAgICAgICAgIDwvVHhEdGxzPgogICAgICAgICAgICAgICAgPC9OdHJ5RHRscz4KICAgICAgICAgICAgPC9OdHJ5PgogICAgICAgIDwvU3RtdD4KICAgIDwvQmtUb0NzdG1yU3RtdD4KPC9Eb2N1bWVudD4=",
+      "options": {
+        "importNotes": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": 0.6,
+            "date": "2013-12-30",
+            "payee_name": "Testkonto Nummer 2",
+            "imported_payee": "Testkonto Nummer 2",
+            "notes": "Sammler aus Testknto 2 Zweite Ueberweisung EREF:\n                                STZV-EtE28122013-11:29-1 IBAN: DE58740618130100033626 BIC:\n                                GENODEF1PFK ABWE: Testkonto 1",
+            "imported_id": "2013123001153870000"
+          },
+          {
+            "amount": 0.5,
+            "date": "2013-12-30",
+            "payee_name": "Testkonto Nummer 2",
+            "imported_payee": "Testkonto Nummer 2",
+            "notes": "Sammler aus Testkonto 2 Erste Ueberweisung EREF:\n                                STZV-EtE28122013-11:29-2 IBAN: DE58740618130100033626 BIC:\n                                GENODEF1PFK ABWE: Testkonto 1",
+            "imported_id": "2013123001153870001"
+          },
+          {
+            "amount": -89.85,
+            "date": "2024-03-11",
+            "payee_name": "Supermarkt A",
+            "imported_payee": "Supermarkt A",
+            "notes": null,
+            "imported_id": "640387810124072/2"
+          },
+          {
+            "amount": 1.2,
+            "date": "2014-01-05",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": "Retoure SEPA Lastschrift vom 03.01.2014, Rueckgabegrund: MD06\n                                Lastschriftwiderspruch durch den Zahlungspflichtigen EREF:\n                                STZV-EtE27122013-11 :05-2 CRED: DE79ZZZ00000000584 IBAN: DE14740618130000033626 BIC:\n                                GENODEF1PFK ABWE: Testkonto",
+            "imported_id": "2014010509572410000"
+          },
+          {
+            "amount": -80,
+            "date": "2024-03-12",
+            "payee_name": "Rega",
+            "imported_payee": "Rega",
+            "notes": null,
+            "imported_id": "367406715024072/1"
+          },
+          {
+            "amount": 2.25,
+            "date": "2014-01-03",
+            "payee_name": "Testkonto Nummer 2",
+            "imported_payee": "Testkonto Nummer 2",
+            "notes": "Lastschrift 2. Zahlung TAN:747216 "
+          },
+          {
+            "amount": 1.2,
+            "date": "2014-01-03",
+            "payee_name": "Testkonto Nummer 2",
+            "imported_payee": "Testkonto Nummer 2",
+            "notes": "Lastschrift 1. Zahlung TAN:747216 "
+          }
+        ]
+      }
+    },
+    {
+      "id": "camt/camt.053.payee-memo.xml",
+      "filename": "camt.053.payee-memo.xml",
+      "source_file": "packages/loot-core/src/mocks/files/camt/camt.053.payee-memo.xml",
+      "sha256": "8db78efc3bc0ba4c68c88cbf0bdf994b966d7343fd3af03248010b60a537a671",
+      "bytes_base64": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPERvY3VtZW50IHhzaTpzY2hlbWFMb2NhdGlvbj0idXJuOmlzbzpzdGQ6aXNvOjIwMDIyOnRlY2g6eHNkOmNhbXQuMDUzLjAwMS4wNCBjYW10LjA1My4wMDEuMDQueHNkIgogICAgeG1sbnM9InVybjppc286c3RkOmlzbzoyMDAyMjp0ZWNoOnhzZDpjYW10LjA1My4wMDEuMDQiCiAgICB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hLWluc3RhbmNlIj4KCiAgICA8QmtUb0NzdG1yU3RtdD4KICAgICAgICA8R3JwSGRyPgogICAgICAgICAgICA8TXNnSWQ+MDUzRDIwMTktMDEtMjNUMDA6MDA6MDAuME4wMDAwMDAwMDE8L01zZ0lkPgogICAgICAgICAgICA8Q3JlRHRUbT4yMDE5LTAxLTIzVDAwOjAwOjAwLjArMDA6MDA8L0NyZUR0VG0+CiAgICAgICAgPC9HcnBIZHI+CiAgICAgICAgPFN0bXQ+CiAgICAgICAgICAgIDxJZD5URVNULVBBWUVFLU1FTU88L0lkPgogICAgICAgICAgICA8Q3JlRHRUbT4yMDE5LTAxLTIzVDAwOjAwOjAwLjArMDA6MDA8L0NyZUR0VG0+CiAgICAgICAgICAgIDxBY2N0PgogICAgICAgICAgICAgICAgPElkPgogICAgICAgICAgICAgICAgICAgIDxJQkFOPkRFMTQ3NDA2MTgxMzAwMDAwMzM2MjY8L0lCQU4+CiAgICAgICAgICAgICAgICA8L0lkPgogICAgICAgICAgICAgICAgPENjeT5FVVI8L0NjeT4KICAgICAgICAgICAgPC9BY2N0PgoKICAgICAgICAgICAgPCEtLSAxOiBwYXllZSAoQ2R0ci9ObSkgQU5EIG5vdGVzIChSbXRJbmYvVXN0cmQpIC0tPgogICAgICAgICAgICA8TnRyeT4KICAgICAgICAgICAgICAgIDxBbXQgQ2N5PSJFVVIiPjEwLjAwPC9BbXQ+CiAgICAgICAgICAgICAgICA8Q2R0RGJ0SW5kPkRCSVQ8L0NkdERidEluZD4KICAgICAgICAgICAgICAgIDxTdHM+Qk9PSzwvU3RzPgogICAgICAgICAgICAgICAgPEJvb2tnRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9Cb29rZ0R0PgogICAgICAgICAgICAgICAgPFZhbER0PgogICAgICAgICAgICAgICAgICAgIDxEdD4yMDE5LTAxLTIzPC9EdD4KICAgICAgICAgICAgICAgIDwvVmFsRHQ+CiAgICAgICAgICAgICAgICA8QWNjdFN2Y3JSZWY+dGVzdC1wYXllZS1hbmQtbm90ZXM8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1wYXllZS1hbmQtbm90ZXM8L0VuZFRvRW5kSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvUmVmcz4KICAgICAgICAgICAgICAgICAgICAgICAgPFJsdGRQdGllcz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxDZHRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxObT5QYXllZSBOYW1lPC9ObT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvQ2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbXRJbmY+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VXN0cmQ+Tm90ZSBUZXh0PC9Vc3RyZD4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbXRJbmY+CiAgICAgICAgICAgICAgICAgICAgPC9UeER0bHM+CiAgICAgICAgICAgICAgICA8L050cnlEdGxzPgogICAgICAgICAgICA8L050cnk+CgogICAgICAgICAgICA8IS0tIDI6IHBheWVlIG9ubHkgKENkdHIvTm0sIG5vIFJtdEluZikgLS0+CiAgICAgICAgICAgIDxOdHJ5PgogICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+MjAuMDA8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxOS0wMS0yMzwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj50ZXN0LXBheWVlLW9ubHk8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1wYXllZS1vbmx5PC9FbmRUb0VuZElkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JlZnM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Q2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Tm0+UGF5ZWUgTmFtZSBPbmx5PC9ObT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvQ2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgPC9UeER0bHM+CiAgICAgICAgICAgICAgICA8L050cnlEdGxzPgogICAgICAgICAgICA8L050cnk+CgogICAgICAgICAgICA8IS0tIDM6IG5vdGVzIG9ubHkgKFJtdEluZi9Vc3RyZCwgbm8gQ2R0ci9ObSkgLS0+CiAgICAgICAgICAgIDxOdHJ5PgogICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+MzAuMDA8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxOS0wMS0yMzwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj50ZXN0LW5vdGVzLW9ubHk8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1ub3Rlcy1vbmx5PC9FbmRUb0VuZElkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JlZnM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbXRJbmY+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VXN0cmQ+Tm90ZSBPbmx5IFRleHQ8L1VzdHJkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JtdEluZj4KICAgICAgICAgICAgICAgICAgICA8L1R4RHRscz4KICAgICAgICAgICAgICAgIDwvTnRyeUR0bHM+CiAgICAgICAgICAgIDwvTnRyeT4KCiAgICAgICAgICAgIDwhLS0gNDogbmVpdGhlciBwYXllZSBub3Igbm90ZXMgLS0+CiAgICAgICAgICAgIDxOdHJ5PgogICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+NDAuMDA8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxOS0wMS0yMzwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj50ZXN0LW5laXRoZXI8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1uZWl0aGVyPC9FbmRUb0VuZElkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JlZnM+CiAgICAgICAgICAgICAgICAgICAgPC9UeER0bHM+CiAgICAgICAgICAgICAgICA8L050cnlEdGxzPgogICAgICAgICAgICA8L050cnk+CgogICAgICAgIDwvU3RtdD4KICAgIDwvQmtUb0NzdG1yU3RtdD4KPC9Eb2N1bWVudD4K",
+      "options": {
+        "importNotes": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -10,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": "Note Text",
+            "imported_id": "test-payee-and-notes"
+          },
+          {
+            "amount": -20,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "imported_id": "test-payee-only"
+          },
+          {
+            "amount": -30,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": "Note Only Text",
+            "imported_id": "test-notes-only"
+          },
+          {
+            "amount": -40,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "imported_id": "test-neither"
+          }
+        ]
+      }
+    },
+    {
+      "id": "camt/camt.053.payee-memo.xml-swap",
+      "filename": "camt.053.payee-memo.xml",
+      "source_file": "packages/loot-core/src/mocks/files/camt/camt.053.payee-memo.xml",
+      "sha256": "8db78efc3bc0ba4c68c88cbf0bdf994b966d7343fd3af03248010b60a537a671",
+      "bytes_base64": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPERvY3VtZW50IHhzaTpzY2hlbWFMb2NhdGlvbj0idXJuOmlzbzpzdGQ6aXNvOjIwMDIyOnRlY2g6eHNkOmNhbXQuMDUzLjAwMS4wNCBjYW10LjA1My4wMDEuMDQueHNkIgogICAgeG1sbnM9InVybjppc286c3RkOmlzbzoyMDAyMjp0ZWNoOnhzZDpjYW10LjA1My4wMDEuMDQiCiAgICB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hLWluc3RhbmNlIj4KCiAgICA8QmtUb0NzdG1yU3RtdD4KICAgICAgICA8R3JwSGRyPgogICAgICAgICAgICA8TXNnSWQ+MDUzRDIwMTktMDEtMjNUMDA6MDA6MDAuME4wMDAwMDAwMDE8L01zZ0lkPgogICAgICAgICAgICA8Q3JlRHRUbT4yMDE5LTAxLTIzVDAwOjAwOjAwLjArMDA6MDA8L0NyZUR0VG0+CiAgICAgICAgPC9HcnBIZHI+CiAgICAgICAgPFN0bXQ+CiAgICAgICAgICAgIDxJZD5URVNULVBBWUVFLU1FTU88L0lkPgogICAgICAgICAgICA8Q3JlRHRUbT4yMDE5LTAxLTIzVDAwOjAwOjAwLjArMDA6MDA8L0NyZUR0VG0+CiAgICAgICAgICAgIDxBY2N0PgogICAgICAgICAgICAgICAgPElkPgogICAgICAgICAgICAgICAgICAgIDxJQkFOPkRFMTQ3NDA2MTgxMzAwMDAwMzM2MjY8L0lCQU4+CiAgICAgICAgICAgICAgICA8L0lkPgogICAgICAgICAgICAgICAgPENjeT5FVVI8L0NjeT4KICAgICAgICAgICAgPC9BY2N0PgoKICAgICAgICAgICAgPCEtLSAxOiBwYXllZSAoQ2R0ci9ObSkgQU5EIG5vdGVzIChSbXRJbmYvVXN0cmQpIC0tPgogICAgICAgICAgICA8TnRyeT4KICAgICAgICAgICAgICAgIDxBbXQgQ2N5PSJFVVIiPjEwLjAwPC9BbXQ+CiAgICAgICAgICAgICAgICA8Q2R0RGJ0SW5kPkRCSVQ8L0NkdERidEluZD4KICAgICAgICAgICAgICAgIDxTdHM+Qk9PSzwvU3RzPgogICAgICAgICAgICAgICAgPEJvb2tnRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9Cb29rZ0R0PgogICAgICAgICAgICAgICAgPFZhbER0PgogICAgICAgICAgICAgICAgICAgIDxEdD4yMDE5LTAxLTIzPC9EdD4KICAgICAgICAgICAgICAgIDwvVmFsRHQ+CiAgICAgICAgICAgICAgICA8QWNjdFN2Y3JSZWY+dGVzdC1wYXllZS1hbmQtbm90ZXM8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1wYXllZS1hbmQtbm90ZXM8L0VuZFRvRW5kSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvUmVmcz4KICAgICAgICAgICAgICAgICAgICAgICAgPFJsdGRQdGllcz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxDZHRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxObT5QYXllZSBOYW1lPC9ObT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvQ2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbXRJbmY+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VXN0cmQ+Tm90ZSBUZXh0PC9Vc3RyZD4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbXRJbmY+CiAgICAgICAgICAgICAgICAgICAgPC9UeER0bHM+CiAgICAgICAgICAgICAgICA8L050cnlEdGxzPgogICAgICAgICAgICA8L050cnk+CgogICAgICAgICAgICA8IS0tIDI6IHBheWVlIG9ubHkgKENkdHIvTm0sIG5vIFJtdEluZikgLS0+CiAgICAgICAgICAgIDxOdHJ5PgogICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+MjAuMDA8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxOS0wMS0yMzwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj50ZXN0LXBheWVlLW9ubHk8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1wYXllZS1vbmx5PC9FbmRUb0VuZElkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JlZnM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Q2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Tm0+UGF5ZWUgTmFtZSBPbmx5PC9ObT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvQ2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgPC9UeER0bHM+CiAgICAgICAgICAgICAgICA8L050cnlEdGxzPgogICAgICAgICAgICA8L050cnk+CgogICAgICAgICAgICA8IS0tIDM6IG5vdGVzIG9ubHkgKFJtdEluZi9Vc3RyZCwgbm8gQ2R0ci9ObSkgLS0+CiAgICAgICAgICAgIDxOdHJ5PgogICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+MzAuMDA8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxOS0wMS0yMzwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj50ZXN0LW5vdGVzLW9ubHk8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1ub3Rlcy1vbmx5PC9FbmRUb0VuZElkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JlZnM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbXRJbmY+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VXN0cmQ+Tm90ZSBPbmx5IFRleHQ8L1VzdHJkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JtdEluZj4KICAgICAgICAgICAgICAgICAgICA8L1R4RHRscz4KICAgICAgICAgICAgICAgIDwvTnRyeUR0bHM+CiAgICAgICAgICAgIDwvTnRyeT4KCiAgICAgICAgICAgIDwhLS0gNDogbmVpdGhlciBwYXllZSBub3Igbm90ZXMgLS0+CiAgICAgICAgICAgIDxOdHJ5PgogICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+NDAuMDA8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxOS0wMS0yMzwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj50ZXN0LW5laXRoZXI8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1uZWl0aGVyPC9FbmRUb0VuZElkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JlZnM+CiAgICAgICAgICAgICAgICAgICAgPC9UeER0bHM+CiAgICAgICAgICAgICAgICA8L050cnlEdGxzPgogICAgICAgICAgICA8L050cnk+CgogICAgICAgIDwvU3RtdD4KICAgIDwvQmtUb0NzdG1yU3RtdD4KPC9Eb2N1bWVudD4K",
+      "options": {
+        "importNotes": true,
+        "swapPayeeAndMemo": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -10,
+            "date": "2019-01-23",
+            "payee_name": "Note Text",
+            "imported_payee": "Note Text",
+            "notes": "Payee Name",
+            "imported_id": "test-payee-and-notes"
+          },
+          {
+            "amount": -20,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "imported_id": "test-payee-only"
+          },
+          {
+            "amount": -30,
+            "date": "2019-01-23",
+            "payee_name": "Note Only Text",
+            "imported_payee": "Note Only Text",
+            "notes": null,
+            "imported_id": "test-notes-only"
+          },
+          {
+            "amount": -40,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "imported_id": "test-neither"
+          }
+        ]
+      }
+    },
+    {
+      "id": "camt/camt.053.payee-memo.xml-no-notes",
+      "filename": "camt.053.payee-memo.xml",
+      "source_file": "packages/loot-core/src/mocks/files/camt/camt.053.payee-memo.xml",
+      "sha256": "8db78efc3bc0ba4c68c88cbf0bdf994b966d7343fd3af03248010b60a537a671",
+      "bytes_base64": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPERvY3VtZW50IHhzaTpzY2hlbWFMb2NhdGlvbj0idXJuOmlzbzpzdGQ6aXNvOjIwMDIyOnRlY2g6eHNkOmNhbXQuMDUzLjAwMS4wNCBjYW10LjA1My4wMDEuMDQueHNkIgogICAgeG1sbnM9InVybjppc286c3RkOmlzbzoyMDAyMjp0ZWNoOnhzZDpjYW10LjA1My4wMDEuMDQiCiAgICB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hLWluc3RhbmNlIj4KCiAgICA8QmtUb0NzdG1yU3RtdD4KICAgICAgICA8R3JwSGRyPgogICAgICAgICAgICA8TXNnSWQ+MDUzRDIwMTktMDEtMjNUMDA6MDA6MDAuME4wMDAwMDAwMDE8L01zZ0lkPgogICAgICAgICAgICA8Q3JlRHRUbT4yMDE5LTAxLTIzVDAwOjAwOjAwLjArMDA6MDA8L0NyZUR0VG0+CiAgICAgICAgPC9HcnBIZHI+CiAgICAgICAgPFN0bXQ+CiAgICAgICAgICAgIDxJZD5URVNULVBBWUVFLU1FTU88L0lkPgogICAgICAgICAgICA8Q3JlRHRUbT4yMDE5LTAxLTIzVDAwOjAwOjAwLjArMDA6MDA8L0NyZUR0VG0+CiAgICAgICAgICAgIDxBY2N0PgogICAgICAgICAgICAgICAgPElkPgogICAgICAgICAgICAgICAgICAgIDxJQkFOPkRFMTQ3NDA2MTgxMzAwMDAwMzM2MjY8L0lCQU4+CiAgICAgICAgICAgICAgICA8L0lkPgogICAgICAgICAgICAgICAgPENjeT5FVVI8L0NjeT4KICAgICAgICAgICAgPC9BY2N0PgoKICAgICAgICAgICAgPCEtLSAxOiBwYXllZSAoQ2R0ci9ObSkgQU5EIG5vdGVzIChSbXRJbmYvVXN0cmQpIC0tPgogICAgICAgICAgICA8TnRyeT4KICAgICAgICAgICAgICAgIDxBbXQgQ2N5PSJFVVIiPjEwLjAwPC9BbXQ+CiAgICAgICAgICAgICAgICA8Q2R0RGJ0SW5kPkRCSVQ8L0NkdERidEluZD4KICAgICAgICAgICAgICAgIDxTdHM+Qk9PSzwvU3RzPgogICAgICAgICAgICAgICAgPEJvb2tnRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9Cb29rZ0R0PgogICAgICAgICAgICAgICAgPFZhbER0PgogICAgICAgICAgICAgICAgICAgIDxEdD4yMDE5LTAxLTIzPC9EdD4KICAgICAgICAgICAgICAgIDwvVmFsRHQ+CiAgICAgICAgICAgICAgICA8QWNjdFN2Y3JSZWY+dGVzdC1wYXllZS1hbmQtbm90ZXM8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1wYXllZS1hbmQtbm90ZXM8L0VuZFRvRW5kSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvUmVmcz4KICAgICAgICAgICAgICAgICAgICAgICAgPFJsdGRQdGllcz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxDZHRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxObT5QYXllZSBOYW1lPC9ObT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvQ2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbXRJbmY+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VXN0cmQ+Tm90ZSBUZXh0PC9Vc3RyZD4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbXRJbmY+CiAgICAgICAgICAgICAgICAgICAgPC9UeER0bHM+CiAgICAgICAgICAgICAgICA8L050cnlEdGxzPgogICAgICAgICAgICA8L050cnk+CgogICAgICAgICAgICA8IS0tIDI6IHBheWVlIG9ubHkgKENkdHIvTm0sIG5vIFJtdEluZikgLS0+CiAgICAgICAgICAgIDxOdHJ5PgogICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+MjAuMDA8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxOS0wMS0yMzwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj50ZXN0LXBheWVlLW9ubHk8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1wYXllZS1vbmx5PC9FbmRUb0VuZElkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JlZnM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Q2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Tm0+UGF5ZWUgTmFtZSBPbmx5PC9ObT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvQ2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgPC9UeER0bHM+CiAgICAgICAgICAgICAgICA8L050cnlEdGxzPgogICAgICAgICAgICA8L050cnk+CgogICAgICAgICAgICA8IS0tIDM6IG5vdGVzIG9ubHkgKFJtdEluZi9Vc3RyZCwgbm8gQ2R0ci9ObSkgLS0+CiAgICAgICAgICAgIDxOdHJ5PgogICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+MzAuMDA8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxOS0wMS0yMzwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj50ZXN0LW5vdGVzLW9ubHk8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1ub3Rlcy1vbmx5PC9FbmRUb0VuZElkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JlZnM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbXRJbmY+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VXN0cmQ+Tm90ZSBPbmx5IFRleHQ8L1VzdHJkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JtdEluZj4KICAgICAgICAgICAgICAgICAgICA8L1R4RHRscz4KICAgICAgICAgICAgICAgIDwvTnRyeUR0bHM+CiAgICAgICAgICAgIDwvTnRyeT4KCiAgICAgICAgICAgIDwhLS0gNDogbmVpdGhlciBwYXllZSBub3Igbm90ZXMgLS0+CiAgICAgICAgICAgIDxOdHJ5PgogICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+NDAuMDA8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxOS0wMS0yMzwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj50ZXN0LW5laXRoZXI8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1uZWl0aGVyPC9FbmRUb0VuZElkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JlZnM+CiAgICAgICAgICAgICAgICAgICAgPC9UeER0bHM+CiAgICAgICAgICAgICAgICA8L050cnlEdGxzPgogICAgICAgICAgICA8L050cnk+CgogICAgICAgIDwvU3RtdD4KICAgIDwvQmtUb0NzdG1yU3RtdD4KPC9Eb2N1bWVudD4K",
+      "options": {
+        "importNotes": false
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -10,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": null,
+            "imported_id": "test-payee-and-notes"
+          },
+          {
+            "amount": -20,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "imported_id": "test-payee-only"
+          },
+          {
+            "amount": -30,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "imported_id": "test-notes-only"
+          },
+          {
+            "amount": -40,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "imported_id": "test-neither"
+          }
+        ]
+      }
+    },
+    {
+      "id": "camt/camt.latin1.xml",
+      "filename": "camt.latin1.xml",
+      "source_file": "packages/loot-core/src/mocks/files/camt/camt.latin1.xml",
+      "sha256": "e52de8a493d669e98990f28d95939336f41895c72dbae0735012e9333d6cf05e",
+      "bytes_base64": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iSVNPLTg4NTktMSIgPz48RG9jdW1lbnQgeG1sbnM9InVybjppc286c3RkOmlzbzoyMDAyMjp0ZWNoOnhzZDpjYW10LjA1Mi4wMDEuMDgiIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhzaTpzY2hlbWFMb2NhdGlvbj0idXJuOmlzbzpzdGQ6aXNvOjIwMDIyOnRlY2g6eHNkOmNhbXQuMDUyLjAwMS4wOCBjYW10LjA1Mi4wMDEuMDgueHNkIj48QmtUb0NzdG1yQWNjdFJwdD48R3JwSGRyPjxNc2dJZD41MkQyMDI1MDkwOVQwMDAwMDAwMDAwMDAwMDAwMDAwMDAwPC9Nc2dJZD48Q3JlRHRUbT4yMDI1LTA5LTA5VDAwOjAwOjAwLjArMDI6MDA8L0NyZUR0VG0+PC9HcnBIZHI+PFJwdD48SWQ+MDc1MkMwMDIwMjUwOTA5MDAwMDAwTjAwMDAwMDAwMDwvSWQ+PFJwdFBnbnRuPjxQZ05iPjE8L1BnTmI+PExhc3RQZ0luZD50cnVlPC9MYXN0UGdJbmQ+PC9ScHRQZ250bj48RWxjdHJuY1NlcU5iPjAwMDAwMDAwMDwvRWxjdHJuY1NlcU5iPjxDcmVEdFRtPjIwMjUtMDktMDlUMDA6MDA6MDAuMCswMjowMDwvQ3JlRHRUbT48QWNjdD48SWQ+PElCQU4+REUwMDAwMDAwMDAwMDAwMDAwMDAwMDwvSUJBTj48L0lkPjxDY3k+RVVSPC9DY3k+PE93bnI+PE5tPk1heCBNdXN0ZXJtYW5uPC9ObT48L093bnI+PC9BY2N0PjxOdHJ5PjxBbXQgQ2N5PSJFVVIiPjEwMC4wMDwvQW10PjxDZHREYnRJbmQ+Q1JEVDwvQ2R0RGJ0SW5kPjxTdHM+PENkPkJPT0s8L0NkPjwvU3RzPjxCb29rZ0R0PjxEdD4yMDI1LTA5LTA5PC9EdD48L0Jvb2tnRHQ+PFZhbER0PjxEdD4yMDI1LTA5LTA5PC9EdD48L1ZhbER0PjxBY2N0U3ZjclJlZj4yMDI1MDkwOTAwMDAwMDAwPC9BY2N0U3ZjclJlZj48TnRyeUR0bHM+PFR4RHRscz48Um10SW5mPjxVc3RyZD5NLdxiZXJzY2h1c3NzcGFyZW48L1VzdHJkPjwvUm10SW5mPjwvVHhEdGxzPjwvTnRyeUR0bHM+PEFkZHRsTnRyeUluZj5EQVVFUkFVRlRSQUc8L0FkZHRsTnRyeUluZj48L050cnk+PE50cnk+PEFtdCBDY3k9IkVVUiI+NS4wMDwvQW10PjxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPjxTdHM+PENkPkJPT0s8L0NkPjwvU3RzPjxCb29rZ0R0PjxEdD4yMDI1LTA5LTA5PC9EdD48L0Jvb2tnRHQ+PFZhbER0PjxEdD4yMDI1LTA5LTA5PC9EdD48L1ZhbER0PjxBY2N0U3ZjclJlZj4yMDI1MDkwOTAwMDAwMDAxPC9BY2N0U3ZjclJlZj48TnRyeUR0bHM+PFR4RHRscz48Umx0ZFB0aWVzPjxDZHRyPjxQdHk+PE5tPkdy/N9lIGF1cyBN/G5jaGVuPC9ObT48L1B0eT48L0NkdHI+PC9SbHRkUHRpZXM+PFJtdEluZj48VXN0cmQ+UmVzdGF1cmFudCBTY2hy9mRpbmdlcnMgS2F0emUgdW5kIENhZukg3G5pcXVlPC9Vc3RyZD48L1JtdEluZj48L1R4RHRscz48L050cnlEdGxzPjxBZGR0bE50cnlJbmY+VUVCRVJXRUlTVU5HPC9BZGR0bE50cnlJbmY+PC9OdHJ5PjwvUnB0PjwvQmtUb0NzdG1yQWNjdFJwdD48L0RvY3VtZW50Pgo=",
+      "options": {
+        "importNotes": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": 100,
+            "date": "2025-09-09",
+            "payee_name": "DAUERAUFTRAG",
+            "imported_payee": "DAUERAUFTRAG",
+            "notes": "M-Überschusssparen",
+            "imported_id": "2025090900000000"
+          },
+          {
+            "amount": -5,
+            "date": "2025-09-09",
+            "payee_name": "Grüße aus München",
+            "imported_payee": "Grüße aus München",
+            "notes": "Restaurant Schrödingers Katze und Café Ünique",
+            "imported_id": "2025090900000001"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-header",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "e3eb2d5b2e168cbd033abb1a09257e43ab232f465060aacd14223330875ab2f6",
+      "bytes_base64": "RGF0ZSxQYXllZSxBbW91bnQsTWVtbwoyMDI2LTExLTA5LENhZsOpLC0xMi4zNCwicXVvdGVkLCBtZW1vIgo=",
+      "options": {
+        "hasHeaderRow": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "Date": "2026-11-09",
+            "Payee": "Café",
+            "Amount": "-12.34",
+            "Memo": "quoted, memo"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-no-header",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "106a169bed695eae675170415cf4057d822b0f53f2e2701256e68b87119126aa",
+      "bytes_base64": "MjAyNi0xMS0wOSxDYWZlLC0xMi4zNAoyMDI2LTExLTEwLFNob3AsMy4wMAo=",
+      "options": {
+        "hasHeaderRow": false
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          [
+            "2026-11-09",
+            "Cafe",
+            "-12.34"
+          ],
+          [
+            "2026-11-10",
+            "Shop",
+            "3.00"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "csv-quotes-multiline",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "b5930d721a5f9cd475fca1e0f0d1f39273bae02b898e8b9b869593a252ba2eb2",
+      "bytes_base64": "RGF0ZSxQYXllZSxBbW91bnQsTWVtbw0KMjAyNi0xMS0wOSwiQ2FmZSAiIkEiIiIsLTEyLjM0LCJmaXJzdA0Kc2Vjb25kIg0K",
+      "options": {
+        "hasHeaderRow": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "Date": "2026-11-09",
+            "Payee": "Cafe \"A\"",
+            "Amount": "-12.34",
+            "Memo": "first\r\nsecond"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-relaxed-columns",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "6545cbe33c06ee71836873a5a3e400272a027fe704a8b63e0539aa04691fc346",
+      "bytes_base64": "RGF0ZSxQYXllZSxBbW91bnQKMjAyNi0xMS0wOSxDYWZlCjIwMjYtMTEtMTAsU2hvcCwtMixleHRyYQo=",
+      "options": {
+        "hasHeaderRow": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "Date": "2026-11-09",
+            "Payee": "Cafe"
+          },
+          {
+            "Date": "2026-11-10",
+            "Payee": "Shop",
+            "Amount": "-2"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-trim-empty",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "015d0fc257650f57610b8b5c26df51098964daad08516bd31e9aae2302a3af50",
+      "bytes_base64": "RGF0ZSxQYXllZSxBbW91bnQKCiAyMDI2LTExLTA5ICwgQ2FmZSAsIC0xMi4zNCAK",
+      "options": {
+        "hasHeaderRow": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-quoted-edge-spaces",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "7c64c44121a819679e80e95b832ca1e0d3038d354d6f4683a45be7a43721e3c2",
+      "bytes_base64": "RGF0ZSxQYXllZSxBbW91bnQKMjAyNi0xMS0wOSwiIENhZmUgIiwtMTIuMzQK",
+      "options": {
+        "hasHeaderRow": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "Date": "2026-11-09",
+            "Payee": " Cafe ",
+            "Amount": "-12.34"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-quoted-header-spaces",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "7c5b8943fa935c29a9052ae94861f7c018bca07d2844dcc5f56ba3de35bd288e",
+      "bytes_base64": "IiBEYXRlICIsUGF5ZWUsQW1vdW50CjIwMjYtMTEtMDksIiBDYWZlICIsLTEyLjM0Cg==",
+      "options": {
+        "hasHeaderRow": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            " Date ": "2026-11-09",
+            "Payee": " Cafe ",
+            "Amount": "-12.34"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tsv-header",
+      "filename": "bank.tsv",
+      "source_file": null,
+      "sha256": "a4c6688c982d84ffe4fbf49264c2ddb138e9b09667900644508891bce26047a0",
+      "bytes_base64": "RGF0ZQlQYXllZQlBbW91bnQJTWVtbwoyMDI2LTExLTA5CUNhZsOpCS0xMi4zNAkicXVvdGVkCSBtZW1vIgo=",
+      "options": {
+        "hasHeaderRow": true,
+        "delimiter": "\t"
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "Date": "2026-11-09",
+            "Payee": "Café",
+            "Amount": "-12.34",
+            "Memo": "quoted\t memo"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-semicolon",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "eb7bf4df35cb175ac2b84f1a55666f7565a1bc2bab1e758253a5625984e345ff",
+      "bytes_base64": "RGF0ZTtQYXllZTtBbW91bnQKMjAyNi0xMS0wOTtDYWbDqTstMTIsMzQK",
+      "options": {
+        "hasHeaderRow": true,
+        "delimiter": ";"
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "Date": "2026-11-09",
+            "Payee": "Café",
+            "Amount": "-12,34"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-physical-skip",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "99ca2fbd7d5c07180a7feec7d26ce60f982ab45f589fda685bdea42825c5c772",
+      "bytes_base64": "YmFuayBoZWFkZXIKRGF0ZSxQYXllZSxBbW91bnQsTWVtbwoyMDI2LTExLTA5LENhZsOpLC0xMi4zNCwicXVvdGVkLCBtZW1vIgpmb290ZXIK",
+      "options": {
+        "hasHeaderRow": true,
+        "skipStartLines": 1,
+        "skipEndLines": 2
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "Date": "2026-11-09",
+            "Payee": "Café",
+            "Amount": "-12.34",
+            "Memo": "quoted, memo"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-skip-all",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "e3eb2d5b2e168cbd033abb1a09257e43ab232f465060aacd14223330875ab2f6",
+      "bytes_base64": "RGF0ZSxQYXllZSxBbW91bnQsTWVtbwoyMDI2LTExLTA5LENhZsOpLC0xMi4zNCwicXVvdGVkLCBtZW1vIgo=",
+      "options": {
+        "hasHeaderRow": true,
+        "skipStartLines": 100
+      },
+      "result": {
+        "errors": [
+          {
+            "message": "Cannot skip more lines than exist in the file",
+            "internal": "Attempted to skip 100 start + 0 end lines from 3 total lines"
+          }
+        ],
+        "transactions": []
+      }
+    },
+    {
+      "id": "csv-negative-skip",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "e3eb2d5b2e168cbd033abb1a09257e43ab232f465060aacd14223330875ab2f6",
+      "bytes_base64": "RGF0ZSxQYXllZSxBbW91bnQsTWVtbwoyMDI2LTExLTA5LENhZsOpLC0xMi4zNCwicXVvdGVkLCBtZW1vIgo=",
+      "options": {
+        "hasHeaderRow": true,
+        "skipStartLines": -1,
+        "skipEndLines": -2
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "Date": "2026-11-09",
+            "Payee": "Café",
+            "Amount": "-12.34",
+            "Memo": "quoted, memo"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-bad-quote",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "f2573c0c037fc074624835c5dab2bf999af209e23b655ffc4dbf207fed22b041",
+      "bytes_base64": "RGF0ZSxQYXllZSxBbW91bnQKMjAyNi0xMS0wOSwiQ2FmZSwtMTIuMzQK",
+      "options": {
+        "hasHeaderRow": true
+      },
+      "result": {
+        "errors": [
+          {
+            "message": "Failed parsing: Quote Not Closed: the parsing is finished with an opening quote at line 2",
+            "internal": "Quote Not Closed: the parsing is finished with an opening quote at line 2"
+          }
+        ],
+        "transactions": []
+      }
+    },
+    {
+      "id": "csv-bad-encoding",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "e3eb2d5b2e168cbd033abb1a09257e43ab232f465060aacd14223330875ab2f6",
+      "bytes_base64": "RGF0ZSxQYXllZSxBbW91bnQsTWVtbwoyMDI2LTExLTA5LENhZsOpLC0xMi4zNCwicXVvdGVkLCBtZW1vIgo=",
+      "options": {
+        "hasHeaderRow": true,
+        "encoding": "not-an-encoding"
+      },
+      "result": {
+        "errors": [
+          {
+            "message": "Failed parsing: The \"not-an-encoding\" encoding is not supported",
+            "internal": "The \"not-an-encoding\" encoding is not supported"
+          }
+        ],
+        "transactions": []
+      }
+    },
+    {
+      "id": "csv-utf8-bom",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "d65d452a1bb4aa42956b93cbca46a6b2e32673284834fb59af555dd670456c78",
+      "bytes_base64": "77u/RGF0ZSxQYXllZSxBbW91bnQsTWVtbwoyMDI2LTExLTA5LENhZsOpLC0xMi4zNCwicXVvdGVkLCBtZW1vIgo=",
+      "options": {
+        "hasHeaderRow": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "Date": "2026-11-09",
+            "Payee": "Café",
+            "Amount": "-12.34",
+            "Memo": "quoted, memo"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-utf16le-bom",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "9d2b7e3b423373ec1d65e6eb71f8824be781bb2755ac7154c83d37e70bd90df0",
+      "bytes_base64": "//5EAGEAdABlACwAUABhAHkAZQBlACwAQQBtAG8AdQBuAHQALABNAGUAbQBvAAoAMgAwADIANgAtADEAMQAtADAAOQAsAEMAYQBmAOkALAAtADEAMgAuADMANAAsACIAcQB1AG8AdABlAGQALAAgAG0AZQBtAG8AIgAKAA==",
+      "options": {
+        "hasHeaderRow": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "Date": "2026-11-09",
+            "Payee": "Café",
+            "Amount": "-12.34",
+            "Memo": "quoted, memo"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-utf16be-bom",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "06941dcde55f443829e4f8701331b93f50173191fdfa37db03fe519ab7d12c31",
+      "bytes_base64": "/v8ARABhAHQAZQAsAFAAYQB5AGUAZQAsAEEAbQBvAHUAbgB0ACwATQBlAG0AbwAKADIAMAAyADYALQAxADEALQAwADkALABDAGEAZgDpACwALQAxADIALgAzADQALAAiAHEAdQBvAHQAZQBkACwAIABtAGUAbQBvACIACg==",
+      "options": {
+        "hasHeaderRow": true
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "Date": "2026-11-09",
+            "Payee": "Café",
+            "Amount": "-12.34",
+            "Memo": "quoted, memo"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-explicit-utf16le",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "fd716379202c4d03c308565862605436273bb076ce0950d47f500ed36f257405",
+      "bytes_base64": "RABhAHQAZQAsAFAAYQB5AGUAZQAsAEEAbQBvAHUAbgB0ACwATQBlAG0AbwAKADIAMAAyADYALQAxADEALQAwADkALABDAGEAZgDpACwALQAxADIALgAzADQALAAiAHEAdQBvAHQAZQBkACwAIABtAGUAbQBvACIACgA=",
+      "options": {
+        "hasHeaderRow": true,
+        "encoding": "utf-16le"
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "Date": "2026-11-09",
+            "Payee": "Café",
+            "Amount": "-12.34",
+            "Memo": "quoted, memo"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-windows1252",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "3ac5a103488b6a0996039df289346f739ef2f22317b146b0a539ed5975a42410",
+      "bytes_base64": "RGF0ZSxQYXllZSxBbW91bnQsTWVtbwoyMDI2LTExLTA5LENhZukggCwtMTIuMzQsInF1b3RlZCwgbWVtbyIK",
+      "options": {
+        "hasHeaderRow": true,
+        "encoding": "windows-1252"
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "Date": "2026-11-09",
+            "Payee": "Café €",
+            "Amount": "-12.34",
+            "Memo": "quoted, memo"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-latin1-label",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "3ac5a103488b6a0996039df289346f739ef2f22317b146b0a539ed5975a42410",
+      "bytes_base64": "RGF0ZSxQYXllZSxBbW91bnQsTWVtbwoyMDI2LTExLTA5LENhZukggCwtMTIuMzQsInF1b3RlZCwgbWVtbyIK",
+      "options": {
+        "hasHeaderRow": true,
+        "encoding": "iso-8859-1"
+      },
+      "result": {
+        "errors": [],
+        "transactions": [
+          {
+            "Date": "2026-11-09",
+            "Payee": "Café €",
+            "Amount": "-12.34",
+            "Memo": "quoted, memo"
+          }
+        ]
+      }
+    },
+    {
+      "id": "csv-explicit-encoding-wins",
+      "filename": "bank.csv",
+      "source_file": null,
+      "sha256": "9d2b7e3b423373ec1d65e6eb71f8824be781bb2755ac7154c83d37e70bd90df0",
+      "bytes_base64": "//5EAGEAdABlACwAUABhAHkAZQBlACwAQQBtAG8AdQBuAHQALABNAGUAbQBvAAoAMgAwADIANgAtADEAMQAtADAAOQAsAEMAYQBmAOkALAAtADEAMgAuADMANAAsACIAcQB1AG8AdABlAGQALAAgAG0AZQBtAG8AIgAKAA==",
+      "options": {
+        "hasHeaderRow": true,
+        "encoding": "windows-1252"
+      },
+      "result": {
+        "errors": [
+          {
+            "message": "Failed parsing: Invalid Opening Quote: a quote is found on field \"\\u0000M\\u0000e\\u0000m\\u0000o\\u0000\" at line 2, value is \"\\u0000\"",
+            "internal": "Invalid Opening Quote: a quote is found on field \"\\u0000M\\u0000e\\u0000m\\u0000o\\u0000\" at line 2, value is \"\\u0000\""
+          }
+        ],
+        "transactions": []
+      }
+    },
+    {
+      "id": "malformed-ofx",
+      "filename": "bad.ofx",
+      "source_file": null,
+      "sha256": "5cf7ff802a696cb65b5a2a5e613c2bbdb41271b3d6fe72a9bfa97c18f60f8c05",
+      "bytes_base64": "dGhpcyBpcyBub3QgYSBmaW5hbmNpYWwgZmlsZQ==",
+      "options": {},
+      "result": {
+        "errors": [],
+        "transactions": []
+      }
+    },
+    {
+      "id": "malformed-qfx",
+      "filename": "bad.qfx",
+      "source_file": null,
+      "sha256": "5cf7ff802a696cb65b5a2a5e613c2bbdb41271b3d6fe72a9bfa97c18f60f8c05",
+      "bytes_base64": "dGhpcyBpcyBub3QgYSBmaW5hbmNpYWwgZmlsZQ==",
+      "options": {},
+      "result": {
+        "errors": [],
+        "transactions": []
+      }
+    },
+    {
+      "id": "malformed-qif",
+      "filename": "bad.qif",
+      "source_file": null,
+      "sha256": "5cf7ff802a696cb65b5a2a5e613c2bbdb41271b3d6fe72a9bfa97c18f60f8c05",
+      "bytes_base64": "dGhpcyBpcyBub3QgYSBmaW5hbmNpYWwgZmlsZQ==",
+      "options": {},
+      "result": {
+        "errors": [
+          {
+            "message": "Failed parsing: doesn't look like a valid QIF file.",
+            "internal": "Error: File does not appear to be a valid qif file: this is not a financial file"
+          }
+        ],
+        "transactions": []
+      }
+    },
+    {
+      "id": "malformed-xml",
+      "filename": "bad.xml",
+      "source_file": null,
+      "sha256": "5cf7ff802a696cb65b5a2a5e613c2bbdb41271b3d6fe72a9bfa97c18f60f8c05",
+      "bytes_base64": "dGhpcyBpcyBub3QgYSBmaW5hbmNpYWwgZmlsZQ==",
+      "options": {},
+      "result": {
+        "errors": [
+          {
+            "message": "Failed importing file",
+            "internal": "Error: Non-whitespace before first tag."
+          }
+        ]
+      }
+    },
+    {
+      "id": "malformed-txt",
+      "filename": "bad.txt",
+      "source_file": null,
+      "sha256": "5cf7ff802a696cb65b5a2a5e613c2bbdb41271b3d6fe72a9bfa97c18f60f8c05",
+      "bytes_base64": "dGhpcyBpcyBub3QgYSBmaW5hbmNpYWwgZmlsZQ==",
+      "options": {},
+      "result": {
+        "errors": [
+          {
+            "message": "Invalid file type",
+            "internal": ""
+          }
+        ],
+        "transactions": []
+      }
+    }
+  ]
+}

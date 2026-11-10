@@ -1,0 +1,5676 @@
+{
+  "oracle": "Actual 26.10.0 unchanged frontend import finalization",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "source_files": {
+    "packages/desktop-client/src/components/modals/ImportTransactionsModal/utils.ts": "fba1908a04fe623ae0944275c368452151679f66137593b3018d7a068f7150f8",
+    "packages/desktop-client/src/components/modals/ImportTransactionsModal/ImportTransactionsModal.tsx": "0cb7ceffde7e9426ce635d55842d544ff39664ff383174c8c1ae10fde6df2d88",
+    "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d"
+  },
+  "error_presentation": "Translation calls recorded as JSON key/args; no localization logic asserted.",
+  "cases": [
+    {
+      "id": "mapped-csv",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "date-yyyy mm dd",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "20261109",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "date-yy mm dd",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "26/11/09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "date-mm dd yyyy",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "mm dd yyyy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "11/09/2026",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "date-mm dd yy",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "mm dd yy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "11/09/26",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "date-dd mm yyyy",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "dd mm yyyy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "09/11/2026",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "date-dd mm yy",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "dd mm yy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "09/11/26",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "date-english-month",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "dd mm yyyy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "9 November 2026",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "date-invalid",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "dd mm yyyy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "31/02/2026",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [],
+        "error": "{\"key\":\"Unable to parse date {{date}} with given date format\",\"args\":{\"date\":\"31/02/2026\"}}"
+      }
+    },
+    {
+      "id": "date-leap-valid",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "dd mm yyyy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "29/02/2024",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2024-02-29",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "date-leap-invalid",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "dd mm yyyy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "29/02/2025",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [],
+        "error": "{\"key\":\"Unable to parse date {{date}} with given date format\",\"args\":{\"date\":\"29/02/2025\"}}"
+      }
+    },
+    {
+      "id": "date-empty",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "dd mm yyyy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [],
+        "error": "{\"key\":\"Unable to parse date {{date}} with given date format\",\"args\":{\"date\":\"{\\\"key\\\":\\\"(empty)\\\",\\\"args\\\":{}}\"}}"
+      }
+    },
+    {
+      "id": "date-extra-groups",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "dd mm yyyy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "09/11/2026 12:34",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "amount-positive",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "amount-negative-half",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-1.005",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -100500,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "amount-positive-half",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "1.005",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 100500,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "amount-negative-exact-half",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-1.1250",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -112,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "amount-positive-exact-half",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "1.1250",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 113,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "amount-extra-precision",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "12.3456",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 1235,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "amount-comma",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "12,34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "amount-thousands",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "1,234.56",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 123456,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "amount-currency",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "$ 12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "amount-invalid",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "word",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 0,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "amount-empty",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 0,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "amount-zero",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "0",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 0,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "amount-missing",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": null,
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 0,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "multiplier-2",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "2",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -2468,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "multiplier-0",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "0",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "multiplier--1",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "-1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "multiplier-0.125",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "0.125",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -154,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "multiplier-bad",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "bad",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "multiplier-2tail",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "2tail",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -2468,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "flip",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": true,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "flip-multiplier",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": true,
+        "multiplierAmount": "2",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 2468,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "split-both",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": true,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food",
+            "Out": "12.34",
+            "In": "50.00"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "split-inflow",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": true,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food",
+            "Out": "",
+            "In": "50.00"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 5000,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "split-negative-out",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": true,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food",
+            "Out": "-12.34",
+            "In": "50.00"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "direction-out",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": true,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "12.34",
+            "Memo": "Import note",
+            "Category": "Food",
+            "Direction": "Debit"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "direction-case-sensitive",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": true,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "12.34",
+            "Memo": "Import note",
+            "Category": "Food",
+            "Direction": "debit"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "direction-negative",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": true,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food",
+            "Direction": "Credit"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "category-case-sensitive",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "category-no-creation",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Unknown"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "category-id-not-name",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "25260000-0000-4000-8000-000000000003"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "no-notes",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": false,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": null,
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "not-cleared",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": false,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": false
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "unselected",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": false,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [],
+        "error": null
+      }
+    },
+    {
+      "id": "unselected-reconcile-disabled",
+      "input": {
+        "reconcile": false,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": false,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "matched-display-row",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food",
+            "isMatchedTransaction": true
+          }
+        ]
+      },
+      "result": {
+        "transactions": [],
+        "error": null
+      }
+    },
+    {
+      "id": "force-add-existing",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": false,
+            "existing": true,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "forceAddTransaction": true,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "force-add-ignored",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": true,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "forceAddTransaction": true,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "invalid-second-row",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "bad",
+            "Payee": "Cafe",
+            "Amount": "-12.34",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -1234,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": "{\"key\":\"Unable to parse date {{date}} with given date format\",\"args\":{\"date\":\"bad\"}}"
+      }
+    },
+    {
+      "id": "format-data.ofx",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "ofx",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -30,
+            "imported_id": "00092990122-30.00019012312798.01",
+            "date": "2019-01-23",
+            "payee_name": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "imported_payee": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -3.77,
+            "imported_id": "00092990121-3.77019012312828.01",
+            "date": "2019-01-23",
+            "payee_name": "STARBUCKS STORE 07604 01/21 PURC",
+            "imported_payee": "STARBUCKS STORE 07604 01/21 PURC",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "2",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -9.62,
+            "imported_id": "00092990121-9.62019012312831.78",
+            "date": "2019-01-23",
+            "payee_name": "STARBUCKS STORE 07604 01/21 PURC",
+            "imported_payee": "STARBUCKS STORE 07604 01/21 PURC",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "3",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -115.99,
+            "imported_id": "00090231800-115.99019012212841.40",
+            "date": "2019-01-22",
+            "payee_name": "VERIZON DES:PAYMENTREC ID:XXXXX3",
+            "imported_payee": "VERIZON DES:PAYMENTREC ID:XXXXX3",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "4",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -10.34,
+            "imported_id": "00092990120-10.34019012212957.39",
+            "date": "2019-01-22",
+            "payee_name": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "imported_payee": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "5",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -22.53,
+            "imported_id": "00092990120-22.53019012212967.73",
+            "date": "2019-01-22",
+            "payee_name": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "imported_payee": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "6",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -108.71,
+            "imported_id": "00092990119-108.71019012212990.26",
+            "date": "2019-01-22",
+            "payee_name": "TMOBILE*AUTO PAY 01/19 PURCHASE",
+            "imported_payee": "TMOBILE*AUTO PAY 01/19 PURCHASE",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "7",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -25,
+            "imported_id": "00092990118-25.00019012213098.97",
+            "date": "2019-01-22",
+            "payee_name": "COUNTY WASTE 01/18 PURCHASE 804-",
+            "imported_payee": "COUNTY WASTE 01/18 PURCHASE 804-",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "8",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -32.38,
+            "imported_id": "00092990118-32.38019012213123.97",
+            "date": "2019-01-22",
+            "payee_name": "REGENCY MART CITGO 01/18 PURCHAS",
+            "imported_payee": "REGENCY MART CITGO 01/18 PURCHAS",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "9",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -6.07,
+            "imported_id": "00092990117-6.07019012213156.35",
+            "date": "2019-01-22",
+            "payee_name": "CHICK-FIL-A #01342 01/17 PURCHAS",
+            "imported_payee": "CHICK-FIL-A #01342 01/17 PURCHAS",
+            "notes": null,
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -3000,
+            "imported_id": "00092990122-30.00019012312798.01",
+            "date": "2019-01-23",
+            "payee_name": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "imported_payee": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -377,
+            "imported_id": "00092990121-3.77019012312828.01",
+            "date": "2019-01-23",
+            "payee_name": "STARBUCKS STORE 07604 01/21 PURC",
+            "imported_payee": "STARBUCKS STORE 07604 01/21 PURC",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -962,
+            "imported_id": "00092990121-9.62019012312831.78",
+            "date": "2019-01-23",
+            "payee_name": "STARBUCKS STORE 07604 01/21 PURC",
+            "imported_payee": "STARBUCKS STORE 07604 01/21 PURC",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -11599,
+            "imported_id": "00090231800-115.99019012212841.40",
+            "date": "2019-01-22",
+            "payee_name": "VERIZON DES:PAYMENTREC ID:XXXXX3",
+            "imported_payee": "VERIZON DES:PAYMENTREC ID:XXXXX3",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -1034,
+            "imported_id": "00092990120-10.34019012212957.39",
+            "date": "2019-01-22",
+            "payee_name": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "imported_payee": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -2253,
+            "imported_id": "00092990120-22.53019012212967.73",
+            "date": "2019-01-22",
+            "payee_name": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "imported_payee": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -10871,
+            "imported_id": "00092990119-108.71019012212990.26",
+            "date": "2019-01-22",
+            "payee_name": "TMOBILE*AUTO PAY 01/19 PURCHASE",
+            "imported_payee": "TMOBILE*AUTO PAY 01/19 PURCHASE",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -2500,
+            "imported_id": "00092990118-25.00019012213098.97",
+            "date": "2019-01-22",
+            "payee_name": "COUNTY WASTE 01/18 PURCHASE 804-",
+            "imported_payee": "COUNTY WASTE 01/18 PURCHASE 804-",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -3238,
+            "imported_id": "00092990118-32.38019012213123.97",
+            "date": "2019-01-22",
+            "payee_name": "REGENCY MART CITGO 01/18 PURCHAS",
+            "imported_payee": "REGENCY MART CITGO 01/18 PURCHAS",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -607,
+            "imported_id": "00092990117-6.07019012213156.35",
+            "date": "2019-01-22",
+            "payee_name": "CHICK-FIL-A #01342 01/17 PURCHAS",
+            "imported_payee": "CHICK-FIL-A #01342 01/17 PURCHAS",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-data.qfx",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "qfx",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -30,
+            "imported_id": "00092990122-30.00019012312798.01",
+            "date": "2019-01-23",
+            "payee_name": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "imported_payee": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -3.77,
+            "imported_id": "00092990121-3.77019012312828.01",
+            "date": "2019-01-23",
+            "payee_name": "STARBUCKS STORE 07604 01/21 PURC",
+            "imported_payee": "STARBUCKS STORE 07604 01/21 PURC",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "2",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -9.62,
+            "imported_id": "00092990121-9.62019012312831.78",
+            "date": "2019-01-23",
+            "payee_name": "STARBUCKS STORE 07604 01/21 PURC",
+            "imported_payee": "STARBUCKS STORE 07604 01/21 PURC",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "3",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -115.99,
+            "imported_id": "00090231800-115.99019012212841.40",
+            "date": "2019-01-22",
+            "payee_name": "VERIZON DES:PAYMENTREC ID:XXXXX3",
+            "imported_payee": "VERIZON DES:PAYMENTREC ID:XXXXX3",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "4",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -10.34,
+            "imported_id": "00092990120-10.34019012212957.39",
+            "date": "2019-01-22",
+            "payee_name": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "imported_payee": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "5",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -22.53,
+            "imported_id": "00092990120-22.53019012212967.73",
+            "date": "2019-01-22",
+            "payee_name": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "imported_payee": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "6",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -108.71,
+            "imported_id": "00092990119-108.71019012212990.26",
+            "date": "2019-01-22",
+            "payee_name": "TMOBILE*AUTO PAY 01/19 PURCHASE",
+            "imported_payee": "TMOBILE*AUTO PAY 01/19 PURCHASE",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "7",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -25,
+            "imported_id": "00092990118-25.00019012213098.97",
+            "date": "2019-01-22",
+            "payee_name": "COUNTY WASTE 01/18 PURCHASE 804-",
+            "imported_payee": "COUNTY WASTE 01/18 PURCHASE 804-",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "8",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -32.38,
+            "imported_id": "00092990118-32.38019012213123.97",
+            "date": "2019-01-22",
+            "payee_name": "REGENCY MART CITGO 01/18 PURCHAS",
+            "imported_payee": "REGENCY MART CITGO 01/18 PURCHAS",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "9",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -6.07,
+            "imported_id": "00092990117-6.07019012213156.35",
+            "date": "2019-01-22",
+            "payee_name": "CHICK-FIL-A #01342 01/17 PURCHAS",
+            "imported_payee": "CHICK-FIL-A #01342 01/17 PURCHAS",
+            "notes": null,
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -3000,
+            "imported_id": "00092990122-30.00019012312798.01",
+            "date": "2019-01-23",
+            "payee_name": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "imported_payee": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -377,
+            "imported_id": "00092990121-3.77019012312828.01",
+            "date": "2019-01-23",
+            "payee_name": "STARBUCKS STORE 07604 01/21 PURC",
+            "imported_payee": "STARBUCKS STORE 07604 01/21 PURC",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -962,
+            "imported_id": "00092990121-9.62019012312831.78",
+            "date": "2019-01-23",
+            "payee_name": "STARBUCKS STORE 07604 01/21 PURC",
+            "imported_payee": "STARBUCKS STORE 07604 01/21 PURC",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -11599,
+            "imported_id": "00090231800-115.99019012212841.40",
+            "date": "2019-01-22",
+            "payee_name": "VERIZON DES:PAYMENTREC ID:XXXXX3",
+            "imported_payee": "VERIZON DES:PAYMENTREC ID:XXXXX3",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -1034,
+            "imported_id": "00092990120-10.34019012212957.39",
+            "date": "2019-01-22",
+            "payee_name": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "imported_payee": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -2253,
+            "imported_id": "00092990120-22.53019012212967.73",
+            "date": "2019-01-22",
+            "payee_name": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "imported_payee": "URBAN FARMHOUSE NO 2 01/19 PURCH",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -10871,
+            "imported_id": "00092990119-108.71019012212990.26",
+            "date": "2019-01-22",
+            "payee_name": "TMOBILE*AUTO PAY 01/19 PURCHASE",
+            "imported_payee": "TMOBILE*AUTO PAY 01/19 PURCHASE",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -2500,
+            "imported_id": "00092990118-25.00019012213098.97",
+            "date": "2019-01-22",
+            "payee_name": "COUNTY WASTE 01/18 PURCHASE 804-",
+            "imported_payee": "COUNTY WASTE 01/18 PURCHASE 804-",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -3238,
+            "imported_id": "00092990118-32.38019012213123.97",
+            "date": "2019-01-22",
+            "payee_name": "REGENCY MART CITGO 01/18 PURCHAS",
+            "imported_payee": "REGENCY MART CITGO 01/18 PURCHAS",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -607,
+            "imported_id": "00092990117-6.07019012213156.35",
+            "date": "2019-01-22",
+            "payee_name": "CHICK-FIL-A #01342 01/17 PURCHAS",
+            "imported_payee": "CHICK-FIL-A #01342 01/17 PURCHAS",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-credit-card.ofx",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "ofx",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -6,
+            "imported_id": "57f91dca-0460-4692-be90-84165b7002",
+            "date": "2023-03-30",
+            "payee_name": "LOUISIANA STATE MUSEUM751 PLACE JOHN PAUL NEW ORLEANS 70116-3205LA USA",
+            "imported_payee": "LOUISIANA STATE MUSEUM751 PLACE JOHN PAUL NEW ORLEANS 70116-3205LA USA",
+            "notes": null,
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -600,
+            "imported_id": "57f91dca-0460-4692-be90-84165b7002",
+            "date": "2023-03-30",
+            "payee_name": "LOUISIANA STATE MUSEUM751 PLACE JOHN PAUL NEW ORLEANS 70116-3205LA USA",
+            "imported_payee": "LOUISIANA STATE MUSEUM751 PLACE JOHN PAUL NEW ORLEANS 70116-3205LA USA",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-data-multi-decimal.ofx",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "ofx",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -30,
+            "imported_id": "00092990122-30.00019012312798.01",
+            "date": "2019-01-23",
+            "payee_name": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "imported_payee": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -3.77,
+            "imported_id": "00092990121-3.77019012312828.01",
+            "date": "2019-01-23",
+            "payee_name": "STARBUCKS STORE 07604 01/21 PURC",
+            "imported_payee": "STARBUCKS STORE 07604 01/21 PURC",
+            "notes": null,
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -3000,
+            "imported_id": "00092990122-30.00019012312798.01",
+            "date": "2019-01-23",
+            "payee_name": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "imported_payee": "PATIENT FIRST TOKEN 01/22 PURCHA",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -377,
+            "imported_id": "00092990121-3.77019012312828.01",
+            "date": "2019-01-23",
+            "payee_name": "STARBUCKS STORE 07604 01/21 PURC",
+            "imported_payee": "STARBUCKS STORE 07604 01/21 PURC",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-data-payee-memo.ofx",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "ofx",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -10,
+            "imported_id": "test-name-and-memo",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": "Memo Text",
+            "category": null
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -20,
+            "imported_id": "test-name-only",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "2",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -30,
+            "imported_id": "test-memo-only",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": "Memo Only Text",
+            "category": null
+          },
+          {
+            "trx_id": "3",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -40,
+            "imported_id": "test-neither",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -1000,
+            "imported_id": "test-name-and-memo",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": "Memo Text",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -2000,
+            "imported_id": "test-name-only",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -3000,
+            "imported_id": "test-memo-only",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": "Memo Only Text",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -4000,
+            "imported_id": "test-neither",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-data-payee-memo.ofx-swap",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "ofx",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -10,
+            "imported_id": "test-name-and-memo",
+            "date": "2019-01-23",
+            "payee_name": "Memo Text",
+            "imported_payee": "Memo Text",
+            "notes": "Payee Name",
+            "category": null
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -20,
+            "imported_id": "test-name-only",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": "Payee Name Only",
+            "category": null
+          },
+          {
+            "trx_id": "2",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -30,
+            "imported_id": "test-memo-only",
+            "date": "2019-01-23",
+            "payee_name": "Memo Only Text",
+            "imported_payee": "Memo Only Text",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "3",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -40,
+            "imported_id": "test-neither",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -1000,
+            "imported_id": "test-name-and-memo",
+            "date": "2019-01-23",
+            "payee_name": "Memo Text",
+            "imported_payee": "Memo Text",
+            "notes": "Payee Name",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -2000,
+            "imported_id": "test-name-only",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": "Payee Name Only",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -3000,
+            "imported_id": "test-memo-only",
+            "date": "2019-01-23",
+            "payee_name": "Memo Only Text",
+            "imported_payee": "Memo Only Text",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -4000,
+            "imported_id": "test-neither",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-data-payee-memo.ofx-no-notes",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "ofx",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": false,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -10,
+            "imported_id": "test-name-and-memo",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -20,
+            "imported_id": "test-name-only",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "2",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -30,
+            "imported_id": "test-memo-only",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "3",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -40,
+            "imported_id": "test-neither",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -1000,
+            "imported_id": "test-name-and-memo",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -2000,
+            "imported_id": "test-name-only",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -3000,
+            "imported_id": "test-memo-only",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -4000,
+            "imported_id": "test-neither",
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-data-payee-memo.ofx-fallback",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "ofx",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -10,
+            "imported_id": "test-name-and-memo",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": "Memo Text",
+            "category": null
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -20,
+            "imported_id": "test-name-only",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "2",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -30,
+            "imported_id": "test-memo-only",
+            "date": "2019-01-23",
+            "payee_name": "Memo Only Text",
+            "imported_payee": "Memo Only Text",
+            "notes": null,
+            "category": null
+          },
+          {
+            "trx_id": "3",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -40,
+            "imported_id": "test-neither",
+            "date": "2019-01-23",
+            "notes": null,
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -1000,
+            "imported_id": "test-name-and-memo",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": "Memo Text",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -2000,
+            "imported_id": "test-name-only",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -3000,
+            "imported_id": "test-memo-only",
+            "date": "2019-01-23",
+            "payee_name": "Memo Only Text",
+            "imported_payee": "Memo Only Text",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -4000,
+            "imported_id": "test-neither",
+            "date": "2019-01-23",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-data.qif",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "qif",
+        "parseDateFormat": "mm dd yyyy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -25,
+            "date": "12/19/18",
+            "payee_name": "COUNTY WASTE 12/18 PURCHASE 804-8439288 VA",
+            "imported_payee": "COUNTY WASTE 12/18 PURCHASE 804-8439288 VA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -45,
+            "date": "12/19/18",
+            "payee_name": "õSSELDORF KÖLN SALON - LIBBIE GR 12/18 PURCHASE RICHMOND VA",
+            "imported_payee": "õSSELDORF KÖLN SALON - LIBBIE GR 12/18 PURCHASE RICHMOND VA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "2",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -31.33,
+            "date": "12/19/18",
+            "payee_name": "LOFT 0845 CHES 12/19 PURCHASE RICHMOND VA",
+            "imported_payee": "LOFT 0845 CHES 12/19 PURCHASE RICHMOND VA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "3",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -6.31,
+            "date": "12/19/18",
+            "payee_name": "TARGET T- 1130 12/19 PURCHASE Richmond VA",
+            "imported_payee": "TARGET T- 1130 12/19 PURCHASE Richmond VA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "4",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -41.92,
+            "date": "12/19/18",
+            "payee_name": "TARGET DEBIT CRD ACH TRAN CO ID:XXXXX15170 POS TARGET -1018 RICHMOND V",
+            "imported_payee": "TARGET DEBIT CRD ACH TRAN CO ID:XXXXX15170 POS TARGET -1018 RICHMOND V",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "5",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -24.01,
+            "date": "12/19/18",
+            "payee_name": "TARGET DEBIT CRD DES:ACH TRAN ID:XXXXX0370723991 INDN:S LONG 9321 CO I",
+            "imported_payee": "TARGET DEBIT CRD DES:ACH TRAN ID:XXXXX0370723991 INDN:S LONG 9321 CO I",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "6",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -12,
+            "date": "12/19/18",
+            "payee_name": "TARGET DEBIT CRD DES:ACH TRAN ID:XXXXX0370723991 INDN:S LONG 9703 CO I",
+            "imported_payee": "TARGET DEBIT CRD DES:ACH TRAN ID:XXXXX0370723991 INDN:S LONG 9703 CO I",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "7",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": 874.85,
+            "date": "12/20/18",
+            "payee_name": "BKOFAMERICA MOBILE 12/20 3705340250 DEPOSIT *MOBILE VA",
+            "imported_payee": "BKOFAMERICA MOBILE 12/20 3705340250 DEPOSIT *MOBILE VA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "8",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -12.63,
+            "date": "12/20/18",
+            "payee_name": "AMAZON.COM*M21KD0HA0 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "imported_payee": "AMAZON.COM*M21KD0HA0 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "9",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -36,
+            "date": "12/20/18",
+            "payee_name": "TARGET DEBIT CRD DES:ACH TRAN ID:XXXXX0370723991 INDN:S LONG 6486 CO I",
+            "imported_payee": "TARGET DEBIT CRD DES:ACH TRAN ID:XXXXX0370723991 INDN:S LONG 6486 CO I",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "10",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -5.21,
+            "date": "12/21/18",
+            "payee_name": "STARBUCKS STORE 07604 12/19 PURCHASE RICHMOND VA",
+            "imported_payee": "STARBUCKS STORE 07604 12/19 PURCHASE RICHMOND VA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "11",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -34.7,
+            "date": "12/21/18",
+            "payee_name": "AMAZON.COM*M236431E2 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "imported_payee": "AMAZON.COM*M236431E2 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "12",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -5.41,
+            "date": "12/21/18",
+            "payee_name": "STARBUCKS STORE 07604 12/19 PURCHASE RICHMOND VA",
+            "imported_payee": "STARBUCKS STORE 07604 12/19 PURCHASE RICHMOND VA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "13",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -105.29,
+            "date": "12/21/18",
+            "payee_name": "AMAZON.COM*M208P98U1 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "imported_payee": "AMAZON.COM*M208P98U1 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "14",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -7.36,
+            "date": "12/21/18",
+            "payee_name": "AMAZON.COM*M29QF7M71 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "imported_payee": "AMAZON.COM*M29QF7M71 AM 12/19 PURCHASE AMZN.COM/BILL WA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "15",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -12.85,
+            "date": "12/21/18",
+            "payee_name": "AMAZON.COM*M20VB1851 AM 12/20 PURCHASE AMZN.COM/BILL WA",
+            "imported_payee": "AMAZON.COM*M20VB1851 AM 12/20 PURCHASE AMZN.COM/BILL WA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "16",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -12.99,
+            "date": "12/21/18",
+            "payee_name": "AMZN MKTP US*M27HH51C2 12/20 PURCHASE AMZN.COM/BILL WA",
+            "imported_payee": "AMZN MKTP US*M27HH51C2 12/20 PURCHASE AMZN.COM/BILL WA",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "17",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -62.78,
+            "date": "12/21/18",
+            "payee_name": "CVS/PHARM 0154 12/21 PURCHASE RICHMOND VA",
+            "imported_payee": "CVS/PHARM 0154 12/21 PURCHASE RICHMOND VA",
+            "category": null,
+            "notes": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [],
+        "error": "{\"key\":\"Unable to parse date {{date}} with given date format\",\"args\":{\"date\":\"12/19/18\"}}"
+      }
+    },
+    {
+      "id": "format-data-payee-memo.qif",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "qif",
+        "parseDateFormat": "mm dd yyyy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -10,
+            "date": "01/23/2019",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "category": null,
+            "notes": "Note Text"
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -20,
+            "date": "01/23/2019",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "2",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -30,
+            "date": "01/23/2019",
+            "payee_name": null,
+            "imported_payee": null,
+            "category": null,
+            "notes": "Note Only Text"
+          },
+          {
+            "trx_id": "3",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -40,
+            "date": "01/23/2019",
+            "payee_name": null,
+            "imported_payee": null,
+            "category": null,
+            "notes": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -1000,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "category": null,
+            "notes": "Note Text",
+            "cleared": true
+          },
+          {
+            "amount": -2000,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "category": null,
+            "notes": null,
+            "cleared": true
+          },
+          {
+            "amount": -3000,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "category": null,
+            "notes": "Note Only Text",
+            "cleared": true
+          },
+          {
+            "amount": -4000,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "category": null,
+            "notes": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-data-payee-memo.qif-swap",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "qif",
+        "parseDateFormat": "mm dd yyyy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -10,
+            "date": "01/23/2019",
+            "payee_name": "Note Text",
+            "imported_payee": "Note Text",
+            "category": null,
+            "notes": "Payee Name"
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -20,
+            "date": "01/23/2019",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "2",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -30,
+            "date": "01/23/2019",
+            "payee_name": "Note Only Text",
+            "imported_payee": "Note Only Text",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "3",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -40,
+            "date": "01/23/2019",
+            "category": null,
+            "notes": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -1000,
+            "date": "2019-01-23",
+            "payee_name": "Note Text",
+            "imported_payee": "Note Text",
+            "category": null,
+            "notes": "Payee Name",
+            "cleared": true
+          },
+          {
+            "amount": -2000,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "category": null,
+            "notes": null,
+            "cleared": true
+          },
+          {
+            "amount": -3000,
+            "date": "2019-01-23",
+            "payee_name": "Note Only Text",
+            "imported_payee": "Note Only Text",
+            "category": null,
+            "notes": null,
+            "cleared": true
+          },
+          {
+            "amount": -4000,
+            "date": "2019-01-23",
+            "category": null,
+            "notes": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-data-payee-memo.qif-no-notes",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "qif",
+        "parseDateFormat": "mm dd yyyy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": false,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -10,
+            "date": "01/23/2019",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -20,
+            "date": "01/23/2019",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "2",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -30,
+            "date": "01/23/2019",
+            "payee_name": null,
+            "imported_payee": null,
+            "category": null,
+            "notes": null
+          },
+          {
+            "trx_id": "3",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -40,
+            "date": "01/23/2019",
+            "payee_name": null,
+            "imported_payee": null,
+            "category": null,
+            "notes": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -1000,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "category": null,
+            "notes": null,
+            "cleared": true
+          },
+          {
+            "amount": -2000,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "category": null,
+            "notes": null,
+            "cleared": true
+          },
+          {
+            "amount": -3000,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "category": null,
+            "notes": null,
+            "cleared": true
+          },
+          {
+            "amount": -4000,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "category": null,
+            "notes": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-qif-category.qif",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "qif",
+        "parseDateFormat": "mm dd yyyy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -100.58,
+            "date": "6/24/2024",
+            "payee_name": "Outlet",
+            "imported_payee": "Outlet",
+            "category": null,
+            "notes": "Pay Designer Outlet"
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -20.15,
+            "date": "6/23/2024",
+            "payee_name": "GroceriesYou",
+            "imported_payee": "GroceriesYou",
+            "category": null,
+            "notes": "Pay Groceries"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -10058,
+            "date": "2024-06-24",
+            "payee_name": "Outlet",
+            "imported_payee": "Outlet",
+            "category": null,
+            "notes": "Pay Designer Outlet",
+            "cleared": true
+          },
+          {
+            "amount": -2015,
+            "date": "2024-06-23",
+            "payee_name": "GroceriesYou",
+            "imported_payee": "GroceriesYou",
+            "category": null,
+            "notes": "Pay Groceries",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-8859-1.qfx",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "qfx",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -20,
+            "imported_id": "wSoKuCS77",
+            "date": "2022-10-19",
+            "payee_name": "Paiement facture/Carte prépayée",
+            "imported_payee": "Paiement facture/Carte prépayée",
+            "notes": "Mémo test: àÀçéÉèêëôû",
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -2000,
+            "imported_id": "wSoKuCS77",
+            "date": "2022-10-19",
+            "payee_name": "Paiement facture/Carte prépayée",
+            "imported_payee": "Paiement facture/Carte prépayée",
+            "notes": "Mémo test: àÀçéÉèêëôû",
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-1252.qfx",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "qfx",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -20,
+            "imported_id": "cafe1252xx",
+            "date": "2022-10-19",
+            "payee_name": "Café Métro €uro",
+            "imported_payee": "Café Métro €uro",
+            "notes": "Paiement 5€ — débit",
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -2000,
+            "imported_id": "cafe1252xx",
+            "date": "2022-10-19",
+            "payee_name": "Café Métro €uro",
+            "imported_payee": "Café Métro €uro",
+            "notes": "Paiement 5€ — débit",
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-utf-8.qfx",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "qfx",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -20,
+            "imported_id": "cafeUtf8xx",
+            "date": "2022-10-19",
+            "payee_name": "Café Métro €uro",
+            "imported_payee": "Café Métro €uro",
+            "notes": "Paiement 5€ — débit",
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -2000,
+            "imported_id": "cafeUtf8xx",
+            "date": "2022-10-19",
+            "payee_name": "Café Métro €uro",
+            "imported_payee": "Café Métro €uro",
+            "notes": "Paiement 5€ — débit",
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-html-vals.qfx",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "qfx",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -1,
+            "imported_id": "23129130032333396279270000",
+            "date": "2023-05-09",
+            "payee_name": "000000000000000",
+            "imported_payee": "000000000000000",
+            "notes": "PREAUTHORIZED DEBIT;B.C. HYDRO & POWER AUTHORITY;Electronic Funds Transfer",
+            "category": null
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -1,
+            "imported_id": "23060061032549554596530000",
+            "date": "2023-03-01",
+            "payee_name": "TPAY &lt;DEFTPYMT&gt;",
+            "imported_payee": "TPAY &lt;DEFTPYMT&gt;",
+            "notes": "PREAUTHORIZED DEBIT;LUXMORE REALTY PPTY MGMT;Electronic Funds Transfer",
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -100,
+            "imported_id": "23129130032333396279270000",
+            "date": "2023-05-09",
+            "payee_name": "000000000000000",
+            "imported_payee": "000000000000000",
+            "notes": "PREAUTHORIZED DEBIT;B.C. HYDRO & POWER AUTHORITY;Electronic Funds Transfer",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -100,
+            "imported_id": "23060061032549554596530000",
+            "date": "2023-03-01",
+            "payee_name": "TPAY &lt;DEFTPYMT&gt;",
+            "imported_payee": "TPAY &lt;DEFTPYMT&gt;",
+            "notes": "PREAUTHORIZED DEBIT;LUXMORE REALTY PPTY MGMT;Electronic Funds Transfer",
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-camt/camt.053.xml",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "xml",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": 0.6,
+            "date": "2013-12-30",
+            "payee_name": "Testkonto Nummer 2",
+            "imported_payee": "Testkonto Nummer 2",
+            "notes": "Sammler aus Testknto 2 Zweite Ueberweisung EREF:\n                                STZV-EtE28122013-11:29-1 IBAN: DE58740618130100033626 BIC:\n                                GENODEF1PFK ABWE: Testkonto 1",
+            "imported_id": "2013123001153870000",
+            "category": null
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": 0.5,
+            "date": "2013-12-30",
+            "payee_name": "Testkonto Nummer 2",
+            "imported_payee": "Testkonto Nummer 2",
+            "notes": "Sammler aus Testkonto 2 Erste Ueberweisung EREF:\n                                STZV-EtE28122013-11:29-2 IBAN: DE58740618130100033626 BIC:\n                                GENODEF1PFK ABWE: Testkonto 1",
+            "imported_id": "2013123001153870001",
+            "category": null
+          },
+          {
+            "trx_id": "2",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -89.85,
+            "date": "2024-03-11",
+            "payee_name": "Supermarkt A",
+            "imported_payee": "Supermarkt A",
+            "notes": null,
+            "imported_id": "640387810124072/2",
+            "category": null
+          },
+          {
+            "trx_id": "3",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": 1.2,
+            "date": "2014-01-05",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": "Retoure SEPA Lastschrift vom 03.01.2014, Rueckgabegrund: MD06\n                                Lastschriftwiderspruch durch den Zahlungspflichtigen EREF:\n                                STZV-EtE27122013-11 :05-2 CRED: DE79ZZZ00000000584 IBAN: DE14740618130000033626 BIC:\n                                GENODEF1PFK ABWE: Testkonto",
+            "imported_id": "2014010509572410000",
+            "category": null
+          },
+          {
+            "trx_id": "4",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -80,
+            "date": "2024-03-12",
+            "payee_name": "Rega",
+            "imported_payee": "Rega",
+            "notes": null,
+            "imported_id": "367406715024072/1",
+            "category": null
+          },
+          {
+            "trx_id": "5",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": 2.25,
+            "date": "2014-01-03",
+            "payee_name": "Testkonto Nummer 2",
+            "imported_payee": "Testkonto Nummer 2",
+            "notes": "Lastschrift 2. Zahlung TAN:747216 ",
+            "category": null
+          },
+          {
+            "trx_id": "6",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": 1.2,
+            "date": "2014-01-03",
+            "payee_name": "Testkonto Nummer 2",
+            "imported_payee": "Testkonto Nummer 2",
+            "notes": "Lastschrift 1. Zahlung TAN:747216 ",
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": 60,
+            "date": "2013-12-30",
+            "payee_name": "Testkonto Nummer 2",
+            "imported_payee": "Testkonto Nummer 2",
+            "notes": "Sammler aus Testknto 2 Zweite Ueberweisung EREF:\n                                STZV-EtE28122013-11:29-1 IBAN: DE58740618130100033626 BIC:\n                                GENODEF1PFK ABWE: Testkonto 1",
+            "imported_id": "2013123001153870000",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": 50,
+            "date": "2013-12-30",
+            "payee_name": "Testkonto Nummer 2",
+            "imported_payee": "Testkonto Nummer 2",
+            "notes": "Sammler aus Testkonto 2 Erste Ueberweisung EREF:\n                                STZV-EtE28122013-11:29-2 IBAN: DE58740618130100033626 BIC:\n                                GENODEF1PFK ABWE: Testkonto 1",
+            "imported_id": "2013123001153870001",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -8985,
+            "date": "2024-03-11",
+            "payee_name": "Supermarkt A",
+            "imported_payee": "Supermarkt A",
+            "notes": null,
+            "imported_id": "640387810124072/2",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": 120,
+            "date": "2014-01-05",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": "Retoure SEPA Lastschrift vom 03.01.2014, Rueckgabegrund: MD06\n                                Lastschriftwiderspruch durch den Zahlungspflichtigen EREF:\n                                STZV-EtE27122013-11 :05-2 CRED: DE79ZZZ00000000584 IBAN: DE14740618130000033626 BIC:\n                                GENODEF1PFK ABWE: Testkonto",
+            "imported_id": "2014010509572410000",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -8000,
+            "date": "2024-03-12",
+            "payee_name": "Rega",
+            "imported_payee": "Rega",
+            "notes": null,
+            "imported_id": "367406715024072/1",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": 225,
+            "date": "2014-01-03",
+            "payee_name": "Testkonto Nummer 2",
+            "imported_payee": "Testkonto Nummer 2",
+            "notes": "Lastschrift 2. Zahlung TAN:747216 ",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": 120,
+            "date": "2014-01-03",
+            "payee_name": "Testkonto Nummer 2",
+            "imported_payee": "Testkonto Nummer 2",
+            "notes": "Lastschrift 1. Zahlung TAN:747216 ",
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-camt/camt.053.payee-memo.xml",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "xml",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -10,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": "Note Text",
+            "imported_id": "test-payee-and-notes",
+            "category": null
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -20,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "imported_id": "test-payee-only",
+            "category": null
+          },
+          {
+            "trx_id": "2",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -30,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": "Note Only Text",
+            "imported_id": "test-notes-only",
+            "category": null
+          },
+          {
+            "trx_id": "3",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -40,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "imported_id": "test-neither",
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -1000,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": "Note Text",
+            "imported_id": "test-payee-and-notes",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -2000,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "imported_id": "test-payee-only",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -3000,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": "Note Only Text",
+            "imported_id": "test-notes-only",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -4000,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "imported_id": "test-neither",
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-camt/camt.053.payee-memo.xml-swap",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "xml",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -10,
+            "date": "2019-01-23",
+            "payee_name": "Note Text",
+            "imported_payee": "Note Text",
+            "notes": "Payee Name",
+            "imported_id": "test-payee-and-notes",
+            "category": null
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -20,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "imported_id": "test-payee-only",
+            "category": null
+          },
+          {
+            "trx_id": "2",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -30,
+            "date": "2019-01-23",
+            "payee_name": "Note Only Text",
+            "imported_payee": "Note Only Text",
+            "notes": null,
+            "imported_id": "test-notes-only",
+            "category": null
+          },
+          {
+            "trx_id": "3",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -40,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "imported_id": "test-neither",
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -1000,
+            "date": "2019-01-23",
+            "payee_name": "Note Text",
+            "imported_payee": "Note Text",
+            "notes": "Payee Name",
+            "imported_id": "test-payee-and-notes",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -2000,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "imported_id": "test-payee-only",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -3000,
+            "date": "2019-01-23",
+            "payee_name": "Note Only Text",
+            "imported_payee": "Note Only Text",
+            "notes": null,
+            "imported_id": "test-notes-only",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -4000,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "imported_id": "test-neither",
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-camt/camt.053.payee-memo.xml-no-notes",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "xml",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": false,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -10,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": null,
+            "imported_id": "test-payee-and-notes",
+            "category": null
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -20,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "imported_id": "test-payee-only",
+            "category": null
+          },
+          {
+            "trx_id": "2",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -30,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "imported_id": "test-notes-only",
+            "category": null
+          },
+          {
+            "trx_id": "3",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -40,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "imported_id": "test-neither",
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": -1000,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": null,
+            "imported_id": "test-payee-and-notes",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -2000,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "imported_id": "test-payee-only",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -3000,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "imported_id": "test-notes-only",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -4000,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "imported_id": "test-neither",
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "format-camt/camt.latin1.xml",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "xml",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": 100,
+            "date": "2025-09-09",
+            "payee_name": "DAUERAUFTRAG",
+            "imported_payee": "DAUERAUFTRAG",
+            "notes": "M-Überschusssparen",
+            "imported_id": "2025090900000000",
+            "category": null
+          },
+          {
+            "trx_id": "1",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "amount": -5,
+            "date": "2025-09-09",
+            "payee_name": "Grüße aus München",
+            "imported_payee": "Grüße aus München",
+            "notes": "Restaurant Schrödingers Katze und Café Ünique",
+            "imported_id": "2025090900000001",
+            "category": null
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "amount": 10000,
+            "date": "2025-09-09",
+            "payee_name": "DAUERAUFTRAG",
+            "imported_payee": "DAUERAUFTRAG",
+            "notes": "M-Überschusssparen",
+            "imported_id": "2025090900000000",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -500,
+            "date": "2025-09-09",
+            "payee_name": "Grüße aus München",
+            "imported_payee": "Grüße aus München",
+            "notes": "Restaurant Schrödingers Katze und Café Ünique",
+            "imported_id": "2025090900000001",
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    }
+  ]
+}

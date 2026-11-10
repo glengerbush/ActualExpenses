@@ -144,17 +144,29 @@ pub(crate) fn post_schedule(
     epoch: Option<&str>,
     work: engine::Work,
 ) -> Result<(engine::Work, bool), Error> {
-    let id = input["id"]
-        .as_str()
-        .ok_or_else(|| Error::invalid("Scheduled transaction identity required"))?;
     let mut runner = engine::Runner::with_work(load(db, b)?, work);
-    let (mut after, matched) = runner.evaluate(db, b, input)?;
+    let (after, matched) = runner.evaluate(db, b, input)?;
+    save_import(db, b, after, matched, clock, epoch, runner)
+}
+/// Persist an already evaluated import without running the primary rules twice.
+pub(crate) fn save_import(
+    db: &Connection,
+    b: &str,
+    mut after: Value,
+    matched: Vec<String>,
+    clock: &str,
+    epoch: Option<&str>,
+    mut runner: engine::Runner,
+) -> Result<(engine::Work, bool), Error> {
+    let id = after["id"]
+        .as_str()
+        .ok_or_else(|| Error::invalid("Imported transaction identity required"))?
+        .to_owned();
+    let id = id.as_str();
     if after["deleted"] == true {
         return Ok((runner.into_work(), false));
     }
-    let schedule = input["schedule_id"]
-        .as_str()
-        .ok_or_else(|| Error::invalid("Schedule identity required"))?;
+    let schedule = after["schedule_id"].as_str().map(str::to_owned);
     let mut fields = serde_json::Map::new();
     for field in [
         "id",
@@ -218,16 +230,22 @@ pub(crate) fn post_schedule(
             },
         )?;
         // The rule plan persists schedule-only effects alongside the split.
-        if crate::ledger::get(db, b, id)?["schedule_id"] != schedule {
+        if let Some(schedule) = schedule.as_deref()
+            && crate::ledger::get(db, b, id)?["schedule_id"] != schedule
+        {
             crate::schedules::link(db, b, id, schedule, clock)?;
         }
         return Ok((work, true));
     } else if let Some(destination) = transfer {
         let peer = super::actions::identity(&["actualBudget.schedule-pair.v1", b, id]);
         crate::transfers::composition::save_child(db, b, id, &destination, &peer, clock, None)?;
-        crate::schedules::link(db, b, &peer, schedule, clock)?;
+        if let Some(schedule) = schedule.as_deref() {
+            crate::schedules::link(db, b, &peer, schedule, clock)?;
+        }
         peer_rules(db, b, &peer, clock, &mut runner)?;
     }
-    crate::schedules::link(db, b, id, schedule, clock)?;
+    if let Some(schedule) = schedule.as_deref() {
+        crate::schedules::link(db, b, id, schedule, clock)?;
+    }
     Ok((runner.into_work(), true))
 }

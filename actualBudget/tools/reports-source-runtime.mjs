@@ -43,6 +43,7 @@ export function sourceRuntime(api, engine) {
       if (name === "#shared/platform")
         return { OS: "linux", env: "web", isPlaywright: false };
       if (name === "i18next") return { t: (value) => value };
+      if (name === "csv-stringify/browser/esm/sync") return dependencies(name);
       if (name === "react")
         return { createElement: () => null, Fragment: () => null };
       if (name === "@actual-app/components/theme")

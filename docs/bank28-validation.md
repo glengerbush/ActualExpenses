@@ -228,6 +228,22 @@ UUID aliasing. Raw original rows, fixed IDs, references, multiplicity and values
 untouched; no generated-UUID tie-order parity is claimed. The unpublished prelink
 artifact from the interrupted check remains `/tmp/bank28-unpublished-rename-prelink-26.10.zip`.
 
+### Root composition review — financial checkpoint
+
+2026-11-10: Root reviewed `2f014ba` and correction `790779e`, preserving the
+source's documented first-link differences above. Composed with forecast35 and
+query47 read checkpoints. Git's crisscross virtual base contained textual
+OpenAPI conflicts; resolved by semantic three-way JSON merge of the two real
+bases, then both tips. No incompatible JSON edits: all parent operations and
+schema names retained, every local reference resolves (111paths,182schemas).
+
+Combined Rust build PASS `/tmp/bank-financial-compose-build.log`. Three bank
+edge workflows and27 served-contract observations PASS
+`/tmp/bank-financial-compose-edges.log`; all50 established source-query cases
+PASS `/tmp/bank-financial-compose-query.log`. Formatter corrected only spacing
+in new concurrency match arms; staged whitespace check passes. This closes
+the financial checkpoint review, not the outstanding migration/UI/recovery
+work or whole28 acceptance. No push or deployment.
 ### Genuine accepted22 upgrade inputs
 
 `generate-bank-schema22.py` executes the immutable accepted0a284f2 server
@@ -268,6 +284,26 @@ Public `/tmp/bank28-portable-red.log` reproduced duplicate→native backup/resto
 
 A real held provider GET is released only after same-budget current23 restore. It refuses409, leaves restored metadata/cursor/financial graph exact, and original committed refresh receipt replay remains exact after epoch rotation. `/tmp/bank28-portable-green.log`, `bank28-portable-build.log`, and `bank28-portable-clippy.log` pass. The first ZIP inspection attempt incorrectly decoded a retained binary source ZIP as UTF8; the corrected test inspects raw entry bytes without discarding any binary entries.
 
+### Root converter/portability composition review
+
+2026-11-10: Root reviewed `e1a3b32` genuine22 inputs, `62f9e39` conversion and
+`f8673e4` native identity correction. Duplicate restore finding closed with the
+recorded public red/green. Composed at `e203e9c` with notes24 and forecasting.
+Conflicts retain both bank23/notes24 migration enrichers and both native restore
+paths; restored stage reporting uses the actual migration count. Source selector
+clocks, explicitly unknown provider fields and YNAB provenance boundaries reviewed.
+
+Combined build PASS `/tmp/bank-upgrade-notes24-build.log`; genuine22 database
+and archive upgrade, reconnect, current24 copy/restore/tombstones/secrets/late
+response checks PASS `/tmp/bank-upgrade-notes24-public-green.log`. Separate
+genuine23→24 notes upgrade PASS `/tmp/bank-upgrade-notes24-notes.log`. The first
+combined bank run passed its database path but stopped at the consumer's stale
+expected23 stage-report version (actual24); only that expectation and current
+native labels changed. Original22 fixture hashes are now checked by the consumer;
+fixture bytes and financial assertions stay unchanged. Focused formatting and
+staged whitespace checks pass. Complete28 recovery/client gates remain pending;
+this is not main acceptance or live-provider qualification.
+
 ### Ordering captured provider reads
 
 `check-bank-order-http.mjs` holds an actual older provider GET (111.00), commits a newer GET (222.00), then releases the older response. Before correction it returned200 and replaced the cache with111.00 (`/tmp/bank28-order-red.log`). Private capture now persists a versioned connection-revision witness alongside the raw result; commit requires that revision to remain current. The stale capture refuses409 without any metadata/cursor/ledger write; explicit original-identity cancellation frees it and subsequent original replay cannot resurrect it. Captured data missing an ordering witness conservatively requires cancellation rather than claiming freshness. No schema23 DDL or generic receipt shape changed.
@@ -283,6 +319,18 @@ The public two-account tracer `check-bank-partial-http.mjs` first reproduces los
 Initial setup/replacement still submits the raw token once. A client can instead retain the token's SHA256 plus every original nonsecret field/key/epoch for recovery. Hash-only bodies are accepted exclusively with receipt-only or cancel-if-uncommitted headers, bind the identical canonical server receipt identity, and cannot stage/replace credentials or call the provider. Thus reload/lost ACK does not require browser token storage or an unsafe new identity. Changing the original label, generation, token digest or epoch cannot retrieve another receipt.
 
 `check-bank-secret-recovery-http.mjs` RED400→GREEN covers original201/200 results via hash-only probes; mismatched identity refuses409; unknown-intent cancellation refuses409 terminally and delayed original raw submissions remain canceled; hash-only regular submissions refuse400. It asserts exactly one intended connection and zero provider calls. Actually served request/result schemas are validated with JSON Schema. Logs `/tmp/bank28-secret-recovery-{red,green,build,clippy}.log`. No generic receipt shape, private credential representation or schema DDL changed.
+
+### Root recovery composition review
+
+Root reviewed `84ce4e2`, `aec7168` and `7f18344`; no remaining finding in these
+server checkpoints. Combined schema24 branch through `829dcdb` builds and passes
+the three maintained public order/partial/secret-recovery consumers:
+`/tmp/bank-recovery-compose-{build,order,partial,secret}.log`. Both parent API
+operation sets and corrected forecast money bounds remain intact (111paths,
+183schemas). Stale private captures require explicit cancellation; hash-only
+recovery cannot create credentials. Bank UI/rendered interruption recovery and
+complete28 acceptance remain pending. Unaffected financial/source/native suites
+were reused, not repeated.
 
 ## Complete web/interface checkpoint
 
@@ -302,3 +350,35 @@ Maintained public/browser proof:
 Captures under `actualBudget/web/test-results/banking/`: custody `desktop/mobile`, `recovery-desktop`, `cancellation-desktop`, `quota-failure`, `offline-desktop`; controlled-provider `provider-desktop/mobile`, matching viewport images, `provider-large-text`, `provider-dark-large-text`, their viewport/control/refresh images, `provider-attention`, and `unavailable-account`. Large-text uses root32px at390px width; dark captures use the actual dark CSS tokens. These qualify layout, not a new theme preference implementation. The independent finish reviewer owns the final UI disposition. PRODUCT/DESIGN/token files remain unchanged; the new surface brief records only this extension.
 
 CI maintains the reviewed source checks, seven focused API invocations, the explicitly local controlled-provider browser, and the external-compatible custody browser in the ordinary container browser list. Earlier source/oracle, financial, genuine migration/archive and representative native evidence is reused. No broad Rust/Android/container rerun, live provider call or deployment was performed for this checkpoint. Full composed qualification remains the root integration gate; do not mark ticket28 accepted before independent review and that gate.
+
+### UI review corrections: preference identity and locale
+
+A public cache-reset scenario retains an actually committed/lost-ACK bank request while removing downloaded preferences. With preference reads explicitly blocked, the original UI exposed provider100USD (`/tmp/bank28-ui-privacy-red.log`). Bank display now requires usable preferences matching both budget ID and the loaded bank epoch; otherwise provider/local names, references, balances and raw opening/name inputs remain masked, and new edits/writes are blocked. Original receipt/cancellation recovery remains independent. Matching preferences are explicitly refreshed; parent account refresh is deferred until that identity is confirmed.
+
+The same flow then exposed the untranslated German import checkbox (`/tmp/bank28-ui-locale-red.log`). Existing catalog labels now use `t()`, including Import transactions, Payments/Deposits and field labels. New banking prose retains the ordinary English fallback. `/tmp/bank28-ui-privacy-locale-green.log` passes the full controlled-provider browser: blocked-read masking/new-action fence, original receipt recovery, German labels, identical original body/key/HLC/owner/epoch and complete source financial graph/ID survival. `privacy-preferences-blocked.png` records the rendered fail-closed state. Existing custody/recovery browser also passes `/tmp/bank28-ui-review-custody.log`; clean Svelte check/build and component autofixers are recorded as `bank28-ui-review-*` / `bank28-settings-review-autofix.log`. No backend/native/source expectation changed or broad suite rerun.
+
+### Root review and composed acceptance
+
+2026-11-10: Independently reviewed62626e5 and corrective8dfd089 against ticket28.
+Both UI findings above are closed. Metadata-only unlink of a retained deleted
+account preserves ordinary live-account guards. Original intent custody, receipt
+recovery, cancellation and credential secrecy remain intact. No remaining blocking
+standards/spec findings in this slice.
+
+Impeccable technical audit17/20: accessibility3, performance3, theming4,
+responsive3, integrity4. Native semantic controls, labels/statuses, scoped tokens,
+desktop/mobile/dark enlarged-text and cancellation renders were inspected; final
+preference-unavailable render confirms masked amounts and usable receipt recovery.
+Detector[] and Banking autofixer no issues/suggestions:
+`/tmp/bank28-root-final-{detect.json,autofix.log}`. Worker BankSettings/App checks
+reused. These are Chromium layout/interaction checks, not physical-device or
+screen-reader certification. Existing bundle-size advisory remains qualification51.
+
+Composed at278e51f with forecast35, analysis36 and bounded batch47: Rust/web
+builds and Svelte0/0 PASS `/tmp/bank-batch-compose-{build,check,webbuild}.log`;
+both maintained banking browser consumers PASS
+`/tmp/bank-batch-compose-{custody,provider}.log`; served lifecycle/transport/strict
+contract/secret boundaries PASS `/tmp/bank-batch-compose-contract.log`.
+Earlier unchanged source financial, genuine22→24/native, ordering/partial-failure
+and Android evidence above is reused. Ticket28 feature acceptance is complete;
+final whole-system qualification50–53 and actual provider deployment remain separate.

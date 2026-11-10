@@ -29,6 +29,14 @@ pub(super) fn guard_field(
     field: &str,
     clock: &str,
 ) -> Result<(), Error> {
+    if field == "notes" {
+        let note_id = if entity == "budget_months" {
+            format!("budget-{id}")
+        } else {
+            id.to_owned()
+        };
+        crate::notes::guard_clock(db, b, &note_id, clock)?;
+    }
     let newer: bool = db.query_row("SELECT EXISTS(SELECT 1 FROM field_versions WHERE budget_id=?1 AND entity=?2 AND entity_id=?3 AND field=?4 AND clock>=?5)", params![b,entity,id,field,clock], |r| r.get(0))?;
     if newer {
         return Err(Error::conflict(

@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readFile, mkdtemp, copyFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHash } from "node:crypto";
 import { createServer } from "node:http";
 import { startServer } from "../web/tests/server.mjs";
 const fixture = JSON.parse(
@@ -10,6 +10,16 @@ const fixture = JSON.parse(
     new URL("../tests/fixtures/bank-schema22.json", import.meta.url),
   ),
 );
+for (const extension of [".sqlite3", ".zip"]) {
+  const bytes = await readFile(
+    new URL(`../tests/fixtures/bank-schema22${extension}`, import.meta.url),
+  );
+  assert.equal(
+    createHash("sha256").update(bytes).digest("hex"),
+    fixture.artifacts[extension].sha256,
+    `Original schema22 ${extension} fixture`,
+  );
+}
 const linked = JSON.parse(
   await readFile(
     new URL("../tests/fixtures/bank-linked-source-26.10.json", import.meta.url),
@@ -106,7 +116,7 @@ try {
         });
         const stage = await response.json();
         assert.equal(response.status, 201, JSON.stringify(stage));
-        assert.equal(stage.data.report.schema_version, 23);
+        assert.equal(stage.data.report.schema_version, 24);
         await call(
           `${root}/restores/${stage.data.id}/activate`,
           { confirm_name: fixture.snapshot.budget.data.name },
@@ -358,7 +368,7 @@ try {
             const point = (
               await call(
                 copyRoot + "/backups",
-                { label: "Current23 metadata only" },
+                { label: "Current native metadata only" },
                 {
                   "Idempotency-Key": randomUUID(),
                   "X-Actual-Budget-Epoch": copyState.epoch,
@@ -516,7 +526,7 @@ try {
         }
       }
       console.log(
-        `PASS genuine22 ${mode}: financial/reference clocks, settings, original receipts and bank conversion${mode === "database" ? "; current23 clone/restore/tombstones/secrets/late-response fencing" : ""}`,
+        `PASS genuine22 ${mode}: financial/reference clocks, settings, original receipts and bank conversion${mode === "database" ? "; current native clone/restore/tombstones/secrets/late-response fencing" : ""}`,
       );
     } finally {
       await server.stop();

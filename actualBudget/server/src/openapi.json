@@ -20633,6 +20633,403 @@
         }
       }
     },
+    "/api/v1/budgets/{budget}/reports/forecast": {
+      "post": {
+        "description": "Experimental opt-in, read-only26.10-compatible balance forecast. No entries, schedules, receipts or clocks change. Bound500 selected accounts,5000 active schedules,10000 active rules,8MiB schedule/rule definitions,100000 selected posted/planned rows,10000 occurrences/20000 transfer legs,20000 account/day points,2m shared recurrence/rule work and scoped regex work;8MiB response. Router cache is keyed by budget snapshot/epoch, request and as_of, limited to8 entries/16MiB including keys. Oversized/unsupported work rejects rather than truncates. Result lowestBalance follows source raw scope; lowest_displayed and scheduled count follow the selected chart window.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Unsupported source/method/range/view/filter, invalid_regex or calculation/work bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "feature_disabled or budget lifecycle conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Calculation failed without financial changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed estimate with explicit input revision and assumptions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ForecastProjection"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForecastRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/imports/ynab4": {
+      "post": {
+        "summary": "Stage a YNAB4 budget folder ZIP",
+        "description": "Maximum16MiB original file,100000 rows per source collection. YNAB4 ZIP expansion is limited to64MiB and10000 entries. Original bytes, source identity mapping, immutable upload/activation receipts retained. No source edit log is synthesized as undo history. Review source-model differences before separate-budget activation. Same original SHA resolves the same stage; another source kind cannot reinterpret it.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "filename",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/zip": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Durable ready or blocked stage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ActualImportStage"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Missing/unknown/malformed filename query rejected before JSON API processing."
+              }
+            }
+          },
+          "403": {
+            "description": "Origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Archive exceeds16MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid archive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/imports/nynab": {
+      "post": {
+        "summary": "Stage a supported nYNAB JSON budget export",
+        "description": "Maximum16MiB original file,100000 rows per source collection. YNAB4 ZIP expansion is limited to64MiB and10000 entries. Original bytes, source identity mapping, immutable upload/activation receipts retained. No source edit log is synthesized as undo history. Review source-model differences before separate-budget activation. Same original SHA resolves the same stage; another source kind cannot reinterpret it.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "filename",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Source budget object, optionally wrapped in data and plan or budget.",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Durable ready or blocked stage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ActualImportStage"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Missing/unknown/malformed filename query rejected before JSON API processing."
+              }
+            }
+          },
+          "403": {
+            "description": "Origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Archive exceeds16MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid archive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/imports/{id}/original": {
+      "get": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Byte-identical original archive; attachment, no-store",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Original nYNAB JSON; binary ZIP for Actual/YNAB4."
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Import missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Download the unchanged original budget export"
+      }
+    },
     "/api/v1/budgets/{budget}/banking": {
       "get": {
         "summary": "Read sanitized bank connections; never contacts provider",
@@ -21013,295 +21410,6 @@
         }
       }
     },
-    "/api/v1/imports/ynab4": {
-      "post": {
-        "summary": "Stage a YNAB4 budget folder ZIP",
-        "description": "Maximum16MiB original file,100000 rows per source collection. YNAB4 ZIP expansion is limited to64MiB and10000 entries. Original bytes, source identity mapping, immutable upload/activation receipts retained. No source edit log is synthesized as undo history. Review source-model differences before separate-budget activation. Same original SHA resolves the same stage; another source kind cannot reinterpret it.",
-        "parameters": [
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
-            }
-          },
-          {
-            "name": "filename",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 120
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/zip": {
-              "schema": {
-                "type": "string",
-                "format": "binary"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Durable ready or blocked stage",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/ActualImportStage"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              },
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Missing/unknown/malformed filename query rejected before JSON API processing."
-              }
-            }
-          },
-          "403": {
-            "description": "Origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Idempotency conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Archive exceeds16MiB",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Invalid archive",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/imports/nynab": {
-      "post": {
-        "summary": "Stage a supported nYNAB JSON budget export",
-        "description": "Maximum16MiB original file,100000 rows per source collection. YNAB4 ZIP expansion is limited to64MiB and10000 entries. Original bytes, source identity mapping, immutable upload/activation receipts retained. No source edit log is synthesized as undo history. Review source-model differences before separate-budget activation. Same original SHA resolves the same stage; another source kind cannot reinterpret it.",
-        "parameters": [
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
-            }
-          },
-          {
-            "name": "filename",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 120
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "description": "Source budget object, optionally wrapped in data and plan or budget.",
-                "additionalProperties": true
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Durable ready or blocked stage",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/ActualImportStage"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              },
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Missing/unknown/malformed filename query rejected before JSON API processing."
-              }
-            }
-          },
-          "403": {
-            "description": "Origin rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Idempotency conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Archive exceeds16MiB",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Invalid archive",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/imports/{id}/original": {
-      "get": {
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Byte-identical original archive; attachment, no-store",
-            "content": {
-              "application/zip": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true
-                },
-                "description": "Original nYNAB JSON; binary ZIP for Actual/YNAB4."
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid ID",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Import missing",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Download the unchanged original budget export"
-      }
-    },
     "/api/v1/budgets/{budget}/accounts/{account}/banking": {
       "get": {
         "summary": "Read the retained link and independently clocked bank preferences",
@@ -21508,6 +21616,226 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/budgets/{budget}/reports/budget-analysis": {
+      "post": {
+        "description": "Read-only mixed planned allocations and recorded entries. Opt-in required; category/group filters only. Preserves source method/carry/overspending rules. Bounds actual input rows, category/month work, regex work, output and revision cache. No ledger, plan, clock or receipt writes. A scoped32m SQLite VM-step budget returns typed analysis_work_limit refusal independently of matched-row limits.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Unsupported source/method/range/view/filter, invalid_regex or calculation/work bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "feature_disabled or budget lifecycle conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Calculation failed without financial changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed read-only analysis response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetAnalysisProjection"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetAnalysisRequest"
+              }
+            }
+          }
+        },
+        "summary": "Read exact monthly budget analysis",
+        "operationId": "budgetAnalysisRead"
+      }
+    },
+    "/api/v1/budgets/{budget}/reports/budget-analysis/drilldown": {
+      "post": {
+        "description": "Read-only bounded underlying rows for one month at a confirmed snapshot. Spent returns recorded leaf entries; budgeted returns contributing planned cells. Derived balance and overspending adjustments are not purchases. Stale snapshots are rejected. A scoped32m SQLite VM-step budget returns typed analysis_work_limit refusal independently of matched-row limits.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Unsupported source/method/range/view/filter, invalid_regex or calculation/work bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "feature_disabled or budget lifecycle conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Calculation failed without financial changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed read-only analysis response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetAnalysisDetails"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetAnalysisDetailRequest"
+              }
+            }
+          }
+        },
+        "summary": "Inspect analysis recorded entries or planned allocations",
+        "operationId": "budgetAnalysisInspect"
       }
     }
   },
@@ -31376,6 +31704,599 @@
           "record_kind"
         ]
       },
+      "ForecastOptions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "viewStart": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}(-[0-9]{2})?$"
+          },
+          "viewEnd": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}(-[0-9]{2})?$"
+          },
+          "source": {
+            "enum": [
+              "schedules",
+              "tracking-budget"
+            ],
+            "default": "schedules"
+          },
+          "granularity": {
+            "enum": [
+              "Daily",
+              "Monthly"
+            ],
+            "default": "Monthly"
+          },
+          "accountIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "maxItems": 500
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportCondition"
+            },
+            "maxItems": 20
+          },
+          "conditionsOp": {
+            "enum": [
+              "and",
+              "or"
+            ],
+            "default": "and"
+          },
+          "includeAccountlessSchedules": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "startDate",
+          "endDate"
+        ],
+        "description": "Dates are explicit calendar days. Optional view bounds retain source day-shaped chart windows over full-month forecast inputs; Monthly collapses view bounds to months. Tracking budget is monthly only, at most12 months, ignores account/report filters and schedules. Maximum canonical request65536 bytes."
+      },
+      "ForecastRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": 1
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "options": {
+            "$ref": "#/components/schemas/ForecastOptions"
+          }
+        },
+        "required": [
+          "version",
+          "as_of",
+          "options"
+        ]
+      },
+      "ForecastScheduleEntry": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "payee": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "scheduleName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "payee",
+          "scheduleId",
+          "scheduleName"
+        ]
+      },
+      "ForecastDataPoint": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "balance": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "accountId": {
+            "type": "string",
+            "description": "Real account UUID, tracking-budget aggregate, or __unassigned_schedule__ virtual account."
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForecastScheduleEntry"
+            }
+          }
+        },
+        "required": [
+          "date",
+          "balance",
+          "accountId",
+          "accountName",
+          "transactions"
+        ]
+      },
+      "ForecastLowest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "balance": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "accountName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "balance",
+          "accountId",
+          "accountName"
+        ]
+      },
+      "ForecastResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "dataPoints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForecastDataPoint"
+            },
+            "maxItems": 20000
+          },
+          "lowestBalance": {
+            "$ref": "#/components/schemas/ForecastLowest"
+          },
+          "forecastStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "forecastEndDate": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "dataPoints",
+          "lowestBalance",
+          "forecastStartDate",
+          "forecastEndDate"
+        ]
+      },
+      "ForecastChartPoint": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}(-[0-9]{2})?$"
+          },
+          "balance": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "date",
+          "balance"
+        ]
+      },
+      "ForecastProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "result": {
+            "$ref": "#/components/schemas/ForecastResult"
+          },
+          "chart": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForecastChartPoint"
+            },
+            "maxItems": 20000
+          },
+          "lowest_displayed": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ForecastChartPoint"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduled_occurrence_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "assumptions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ]
+            }
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "recorded": {
+            "const": false
+          },
+          "cache": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "hit": {
+                "type": "boolean"
+              },
+              "input_revision": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "hit",
+              "input_revision"
+            ]
+          }
+        },
+        "required": [
+          "result",
+          "chart",
+          "lowest_displayed",
+          "scheduled_occurrence_count",
+          "assumptions",
+          "snapshot",
+          "epoch",
+          "as_of",
+          "recorded",
+          "cache"
+        ]
+      },
+      "CustomReportInterval": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "intervalStartDate": {
+            "type": "string"
+          },
+          "intervalEndDate": {
+            "type": "string"
+          },
+          "totalAssets": {
+            "type": "number"
+          },
+          "totalDebts": {
+            "type": "number"
+          },
+          "netAssets": {
+            "type": "number"
+          },
+          "netDebts": {
+            "type": "number"
+          },
+          "totalTotals": {
+            "type": "number"
+          },
+          "totalBudgeted": {
+            "type": "number"
+          },
+          "change": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "intervalStartDate",
+          "intervalEndDate",
+          "totalAssets",
+          "totalDebts",
+          "netAssets",
+          "netDebts",
+          "totalTotals",
+          "totalBudgeted"
+        ],
+        "additionalProperties": {
+          "type": "number"
+        }
+      },
+      "CustomReportGroup": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "uncategorizedId": {
+            "type": "string"
+          },
+          "totalAssets": {
+            "type": "number"
+          },
+          "totalDebts": {
+            "type": "number"
+          },
+          "netAssets": {
+            "type": "number"
+          },
+          "netDebts": {
+            "type": "number"
+          },
+          "totalTotals": {
+            "type": "number"
+          },
+          "totalBudgeted": {
+            "type": "number"
+          },
+          "intervalData": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomReportInterval"
+            }
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomReportGroup"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "totalAssets",
+          "totalDebts",
+          "netAssets",
+          "netDebts",
+          "totalTotals",
+          "totalBudgeted",
+          "intervalData"
+        ],
+        "additionalProperties": false
+      },
+      "ReportCustom": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomReportGroup"
+            }
+          },
+          "groupedData": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomReportGroup"
+            }
+          },
+          "intervalData": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomReportInterval"
+            }
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "endDate": {
+            "type": "string"
+          },
+          "totalAssets": {
+            "type": "number"
+          },
+          "totalDebts": {
+            "type": "number"
+          },
+          "netAssets": {
+            "type": "number"
+          },
+          "netDebts": {
+            "type": "number"
+          },
+          "totalTotals": {
+            "type": "number"
+          },
+          "totalBudgeted": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "data",
+          "intervalData",
+          "startDate",
+          "endDate",
+          "totalAssets",
+          "totalDebts",
+          "netAssets",
+          "netDebts",
+          "totalTotals",
+          "totalBudgeted"
+        ],
+        "additionalProperties": false
+      },
+      "CustomReportOptions": {
+        "type": "object",
+        "properties": {
+          "startDate": {
+            "type": "string"
+          },
+          "endDate": {
+            "type": "string"
+          },
+          "interval": {
+            "enum": [
+              "Daily",
+              "Weekly",
+              "Monthly",
+              "Yearly"
+            ]
+          },
+          "mode": {
+            "enum": [
+              "total",
+              "time"
+            ]
+          },
+          "groupBy": {
+            "enum": [
+              "Category",
+              "Group",
+              "CategoryGroup",
+              "Payee",
+              "Account",
+              "Interval"
+            ]
+          },
+          "balanceTypeOp": {
+            "enum": [
+              "totalAssets",
+              "totalDebts",
+              "netAssets",
+              "netDebts",
+              "totalTotals",
+              "totalBudgeted"
+            ]
+          },
+          "sortByOp": {
+            "enum": [
+              "asc",
+              "desc",
+              "name",
+              "budget"
+            ]
+          },
+          "graphType": {
+            "type": "string"
+          },
+          "firstDayOfWeekIdx": {
+            "enum": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6"
+            ]
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportCondition"
+            },
+            "maxItems": 20
+          },
+          "conditionsOp": {
+            "enum": [
+              "and",
+              "or"
+            ]
+          },
+          "showEmpty": {
+            "type": "boolean"
+          },
+          "showOffBudget": {
+            "type": "boolean"
+          },
+          "showHiddenCategories": {
+            "type": "boolean"
+          },
+          "showUncategorized": {
+            "type": "boolean"
+          },
+          "trimIntervals": {
+            "type": "boolean"
+          },
+          "showTrendLines": {
+            "type": "boolean"
+          },
+          "nested": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "startDate",
+          "endDate"
+        ],
+        "additionalProperties": true,
+        "description": "Source26.10 custom report semantics. Budgeted supports category/group/interval and monthly/yearly only; transaction-only conditions do not alter planned allocations. Bounds reject rather than truncate."
+      },
       "BankConnection": {
         "type": "object",
         "properties": {
@@ -31852,278 +32773,6 @@
           "errors"
         ],
         "additionalProperties": false
-      },
-      "CustomReportInterval": {
-        "type": "object",
-        "properties": {
-          "date": {
-            "type": "string"
-          },
-          "intervalStartDate": {
-            "type": "string"
-          },
-          "intervalEndDate": {
-            "type": "string"
-          },
-          "totalAssets": {
-            "type": "number"
-          },
-          "totalDebts": {
-            "type": "number"
-          },
-          "netAssets": {
-            "type": "number"
-          },
-          "netDebts": {
-            "type": "number"
-          },
-          "totalTotals": {
-            "type": "number"
-          },
-          "totalBudgeted": {
-            "type": "number"
-          },
-          "change": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "date",
-          "intervalStartDate",
-          "intervalEndDate",
-          "totalAssets",
-          "totalDebts",
-          "netAssets",
-          "netDebts",
-          "totalTotals",
-          "totalBudgeted"
-        ],
-        "additionalProperties": {
-          "type": "number"
-        }
-      },
-      "CustomReportGroup": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "uncategorizedId": {
-            "type": "string"
-          },
-          "totalAssets": {
-            "type": "number"
-          },
-          "totalDebts": {
-            "type": "number"
-          },
-          "netAssets": {
-            "type": "number"
-          },
-          "netDebts": {
-            "type": "number"
-          },
-          "totalTotals": {
-            "type": "number"
-          },
-          "totalBudgeted": {
-            "type": "number"
-          },
-          "intervalData": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomReportInterval"
-            }
-          },
-          "categories": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomReportGroup"
-            }
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "totalAssets",
-          "totalDebts",
-          "netAssets",
-          "netDebts",
-          "totalTotals",
-          "totalBudgeted",
-          "intervalData"
-        ],
-        "additionalProperties": false
-      },
-      "ReportCustom": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomReportGroup"
-            }
-          },
-          "groupedData": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomReportGroup"
-            }
-          },
-          "intervalData": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CustomReportInterval"
-            }
-          },
-          "startDate": {
-            "type": "string"
-          },
-          "endDate": {
-            "type": "string"
-          },
-          "totalAssets": {
-            "type": "number"
-          },
-          "totalDebts": {
-            "type": "number"
-          },
-          "netAssets": {
-            "type": "number"
-          },
-          "netDebts": {
-            "type": "number"
-          },
-          "totalTotals": {
-            "type": "number"
-          },
-          "totalBudgeted": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "data",
-          "intervalData",
-          "startDate",
-          "endDate",
-          "totalAssets",
-          "totalDebts",
-          "netAssets",
-          "netDebts",
-          "totalTotals",
-          "totalBudgeted"
-        ],
-        "additionalProperties": false
-      },
-      "CustomReportOptions": {
-        "type": "object",
-        "properties": {
-          "startDate": {
-            "type": "string"
-          },
-          "endDate": {
-            "type": "string"
-          },
-          "interval": {
-            "enum": [
-              "Daily",
-              "Weekly",
-              "Monthly",
-              "Yearly"
-            ]
-          },
-          "mode": {
-            "enum": [
-              "total",
-              "time"
-            ]
-          },
-          "groupBy": {
-            "enum": [
-              "Category",
-              "Group",
-              "CategoryGroup",
-              "Payee",
-              "Account",
-              "Interval"
-            ]
-          },
-          "balanceTypeOp": {
-            "enum": [
-              "totalAssets",
-              "totalDebts",
-              "netAssets",
-              "netDebts",
-              "totalTotals",
-              "totalBudgeted"
-            ]
-          },
-          "sortByOp": {
-            "enum": [
-              "asc",
-              "desc",
-              "name",
-              "budget"
-            ]
-          },
-          "graphType": {
-            "type": "string"
-          },
-          "firstDayOfWeekIdx": {
-            "enum": [
-              "0",
-              "1",
-              "2",
-              "3",
-              "4",
-              "5",
-              "6"
-            ]
-          },
-          "conditions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReportCondition"
-            },
-            "maxItems": 20
-          },
-          "conditionsOp": {
-            "enum": [
-              "and",
-              "or"
-            ]
-          },
-          "showEmpty": {
-            "type": "boolean"
-          },
-          "showOffBudget": {
-            "type": "boolean"
-          },
-          "showHiddenCategories": {
-            "type": "boolean"
-          },
-          "showUncategorized": {
-            "type": "boolean"
-          },
-          "trimIntervals": {
-            "type": "boolean"
-          },
-          "showTrendLines": {
-            "type": "boolean"
-          },
-          "nested": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "startDate",
-          "endDate"
-        ],
-        "additionalProperties": true,
-        "description": "Source26.10 custom report semantics. Budgeted supports category/group/interval and monthly/yearly only; transaction-only conditions do not alter planned allocations. Bounds reject rather than truncate."
       },
       "BankSettings": {
         "type": "object",
@@ -32919,6 +33568,434 @@
         "type": "string",
         "pattern": "^[0-9a-f]{64}$",
         "description": "SHA256 of the exact original setup_token string. Only valid with X-Actual-Receipt-Only:true or X-Actual-Cancel-If-Uncommitted:true. It cannot stage or replace credentials. Preserve every original nonsecret field, idempotency key and epoch with this digest."
+      },
+      "BudgetAnalysisOptions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$"
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$"
+          },
+          "conditions": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "op": {
+                  "type": "string"
+                },
+                "value": {},
+                "customName": {}
+              },
+              "required": [
+                "field",
+                "op",
+                "value"
+              ],
+              "additionalProperties": true
+            }
+          },
+          "conditionsOp": {
+            "type": "string",
+            "enum": [
+              "and",
+              "or"
+            ],
+            "default": "and"
+          },
+          "showHiddenCategories": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "startDate",
+          "endDate"
+        ]
+      },
+      "BudgetAnalysisRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "const": 1
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "options": {
+            "$ref": "#/components/schemas/BudgetAnalysisOptions"
+          }
+        },
+        "required": [
+          "version",
+          "as_of",
+          "options"
+        ]
+      },
+      "BudgetAnalysisInterval": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$"
+          },
+          "budgeted": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "spent": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "balance": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "overspendingAdjustment": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "date",
+          "budgeted",
+          "spent",
+          "balance",
+          "overspendingAdjustment"
+        ]
+      },
+      "BudgetAnalysisResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "intervalData": {
+            "type": "array",
+            "maxItems": 20000,
+            "items": {
+              "$ref": "#/components/schemas/BudgetAnalysisInterval"
+            }
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$"
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$"
+          },
+          "totalBudgeted": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "totalSpent": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "totalOverspendingAdjustment": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "finalOverspendingAdjustment": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 0
+          }
+        },
+        "required": [
+          "intervalData",
+          "startDate",
+          "endDate",
+          "totalBudgeted",
+          "totalSpent",
+          "totalOverspendingAdjustment",
+          "finalOverspendingAdjustment"
+        ]
+      },
+      "BudgetAnalysisCategory": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "group_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "income_group": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "group_id",
+          "income_group"
+        ]
+      },
+      "BudgetAnalysisProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "result": {
+            "$ref": "#/components/schemas/BudgetAnalysisResult"
+          },
+          "categories": {
+            "type": "array",
+            "maxItems": 5000,
+            "items": {
+              "$ref": "#/components/schemas/BudgetAnalysisCategory"
+            }
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "recorded": {
+            "type": "boolean",
+            "const": false
+          },
+          "basis": {
+            "type": "string",
+            "const": "budget_allocations_and_recorded_entries"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "envelope",
+              "tracking"
+            ]
+          },
+          "assumptions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ]
+            }
+          },
+          "cache": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "hit": {
+                "type": "boolean"
+              },
+              "input_revision": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "hit",
+              "input_revision"
+            ]
+          }
+        },
+        "required": [
+          "result",
+          "categories",
+          "snapshot",
+          "epoch",
+          "as_of",
+          "recorded",
+          "basis",
+          "method",
+          "assumptions",
+          "cache"
+        ]
+      },
+      "BudgetAnalysisDetailRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "query": {
+            "$ref": "#/components/schemas/BudgetAnalysisRequest"
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "month": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$"
+          },
+          "metric": {
+            "type": "string",
+            "enum": [
+              "spent",
+              "budgeted"
+            ]
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000,
+            "default": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200,
+            "default": 50
+          }
+        },
+        "required": [
+          "query",
+          "snapshot",
+          "month",
+          "metric"
+        ]
+      },
+      "BudgetAnalysisAllocation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "category_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "category_name": {
+            "type": "string"
+          },
+          "month": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$"
+          }
+        },
+        "required": [
+          "id",
+          "amount",
+          "category_id",
+          "category_name",
+          "month"
+        ]
+      },
+      "BudgetAnalysisDetails": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "rows": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/Transaction"
+                },
+                {
+                  "$ref": "#/components/schemas/BudgetAnalysisAllocation"
+                }
+              ]
+            }
+          },
+          "total_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "total_amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "month": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$"
+          },
+          "metric": {
+            "type": "string",
+            "enum": [
+              "spent",
+              "budgeted"
+            ]
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "budget_allocations",
+              "recorded_entries"
+            ]
+          }
+        },
+        "required": [
+          "rows",
+          "total_count",
+          "total_amount",
+          "offset",
+          "limit",
+          "has_more",
+          "snapshot",
+          "month",
+          "metric",
+          "basis"
+        ]
       }
     }
   }

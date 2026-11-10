@@ -162,6 +162,7 @@ pub fn seed_field_version(
 ) -> Result<(), Error> {
     parse_clock(clock)?;
     db.prepare_cached("INSERT INTO field_versions(budget_id,entity,entity_id,field,clock) VALUES(?1,?2,?3,?4,?5) ON CONFLICT(budget_id,entity,entity_id,field) DO UPDATE SET clock=excluded.clock WHERE excluded.clock>field_versions.clock")?.execute(params![budget,entity,id,field,clock])?;
+    crate::notes::mirror_domain_clock(db, budget, entity, id, field, clock)?;
     db.prepare_cached("UPDATE budget_sync SET clock=?2 WHERE budget_id=?1 AND clock<?2")?
         .execute(params![budget, clock])?;
     Ok(())
@@ -750,10 +751,11 @@ pub fn read_changes(
                     ledger::get(db, budget, &id)?
                 }
             }
-            "bank_links" =>crate::banking::account_link(db,budget,&id)?,
-            "bank_transaction_origins"=>crate::banking::origin(db,budget,&id)?,
+            "bank_links" => crate::banking::account_link(db, budget, &id)?,
+            "bank_transaction_origins" => crate::banking::origin(db, budget, &id)?,
             "bank_connections" => crate::banking::connection(db, budget, &id)?,
-            "bank_remote_accounts" => crate::banking::remote_account(db,budget,&id)?,
+            "bank_remote_accounts" => crate::banking::remote_account(db, budget, &id)?,
+            "notes" => crate::notes::record(db, budget, &id)?,
             "accounts" => crate::accounts::get(db, budget, &id)?,
             "account_groups" => crate::accounts::get_group(db, budget, &id)?,
             "preferences" => crate::preferences::get_preferences(db, budget)?,

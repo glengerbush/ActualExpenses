@@ -487,6 +487,7 @@ fn remove_active_data(db: &Connection, budget: &str) -> Result<(), Error> {
         "budget_preferences",
         "register_settings",
         "reporting_documents",
+        "notes",
         "rules",
         "rule_settings",
         "schedules",

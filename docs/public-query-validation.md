@@ -318,3 +318,38 @@ linked rows' schedule.name and schedule.rule.stage through the same closed,
 budget-scoped resolver. Source22 check and focused public green:
 /tmp/query-schedule-reference-source-check.log,
 /tmp/query-schedule-reference-green.log. No unrelated financial writer change.
+
+## Atomic transaction command checkpoint (47)
+
+POST `/budgets/{b}/transactions/batch` accepts a captured snapshot and1–100
+ordered create/update/delete operations with distinct targets. Existing financial
+writers own row validation, graph propagation, reconciliation and per-field HLCs.
+The adapter adds one transactional receipt/history boundary. Any refused action
+or newer field aborts the entire command (no partial success/no failed receipt).
+One operation per connected financial graph is required; conflicting intents
+across selected pair/split members refuse before writes. Resolve inline payee/
+category names through their existing resource APIs first; batch inputs use UUID
+references. Connected work is bounded100000 members and conservative4MiB response
+serialization. This is an explicit replacement contract, not an unrestricted
+executor or arbitrary server-side SDK callback.
+
+`generate-public-batch.mjs` independently executes genuine SDK add/update/delete
+inside source batchBudgetUpdates on the reviewed original transaction archive,
+waits for settled public rows, and captures the complete graph and per-account
+aggregate. The baseline helper batches spreadsheet refreshes and does NOT promise
+rollback; replacement atomic refusal is deliberately stronger, separately tested.
+Original archive/engine hashes and all untouched split/transfer/reconciled rows
+remain in `public-batch-source.json`.
+
+Running-API tracer first failed405 at the absent endpoint
+(/tmp/public-batch-http-red.log). Final public proof PASS
+/tmp/public-batch-freeze-http.log: exact SDK graph/aggregates, original field HLCs,
+one owned undo/redo, mid-command reconciled refusal with no new rows/checkpoint/
+history/receipt, stale-field refusal despite a fresh cursor, graph overlap/bounds,
+exact replay/lookup and changed-epoch refusal, durable cancel fencing, portable
+restore then process restart with exact original old-generation receipt and no
+extra financial effect. With an external test URL, process ownership stays with
+the caller/container; isolated local execution proves restart. Source independent
+check PASS /tmp/public-batch-source-freeze-check.log; binClippy PASS
+/tmp/public-batch-clippy-green.log. Final caller guide, served contracts,
+representative web/native observation and maintained wiring remain47 work.

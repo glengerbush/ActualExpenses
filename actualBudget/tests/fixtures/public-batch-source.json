@@ -1,0 +1,306 @@
+{
+  "oracle": "Actual26.10 real SDK add/update/delete under batchBudgetUpdates; settled public ledger",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "engine_entry_sha256": "fdfed936dac6ba6dc411bac27f94237a90c8cb0ea047a5d9d0d8a5d21ea9aa56",
+  "clock": "2026-11-09T12:00:00.000Z",
+  "archive": {
+    "filename": "transaction-export-base-26.10.zip",
+    "sha256": "21b1b822a1c2676fcabeae288a0156013b9f4ccf89130eac8ede991a00adc2fd"
+  },
+  "fields": [
+    "id",
+    "account",
+    "payee",
+    "category",
+    "amount",
+    "date",
+    "notes",
+    "is_parent",
+    "is_child",
+    "parent_id",
+    "transfer_id",
+    "cleared",
+    "reconciled"
+  ],
+  "operations": [
+    {
+      "action": "create",
+      "transaction": {
+        "id": "47470000-0000-4000-8000-000000000001",
+        "account_id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "payee_id": "47e20204-61e8-485b-9e33-98721816eed1",
+        "category_id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+        "amount": -333,
+        "date": "2026-11-09",
+        "notes": "External batch purchase",
+        "cleared": true
+      }
+    },
+    {
+      "action": "update",
+      "id": "25300000-0000-4000-8000-000000000001",
+      "fields": {
+        "amount": -1300,
+        "notes": "External batch correction"
+      }
+    },
+    {
+      "action": "delete",
+      "id": "25300000-0000-4000-8000-000000000003"
+    }
+  ],
+  "before": [
+    {
+      "id": "25300000-0000-4000-8000-000000000001",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+      "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+      "amount": -1234,
+      "date": "2026-11-09",
+      "notes": "=SUM(A1:A2)",
+      "is_parent": false,
+      "is_child": false,
+      "parent_id": null,
+      "transfer_id": null,
+      "cleared": true,
+      "reconciled": false
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000002",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "payee": "cf8e8de4-01b2-4b13-8847-bb2003a4505b",
+      "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+      "amount": 500,
+      "date": "2026-11-08",
+      "notes": "first line\nsecond \"line\"",
+      "is_parent": false,
+      "is_child": false,
+      "parent_id": null,
+      "transfer_id": null,
+      "cleared": true,
+      "reconciled": true
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000003",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "payee": null,
+      "category": null,
+      "amount": 0,
+      "date": "2026-11-07",
+      "notes": "\t=literal",
+      "is_parent": false,
+      "is_child": false,
+      "parent_id": null,
+      "transfer_id": null,
+      "cleared": false,
+      "reconciled": false
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000004",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+      "category": null,
+      "amount": -101,
+      "date": "2026-11-06",
+      "notes": "Parent, note",
+      "is_parent": true,
+      "is_child": false,
+      "parent_id": null,
+      "transfer_id": null,
+      "cleared": true,
+      "reconciled": false
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000005",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+      "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+      "amount": -40,
+      "date": "2026-11-06",
+      "notes": "first allocation",
+      "is_parent": false,
+      "is_child": true,
+      "parent_id": "25300000-0000-4000-8000-000000000004",
+      "transfer_id": null,
+      "cleared": true,
+      "reconciled": false
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000006",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+      "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+      "amount": -61,
+      "date": "2026-11-06",
+      "notes": "@second allocation",
+      "is_parent": false,
+      "is_child": true,
+      "parent_id": "25300000-0000-4000-8000-000000000004",
+      "transfer_id": null,
+      "cleared": true,
+      "reconciled": false
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000007",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "payee": "c2ffa73e-8563-4b34-aeaf-341aee8bf2a8",
+      "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+      "amount": -200,
+      "date": "2026-11-05",
+      "notes": "\rTransfer note",
+      "is_parent": false,
+      "is_child": false,
+      "parent_id": null,
+      "transfer_id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+      "cleared": true,
+      "reconciled": false
+    },
+    {
+      "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+      "account": "0920450a-b9e3-48a6-9b96-89f9d32717fe",
+      "payee": "860a4868-6b4c-404f-8c0c-770bd733cd72",
+      "category": null,
+      "amount": 200,
+      "date": "2026-11-05",
+      "notes": "\rTransfer note",
+      "is_parent": false,
+      "is_child": false,
+      "parent_id": null,
+      "transfer_id": "25300000-0000-4000-8000-000000000007",
+      "cleared": false,
+      "reconciled": false
+    }
+  ],
+  "after": [
+    {
+      "id": "25300000-0000-4000-8000-000000000001",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+      "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+      "amount": -1300,
+      "date": "2026-11-09",
+      "notes": "External batch correction",
+      "is_parent": false,
+      "is_child": false,
+      "parent_id": null,
+      "transfer_id": null,
+      "cleared": true,
+      "reconciled": false
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000002",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "payee": "cf8e8de4-01b2-4b13-8847-bb2003a4505b",
+      "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+      "amount": 500,
+      "date": "2026-11-08",
+      "notes": "first line\nsecond \"line\"",
+      "is_parent": false,
+      "is_child": false,
+      "parent_id": null,
+      "transfer_id": null,
+      "cleared": true,
+      "reconciled": true
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000004",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+      "category": null,
+      "amount": -101,
+      "date": "2026-11-06",
+      "notes": "Parent, note",
+      "is_parent": true,
+      "is_child": false,
+      "parent_id": null,
+      "transfer_id": null,
+      "cleared": true,
+      "reconciled": false
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000005",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+      "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+      "amount": -40,
+      "date": "2026-11-06",
+      "notes": "first allocation",
+      "is_parent": false,
+      "is_child": true,
+      "parent_id": "25300000-0000-4000-8000-000000000004",
+      "transfer_id": null,
+      "cleared": true,
+      "reconciled": false
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000006",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+      "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+      "amount": -61,
+      "date": "2026-11-06",
+      "notes": "@second allocation",
+      "is_parent": false,
+      "is_child": true,
+      "parent_id": "25300000-0000-4000-8000-000000000004",
+      "transfer_id": null,
+      "cleared": true,
+      "reconciled": false
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000007",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "payee": "c2ffa73e-8563-4b34-aeaf-341aee8bf2a8",
+      "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+      "amount": -200,
+      "date": "2026-11-05",
+      "notes": "\rTransfer note",
+      "is_parent": false,
+      "is_child": false,
+      "parent_id": null,
+      "transfer_id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+      "cleared": true,
+      "reconciled": false
+    },
+    {
+      "id": "47470000-0000-4000-8000-000000000001",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+      "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+      "amount": -333,
+      "date": "2026-11-09",
+      "notes": "External batch purchase",
+      "is_parent": false,
+      "is_child": false,
+      "parent_id": null,
+      "transfer_id": null,
+      "cleared": true,
+      "reconciled": false
+    },
+    {
+      "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+      "account": "0920450a-b9e3-48a6-9b96-89f9d32717fe",
+      "payee": "860a4868-6b4c-404f-8c0c-770bd733cd72",
+      "category": null,
+      "amount": 200,
+      "date": "2026-11-05",
+      "notes": "\rTransfer note",
+      "is_parent": false,
+      "is_child": false,
+      "parent_id": null,
+      "transfer_id": "25300000-0000-4000-8000-000000000007",
+      "cleared": false,
+      "reconciled": false
+    }
+  ],
+  "sums": [
+    {
+      "account": "0920450a-b9e3-48a6-9b96-89f9d32717fe",
+      "total": 200
+    },
+    {
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "total": -1434
+    }
+  ]
+}

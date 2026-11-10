@@ -1,8 +1,58 @@
-# Formula cards and calculated rule actions — in progress
+# Formula cards accepted; calculated rule actions pending
 
-Tickets41/42; no full acceptance claim. Reference commit
+Ticket41 accepted locally2026-11-10;42 remains open. Reference commit
 `2bebdbaae0b701120a8cad9d56aafd64fa04c577`, Actual API26.10.0,
 installed/pinned HyperFormula3.5.0.
+
+## Ticket41 acceptance — 2026-11-10
+
+The final display witness resolves the last review question: the unchanged
+`FormulaResult` callback and `useFormat` intentionally use comma-dot/before
+defaults independently of formula-function locale/currency fallbacks. Native
+defaults already match. `generate-formula-display-source.mjs` executes that exact
+callback, source amount conversion and source formatter using real engine
+preferences; React/Redux lifecycle wiring alone is adapted. Its56 observations
+cover absent preferences in English/French, EUR/CHF/JPY, hidden fractions,
+explicit spacing/position/apostrophe settings, negative zero and range errors.
+Original ledger rows and all earlier fixtures remain unchanged.
+
+The witness exposed two actual display bugs. Negative zero lost its sign;
+out-of-range results fell back to unformatted text. Cards now preserve source
+negative-zero rendering and the source2^51 financial display bound. Oversized
+calculations show an actionable display error without changing the computed
+result, recorded balances or app availability. `/tmp/formula-display-red.log`
+records `0.00` versus source `-0.00`; `/tmp/formula-display-green3.log` passes all
+56 running-browser displays/errors and unchanged financial rows/checkpoints at
+390px. Source errors remain verbatim in the fixture, while the UI gives a concise
+recovery instruction instead of throwing a component exception.
+
+`/tmp/formula-display-source-check.log` independently reproduces56 source cases;
+`/tmp/formula-display-core-source-check.log` reproduces the original40 source
+outcomes after the shared harness extension. `/tmp/formula-display-regression.log`
+passes the existing complete formula browser scenario: theme bindings,
+cache/privacy/quota, drafts, query editing, keyboard and200% text. Typecheck and
+production build pass; Svelte analysis has no issues (unchanged guarded
+external-request effect advisories). Impeccable edge-case review and visual
+inspection of negative-zero/range-error cards pass. French dashboard-label
+timeouts were harness localization mistakes, corrected before the full pass.
+
+Acceptance audit against ticket41/spec72,73,80:
+
+| Requirement | Evidence |
+| --- | --- |
+| Spreadsheet/query/count/extraction, budget queries and balances | Pinned engine/custom functions,77 core/budget/edge/clock outcomes and their public HTTP checks documented below. |
+| Formula/named-query import, bounded evaluation, errors and isolation | Genuine saved-source archive; native/served-schema checks; heap/stack/deadline/SQL/query bounds; error/limit recovery; no host execution surface. |
+| Financial/statistical fidelity | Exact financial comparisons, stated1e-12 statistical tolerance,78 added formatting/preference observations and56 source display/error cases. |
+| Public API, browser and Android | Recorded native contract/recovery and actual companion service tests; complete formula workflow and locale/disabled/display browser cases pass. |
+| Complete vertical delivery | Persisted widget/query/style/feature settings, versioned served contract, conversion/original preservation, backup/duplicate/restore, stale-snapshot rejection and reporting change feed verified. |
+| UI/HTTP/offline boundaries | Impeccable and Svelte review;390px/200% text, keyboard, loading/error/privacy/cache recovery; plain HTTP, explicit opt-in and disabled mode retain saved work without evaluation. |
+
+Root consolidated standards review from `d27e6d4`: no unresolved finding.
+Root consolidated spec review, combining this evidence with reviewed prior41
+checkpoints: all six acceptance criteria met; no41 feature work deferred.
+Tickets39/40/42 and final qualification50–53 remain open. No push, release or
+production deployment; full-suite/container qualification stays at final
+integration per the user's credit-saving preference.
 
 ## Source seam
 

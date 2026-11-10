@@ -40,19 +40,32 @@
       preferences.shared.experimental.formulaMode,
   );
   let hidden = $derived(!enabled || preferences.shared.privacy_mode);
-  let text = $derived.by(() => {
-    if (hidden) return "••••";
+  let display = $derived.by(() => {
+    if (hidden) return { text: "••••", error: null };
     const output = value?.output;
-    if (!output || output.result === null) return "";
+    if (!output || output.result === null) return { text: "", error: null };
     if (typeof output.result === "number") {
-      const minor = Math.round(
-        output.result * 10 ** captureAmountFormat().decimal_places,
-      );
-      return Number.isSafeInteger(minor)
-        ? formatAmount(minor)
-        : String(output.result);
+      const decimals = captureAmountFormat().decimal_places;
+      const minor = Math.round(output.result * 10 ** decimals);
+      // Match source safeNumber's financial display bound (2^51, not 2^53).
+      // Keep evaluation available, but surface a display error instead of a
+      // misleading unformatted number or a component exception.
+      if (!Number.isInteger(minor) || Math.abs(minor) > 2 ** 51 - 1)
+        return {
+          text: "",
+          error: t(
+            "Calculated value is outside the supported display range. Adjust the formula.",
+          ),
+        };
+      const sign =
+        Object.is(minor, -0) &&
+        decimals > 0 &&
+        !preferences.shared.hide_fraction
+          ? "-"
+          : "";
+      return { text: sign + formatAmount(minor), error: null };
     }
-    return String(output.result);
+    return { text: String(output.result), error: null };
   });
   let color = $derived.by(() => {
     const candidate = value?.color?.result;
@@ -170,12 +183,12 @@
           "Cached formula. Inputs may have changed; reconnect and recalculate before relying on it.",
         )}
       </p>{/if}
-    {#if value.output.error}<p role="alert">
-        {t(value.output.error)}
+    {#if value.output.error || display.error}<p role="alert">
+        {display.error || t(value.output.error ?? "")}
       </p>{:else}<output
         aria-label={t("Calculated value")}
         style:color
-        style:font-size={fontSize}>{text}</output
+        style:font-size={fontSize}>{display.text}</output
       >{/if}
     {#if value.color?.error}<p role="alert">
         {t("Color formula:")}

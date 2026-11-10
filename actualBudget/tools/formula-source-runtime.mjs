@@ -11,7 +11,8 @@ export function formulaSourceRuntime(api, engine) {
   let states = [],
     stateIndex = 0,
     settled,
-    selectedLocale = "en-US";
+    selectedLocale = "en-US",
+    displayPreferences = {};
   const dependencies = createRequire(
       new URL(
         "../../actualExpenses/tools/compatibility/package.json",
@@ -50,6 +51,8 @@ export function formulaSourceRuntime(api, engine) {
       if (name === "csv-stringify/browser/esm/sync") return dependencies(name);
       if (name === "react")
         return {
+          useMemo: (fn) => fn(),
+          useCallback: (fn) => fn,
           useRef: (value) => ({ current: value }),
           useState: (initial) => {
             const i = stateIndex++;
@@ -69,6 +72,8 @@ export function formulaSourceRuntime(api, engine) {
           Fragment: () => null,
         };
       if (name === "./useLocale") return { useLocale: () => selectedLocale };
+      if (name === "./useSyncedPref")
+        return { useSyncedPref: (name) => [displayPreferences[name]] };
       if (name === "./useGlobalPref")
         return { useGlobalPref: () => [selectedLocale] };
       if (name === "hyperformula" || name.startsWith("hyperformula/"))
@@ -158,6 +163,44 @@ export function formulaSourceRuntime(api, engine) {
       return { result: states[0], error: states[2] };
     },
     core: (file) => load(core + file),
+    async display(value, locale = "en-US") {
+      selectedLocale = locale;
+      displayPreferences = Object.fromEntries(
+        (await api.aqlQuery(api.q("preferences").select("*"))).data.map(
+          ({ id, value }) => [id, value],
+        ),
+      );
+      // Execute the exact FormulaResult display callback, not a rewritten
+      // expected-value formatter. Only React/Redux lifecycle wiring is replaced.
+      const file = frontend + "components/reports/FormulaResult.tsx";
+      const source = readFileSync(path.join(base, file), "utf8");
+      hashes[file] = createHash("sha256").update(source).digest("hex");
+      const syntax = ts.createSourceFile(
+        file,
+        source,
+        ts.ScriptTarget.Latest,
+        true,
+        ts.ScriptKind.TSX,
+      );
+      let callback;
+      function visit(node) {
+        if (
+          ts.isVariableDeclaration(node) &&
+          node.name.getText(syntax) === "displayValue"
+        )
+          callback = node.initializer.arguments[0].getText(syntax);
+        ts.forEachChild(node, visit);
+      }
+      visit(syntax);
+      if (!callback)
+        throw Error("Missing source FormulaResult display callback");
+      const formatter = load(frontend + "hooks/useFormat").useFormat();
+      return vm.runInThisContext(
+        "(function(value,error,format,amountToInteger){return (" +
+          callback +
+          ")();})",
+      )(value, null, formatter, load(core + "shared/util").amountToInteger);
+    },
     hashes,
   };
 }

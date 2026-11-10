@@ -1,0 +1,739 @@
+{
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "cases": [
+    {
+      "id": "absent-en",
+      "seed": "absent",
+      "locale": "en",
+      "archive": {
+        "filename": "reports-source-26.10.zip",
+        "sha256": "8b54cf9bc377ecd3d608382995efb5c7445c748f849bc971ce70a1610f1ed250"
+      },
+      "observations": [
+        {
+          "formula": "=1234.567",
+          "output": {
+            "result": 1234.567,
+            "error": null
+          },
+          "display": "1,234.57",
+          "error": null
+        },
+        {
+          "formula": "=-1234.567",
+          "output": {
+            "result": -1234.567,
+            "error": null
+          },
+          "display": "-1,234.57",
+          "error": null
+        },
+        {
+          "formula": "=-0.005",
+          "output": {
+            "result": -0.005,
+            "error": null
+          },
+          "display": "-0.00",
+          "error": null
+        },
+        {
+          "formula": "=-0.5",
+          "output": {
+            "result": -0.5,
+            "error": null
+          },
+          "display": "-0.50",
+          "error": null
+        },
+        {
+          "formula": "=22517998136852.47",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 2251799813700000"
+        },
+        {
+          "formula": "=22517998136852.48",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 2251799813700000"
+        },
+        {
+          "formula": "=100000000000000000000",
+          "output": {
+            "result": 100000000000000000000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 1e+22"
+        }
+      ],
+      "source_hashes": {
+        "packages/desktop-client/src/hooks/useFormulaExecution.ts": "8dd26fd03722245ed6cceed9028ecd6779ad70711b143c2d4ea3092d6659eb2f",
+        "packages/loot-core/src/shared/formulas/customFunctions.ts": "7ef1b4bff4d5efae961b96fcdf308f5e7745748339ca9d9a700d05d63bfa8558",
+        "packages/loot-core/src/shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419",
+        "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+        "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+        "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+        "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+        "packages/desktop-client/src/components/formula/queryTimeFrame.ts": "8d43a56d140a4e9e02eba12c30b7cc5f1337facb3e155d48f6fe69829b99b715",
+        "packages/desktop-client/src/components/reports/reportRanges.ts": "82ce4574b3814dcdde05d2d7a91a09e37f9a80ea3beb9c63467f45d62aaf339b",
+        "packages/desktop-client/src/util/bootstrapHyperFormula.ts": "36243cfd8735ea08cb1fca38dc215e4c9aac6d759fe86eb73f54dda91689373a",
+        "packages/desktop-client/src/components/reports/FormulaResult.tsx": "84de686565d35b68751af13c73983254e84b4fbac2624a1e296f3415214fc35f",
+        "packages/desktop-client/src/hooks/useFormat.ts": "af2118e24503f7351af46bc129a1da56e030cd05aa5ad72a4cdbcc72f919bbad",
+        "packages/loot-core/src/shared/arithmetic.ts": "955716603cfe2b74bde984ee6795bd0464118480c2f97c25fad390478aa92fa4"
+      }
+    },
+    {
+      "id": "absent-fr",
+      "seed": "absent",
+      "locale": "fr",
+      "archive": {
+        "filename": "reports-source-26.10.zip",
+        "sha256": "8b54cf9bc377ecd3d608382995efb5c7445c748f849bc971ce70a1610f1ed250"
+      },
+      "observations": [
+        {
+          "formula": "=1234.567",
+          "output": {
+            "result": 1234.567,
+            "error": null
+          },
+          "display": "1,234.57",
+          "error": null
+        },
+        {
+          "formula": "=-1234.567",
+          "output": {
+            "result": -1234.567,
+            "error": null
+          },
+          "display": "-1,234.57",
+          "error": null
+        },
+        {
+          "formula": "=-0.005",
+          "output": {
+            "result": -0.005,
+            "error": null
+          },
+          "display": "-0.00",
+          "error": null
+        },
+        {
+          "formula": "=-0.5",
+          "output": {
+            "result": -0.5,
+            "error": null
+          },
+          "display": "-0.50",
+          "error": null
+        },
+        {
+          "formula": "=22517998136852.47",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 2251799813700000"
+        },
+        {
+          "formula": "=22517998136852.48",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 2251799813700000"
+        },
+        {
+          "formula": "=100000000000000000000",
+          "output": {
+            "result": 100000000000000000000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 1e+22"
+        }
+      ],
+      "source_hashes": {
+        "packages/desktop-client/src/hooks/useFormulaExecution.ts": "8dd26fd03722245ed6cceed9028ecd6779ad70711b143c2d4ea3092d6659eb2f",
+        "packages/loot-core/src/shared/formulas/customFunctions.ts": "7ef1b4bff4d5efae961b96fcdf308f5e7745748339ca9d9a700d05d63bfa8558",
+        "packages/loot-core/src/shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419",
+        "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+        "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+        "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+        "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+        "packages/desktop-client/src/components/formula/queryTimeFrame.ts": "8d43a56d140a4e9e02eba12c30b7cc5f1337facb3e155d48f6fe69829b99b715",
+        "packages/desktop-client/src/components/reports/reportRanges.ts": "82ce4574b3814dcdde05d2d7a91a09e37f9a80ea3beb9c63467f45d62aaf339b",
+        "packages/desktop-client/src/util/bootstrapHyperFormula.ts": "36243cfd8735ea08cb1fca38dc215e4c9aac6d759fe86eb73f54dda91689373a",
+        "packages/desktop-client/src/components/reports/FormulaResult.tsx": "84de686565d35b68751af13c73983254e84b4fbac2624a1e296f3415214fc35f",
+        "packages/desktop-client/src/hooks/useFormat.ts": "af2118e24503f7351af46bc129a1da56e030cd05aa5ad72a4cdbcc72f919bbad",
+        "packages/loot-core/src/shared/arithmetic.ts": "955716603cfe2b74bde984ee6795bd0464118480c2f97c25fad390478aa92fa4"
+      }
+    },
+    {
+      "id": "EUR",
+      "seed": "EUR",
+      "locale": "en",
+      "archive": {
+        "filename": "formula-formatting-eur-26.10.zip",
+        "sha256": "b02a64e0798664435fc510ad27dc3934897e7b30bca78d931791c5e648112a55"
+      },
+      "observations": [
+        {
+          "formula": "=1234.567",
+          "output": {
+            "result": 1234.567,
+            "error": null
+          },
+          "display": "‪€‬1,234.57",
+          "error": null
+        },
+        {
+          "formula": "=-1234.567",
+          "output": {
+            "result": -1234.567,
+            "error": null
+          },
+          "display": "-‪€‬1,234.57",
+          "error": null
+        },
+        {
+          "formula": "=-0.005",
+          "output": {
+            "result": -0.005,
+            "error": null
+          },
+          "display": "-‪€‬0.00",
+          "error": null
+        },
+        {
+          "formula": "=-0.5",
+          "output": {
+            "result": -0.5,
+            "error": null
+          },
+          "display": "-‪€‬0.50",
+          "error": null
+        },
+        {
+          "formula": "=22517998136852.47",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 2251799813700000"
+        },
+        {
+          "formula": "=22517998136852.48",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 2251799813700000"
+        },
+        {
+          "formula": "=100000000000000000000",
+          "output": {
+            "result": 100000000000000000000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 1e+22"
+        }
+      ],
+      "source_hashes": {
+        "packages/desktop-client/src/hooks/useFormulaExecution.ts": "8dd26fd03722245ed6cceed9028ecd6779ad70711b143c2d4ea3092d6659eb2f",
+        "packages/loot-core/src/shared/formulas/customFunctions.ts": "7ef1b4bff4d5efae961b96fcdf308f5e7745748339ca9d9a700d05d63bfa8558",
+        "packages/loot-core/src/shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419",
+        "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+        "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+        "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+        "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+        "packages/desktop-client/src/components/formula/queryTimeFrame.ts": "8d43a56d140a4e9e02eba12c30b7cc5f1337facb3e155d48f6fe69829b99b715",
+        "packages/desktop-client/src/components/reports/reportRanges.ts": "82ce4574b3814dcdde05d2d7a91a09e37f9a80ea3beb9c63467f45d62aaf339b",
+        "packages/desktop-client/src/util/bootstrapHyperFormula.ts": "36243cfd8735ea08cb1fca38dc215e4c9aac6d759fe86eb73f54dda91689373a",
+        "packages/desktop-client/src/components/reports/FormulaResult.tsx": "84de686565d35b68751af13c73983254e84b4fbac2624a1e296f3415214fc35f",
+        "packages/desktop-client/src/hooks/useFormat.ts": "af2118e24503f7351af46bc129a1da56e030cd05aa5ad72a4cdbcc72f919bbad",
+        "packages/loot-core/src/shared/arithmetic.ts": "955716603cfe2b74bde984ee6795bd0464118480c2f97c25fad390478aa92fa4"
+      }
+    },
+    {
+      "id": "CHF",
+      "seed": "CHF",
+      "locale": "en",
+      "archive": {
+        "filename": "formula-formatting-chf-26.10.zip",
+        "sha256": "5dd80b98117ccabc7d2a0dc9675b21027d8256701b7e9f77e349a101db2af5e8"
+      },
+      "observations": [
+        {
+          "formula": "=1234.567",
+          "output": {
+            "result": 1234.567,
+            "error": null
+          },
+          "display": "‪Fr.‬1,234.57",
+          "error": null
+        },
+        {
+          "formula": "=-1234.567",
+          "output": {
+            "result": -1234.567,
+            "error": null
+          },
+          "display": "-‪Fr.‬1,234.57",
+          "error": null
+        },
+        {
+          "formula": "=-0.005",
+          "output": {
+            "result": -0.005,
+            "error": null
+          },
+          "display": "-‪Fr.‬0.00",
+          "error": null
+        },
+        {
+          "formula": "=-0.5",
+          "output": {
+            "result": -0.5,
+            "error": null
+          },
+          "display": "-‪Fr.‬0.50",
+          "error": null
+        },
+        {
+          "formula": "=22517998136852.47",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 2251799813700000"
+        },
+        {
+          "formula": "=22517998136852.48",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 2251799813700000"
+        },
+        {
+          "formula": "=100000000000000000000",
+          "output": {
+            "result": 100000000000000000000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 1e+22"
+        }
+      ],
+      "source_hashes": {
+        "packages/desktop-client/src/hooks/useFormulaExecution.ts": "8dd26fd03722245ed6cceed9028ecd6779ad70711b143c2d4ea3092d6659eb2f",
+        "packages/loot-core/src/shared/formulas/customFunctions.ts": "7ef1b4bff4d5efae961b96fcdf308f5e7745748339ca9d9a700d05d63bfa8558",
+        "packages/loot-core/src/shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419",
+        "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+        "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+        "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+        "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+        "packages/desktop-client/src/components/formula/queryTimeFrame.ts": "8d43a56d140a4e9e02eba12c30b7cc5f1337facb3e155d48f6fe69829b99b715",
+        "packages/desktop-client/src/components/reports/reportRanges.ts": "82ce4574b3814dcdde05d2d7a91a09e37f9a80ea3beb9c63467f45d62aaf339b",
+        "packages/desktop-client/src/util/bootstrapHyperFormula.ts": "36243cfd8735ea08cb1fca38dc215e4c9aac6d759fe86eb73f54dda91689373a",
+        "packages/desktop-client/src/components/reports/FormulaResult.tsx": "84de686565d35b68751af13c73983254e84b4fbac2624a1e296f3415214fc35f",
+        "packages/desktop-client/src/hooks/useFormat.ts": "af2118e24503f7351af46bc129a1da56e030cd05aa5ad72a4cdbcc72f919bbad",
+        "packages/loot-core/src/shared/arithmetic.ts": "955716603cfe2b74bde984ee6795bd0464118480c2f97c25fad390478aa92fa4"
+      }
+    },
+    {
+      "id": "JPY",
+      "seed": "JPY",
+      "locale": "en",
+      "archive": {
+        "filename": "formula-formatting-jpy-26.10.zip",
+        "sha256": "325784c1173476643136a77fa6f67ccc9a5de23560fbe818bec4d8f465acf2cf"
+      },
+      "observations": [
+        {
+          "formula": "=1234.567",
+          "output": {
+            "result": 1234.567,
+            "error": null
+          },
+          "display": "‪¥‬1,235",
+          "error": null
+        },
+        {
+          "formula": "=-1234.567",
+          "output": {
+            "result": -1234.567,
+            "error": null
+          },
+          "display": "-‪¥‬1,235",
+          "error": null
+        },
+        {
+          "formula": "=-0.005",
+          "output": {
+            "result": -0.005,
+            "error": null
+          },
+          "display": "‪¥‬0",
+          "error": null
+        },
+        {
+          "formula": "=-0.5",
+          "output": {
+            "result": -0.5,
+            "error": null
+          },
+          "display": "‪¥‬0",
+          "error": null
+        },
+        {
+          "formula": "=22517998136852.47",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": "‪¥‬22,517,998,137,000",
+          "error": null
+        },
+        {
+          "formula": "=22517998136852.48",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": "‪¥‬22,517,998,137,000",
+          "error": null
+        },
+        {
+          "formula": "=100000000000000000000",
+          "output": {
+            "result": 100000000000000000000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 100000000000000000000"
+        }
+      ],
+      "source_hashes": {
+        "packages/desktop-client/src/hooks/useFormulaExecution.ts": "8dd26fd03722245ed6cceed9028ecd6779ad70711b143c2d4ea3092d6659eb2f",
+        "packages/loot-core/src/shared/formulas/customFunctions.ts": "7ef1b4bff4d5efae961b96fcdf308f5e7745748339ca9d9a700d05d63bfa8558",
+        "packages/loot-core/src/shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419",
+        "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+        "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+        "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+        "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+        "packages/desktop-client/src/components/formula/queryTimeFrame.ts": "8d43a56d140a4e9e02eba12c30b7cc5f1337facb3e155d48f6fe69829b99b715",
+        "packages/desktop-client/src/components/reports/reportRanges.ts": "82ce4574b3814dcdde05d2d7a91a09e37f9a80ea3beb9c63467f45d62aaf339b",
+        "packages/desktop-client/src/util/bootstrapHyperFormula.ts": "36243cfd8735ea08cb1fca38dc215e4c9aac6d759fe86eb73f54dda91689373a",
+        "packages/desktop-client/src/components/reports/FormulaResult.tsx": "84de686565d35b68751af13c73983254e84b4fbac2624a1e296f3415214fc35f",
+        "packages/desktop-client/src/hooks/useFormat.ts": "af2118e24503f7351af46bc129a1da56e030cd05aa5ad72a4cdbcc72f919bbad",
+        "packages/loot-core/src/shared/arithmetic.ts": "955716603cfe2b74bde984ee6795bd0464118480c2f97c25fad390478aa92fa4"
+      }
+    },
+    {
+      "id": "hidden-fraction",
+      "seed": "EUR",
+      "locale": "fr",
+      "source": {
+        "hideFraction": "true"
+      },
+      "changes": {
+        "hide_fraction": true
+      },
+      "archive": {
+        "filename": "formula-formatting-eur-26.10.zip",
+        "sha256": "b02a64e0798664435fc510ad27dc3934897e7b30bca78d931791c5e648112a55"
+      },
+      "observations": [
+        {
+          "formula": "=1234.567",
+          "output": {
+            "result": 1234.567,
+            "error": null
+          },
+          "display": "‪€‬1,235",
+          "error": null
+        },
+        {
+          "formula": "=-1234.567",
+          "output": {
+            "result": -1234.567,
+            "error": null
+          },
+          "display": "-‪€‬1,235",
+          "error": null
+        },
+        {
+          "formula": "=-0.005",
+          "output": {
+            "result": -0.005,
+            "error": null
+          },
+          "display": "‪€‬0",
+          "error": null
+        },
+        {
+          "formula": "=-0.5",
+          "output": {
+            "result": -0.5,
+            "error": null
+          },
+          "display": "-‪€‬1",
+          "error": null
+        },
+        {
+          "formula": "=22517998136852.47",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 2251799813700000"
+        },
+        {
+          "formula": "=22517998136852.48",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 2251799813700000"
+        },
+        {
+          "formula": "=100000000000000000000",
+          "output": {
+            "result": 100000000000000000000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 1e+22"
+        }
+      ],
+      "source_hashes": {
+        "packages/desktop-client/src/hooks/useFormulaExecution.ts": "8dd26fd03722245ed6cceed9028ecd6779ad70711b143c2d4ea3092d6659eb2f",
+        "packages/loot-core/src/shared/formulas/customFunctions.ts": "7ef1b4bff4d5efae961b96fcdf308f5e7745748339ca9d9a700d05d63bfa8558",
+        "packages/loot-core/src/shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419",
+        "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+        "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+        "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+        "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+        "packages/desktop-client/src/components/formula/queryTimeFrame.ts": "8d43a56d140a4e9e02eba12c30b7cc5f1337facb3e155d48f6fe69829b99b715",
+        "packages/desktop-client/src/components/reports/reportRanges.ts": "82ce4574b3814dcdde05d2d7a91a09e37f9a80ea3beb9c63467f45d62aaf339b",
+        "packages/desktop-client/src/util/bootstrapHyperFormula.ts": "36243cfd8735ea08cb1fca38dc215e4c9aac6d759fe86eb73f54dda91689373a",
+        "packages/desktop-client/src/components/reports/FormulaResult.tsx": "84de686565d35b68751af13c73983254e84b4fbac2624a1e296f3415214fc35f",
+        "packages/desktop-client/src/hooks/useFormat.ts": "af2118e24503f7351af46bc129a1da56e030cd05aa5ad72a4cdbcc72f919bbad",
+        "packages/loot-core/src/shared/arithmetic.ts": "955716603cfe2b74bde984ee6795bd0464118480c2f97c25fad390478aa92fa4"
+      }
+    },
+    {
+      "id": "explicit-after",
+      "seed": "EUR",
+      "locale": "fr",
+      "source": {
+        "numberFormat": "space-comma",
+        "currencySymbolPosition": "after",
+        "currencySpaceBetweenAmountAndSymbol": "true"
+      },
+      "changes": {
+        "number_format": "space-comma",
+        "currency_symbol_position": "after",
+        "currency_space": true
+      },
+      "archive": {
+        "filename": "formula-formatting-eur-26.10.zip",
+        "sha256": "b02a64e0798664435fc510ad27dc3934897e7b30bca78d931791c5e648112a55"
+      },
+      "observations": [
+        {
+          "formula": "=1234.567",
+          "output": {
+            "result": 1234.567,
+            "error": null
+          },
+          "display": "1 234,57 €",
+          "error": null
+        },
+        {
+          "formula": "=-1234.567",
+          "output": {
+            "result": -1234.567,
+            "error": null
+          },
+          "display": "-1 234,57 €",
+          "error": null
+        },
+        {
+          "formula": "=-0.005",
+          "output": {
+            "result": -0.005,
+            "error": null
+          },
+          "display": "-0,00 €",
+          "error": null
+        },
+        {
+          "formula": "=-0.5",
+          "output": {
+            "result": -0.5,
+            "error": null
+          },
+          "display": "-0,50 €",
+          "error": null
+        },
+        {
+          "formula": "=22517998136852.47",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 2251799813700000"
+        },
+        {
+          "formula": "=22517998136852.48",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 2251799813700000"
+        },
+        {
+          "formula": "=100000000000000000000",
+          "output": {
+            "result": 100000000000000000000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 1e+22"
+        }
+      ],
+      "source_hashes": {
+        "packages/desktop-client/src/hooks/useFormulaExecution.ts": "8dd26fd03722245ed6cceed9028ecd6779ad70711b143c2d4ea3092d6659eb2f",
+        "packages/loot-core/src/shared/formulas/customFunctions.ts": "7ef1b4bff4d5efae961b96fcdf308f5e7745748339ca9d9a700d05d63bfa8558",
+        "packages/loot-core/src/shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419",
+        "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+        "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+        "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+        "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+        "packages/desktop-client/src/components/formula/queryTimeFrame.ts": "8d43a56d140a4e9e02eba12c30b7cc5f1337facb3e155d48f6fe69829b99b715",
+        "packages/desktop-client/src/components/reports/reportRanges.ts": "82ce4574b3814dcdde05d2d7a91a09e37f9a80ea3beb9c63467f45d62aaf339b",
+        "packages/desktop-client/src/util/bootstrapHyperFormula.ts": "36243cfd8735ea08cb1fca38dc215e4c9aac6d759fe86eb73f54dda91689373a",
+        "packages/desktop-client/src/components/reports/FormulaResult.tsx": "84de686565d35b68751af13c73983254e84b4fbac2624a1e296f3415214fc35f",
+        "packages/desktop-client/src/hooks/useFormat.ts": "af2118e24503f7351af46bc129a1da56e030cd05aa5ad72a4cdbcc72f919bbad",
+        "packages/loot-core/src/shared/arithmetic.ts": "955716603cfe2b74bde984ee6795bd0464118480c2f97c25fad390478aa92fa4"
+      }
+    },
+    {
+      "id": "explicit-apostrophe",
+      "seed": "CHF",
+      "locale": "en",
+      "source": {
+        "numberFormat": "apostrophe-dot"
+      },
+      "changes": {
+        "number_format": "apostrophe-dot"
+      },
+      "archive": {
+        "filename": "formula-formatting-chf-26.10.zip",
+        "sha256": "5dd80b98117ccabc7d2a0dc9675b21027d8256701b7e9f77e349a101db2af5e8"
+      },
+      "observations": [
+        {
+          "formula": "=1234.567",
+          "output": {
+            "result": 1234.567,
+            "error": null
+          },
+          "display": "‪Fr.‬1’234.57",
+          "error": null
+        },
+        {
+          "formula": "=-1234.567",
+          "output": {
+            "result": -1234.567,
+            "error": null
+          },
+          "display": "-‪Fr.‬1’234.57",
+          "error": null
+        },
+        {
+          "formula": "=-0.005",
+          "output": {
+            "result": -0.005,
+            "error": null
+          },
+          "display": "-‪Fr.‬0.00",
+          "error": null
+        },
+        {
+          "formula": "=-0.5",
+          "output": {
+            "result": -0.5,
+            "error": null
+          },
+          "display": "-‪Fr.‬0.50",
+          "error": null
+        },
+        {
+          "formula": "=22517998136852.47",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 2251799813700000"
+        },
+        {
+          "formula": "=22517998136852.48",
+          "output": {
+            "result": 22517998137000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 2251799813700000"
+        },
+        {
+          "formula": "=100000000000000000000",
+          "output": {
+            "result": 100000000000000000000,
+            "error": null
+          },
+          "display": null,
+          "error": "safeNumber: can't safely perform arithmetic with number: 1e+22"
+        }
+      ],
+      "source_hashes": {
+        "packages/desktop-client/src/hooks/useFormulaExecution.ts": "8dd26fd03722245ed6cceed9028ecd6779ad70711b143c2d4ea3092d6659eb2f",
+        "packages/loot-core/src/shared/formulas/customFunctions.ts": "7ef1b4bff4d5efae961b96fcdf308f5e7745748339ca9d9a700d05d63bfa8558",
+        "packages/loot-core/src/shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419",
+        "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+        "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+        "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+        "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+        "packages/desktop-client/src/components/formula/queryTimeFrame.ts": "8d43a56d140a4e9e02eba12c30b7cc5f1337facb3e155d48f6fe69829b99b715",
+        "packages/desktop-client/src/components/reports/reportRanges.ts": "82ce4574b3814dcdde05d2d7a91a09e37f9a80ea3beb9c63467f45d62aaf339b",
+        "packages/desktop-client/src/util/bootstrapHyperFormula.ts": "36243cfd8735ea08cb1fca38dc215e4c9aac6d759fe86eb73f54dda91689373a",
+        "packages/desktop-client/src/components/reports/FormulaResult.tsx": "84de686565d35b68751af13c73983254e84b4fbac2624a1e296f3415214fc35f",
+        "packages/desktop-client/src/hooks/useFormat.ts": "af2118e24503f7351af46bc129a1da56e030cd05aa5ad72a4cdbcc72f919bbad",
+        "packages/loot-core/src/shared/arithmetic.ts": "955716603cfe2b74bde984ee6795bd0464118480c2f97c25fad390478aa92fa4"
+      }
+    }
+  ]
+}

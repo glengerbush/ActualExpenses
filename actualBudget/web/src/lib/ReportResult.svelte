@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import CustomReportPlot from "./CustomReportPlot.svelte";
   import { errorMessage } from "./api";
   import { formatAmount } from "./money";
@@ -59,7 +60,7 @@
         })
         .join(" ");
       return {
-        label,
+        label: columnLabel(label, column),
         path,
         color: colors[column % colors.length],
         dash: column > 3 ? "4 3" : undefined,
@@ -106,6 +107,14 @@
     });
     return { bars, labels: view.columns.slice(1) };
   });
+  function columnLabel(label: string, index: number) {
+    return (query.kind === "custom" &&
+      query.options.mode === "time" &&
+      query.options.groupBy !== "Interval") ||
+      (query.kind === "net-worth" && index > 0)
+      ? label
+      : t(label);
+  }
   function amount(value: number | null) {
     return value === null
       ? "Unavailable"
@@ -138,7 +147,7 @@
   {#if !preferences.shared.privacy_mode}<CustomReportPlot
       {query}
       {projection}
-    />{:else}<p class="muted">Financial plot hidden for privacy.</p>{/if}
+    />{:else}<p class="muted">{t("Financial plot hidden for privacy.")}</p>{/if}
   <p class="summary-value">
     {amount(
       customMetric(
@@ -148,18 +157,19 @@
     )}
   </p>
   <p class="muted">
-    Report total · {["totalDebts", "netDebts"].includes(
-      String(query.options.balanceTypeOp),
-    )
-      ? "Payments are shown as positive magnitudes; details retain recorded signs."
-      : "Values retain their signs."}
+    {t("Report total ·")}
+    {["totalDebts", "netDebts"].includes(String(query.options.balanceTypeOp))
+      ? t(
+          "Payments are shown as positive magnitudes; details retain recorded signs.",
+        )
+      : t("Values retain their signs.")}
   </p>
 {:else if query.kind === "summary"}
   <p class="summary-value">{amount(view.rows[0]?.values[0] ?? null)}</p>
   <p class="muted">
     {view.rows[0]
       ?.label}{#if ["avgPerMonth", "avgPerYear", "avgPerTransact"].includes(String(query.options.summary && (query.options.summary as Record<string, unknown>).type))}
-      · Average from recorded entries{/if}
+      {t("· Average from recorded entries")}{/if}
   </p>
 {:else if query.kind === "calendar"}
   {#each array(projection.result.calendarData) as month (String(month.start))}<h4
@@ -171,22 +181,24 @@
       class="scroll-region"
       tabindex="0"
       role="region"
-      aria-label="Transaction calendar"
+      aria-label={t("Transaction calendar")}
     >
       <div class="calendar-grid">
         {#each array(month.data) as day (String(day.date))}<div
             class="calendar-day"
           >
             <strong>{String(day.date).slice(8, 10)}</strong><span
-              >In {amount(Number(day.incomeValue))}</span
-            ><span>Out {amount(Number(day.expenseValue))}</span>
+              >{t("In")} {amount(Number(day.incomeValue))}</span
+            ><span>{t("Out")} {amount(Number(day.expenseValue))}</span>
           </div>{/each}
       </div>
     </div>{/each}
 {:else if !preferences.shared.privacy_mode && stacked}<svg
     viewBox="0 0 600 200"
     role="img"
-    aria-label="Stacked account balances; exact account values in table below"
+    aria-label={t(
+      "Stacked account balances; exact account values in table below",
+    )}
     >{#each stacked.bars as bar (bar.id)}<rect
         x={bar.x}
         y={bar.y}
@@ -196,14 +208,15 @@
       />{/each}</svg
   >
   <p class="muted">
-    Account balances stacked above and below zero. Exact account names and
-    balances appear in the table.
+    {t(
+      "Account balances stacked above and below zero. Exact account names and balances appear in the table.",
+    )}
   </p>
 {:else if !preferences.shared.privacy_mode && view.rows.length}
   <svg
     viewBox="0 0 600 200"
     role="img"
-    aria-label="Recorded history plot; exact values in table below"
+    aria-label={t("Recorded history plot; exact values in table below")}
     ><line
       x1="20"
       y1="180"
@@ -230,28 +243,28 @@
       </li>{/each}
   </ul>
 {:else if preferences.shared.privacy_mode}<p class="muted">
-    Financial plot hidden for privacy.
+    {t("Financial plot hidden for privacy.")}
   </p>{/if}
 <details
   open={query.kind === "custom" &&
     ["Table", "TableGraph"].includes(String(query.options.graphType))}
 >
-  <summary>Exact values</summary>
+  <summary>{t("Exact values")}</summary>
   <!-- svelte-ignore a11y_no_noninteractive_tabindex (Scrollable financial tables need keyboard access.) -->
   <div
     class="scroll-region"
     tabindex="0"
     role="region"
-    aria-label="Historical report values"
+    aria-label={t("Historical report values")}
   >
     <table>
       <thead
         ><tr
           ><th scope="col"
-            >{query.kind === "custom" ? "Group / period" : "Period"}</th
+            >{t(query.kind === "custom" ? "Group / period" : "Period")}</th
           >{#each view.columns as column, columnIndex (columnIndex)}<th
               scope="col"
-              class="amount">{column}</th
+              class="amount">{columnLabel(column, columnIndex)}</th
             >{/each}</tr
         ></thead
       ><tbody
@@ -266,49 +279,56 @@
   </div>
   {#if view.rows.length > 50}<div class="actions">
       <button disabled={page === 0} onclick={() => page--}
-        >Previous values</button
+        >{t("Previous values")}</button
       ><span
-        >{page * 50 + 1}–{Math.min((page + 1) * 50, view.rows.length)} of {view
-          .rows.length}</span
+        >{page * 50 + 1}–{Math.min((page + 1) * 50, view.rows.length)}
+        {t("of")}
+        {view.rows.length}</span
       ><button
         disabled={(page + 1) * 50 >= view.rows.length}
-        onclick={() => page++}>Next values</button
+        onclick={() => page++}>{t("Next values")}</button
       >
     </div>{/if}
 </details>
 {#if projection.cells.length}<details>
     <summary
       >{projection.basis === "budget_allocations"
-        ? "Inspect budget allocations"
-        : "Inspect recorded entries"}</summary
+        ? t("Inspect budget allocations")
+        : t("Inspect recorded entries")}</summary
     >
     <label
-      >Report value<select bind:value={cell} disabled={busy}
+      >{t("Report value")}<select bind:value={cell} disabled={busy}
         >{#each projection.cells as value (value.id)}<option value={value.id}
             >{value.label}</option
           >{/each}</select
       ></label
-    ><button disabled={busy} onclick={() => inspect()}>Load entries</button>
-    {#if error}<p role="alert">{error}</p>{/if}
+    ><button disabled={busy} onclick={() => inspect()}
+      >{t("Load entries")}</button
+    >
+    {#if error}<p role="alert">{t(error)}</p>{/if}
     {#if inspection}<p>
         {inspection.total_count}
         {inspection.record_kind === "budget_allocations"
-          ? "budget allocations"
-          : "recorded entries"} · Sum {formatAmount(inspection.total_amount)}
+          ? t("budget allocations")
+          : t("recorded entries")}
+        {t("· Sum")}
+        {formatAmount(inspection.total_amount)}
       </p>
       <!-- svelte-ignore a11y_no_noninteractive_tabindex (Scrollable financial tables need keyboard access.) -->
       <div
         class="scroll-region"
         tabindex="0"
         role="region"
-        aria-label="Report entries"
+        aria-label={t("Report entries")}
       >
         <table>
           <thead
             ><tr
-              ><th scope="col">Date</th><th scope="col">Account</th><th
-                scope="col">Payee / notes</th
-              ><th scope="col">Category</th><th scope="col">Amount</th></tr
+              ><th scope="col">{t("Date")}</th><th scope="col"
+                >{t("Account")}</th
+              ><th scope="col">{t("Payee / notes")}</th><th scope="col"
+                >{t("Category")}</th
+              ><th scope="col">{t("Amount")}</th></tr
             ></thead
           ><tbody
             >{#each inspection.rows as row (row.id)}<tr
@@ -325,10 +345,11 @@
         <button
           disabled={busy || inspection.offset === 0}
           onclick={() => inspect(Math.max(0, inspection!.offset - 50))}
-          >Previous entries</button
+          >{t("Previous entries")}</button
         ><button
           disabled={busy || !inspection.has_more}
-          onclick={() => inspect(inspection!.offset + 50)}>Next entries</button
+          onclick={() => inspect(inspection!.offset + 50)}
+          >{t("Next entries")}</button
         >
       </div>{/if}
   </details>{/if}

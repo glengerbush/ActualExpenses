@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { onMount } from "svelte";
   import { errorMessage, RequestError, uuid, type Account } from "./api";
   import { preferences } from "./preferences.svelte";
@@ -365,67 +366,71 @@
 
 <section aria-labelledby="custom-title">
   <header>
-    <h3 id="custom-title">Custom reports</h3>
+    <h3 id="custom-title">{t("Custom reports")}</h3>
     <p class="muted">
-      Save a view of recorded entries or planned budget allocations.
+      {t("Save a view of recorded entries or planned budget allocations.")}
     </p>
   </header>
-  {#if error}<p role="alert">{error}</p>{/if}{#if notice}<p role="status">
-      {notice}
-    </p>{/if}{#if busy}<p role="status">Loading saved reports…</p>{/if}
+  {#if error}<p role="alert">{t(error)}</p>{/if}{#if notice}<p role="status">
+      {t(notice)}
+    </p>{/if}{#if busy}<p role="status">{t("Loading saved reports…")}</p>{/if}
   {#if pending}<section class="pending">
-      <h4>Saved reporting change needs confirmation</h4>
+      <h4>{t("Saved reporting change needs confirmation")}</h4>
       <p>
         {pending.cancelRequested
-          ? "Cancellation is pending. Retrying keeps the cancellation fence."
-          : "The original request and budget version are retained."}
+          ? t("Cancellation is pending. Retrying keeps the cancellation fence.")
+          : t("The original request and budget version are retained.")}
       </p>
       {#if ownsPending}<button
           disabled={busy || disconnected}
-          onclick={() => deliver()}>Retry saved reporting change</button
+          onclick={() => deliver()}>{t("Retry saved reporting change")}</button
         ><button
           disabled={busy || disconnected || pending.cancelRequested}
-          onclick={() => deliver(true)}>Cancel saved reporting change</button
+          onclick={() => deliver(true)}
+          >{t("Cancel saved reporting change")}</button
         >{:else}<p>
-          Return to Dashboards to recover its saved change before editing
-          reports.
+          {t(
+            "Return to Dashboards to recover its saved change before editing reports.",
+          )}
         </p>{/if}
     </section>{/if}
   <div class="actions">
     <label
-      >Saved report<select
+      >{t("Saved report")}<select
         value={original?.id || ""}
         onchange={(e) => {
           void choose(e.currentTarget.value);
         }}
         disabled={locked || changed}
-        ><option value="">New report</option
+        ><option value="">{t("New report")}</option
         >{#each saved as report (report.id)}<option value={report.id}
             >{String(report.config.name)}</option
           >{/each}</select
       ></label
     ><button onclick={() => choose("")} disabled={locked || changed}
-      >New custom report</button
+      >{t("New custom report")}</button
     ><button onclick={discard} disabled={locked || !changed}
-      >Discard local changes</button
+      >{t("Discard local changes")}</button
     ><button onclick={duplicate} disabled={locked || !document}
-      >Duplicate and save</button
+      >{t("Duplicate and save")}</button
     ><button
       onclick={() => (confirmDelete = true)}
-      disabled={locked || !original || changed}>Delete saved report</button
+      disabled={locked || !original || changed}
+      >{t("Delete saved report")}</button
     >
   </div>
   {#if confirmDelete && original}<section class="confirmation">
       <p>
-        Remove “{String(original.config.name)}” from saved reports? Its current
-        query stays available as a draft.
+        {t("Remove “")}{String(original.config.name)}{t(
+          "” from saved reports? Its current query stays available as a draft.",
+        )}
       </p>
       <button
         onclick={() =>
           save([{ ...structuredClone(original!), tombstone: true }])}
-        disabled={locked}>Confirm delete report</button
+        disabled={locked}>{t("Confirm delete report")}</button
       ><button onclick={() => (confirmDelete = false)} disabled={busy}
-        >Keep saved report</button
+        >{t("Keep saved report")}</button
       >
     </section>{/if}
   {#if document}<form
@@ -433,11 +438,11 @@
         e.preventDefault();
         void save();
       }}
-      aria-label="Custom report editor"
+      aria-label={t("Custom report editor")}
     >
       <fieldset disabled={locked}>
         <label
-          >Report name<input
+          >{t("Report name")}<input
             required
             maxlength="120"
             value={String(config.name || "")}
@@ -446,79 +451,82 @@
         >
         <div class="field-grid">
           <label
-            >Report format<select
+            >{t("Report format")}<select
               value={String(config.graph_type || "BarGraph")}
               onchange={(e) => field("graph_type", e.currentTarget.value)}
               >{#if !graphTypes.some((g) => g[0] === config.graph_type)}<option
                   value={String(config.graph_type)}
-                  >Preserved: {String(config.graph_type)}</option
+                  >{t("Preserved:")} {String(config.graph_type)}</option
                 >{/if}{#each graphTypes as graph (graph[0])}<option
-                  value={graph[0]}>{graph[1]}</option
+                  value={graph[0]}>{t(graph[1])}</option
                 >{/each}</select
             ></label
           ><label
-            >Report mode<select
+            >{t("Report mode")}<select
               value={String(config.mode || "total")}
               onchange={(e) => field("mode", e.currentTarget.value)}
-              ><option value="total">Total</option><option value="time"
-                >Over time</option
+              ><option value="total">{t("Total")}</option><option value="time"
+                >{t("Over time")}</option
               ></select
             ></label
           ><label
-            >Balance mode<select
+            >{t("Balance mode")}<select
               value={String(config.balance_type || "Payment")}
               onchange={(e) => balance(e.currentTarget.value)}
               >{#if !balanceModes.some((m) => m[0] === config.balance_type)}<option
                   value={String(config.balance_type)}
-                  >Preserved: {String(config.balance_type)}</option
+                  >{t("Preserved:")} {String(config.balance_type)}</option
                 >{/if}{#each balanceModes as mode (mode[0])}<option
-                  value={mode[0]}>{mode[0]}</option
+                  value={mode[0]}>{t(mode[0])}</option
                 >{/each}</select
             ></label
           ><label
-            >Group report by<select
+            >{t("Group report by")}<select
               value={String(config.group_by || "Category")}
               onchange={(e) => field("group_by", e.currentTarget.value)}
               >{#each [["Category", "Category"], ["Group", "Category group"], ["CategoryGroup", "Category group and category"], ["Payee", "Payee"], ["Account", "Account"], ["Interval", "Interval"]] as group (group[0])}<option
                   value={group[0]}
                   disabled={config.balance_type === "Budgeted" &&
-                    ["Payee", "Account"].includes(group[0])}>{group[1]}</option
+                    ["Payee", "Account"].includes(group[0])}
+                  >{t(group[1])}</option
                 >{/each}</select
             ></label
           ><label
-            >Report interval<select
+            >{t("Report interval")}<select
               value={String(config.interval || "Monthly")}
               onchange={(e) => field("interval", e.currentTarget.value)}
               >{#each ["Daily", "Weekly", "Monthly", "Yearly"] as interval (interval)}<option
+                  value={interval}
                   disabled={config.balance_type === "Budgeted" &&
-                    ["Daily", "Weekly"].includes(interval)}>{interval}</option
+                    ["Daily", "Weekly"].includes(interval)}
+                  >{t(interval)}</option
                 >{/each}</select
             ></label
           ><label
-            >Sort report<select
+            >{t("Sort report")}<select
               value={String(config.sort_by || "desc")}
               onchange={(e) => field("sort_by", e.currentTarget.value)}
-              ><option value="desc">Largest first</option><option value="asc"
-                >Smallest first</option
-              ><option value="name">Name</option><option value="budget"
-                >Budget order</option
+              ><option value="desc">{t("Largest first")}</option><option
+                value="asc">{t("Smallest first")}</option
+              ><option value="name">{t("Name")}</option><option value="budget"
+                >{t("Budget order")}</option
               ></select
             ></label
           >
         </div>
         <details>
-          <summary>Dates, visibility and filters</summary>
+          <summary>{t("Dates, visibility and filters")}</summary>
           <div class="options">
             <fieldset>
-              <legend>Report dates</legend><label class="check"
+              <legend>{t("Report dates")}</legend><label class="check"
                 ><input
                   type="checkbox"
                   checked={flag(config.date_static)}
                   onchange={(e) => staticDates(e.currentTarget.checked)}
-                />Use static dates</label
+                />{t("Use static dates")}</label
               >{#if flag(config.date_static)}<div class="field-grid">
                   <label
-                    >Start date<input
+                    >{t("Start date")}<input
                       required
                       value={String(config.start_date || "")}
                       oninput={(e) =>
@@ -526,7 +534,7 @@
                       placeholder="YYYY-MM-DD"
                     /></label
                   ><label
-                    >End date<input
+                    >{t("End date")}<input
                       required
                       value={String(config.end_date || "")}
                       oninput={(e) => field("end_date", e.currentTarget.value)}
@@ -535,18 +543,18 @@
                   >
                 </div>
                 <p class="muted">
-                  Dates accept a calendar day, month or year. Monthly/yearly
-                  reports include recorded entries throughout the selected
-                  intervals.
+                  {t(
+                    "Dates accept a calendar day, month or year. Monthly/yearly reports include recorded entries throughout the selected intervals.",
+                  )}
                 </p>{:else}<label
-                  >Live date range<select
+                  >{t("Live date range")}<select
                     value={String(config.date_range || "Last 6 months")}
                     onchange={(e) => field("date_range", e.currentTarget.value)}
                     >{#if !liveDateRanges.includes(String(config.date_range))}<option
                         value={String(config.date_range)}
-                        >Preserved: {String(config.date_range)}</option
+                        >{t("Preserved:")} {String(config.date_range)}</option
                       >{/if}{#each liveDateRanges as range (range)}<option
-                        >{range}</option
+                        value={range}>{t(range)}</option
                       >{/each}</select
                   ></label
                 ><label class="check"
@@ -555,7 +563,7 @@
                     checked={flag(config.include_current, true)}
                     onchange={(e) =>
                       field("include_current", e.currentTarget.checked ? 1 : 0)}
-                  />Include current interval</label
+                  />{t("Include current interval")}</label
                 >{/if}
             </fieldset>
             <div class="checks">
@@ -569,15 +577,15 @@
                     )}
                     onchange={(e) =>
                       field(String(option[0]), e.currentTarget.checked ? 1 : 0)}
-                  />{String(option[1])}</label
+                  />{t(String(option[1]))}</label
                 >{/each}
             </div>
             {#if config.group_by === "Payee"}<p class="muted">
-                Payee grouping excludes entries without a payee.
+                {t("Payee grouping excludes entries without a payee.")}
               </p>{/if}{#if config.balance_type === "Budgeted"}<p class="muted">
-                Budgeted values are planned allocations. Only category and
-                category-group conditions apply; transaction-only conditions do
-                not change allocations.
+                {t(
+                  "Budgeted values are planned allocations. Only category and category-group conditions apply; transaction-only conditions do not change allocations.",
+                )}
               </p>{/if}
             <ReportConditions
               {budgetId}
@@ -597,47 +605,51 @@
         </details>
         <div class="actions">
           <button type="button" onclick={preview} disabled={reading}
-            >Preview report</button
+            >{t("Preview report")}</button
           ><button type="submit" disabled={!String(config.name || "").trim()}
-            >Save report</button
+            >{t("Save report")}</button
           ><button type="button" onclick={reset} disabled={!original}
-            >Reset to saved</button
+            >{t("Reset to saved")}</button
           >
         </div>
       </fieldset>
     </form>
     {#if changed}<p role="status">
-        Unsaved report changes. The draft stays on this browser until you save
-        or reset it.
+        {t(
+          "Unsaved report changes. The draft stays on this browser until you save or reset it.",
+        )}
       </p>{/if}{#if reading}<p role="status">
-        Loading report values…
+        {t("Loading report values…")}
       </p>{/if}{#if cached}<p role="status">
-        Cached report view. Reconnect and refresh current settings before
-        saving.
+        {t(
+          "Cached report view. Reconnect and refresh current settings before saving.",
+        )}
       </p>
       <button onclick={load} disabled={busy || disconnected || !!pending}
-        >Reconnect and refresh report</button
+        >{t("Reconnect and refresh report")}</button
       >{/if}
-    {#if projection && query}<section aria-label="Custom report result">
+    {#if projection && query}<section aria-label={t("Custom report result")}>
         <h4>{String(config.name || "Custom report")}</h4>
         {#if previewConfig !== JSON.stringify($state.snapshot(config))}<p
             role="status"
           >
-            The values below use the last preview. Preview again to apply
-            changed options.
+            {t(
+              "The values below use the last preview. Preview again to apply changed options.",
+            )}
           </p>{/if}
         <p class="muted">
           {projection.basis === "budget_allocations"
-            ? "Planned budget allocations"
-            : "Recorded entries"} · {String(query.options.startDate)} – {String(
+            ? t("Planned budget allocations")
+            : t("Recorded entries")} · {String(query.options.startDate)} – {String(
             query.options.endDate,
           )}
         </p>
         {#if ["netAssets", "netDebts"].includes(String(query.options.balanceTypeOp))}<p
             class="muted"
           >
-            Net totals are calculated for each interval before combining
-            intervals. Group totals may differ.
+            {t(
+              "Net totals are calculated for each interval before combining intervals. Group totals may differ.",
+            )}
           </p>{/if}{#key projection.snapshot + JSON.stringify(query)}<ReportResult
             {budgetId}
             {query}

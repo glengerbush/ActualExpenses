@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import {
     array,
     customMetric,
@@ -124,7 +125,9 @@
 
 {#if !["Table", "TableGraph", "BarGraph", "LineGraph", "AreaGraph", "DonutGraph"].includes(format)}<p
   >
-    Saved format “{format}” is preserved. Exact values remain available below.
+    {t("Saved format “")}{format}{t(
+      "” is preserved. Exact values remain available below.",
+    )}
   </p>
 {:else if !["Table", "TableGraph"].includes(format) && rows.length}
   <svg
@@ -178,10 +181,8 @@
       >{/if}
   </svg>
   {#if format === "DonutGraph"}<p class="muted">
-      Shares use absolute amounts; signed values appear in the table. {geometry.total ===
-      0
-        ? "No amounts in this range."
-        : ""}
+      {t("Shares use absolute amounts; signed values appear in the table.")}
+      {geometry.total === 0 ? "No amounts in this range." : ""}
     </p>
     <ul class="legend">
       {#each geometry.arcs as arc (arc.id)}<li style:color={arc.color}>
@@ -196,9 +197,9 @@
         </li>{/each}
     </ul>{/if}
   {#if format === "LineGraph" && query.options.showTrendLines}<p class="muted">
-      Dashed lines show linear trends through the displayed values.
+      {t("Dashed lines show linear trends through the displayed values.")}
     </p>{/if}
-{:else if !rows.length}<p>No values match this report.</p>{/if}
+{:else if !rows.length}<p>{t("No values match this report.")}</p>{/if}
 
 <style>
   svg {

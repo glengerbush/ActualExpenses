@@ -603,7 +603,7 @@
       <button
         onclick={() => showForm("reports")}
         disabled={!!form || loading || !compatible}
-        >Dashboards and reports</button
+        >{t("Dashboards and reports")}</button
       >
       <button
         class={{ current: form === "settings" }}

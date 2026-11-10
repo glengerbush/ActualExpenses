@@ -19,6 +19,7 @@
     type ReportOperation,
   } from "./reports";
   import { preferences } from "./preferences.svelte";
+  import BudgetAnalysisFields from "./BudgetAnalysisFields.svelte";
   import ForecastFields from "./ForecastFields.svelte";
   import { addMonths } from "./forecasts";
   import CustomReports from "./CustomReports.svelte";
@@ -89,10 +90,17 @@
       preferences.hasUsableShared &&
       preferences.shared.experimental.balanceForecastReport,
   );
+  let analysisEnabled = $derived(
+    preferences.budgetId === budgetId &&
+      preferences.hasUsableShared &&
+      preferences.shared.experimental.budgetAnalysisReport,
+  );
   let displayedWidgets = $derived(
     tab === "forecast"
       ? widgets.filter((w) => w.config.type === "balance-forecast-card")
-      : widgets,
+      : tab === "analysis"
+        ? widgets.filter((w) => w.config.type === "budget-analysis-card")
+        : widgets,
   );
   let types = $derived([
     ["cash-flow-card", "Cash flow"],
@@ -102,6 +110,7 @@
     ["summary-card", "Summary"],
     ["calendar-card", "Transaction calendar"],
     ["custom-report", "Saved custom report"],
+    ...(analysisEnabled ? [["budget-analysis-card", "Budget Analysis"]] : []),
     ...(forecastEnabled ? [["balance-forecast-card", "Balance forecast"]] : []),
   ]);
   const dateModes = [
@@ -311,7 +320,10 @@
         meta: {
           name: "",
           timeFrame: {
-            start: today.slice(0, 7),
+            start:
+              type === "budget-analysis-card"
+                ? addMonths(today.slice(0, 7), -5)
+                : today.slice(0, 7),
             end:
               type === "balance-forecast-card"
                 ? addMonths(today.slice(0, 7), 11)
@@ -452,6 +464,11 @@
         disabled={!!editor || busy}
         onclick={() => switchTab("forecast")}>{t("Balance forecast")}</button
       >{/if}
+    {#if analysisEnabled || tab === "analysis"}<button
+        aria-pressed={tab === "analysis"}
+        disabled={!!editor || busy}
+        onclick={() => switchTab("analysis")}>{t("Budget Analysis")}</button
+      >{/if}
   </nav>
   {#if tab === "custom"}{#key customId}<CustomReports
         {budgetId}
@@ -469,6 +486,16 @@
       {#if !forecastEnabled}<p role="status">
           {t(
             "Enable Balance forecast in Settings → Experimental features. Saved settings are preserved.",
+          )}
+        </p>{/if}{/if}
+    {#if tab === "analysis"}<p>
+        {t(
+          "Saved monthly analyses compare planned allocations and recorded spending. Choose a dashboard, then create or edit an analysis.",
+        )}
+      </p>
+      {#if !analysisEnabled}<p role="status">
+          {t(
+            "Enable Budget Analysis in Settings → Experimental features. Saved settings are preserved.",
           )}
         </p>{/if}{/if}
     {#if error}<p role="alert">{t(error)}</p>{/if}{#if notice}<p role="status">
@@ -546,15 +573,26 @@
           ><button
             onclick={() =>
               newWidget(
-                tab === "forecast" ? "balance-forecast-card" : "cash-flow-card",
+                tab === "forecast"
+                  ? "balance-forecast-card"
+                  : tab === "analysis"
+                    ? "budget-analysis-card"
+                    : "cash-flow-card",
               )}
             disabled={busy ||
               !!editor ||
               !!pending ||
               cached ||
               disconnected ||
-              (tab === "forecast" && !forecastEnabled)}
-            >{t(tab === "forecast" ? "New forecast" : "Add widget")}</button
+              (tab === "forecast" && !forecastEnabled) ||
+              (tab === "analysis" && !analysisEnabled)}
+            >{t(
+              tab === "forecast"
+                ? "New forecast"
+                : tab === "analysis"
+                  ? "New analysis"
+                  : "Add widget",
+            )}</button
           >{/if}
       </div>
     </div>
@@ -694,6 +732,10 @@
                   /></label
                 >
               </div>
+              {#if editor.config.type === "budget-analysis-card"}<BudgetAnalysisFields
+                  {meta}
+                  onchange={metadata}
+                />{/if}
               {#if editor.config.type === "balance-forecast-card"}<ForecastFields
                   {meta}
                   {accounts}
@@ -827,6 +869,8 @@
             {#if editor.config.type !== "markdown-card"}<ReportConditions
                 {budgetId}
                 {accounts}
+                sourceCategoryFilters={editor.config.type ===
+                  "budget-analysis-card"}
                 conditions={meta.conditions}
                 conditionsOp={meta.conditionsOp}
                 onchange={(conditions, conditionsOp) => {
@@ -879,7 +923,17 @@
           "No saved forecasts on this dashboard. Choose New forecast to begin.",
         )}
       </p>{/if}
-    <div class={["dashboard", { forecasts: tab === "forecast" }]}>
+    {#if tab === "analysis" && !displayedWidgets.length && pages.length}<p>
+        {t(
+          "No saved analyses on this dashboard. Choose New analysis to begin.",
+        )}
+      </p>{/if}
+    <div
+      class={[
+        "dashboard",
+        { forecasts: tab === "forecast" || tab === "analysis" },
+      ]}
+    >
       {#each displayedWidgets as widget (widget.id + ":" + widget.revision + ":" + (customReports.find((d) => d.id === object(widget.config.meta).id)?.revision ?? "missing"))}<div
           class="widget"
           style:--column={Number(widget.config.x) + 1}

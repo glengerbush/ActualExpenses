@@ -54,6 +54,33 @@ pub fn router() -> Router<Store> {
 pub(crate) fn connection(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
     db.query_row("SELECT id,provider,name,state,generation,revision,error_code,message,last_success,tombstone FROM bank_connections WHERE budget_id=?1 AND id=?2", params![budget,id], |r| Ok(json!({"id":r.get::<_,String>(0)?,"provider":r.get::<_,String>(1)?,"name":r.get::<_,String>(2)?,"state":r.get::<_,String>(3)?,"generation":r.get::<_,String>(4)?,"revision":r.get::<_,i64>(5)?,"error_code":r.get::<_,Option<String>>(6)?,"message":r.get::<_,Option<String>>(7)?,"last_success":r.get::<_,Option<String>>(8)?,"deleted":r.get::<_,bool>(9)?}))).optional()?.ok_or_else(Error::missing)
 }
+/// All commands sharing a connection route must respect its in-flight receipt
+/// identity. A mismatched cancellation must not install a terminal receipt.
+fn guard_pending(
+    db: &Connection,
+    budget: &str,
+    id: &str,
+    key: &str,
+    fingerprint: &str,
+) -> Result<(), Error> {
+    for sql in [
+        "SELECT fingerprint FROM bank_jobs WHERE budget_id=?1 AND connection_id=?2 AND id=?3",
+        "SELECT intent_fingerprint FROM bank_gocardless_credentials WHERE budget_id=?1 AND connection_id=?2 AND intent_id=?3",
+        "SELECT intent_fingerprint FROM bank_credentials WHERE budget_id=?1 AND connection_id=?2 AND intent_id=?3",
+    ] {
+        let pending: Option<Option<String>> = db
+            .query_row(sql, params![budget, id, key], |r| r.get(0))
+            .optional()?;
+        if let Some(pending) = pending
+            && pending.as_deref() != Some(fingerprint)
+        {
+            return Err(Error::conflict(
+                "This operation key belongs to another in-flight bank request. Retain its exact original body, clock, owner and epoch",
+            ));
+        }
+    }
+    Ok(())
+}
 fn state(db: &Connection, budget: &str) -> Result<Value, Error> {
     store::require_budget(db, budget)?;
     let ids = db
@@ -234,11 +261,13 @@ async fn command(
         return store
             .run(move |db| {
                 sync::write(db, &scope, &key, &payload, None, StatusCode::OK, |db| {
+                    guard_pending(db,&b,&id,&key,&payload)?;
                     let outcome = sync::canceled(db, &b)?;
                     db.execute(
                         "DELETE FROM bank_jobs WHERE budget_id=?1 AND connection_id=?2 AND id=?3",
                         params![b, id, key],
                     )?;
+                    db.execute("UPDATE bank_credentials SET intent_id=NULL,intent_fingerprint=NULL WHERE budget_id=?1 AND connection_id=?2 AND intent_id=?3",params![b,id,key])?;
                     Ok(outcome)
                 })
             })
@@ -249,6 +278,7 @@ async fn command(
     }
     if body.action != "claim" {
         return store.run(move|db|sync::write(db,&scope,&key,&payload,None,StatusCode::OK,|db|{
+            guard_pending(db,&b,&id,&key,&payload)?;
             crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;
             let current=connection(db,&b,&id)?;
             if current["generation"]!=body.generation || current["deleted"]==true{return Err(Error::conflict("Connection changed. Reload before replacing or removing it"));}
@@ -276,12 +306,14 @@ async fn command(
     let prepared=store.run(move|db|{
         if let Some(result)=crate::store::receipt(db,&ss,&kk,&pp)? {return Ok(Err(result));}
         let tx=db.transaction()?;
+        guard_pending(&tx,&bb,&ii,&kk,&pp)?;
         crate::lifecycle::require_epoch(&tx,&bb,ee.as_deref())?;
         let current=connection(&tx,&bb,&ii)?;
         if current["generation"]!=gg || current["deleted"]==true{return Err(Error::conflict("Connection changed. Reload before claiming"));}
         if current["state"]!="claim_pending" {return Err(Error::conflict("This claim may already have been used. Replace the setup token explicitly"));}
         let token:String=tx.query_row("SELECT setup_token FROM bank_credentials WHERE budget_id=?1 AND connection_id=?2 AND generation=?3",params![bb,ii,gg],|r|r.get(0)).optional()?.ok_or_else(||Error::conflict("Credentials are missing. Supply a new setup token"))?;
         let permit=transport::permit()?;
+        tx.execute("UPDATE bank_credentials SET intent_id=?3,intent_fingerprint=?4 WHERE budget_id=?1 AND connection_id=?2",params![bb,ii,kk,pp])?;
         tx.execute("UPDATE bank_connections SET state='claim_inflight',revision=revision+1 WHERE budget_id=?1 AND id=?2",params![bb,ii])?;
         sync::mark(&tx,&bb,"bank_connections",&ii)?;
         tx.commit()?;
@@ -311,6 +343,7 @@ async fn command(
         )),
     };
     store.run(move|db|sync::write(db,&scope,&key,&payload,None,StatusCode::OK,|db|{
+        guard_pending(db,&b,&id,&key,&payload)?;
         crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;
         let current=connection(db,&b,&id)?;
         if current["generation"]!=body.generation || current["deleted"]==true{return Err(Error::conflict("Connection changed while the provider was responding"));}
@@ -319,6 +352,7 @@ async fn command(
             ("connected",None,None)
         },Err(error)=>("claim_failed",Some(error.code),Some(error.message))};
         db.execute("UPDATE bank_connections SET state=?3,error_code=?4,message=?5,revision=revision+1 WHERE budget_id=?1 AND id=?2",params![b,id,state,code,message])?;
+        db.execute("UPDATE bank_credentials SET intent_id=NULL,intent_fingerprint=NULL WHERE budget_id=?1 AND connection_id=?2 AND intent_id=?3",params![b,id,key])?;
         sync::mark(db,&b,"bank_connections",&id)?;
         Ok(json!({"response_status":200,"response_body":{"data":connection(db,&b,&id)?}}))
     })).await

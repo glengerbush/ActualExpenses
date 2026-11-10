@@ -86,6 +86,7 @@ impl Request {
     }
     pub async fn cancel(self, store: Store) -> Result<(StatusCode, Json<Value>), Error> {
         store.run(move|db|sync::write_owned(db,&self.scope(),&self.key,&self.payload,self.proposed.as_deref(),StatusCode::OK,self.owner.as_ref(),|db|{
+    guard_pending(db,&self.budget,&self.connection,&self.key,&self.fingerprint())?;
     let outcome=sync::canceled(db,&self.budget)?;db.execute("DELETE FROM bank_jobs WHERE budget_id=?1 AND connection_id=?2 AND id=?3",params![self.budget,self.connection,self.key])?;Ok(outcome)
  })).await
     }
@@ -123,6 +124,7 @@ pub(super) async fn capture(
     let ready=store.run(move|db|{
         if crate::store::receipt(db,&ss,&kk,&pp)?.is_some(){return Ok(Prepared::Receipt);}
         let tx=db.transaction()?;
+        guard_pending(&tx,&bb,&ii,&kk,&pp)?;
         crate::lifecycle::require_epoch(&tx,&bb,ee.as_deref())?;
         let current=connection(&tx,&bb,&ii)?;
         if current["generation"]!=gg || current["deleted"]==true || current["state"]!="connected" {return Err(Error::conflict("Reconnect this provider before discovering accounts"));}

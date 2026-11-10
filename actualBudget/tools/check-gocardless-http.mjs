@@ -350,6 +350,45 @@ try {
     409,
   );
   await statusSeen;
+  for (const [changed, changedHeaders] of [
+    [{ ...check, generation: randomUUID() }, {}],
+    [check, { "X-Actual-Budget-Epoch": "0".repeat(32) }],
+  ]) {
+    const refused = await call(
+      commandPath,
+      changed,
+      {
+        ...headers,
+        "Idempotency-Key": canceledCheckKey,
+        ...changedHeaders,
+        "X-Actual-Cancel-If-Uncommitted": "true",
+      },
+      409,
+    );
+    assert.notEqual(
+      refused.error.code,
+      "operation_canceled",
+      "Altered cancellation must not create a terminal receipt",
+    );
+    assert.deepEqual(await call(handoffPath), currentHandoff);
+    await call(
+      commandPath,
+      check,
+      {
+        ...headers,
+        "Idempotency-Key": canceledCheckKey,
+        "X-Actual-Receipt-Only": "true",
+      },
+      404,
+    );
+  }
+  await call(
+    commandPath,
+    { action: "remove", generation: linked.data.generation },
+    { ...headers, "Idempotency-Key": canceledCheckKey },
+    409,
+  );
+  assert.deepEqual(await call(handoffPath), currentHandoff);
   await call(
     commandPath,
     check,
@@ -456,6 +495,27 @@ try {
     409,
   );
   await observed;
+  const alteredAuth = await call(
+    pendingPath,
+    { ...pendingAuth, country: "DE" },
+    {
+      ...headers,
+      "Idempotency-Key": pendingKey,
+      "X-Actual-Cancel-If-Uncommitted": "true",
+    },
+    409,
+  );
+  assert.notEqual(alteredAuth.error.code, "operation_canceled");
+  await call(
+    pendingPath,
+    pendingAuth,
+    {
+      ...headers,
+      "Idempotency-Key": pendingKey,
+      "X-Actual-Receipt-Only": "true",
+    },
+    404,
+  );
   await call(
     pendingPath,
     pendingAuth,
@@ -518,6 +578,7 @@ for name,value in p['proofs']:
       " served-contract observations",
   );
 } finally {
+  provider.closeAllConnections();
   if (child.exitCode === null) child.kill();
   await closed;
   await rm(directory, { recursive: true, force: true });

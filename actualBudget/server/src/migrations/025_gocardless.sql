@@ -96,3 +96,7 @@ CREATE TABLE bank_gocardless_credentials (
  PRIMARY KEY(budget_id,connection_id),
  FOREIGN KEY(budget_id,connection_id) REFERENCES bank_connections(budget_id,id) ON DELETE CASCADE
 );
+-- New SimpleFIN one-use claims retain their original in-flight identity too.
+-- Interrupted pre25 claims remain conservative and require replacement.
+ALTER TABLE bank_credentials ADD COLUMN intent_id TEXT;
+ALTER TABLE bank_credentials ADD COLUMN intent_fingerprint TEXT;

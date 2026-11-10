@@ -190,6 +190,7 @@ pub(in crate::banking) async fn command(
     }
     if cancel {
         return store.run(move|db|sync::write(db,&scope,&key,&payload,None,StatusCode::OK,|db| {
+            guard_pending(db,&b,&id,&key,&payload)?;
             let result=sync::canceled(db,&b)?;
             let changed=if is_authorize {
                 db.execute("UPDATE bank_gocardless_credentials SET intent_id=NULL,intent_fingerprint=NULL,authorization_url=NULL,requisition_id=NULL,consent_status=NULL WHERE budget_id=?1 AND connection_id=?2 AND intent_id=?3",params![b,id,key])?
@@ -214,6 +215,7 @@ pub(in crate::banking) async fn command(
     let prepared=store.run(move|db| {
         if crate::store::receipt(db,&ss,&kk,&pp)?.is_some() {return Ok(None);}
         let tx=db.transaction()?;
+        guard_pending(&tx,&bb,&ii,&kk,&pp)?;
         crate::lifecycle::require_epoch(&tx,&bb,ee.as_deref())?;
         let current=connection(&tx,&bb,&ii)?;
         if current["provider"]!="gocardless" || current["generation"]!=gg || current["deleted"]==true {return Err(Error::conflict("Connection changed. Review the current consent"));}
@@ -269,6 +271,7 @@ pub(in crate::banking) async fn command(
         )
     })?;
     store.run(move|db|sync::write(db,&scope,&key,&payload,None,StatusCode::OK,|db| {
+        guard_pending(db,&b,&id,&key,&payload)?;
         crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;
         let current=connection(db,&b,&id)?;
         if current["generation"]!=operation_generation || current["deleted"]==true {return Err(Error::conflict("Connection changed while the provider was responding"));}

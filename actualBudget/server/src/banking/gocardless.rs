@@ -209,6 +209,7 @@ pub(super) async fn custody(
         let scope=format!("POST /budgets/{b}/banking/connections/{id}/commands");
         if lookup {return sync::receipt(db,&scope,&key,&payload,None,StatusCode::OK);}
         sync::write(db,&scope,&key,&payload,None,StatusCode::OK,|db| {
+            guard_pending(db,&b,&id,&key,&payload)?;
             if cancel {return sync::canceled(db,&b);}
             crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;
             let current=connection(db,&b,&id)?;

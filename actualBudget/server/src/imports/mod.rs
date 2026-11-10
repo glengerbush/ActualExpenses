@@ -208,6 +208,8 @@ async fn activate(
                 return Err(Error::new(StatusCode::CONFLICT,"import_budget_conflict","Assigned budget identity already exists; this import cannot replace it"));
             }
             conversion::install(db,budget,&converted)?;
+            if matches!(stage["report"]["source_format"].as_str(),Some("ynab4"|"nynab")){let clock=crate::concurrency::clock(db,budget,None)?;crate::rules::learning::imported(db,budget,&clock)?;}
+
             if !matches!(stage["report"]["source_format"].as_str(),Some("ynab4"|"nynab")){for (id,order) in original_orders(&db.query_row("SELECT original FROM staged_imports WHERE id=?1",[&id],|r|r.get::<_,Vec<u8>>(0))?)? {db.execute("UPDATE android_upgrade_order SET source_order=?3 WHERE budget_id=?1 AND id=?2",params![budget,id,order])?;}}
             crate::transfers::validate(db,budget)?;
             let source=&stage["report"]["source"];

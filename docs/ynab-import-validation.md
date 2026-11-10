@@ -92,3 +92,39 @@ regressions12 pass `/tmp/ynab4-existing-imports.log` using a fresh local test
 build. This is a financial checkpoint, not ticket acceptance: generated learned
 defaults still need a source-backed join, and nYNAB, full failure/restart/archive
 coverage, contracts and interface remain in progress.
+
+## YNAB4 learned-default witness
+
+`generate-ynab-learning.mjs` imports the original unchanged YNAB4 demo and runs
+the real registered `rules-run` handler for every ordinary source payee. Both
+generation and independent `--check` pass (`/tmp/ynab-learning-source.log`,
+`/tmp/ynab-learning-source-check.log`). Three distinct category setter effects
+are observed. Concurrent source account imports also emit duplicate identical
+setters; their original records remain in the genuine Actual archive and the
+sample list. Only proved-idempotent single-payee category setters are collapsed
+for effective-rule comparison. Every resulting category/amount/note is checked
+against actual rule execution; financial multiplicity is never normalized away.
+
+The public consumer initially fails with missing Employer1's income default
+(`/tmp/ynab-learning-http-red.log`). Fresh YNAB activation now invokes the existing
+explicit-category learner once over newly imported historical evidence; ordinary
+Actual/native archive imports never invoke it. Larger candidate sets scan once
+instead of constructing an oversized SQL IN clause. Existing per-entry opt-in
+learning and native manual override behavior remain unchanged (focused existing
+rules regression1 PASS `/tmp/ynab-learning-existing-rules.log`). Source ordinary
+transfer-named payees are also retained separately from dedicated account-transfer
+payees, matching the real baseline's API behavior rather than the apparent intent
+of its importer call.
+
+Financial graphs, historical budget cells/summaries, complete ordinary payees,
+read-only source learned-rule effects, receipts and original bytes now pass
+`/tmp/ynab-learning-http-final.log`. Bin Clippy `-D warnings` passes
+`/tmp/ynab4-checkpoint-clippy-green.log`; its initial empty-string style finding
+was corrected without financial changes. The earlier12 Actual import tests are
+reused for the unchanged canonical validator split. Main's accepted25/26+33 and
+narrow integration harness/docs corrections are merged at `90d8858`.
+
+This checkpoint is ready for bounded YNAB4 financial/source review. nYNAB,
+additional source failure/shape cases, restart/native archive/provenance joins,
+served contracts, shared import UI and companion/browser qualification remain
+active ticket27 work. No ticket acceptance is claimed here.

@@ -237,7 +237,7 @@ pub(super) fn convert(filename: &str, bytes: &[u8]) -> Result<(String, Source, V
             }
             let category_id = source.map("category", text(child, "entityId")?)?;
             let title = text(child, "name")?;
-            let title = if title == "" {
+            let title = if title.is_empty() {
                 return Err(invalid("Empty YNAB4 category name"));
             } else if group["name"] == "Hidden Categories" {
                 let mut parts = title.split(" ` ").collect::<Vec<_>>();
@@ -252,39 +252,18 @@ pub(super) fn convert(filename: &str, bytes: &[u8]) -> Result<(String, Source, V
             category_count += 1;
         }
     }
-    let account_transfer = source.data["payees"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .map(|p| {
-            (
-                p["transfer_acct"].as_str().unwrap().to_owned(),
-                p["id"].as_str().unwrap().to_owned(),
-            )
-        })
-        .collect::<BTreeMap<_, _>>();
+    // The baseline API creates these source payees as ordinary records, even
+    // when the YNAB4 record also names a transfer target. Financial transfer
+    // legs resolve the dedicated account payee independently below.
     for payee in rows(&data, "payees")? {
         if boolean(payee, "isTombstone")? {
             continue;
         }
-        let raw = text(payee, "entityId")?;
-        if !payee["targetAccountId"].is_null() {
-            let account = source.find("account", &payee["targetAccountId"])?;
-            let id = account_transfer
-                .get(
-                    account
-                        .as_str()
-                        .ok_or_else(|| invalid("Missing transfer payee account"))?,
-                )
-                .ok_or_else(|| invalid("Missing transfer payee"))?;
-            source.mappings.insert(format!("payee:{raw}"), id.clone());
-        } else {
-            let id = source.map("payee", raw)?;
-            source.push(
-                "payees",
-                json!({"id":id,"name":text(payee,"name")?,"transfer_acct":null,"tombstone":0}),
-            );
-        }
+        let id = source.map("payee", text(payee, "entityId")?)?;
+        source.push(
+            "payees",
+            json!({"id":id,"name":text(payee,"name")?,"transfer_acct":null,"tombstone":0}),
+        );
     }
     for transaction in rows(&data, "transactions")? {
         source.map("transaction", text(transaction, "entityId")?)?;

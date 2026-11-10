@@ -319,3 +319,15 @@ The public two-account tracer `check-bank-partial-http.mjs` first reproduces los
 Initial setup/replacement still submits the raw token once. A client can instead retain the token's SHA256 plus every original nonsecret field/key/epoch for recovery. Hash-only bodies are accepted exclusively with receipt-only or cancel-if-uncommitted headers, bind the identical canonical server receipt identity, and cannot stage/replace credentials or call the provider. Thus reload/lost ACK does not require browser token storage or an unsafe new identity. Changing the original label, generation, token digest or epoch cannot retrieve another receipt.
 
 `check-bank-secret-recovery-http.mjs` RED400→GREEN covers original201/200 results via hash-only probes; mismatched identity refuses409; unknown-intent cancellation refuses409 terminally and delayed original raw submissions remain canceled; hash-only regular submissions refuse400. It asserts exactly one intended connection and zero provider calls. Actually served request/result schemas are validated with JSON Schema. Logs `/tmp/bank28-secret-recovery-{red,green,build,clippy}.log`. No generic receipt shape, private credential representation or schema DDL changed.
+
+### Root recovery composition review
+
+Root reviewed `84ce4e2`, `aec7168` and `7f18344`; no remaining finding in these
+server checkpoints. Combined schema24 branch through `829dcdb` builds and passes
+the three maintained public order/partial/secret-recovery consumers:
+`/tmp/bank-recovery-compose-{build,order,partial,secret}.log`. Both parent API
+operation sets and corrected forecast money bounds remain intact (111paths,
+183schemas). Stale private captures require explicit cancellation; hash-only
+recovery cannot create credentials. Bank UI/rendered interruption recovery and
+complete28 acceptance remain pending. Unaffected financial/source/native suites
+were reused, not repeated.

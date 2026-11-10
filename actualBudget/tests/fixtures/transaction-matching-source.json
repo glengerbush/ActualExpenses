@@ -1,0 +1,5156 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "source_files": {
+    "packages/loot-core/src/server/accounts/sync.ts": "5561e484d09691308640864ece5e3c3ec07365d68bb0ed4e08f01e18ed364a0f"
+  },
+  "cases": [
+    {
+      "id": "global-payee-before-fallback",
+      "input": {
+        "id": "global-payee-before-fallback",
+        "existing": [
+          {
+            "label": "cafe",
+            "date": "2026-11-09",
+            "payee": "Cafe",
+            "amount": -1234,
+            "notes": "cafe",
+            "cleared": false
+          },
+          {
+            "label": "shop",
+            "date": "2026-11-10",
+            "payee": "Shop",
+            "amount": -1234,
+            "notes": "shop",
+            "cleared": false
+          }
+        ],
+        "incoming": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Unknown",
+            "imported_payee": "Unknown",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true
+          },
+          {
+            "date": "2026-11-10",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true
+          }
+        ]
+      },
+      "ids": {
+        "account": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+        "Cafe": "de7845e4-5a53-4eee-bb6f-f30c152b2ef4",
+        "Shop": "43c94274-6ca2-45b4-b14a-523d05a8370f",
+        "Unknown": "6c8836f8-4c44-4b82-8f3d-bd204de5219c",
+        "cafe": "25260000-0000-4000-8000-000000000001",
+        "shop": "25260000-0000-4000-8000-000000000002"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000002",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+            "category": null,
+            "amount": -1234,
+            "payee": "43c94274-6ca2-45b4-b14a-523d05a8370f",
+            "notes": "shop",
+            "date": "2026-11-10",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "25260000-0000-4000-8000-000000000001",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+            "category": null,
+            "amount": -1234,
+            "payee": "de7845e4-5a53-4eee-bb6f-f30c152b2ef4",
+            "notes": "cafe",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "de7845e4-5a53-4eee-bb6f-f30c152b2ef4",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "43c94274-6ca2-45b4-b14a-523d05a8370f",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "6c8836f8-4c44-4b82-8f3d-bd204de5219c",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "350b82ae-7ca1-46c1-a8f2-3427d12e40c9",
+            "name": "Checking",
+            "transfer_acct": "ec058722-a71b-4bdf-afeb-eb67d76c707e"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25260000-0000-4000-8000-000000000002",
+          "25260000-0000-4000-8000-000000000001"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Unknown",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+              "payee": "6c8836f8-4c44-4b82-8f3d-bd204de5219c",
+              "category": null,
+              "_account": {
+                "id": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000002",
+              "is_parent": 0,
+              "date": "2026-11-10",
+              "imported_id": null,
+              "payee": "43c94274-6ca2-45b4-b14a-523d05a8370f",
+              "imported_payee": null,
+              "category": null,
+              "notes": "shop",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Shop"
+            }
+          },
+          {
+            "transaction": {
+              "date": "2026-11-10",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+              "payee": "de7845e4-5a53-4eee-bb6f-f30c152b2ef4",
+              "category": null,
+              "_account": {
+                "id": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000001",
+              "is_parent": 0,
+              "date": "2026-11-09",
+              "imported_id": null,
+              "payee": "de7845e4-5a53-4eee-bb6f-f30c152b2ef4",
+              "imported_payee": null,
+              "category": null,
+              "notes": "cafe",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "first": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25260000-0000-4000-8000-000000000002",
+          "25260000-0000-4000-8000-000000000001"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Unknown",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+              "payee": "6c8836f8-4c44-4b82-8f3d-bd204de5219c",
+              "category": null,
+              "_account": {
+                "id": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000002",
+              "is_parent": 0,
+              "date": "2026-11-10",
+              "imported_id": null,
+              "payee": "43c94274-6ca2-45b4-b14a-523d05a8370f",
+              "imported_payee": null,
+              "category": null,
+              "notes": "shop",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Shop"
+            }
+          },
+          {
+            "transaction": {
+              "date": "2026-11-10",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+              "payee": "de7845e4-5a53-4eee-bb6f-f30c152b2ef4",
+              "category": null,
+              "_account": {
+                "id": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000001",
+              "is_parent": 0,
+              "date": "2026-11-09",
+              "imported_id": null,
+              "payee": "de7845e4-5a53-4eee-bb6f-f30c152b2ef4",
+              "imported_payee": null,
+              "category": null,
+              "notes": "cafe",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000002",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+            "category": null,
+            "amount": -1234,
+            "payee": "43c94274-6ca2-45b4-b14a-523d05a8370f",
+            "notes": "shop",
+            "date": "2026-11-10",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Unknown",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "25260000-0000-4000-8000-000000000001",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+            "category": null,
+            "amount": -1234,
+            "payee": "de7845e4-5a53-4eee-bb6f-f30c152b2ef4",
+            "notes": "cafe",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "de7845e4-5a53-4eee-bb6f-f30c152b2ef4",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "43c94274-6ca2-45b4-b14a-523d05a8370f",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "6c8836f8-4c44-4b82-8f3d-bd204de5219c",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "350b82ae-7ca1-46c1-a8f2-3427d12e40c9",
+            "name": "Checking",
+            "transfer_acct": "ec058722-a71b-4bdf-afeb-eb67d76c707e"
+          }
+        ]
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Unknown",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+              "payee": "6c8836f8-4c44-4b82-8f3d-bd204de5219c",
+              "category": null,
+              "_account": {
+                "id": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          },
+          {
+            "transaction": {
+              "date": "2026-11-10",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+              "payee": "de7845e4-5a53-4eee-bb6f-f30c152b2ef4",
+              "category": null,
+              "_account": {
+                "id": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000002",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+            "category": null,
+            "amount": -1234,
+            "payee": "43c94274-6ca2-45b4-b14a-523d05a8370f",
+            "notes": "shop",
+            "date": "2026-11-10",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Unknown",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "25260000-0000-4000-8000-000000000001",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "ec058722-a71b-4bdf-afeb-eb67d76c707e",
+            "category": null,
+            "amount": -1234,
+            "payee": "de7845e4-5a53-4eee-bb6f-f30c152b2ef4",
+            "notes": "cafe",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "de7845e4-5a53-4eee-bb6f-f30c152b2ef4",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "43c94274-6ca2-45b4-b14a-523d05a8370f",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "6c8836f8-4c44-4b82-8f3d-bd204de5219c",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "350b82ae-7ca1-46c1-a8f2-3427d12e40c9",
+            "name": "Checking",
+            "transfer_acct": "ec058722-a71b-4bdf-afeb-eb67d76c707e"
+          }
+        ]
+      }
+    },
+    {
+      "id": "global-id-before-fuzzy",
+      "input": {
+        "id": "global-id-before-fuzzy",
+        "existing": [
+          {
+            "label": "bank",
+            "date": "2026-11-09",
+            "payee": "Cafe",
+            "amount": -1234,
+            "notes": "bank",
+            "cleared": false,
+            "imported_id": "bank-1"
+          },
+          {
+            "label": "manual",
+            "date": "2026-11-10",
+            "payee": "Cafe",
+            "amount": -1234,
+            "notes": "manual",
+            "cleared": false
+          }
+        ],
+        "incoming": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true
+          },
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true,
+            "imported_id": "bank-1"
+          }
+        ]
+      },
+      "ids": {
+        "account": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+        "Cafe": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+        "Shop": "bac044db-93fb-4262-9e54-f50caf8a5038",
+        "Unknown": "68ab8de7-6524-4f25-84b1-8a8f799437db",
+        "bank": "25260000-0000-4000-8000-000000000101",
+        "manual": "25260000-0000-4000-8000-000000000102"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000102",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+            "category": null,
+            "amount": -1234,
+            "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+            "notes": "manual",
+            "date": "2026-11-10",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "25260000-0000-4000-8000-000000000101",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+            "category": null,
+            "amount": -1234,
+            "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+            "notes": "bank",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "bac044db-93fb-4262-9e54-f50caf8a5038",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "68ab8de7-6524-4f25-84b1-8a8f799437db",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "28189201-8db7-4b30-bacc-b4deb69658b7",
+            "name": "Checking",
+            "transfer_acct": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25260000-0000-4000-8000-000000000102",
+          "25260000-0000-4000-8000-000000000101"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+              "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+              "category": null,
+              "_account": {
+                "id": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000102",
+              "is_parent": 0,
+              "date": "2026-11-10",
+              "imported_id": null,
+              "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+              "imported_payee": null,
+              "category": null,
+              "notes": "manual",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Cafe"
+            }
+          },
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "imported_id": "bank-1",
+              "account": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+              "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+              "category": null,
+              "_account": {
+                "id": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000101",
+              "is_parent": 0,
+              "is_child": 0,
+              "parent_id": null,
+              "account": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+              "category": null,
+              "amount": -12.34,
+              "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+              "notes": "bank",
+              "date": "2026-11-09",
+              "imported_id": "bank-1",
+              "error": null,
+              "imported_payee": null,
+              "starting_balance_flag": 0,
+              "transfer_id": null,
+              "sort_order": 1794225600000,
+              "cleared": false,
+              "reconciled": 0,
+              "tombstone": 0,
+              "schedule": null,
+              "raw_synced_data": null,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "first": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25260000-0000-4000-8000-000000000102",
+          "25260000-0000-4000-8000-000000000101"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+              "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+              "category": null,
+              "_account": {
+                "id": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000102",
+              "is_parent": 0,
+              "date": "2026-11-10",
+              "imported_id": null,
+              "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+              "imported_payee": null,
+              "category": null,
+              "notes": "manual",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Cafe"
+            }
+          },
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "imported_id": "bank-1",
+              "account": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+              "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+              "category": null,
+              "_account": {
+                "id": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000101",
+              "is_parent": 0,
+              "is_child": 0,
+              "parent_id": null,
+              "account": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+              "category": null,
+              "amount": -12.34,
+              "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+              "notes": "bank",
+              "date": "2026-11-09",
+              "imported_id": "bank-1",
+              "error": null,
+              "imported_payee": null,
+              "starting_balance_flag": 0,
+              "transfer_id": null,
+              "sort_order": 1794225600000,
+              "cleared": false,
+              "reconciled": 0,
+              "tombstone": 0,
+              "schedule": null,
+              "raw_synced_data": null,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000102",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+            "category": null,
+            "amount": -1234,
+            "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+            "notes": "manual",
+            "date": "2026-11-10",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "25260000-0000-4000-8000-000000000101",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+            "category": null,
+            "amount": -1234,
+            "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+            "notes": "bank",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "bac044db-93fb-4262-9e54-f50caf8a5038",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "68ab8de7-6524-4f25-84b1-8a8f799437db",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "28189201-8db7-4b30-bacc-b4deb69658b7",
+            "name": "Checking",
+            "transfer_acct": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52"
+          }
+        ]
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+              "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+              "category": null,
+              "_account": {
+                "id": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          },
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "imported_id": "bank-1",
+              "account": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+              "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+              "category": null,
+              "_account": {
+                "id": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000102",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+            "category": null,
+            "amount": -1234,
+            "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+            "notes": "manual",
+            "date": "2026-11-10",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "25260000-0000-4000-8000-000000000101",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52",
+            "category": null,
+            "amount": -1234,
+            "payee": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+            "notes": "bank",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "b64a2e02-24c3-47e3-aa57-99dd4080b55c",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "bac044db-93fb-4262-9e54-f50caf8a5038",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "68ab8de7-6524-4f25-84b1-8a8f799437db",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "28189201-8db7-4b30-bacc-b4deb69658b7",
+            "name": "Checking",
+            "transfer_acct": "ff602c4a-36cf-4935-83c3-a3b2d5c5fe52"
+          }
+        ]
+      }
+    },
+    {
+      "id": "duplicate-real-purchases",
+      "input": {
+        "id": "duplicate-real-purchases",
+        "existing": [],
+        "incoming": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true
+          },
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true
+          }
+        ]
+      },
+      "ids": {
+        "account": "15df1470-2ea6-4cee-85dc-12e472fe5153",
+        "Cafe": "27f2e75c-e8f5-46ca-87ad-c21d633a77c0",
+        "Shop": "6eb39d23-8778-4f39-91d0-215c3dcfaddf",
+        "Unknown": "6fc57311-719a-42ea-ab5d-ca424d30ce5d"
+      },
+      "before": {
+        "transactions": [],
+        "payees": [
+          {
+            "id": "27f2e75c-e8f5-46ca-87ad-c21d633a77c0",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "6eb39d23-8778-4f39-91d0-215c3dcfaddf",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "6fc57311-719a-42ea-ab5d-ca424d30ce5d",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "59191f6c-75b0-4740-bd21-4c176794a05c",
+            "name": "Checking",
+            "transfer_acct": "15df1470-2ea6-4cee-85dc-12e472fe5153"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [
+          "07b37637-6989-4f87-a4e2-ede320d6bda1",
+          "a023dc6c-6400-4e16-960c-01667dbb5cc1"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "first": {
+        "errors": [],
+        "added": [
+          "22448912-d4c5-4135-ac6c-9c58377136fe",
+          "c55e0fc4-a0aa-439e-917f-84c017388973"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "22448912-d4c5-4135-ac6c-9c58377136fe",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "15df1470-2ea6-4cee-85dc-12e472fe5153",
+            "category": null,
+            "amount": -1234,
+            "payee": "27f2e75c-e8f5-46ca-87ad-c21d633a77c0",
+            "notes": "Bank note",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "c55e0fc4-a0aa-439e-917f-84c017388973",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "15df1470-2ea6-4cee-85dc-12e472fe5153",
+            "category": null,
+            "amount": -1234,
+            "payee": "27f2e75c-e8f5-46ca-87ad-c21d633a77c0",
+            "notes": "Bank note",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225598976,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "27f2e75c-e8f5-46ca-87ad-c21d633a77c0",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "6eb39d23-8778-4f39-91d0-215c3dcfaddf",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "6fc57311-719a-42ea-ab5d-ca424d30ce5d",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "59191f6c-75b0-4740-bd21-4c176794a05c",
+            "name": "Checking",
+            "transfer_acct": "15df1470-2ea6-4cee-85dc-12e472fe5153"
+          }
+        ]
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "15df1470-2ea6-4cee-85dc-12e472fe5153",
+              "payee": "27f2e75c-e8f5-46ca-87ad-c21d633a77c0",
+              "category": null,
+              "_account": {
+                "id": "15df1470-2ea6-4cee-85dc-12e472fe5153",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          },
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "15df1470-2ea6-4cee-85dc-12e472fe5153",
+              "payee": "27f2e75c-e8f5-46ca-87ad-c21d633a77c0",
+              "category": null,
+              "_account": {
+                "id": "15df1470-2ea6-4cee-85dc-12e472fe5153",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "22448912-d4c5-4135-ac6c-9c58377136fe",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "15df1470-2ea6-4cee-85dc-12e472fe5153",
+            "category": null,
+            "amount": -1234,
+            "payee": "27f2e75c-e8f5-46ca-87ad-c21d633a77c0",
+            "notes": "Bank note",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "c55e0fc4-a0aa-439e-917f-84c017388973",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "15df1470-2ea6-4cee-85dc-12e472fe5153",
+            "category": null,
+            "amount": -1234,
+            "payee": "27f2e75c-e8f5-46ca-87ad-c21d633a77c0",
+            "notes": "Bank note",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225598976,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "27f2e75c-e8f5-46ca-87ad-c21d633a77c0",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "6eb39d23-8778-4f39-91d0-215c3dcfaddf",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "6fc57311-719a-42ea-ab5d-ca424d30ce5d",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "59191f6c-75b0-4740-bd21-4c176794a05c",
+            "name": "Checking",
+            "transfer_acct": "15df1470-2ea6-4cee-85dc-12e472fe5153"
+          }
+        ]
+      }
+    },
+    {
+      "id": "one-manual-two-purchases",
+      "input": {
+        "id": "one-manual-two-purchases",
+        "existing": [
+          {
+            "label": "manual",
+            "date": "2026-11-09",
+            "payee": "Cafe",
+            "amount": -1234,
+            "notes": "manual",
+            "cleared": false
+          }
+        ],
+        "incoming": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true
+          },
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true
+          }
+        ]
+      },
+      "ids": {
+        "account": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed",
+        "Cafe": "7d0b1e52-724c-4521-9438-a99b61a11dac",
+        "Shop": "b5b55b21-6ac3-4cb8-9bee-6351a499969f",
+        "Unknown": "e9175c0d-cfa9-4769-9f56-26beb9de4543",
+        "manual": "25260000-0000-4000-8000-000000000301"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000301",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed",
+            "category": null,
+            "amount": -1234,
+            "payee": "7d0b1e52-724c-4521-9438-a99b61a11dac",
+            "notes": "manual",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "7d0b1e52-724c-4521-9438-a99b61a11dac",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "b5b55b21-6ac3-4cb8-9bee-6351a499969f",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "e9175c0d-cfa9-4769-9f56-26beb9de4543",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "38570b27-f303-4c17-be58-d308e64fa507",
+            "name": "Checking",
+            "transfer_acct": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [
+          "d6c3ad77-5a9e-4211-b6ff-7ae8ea7958ae"
+        ],
+        "updated": [
+          "25260000-0000-4000-8000-000000000301"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed",
+              "payee": "7d0b1e52-724c-4521-9438-a99b61a11dac",
+              "category": null,
+              "_account": {
+                "id": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000301",
+              "is_parent": 0,
+              "date": "2026-11-09",
+              "imported_id": null,
+              "payee": "7d0b1e52-724c-4521-9438-a99b61a11dac",
+              "imported_payee": null,
+              "category": null,
+              "notes": "manual",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "first": {
+        "errors": [],
+        "added": [
+          "b73834c4-44e8-490d-ac30-2efad5ad4d1e"
+        ],
+        "updated": [
+          "25260000-0000-4000-8000-000000000301"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed",
+              "payee": "7d0b1e52-724c-4521-9438-a99b61a11dac",
+              "category": null,
+              "_account": {
+                "id": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000301",
+              "is_parent": 0,
+              "date": "2026-11-09",
+              "imported_id": null,
+              "payee": "7d0b1e52-724c-4521-9438-a99b61a11dac",
+              "imported_payee": null,
+              "category": null,
+              "notes": "manual",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000301",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed",
+            "category": null,
+            "amount": -1234,
+            "payee": "7d0b1e52-724c-4521-9438-a99b61a11dac",
+            "notes": "manual",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "b73834c4-44e8-490d-ac30-2efad5ad4d1e",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed",
+            "category": null,
+            "amount": -1234,
+            "payee": "7d0b1e52-724c-4521-9438-a99b61a11dac",
+            "notes": "Bank note",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "7d0b1e52-724c-4521-9438-a99b61a11dac",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "b5b55b21-6ac3-4cb8-9bee-6351a499969f",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "e9175c0d-cfa9-4769-9f56-26beb9de4543",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "38570b27-f303-4c17-be58-d308e64fa507",
+            "name": "Checking",
+            "transfer_acct": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed"
+          }
+        ]
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed",
+              "payee": "7d0b1e52-724c-4521-9438-a99b61a11dac",
+              "category": null,
+              "_account": {
+                "id": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          },
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed",
+              "payee": "7d0b1e52-724c-4521-9438-a99b61a11dac",
+              "category": null,
+              "_account": {
+                "id": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000301",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed",
+            "category": null,
+            "amount": -1234,
+            "payee": "7d0b1e52-724c-4521-9438-a99b61a11dac",
+            "notes": "manual",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "b73834c4-44e8-490d-ac30-2efad5ad4d1e",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed",
+            "category": null,
+            "amount": -1234,
+            "payee": "7d0b1e52-724c-4521-9438-a99b61a11dac",
+            "notes": "Bank note",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "7d0b1e52-724c-4521-9438-a99b61a11dac",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "b5b55b21-6ac3-4cb8-9bee-6351a499969f",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "e9175c0d-cfa9-4769-9f56-26beb9de4543",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "38570b27-f303-4c17-be58-d308e64fa507",
+            "name": "Checking",
+            "transfer_acct": "6c86b014-7438-4ea2-a5b3-ebbe3ccc6eed"
+          }
+        ]
+      }
+    },
+    {
+      "id": "equal-distance-tie",
+      "input": {
+        "id": "equal-distance-tie",
+        "existing": [
+          {
+            "label": "earlier",
+            "date": "2026-11-08",
+            "payee": "Cafe",
+            "amount": -1234,
+            "notes": "earlier",
+            "cleared": false
+          },
+          {
+            "label": "later",
+            "date": "2026-11-10",
+            "payee": "Cafe",
+            "amount": -1234,
+            "notes": "later",
+            "cleared": false
+          }
+        ],
+        "incoming": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true
+          }
+        ]
+      },
+      "ids": {
+        "account": "e6cafa6a-058a-4b55-9520-a1b8520b7212",
+        "Cafe": "937d0d8c-b4e7-4379-a63d-4f8e957bcdba",
+        "Shop": "8115724a-104f-4e0a-a5bb-49695fee9a13",
+        "Unknown": "33ea4e33-ae24-4c8f-a548-b65c37c87f5b",
+        "earlier": "25260000-0000-4000-8000-000000000401",
+        "later": "25260000-0000-4000-8000-000000000402"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000402",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "e6cafa6a-058a-4b55-9520-a1b8520b7212",
+            "category": null,
+            "amount": -1234,
+            "payee": "937d0d8c-b4e7-4379-a63d-4f8e957bcdba",
+            "notes": "later",
+            "date": "2026-11-10",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "25260000-0000-4000-8000-000000000401",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "e6cafa6a-058a-4b55-9520-a1b8520b7212",
+            "category": null,
+            "amount": -1234,
+            "payee": "937d0d8c-b4e7-4379-a63d-4f8e957bcdba",
+            "notes": "earlier",
+            "date": "2026-11-08",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "937d0d8c-b4e7-4379-a63d-4f8e957bcdba",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "8115724a-104f-4e0a-a5bb-49695fee9a13",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "33ea4e33-ae24-4c8f-a548-b65c37c87f5b",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "a8ee730a-5c61-4651-992e-195f91a18a08",
+            "name": "Checking",
+            "transfer_acct": "e6cafa6a-058a-4b55-9520-a1b8520b7212"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25260000-0000-4000-8000-000000000401"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "e6cafa6a-058a-4b55-9520-a1b8520b7212",
+              "payee": "937d0d8c-b4e7-4379-a63d-4f8e957bcdba",
+              "category": null,
+              "_account": {
+                "id": "e6cafa6a-058a-4b55-9520-a1b8520b7212",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000401",
+              "is_parent": 0,
+              "date": "2026-11-08",
+              "imported_id": null,
+              "payee": "937d0d8c-b4e7-4379-a63d-4f8e957bcdba",
+              "imported_payee": null,
+              "category": null,
+              "notes": "earlier",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "first": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25260000-0000-4000-8000-000000000401"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "e6cafa6a-058a-4b55-9520-a1b8520b7212",
+              "payee": "937d0d8c-b4e7-4379-a63d-4f8e957bcdba",
+              "category": null,
+              "_account": {
+                "id": "e6cafa6a-058a-4b55-9520-a1b8520b7212",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000401",
+              "is_parent": 0,
+              "date": "2026-11-08",
+              "imported_id": null,
+              "payee": "937d0d8c-b4e7-4379-a63d-4f8e957bcdba",
+              "imported_payee": null,
+              "category": null,
+              "notes": "earlier",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000402",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "e6cafa6a-058a-4b55-9520-a1b8520b7212",
+            "category": null,
+            "amount": -1234,
+            "payee": "937d0d8c-b4e7-4379-a63d-4f8e957bcdba",
+            "notes": "later",
+            "date": "2026-11-10",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "25260000-0000-4000-8000-000000000401",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "e6cafa6a-058a-4b55-9520-a1b8520b7212",
+            "category": null,
+            "amount": -1234,
+            "payee": "937d0d8c-b4e7-4379-a63d-4f8e957bcdba",
+            "notes": "earlier",
+            "date": "2026-11-08",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "937d0d8c-b4e7-4379-a63d-4f8e957bcdba",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "8115724a-104f-4e0a-a5bb-49695fee9a13",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "33ea4e33-ae24-4c8f-a548-b65c37c87f5b",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "a8ee730a-5c61-4651-992e-195f91a18a08",
+            "name": "Checking",
+            "transfer_acct": "e6cafa6a-058a-4b55-9520-a1b8520b7212"
+          }
+        ]
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "e6cafa6a-058a-4b55-9520-a1b8520b7212",
+              "payee": "937d0d8c-b4e7-4379-a63d-4f8e957bcdba",
+              "category": null,
+              "_account": {
+                "id": "e6cafa6a-058a-4b55-9520-a1b8520b7212",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000402",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "e6cafa6a-058a-4b55-9520-a1b8520b7212",
+            "category": null,
+            "amount": -1234,
+            "payee": "937d0d8c-b4e7-4379-a63d-4f8e957bcdba",
+            "notes": "later",
+            "date": "2026-11-10",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "25260000-0000-4000-8000-000000000401",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "e6cafa6a-058a-4b55-9520-a1b8520b7212",
+            "category": null,
+            "amount": -1234,
+            "payee": "937d0d8c-b4e7-4379-a63d-4f8e957bcdba",
+            "notes": "earlier",
+            "date": "2026-11-08",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "937d0d8c-b4e7-4379-a63d-4f8e957bcdba",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "8115724a-104f-4e0a-a5bb-49695fee9a13",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "33ea4e33-ae24-4c8f-a548-b65c37c87f5b",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "a8ee730a-5c61-4651-992e-195f91a18a08",
+            "name": "Checking",
+            "transfer_acct": "e6cafa6a-058a-4b55-9520-a1b8520b7212"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inclusive-minus-seven",
+      "input": {
+        "id": "inclusive-minus-seven",
+        "existing": [
+          {
+            "label": "manual",
+            "date": "2026-11-02",
+            "payee": "Cafe",
+            "amount": -1234,
+            "notes": "manual",
+            "cleared": false
+          }
+        ],
+        "incoming": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true
+          }
+        ]
+      },
+      "ids": {
+        "account": "337cc32b-8401-4748-8858-e868ee21e571",
+        "Cafe": "e9ca06e7-60aa-4d93-a592-8963fc46d9e1",
+        "Shop": "bf31e15c-f584-4e89-bdc2-a20778eba9fe",
+        "Unknown": "fe963dec-64d5-4cbb-a3a5-24ffb7fbfb37",
+        "manual": "25260000-0000-4000-8000-000000000501"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000501",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "337cc32b-8401-4748-8858-e868ee21e571",
+            "category": null,
+            "amount": -1234,
+            "payee": "e9ca06e7-60aa-4d93-a592-8963fc46d9e1",
+            "notes": "manual",
+            "date": "2026-11-02",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "e9ca06e7-60aa-4d93-a592-8963fc46d9e1",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "bf31e15c-f584-4e89-bdc2-a20778eba9fe",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "fe963dec-64d5-4cbb-a3a5-24ffb7fbfb37",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "5a7f6363-0a1a-432d-8abe-57f15dcac2a3",
+            "name": "Checking",
+            "transfer_acct": "337cc32b-8401-4748-8858-e868ee21e571"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25260000-0000-4000-8000-000000000501"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "337cc32b-8401-4748-8858-e868ee21e571",
+              "payee": "e9ca06e7-60aa-4d93-a592-8963fc46d9e1",
+              "category": null,
+              "_account": {
+                "id": "337cc32b-8401-4748-8858-e868ee21e571",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000501",
+              "is_parent": 0,
+              "date": "2026-11-02",
+              "imported_id": null,
+              "payee": "e9ca06e7-60aa-4d93-a592-8963fc46d9e1",
+              "imported_payee": null,
+              "category": null,
+              "notes": "manual",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "first": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25260000-0000-4000-8000-000000000501"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "337cc32b-8401-4748-8858-e868ee21e571",
+              "payee": "e9ca06e7-60aa-4d93-a592-8963fc46d9e1",
+              "category": null,
+              "_account": {
+                "id": "337cc32b-8401-4748-8858-e868ee21e571",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000501",
+              "is_parent": 0,
+              "date": "2026-11-02",
+              "imported_id": null,
+              "payee": "e9ca06e7-60aa-4d93-a592-8963fc46d9e1",
+              "imported_payee": null,
+              "category": null,
+              "notes": "manual",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000501",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "337cc32b-8401-4748-8858-e868ee21e571",
+            "category": null,
+            "amount": -1234,
+            "payee": "e9ca06e7-60aa-4d93-a592-8963fc46d9e1",
+            "notes": "manual",
+            "date": "2026-11-02",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "e9ca06e7-60aa-4d93-a592-8963fc46d9e1",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "bf31e15c-f584-4e89-bdc2-a20778eba9fe",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "fe963dec-64d5-4cbb-a3a5-24ffb7fbfb37",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "5a7f6363-0a1a-432d-8abe-57f15dcac2a3",
+            "name": "Checking",
+            "transfer_acct": "337cc32b-8401-4748-8858-e868ee21e571"
+          }
+        ]
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "337cc32b-8401-4748-8858-e868ee21e571",
+              "payee": "e9ca06e7-60aa-4d93-a592-8963fc46d9e1",
+              "category": null,
+              "_account": {
+                "id": "337cc32b-8401-4748-8858-e868ee21e571",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000501",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "337cc32b-8401-4748-8858-e868ee21e571",
+            "category": null,
+            "amount": -1234,
+            "payee": "e9ca06e7-60aa-4d93-a592-8963fc46d9e1",
+            "notes": "manual",
+            "date": "2026-11-02",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "e9ca06e7-60aa-4d93-a592-8963fc46d9e1",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "bf31e15c-f584-4e89-bdc2-a20778eba9fe",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "fe963dec-64d5-4cbb-a3a5-24ffb7fbfb37",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "5a7f6363-0a1a-432d-8abe-57f15dcac2a3",
+            "name": "Checking",
+            "transfer_acct": "337cc32b-8401-4748-8858-e868ee21e571"
+          }
+        ]
+      }
+    },
+    {
+      "id": "inclusive-plus-seven",
+      "input": {
+        "id": "inclusive-plus-seven",
+        "existing": [
+          {
+            "label": "manual",
+            "date": "2026-11-16",
+            "payee": "Cafe",
+            "amount": -1234,
+            "notes": "manual",
+            "cleared": false
+          }
+        ],
+        "incoming": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true
+          }
+        ]
+      },
+      "ids": {
+        "account": "e2f5b070-659a-4bce-8889-e8b254a5acc5",
+        "Cafe": "458abce5-1ee6-4426-9d51-ec28d0133228",
+        "Shop": "a0a6024a-b45c-48eb-878e-3cd9ad25b0df",
+        "Unknown": "ea69368e-f7b3-4d9a-b2e0-ad23e039b92d",
+        "manual": "25260000-0000-4000-8000-000000000601"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000601",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "e2f5b070-659a-4bce-8889-e8b254a5acc5",
+            "category": null,
+            "amount": -1234,
+            "payee": "458abce5-1ee6-4426-9d51-ec28d0133228",
+            "notes": "manual",
+            "date": "2026-11-16",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "458abce5-1ee6-4426-9d51-ec28d0133228",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "a0a6024a-b45c-48eb-878e-3cd9ad25b0df",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "ea69368e-f7b3-4d9a-b2e0-ad23e039b92d",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "971295d8-d973-4179-9baa-6b62603e8792",
+            "name": "Checking",
+            "transfer_acct": "e2f5b070-659a-4bce-8889-e8b254a5acc5"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25260000-0000-4000-8000-000000000601"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "e2f5b070-659a-4bce-8889-e8b254a5acc5",
+              "payee": "458abce5-1ee6-4426-9d51-ec28d0133228",
+              "category": null,
+              "_account": {
+                "id": "e2f5b070-659a-4bce-8889-e8b254a5acc5",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000601",
+              "is_parent": 0,
+              "date": "2026-11-16",
+              "imported_id": null,
+              "payee": "458abce5-1ee6-4426-9d51-ec28d0133228",
+              "imported_payee": null,
+              "category": null,
+              "notes": "manual",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "first": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25260000-0000-4000-8000-000000000601"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "e2f5b070-659a-4bce-8889-e8b254a5acc5",
+              "payee": "458abce5-1ee6-4426-9d51-ec28d0133228",
+              "category": null,
+              "_account": {
+                "id": "e2f5b070-659a-4bce-8889-e8b254a5acc5",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000601",
+              "is_parent": 0,
+              "date": "2026-11-16",
+              "imported_id": null,
+              "payee": "458abce5-1ee6-4426-9d51-ec28d0133228",
+              "imported_payee": null,
+              "category": null,
+              "notes": "manual",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000601",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "e2f5b070-659a-4bce-8889-e8b254a5acc5",
+            "category": null,
+            "amount": -1234,
+            "payee": "458abce5-1ee6-4426-9d51-ec28d0133228",
+            "notes": "manual",
+            "date": "2026-11-16",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "458abce5-1ee6-4426-9d51-ec28d0133228",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "a0a6024a-b45c-48eb-878e-3cd9ad25b0df",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "ea69368e-f7b3-4d9a-b2e0-ad23e039b92d",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "971295d8-d973-4179-9baa-6b62603e8792",
+            "name": "Checking",
+            "transfer_acct": "e2f5b070-659a-4bce-8889-e8b254a5acc5"
+          }
+        ]
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "e2f5b070-659a-4bce-8889-e8b254a5acc5",
+              "payee": "458abce5-1ee6-4426-9d51-ec28d0133228",
+              "category": null,
+              "_account": {
+                "id": "e2f5b070-659a-4bce-8889-e8b254a5acc5",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000601",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "e2f5b070-659a-4bce-8889-e8b254a5acc5",
+            "category": null,
+            "amount": -1234,
+            "payee": "458abce5-1ee6-4426-9d51-ec28d0133228",
+            "notes": "manual",
+            "date": "2026-11-16",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "458abce5-1ee6-4426-9d51-ec28d0133228",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "a0a6024a-b45c-48eb-878e-3cd9ad25b0df",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "ea69368e-f7b3-4d9a-b2e0-ad23e039b92d",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "971295d8-d973-4179-9baa-6b62603e8792",
+            "name": "Checking",
+            "transfer_acct": "e2f5b070-659a-4bce-8889-e8b254a5acc5"
+          }
+        ]
+      }
+    },
+    {
+      "id": "outside-eight-days",
+      "input": {
+        "id": "outside-eight-days",
+        "existing": [
+          {
+            "label": "manual",
+            "date": "2026-11-01",
+            "payee": "Cafe",
+            "amount": -1234,
+            "notes": "manual",
+            "cleared": false
+          }
+        ],
+        "incoming": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true
+          }
+        ]
+      },
+      "ids": {
+        "account": "4bbe1f14-252b-46c9-a36e-29254bb4aab5",
+        "Cafe": "ef4c4c7c-f752-4d5d-a8ba-653b10e05180",
+        "Shop": "e4d9de68-f6cd-4f10-b80a-ef85d69a8a23",
+        "Unknown": "a9fcaac6-7ca2-41d8-a937-e5bbb8b8bbd3",
+        "manual": "25260000-0000-4000-8000-000000000701"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000701",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "4bbe1f14-252b-46c9-a36e-29254bb4aab5",
+            "category": null,
+            "amount": -1234,
+            "payee": "ef4c4c7c-f752-4d5d-a8ba-653b10e05180",
+            "notes": "manual",
+            "date": "2026-11-01",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "ef4c4c7c-f752-4d5d-a8ba-653b10e05180",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "e4d9de68-f6cd-4f10-b80a-ef85d69a8a23",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "a9fcaac6-7ca2-41d8-a937-e5bbb8b8bbd3",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "cb70cede-0e2b-4b59-a1d7-7ccb4220081e",
+            "name": "Checking",
+            "transfer_acct": "4bbe1f14-252b-46c9-a36e-29254bb4aab5"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [
+          "9d698a2f-d837-4c01-a768-3466348502b8"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "first": {
+        "errors": [],
+        "added": [
+          "b34486cf-1b97-4f03-bcc8-bb186c486117"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "b34486cf-1b97-4f03-bcc8-bb186c486117",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "4bbe1f14-252b-46c9-a36e-29254bb4aab5",
+            "category": null,
+            "amount": -1234,
+            "payee": "ef4c4c7c-f752-4d5d-a8ba-653b10e05180",
+            "notes": "Bank note",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "25260000-0000-4000-8000-000000000701",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "4bbe1f14-252b-46c9-a36e-29254bb4aab5",
+            "category": null,
+            "amount": -1234,
+            "payee": "ef4c4c7c-f752-4d5d-a8ba-653b10e05180",
+            "notes": "manual",
+            "date": "2026-11-01",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "ef4c4c7c-f752-4d5d-a8ba-653b10e05180",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "e4d9de68-f6cd-4f10-b80a-ef85d69a8a23",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "a9fcaac6-7ca2-41d8-a937-e5bbb8b8bbd3",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "cb70cede-0e2b-4b59-a1d7-7ccb4220081e",
+            "name": "Checking",
+            "transfer_acct": "4bbe1f14-252b-46c9-a36e-29254bb4aab5"
+          }
+        ]
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "4bbe1f14-252b-46c9-a36e-29254bb4aab5",
+              "payee": "ef4c4c7c-f752-4d5d-a8ba-653b10e05180",
+              "category": null,
+              "_account": {
+                "id": "4bbe1f14-252b-46c9-a36e-29254bb4aab5",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "b34486cf-1b97-4f03-bcc8-bb186c486117",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "4bbe1f14-252b-46c9-a36e-29254bb4aab5",
+            "category": null,
+            "amount": -1234,
+            "payee": "ef4c4c7c-f752-4d5d-a8ba-653b10e05180",
+            "notes": "Bank note",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "25260000-0000-4000-8000-000000000701",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "4bbe1f14-252b-46c9-a36e-29254bb4aab5",
+            "category": null,
+            "amount": -1234,
+            "payee": "ef4c4c7c-f752-4d5d-a8ba-653b10e05180",
+            "notes": "manual",
+            "date": "2026-11-01",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "ef4c4c7c-f752-4d5d-a8ba-653b10e05180",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "e4d9de68-f6cd-4f10-b80a-ef85d69a8a23",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "a9fcaac6-7ca2-41d8-a937-e5bbb8b8bbd3",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "cb70cede-0e2b-4b59-a1d7-7ccb4220081e",
+            "name": "Checking",
+            "transfer_acct": "4bbe1f14-252b-46c9-a36e-29254bb4aab5"
+          }
+        ]
+      }
+    },
+    {
+      "id": "same-id-date-amount-differ",
+      "input": {
+        "id": "same-id-date-amount-differ",
+        "existing": [
+          {
+            "label": "bank",
+            "date": "2026-10-01",
+            "payee": "Cafe",
+            "amount": -1234,
+            "notes": "bank",
+            "cleared": false,
+            "imported_id": "bank-1"
+          }
+        ],
+        "incoming": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -555,
+            "notes": "Bank note",
+            "cleared": true,
+            "imported_id": "bank-1"
+          }
+        ]
+      },
+      "ids": {
+        "account": "5b1e2222-717d-488e-8746-4e1631fc09e1",
+        "Cafe": "509f352e-5711-426d-86a7-48fc36c281fe",
+        "Shop": "0393956f-7eb6-4369-8330-550de75953fd",
+        "Unknown": "3cc7b97d-abd7-4d58-a75f-08222a2de79e",
+        "bank": "25260000-0000-4000-8000-000000000801"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000801",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "5b1e2222-717d-488e-8746-4e1631fc09e1",
+            "category": null,
+            "amount": -1234,
+            "payee": "509f352e-5711-426d-86a7-48fc36c281fe",
+            "notes": "bank",
+            "date": "2026-10-01",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "509f352e-5711-426d-86a7-48fc36c281fe",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "0393956f-7eb6-4369-8330-550de75953fd",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "3cc7b97d-abd7-4d58-a75f-08222a2de79e",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "0aa43d72-05ce-4be6-bcb5-970461c9dbc9",
+            "name": "Checking",
+            "transfer_acct": "5b1e2222-717d-488e-8746-4e1631fc09e1"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25260000-0000-4000-8000-000000000801"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -555,
+              "notes": "Bank note",
+              "cleared": true,
+              "imported_id": "bank-1",
+              "account": "5b1e2222-717d-488e-8746-4e1631fc09e1",
+              "payee": "509f352e-5711-426d-86a7-48fc36c281fe",
+              "category": null,
+              "_account": {
+                "id": "5b1e2222-717d-488e-8746-4e1631fc09e1",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000801",
+              "is_parent": 0,
+              "is_child": 0,
+              "parent_id": null,
+              "account": "5b1e2222-717d-488e-8746-4e1631fc09e1",
+              "category": null,
+              "amount": -12.34,
+              "payee": "509f352e-5711-426d-86a7-48fc36c281fe",
+              "notes": "bank",
+              "date": "2026-10-01",
+              "imported_id": "bank-1",
+              "error": null,
+              "imported_payee": null,
+              "starting_balance_flag": 0,
+              "transfer_id": null,
+              "sort_order": 1794225600000,
+              "cleared": false,
+              "reconciled": 0,
+              "tombstone": 0,
+              "schedule": null,
+              "raw_synced_data": null,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "first": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25260000-0000-4000-8000-000000000801"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -555,
+              "notes": "Bank note",
+              "cleared": true,
+              "imported_id": "bank-1",
+              "account": "5b1e2222-717d-488e-8746-4e1631fc09e1",
+              "payee": "509f352e-5711-426d-86a7-48fc36c281fe",
+              "category": null,
+              "_account": {
+                "id": "5b1e2222-717d-488e-8746-4e1631fc09e1",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000000801",
+              "is_parent": 0,
+              "is_child": 0,
+              "parent_id": null,
+              "account": "5b1e2222-717d-488e-8746-4e1631fc09e1",
+              "category": null,
+              "amount": -12.34,
+              "payee": "509f352e-5711-426d-86a7-48fc36c281fe",
+              "notes": "bank",
+              "date": "2026-10-01",
+              "imported_id": "bank-1",
+              "error": null,
+              "imported_payee": null,
+              "starting_balance_flag": 0,
+              "transfer_id": null,
+              "sort_order": 1794225600000,
+              "cleared": false,
+              "reconciled": 0,
+              "tombstone": 0,
+              "schedule": null,
+              "raw_synced_data": null,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000801",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "5b1e2222-717d-488e-8746-4e1631fc09e1",
+            "category": null,
+            "amount": -1234,
+            "payee": "509f352e-5711-426d-86a7-48fc36c281fe",
+            "notes": "bank",
+            "date": "2026-10-01",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "509f352e-5711-426d-86a7-48fc36c281fe",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "0393956f-7eb6-4369-8330-550de75953fd",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "3cc7b97d-abd7-4d58-a75f-08222a2de79e",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "0aa43d72-05ce-4be6-bcb5-970461c9dbc9",
+            "name": "Checking",
+            "transfer_acct": "5b1e2222-717d-488e-8746-4e1631fc09e1"
+          }
+        ]
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -555,
+              "notes": "Bank note",
+              "cleared": true,
+              "imported_id": "bank-1",
+              "account": "5b1e2222-717d-488e-8746-4e1631fc09e1",
+              "payee": "509f352e-5711-426d-86a7-48fc36c281fe",
+              "category": null,
+              "_account": {
+                "id": "5b1e2222-717d-488e-8746-4e1631fc09e1",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000801",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "5b1e2222-717d-488e-8746-4e1631fc09e1",
+            "category": null,
+            "amount": -1234,
+            "payee": "509f352e-5711-426d-86a7-48fc36c281fe",
+            "notes": "bank",
+            "date": "2026-10-01",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "509f352e-5711-426d-86a7-48fc36c281fe",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "0393956f-7eb6-4369-8330-550de75953fd",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "3cc7b97d-abd7-4d58-a75f-08222a2de79e",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "0aa43d72-05ce-4be6-bcb5-970461c9dbc9",
+            "name": "Checking",
+            "transfer_acct": "5b1e2222-717d-488e-8746-4e1631fc09e1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "different-nonempty-ids",
+      "input": {
+        "id": "different-nonempty-ids",
+        "existing": [
+          {
+            "label": "bank",
+            "date": "2026-11-09",
+            "payee": "Cafe",
+            "amount": -1234,
+            "notes": "bank",
+            "cleared": false,
+            "imported_id": "bank-1"
+          }
+        ],
+        "incoming": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true,
+            "imported_id": "bank-2"
+          }
+        ]
+      },
+      "ids": {
+        "account": "d5b0495d-b8be-4a03-a78e-1e0686303000",
+        "Cafe": "838ac9e2-34f4-46df-b26c-c598bf0b072c",
+        "Shop": "7e1c7524-bb75-45dd-a390-d01123dd6dcd",
+        "Unknown": "e6c15c7a-5bbc-46d6-88a1-01afb768637b",
+        "bank": "25260000-0000-4000-8000-000000000901"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000901",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "d5b0495d-b8be-4a03-a78e-1e0686303000",
+            "category": null,
+            "amount": -1234,
+            "payee": "838ac9e2-34f4-46df-b26c-c598bf0b072c",
+            "notes": "bank",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "838ac9e2-34f4-46df-b26c-c598bf0b072c",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "7e1c7524-bb75-45dd-a390-d01123dd6dcd",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "e6c15c7a-5bbc-46d6-88a1-01afb768637b",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "2b49e24d-371f-41a7-bfbb-597d9526f8d7",
+            "name": "Checking",
+            "transfer_acct": "d5b0495d-b8be-4a03-a78e-1e0686303000"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [
+          "eced65a8-a788-4d3e-856f-bcdaef8263bd"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "first": {
+        "errors": [],
+        "added": [
+          "fb02f55c-34af-4e32-80cf-c642ec3e7af3"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000901",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "d5b0495d-b8be-4a03-a78e-1e0686303000",
+            "category": null,
+            "amount": -1234,
+            "payee": "838ac9e2-34f4-46df-b26c-c598bf0b072c",
+            "notes": "bank",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "fb02f55c-34af-4e32-80cf-c642ec3e7af3",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "d5b0495d-b8be-4a03-a78e-1e0686303000",
+            "category": null,
+            "amount": -1234,
+            "payee": "838ac9e2-34f4-46df-b26c-c598bf0b072c",
+            "notes": "Bank note",
+            "date": "2026-11-09",
+            "imported_id": "bank-2",
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "838ac9e2-34f4-46df-b26c-c598bf0b072c",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "7e1c7524-bb75-45dd-a390-d01123dd6dcd",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "e6c15c7a-5bbc-46d6-88a1-01afb768637b",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "2b49e24d-371f-41a7-bfbb-597d9526f8d7",
+            "name": "Checking",
+            "transfer_acct": "d5b0495d-b8be-4a03-a78e-1e0686303000"
+          }
+        ]
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "imported_id": "bank-2",
+              "account": "d5b0495d-b8be-4a03-a78e-1e0686303000",
+              "payee": "838ac9e2-34f4-46df-b26c-c598bf0b072c",
+              "category": null,
+              "_account": {
+                "id": "d5b0495d-b8be-4a03-a78e-1e0686303000",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000000901",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "d5b0495d-b8be-4a03-a78e-1e0686303000",
+            "category": null,
+            "amount": -1234,
+            "payee": "838ac9e2-34f4-46df-b26c-c598bf0b072c",
+            "notes": "bank",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "fb02f55c-34af-4e32-80cf-c642ec3e7af3",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "d5b0495d-b8be-4a03-a78e-1e0686303000",
+            "category": null,
+            "amount": -1234,
+            "payee": "838ac9e2-34f4-46df-b26c-c598bf0b072c",
+            "notes": "Bank note",
+            "date": "2026-11-09",
+            "imported_id": "bank-2",
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "838ac9e2-34f4-46df-b26c-c598bf0b072c",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "7e1c7524-bb75-45dd-a390-d01123dd6dcd",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "e6c15c7a-5bbc-46d6-88a1-01afb768637b",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "2b49e24d-371f-41a7-bfbb-597d9526f8d7",
+            "name": "Checking",
+            "transfer_acct": "d5b0495d-b8be-4a03-a78e-1e0686303000"
+          }
+        ]
+      }
+    },
+    {
+      "id": "deleted-id-suppressed",
+      "input": {
+        "id": "deleted-id-suppressed",
+        "existing": [
+          {
+            "label": "deleted",
+            "date": "2026-11-09",
+            "payee": "Cafe",
+            "amount": -1234,
+            "notes": "deleted",
+            "cleared": false,
+            "imported_id": "bank-1",
+            "deleted": true
+          }
+        ],
+        "incoming": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true,
+            "imported_id": "bank-1"
+          }
+        ],
+        "opts": {
+          "reimportDeleted": false
+        }
+      },
+      "ids": {
+        "account": "54e7de18-c9a2-41b3-8567-f8fb051ae061",
+        "Cafe": "3b11e318-77e1-405b-acfe-146b65c0052b",
+        "Shop": "44264c9c-19d2-4f9e-af07-a1a7c4b3b53a",
+        "Unknown": "de879bf9-797c-4d54-8a13-c76997842e81",
+        "deleted": "25260000-0000-4000-8000-000000001001"
+      },
+      "before": {
+        "transactions": [],
+        "payees": [
+          {
+            "id": "3b11e318-77e1-405b-acfe-146b65c0052b",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "44264c9c-19d2-4f9e-af07-a1a7c4b3b53a",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "de879bf9-797c-4d54-8a13-c76997842e81",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "05ca9272-60f6-41a4-93e3-f76683322ae9",
+            "name": "Checking",
+            "transfer_acct": "54e7de18-c9a2-41b3-8567-f8fb051ae061"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25260000-0000-4000-8000-000000001001"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "imported_id": "bank-1",
+              "account": "54e7de18-c9a2-41b3-8567-f8fb051ae061",
+              "payee": "3b11e318-77e1-405b-acfe-146b65c0052b",
+              "category": null,
+              "_account": {
+                "id": "54e7de18-c9a2-41b3-8567-f8fb051ae061",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000001001",
+              "is_parent": 0,
+              "is_child": 0,
+              "parent_id": null,
+              "account": "54e7de18-c9a2-41b3-8567-f8fb051ae061",
+              "category": null,
+              "amount": -12.34,
+              "payee": "3b11e318-77e1-405b-acfe-146b65c0052b",
+              "notes": "deleted",
+              "date": "2026-11-09",
+              "imported_id": "bank-1",
+              "error": null,
+              "imported_payee": null,
+              "starting_balance_flag": 0,
+              "transfer_id": null,
+              "sort_order": 1794225600000,
+              "cleared": false,
+              "reconciled": 0,
+              "tombstone": 1,
+              "schedule": null,
+              "raw_synced_data": null,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "first": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25260000-0000-4000-8000-000000001001"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "imported_id": "bank-1",
+              "account": "54e7de18-c9a2-41b3-8567-f8fb051ae061",
+              "payee": "3b11e318-77e1-405b-acfe-146b65c0052b",
+              "category": null,
+              "_account": {
+                "id": "54e7de18-c9a2-41b3-8567-f8fb051ae061",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25260000-0000-4000-8000-000000001001",
+              "is_parent": 0,
+              "is_child": 0,
+              "parent_id": null,
+              "account": "54e7de18-c9a2-41b3-8567-f8fb051ae061",
+              "category": null,
+              "amount": -12.34,
+              "payee": "3b11e318-77e1-405b-acfe-146b65c0052b",
+              "notes": "deleted",
+              "date": "2026-11-09",
+              "imported_id": "bank-1",
+              "error": null,
+              "imported_payee": null,
+              "starting_balance_flag": 0,
+              "transfer_id": null,
+              "sort_order": 1794225600000,
+              "cleared": false,
+              "reconciled": 0,
+              "tombstone": 1,
+              "schedule": null,
+              "raw_synced_data": null,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "after": {
+        "transactions": [],
+        "payees": [
+          {
+            "id": "3b11e318-77e1-405b-acfe-146b65c0052b",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "44264c9c-19d2-4f9e-af07-a1a7c4b3b53a",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "de879bf9-797c-4d54-8a13-c76997842e81",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "05ca9272-60f6-41a4-93e3-f76683322ae9",
+            "name": "Checking",
+            "transfer_acct": "54e7de18-c9a2-41b3-8567-f8fb051ae061"
+          }
+        ]
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "imported_id": "bank-1",
+              "account": "54e7de18-c9a2-41b3-8567-f8fb051ae061",
+              "payee": "3b11e318-77e1-405b-acfe-146b65c0052b",
+              "category": null,
+              "_account": {
+                "id": "54e7de18-c9a2-41b3-8567-f8fb051ae061",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [],
+        "payees": [
+          {
+            "id": "3b11e318-77e1-405b-acfe-146b65c0052b",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "44264c9c-19d2-4f9e-af07-a1a7c4b3b53a",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "de879bf9-797c-4d54-8a13-c76997842e81",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "05ca9272-60f6-41a4-93e3-f76683322ae9",
+            "name": "Checking",
+            "transfer_acct": "54e7de18-c9a2-41b3-8567-f8fb051ae061"
+          }
+        ]
+      }
+    },
+    {
+      "id": "deleted-id-reimported",
+      "input": {
+        "id": "deleted-id-reimported",
+        "existing": [
+          {
+            "label": "deleted",
+            "date": "2026-11-09",
+            "payee": "Cafe",
+            "amount": -1234,
+            "notes": "deleted",
+            "cleared": false,
+            "imported_id": "bank-1",
+            "deleted": true
+          }
+        ],
+        "incoming": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true,
+            "imported_id": "bank-1"
+          }
+        ],
+        "opts": {
+          "reimportDeleted": true
+        }
+      },
+      "ids": {
+        "account": "d29d3370-a50a-4738-8766-0b3087d57d14",
+        "Cafe": "5e4fe152-dc3a-42af-9005-bfc795194d41",
+        "Shop": "b1b7dfde-dc0c-49cc-a246-1b2e3c05bc3a",
+        "Unknown": "17533593-a5b5-4db1-a27b-f7d67e53ef5f",
+        "deleted": "25260000-0000-4000-8000-000000001101"
+      },
+      "before": {
+        "transactions": [],
+        "payees": [
+          {
+            "id": "5e4fe152-dc3a-42af-9005-bfc795194d41",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "b1b7dfde-dc0c-49cc-a246-1b2e3c05bc3a",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "17533593-a5b5-4db1-a27b-f7d67e53ef5f",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "13cd2520-ec21-430c-bf57-d02ff7550098",
+            "name": "Checking",
+            "transfer_acct": "d29d3370-a50a-4738-8766-0b3087d57d14"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [
+          "0e0bc211-13a5-43e8-bafa-b90ea914827b"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "first": {
+        "errors": [],
+        "added": [
+          "fdbeb442-41ea-4aa4-98ac-5c7abffd41d6"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "fdbeb442-41ea-4aa4-98ac-5c7abffd41d6",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "d29d3370-a50a-4738-8766-0b3087d57d14",
+            "category": null,
+            "amount": -1234,
+            "payee": "5e4fe152-dc3a-42af-9005-bfc795194d41",
+            "notes": "Bank note",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "5e4fe152-dc3a-42af-9005-bfc795194d41",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "b1b7dfde-dc0c-49cc-a246-1b2e3c05bc3a",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "17533593-a5b5-4db1-a27b-f7d67e53ef5f",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "13cd2520-ec21-430c-bf57-d02ff7550098",
+            "name": "Checking",
+            "transfer_acct": "d29d3370-a50a-4738-8766-0b3087d57d14"
+          }
+        ]
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "imported_id": "bank-1",
+              "account": "d29d3370-a50a-4738-8766-0b3087d57d14",
+              "payee": "5e4fe152-dc3a-42af-9005-bfc795194d41",
+              "category": null,
+              "_account": {
+                "id": "d29d3370-a50a-4738-8766-0b3087d57d14",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "fdbeb442-41ea-4aa4-98ac-5c7abffd41d6",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "d29d3370-a50a-4738-8766-0b3087d57d14",
+            "category": null,
+            "amount": -1234,
+            "payee": "5e4fe152-dc3a-42af-9005-bfc795194d41",
+            "notes": "Bank note",
+            "date": "2026-11-09",
+            "imported_id": "bank-1",
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "5e4fe152-dc3a-42af-9005-bfc795194d41",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "b1b7dfde-dc0c-49cc-a246-1b2e3c05bc3a",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "17533593-a5b5-4db1-a27b-f7d67e53ef5f",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "13cd2520-ec21-430c-bf57-d02ff7550098",
+            "name": "Checking",
+            "transfer_acct": "d29d3370-a50a-4738-8766-0b3087d57d14"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reconciled-match-unchanged",
+      "input": {
+        "id": "reconciled-match-unchanged",
+        "existing": [
+          {
+            "label": "locked",
+            "date": "2026-11-09",
+            "payee": "Cafe",
+            "amount": -1234,
+            "notes": "locked",
+            "cleared": true,
+            "reconciled": true
+          }
+        ],
+        "incoming": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true
+          }
+        ]
+      },
+      "ids": {
+        "account": "75693206-effa-4834-83a4-aa5b9b3a1326",
+        "Cafe": "1282117d-d1b2-4efe-836c-9ef35185dda9",
+        "Shop": "03ff1e45-d30c-40f5-a4ed-465e5b74fdbb",
+        "Unknown": "04a97967-2bd5-43e1-96a8-2178eedddaef",
+        "locked": "25260000-0000-4000-8000-000000001201"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000001201",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "75693206-effa-4834-83a4-aa5b9b3a1326",
+            "category": null,
+            "amount": -1234,
+            "payee": "1282117d-d1b2-4efe-836c-9ef35185dda9",
+            "notes": "locked",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": true,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "1282117d-d1b2-4efe-836c-9ef35185dda9",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "03ff1e45-d30c-40f5-a4ed-465e5b74fdbb",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "04a97967-2bd5-43e1-96a8-2178eedddaef",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "1fd9c8fc-3519-4cfc-a6d2-0cc48cd015ef",
+            "name": "Checking",
+            "transfer_acct": "75693206-effa-4834-83a4-aa5b9b3a1326"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "75693206-effa-4834-83a4-aa5b9b3a1326",
+              "payee": "1282117d-d1b2-4efe-836c-9ef35185dda9",
+              "category": null,
+              "_account": {
+                "id": "75693206-effa-4834-83a4-aa5b9b3a1326",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "first": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "75693206-effa-4834-83a4-aa5b9b3a1326",
+              "payee": "1282117d-d1b2-4efe-836c-9ef35185dda9",
+              "category": null,
+              "_account": {
+                "id": "75693206-effa-4834-83a4-aa5b9b3a1326",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000001201",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "75693206-effa-4834-83a4-aa5b9b3a1326",
+            "category": null,
+            "amount": -1234,
+            "payee": "1282117d-d1b2-4efe-836c-9ef35185dda9",
+            "notes": "locked",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": true,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "1282117d-d1b2-4efe-836c-9ef35185dda9",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "03ff1e45-d30c-40f5-a4ed-465e5b74fdbb",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "04a97967-2bd5-43e1-96a8-2178eedddaef",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "1fd9c8fc-3519-4cfc-a6d2-0cc48cd015ef",
+            "name": "Checking",
+            "transfer_acct": "75693206-effa-4834-83a4-aa5b9b3a1326"
+          }
+        ]
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "imported_payee": "Cafe",
+              "amount": -1234,
+              "notes": "Bank note",
+              "cleared": true,
+              "account": "75693206-effa-4834-83a4-aa5b9b3a1326",
+              "payee": "1282117d-d1b2-4efe-836c-9ef35185dda9",
+              "category": null,
+              "_account": {
+                "id": "75693206-effa-4834-83a4-aa5b9b3a1326",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000001201",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "75693206-effa-4834-83a4-aa5b9b3a1326",
+            "category": null,
+            "amount": -1234,
+            "payee": "1282117d-d1b2-4efe-836c-9ef35185dda9",
+            "notes": "locked",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": true,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "1282117d-d1b2-4efe-836c-9ef35185dda9",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "03ff1e45-d30c-40f5-a4ed-465e5b74fdbb",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "04a97967-2bd5-43e1-96a8-2178eedddaef",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "1fd9c8fc-3519-4cfc-a6d2-0cc48cd015ef",
+            "name": "Checking",
+            "transfer_acct": "75693206-effa-4834-83a4-aa5b9b3a1326"
+          }
+        ]
+      }
+    },
+    {
+      "id": "force-add-selected",
+      "input": {
+        "id": "force-add-selected",
+        "existing": [
+          {
+            "label": "manual",
+            "date": "2026-11-09",
+            "payee": "Cafe",
+            "amount": -1234,
+            "notes": "manual",
+            "cleared": false
+          }
+        ],
+        "incoming": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "amount": -1234,
+            "notes": "Bank note",
+            "cleared": true,
+            "forceAddTransaction": true
+          }
+        ]
+      },
+      "ids": {
+        "account": "0a672755-0f7c-4d75-a27e-86b19c114124",
+        "Cafe": "e35b70b5-c919-4c20-b755-4d65b2d86f79",
+        "Shop": "18a077d6-6e5c-42d6-b512-e28c61f1dd6f",
+        "Unknown": "12d6bf81-d01d-4e48-a07e-18adaeb63524",
+        "manual": "25260000-0000-4000-8000-000000001301"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000001301",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "0a672755-0f7c-4d75-a27e-86b19c114124",
+            "category": null,
+            "amount": -1234,
+            "payee": "e35b70b5-c919-4c20-b755-4d65b2d86f79",
+            "notes": "manual",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "e35b70b5-c919-4c20-b755-4d65b2d86f79",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "18a077d6-6e5c-42d6-b512-e28c61f1dd6f",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "12d6bf81-d01d-4e48-a07e-18adaeb63524",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "fd87cd5b-77ab-4e50-9e40-9d564329a783",
+            "name": "Checking",
+            "transfer_acct": "0a672755-0f7c-4d75-a27e-86b19c114124"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [
+          "301e3121-12f7-49a0-8e69-c6c146e56bd9"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "first": {
+        "errors": [],
+        "added": [
+          "893ddfea-b20d-4956-9a69-91d3744a61f7"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000001301",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "0a672755-0f7c-4d75-a27e-86b19c114124",
+            "category": null,
+            "amount": -1234,
+            "payee": "e35b70b5-c919-4c20-b755-4d65b2d86f79",
+            "notes": "manual",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "893ddfea-b20d-4956-9a69-91d3744a61f7",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "0a672755-0f7c-4d75-a27e-86b19c114124",
+            "category": null,
+            "amount": -1234,
+            "payee": "e35b70b5-c919-4c20-b755-4d65b2d86f79",
+            "notes": "Bank note",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "e35b70b5-c919-4c20-b755-4d65b2d86f79",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "18a077d6-6e5c-42d6-b512-e28c61f1dd6f",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "12d6bf81-d01d-4e48-a07e-18adaeb63524",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "fd87cd5b-77ab-4e50-9e40-9d564329a783",
+            "name": "Checking",
+            "transfer_acct": "0a672755-0f7c-4d75-a27e-86b19c114124"
+          }
+        ]
+      },
+      "second": {
+        "errors": [],
+        "added": [
+          "8f971f72-d161-461a-ae3b-8af2612d1797"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25260000-0000-4000-8000-000000001301",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "0a672755-0f7c-4d75-a27e-86b19c114124",
+            "category": null,
+            "amount": -1234,
+            "payee": "e35b70b5-c919-4c20-b755-4d65b2d86f79",
+            "notes": "manual",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "893ddfea-b20d-4956-9a69-91d3744a61f7",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "0a672755-0f7c-4d75-a27e-86b19c114124",
+            "category": null,
+            "amount": -1234,
+            "payee": "e35b70b5-c919-4c20-b755-4d65b2d86f79",
+            "notes": "Bank note",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "8f971f72-d161-461a-ae3b-8af2612d1797",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "0a672755-0f7c-4d75-a27e-86b19c114124",
+            "category": null,
+            "amount": -1234,
+            "payee": "e35b70b5-c919-4c20-b755-4d65b2d86f79",
+            "notes": "Bank note",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "e35b70b5-c919-4c20-b755-4d65b2d86f79",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "18a077d6-6e5c-42d6-b512-e28c61f1dd6f",
+            "name": "Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "12d6bf81-d01d-4e48-a07e-18adaeb63524",
+            "name": "Unknown",
+            "transfer_acct": null
+          },
+          {
+            "id": "fd87cd5b-77ab-4e50-9e40-9d564329a783",
+            "name": "Checking",
+            "transfer_acct": "0a672755-0f7c-4d75-a27e-86b19c114124"
+          }
+        ]
+      }
+    }
+  ]
+}

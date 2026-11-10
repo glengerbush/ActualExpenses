@@ -608,7 +608,7 @@ pub(super) fn convert(
         name,
         s,
         vec![
-            json!({"feature":"nynab_source_model","count":1,"blocking":false,"message":"Credit-card payment categories, targets, approvals, source currency settings and edit logs are not imported by the baseline. Review available funds and card debt; scheduled payments are manual and flags become tags. Original JSON remains available."}),
+            json!({"feature":"nynab_source_model","count":1,"blocking":false,"reason":"Credit-card payment categories, targets, approvals, source currency settings and edit logs are not imported by the baseline. Review available funds and card debt; scheduled payments are manual and flags become tags. Original JSON remains available."}),
         ],
     ))
 }

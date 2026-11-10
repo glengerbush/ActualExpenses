@@ -368,8 +368,58 @@ pub(super) fn convert(filename: &str, bytes: &[u8]) -> Result<(String, Source, V
             source.push("zero_budgets",json!({"id":identity("budget-cell",&format!("{month_id}:{id}")),"month":month_number,"category":id,"amount":amount,"carryover":i32::from(carry),"goal":null,"long_goal":null}));
         }
     }
+    // Actual's setCategoryCarryover writes every available future month, not
+    // just months present in YNAB's sparse monthlyBudgets array. Preserve those
+    // flags through gaps and after the last allocation without minting amounts.
+    use chrono::Datelike;
+    let now = chrono::DateTime::<chrono::Utc>::from(std::time::SystemTime::now());
+    let horizon = now.year() * 12 + now.month0() as i32 + 12;
+    let mut changes = BTreeMap::<String, BTreeMap<i32, bool>>::new();
+    let mut present = BTreeSet::new();
+    for row in source.data["zero_budgets"].as_array().unwrap() {
+        let month = row["month"].as_i64().unwrap() as i32;
+        let month = month / 100 * 12 + month % 100 - 1;
+        let category = row["category"].as_str().unwrap().to_owned();
+        present.insert((month, category.clone()));
+        changes
+            .entry(category)
+            .or_default()
+            .insert(month, row["carryover"] == 1);
+    }
+    let mut work = 0usize;
+    for (category, events) in changes {
+        if !events.values().any(|flag| *flag) {
+            continue;
+        }
+        let start = *events.first_key_value().unwrap().0;
+        let mut flag = false;
+        for month in start..=horizon {
+            work += 1;
+            if work > 100000 {
+                return Err(invalid("Carry history exceeds100000 category-month steps"));
+            }
+            if let Some(value) = events.get(&month) {
+                flag = *value;
+            }
+            if !flag || present.contains(&(month, category.clone())) {
+                continue;
+            }
+            if source.data["zero_budgets"].as_array().unwrap().len() >= 100000 {
+                return Err(invalid(
+                    "Allocation history exceeds100000 category-month cells",
+                ));
+            }
+            let name = format!(
+                "{:04}-{:02}",
+                month.div_euclid(12),
+                month.rem_euclid(12) + 1
+            );
+            let number = month.div_euclid(12) * 100 + month.rem_euclid(12) + 1;
+            source.push("zero_budgets",json!({"id":identity("budget-cell",&format!("{name}:{category}")),"month":number,"category":category,"amount":0,"carryover":1,"goal":null,"long_goal":null}));
+        }
+    }
     let requirements = vec![
-        json!({"feature":"ynab4_source_model","count":1,"blocking":false,"message":"YNAB4 scheduled transactions, payee autofill/rename configuration and edit logs are not migrated by the baseline importer. Original export remains available. Review split payees and historical overspending rollover."}),
+        json!({"feature":"ynab4_source_model","count":1,"blocking":false,"reason":"YNAB4 scheduled transactions, payee autofill/rename configuration and edit logs are not migrated by the baseline importer. Original export remains available. Review split payees and historical overspending rollover."}),
     ];
     Ok((name, source, requirements))
 }

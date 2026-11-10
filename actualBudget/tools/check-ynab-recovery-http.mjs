@@ -68,6 +68,12 @@ try {
       key = randomUUID(),
       staged = await upload(kind, bytes, key),
       id = staged.data.id;
+    await upload(
+      kind === "ynab4" ? "nynab" : "ynab4",
+      bytes,
+      randomUUID(),
+      409,
+    );
     await restart();
     assert.equal((await call("/imports/" + id)).data.id, id);
     assert.deepEqual(
@@ -299,6 +305,30 @@ try {
     await upload("nynab", bytes, randomUUID(), 422);
   }
   await upload("ynab4", Buffer.from("not zip"), randomUUID(), 422);
+  await upload(
+    "nynab",
+    Buffer.from(JSON.stringify({ accounts: Array(100001).fill({}) })),
+    randomUUID(),
+    422,
+  );
+  for (const kind of ["ynab4", "nynab"])
+    await upload(
+      kind,
+      Buffer.alloc(16 * 1024 * 1024 + 1, 32),
+      randomUUID(),
+      413,
+    );
+  const unsafeZip = execFileSync("python3", [
+    "-c",
+    "import zipfile,io,sys; z=io.BytesIO(); a=zipfile.ZipFile(z,'w',zipfile.ZIP_DEFLATED); a.writestr('../unsafe','x'); a.close(); sys.stdout.buffer.write(z.getvalue())",
+  ]);
+  await upload("ynab4", unsafeZip, randomUUID(), 422);
+  const expandedZip = execFileSync("python3", [
+    "-c",
+    "import zipfile,io,sys; z=io.BytesIO(); a=zipfile.ZipFile(z,'w',zipfile.ZIP_DEFLATED); a.writestr('oversized',b'x'*(64*1024*1024+1)); a.close(); sys.stdout.buffer.write(z.getvalue())",
+  ]);
+  await upload("ynab4", expandedZip, randomUUID(), 422);
+
   assert.deepEqual(await call("/imports"), before);
   assert.deepEqual(
     await call("/budgets"),

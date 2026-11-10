@@ -99,6 +99,7 @@
     | "pending"
     | null
   >(null);
+  let importSource = $state<"actual" | "ynab4">("actual");
   let rulesPayee = $state("");
   let managedBudget = $state.raw<ManagedBudget | null>(null);
   let deletedBudgets = $state.raw<ManagedBudget[]>([]);
@@ -146,8 +147,21 @@
           id,
           label,
           disabled: locked || disconnected || !compatible,
-          run: () => showForm(id),
+          run: () => {
+            if (id === "import") importSource = "actual";
+            showForm(id);
+          },
         });
+      result.push({
+        id: "ynab-import",
+        label: "Import YNAB budget",
+        keywords: "YNAB4 nYNAB JSON migration",
+        disabled: locked || disconnected || !compatible,
+        run: () => {
+          importSource = "ynab4";
+          showForm("import");
+        },
+      });
       return result;
     }
     result.push(
@@ -781,6 +795,7 @@
         onclose={() => showForm(null)}
       />
     {:else if form === "import"}<ImportBudget
+        initialSource={importSource}
         oncreated={budgetCreated}
         oncancel={() => showForm(null)}
       />
@@ -796,9 +811,20 @@
             disabled={disconnected || !compatible}>{t("Restore backup")}</button
           >
           <button
-            onclick={() => showForm("import")}
+            onclick={() => {
+              importSource = "actual";
+              showForm("import");
+            }}
             disabled={disconnected || !compatible}
             >{t("Import Actual budget")}</button
+          >
+          <button
+            onclick={() => {
+              importSource = "ynab4";
+              showForm("import");
+            }}
+            disabled={disconnected || !compatible}
+            >{t("Import YNAB budget")}</button
           >
           <button
             class="primary"

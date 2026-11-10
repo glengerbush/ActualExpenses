@@ -1,6 +1,8 @@
 # YNAB migration — development evidence
 
-Ticket27 is in progress on `codex/ynab27`, integration base `8a49adb` (schema22).
+Ticket27 implementation is complete on `codex/ynab27` (schema22), pending root
+consolidated final review and combined qualification. Initial base `8a49adb`;
+accepted main through `a5c784c` merged without runtime conflict.
 No live budgets, credentials, deployment, release or version changes. Root owns
 consolidated review and qualification; this branch owns the complete migration
 slice. Initial design reuses existing staged imports, original-byte retention,
@@ -8,7 +10,7 @@ provenance and atomic activation; no schema migration is currently needed.
 
 ## Public seams and first source tracer
 
-Planned replacement seams: binary POST `/imports/ynab4?filename=...` and
+Delivered public seams: binary POST `/imports/ynab4?filename=...` and
 `/imports/nynab?filename=...`, existing staged report/list/read and activation,
 and a format-correct generic original-file download. Staging creates no active
 budget; activation must be atomic and repeat-safe across independent keys,
@@ -55,7 +57,7 @@ hidden categories, split payee presentation, source goals and any unsupported
 source configuration require explicit conversion/reporting. Original exports
 remain available unchanged for review and cleanup.
 
-## Remaining gates
+## Initial acceptance checklist (covered below)
 
 - Source-backed public YNAB4 tracer, then complete nYNAB conversion, including
   wrappers, references, milliunit rounding, splits/transfers, flags/locations,
@@ -209,3 +211,91 @@ process restart and a second fresh server are additionally exercised with its
 owned debug server. Earlier recovery attempts also corrected harness assumptions
 (activation201, canonical owner header, ZIP content type, typed restore name);
 those are not claimed as product failures.
+
+## Complete interface/contracts/companion candidate
+
+The incumbent import page now offers Actual ZIP, YNAB4 ZIP and nYNAB JSON, with
+a direct YNAB entry and command-search destination. It saves the exact original
+file, filename, format, upload key and activation key before sending. Old saved
+sessions without format retain the original Actual route. Cross-tab storage
+checks prevent changing a captured format/filename under the same operation.
+Visible review explains source-model differences before activation. Financial
+summaries use the shared privacy-aware saved-format formatter; original files
+remain explicit downloads. Shared controls use existing i18n; no catalog or
+visual-system replacement. Source requirements now use the established typed
+`reason` field; the UI can still display older saved `message` records.
+
+Final scoped evidence:
+
+- `/tmp/ynab-browser-second.log`: both actual browser migrations PASS. Real
+  forwarded201 commits are asserted before ACK loss. Reload/retry compares exact
+  upload format/path/query/MIME/hash/key and activation body/key, verifies first
+  committed stage/budget and unchanged financial rows after retry. Quota failure
+  proves zero network submission before durable save.
+- Captures: `web/test-results/ynab/{nynab-desktop,nynab-mobile,
+  nynab-dark-large,ynab4-desktop,ynab4-mobile}.png`. Inspected desktop,390px phone
+  and dark200% text: readable controls/amounts, no horizontal clipping. Impeccable
+  detector reports no findings; incumbent DESIGN.md remains authoritative. Root
+  supplies consolidated finish verdict. No shipping rasters.
+- `/tmp/ynab-existing-actual-browser.log`: existing Actual import recovery,
+  blocked/corrupt handling, stale-tab/quota and financial assertions PASS.
+- `/tmp/ynab-native-first.log`: real companion API integration PASS both imports:
+  exact independent source ordinary expense projection, available references,
+  saved offline mutation unchanged on restart and delivered exactly once.
+  Android product code unchanged; synthetic server/JVM evidence, no claim of new
+  physical-device testing.
+- `/tmp/ynab-contract-first.log`: full maintained served OpenAPI consumer PASS,
+  including both typed source upload/read/activation/replay/error paths and
+  byte-exact original downloads. SQLite integrity is explicitly null for YNAB;
+  source adapter is authoritative. Existing schema22 remains unchanged.
+- `/tmp/ynab-order-http.log`: complete demos/five edge cases plus source account
+  row/allocation ordering PASS; recurring pattern discriminants remain exact.
+- `/tmp/ynab-bounds-recovery-http.log`: both recovery paths PASS plus malformed,
+  cross-format SHA collision,100001-row,16MiB original/64MiB ZIP expansion and
+  unsafe-path refusals, with unchanged stage/budget state.
+- `/tmp/ynab-ui-final-{check,format-check}.log`: zero Svelte errors/warnings and
+  full formatting PASS; `/tmp/ynab-ui-freeze-build.log` production build PASS
+  (existing large-bundle advisory retained). Svelte autofixer both targets reports
+  no issues/suggestions. Formatting only was needed in the accepted older
+  transaction-import browser test; its assertions are unchanged.
+
+Maintained entry points: `npm --prefix actualBudget/web run test:browser` includes
+both new public HTTP consumers and the new browser flow, honoring an explicitly
+supplied isolated test URL. `test:ynab-source` independently checks all six
+source generators and is wired into the existing release verification workflow.
+Native proof joins the maintained NativeApiIntegrationTest class; contracts join
+contract-smoke.py. No full suite repeated here; root owns one integrated batch.
+
+Known source differences remain intentional and visible: no synthetic YNAB edit
+history, no YNAB4 schedule/autofill configuration execution, no YNAB credit-card
+payment reserve/target equivalence. Source originals preserve those records.
+No unresolved implementation acceptance gate is declared; root review and
+integrated qualification must pass before ticket closure.
+
+
+## Final YNAB4 sparse carry correction
+
+A source-code check identified a concrete sparse-history gap before final freeze:
+Actual's `api/budget-set-carryover` propagates the chosen flag through every
+available future month, while YNAB stores only explicitly budgeted months. The
+new independent `generate-ynab4-carry.mjs` executes the pinned importer and public
+monthly budget reads for two clearly labeled synthetic YNAB4 source inputs
+(one−12.34 expense, Jan Confined, optional March AffectsBuffer reset). Both
+original ZIPs and genuine post-import Actual ZIPs are retained. Six fixed months
+per case expose absent-month carry, reset, subsequent debt handling and carry
+beyond the final explicit allocation. No SQLite or HLC fabrication.
+
+True public red `/tmp/ynab4-carry-http-red.log` shows February's lost carry flag.
+The adapter now fills missing zero-amount carry cells through the captured
+conversion month's source horizon, preserving explicit resets and amounts.
+Generated cells and category-month work are bounded at100000; no clock/epoch or
+existing financial row is rewritten. Source generation and independent check
+PASS (`/tmp/ynab4-carry-source.log`,
+`/tmp/ynab4-carry-source-check-green.log`); the first check's only difference was
+JavaScript−0 versus serialized JSON0, normalized by the same actual JSON wire
+representation used by other source witnesses. Original source/Actual files and
+financial observations were not regenerated. All nine focused public YNAB cases
+PASS `/tmp/ynab4-carry-http-green.log`; final bin Clippy PASS
+`/tmp/ynab-final-clippy.log`. The new generator joins the maintained source-check
+command. Prior reviewed interface/contracts/native/recovery evidence is reused;
+root owns final combined qualification.

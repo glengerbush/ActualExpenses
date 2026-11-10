@@ -1,0 +1,2822 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00.000Z",
+  "provenance": "Synthetic source ZIPs derive unchanged demo structure with one -12.34 A5 expense and genuine-format monthly carry settings. Expectations and retained Actual ZIPs come only from real public pinned importBudget/getBudgetMonth. No source SQLite/HLC fabrication.",
+  "cases": [
+    {
+      "id": "gap-reset",
+      "input": "ynab4-carry-gap-reset.zip",
+      "input_sha256": "875430fbd9f0dfc4dbff86de8bc1bd11a99cde8f8dc13694e844ee61220e40cf",
+      "actual": "ynab4-carry-gap-reset-actual-26.10.zip",
+      "actual_sha256": "6562172f20d4671b00702ab7446b608c865ea169ff93f29bc07a83425ca9d029",
+      "months": [
+        {
+          "month": "2023-01",
+          "categories": [
+            {
+              "category": "Giving/Tithing",
+              "budgeted": 0,
+              "actual": -1234,
+              "balance": -1234,
+              "carryover": true
+            },
+            {
+              "category": "Giving/Charitable",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Rent/Mortgage",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Phone",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Internet",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Cable TV",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Electricity",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Water",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Natural Gas/Propane/Oil",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Groceries",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Fuel",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Spending Money",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Restaurants",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Medical",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Clothing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Household Goods",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Emergency Fund",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Repairs",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Home Maintenance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Life Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Health Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Birthdays",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Christmas",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Car Replacement",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Vacation",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Car Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Student Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Personal Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Income",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Starting Balances",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            }
+          ],
+          "summary": {
+            "incomeAvailable": 0,
+            "lastMonthOverspent": 0,
+            "forNextMonth": 0,
+            "totalBudgeted": 0,
+            "toBudget": 0,
+            "fromLastMonth": 0,
+            "totalIncome": 0,
+            "totalSpent": -1234,
+            "totalBalance": -1234
+          }
+        },
+        {
+          "month": "2023-02",
+          "categories": [
+            {
+              "category": "Giving/Tithing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": -1234,
+              "carryover": true
+            },
+            {
+              "category": "Giving/Charitable",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Rent/Mortgage",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Phone",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Internet",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Cable TV",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Electricity",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Water",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Natural Gas/Propane/Oil",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Groceries",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Fuel",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Spending Money",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Restaurants",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Medical",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Clothing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Household Goods",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Emergency Fund",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Repairs",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Home Maintenance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Life Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Health Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Birthdays",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Christmas",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Car Replacement",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Vacation",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Car Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Student Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Personal Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Income",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Starting Balances",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            }
+          ],
+          "summary": {
+            "incomeAvailable": 0,
+            "lastMonthOverspent": 0,
+            "forNextMonth": 0,
+            "totalBudgeted": 0,
+            "toBudget": 0,
+            "fromLastMonth": 0,
+            "totalIncome": 0,
+            "totalSpent": 0,
+            "totalBalance": -1234
+          }
+        },
+        {
+          "month": "2023-03",
+          "categories": [
+            {
+              "category": "Giving/Tithing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": -1234,
+              "carryover": false
+            },
+            {
+              "category": "Giving/Charitable",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Rent/Mortgage",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Phone",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Internet",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Cable TV",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Electricity",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Water",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Natural Gas/Propane/Oil",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Groceries",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Fuel",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Spending Money",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Restaurants",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Medical",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Clothing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Household Goods",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Emergency Fund",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Repairs",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Home Maintenance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Life Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Health Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Birthdays",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Christmas",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Car Replacement",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Vacation",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Car Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Student Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Personal Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Income",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Starting Balances",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            }
+          ],
+          "summary": {
+            "incomeAvailable": 0,
+            "lastMonthOverspent": 0,
+            "forNextMonth": 0,
+            "totalBudgeted": 0,
+            "toBudget": 0,
+            "fromLastMonth": 0,
+            "totalIncome": 0,
+            "totalSpent": 0,
+            "totalBalance": -1234
+          }
+        },
+        {
+          "month": "2023-04",
+          "categories": [
+            {
+              "category": "Giving/Tithing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Giving/Charitable",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Rent/Mortgage",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Phone",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Internet",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Cable TV",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Electricity",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Water",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Natural Gas/Propane/Oil",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Groceries",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Fuel",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Spending Money",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Restaurants",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Medical",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Clothing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Household Goods",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Emergency Fund",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Repairs",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Home Maintenance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Life Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Health Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Birthdays",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Christmas",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Car Replacement",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Vacation",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Car Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Student Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Personal Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Income",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Starting Balances",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            }
+          ],
+          "summary": {
+            "incomeAvailable": 0,
+            "lastMonthOverspent": -1234,
+            "forNextMonth": 0,
+            "totalBudgeted": 0,
+            "toBudget": -1234,
+            "fromLastMonth": 0,
+            "totalIncome": 0,
+            "totalSpent": 0,
+            "totalBalance": 0
+          }
+        },
+        {
+          "month": "2023-05",
+          "categories": [
+            {
+              "category": "Giving/Tithing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Giving/Charitable",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Rent/Mortgage",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Phone",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Internet",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Cable TV",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Electricity",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Water",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Natural Gas/Propane/Oil",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Groceries",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Fuel",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Spending Money",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Restaurants",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Medical",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Clothing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Household Goods",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Emergency Fund",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Repairs",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Home Maintenance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Life Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Health Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Birthdays",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Christmas",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Car Replacement",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Vacation",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Car Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Student Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Personal Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Income",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Starting Balances",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            }
+          ],
+          "summary": {
+            "incomeAvailable": -1234,
+            "lastMonthOverspent": 0,
+            "forNextMonth": 0,
+            "totalBudgeted": 0,
+            "toBudget": -1234,
+            "fromLastMonth": -1234,
+            "totalIncome": 0,
+            "totalSpent": 0,
+            "totalBalance": 0
+          }
+        },
+        {
+          "month": "2023-06",
+          "categories": [
+            {
+              "category": "Giving/Tithing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Giving/Charitable",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Rent/Mortgage",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Phone",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Internet",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Cable TV",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Electricity",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Water",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Natural Gas/Propane/Oil",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Groceries",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Fuel",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Spending Money",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Restaurants",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Medical",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Clothing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Household Goods",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Emergency Fund",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Repairs",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Home Maintenance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Life Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Health Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Birthdays",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Christmas",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Car Replacement",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Vacation",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Car Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Student Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Personal Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Income",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Starting Balances",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            }
+          ],
+          "summary": {
+            "incomeAvailable": -1234,
+            "lastMonthOverspent": 0,
+            "forNextMonth": 0,
+            "totalBudgeted": 0,
+            "toBudget": -1234,
+            "fromLastMonth": -1234,
+            "totalIncome": 0,
+            "totalSpent": 0,
+            "totalBalance": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "carry-after-last",
+      "input": "ynab4-carry-carry-after-last.zip",
+      "input_sha256": "2b210e7ea33fd29510049ce69bd8be4bee14b9cda392771e293cb94beafa9f70",
+      "actual": "ynab4-carry-carry-after-last-actual-26.10.zip",
+      "actual_sha256": "7e1b2f7a8e53062b5e25e17c4cd887a642fb2aea41a05f095a7c7589ce136291",
+      "months": [
+        {
+          "month": "2023-01",
+          "categories": [
+            {
+              "category": "Giving/Tithing",
+              "budgeted": 0,
+              "actual": -1234,
+              "balance": -1234,
+              "carryover": true
+            },
+            {
+              "category": "Giving/Charitable",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Rent/Mortgage",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Phone",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Internet",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Cable TV",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Electricity",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Water",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Natural Gas/Propane/Oil",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Groceries",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Fuel",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Spending Money",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Restaurants",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Medical",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Clothing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Household Goods",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Emergency Fund",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Repairs",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Home Maintenance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Life Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Health Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Birthdays",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Christmas",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Car Replacement",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Vacation",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Car Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Student Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Personal Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Income",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Starting Balances",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            }
+          ],
+          "summary": {
+            "incomeAvailable": 0,
+            "lastMonthOverspent": 0,
+            "forNextMonth": 0,
+            "totalBudgeted": 0,
+            "toBudget": 0,
+            "fromLastMonth": 0,
+            "totalIncome": 0,
+            "totalSpent": -1234,
+            "totalBalance": -1234
+          }
+        },
+        {
+          "month": "2023-02",
+          "categories": [
+            {
+              "category": "Giving/Tithing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": -1234,
+              "carryover": true
+            },
+            {
+              "category": "Giving/Charitable",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Rent/Mortgage",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Phone",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Internet",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Cable TV",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Electricity",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Water",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Natural Gas/Propane/Oil",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Groceries",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Fuel",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Spending Money",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Restaurants",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Medical",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Clothing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Household Goods",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Emergency Fund",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Repairs",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Home Maintenance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Life Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Health Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Birthdays",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Christmas",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Car Replacement",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Vacation",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Car Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Student Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Personal Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Income",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Starting Balances",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            }
+          ],
+          "summary": {
+            "incomeAvailable": 0,
+            "lastMonthOverspent": 0,
+            "forNextMonth": 0,
+            "totalBudgeted": 0,
+            "toBudget": 0,
+            "fromLastMonth": 0,
+            "totalIncome": 0,
+            "totalSpent": 0,
+            "totalBalance": -1234
+          }
+        },
+        {
+          "month": "2023-03",
+          "categories": [
+            {
+              "category": "Giving/Tithing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": -1234,
+              "carryover": true
+            },
+            {
+              "category": "Giving/Charitable",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Rent/Mortgage",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Phone",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Internet",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Cable TV",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Electricity",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Water",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Natural Gas/Propane/Oil",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Groceries",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Fuel",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Spending Money",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Restaurants",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Medical",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Clothing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Household Goods",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Emergency Fund",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Repairs",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Home Maintenance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Life Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Health Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Birthdays",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Christmas",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Car Replacement",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Vacation",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Car Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Student Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Personal Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Income",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Starting Balances",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            }
+          ],
+          "summary": {
+            "incomeAvailable": 0,
+            "lastMonthOverspent": 0,
+            "forNextMonth": 0,
+            "totalBudgeted": 0,
+            "toBudget": 0,
+            "fromLastMonth": 0,
+            "totalIncome": 0,
+            "totalSpent": 0,
+            "totalBalance": -1234
+          }
+        },
+        {
+          "month": "2023-04",
+          "categories": [
+            {
+              "category": "Giving/Tithing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": -1234,
+              "carryover": true
+            },
+            {
+              "category": "Giving/Charitable",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Rent/Mortgage",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Phone",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Internet",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Cable TV",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Electricity",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Water",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Natural Gas/Propane/Oil",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Groceries",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Fuel",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Spending Money",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Restaurants",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Medical",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Clothing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Household Goods",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Emergency Fund",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Repairs",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Home Maintenance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Life Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Health Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Birthdays",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Christmas",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Car Replacement",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Vacation",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Car Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Student Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Personal Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Income",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Starting Balances",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            }
+          ],
+          "summary": {
+            "incomeAvailable": 0,
+            "lastMonthOverspent": 0,
+            "forNextMonth": 0,
+            "totalBudgeted": 0,
+            "toBudget": 0,
+            "fromLastMonth": 0,
+            "totalIncome": 0,
+            "totalSpent": 0,
+            "totalBalance": -1234
+          }
+        },
+        {
+          "month": "2023-05",
+          "categories": [
+            {
+              "category": "Giving/Tithing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": -1234,
+              "carryover": true
+            },
+            {
+              "category": "Giving/Charitable",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Rent/Mortgage",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Phone",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Internet",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Cable TV",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Electricity",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Water",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Natural Gas/Propane/Oil",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Groceries",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Fuel",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Spending Money",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Restaurants",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Medical",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Clothing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Household Goods",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Emergency Fund",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Repairs",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Home Maintenance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Life Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Health Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Birthdays",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Christmas",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Car Replacement",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Vacation",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Car Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Student Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Personal Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Income",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Starting Balances",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            }
+          ],
+          "summary": {
+            "incomeAvailable": 0,
+            "lastMonthOverspent": 0,
+            "forNextMonth": 0,
+            "totalBudgeted": 0,
+            "toBudget": 0,
+            "fromLastMonth": 0,
+            "totalIncome": 0,
+            "totalSpent": 0,
+            "totalBalance": -1234
+          }
+        },
+        {
+          "month": "2023-06",
+          "categories": [
+            {
+              "category": "Giving/Tithing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": -1234,
+              "carryover": true
+            },
+            {
+              "category": "Giving/Charitable",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Rent/Mortgage",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Phone",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Internet",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Cable TV",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Electricity",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Water",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Monthly Bills/Natural Gas/Propane/Oil",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Groceries",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Fuel",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Spending Money",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Restaurants",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Medical",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Clothing",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Everyday Expenses/Household Goods",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Emergency Fund",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Repairs",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Home Maintenance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Car Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Life Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Health Insurance",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Birthdays",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Rainy Day Funds/Christmas",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Car Replacement",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Savings Goals/Vacation",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Car Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Student Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Debt/Personal Loan Payment",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Income",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            },
+            {
+              "category": "Income/Starting Balances",
+              "budgeted": 0,
+              "actual": 0,
+              "balance": 0,
+              "carryover": false
+            }
+          ],
+          "summary": {
+            "incomeAvailable": 0,
+            "lastMonthOverspent": 0,
+            "forNextMonth": 0,
+            "totalBudgeted": 0,
+            "toBudget": 0,
+            "fromLastMonth": 0,
+            "totalIncome": 0,
+            "totalSpent": 0,
+            "totalBalance": -1234
+          }
+        }
+      ]
+    }
+  ]
+}

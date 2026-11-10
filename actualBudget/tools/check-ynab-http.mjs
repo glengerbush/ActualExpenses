@@ -112,6 +112,25 @@ function compareLedger(snapshot, actual, refs) {
       (l) => l.account_id === nativeAccounts.get(account.id),
     );
     assert.ok(expected);
+    const ordered = (rows, childKey) =>
+      rows.map((row) => ({
+        amount: row.amount,
+        date: row.date,
+        notes: row.notes ?? "",
+        parent: !!row.is_parent,
+        children: (row[childKey] ?? []).map((child) => ({
+          amount: child.amount,
+          notes: child.notes ?? "",
+        })),
+      }));
+    assert.deepEqual(
+      ordered(
+        actual.filter((row) => row.account_id === account.id),
+        "children",
+      ),
+      ordered(expected.transactions, "subtransactions"),
+      "Source account row and allocation order",
+    );
     assert.equal(
       account.balance,
       expected.balance,
@@ -602,6 +621,84 @@ try {
       assert.deepEqual(await call(root + "/checkpoint"), checkpoint);
       console.log(
         "PASS " + expected.id + " exact source definitions without posting",
+      );
+    }
+  }
+  if (
+    !process.argv.some((a) => a.startsWith("--case=")) ||
+    process.argv.includes("--case=ynab4-carry")
+  ) {
+    const carry = JSON.parse(
+      await readFile(
+        new URL("../tests/fixtures/ynab4-carry.json", import.meta.url),
+      ),
+    );
+    for (const expected of carry.cases) {
+      const bytes = await readFile(
+        new URL("../tests/fixtures/ynab/" + expected.input, import.meta.url),
+      );
+      assert.equal(
+        createHash("sha256").update(bytes).digest("hex"),
+        expected.input_sha256,
+      );
+      const r = await fetch(api + "/imports/ynab4?filename=" + expected.input, {
+        method: "POST",
+        headers: { "Idempotency-Key": randomUUID() },
+        body: bytes,
+      });
+      assert.equal(r.status, 201, await r.clone().text());
+      const stage = (await r.json()).data,
+        active = (await call("/imports/" + stage.id + "/activate", {})).data,
+        root = "/budgets/" + active.id,
+        groups = (await call(root + "/category-groups")).data,
+        categories = (await call(root + "/categories")).data;
+      const ledger = await call(root + "/transactions?limit=1000");
+      for (const source of expected.months) {
+        const view = (await call(root + "/budget?month=" + source.month)).data
+          .months[source.month];
+        for (const c of source.categories) {
+          const category = categories.find(
+            (row) =>
+              groups.find((g) => g.id === row.group_id).name +
+                "/" +
+                row.name ===
+              c.category,
+          );
+          assert.ok(category, c.category);
+          const row = view.categories.find((row) => row.id === category.id);
+          assert.deepEqual(
+            {
+              category: c.category,
+              budgeted: row.budgeted,
+              actual: row.actual,
+              balance: row.balance,
+              carryover: row.carryover,
+            },
+            c,
+            expected.id + ":" + source.month + ":" + c.category,
+          );
+        }
+        const keys = {
+          available_funds: "incomeAvailable",
+          last_month_overspent: "lastMonthOverspent",
+          buffered_selected: "forNextMonth",
+          total_budgeted: "totalBudgeted",
+          to_budget: "toBudget",
+          from_last_month: "fromLastMonth",
+          total_income: "totalIncome",
+          total_spent: "totalSpent",
+          total_leftover: "totalBalance",
+        };
+        for (const [k, v] of Object.entries(keys))
+          assert.equal(
+            view.summary[k],
+            source.summary[v],
+            source.month + ":" + k,
+          );
+      }
+      assert.deepEqual(await call(root + "/transactions?limit=1000"), ledger);
+      console.log(
+        "PASS YNAB4 " + expected.id + " exact source gap/carry/reset budgets",
       );
     }
   }

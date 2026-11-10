@@ -283,3 +283,23 @@ Remaining ticket28 gates: current23 portable restore/duplicate credential exclus
 Public `/tmp/bank28-portable-red.log` reproduced duplicate→native backup/restore creating a second connection from retained Actual provenance. Source enrichment now fills only missing account mappings; an existing native mapping or intentional unlink tombstone supersedes the original source. The same public tracer additionally creates an unlink tombstone, compares every original connection/remote/link identity and tombstone after restore and duplicate-of-duplicate, checks all portable ZIP entry bytes for the controlled setup/access secrets, and verifies financial graph identity throughout. The original connected budget remains independent of its copies.
 
 A real held provider GET is released only after same-budget current23 restore. It refuses409, leaves restored metadata/cursor/financial graph exact, and original committed refresh receipt replay remains exact after epoch rotation. `/tmp/bank28-portable-green.log`, `bank28-portable-build.log`, and `bank28-portable-clippy.log` pass. The first ZIP inspection attempt incorrectly decoded a retained binary source ZIP as UTF8; the corrected test inspects raw entry bytes without discarding any binary entries.
+
+### Root converter/portability composition review
+
+2026-11-10: Root reviewed `e1a3b32` genuine22 inputs, `62f9e39` conversion and
+`f8673e4` native identity correction. Duplicate restore finding closed with the
+recorded public red/green. Composed at `e203e9c` with notes24 and forecasting.
+Conflicts retain both bank23/notes24 migration enrichers and both native restore
+paths; restored stage reporting uses the actual migration count. Source selector
+clocks, explicitly unknown provider fields and YNAB provenance boundaries reviewed.
+
+Combined build PASS `/tmp/bank-upgrade-notes24-build.log`; genuine22 database
+and archive upgrade, reconnect, current24 copy/restore/tombstones/secrets/late
+response checks PASS `/tmp/bank-upgrade-notes24-public-green.log`. Separate
+genuine23→24 notes upgrade PASS `/tmp/bank-upgrade-notes24-notes.log`. The first
+combined bank run passed its database path but stopped at the consumer's stale
+expected23 stage-report version (actual24); only that expectation and current
+native labels changed. Original22 fixture hashes are now checked by the consumer;
+fixture bytes and financial assertions stay unchanged. Focused formatting and
+staged whitespace checks pass. Complete28 recovery/client gates remain pending;
+this is not main acceptance or live-provider qualification.

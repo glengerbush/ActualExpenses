@@ -49,6 +49,7 @@ pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     for (index, sql) in MIGRATIONS.iter().enumerate().skip(version as usize) {
         tx.execute_batch(sql)?;
         if index == 23 {
+            crate::notes::configure(&tx)?;
             crate::notes::enrich(&tx, None)?;
         }
         if index == 22 {

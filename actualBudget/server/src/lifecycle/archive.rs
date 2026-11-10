@@ -20,6 +20,7 @@ pub const TABLES: &[&str] = &[
     "bank_connections",
     "bank_remote_accounts",
     "account_groups",
+    "notes",
     "accounts",
     "bank_links",
     "payees",
@@ -47,7 +48,6 @@ pub const TABLES: &[&str] = &[
     "budget_preferences",
     "register_settings",
     "reporting_documents",
-    "notes",
     "field_versions",
     "staged_imports",
     "imported_sources",
@@ -1017,6 +1017,7 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
     db.execute("UPDATE bank_connections SET state='credentials_missing',generation=?2,error_code=NULL,message=NULL WHERE budget_id=?1 AND tombstone=0",params![archive.state.budget["id"].as_str(),uuid::Uuid::new_v4().to_string()])?;
     crate::register_settings::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
     crate::reports::import::enrich(db, archive.state.budget["id"].as_str())?;
+    crate::notes::domain_identities(db, archive.state.budget["id"].as_str())?;
     if archive.legacy_notes {
         crate::notes::enrich(db, archive.state.budget["id"].as_str())?;
     }

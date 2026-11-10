@@ -20668,7 +20668,24 @@
             }
           },
           "404": {
-            "description": "Budget not found"
+            "description": "Budget not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid budget/account identifier",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -20754,16 +20771,54 @@
             }
           },
           "400": {
-            "description": "Invalid request or unsafe provider URL"
+            "description": "Invalid request or unsafe provider URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Missing connection or unknown receipt"
+            "description": "Missing connection or unknown receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Changed generation, canceled operation or different payload under same key"
+            "description": "Changed generation, canceled operation or different payload under same key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "503": {
-            "description": "Bounded provider workers busy"
+            "description": "Bounded provider workers busy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin does not match this server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -20896,19 +20951,64 @@
             }
           },
           "400": {
-            "description": "Invalid request or unsafe provider URL"
+            "description": "Invalid request or unsafe provider URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Missing connection or unknown receipt"
+            "description": "Missing connection or unknown receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Changed generation, canceled operation or different payload under same key"
+            "description": "Changed generation, canceled operation or different payload under same key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "503": {
-            "description": "Bounded provider workers busy"
+            "description": "Bounded provider workers busy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "429": {
-            "description": "Local rolling 24-hour connection request quota exhausted; no remote request made"
+            "description": "Local rolling 24-hour connection request quota exhausted; no remote request made",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin does not match this server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -21246,7 +21346,24 @@
             }
           },
           "404": {
-            "description": "Unavailable account"
+            "description": "Unavailable account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid budget/account identifier",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -21351,13 +21468,44 @@
             }
           },
           "400": {
-            "description": "Invalid shape or opening choice"
+            "description": "Invalid shape or opening choice",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Missing account/receipt"
+            "description": "Missing account/receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Stale snapshot/link/clock, canceled command or reused key with different intent"
+            "description": "Stale snapshot/link/clock, canceled command or reused key with different intent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin does not match this server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -31490,6 +31638,9 @@
             "items": {
               "$ref": "#/components/schemas/BankRemoteAccount"
             }
+          },
+          "clock": {
+            "$ref": "#/components/schemas/EditClock"
           }
         },
         "required": [
@@ -31497,7 +31648,8 @@
           "links",
           "epoch",
           "snapshot",
-          "accounts"
+          "accounts",
+          "clock"
         ],
         "additionalProperties": false
       },

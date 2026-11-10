@@ -54,7 +54,7 @@ fn state(db: &Connection, budget: &str) -> Result<Value, Error> {
         .query_map([budget], |r| r.get::<_, String>(0))?
         .collect::<Result<Vec<_>, _>>()?;
     Ok(
-        json!({"connections":ids.iter().map(|id|connection(db,budget,id)).collect::<Result<Vec<_>,_>>()?,"links":records::links(db,budget)?,"accounts":records::accounts(db,budget)?,"epoch":crate::lifecycle::epoch(db,budget)?,"snapshot":sync::cursor(db,budget)?}),
+        json!({"connections":ids.iter().map(|id|connection(db,budget,id)).collect::<Result<Vec<_>,_>>()?,"links":records::links(db,budget)?,"accounts":records::accounts(db,budget)?,"epoch":crate::lifecycle::epoch(db,budget)?,"snapshot":sync::cursor(db,budget)?,"clock":db.query_row("SELECT clock FROM budget_sync WHERE budget_id=?1",[budget],|r|r.get::<_,String>(0))?}),
     )
 }
 async fn read(

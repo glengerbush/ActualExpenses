@@ -88,6 +88,11 @@ pub(super) fn get(db: &Connection, b: &str, a: &str) -> Result<Settings, Error> 
 }
 pub(super) fn read(db: &Connection, b: &str, a: &str) -> Result<Value, Error> {
     crate::ledger::account_exists(db, b, a)?;
+    read_retained(db, b, a)
+}
+// Explicit unlink can release metadata for a soft-deleted local account.
+// All ordinary reads/settings/links retain the live-account guard.
+pub(super) fn read_retained(db: &Connection, b: &str, a: &str) -> Result<Value, Error> {
     let raw = raw(db, b, a)?;
     let mut versions = serde_json::Map::new();
     for (key, prefix) in KEYS {

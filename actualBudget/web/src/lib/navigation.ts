@@ -11,6 +11,7 @@ export const rememberedViews = [
   "transaction-files",
   "rules",
   "schedules",
+  "banking",
   "reports",
   "settings",
 ] as const;

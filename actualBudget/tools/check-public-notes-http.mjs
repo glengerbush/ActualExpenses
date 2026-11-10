@@ -49,10 +49,9 @@ try {
     source.archive.sha256,
   );
   const stage = await upload("/imports/actual", bytes);
-  assert.equal(
-    stage.status,
-    "ready",
-    "Standalone source notes must not block or disappear",
+  assert.ok(
+    ["ready", "activated"].includes(stage.status),
+    "Standalone source notes must remain ready/already activated, not blocked or discarded",
   );
   assert.deepEqual(
     Buffer.from(

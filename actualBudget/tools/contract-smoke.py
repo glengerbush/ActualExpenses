@@ -71,6 +71,11 @@ def main():
                 assert contract['paths'][path] == operations
             for name, schema in bank_fragment['components']['schemas'].items():
                 assert contract['components']['schemas'][name] == schema
+            query_fragment = json.loads((project / 'server/src/public_query/openapi.json').read_text())
+            for path, operations in query_fragment['paths'].items():
+                assert contract['paths'][path] == operations
+            for name, schema in query_fragment['components']['schemas'].items():
+                assert contract['components']['schemas'][name] == schema
             for schema in contract["components"]["schemas"].values():
                 Draft202012Validator.check_schema(schema)
 
@@ -301,7 +306,11 @@ def main():
             root = f"{budgets}/{budget_id}"
             root_template = budgets + "/{budget}"
             metadata = check(root, root_template)["data"]
-            check(root + "/checkpoint", root_template + "/checkpoint")
+            checkpoint = check(root + "/checkpoint", root_template + "/checkpoint")
+            clock_checkpoint = check(root + "/checkpoint?include_clock=true", root_template + "/checkpoint")
+            assert set(clock_checkpoint["data"]) == set(checkpoint["data"]) | {"edit_clock"}
+            assert {k: v for k, v in clock_checkpoint["data"].items() if k != "edit_clock"} == checkpoint["data"]
+            assert check(root + "/checkpoint", root_template + "/checkpoint") == checkpoint
             epoch = metadata["epoch"]
             point = check(root + "/backups", root_template + "/backups", "POST", {"label": "Contract backup"},
                           {"Idempotency-Key": "backup", "X-Actual-Budget-Epoch": epoch}, 201)["data"]
@@ -883,6 +892,51 @@ def main():
             assert check(bank_state, bank_template)['data']['connections'] == []
             assert check(bank_root + '/transactions', transaction_template)['data'] == []
             print('PASS: served bank custody/settings schemas, digest-only original receipt/cancel and secret-free public state; no provider call')
+
+            query_caps = check('/api/v1/query-capabilities', '/api/v1/query-capabilities')['data']
+            assert 'budget_cells' in query_caps['tables'] and query_caps['max_page'] == 1000
+            qid, qaccount = str(uuid.uuid4()), str(uuid.uuid4())
+            qroot = budgets + '/' + qid
+            check(budgets, budgets, 'POST', {'id':qid,'name':'Remote automation contract'}, {'Idempotency-Key':'query-budget'}, 201)
+            check(qroot+'/accounts',account_template,'POST',{'id':qaccount,'name':'Remote account','opening_balance':0,'opening_date':'2026-11-09'}, {'Idempotency-Key':'query-account'},201)
+            epoch=request(base,qroot)[1]['data']['epoch']
+            qpath=qroot+'/query';qtemplate=budgets+'/{budget}/query'
+            query={'version':1,'table':'accounts','select':['id','name','closed'],'order_by':['id']}
+            found=check(qpath,qtemplate,'POST',query)
+            assert found['data']==[{'id':qaccount,'name':'Remote account','closed':False}]
+            check(qpath,qtemplate,'POST',{**query,'table':'operations'},expected=400)
+            check(qpath,qtemplate,'POST',{**query,'group_by':[{'$sum':'$id'}]},expected=400)
+            check(qpath,qtemplate,'POST',query,{'X-Actual-Receipt-Only':'true'},400)
+            cp=request(base,qroot+'/checkpoint')[1]['data']
+            note_read=qroot+'/notes/read';note_read_template=budgets+'/{budget}/notes/read'
+            note_path=qroot+'/notes/commands';note_template=budgets+'/{budget}/notes/commands'
+            assert check(note_read,note_read_template,'POST',{'id':'contract:arbitrary-note'})['data'] is None
+            note={'id':'contract:arbitrary-note','note':'Retained remote note','snapshot':cp['snapshot']}
+            note_headers={'Idempotency-Key':'remote-note','X-Actual-Edit-Clock':datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z')+'-0000-4747474747474747','X-Actual-Budget-Epoch':epoch,'X-Actual-History-Owner':str(uuid.uuid4())}
+            saved_note=check(note_path,note_template,'POST',note,note_headers)
+            assert saved_note['data']=={'id':note['id'],'note':note['note']}
+            assert check(note_path,note_template,'POST',note,{**note_headers,'X-Actual-Receipt-Only':'true'})==saved_note
+            check(note_path,note_template,'POST',note,{**note_headers,'X-Actual-Budget-Epoch':'0'*32},409)
+            note_rows=check(qpath,qtemplate,'POST',{'version':1,'table':'notes','select':['id','note']})
+            assert note_rows['data']==[saved_note['data']]
+            cp=request(base,qroot+'/checkpoint')[1]['data']
+            check(qpath,qtemplate,'POST',{**query,'snapshot':found['snapshot']},expected=409)
+            batch_path=qroot+'/transactions/batch';batch_template=budgets+'/{budget}/transactions/batch'
+            txid=str(uuid.uuid4())
+            batch={'snapshot':cp['snapshot'],'max_graph_members':10,'operations':[{'action':'create','transaction':{'id':txid,'account_id':qaccount,'amount':-321,'date':'2026-11-09','notes':'Remote batch'}}]}
+            batch_headers={**note_headers,'Idempotency-Key':'remote-batch','X-Actual-Edit-Clock':datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z')+'-0001-4747474747474747'}
+            saved_batch=check(batch_path,batch_template,'POST',batch,batch_headers)
+            assert saved_batch['data']['operation_count']==1 and saved_batch['data']['results'][0]['id']==txid
+            assert check(batch_path,batch_template,'POST',batch,{**batch_headers,'X-Actual-Receipt-Only':'true'})==saved_batch
+            check(batch_path,batch_template,'POST',batch,{**batch_headers,'X-Actual-Budget-Epoch':'0'*32},409)
+            check(batch_path,batch_template,'POST',{'snapshot':saved_batch['snapshot'],'operations':[]},{**batch_headers,'Idempotency-Key':'remote-empty'},400)
+            check(batch_path,batch_template,'POST',batch,{**batch_headers,'Idempotency-Key':'remote-unknown','X-Actual-Receipt-Only':'true'},404)
+            canceled=check(batch_path,batch_template,'POST',batch,{**batch_headers,'Idempotency-Key':'remote-cancel','X-Actual-Cancel-If-Uncommitted':'true'},409)
+            assert canceled['error']['code']=='operation_canceled'
+            assert check(batch_path,batch_template,'POST',batch,{**batch_headers,'Idempotency-Key':'remote-cancel'},409)==canceled
+            result=check(qpath,qtemplate,'POST',{'version':1,'table':'transactions','select':[{'total':{'$sum':'$amount'}}],'calculation':True})
+            assert result['data']==-321 and result['next_offset'] is None
+            print('PASS: served query/catalog, arbitrary/domain notes, atomic batch, original clock/epoch/lookup/cancel and strict resource errors')
 
             print("PASS: served OpenAPI schemas validate real success, validation, conflict, origin and missing-resource responses")
         finally:

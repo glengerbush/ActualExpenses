@@ -264,6 +264,8 @@ jobs:
           npm --prefix actualBudget/web run test:banking-api
           npm --prefix actualBudget/web run test:banking-provider
           npm --prefix actualBudget/web run test:ynab-source
+          npm --prefix actualBudget/web run test:public-api-source
+          npm --prefix actualBudget/web run test:public-api-upgrade
           python3 actualBudget/tools/generate-v5-receipts.py --check
           python3 -m venv "$RUNNER_TEMP/contract-check"
           "$RUNNER_TEMP/contract-check/bin/pip" install jsonschema==4.23.0

@@ -162,7 +162,7 @@ try {
       c.result,
     );
   console.log(
-    "PASS genuine23→24 database/blocked stage/history/exact receipts and native23 financial/epoch restore",
+    "PASS genuine23→current database/blocked stage/history/exact receipts and native23 financial/epoch restore",
   );
 } finally {
   await server.stop();

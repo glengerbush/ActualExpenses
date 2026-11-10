@@ -154,7 +154,7 @@ pub fn apply_changes(
     if changes.contains_key("currency_code")
         || changes
             .get("experimental")
-            .is_some_and(|flags| flags.get("currency").is_some())
+            .is_some_and(|flags| flags.is_null() || flags.get("currency").is_some())
     {
         let clock = crate::concurrency::clock(db, budget, None)?;
         db.execute(

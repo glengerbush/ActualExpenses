@@ -31,8 +31,10 @@ pub(super) fn resolve(
         return Ok((raw.into(), true));
     }
     if let Some(archived) = archived {
+        let scope = format!("PATCH /budgets/{b}/preferences");
         if archived
             .iter()
+            .filter(|r| r.0 == scope)
             .map(|r| r.0.len() + r.1.len() + r.2.len())
             .sum::<usize>()
             > 16 * 1024 * 1024
@@ -128,9 +130,9 @@ pub(super) fn resolve(
                 candidate["revision"] = json!(n);
                 if candidate == receipt.response {
                     let touched = changes.contains_key("currency_code")
-                        || changes
-                            .get("experimental")
-                            .is_some_and(|flags| flags.get("currency").is_some());
+                        || changes.get("experimental").is_some_and(|flags| {
+                            flags.is_null() || flags.get("currency").is_some()
+                        });
                     let proof = if touched { 2 } else { bits };
                     *next.entry(candidate.to_string()).or_default() |= proof;
                 }

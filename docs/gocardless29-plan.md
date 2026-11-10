@@ -1,3 +1,6 @@
+> Historical evidence only. External connections are removed by ticket29;
+> see [manual-only scope](manual-only-scope.md) and [retirement validation](bank-retirement-validation.md). No active provider support or qualification claim.
+
 # GoCardless29: source and contract checkpoint
 
 Preparation only, based on frozen28 `62626e5`. No replacement runtime, migrations, provider/account calls or acceptance claim. Ticket29/spec58/60/61/62 require consent/linking, transaction delivery, renewal/error recovery, usable imported metadata, server-only credentials, web/native/public contracts together.

@@ -1,3 +1,6 @@
+> Historical evidence only. External connections are removed by ticket29;
+> see [manual-only scope](manual-only-scope.md) and [retirement validation](bank-retirement-validation.md). No active provider support or qualification claim.
+
 # Bank28 core source checkpoint
 
 Preparation only, branch `codex/bank28-source`, accepted basea5c784c. No replacement runtime/UI, provider credentials, real bank/account, claim or external network call. Root reviewed checkpoint `510128b` on2026-11-10: genuine handler/transport boundary, generated-ID normalization, exact repeat identities and stated limits pass. Independent root read-only audit reconfirmed all six ZIP hashes/integrity/original pre-link transaction IDs and amounts, plus exact repeated financial graphs. Ready for28 to consume; no28 acceptance.

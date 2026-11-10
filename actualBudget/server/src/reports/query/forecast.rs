@@ -170,10 +170,7 @@ fn filter_options(q: &Request) -> Result<Value, Error> {
                 "This saved forecast query filter is unsupported; revise it before calculating",
             ));
         }
-        if original["customName"]
-            .as_str()
-            .is_some_and(|s| !s.is_empty())
-        {
+        if truthy(&original["customName"]) {
             continue;
         }
         let mut condition = original.clone();

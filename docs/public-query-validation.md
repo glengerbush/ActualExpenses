@@ -434,3 +434,11 @@ batch/replay/restore/restart assertions remain green
 /tmp/public-batch-graph-bound-green.log; binClippy PASS
 /tmp/public-batch-bound-clippy.log. This is a functional bounded-discovery proof,
 not a100000-row timing/energy claim (qualification51 remains separate).
+
+Root reviewed92b6b4e/f2b025e and closed the pre-materialization graph-limit
+finding. Bounded discovery preserves live parent/child/reciprocal-transfer edges;
+ordinary unlimited protection is untouched. Composed at278e51f: build PASS
+`/tmp/bank-batch-compose-build.log`; maintained source mixed graph/aggregate,
+atomic refusal, graph bounds, undo/redo, original clock/receipt, portable restore,
+restart and cancellation consumer PASS `/tmp/bank-batch-compose-batch.log`.
+Final47 caller/contracts and representative workflows remain open.

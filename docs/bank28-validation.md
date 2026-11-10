@@ -356,3 +356,29 @@ CI maintains the reviewed source checks, seven focused API invocations, the expl
 A public cache-reset scenario retains an actually committed/lost-ACK bank request while removing downloaded preferences. With preference reads explicitly blocked, the original UI exposed provider100USD (`/tmp/bank28-ui-privacy-red.log`). Bank display now requires usable preferences matching both budget ID and the loaded bank epoch; otherwise provider/local names, references, balances and raw opening/name inputs remain masked, and new edits/writes are blocked. Original receipt/cancellation recovery remains independent. Matching preferences are explicitly refreshed; parent account refresh is deferred until that identity is confirmed.
 
 The same flow then exposed the untranslated German import checkbox (`/tmp/bank28-ui-locale-red.log`). Existing catalog labels now use `t()`, including Import transactions, Payments/Deposits and field labels. New banking prose retains the ordinary English fallback. `/tmp/bank28-ui-privacy-locale-green.log` passes the full controlled-provider browser: blocked-read masking/new-action fence, original receipt recovery, German labels, identical original body/key/HLC/owner/epoch and complete source financial graph/ID survival. `privacy-preferences-blocked.png` records the rendered fail-closed state. Existing custody/recovery browser also passes `/tmp/bank28-ui-review-custody.log`; clean Svelte check/build and component autofixers are recorded as `bank28-ui-review-*` / `bank28-settings-review-autofix.log`. No backend/native/source expectation changed or broad suite rerun.
+
+### Root review and composed acceptance
+
+2026-11-10: Independently reviewed62626e5 and corrective8dfd089 against ticket28.
+Both UI findings above are closed. Metadata-only unlink of a retained deleted
+account preserves ordinary live-account guards. Original intent custody, receipt
+recovery, cancellation and credential secrecy remain intact. No remaining blocking
+standards/spec findings in this slice.
+
+Impeccable technical audit17/20: accessibility3, performance3, theming4,
+responsive3, integrity4. Native semantic controls, labels/statuses, scoped tokens,
+desktop/mobile/dark enlarged-text and cancellation renders were inspected; final
+preference-unavailable render confirms masked amounts and usable receipt recovery.
+Detector[] and Banking autofixer no issues/suggestions:
+`/tmp/bank28-root-final-{detect.json,autofix.log}`. Worker BankSettings/App checks
+reused. These are Chromium layout/interaction checks, not physical-device or
+screen-reader certification. Existing bundle-size advisory remains qualification51.
+
+Composed at278e51f with forecast35, analysis36 and bounded batch47: Rust/web
+builds and Svelte0/0 PASS `/tmp/bank-batch-compose-{build,check,webbuild}.log`;
+both maintained banking browser consumers PASS
+`/tmp/bank-batch-compose-{custody,provider}.log`; served lifecycle/transport/strict
+contract/secret boundaries PASS `/tmp/bank-batch-compose-contract.log`.
+Earlier unchanged source financial, genuine22→24/native, ordering/partial-failure
+and Android evidence above is reused. Ticket28 feature acceptance is complete;
+final whole-system qualification50–53 and actual provider deployment remain separate.

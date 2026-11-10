@@ -227,3 +227,23 @@ canonicalizes only those ties by bank ID/fixed-anchor/financial signature before
 UUID aliasing. Raw original rows, fixed IDs, references, multiplicity and values stay
 untouched; no generated-UUID tie-order parity is claimed. The unpublished prelink
 artifact from the interrupted check remains `/tmp/bank28-unpublished-rename-prelink-26.10.zip`.
+
+### Genuine accepted22 upgrade inputs
+
+`generate-bank-schema22.py` executes the immutable accepted0a284f2 server
+(SHA256`fa0146112b54a00ab78f5b7b1c9d4363256efb25c45aff49356a3b45b22172e0`).
+Only public HTTP creates the active source import, two file imports with remembered
+options, owned expense/edit/history and native backup. The delimiter's second write
+has a distinct HLC while unchanged mapping/date cells retain the first HLC. Real
+SQLite remains version22, readonly integrity/FK checks pass, and graceful shutdown
+precedes copying. Outputs refuse overwrite; no SQL data writes or schema relabeling.
+Capture log `/tmp/bank28-schema22-capture.log` passes.
+
+The DB also retains genuinely blocked linked-SimpleFIN and custom-bank-preference
+Actual stages plus an unactivated nYNAB stage. Source22 correctly refuses bank
+preferences; an initial attempt to activate that unsupported archive was rejected,
+so the final active seed uses the compatible unchanged manual-bank prelink archive.
+No gate was bypassed. The nativeZIP contains active-budget state only; those other
+budget/global stages are DB-only. All referenced original source ZIP/JSON hashes
+are recorded in the manifest. These are inputs for forthcoming upgrade/restore
+consumers; no23 migration green is claimed yet.

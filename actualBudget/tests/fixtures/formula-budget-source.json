@@ -1,0 +1,396 @@
+{
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00.000Z",
+  "cases": [
+    {
+      "method": "envelope",
+      "seed": {
+        "filename": "envelope-multiline-long-goal.zip",
+        "sha256": "6c9040304b90ad52b4945387e9bafbbd741c18ebe98f34a3e7d92cf5d8c2ca4a"
+      },
+      "preparation": {
+        "message": "budget/overwrite-goal-template",
+        "args": {
+          "month": "2026-11"
+        }
+      },
+      "archive": {
+        "filename": "formula-budget-envelope-26.10.zip",
+        "sha256": "48e546076d378166ce2947e82fcc47019c39488dba77de587e547578936f2b9d"
+      },
+      "source_hashes": {
+        "packages/desktop-client/src/hooks/useFormulaExecution.ts": "8dd26fd03722245ed6cceed9028ecd6779ad70711b143c2d4ea3092d6659eb2f",
+        "packages/loot-core/src/shared/formulas/customFunctions.ts": "7ef1b4bff4d5efae961b96fcdf308f5e7745748339ca9d9a700d05d63bfa8558",
+        "packages/loot-core/src/shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419",
+        "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+        "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+        "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+        "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+        "packages/desktop-client/src/components/formula/queryTimeFrame.ts": "8d43a56d140a4e9e02eba12c30b7cc5f1337facb3e155d48f6fe69829b99b715",
+        "packages/desktop-client/src/components/reports/reportRanges.ts": "82ce4574b3814dcdde05d2d7a91a09e37f9a80ea3beb9c63467f45d62aaf339b",
+        "packages/desktop-client/src/util/bootstrapHyperFormula.ts": "36243cfd8735ea08cb1fca38dc215e4c9aac6d759fe86eb73f54dda91689373a"
+      },
+      "ledger": [
+        {
+          "id": "23240000-0000-4000-8000-000000000001",
+          "amount": 100001,
+          "account": "304c533a-79a6-4fcf-b48c-5f4b4a002a60",
+          "category": "169c7082-89ae-4856-b563-09f68ef29d2c",
+          "date": "2026-11-01"
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000002",
+          "amount": -2000,
+          "account": "304c533a-79a6-4fcf-b48c-5f4b4a002a60",
+          "category": "8e1ab50e-beea-48bf-9317-62cef578aa76",
+          "date": "2026-09-03"
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000003",
+          "amount": 100000,
+          "account": "304c533a-79a6-4fcf-b48c-5f4b4a002a60",
+          "category": "169c7082-89ae-4856-b563-09f68ef29d2c",
+          "date": "2026-10-01"
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000004",
+          "amount": -6000,
+          "account": "304c533a-79a6-4fcf-b48c-5f4b4a002a60",
+          "category": "8e1ab50e-beea-48bf-9317-62cef578aa76",
+          "date": "2026-10-03"
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000005",
+          "amount": -1500,
+          "account": "304c533a-79a6-4fcf-b48c-5f4b4a002a60",
+          "category": "8e1ab50e-beea-48bf-9317-62cef578aa76",
+          "date": "2026-11-03"
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000006",
+          "amount": -1000,
+          "account": "304c533a-79a6-4fcf-b48c-5f4b4a002a60",
+          "category": "4b93cf1f-de2a-4e33-8104-a2e72d007ec1",
+          "date": "2026-10-04"
+        }
+      ],
+      "observations": [
+        {
+          "name": "budgeted",
+          "formula": "=BUDGET_QUERY(\"budgeted\",QUERY_EXTRACT_CATEGORIES(\"A\"),QUERY_EXTRACT_TIMEFRAME_START(\"A\"),QUERY_EXTRACT_TIMEFRAME_END(\"A\"))",
+          "queries": {
+            "A": {
+              "conditions": [
+                {
+                  "field": "category",
+                  "op": "is",
+                  "value": "8e1ab50e-beea-48bf-9317-62cef578aa76"
+                }
+              ],
+              "timeFrame": {
+                "mode": "static",
+                "start": "2026-11",
+                "end": "2026-11"
+              }
+            }
+          },
+          "output": {
+            "result": 42.97,
+            "error": null
+          }
+        },
+        {
+          "name": "spent",
+          "formula": "=BUDGET_QUERY(\"spent\",QUERY_EXTRACT_CATEGORIES(\"A\"),QUERY_EXTRACT_TIMEFRAME_START(\"A\"),QUERY_EXTRACT_TIMEFRAME_END(\"A\"))",
+          "queries": {
+            "A": {
+              "conditions": [
+                {
+                  "field": "category",
+                  "op": "is",
+                  "value": "8e1ab50e-beea-48bf-9317-62cef578aa76"
+                }
+              ],
+              "timeFrame": {
+                "mode": "static",
+                "start": "2026-11",
+                "end": "2026-11"
+              }
+            }
+          },
+          "output": {
+            "result": -15,
+            "error": null
+          }
+        },
+        {
+          "name": "goal",
+          "formula": "=BUDGET_QUERY(\"goal\",QUERY_EXTRACT_CATEGORIES(\"A\"),QUERY_EXTRACT_TIMEFRAME_START(\"A\"),QUERY_EXTRACT_TIMEFRAME_END(\"A\"))",
+          "queries": {
+            "A": {
+              "conditions": [
+                {
+                  "field": "category",
+                  "op": "is",
+                  "value": "8e1ab50e-beea-48bf-9317-62cef578aa76"
+                }
+              ],
+              "timeFrame": {
+                "mode": "static",
+                "start": "2026-11",
+                "end": "2026-11"
+              }
+            }
+          },
+          "output": {
+            "result": 1000,
+            "error": null
+          }
+        },
+        {
+          "name": "balance_start",
+          "formula": "=BUDGET_QUERY(\"balance_start\",QUERY_EXTRACT_CATEGORIES(\"A\"),QUERY_EXTRACT_TIMEFRAME_START(\"A\"),QUERY_EXTRACT_TIMEFRAME_END(\"A\"))",
+          "queries": {
+            "A": {
+              "conditions": [
+                {
+                  "field": "category",
+                  "op": "is",
+                  "value": "8e1ab50e-beea-48bf-9317-62cef578aa76"
+                }
+              ],
+              "timeFrame": {
+                "mode": "static",
+                "start": "2026-11",
+                "end": "2026-11"
+              }
+            }
+          },
+          "output": {
+            "result": 70,
+            "error": null
+          }
+        },
+        {
+          "name": "balance_end",
+          "formula": "=BUDGET_QUERY(\"balance_end\",QUERY_EXTRACT_CATEGORIES(\"A\"),QUERY_EXTRACT_TIMEFRAME_START(\"A\"),QUERY_EXTRACT_TIMEFRAME_END(\"A\"))",
+          "queries": {
+            "A": {
+              "conditions": [
+                {
+                  "field": "category",
+                  "op": "is",
+                  "value": "8e1ab50e-beea-48bf-9317-62cef578aa76"
+                }
+              ],
+              "timeFrame": {
+                "mode": "static",
+                "start": "2026-11",
+                "end": "2026-11"
+              }
+            }
+          },
+          "output": {
+            "result": 97.97,
+            "error": null
+          }
+        }
+      ]
+    },
+    {
+      "method": "tracking",
+      "seed": {
+        "filename": "tracking-multiline-long-goal.zip",
+        "sha256": "1e2645c400aeb7901939841642aab65c12cf0316f3ad9afb8466fbc0dd82bdaa"
+      },
+      "preparation": {
+        "message": "budget/overwrite-goal-template",
+        "args": {
+          "month": "2026-11"
+        }
+      },
+      "archive": {
+        "filename": "formula-budget-tracking-26.10.zip",
+        "sha256": "b7933e88d46e7e0749e8d4ba89428dad75133bf82f57535d892d0249085e20a9"
+      },
+      "source_hashes": {
+        "packages/desktop-client/src/hooks/useFormulaExecution.ts": "8dd26fd03722245ed6cceed9028ecd6779ad70711b143c2d4ea3092d6659eb2f",
+        "packages/loot-core/src/shared/formulas/customFunctions.ts": "7ef1b4bff4d5efae961b96fcdf308f5e7745748339ca9d9a700d05d63bfa8558",
+        "packages/loot-core/src/shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419",
+        "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+        "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+        "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+        "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+        "packages/desktop-client/src/components/formula/queryTimeFrame.ts": "8d43a56d140a4e9e02eba12c30b7cc5f1337facb3e155d48f6fe69829b99b715",
+        "packages/desktop-client/src/components/reports/reportRanges.ts": "82ce4574b3814dcdde05d2d7a91a09e37f9a80ea3beb9c63467f45d62aaf339b",
+        "packages/desktop-client/src/util/bootstrapHyperFormula.ts": "36243cfd8735ea08cb1fca38dc215e4c9aac6d759fe86eb73f54dda91689373a"
+      },
+      "ledger": [
+        {
+          "id": "23240000-0000-4000-8000-000000000001",
+          "amount": 100001,
+          "account": "acf18157-700d-4bce-931a-cc6a841f8f71",
+          "category": "ff56dc88-8f97-47f3-adbb-2691770dd28e",
+          "date": "2026-11-01"
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000002",
+          "amount": -2000,
+          "account": "acf18157-700d-4bce-931a-cc6a841f8f71",
+          "category": "1b46f8d2-b9d5-41ba-80a9-add468e13f93",
+          "date": "2026-09-03"
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000003",
+          "amount": 100000,
+          "account": "acf18157-700d-4bce-931a-cc6a841f8f71",
+          "category": "ff56dc88-8f97-47f3-adbb-2691770dd28e",
+          "date": "2026-10-01"
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000004",
+          "amount": -6000,
+          "account": "acf18157-700d-4bce-931a-cc6a841f8f71",
+          "category": "1b46f8d2-b9d5-41ba-80a9-add468e13f93",
+          "date": "2026-10-03"
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000005",
+          "amount": -1500,
+          "account": "acf18157-700d-4bce-931a-cc6a841f8f71",
+          "category": "1b46f8d2-b9d5-41ba-80a9-add468e13f93",
+          "date": "2026-11-03"
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000006",
+          "amount": -1000,
+          "account": "acf18157-700d-4bce-931a-cc6a841f8f71",
+          "category": "3e470e90-a579-400d-87a7-de5f4a1c6150",
+          "date": "2026-10-04"
+        }
+      ],
+      "observations": [
+        {
+          "name": "budgeted",
+          "formula": "=BUDGET_QUERY(\"budgeted\",QUERY_EXTRACT_CATEGORIES(\"A\"),QUERY_EXTRACT_TIMEFRAME_START(\"A\"),QUERY_EXTRACT_TIMEFRAME_END(\"A\"))",
+          "queries": {
+            "A": {
+              "conditions": [
+                {
+                  "field": "category",
+                  "op": "is",
+                  "value": "1b46f8d2-b9d5-41ba-80a9-add468e13f93"
+                }
+              ],
+              "timeFrame": {
+                "mode": "static",
+                "start": "2026-11",
+                "end": "2026-11"
+              }
+            }
+          },
+          "output": {
+            "result": 42.97,
+            "error": null
+          }
+        },
+        {
+          "name": "spent",
+          "formula": "=BUDGET_QUERY(\"spent\",QUERY_EXTRACT_CATEGORIES(\"A\"),QUERY_EXTRACT_TIMEFRAME_START(\"A\"),QUERY_EXTRACT_TIMEFRAME_END(\"A\"))",
+          "queries": {
+            "A": {
+              "conditions": [
+                {
+                  "field": "category",
+                  "op": "is",
+                  "value": "1b46f8d2-b9d5-41ba-80a9-add468e13f93"
+                }
+              ],
+              "timeFrame": {
+                "mode": "static",
+                "start": "2026-11",
+                "end": "2026-11"
+              }
+            }
+          },
+          "output": {
+            "result": -15,
+            "error": null
+          }
+        },
+        {
+          "name": "goal",
+          "formula": "=BUDGET_QUERY(\"goal\",QUERY_EXTRACT_CATEGORIES(\"A\"),QUERY_EXTRACT_TIMEFRAME_START(\"A\"),QUERY_EXTRACT_TIMEFRAME_END(\"A\"))",
+          "queries": {
+            "A": {
+              "conditions": [
+                {
+                  "field": "category",
+                  "op": "is",
+                  "value": "1b46f8d2-b9d5-41ba-80a9-add468e13f93"
+                }
+              ],
+              "timeFrame": {
+                "mode": "static",
+                "start": "2026-11",
+                "end": "2026-11"
+              }
+            }
+          },
+          "output": {
+            "result": 1000,
+            "error": null
+          }
+        },
+        {
+          "name": "balance_start",
+          "formula": "=BUDGET_QUERY(\"balance_start\",QUERY_EXTRACT_CATEGORIES(\"A\"),QUERY_EXTRACT_TIMEFRAME_START(\"A\"),QUERY_EXTRACT_TIMEFRAME_END(\"A\"))",
+          "queries": {
+            "A": {
+              "conditions": [
+                {
+                  "field": "category",
+                  "op": "is",
+                  "value": "1b46f8d2-b9d5-41ba-80a9-add468e13f93"
+                }
+              ],
+              "timeFrame": {
+                "mode": "static",
+                "start": "2026-11",
+                "end": "2026-11"
+              }
+            }
+          },
+          "output": {
+            "result": 40,
+            "error": null
+          }
+        },
+        {
+          "name": "balance_end",
+          "formula": "=BUDGET_QUERY(\"balance_end\",QUERY_EXTRACT_CATEGORIES(\"A\"),QUERY_EXTRACT_TIMEFRAME_START(\"A\"),QUERY_EXTRACT_TIMEFRAME_END(\"A\"))",
+          "queries": {
+            "A": {
+              "conditions": [
+                {
+                  "field": "category",
+                  "op": "is",
+                  "value": "1b46f8d2-b9d5-41ba-80a9-add468e13f93"
+                }
+              ],
+              "timeFrame": {
+                "mode": "static",
+                "start": "2026-11",
+                "end": "2026-11"
+              }
+            }
+          },
+          "output": {
+            "result": 67.97,
+            "error": null
+          }
+        }
+      ]
+    }
+  ]
+}

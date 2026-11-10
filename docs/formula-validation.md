@@ -51,3 +51,11 @@ These are local feasibility observations, not a latency/power SLO or release
 benchmark. Production work uses ICU collation, not a lexical approximation;
 comparison text/work are bounded. Runtime dependencies and source assets remain
 under development and are excluded from this source-only review checkpoint.
+
+The small budget supplement reuses both genuine `multiline-long-goal` preapply
+archives, executes the real `budget/overwrite-goal-template` message, proves no
+transaction changes, and retains genuine resulting Actual ZIPs. Ten unchanged
+production-hook observations establish envelope budget42.97/spent−15/goal1000/
+starting carry70/ending97.97 and tracking42.97/−15/1000/40/67.97.
+Generation and independent check passed in `/tmp/formula-budget-source.log` and
+`/tmp/formula-budget-source-check.log`; no previous forty observations changed.

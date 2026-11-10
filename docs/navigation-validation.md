@@ -1,5 +1,12 @@
 # Navigation45 — stories78/79
 
+Accepted locally2026-11-09 at `145a761`. Consolidated Standards/Spec review passed;
+Impeccable disposition: ship. The sole finding (cross-budget recovery masking)
+was fixed and re-reviewed. Root checked integration and preserved historical
+preference/currency lineage behavior. Focused checks below are complete;
+unaffected baseline evidence is reused and broader integrated qualification is
+reserved for the combined batch. No push, release or deployment.
+
 Base: `4d7498c`. Scope: delivered web navigation, shared privacy preference, browser view memory and optional fork-local announcements. Implement/TDD, Impeccable and Svelte writer/core workflows used; existing Operate design retained. Root performs the consolidated Standards/Spec review; no subdelegation.
 
 ## Acceptance and public contract

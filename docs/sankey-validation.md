@@ -42,3 +42,22 @@ Observed source distinctions: tracking budget-month context fields are null and 
 - `/tmp/sankey37-native-core.log` PASS one focused Java17 companion-module plain-HTTP source graph/detail/cache/readonly consumer. `/tmp/sankey37-budget-regression.log`10 affected budgeting integration tests PASS. `/tmp/sankey37-clippy.log` all targets warnings denied and `/tmp/sankey37-backend-build.log` PASS. Only owned Rust files formatted; inherited vendored bytes unchanged. No broad Android/device/container suite repeated.
 
 UI, delivered navigation/capability, browser/locale/privacy/recovery/visual proof and final whole37 acceptance remain pending. Backend checkpoint can be reviewed independently; root owns current-main24/shared47 composition. No push/release/deployment.
+
+## Root backend composition review
+
+2026-11-10:10f08489 reviewed and composed with current25/public API atfe5388a.
+Root reviewed source provenance, graph construction/bounds/cache, signed
+drilldown reconciliation and reporting-only budget evaluation. One efficiency
+finding corrected ine402d52: index each month's unique category IDs once instead
+of repeatedly scanning its rows. Source order and values remain unchanged;
+worker independently reviewed this delta. Shared report truthiness now replaces
+the duplicate local helper; Budgeted manual named conditions remain distinct.
+
+Combined build PASS without warnings. `/tmp/sankey37-compose-api.log` PASS
+20 envelope +6 tracking whole-source graphs, details/cache/errors/readonly state.
+`/tmp/sankey37-compose-native.log` PASS both methods' actual native25
+duplicate/restore, clocks/settings/epoch invalidation and both safe-money limits.
+Combined companion run has2 passing tests,0 skipped/errors/failures; its Sankey
+case exercises plain HTTP without financial or idle-state changes. No remaining
+backend review finding. UI and whole37 acceptance remain open;51 retains volume
+and exhausted-work-guard qualification. No source fixture was relabeled.

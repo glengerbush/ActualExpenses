@@ -1,10 +1,40 @@
-# Public query/API automation — candidate complete
+# Public query/API automation — accepted locally
 
 Ticket47, branch codex/query47. Initial base0a284f2; accepted28/35/36 integration
 836918a joined before final interface work. Root owns consolidated review,
 composition with later schema versions and final qualification. No live data,
 deployment, release or version changes. Runtime read/notes/batch checkpoints are
-reviewed; the final interface/workflow checkpoint awaits root review.
+reviewed; final interface/workflow review and composed checks passed2026-11-10.
+
+## Root final review and acceptance
+
+Final348e6e0/9648d78 reviewed against ticket47 and existing API/data standards,
+reusing the preceding source, notes, query and atomic-batch reviews. Both caller
+findings are closed: observe server HLC before preparing an immutable intent;
+allow the largest permitted upload and recorded responses to reload from its
+durable outbox. Atomic checkpoint clock exposure is opt-in, leaving established
+response shapes unchanged. No remaining standards or scope finding. Feature-owned
+operations still belong to their feature tickets; the SDK map does not itself
+claim unfinished provider/formula functionality.
+
+Composedfe5388a build PASS without warnings. Real subprocess caller reads,
+updates, imports, loses a committed acknowledgement, replays exactly, refuses
+redirects and preserves original cancellation identity:
+`/tmp/public-api-compose-caller.log` PASS. All67 SDK methods/18 resources mapped
+to served operations and profiles: `/tmp/public-api-compose-map.log` PASS.
+Served schema/financial/error/receipt contracts:
+`/tmp/public-api-compose-contract.log` PASS. Existing register observes the
+external caller on desktop/mobile/private large-text views:
+`/tmp/public-api-compose-browser.log` PASS. Root inspected the three rendered
+views; amounts are masked in privacy mode, mobile actions remain readable, and
+desktop source amounts/rows are visible. No new product UI in this ticket.
+
+Combined companion run `/tmp/sankey-public-api-compose-native-core.log` PASS:
+2 tests,0 skipped/failures/errors (external automation and Sankey). Reused genuine
+schema23 upgrade, source query/notes/resource/type/batch and earlier financial
+recovery evidence above; no unchanged broad suite repeated. All47 criteria are
+met locally. Whole-system qualification50–53 remains open; no publication or
+production deployment.
 
 ## Final scope and maintained proof
 

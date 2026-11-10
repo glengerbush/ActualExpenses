@@ -54,3 +54,10 @@ No real provider call or broad suite rerun.
 `/tmp/gocardless-schema24-source.log` passes. `gocardless-schema24.{json,sqlite3,zip}` retain exact public financial/reference/metadata/history/receipt snapshots, original controlled request, source/binary/artifact hashes and notes24. Only synthetic credentials/provider are used. The first setup attempt used an incorrect link property (`opening_mode` instead of the documented `opening_balance_mode`) and published no fixtures; corrected before capture. This fixture is provenance, not a replacement-derived financial oracle or a claim of completed25 upgrade acceptance.
 
 The public genuine24 consumer now passes both database and native archive routes (`/tmp/gocardless-upgrade-green.log`). Database migration preserves complete financial/reference/account rows and field HLCs, all bank metadata/cursor/clock, notes24 and owned history exactly. An altered-owner cancellation of the old captured request refuses without a terminal receipt, proving its original full fingerprint survived migration; original cancellation/replay remains exact. Native restore changes only its documented operational cursor/epoch and credential generation/state, retaining all financial rows/HLCs, remote IDs, link/settings/window metadata and notes. Original committed receipts replay exactly in both modes; new GoCardless staging leaves old connections/money unchanged. Initial native harness used the wrong activation route/status, corrected to the existing budget-scoped confirm-name contract; only the documented archive envelope snapshot is excluded from financial-row comparison. Original fixture bytes/expectations remain unchanged.
+
+Root reviewed0c725c1/031d440 provenance and consumer, independently verified
+original artifact hashes/bytes, actual24 SQLite/native versions, integrity/FKs
+and nonempty seven banking tables plus notes. Composed at6ce2042; both public
+database/native modes PASS `/tmp/gocardless-upgrade-root-http.log`, reusing the
+unchanged b68379d runtime build. Genuine24 preservation gate closed. Provider
+financial/conversion/UI/native feature gates remain open; no29 acceptance claim.

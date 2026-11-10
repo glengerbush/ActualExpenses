@@ -214,11 +214,14 @@ try {
     "PASS mobile layout, inline form cancellation, budget reselection",
   );
 
-  await page.route(
-    "**/api/v1/info",
-    (route) => route.abort("connectionrefused"),
-    { times: 1 },
-  );
+  // Cached headings can render before the preceding navigation finishes its
+  // requests. Keep the outage active until retry, so an older request cannot
+  // consume a one-shot failure before the reload being exercised.
+  let infoFailures = 0;
+  await page.route("**/api/v1/info", (route) => {
+    infoFailures++;
+    return route.abort("connectionrefused");
+  });
   await page.reload();
   await expect(
     page
@@ -226,6 +229,8 @@ try {
       .filter({ hasText: "Cannot reach the server" })
       .first(),
   ).toContainText("Cannot reach the server");
+  expect(infoFailures).toBeGreaterThan(0);
+  await page.unroute("**/api/v1/info");
   await page
     .getByRole("button", { name: "Retry connection", exact: true })
     .click();
@@ -233,11 +238,11 @@ try {
     page.getByRole("heading", { name: "Accounts", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "All budgets", exact: true }).click();
-  await page.route(
-    "**/api/v1/budgets/*/checkpoint",
-    (route) => route.abort("connectionrefused"),
-    { times: 1 },
-  );
+  let checkpointFailures = 0;
+  await page.route("**/api/v1/budgets/*/checkpoint", (route) => {
+    checkpointFailures++;
+    return route.abort("connectionrefused");
+  });
   await page.getByRole("button", { name: new RegExp(`${name}.*Open`) }).click();
   await expect(
     page
@@ -245,6 +250,8 @@ try {
       .filter({ hasText: "Cannot reach the server" })
       .first(),
   ).toContainText("Cannot reach the server");
+  expect(checkpointFailures).toBeGreaterThan(0);
+  await page.unroute("**/api/v1/budgets/*/checkpoint");
   await page.getByRole("button", { name: "All budgets", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Your budgets", exact: true }),

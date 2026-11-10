@@ -16,9 +16,23 @@ let claimCalls = 0,
   downloadCalls = 0,
   mode = "normal";
 const claimedTokens = new Set();
+let heldResponse, requestObserved;
 const provider = createServer((req, res) => {
   if (req.url.startsWith("/access/accounts")) {
     downloadCalls++;
+    if (mode === "held-large") {
+      heldResponse = res;
+      requestObserved?.();
+      return;
+    }
+    if (mode === "normal-large") {
+      res.setHeader("Content-Type", "application/json");
+      res.end(
+        JSON.stringify({ accounts: [], padding: "x".repeat(2 * 1024 * 1024) }),
+      );
+      return;
+    }
+
     if (mode === "rate") {
       res.statusCode = 429;
       res.end("secret " + origin);
@@ -554,6 +568,93 @@ try {
     "Revoked credentials require explicit replacement",
   );
   mode = "normal";
+  const cancelId = randomUUID(),
+    cancelToken = Buffer.from(origin + "/claim/cancel-capacity").toString(
+      "base64",
+    );
+  const cancelStage = await call(
+    root + "/banking/connections",
+    { ...body, id: cancelId, setup_token: cancelToken },
+    "cancel-capacity-stage",
+    headers,
+    201,
+  );
+  const cancelConnection = await call(
+    root + "/banking/connections/" + cancelId + "/commands",
+    { action: "claim", generation: cancelStage.data.generation },
+    "cancel-capacity-claim",
+    headers,
+  );
+  const cancelCommand = {
+    action: "discover",
+    generation: cancelConnection.data.generation,
+  };
+  const cancelPath = root + "/banking/connections/" + cancelId + "/commands";
+  const cancelQuotaBase = downloadCalls;
+  const beforeCancels = (await call(root + "/checkpoint")).data.snapshot;
+  for (let i = 0; i < 4; i++) {
+    mode = "held-large";
+    const observed = new Promise((resolve) => (requestObserved = resolve));
+    const pending = call(cancelPath, cancelCommand, "held-" + i, headers, 409);
+    await Promise.race([
+      observed,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(Error("Provider GET did not start")), 5000),
+      ),
+    ]);
+    const canceled = await call(
+      cancelPath,
+      cancelCommand,
+      "held-" + i,
+      { ...headers, "X-Actual-Cancel-If-Uncommitted": "true" },
+      409,
+    );
+    assert.equal(canceled.error.code, "operation_canceled");
+    heldResponse.setHeader("Content-Type", "application/json");
+    heldResponse.end(
+      JSON.stringify({
+        accounts: [],
+        padding: "x".repeat(16 * 1024 * 1024 - 1024),
+      }),
+    );
+    assert.deepEqual(
+      await pending,
+      canceled,
+      "Delayed original must return the durable canceled outcome",
+    );
+    assert.deepEqual(
+      await call(cancelPath, cancelCommand, "held-" + i, headers, 409),
+      canceled,
+    );
+  }
+  assert.equal(
+    (await call(root + "/checkpoint")).data.snapshot,
+    beforeCancels,
+    "Canceled late responses never change metadata",
+  );
+  mode = "normal-large";
+  const afterCancels = await call(
+    cancelPath,
+    cancelCommand,
+    "after-held-cancels",
+    headers,
+  );
+  assert.deepEqual(
+    afterCancels.data.errors,
+    [],
+    "Canceled captures cannot permanently occupy recovery capacity",
+  );
+  assert.deepEqual((await call(root + "/transactions")).data, []);
+  mode = "normal";
+  for (let i = 5; i < 24; i++)
+    await call(cancelPath, cancelCommand, "cancel-quota-" + i, headers);
+  assert.equal(
+    downloadCalls - cancelQuotaBase,
+    24,
+    "Canceled remote requests still count toward provider quota",
+  );
+  await call(cancelPath, cancelCommand, "cancel-quota-over", headers, 429);
+  assert.equal(downloadCalls - cancelQuotaBase, 24);
   const contract = await (await fetch(base + "/openapi.json")).json();
   const schemaProof = spawnSync(
     "uv",

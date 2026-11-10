@@ -163,7 +163,12 @@ async fn command(
         return store
             .run(move |db| {
                 sync::write(db, &scope, &key, &payload, None, StatusCode::OK, |db| {
-                    sync::canceled(db, &b)
+                    let outcome = sync::canceled(db, &b)?;
+                    db.execute(
+                        "DELETE FROM bank_jobs WHERE budget_id=?1 AND connection_id=?2 AND id=?3",
+                        params![b, id, key],
+                    )?;
+                    Ok(outcome)
                 })
             })
             .await;

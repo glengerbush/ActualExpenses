@@ -25,6 +25,11 @@ fn captured(
                 "provider_revoked" => "provider_revoked",
                 "provider_rate_limited" => "provider_rate_limited",
                 "provider_payment_required" => "provider_payment_required",
+                "provider_invalid_response" => "provider_invalid_response",
+                "provider_response_limit" => "provider_response_limit",
+                "provider_redirect_limit" => "provider_redirect_limit",
+                "provider_pagination_unsupported" => "provider_pagination_unsupported",
+                "invalid_request" => "invalid_request",
                 _ => "provider_unavailable",
             },
             message.unwrap_or_else(|| "Provider retrieval failed".into()),
@@ -113,8 +118,16 @@ pub(super) async fn discover(
                 epoch.clone(),
                 generation.clone(),
             );
+            let (ss, pp) = (scope.clone(), payload.clone());
             store.run(move|db|{
-                let tx=db.transaction()?;crate::lifecycle::require_epoch(&tx,&bb,ee.as_deref())?;
+                let tx=db.transaction()?;
+                // Cancellation/another committed outcome wins before any late raw
+                // response can consume private recovery capacity or touch metadata.
+                if crate::store::receipt(&tx,&ss,&kk,&pp)?.is_some(){
+                    tx.execute("DELETE FROM bank_jobs WHERE budget_id=?1 AND connection_id=?2 AND id=?3",params![bb,ii,kk])?;
+                    tx.commit()?;return Ok(result);
+                }
+                crate::lifecycle::require_epoch(&tx,&bb,ee.as_deref())?;
                 if connection(&tx,&bb,&ii)?["generation"]!=gg{return Err(Error::conflict("Credentials changed during provider retrieval"));}
                 let(response,code,message)=match &result{Ok(value)=>(Some(value.to_string()),None,None),Err(e)=>(None,Some(e.code.to_owned()),Some(e.message.clone()))};
                 let existing:i64=tx.query_row("SELECT COALESCE(SUM(length(response)),0) FROM bank_jobs WHERE budget_id=?1 AND NOT(connection_id=?2 AND id=?3)",params![bb,ii,kk],|r|r.get(0))?;

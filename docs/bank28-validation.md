@@ -99,3 +99,22 @@ Transport follows [SimpleFIN protocol](https://www.simplefin.org/protocol.html)
 account/connection diagnostics. Unknown diagnostic subcodes remain an attention
 warning; raw diagnostic prose is not returned. TLS verification stays enabled;
 the only HTTP exception is the exact explicitly configured loopback fixture origin.
+
+### Discovery cancellation correction
+
+Independent review found that a canceled in-flight GET could leave a private
+capture behind: the final generic receipt replay skipped cleanup inside its write
+closure. Public red `/tmp/bank28-capture-cancel-red.log` reproduced permanent
+capacity loss after four held near16MiB responses, canceled before release, made
+the next valid2MiB download fail409. No database inspection was used.
+
+Cancellation now removes its matching private job in the same transaction as the
+terminal canceled receipt. Late retrieval checks that original receipt before
+capturing bytes; it cannot recreate canceled private work. Public green
+`/tmp/bank28-capture-cancel-green.log` verifies all four delayed originals and exact
+retries return the same canceled outcome, cursor/ledger stay unchanged, a subsequent
+valid download succeeds, and canceled remote requests still consume the24/day
+quota. Original receipt/key/body/epoch and cancellation semantics stay intact.
+Focused bin Clippy passes `/tmp/bank28-capture-cancel-clippy.log`. Persisted known
+provider error codes are also retained on capture recovery; interrupted error
+capture/restart is not claimed as a separately executed public witness yet.

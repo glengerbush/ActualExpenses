@@ -81,6 +81,92 @@ try {
   await expect(
     page.getByText("2 records parsed.", { exact: false }),
   ).toBeVisible();
+  // A failed local checkpoint cannot authorize the previous option body.
+  await page.evaluate(() => {
+    const put = IDBObjectStore.prototype.put;
+    let fail = true;
+    IDBObjectStore.prototype.put = function (...args) {
+      if (
+        fail &&
+        this.transaction.db.name === "actualBudget.transaction-import.v1"
+      ) {
+        fail = false;
+        throw new DOMException("Synthetic storage limit", "QuotaExceededError");
+      }
+      return put.apply(this, args);
+    };
+  });
+  await page.getByLabel("Amount multiplier").fill("2");
+  await expect(
+    page.getByRole("button", { name: "Retry saving file options" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Preview selected import" }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Retry saving file options" }).click();
+  await expect(
+    page.getByRole("button", { name: "Preview selected import" }),
+  ).toBeEnabled();
+  await page.reload();
+  await expect(page.getByLabel("Amount multiplier")).toHaveValue("2");
+  await page.getByLabel("Amount multiplier").fill("1");
+  await page.getByRole("button", { name: "Read retained file" }).click();
+  // Explicit discard resolves a failed local checkpoint without requiring reload.
+  await page.evaluate(() => {
+    const put = IDBObjectStore.prototype.put;
+    let fail = true;
+    IDBObjectStore.prototype.put = function (...args) {
+      if (
+        fail &&
+        this.transaction.db.name === "actualBudget.transaction-import.v1"
+      ) {
+        fail = false;
+        throw new DOMException(
+          "Synthetic discard storage limit",
+          "QuotaExceededError",
+        );
+      }
+      return put.apply(this, args);
+    };
+  });
+  await page.getByLabel("Amount multiplier").fill("2");
+  await expect(
+    page.getByRole("button", { name: "Retry saving file options" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Discard unsubmitted draft" }).click();
+  await page
+    .getByLabel("Transaction file")
+    .setInputFiles({
+      name: "purchases.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(
+        "Date,Payee,Amount,Notes\n2026-11-01,BRAND NEW SHOP,-12.50,First purchase\n2026-11-02,BRAND NEW SHOP,-7.25,Second purchase\n",
+      ),
+    });
+  await page.getByRole("button", { name: "Read file", exact: true }).click();
+  await expect(
+    page.getByText("2 records parsed.", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Retry saving file options" }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await page.getByText("First five parsed records", { exact: true }).click();
+  await expect(
+    page.getByText("Parsed record values are hidden in privacy mode.", {
+      exact: false,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Parsed file records" }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
+  await expect(
+    page.getByRole("region", { name: "Parsed file records" }),
+  ).toBeVisible();
   for (const [field, value] of [
     ["Date", "Date"],
     ["Payee", "Payee"],
@@ -186,7 +272,11 @@ try {
       retry = { body: r.postData(), headers: r.headers() };
   });
   await page.getByRole("button", { name: "Retry original import" }).click();
-  await expect(page.getByText("Import saved:", { exact: false })).toBeVisible();
+  await expect(
+    page.getByText("Import saved: 2 added, 0 updated, 0 unchanged.", {
+      exact: true,
+    }),
+  ).toBeVisible();
   expect(retry.body).toBe(original.body);
   for (const header of [
     "idempotency-key",

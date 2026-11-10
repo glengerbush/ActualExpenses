@@ -85,7 +85,8 @@
       firstRow: "1",
       lastRow: "10000",
     }),
-    saving = $state(0);
+    saving = $state(0),
+    saveFailed = $state(false);
   let invalidNumbers = $derived(
     Object.values(numberDrafts).some(
       (v) => !/^\d{1,6}$/.test(v) || Number(v) > 100000,
@@ -153,7 +154,10 @@
     saveTail = saveTail.then(async () => {
       try {
         draft = await writeImport(budgetId, draft, { ...draft!, ...captured });
+        saveFailed = false;
+        error = "";
       } catch (e) {
+        saveFailed = true;
         error = errorMessage(e);
       } finally {
         saving--;
@@ -179,7 +183,7 @@
     notice = `${parsed.length} records parsed. Review mapping and options, then preview.`;
   }
   async function upload() {
-    if (locked || saving || invalidNumbers) return;
+    if (locked || saving || invalidNumbers || saveFailed) return;
     busy = true;
     error = "";
     try {
@@ -266,7 +270,7 @@
     }
   }
   async function parseAgain() {
-    if (locked || saving || invalidNumbers) return;
+    if (locked || saving || invalidNumbers || saveFailed) return;
     busy = true;
     error = "";
     try {
@@ -278,7 +282,8 @@
     }
   }
   async function preview() {
-    if (!draft?.stageId || locked || saving || invalidNumbers) return;
+    if (!draft?.stageId || locked || saving || invalidNumbers || saveFailed)
+      return;
     busy = true;
     error = "";
     try {
@@ -361,6 +366,7 @@
       locked ||
       saving ||
       invalidNumbers ||
+      saveFailed ||
       review.errors.length
     )
       return;
@@ -414,7 +420,7 @@
       });
       const p = draft!.pending!,
         r = await request<{
-          data: { added: number; updated: number; ignored: number };
+          data: { added: string[]; updated: string[]; ignored: string[] };
         }>(
           p.path,
           p.body,
@@ -425,7 +431,7 @@
           p.budgetEpoch,
           p.historyOwner,
         );
-      notice = `Import saved: ${r.data.added} added, ${r.data.updated} updated, ${r.data.ignored} unchanged.`;
+      notice = `Import saved: ${r.data.added.length} added, ${r.data.updated.length} updated, ${r.data.ignored.length} unchanged.`;
       draft = await writeImport(budgetId, draft, null);
       review = null;
       parsed = [];
@@ -455,9 +461,21 @@
     }
   }
   async function discard() {
-    if (!draft || locked) return;
+    if (!draft || locked || saving) return;
     try {
       draft = await writeImport(budgetId, draft, null);
+      saveFailed = false;
+      error = "";
+      options = { ...defaults };
+      mapping = {};
+      firstRow = 1;
+      lastRow = 10000;
+      numberDrafts = {
+        skip_start_lines: "0",
+        skip_end_lines: "0",
+        firstRow: "1",
+        lastRow: "10000",
+      };
       parsed = [];
       review = null;
       files = null;
@@ -546,6 +564,13 @@
       Enter whole record counts from 0 to 100,000. Your unfinished values remain
       saved.
     </p>{/if}
+  {#if saveFailed}<p role="alert">
+      File options could not be saved. Preview is paused to protect your entered
+      values.
+    </p>
+    <button onclick={changed} disabled={saving > 0}
+      >Retry saving file options</button
+    >{/if}
   {#if loading}<p>Loading saved import…</p>{:else}
     <label
       >Import account<select bind:value={accountId} disabled={busy || !!draft}
@@ -589,7 +614,7 @@
       <div class="actions">
         <button onclick={upload} disabled={busy}
           >{draft.stageId ? "Read retained file" : "Retry file upload"}</button
-        ><button onclick={discard} disabled={busy}
+        ><button onclick={discard} disabled={busy || saving > 0}
           >Discard unsubmitted draft</button
         >
       </div>
@@ -697,7 +722,9 @@
             />Remember account options and mapping after import</label
           >
         </div>
-        <button onclick={parseAgain} disabled={saving > 0 || invalidNumbers}
+        <button
+          onclick={parseAgain}
+          disabled={saving > 0 || invalidNumbers || saveFailed}
           >Parse with these options</button
         >
       </fieldset>
@@ -721,26 +748,31 @@
             </fieldset>{/if}
           <details>
             <summary>First five parsed records</summary
-            ><!-- svelte-ignore a11y_no_noninteractive_tabindex (keyboard access to overflow table) -->
-            <div
-              class="scroll"
-              tabindex="0"
-              role="region"
-              aria-label="Parsed file records"
-            >
-              <table>
-                <thead
-                  ><tr
-                    >{#each columns as c (c)}<th>{c}</th>{/each}</tr
-                  ></thead
-                ><tbody
-                  >{#each parsed.slice(0, 5) as row, i (i)}<tr
-                      >{#each columns as c (c)}<td>{String(row[c] ?? "")}</td
-                        >{/each}</tr
-                    >{/each}</tbody
-                >
-              </table>
-            </div>
+            >{#if preferences.shared.privacy_mode}<p>
+                Parsed record values are hidden in privacy mode. Column names
+                remain available for mapping.
+              </p>{:else}
+              <!-- svelte-ignore a11y_no_noninteractive_tabindex (keyboard access to overflow table) -->
+              <div
+                class="scroll"
+                tabindex="0"
+                role="region"
+                aria-label="Parsed file records"
+              >
+                <table>
+                  <thead
+                    ><tr
+                      >{#each columns as c (c)}<th>{c}</th>{/each}</tr
+                    ></thead
+                  ><tbody
+                    >{#each parsed.slice(0, 5) as row, i (i)}<tr
+                        >{#each columns as c (c)}<td>{String(row[c] ?? "")}</td
+                          >{/each}</tr
+                      >{/each}</tbody
+                  >
+                </table>
+              </div>
+            {/if}
           </details>
           <div class="options">
             <label
@@ -765,7 +797,7 @@
           </p>
           <button
             onclick={preview}
-            disabled={busy || saving > 0 || invalidNumbers}
+            disabled={busy || saving > 0 || invalidNumbers || saveFailed}
             >Preview selected import</button
           >
         </section>{/if}

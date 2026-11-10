@@ -321,3 +321,26 @@ corrected checkbox widths inherited from global full-width inputs; this was a
 rendered layout correction, not a financial behavior change. No generated raster
 is shipped as product UI. Final finish/review and integrated qualification remain
 authoritative before ticket acceptance.
+
+### Interface review corrections
+
+Reviewer31263cb findings are closed by the focused UI delta: successful counts
+use the lengths of the API's ID arrays, never their UUID text; arbitrary raw
+parsed values are hidden under shared privacy mode while column mapping remains
+available. The browser now asserts the exact `2 added, 0 updated, 0 unchanged`
+message and privacy hide/reveal behavior. A one-shot local quota failure also
+proves that preview stays fenced until the current visible options are saved;
+retry persists those same entered options, and reload retains them. Previous
+saved options cannot silently authorize an import after a failed checkpoint.
+Focused browser PASS `/tmp/transaction-import-review-browser-second.log`, UI
+build/check PASS, Svelte autofixer reports no issues or suggestions. Financial
+API/native code is unchanged; earlier source and native evidence is reused.
+
+The follow-up quota→discard recovery edge is also closed: successful CAS deletion
+resets the discarded draft's failure flag and numeric/options state; a refused
+or failed deletion clears nothing. Discard is unavailable during queued local
+writes. A true old-UI red (`/tmp/transaction-import-discard-quota-red.log`) is
+followed by the same complete focused browser PASS
+(`/tmp/transaction-import-discard-quota-green.log`), proving a new file can be
+read immediately after discard without reload. Svelte check0errors/0warnings,
+build and autofixer pass; no backend/native or financial behavior changed.

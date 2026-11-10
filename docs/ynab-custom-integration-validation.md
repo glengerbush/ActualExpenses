@@ -69,6 +69,15 @@ generation/epoch fences and bounded HTTPS transport. It remains unmerged and
 partial: financial/link/settings/replacement, genuine schema22 migration,
 native lifecycle, interface and full contracts still require qualification.
 
+Bank discovery/replacement delta `00cf0a1..46ca97a` review found one P2:
+canceling an in-flight discovery writes a cancellation receipt but does not
+remove its private capture, and the late response can still populate that
+capture. Receipt replay then bypasses capture deletion, retaining canceled
+responses against the64MiB recovery limit. Worker is correcting cancellation
+cleanup and late-response fencing with a public delayed-provider witness.
+Other reviewed metadata/transport changes have no actionable findings; this
+checkpoint remains pending that correction and is not joined here.
+
 ## Remaining gates
 
 - Complete and review27 before joining its public import/API/UI/native slice.

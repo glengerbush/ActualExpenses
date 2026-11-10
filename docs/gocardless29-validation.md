@@ -1,6 +1,57 @@
 # GoCardless29 validation — WIP
 
-Ticket29 is not accepted. This checkpoint covers provider staging/custody, institution listing and consent lifecycle only. Discovery/financial normalization across all44 source bank modules, linked refresh/renewal mappings, genuine24 upgrade/native consumers, imported GoCardless conversion, UI/native integration and final qualification remain pending. SimpleFIN28 and notes24 behavior are retained; no real provider/account calls, setup, deployment or broad suite run.
+## Root financial checkpoint review (open correction)
+
+2026-11-10:2c28e9c reviewed independently from unimplemented bank families,
+paging, renewal continuity and UI. Default/ING normalization feeds the existing
+owned capture/writer; booked-only source opening math, source date choices,
+original idempotency/snapshot checks, private quota storage and public error
+sanitization were inspected. Worker reports five exact whole-source financial
+graphs and80 served shapes; unchanged SimpleFIN financial/custody checks pass.
+This checkpoint is not whole29 acceptance.
+
+One correction remains: transaction download unconditionally fetches balances
+and computes an opening amount. The pinned `/transactions` route uses
+`getNormalizedTransactions` alone when `includeBalance=false`; genuine existing
+account/renewal requests select that path. An unnecessary balance endpoint
+failure currently blocks valid transaction refreshes and consumes extra quota.
+Carry the scoped balance/opening need into capture, preserve truthful prior
+balance freshness, and prove existing-account refresh without that request.
+Initial automatic opening must still require its actual balance data.
+
+Worker correction (pending independent review): the original snapshot/link
+preflight now freezes which selected accounts require balances (automatic empty
+opening or explicit balance-only settings). Existing/manual/custom transaction
+refreshes request transactions alone. Discovery requests metadata alone. Unknown
+provider balances project as null (date0 means unavailable); cached amounts and
+reported dates remain unchanged on transaction-only requests. SimpleFIN keeps
+its existing provider request. The shared served BankRemoteAccount contract and
+web type admit unavailable balances; no new freshness timestamp is fabricated.
+
+Public `/tmp/gocardless-balance-need-red.log` reproduced the old balance503
+blocking a transaction-only repeat. The focused consumer also requires discovery
+to make zero balance calls, automatic opening503 to leave the ledger empty, and
+existing/custom/repeated imports to succeed without balance calls while retaining
+exact original source financial graphs, IDs, cached balance/date and receipts.
+
+Correction evidence: `/tmp/gocardless-balance-need-green.log` PASS five source
+cases/82 served contract observations; build and bin Clippy PASS
+`/tmp/gocardless-balance-need-{build,clippy}.log`. Existing SimpleFIN financial
+consumer PASS six cases/76 served observations
+`/tmp/gocardless-balance-simplefin-regression.log`; web check0errors/0warnings
+`/tmp/gocardless-balance-null-web-check.log`. No unchanged source regeneration,
+full suite or production provider call. Independent closure review remains due.
+
+Renewal source checkpointa111b09 reviewed; independent reproduction
+`/tmp/gocardless-renewal-root-source-check.log` PASS. An immutable genuine linked
+export is explicitly relinked through the registered source handler to new
+provider account/requisition IDs, then refreshed again. All original financial
+rows/IDs remain literal and unchanged; only new metadata UUIDs normalize.
+Transport responses reuse previously reviewed source normalization. No native
+replacement supplies expected financial values. Renewal runtime remains open.
+
+
+Ticket29 is not accepted. Custody and genuine24 preservation are reviewed; the five-case default/ING financial checkpoint has the open balance-need correction above. Other bank families, paged discovery, renewal continuity, provider conversion, UI/native integration and final qualification remain pending. Earlier sections retain their historical checkpoint scope. SimpleFIN28 and notes24 behavior are retained; no real provider/account calls, setup, deployment or broad suite run.
 
 ## Source reference
 
@@ -61,30 +112,25 @@ and nonempty seven banking tables plus notes. Composed at6ce2042; both public
 database/native modes PASS `/tmp/gocardless-upgrade-root-http.log`, reusing the
 unchanged b68379d runtime build. Genuine24 preservation gate closed. Provider
 financial/conversion/UI/native feature gates remain open; no29 acceptance claim.
-# Root financial checkpoint review (open correction)
 
-2026-11-10:2c28e9c reviewed independently from unimplemented bank families,
-paging, renewal continuity and UI. Default/ING normalization feeds the existing
-owned capture/writer; booked-only source opening math, source date choices,
-original idempotency/snapshot checks, private quota storage and public error
-sanitization were inspected. Worker reports five exact whole-source financial
-graphs and80 served shapes; unchanged SimpleFIN financial/custody checks pass.
-This checkpoint is not whole29 acceptance.
+## Whole-source financial witnesses
 
-One correction remains: transaction download unconditionally fetches balances
-and computes an opening amount. The pinned `/transactions` route uses
-`getNormalizedTransactions` alone when `includeBalance=false`; genuine existing
-account/renewal requests select that path. An unnecessary balance endpoint
-failure currently blocks valid transaction refreshes and consumes extra quota.
-Carry the scoped balance/opening need into capture, preserve truthful prior
-balance freshness, and prove existing-account refresh without that request.
-Initial automatic opening must still require its actual balance data.
+`generate-gocardless-financial-source.mjs` feeds the unchanged registered `gocardless-accounts-link` and bank-refresh handlers with exact results from the reviewed, executed server-adapter fixture (input SHA retained). Five genuine workflows cover default and ING first opening, existing manual match, custom opening and pending exclusion; every explicit repeat preserves all first transaction IDs and the complete financial graph. Original preapply ZIPs and one linked GoCardless export retain source identities; the linked archive is read back through the genuine SDK to capture its own original IDs. No replacement money/normalization code computes expected results. Generated UUIDs and genuine date/sort-order ties normalize only for independent check; raw provider ordering, fixed manual ID, fields/edges/multiplicity remain exact. Official exports clear CRDT, so these are values/identity witnesses, not exported per-field clocks.
 
-Renewal source checkpointa111b09 reviewed; independent reproduction
-`/tmp/gocardless-renewal-root-source-check.log` PASS. An immutable genuine linked
-export is explicitly relinked through the registered source handler to new
-provider account/requisition IDs, then refreshed again. All original financial
-rows/IDs remain literal and unchanged; only new metadata UUIDs normalize.
-Transport responses reuse previously reviewed source normalization. No native
-replacement supplies expected financial values. Renewal runtime remains open.
+Generation/check pass `/tmp/gocardless-financial-source-{first,check}.log`. Source default opening is11284 with−1234 booked/−200 pending; source ING opening is12109 with its chosen balance/sort and−1234/+125 booked/−200 pending. These recorded results require GoCardless-specific opening handling; SimpleFIN's subtract-all path is not reused blindly. Initial unpublished harness attempts corrected the sync-server success envelope and used string `"false"` for the source preference SQL type. Partial preapply artifacts were resumed by importing their original bytes through the genuine SDK; no published fixture or expected financial value was overwritten.
 
+Review tightened independent financial checking: UUIDs present in each frozen preapply snapshot, original adapter input and immutable linked input remain verbatim; only genuinely new IDs are aliased. `/tmp/gocardless-financial-original-ids-check.log` passes once after this checker-only change. No source archive, financial graph or expected value changed.
+
+## First financial runtime checkpoint — partial institution coverage
+
+The public financial tracer reaches controlled raw provider HTTPS-shaped routes, then the shared immutable capture and guarded writer. Five source workflows pass with exact financial/reference/status/raw-bank graphs, original manual ID, distinct provider balances, booked-only/source-family opening, custom opening/date, pending preference, exact original receipts and every first-import ID surviving a new refresh. It validates80 actually served request/result shapes (`/tmp/gocardless-financial-checkpoint-http.log`). Its initial genuine red was discovery409 because only SimpleFIN access custody was wired; an earlier setup-only missing account opening pair was corrected before that product red. Automatic GoCardless opening can take its source explicit start date; the existing SimpleFIN custom-only date restriction remains intact.
+
+Implemented institution transforms here are **default plus ING only**. The exact44-module registry is present; known unported families refuse explicitly before applying financial data. They are pending implementation/source-family qualification, not silently treated as default. Unknown institutions use the same fallback as pinned BankFactory. Discovery currently refuses catalogs over20 accounts; explicit bounded paging remains pending. Renewal continuity/aliases, broader partial/quota cases, conversion and UI/native acceptance also remain pending.
+
+Provider transport now has a28-second whole-operation deadline, aggregate16MiB input bound and private official reset observations. Private `bank_gocardless_limits` is keyed by credentials digest plus endpoint (and general scope), independent of local connection/budget, so another connection cannot evade a known reset. Expired rows prune,4096 windows per credential and10000 globally bound storage. Observed quota consumption is private operational state independent of cancelable ledger application; token publication/capture still requires original generation/epoch. The table is absent from archives/feed/history. Global/endpoint restart/error edge qualification is pending; no full quota-matrix claim here. Provider failures retain sanitized typed codes and account scope; expired consent/credentials require explicit recovery.
+
+Focused build/bin Clippy pass `gocardless-financial-checkpoint-{build,clippy}.log`. Shared SimpleFIN six financial workflows/76 served shapes, both held identity guards and GoCardless65 custody observations pass `gocardless-existing-financial.log`, `gocardless-existing-{capture,claim}-identity.log` and `gocardless-custody-transport-regression.log`. No source fixture changed and no broad/native/container suite rerun.
+
+## Explicit renewal identity witness
+
+`generate-gocardless-renewal-source.mjs` imports the immutable genuine linked GoCardless export, invokes the unchanged registered explicit account link with a different requisition/account ID but the original local account, then repeats refresh. Source retains every original financial row/ID/raw field exactly, while account/requisition metadata changes. Both real transport requests use the new IDs and request no opening balance. Generation/independent check pass `/tmp/gocardless-renewal-source-{first,check}.log`. Every original UUID from before/input remains literal; only genuinely new metadata UUIDs normalize. This confirms a needed explicit continuity join; it is not yet a replacement-runtime renewal PASS or permission for automatic cross-account/provider reassignment.

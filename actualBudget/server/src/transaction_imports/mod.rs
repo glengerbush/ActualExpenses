@@ -7,6 +7,10 @@ mod merge;
 mod settings;
 mod storage;
 mod title;
+/// Shared pinned title vocabulary used by bank-provider normalizers.
+pub(crate) fn bank_title(input: &str) -> String {
+    title::title(input)
+}
 pub(crate) use storage::{
     archive_tables, convert, decorate_many, enrich, import_clock, imported_preference, install,
     record, validate,

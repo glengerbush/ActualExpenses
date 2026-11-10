@@ -8,10 +8,14 @@ fn now() -> Result<i64, Error> {
         .map_err(Error::internal)?
         .as_secs() as i64)
 }
+enum Access {
+    Simplefin(String),
+    GoCardless(gocardless::DownloadCredentials),
+}
 enum Prepared {
     Receipt,
     Captured(Capture),
-    Fetch(String, tokio::sync::OwnedSemaphorePermit, i64),
+    Fetch(Access, tokio::sync::OwnedSemaphorePermit, i64),
 }
 pub(super) struct Capture {
     pub result: Result<Value, Error>,
@@ -29,6 +33,14 @@ fn captured(
             StatusCode::BAD_GATEWAY,
             match code.as_str() {
                 "provider_revoked" => "provider_revoked",
+                "provider_consent_expired" => "provider_consent_expired",
+                "provider_consent_suspended" => "provider_consent_suspended",
+                "provider_credentials_invalid" => "provider_credentials_invalid",
+                "provider_access_denied" => "provider_access_denied",
+                "provider_resource_missing" => "provider_resource_missing",
+                "provider_bank_unsupported" => "provider_bank_unsupported",
+                "provider_redirect_refused" => "provider_redirect_refused",
+                "provider_request_rejected" => "provider_request_rejected",
                 "provider_rate_limited" => "provider_rate_limited",
                 "provider_payment_required" => "provider_payment_required",
                 "provider_invalid_response" => "provider_invalid_response",
@@ -137,13 +149,13 @@ pub(super) async fn capture(
         }
         tx.execute("DELETE FROM bank_request_log WHERE started_at<?1",[timestamp-86400])?;
         let requests:i64=tx.query_row("SELECT count(*) FROM bank_request_log WHERE budget_id=?1 AND connection_id=?2",params![bb,ii],|r|r.get(0))?;
-        if requests>=24{return Err(Error::new(StatusCode::TOO_MANY_REQUESTS,"provider_rate_limited","This connection has used its 24 requests in the last 24 hours. Wait before refreshing"));}
+        if current["provider"]=="simplefin" && requests>=24{return Err(Error::new(StatusCode::TOO_MANY_REQUESTS,"provider_rate_limited","This connection has used its 24 requests in the last 24 hours. Wait before refreshing"));}
         let size:i64=tx.query_row("SELECT COALESCE(SUM(length(CAST(response AS BLOB))),0) FROM bank_jobs WHERE budget_id=?1",[&bb],|r|r.get(0))?;
         if size>=64*1024*1024{return Err(Error::conflict("Finish or cancel captured provider requests before downloading more data"));}
-        let access:String=tx.query_row("SELECT access_url FROM bank_credentials WHERE budget_id=?1 AND connection_id=?2 AND generation=?3",params![bb,ii,gg],|r|r.get(0)).optional()?.ok_or_else(||Error::conflict("Credentials are missing. Replace the setup token"))?;
+        let access=if current["provider"]=="gocardless" {Access::GoCardless(gocardless::prepare_download(&tx,&bb,&ii,&gg)?)}else{Access::Simplefin(tx.query_row("SELECT access_url FROM bank_credentials WHERE budget_id=?1 AND connection_id=?2 AND generation=?3",params![bb,ii,gg],|r|r.get(0)).optional()?.ok_or_else(||Error::conflict("Credentials are missing. Replace the setup token"))?)};
         let permit=transport::permit()?;
         tx.execute("INSERT INTO bank_jobs(budget_id,connection_id,id,generation,epoch,fingerprint,phase,started_at) VALUES(?1,?2,?3,?4,?5,?6,'fetching',?7) ON CONFLICT(budget_id,connection_id,id) DO UPDATE SET started_at=excluded.started_at",params![bb,ii,kk,gg,ee,pp,timestamp])?;
-        tx.execute("INSERT INTO bank_request_log(budget_id,connection_id,started_at) VALUES(?1,?2,?3)",params![bb,ii,timestamp])?;
+        if current["provider"]=="simplefin" {tx.execute("INSERT INTO bank_request_log(budget_id,connection_id,started_at) VALUES(?1,?2,?3)",params![bb,ii,timestamp])?;}
         tx.commit()?;
         Ok(Prepared::Fetch(access,permit,current["revision"].as_i64().unwrap()))
     }).await?;
@@ -151,21 +163,33 @@ pub(super) async fn capture(
         Prepared::Receipt => return Ok(None),
         Prepared::Captured(value) => return Ok(Some(value)),
         Prepared::Fetch(access, permit, revision) => {
-            let result = match tokio::time::timeout(
+            let (result, tokens) = match tokio::time::timeout(
                 std::time::Duration::from_secs(30),
                 tokio::task::spawn_blocking(move || {
                     let _permit = permit;
-                    transport::accounts(&access, download)
+                    match access {
+                        Access::Simplefin(access) => (transport::accounts(&access, download), None),
+                        Access::GoCardless(access) => {
+                            let (result, tokens) = gocardless::retrieve(access, download);
+                            (result, Some(tokens))
+                        }
+                    }
                 }),
             )
             .await
             {
                 Ok(Ok(result)) => result,
-                _ => Err(transport::failure(
-                    "provider_unavailable",
-                    "Provider retrieval timed out. Retry later",
-                )),
+                _ => (
+                    Err(transport::failure(
+                        "provider_unavailable",
+                        "Provider retrieval timed out. Retry later",
+                    )),
+                    None,
+                ),
             };
+            if let Some(tokens) = &tokens {
+                gocardless::observe_download_quota(store.clone(), tokens).await?;
+            }
             let (bb, ii, kk, ee, gg) = (
                 b.clone(),
                 id.clone(),
@@ -184,6 +208,7 @@ pub(super) async fn capture(
                 }
                 crate::lifecycle::require_epoch(&tx,&bb,ee.as_deref())?;
                 if connection(&tx,&bb,&ii)?["generation"]!=gg{return Err(Error::conflict("Credentials changed during provider retrieval"));}
+                if let Some(tokens)=&tokens {gocardless::save_download(&tx,&bb,&ii,&gg,tokens)?;}
                 let(response,code,message)=match &result{Ok(value)=>(value.clone(),None,None),Err(e)=>(Value::Null,Some(e.code.to_owned()),Some(e.message.clone()))};
                 let response=Some(json!({"bank_capture_version":1,"revision":revision,"data":response}).to_string());
                 let existing:i64=tx.query_row("SELECT COALESCE(SUM(length(CAST(response AS BLOB))),0) FROM bank_jobs WHERE budget_id=?1 AND NOT(connection_id=?2 AND id=?3)",params![bb,ii,kk],|r|r.get(0))?;
@@ -231,7 +256,7 @@ pub(super) async fn discover(
         if current["revision"]!=capture.revision{return Err(Error::new(StatusCode::CONFLICT,"provider_capture_stale","Newer provider metadata was saved. Cancel this captured request and refresh again"));}
         let (accounts,errors)=match capture.result {
             Ok(raw)=>match super::records::install_remote(db,&b,&id,&generation,&raw,true){Ok(value)=>value,Err(e) if e.status==StatusCode::INTERNAL_SERVER_ERROR=>return Err(e),Err(e)=>(vec![],vec![json!({"code":e.code,"message":e.message})])},
-            Err(e)=>{db.execute("UPDATE bank_connections SET error_code=?3,message=?4,state=CASE WHEN ?3='provider_revoked' THEN 'credentials_missing' ELSE state END WHERE budget_id=?1 AND id=?2",params![b,id,e.code,e.message])?;(vec![],vec![json!({"code":e.code,"message":e.message})])}
+            Err(e)=>{db.execute("UPDATE bank_connections SET error_code=?3,message=?4,state=CASE WHEN ?3 IN('provider_revoked','provider_credentials_invalid') THEN 'credentials_missing' WHEN ?3 IN('provider_consent_expired','provider_consent_suspended') THEN 'claim_failed' ELSE state END WHERE budget_id=?1 AND id=?2",params![b,id,e.code,e.message])?;(vec![],vec![json!({"code":e.code,"message":e.message})])}
         };
         db.execute("UPDATE bank_connections SET error_code=?3,message=?4,last_success=CASE WHEN ?3 IS NULL THEN strftime('%Y-%m-%dT%H:%M:%fZ','now') ELSE last_success END,revision=revision+1 WHERE budget_id=?1 AND id=?2",params![b,id,errors.first().and_then(|v|v["code"].as_str()),errors.first().and_then(|v|v["message"].as_str())])?;
         sync::mark(db,&b,"bank_connections",&id)?;

@@ -33833,7 +33833,11 @@
             "type": "string"
           },
           "balance": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Last retained provider balance; null when unavailable. Transaction-only refreshes do not refresh this value or its date."
           },
           "available_balance": {
             "type": [
@@ -34442,7 +34446,8 @@
                   "string",
                   "null"
                 ],
-                "format": "date"
+                "format": "date",
+                "description": "Optional explicit automatic start date for GoCardless. SimpleFIN accepts date only with a custom amount. All choices retain the original request and epoch."
               }
             },
             "required": [
@@ -34477,12 +34482,28 @@
               }
             },
             "else": {
-              "properties": {
-                "opening_amount": {
-                  "type": "null"
-                },
-                "opening_date": {
-                  "type": "null"
+              "if": {
+                "properties": {
+                  "opening_balance_mode": {
+                    "const": "auto"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "opening_amount": {
+                    "type": "null"
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "opening_amount": {
+                    "type": "null"
+                  },
+                  "opening_date": {
+                    "type": "null"
+                  }
                 }
               }
             }

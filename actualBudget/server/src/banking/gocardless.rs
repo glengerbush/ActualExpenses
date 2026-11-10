@@ -1,9 +1,14 @@
 //! GoCardless consent custody. Submitted secrets never enter generic receipts.
 use super::*;
 mod consent;
+mod download;
+mod normalization;
 mod protocol;
 use axum::extract::Query;
 pub(super) use consent::{authorization, command};
+pub(super) use download::{
+    DownloadCredentials, observe_download_quota, prepare_download, retrieve, save_download,
+};
 
 #[derive(Clone, serde::Serialize, Deserialize)]
 struct Credentials {
@@ -12,9 +17,83 @@ struct Credentials {
     access_token: Option<String>,
     refresh_token: Option<String>,
     access_expires: Option<i64>,
+    quota: std::collections::BTreeMap<String, i64>,
+}
+fn credential_digest(tokens: &Credentials) -> Result<String, Error> {
+    Ok(format!(
+        "{:x}",
+        Sha256::digest(
+            serde_json::to_vec(&[&tokens.secret_id, &tokens.secret_key])
+                .map_err(Error::internal)?
+        )
+    ))
 }
 fn credentials(db: &Connection, b: &str, id: &str, generation: &str) -> Result<Credentials, Error> {
-    db.query_row("SELECT secret_id,secret_key,access_token,refresh_token,access_expires FROM bank_gocardless_credentials WHERE budget_id=?1 AND connection_id=?2 AND generation=?3",params![b,id,generation], |r| Ok(Credentials { secret_id:r.get(0)?,secret_key:r.get(1)?,access_token:r.get(2)?,refresh_token:r.get(3)?,access_expires:r.get(4)? })).optional()?.ok_or_else(||Error::conflict("GoCardless credentials are missing. Replace user secrets before authorizing"))
+    let mut tokens=db.query_row("SELECT secret_id,secret_key,access_token,refresh_token,access_expires FROM bank_gocardless_credentials WHERE budget_id=?1 AND connection_id=?2 AND generation=?3",params![b,id,generation],|r|Ok(Credentials {secret_id:r.get(0)?,secret_key:r.get(1)?,access_token:r.get(2)?,refresh_token:r.get(3)?,access_expires:r.get(4)?,quota:std::collections::BTreeMap::new()})).optional()?.ok_or_else(||Error::conflict("GoCardless credentials are missing. Replace user secrets before authorizing"))?;
+    let digest = credential_digest(&tokens)?;
+    let mut query=db.prepare("SELECT endpoint,reset_at FROM bank_gocardless_limits WHERE credential_digest=?1 AND reset_at>unixepoch() ORDER BY endpoint LIMIT 4097")?;
+    for row in query.query_map([digest], |r| {
+        Ok((r.get::<_, String>(0)?, r.get::<_, i64>(1)?))
+    })? {
+        let (endpoint, end) = row?;
+        tokens.quota.insert(endpoint, end);
+    }
+    if tokens.quota.len() > 4096 {
+        return Err(transport::failure(
+            "provider_response_limit",
+            "Too many active provider quota windows. Wait before requesting more accounts",
+        ));
+    }
+    Ok(tokens)
+}
+async fn observe_quota(store: Store, tokens: &Credentials) -> Result<(), Error> {
+    let digest = credential_digest(tokens)?;
+    let quota = tokens.quota.clone();
+    store
+        .run(move |db| {
+            let tx = db.transaction()?;
+            record_quota(&tx, &digest, &quota)?;
+            tx.commit()?;
+            Ok(())
+        })
+        .await
+}
+fn record_quota(
+    db: &Connection,
+    digest: &str,
+    quota: &std::collections::BTreeMap<String, i64>,
+) -> Result<(), Error> {
+    let now = chrono::DateTime::<chrono::Utc>::from(std::time::SystemTime::now()).timestamp();
+    db.execute(
+        "DELETE FROM bank_gocardless_limits WHERE reset_at<=?1",
+        [now],
+    )?;
+    let count: i64 = db.query_row("SELECT count(*) FROM bank_gocardless_limits", [], |r| {
+        r.get(0)
+    })?;
+    let mut existing = std::collections::BTreeSet::new();
+    let mut query = db.prepare(
+        "SELECT endpoint FROM bank_gocardless_limits WHERE credential_digest=?1 LIMIT 4097",
+    )?;
+    for row in query.query_map([digest], |r| r.get::<_, String>(0))? {
+        existing.insert(row?);
+    }
+    let new = quota
+        .iter()
+        .filter(|(key, end)| **end > now && !existing.contains(*key))
+        .count();
+    if quota.len() > 4096 || existing.len() + new > 4096 || count + new as i64 > 10000 {
+        return Err(transport::failure(
+            "provider_response_limit",
+            "Too many active provider quota windows. Wait until existing windows expire",
+        ));
+    }
+    for (endpoint, end) in quota {
+        if *end > now {
+            db.execute("INSERT INTO bank_gocardless_limits(credential_digest,endpoint,reset_at) VALUES(?1,?2,?3) ON CONFLICT(credential_digest,endpoint) DO UPDATE SET reset_at=max(reset_at,excluded.reset_at)",params![digest,endpoint,end])?;
+        }
+    }
+    Ok(())
 }
 fn save_tokens(
     db: &Connection,
@@ -23,7 +102,30 @@ fn save_tokens(
     generation: &str,
     tokens: &Credentials,
 ) -> Result<(), Error> {
-    if db.execute("UPDATE bank_gocardless_credentials SET access_token=?4,refresh_token=?5,access_expires=?6 WHERE budget_id=?1 AND connection_id=?2 AND generation=?3",params![b,id,generation,tokens.access_token,tokens.refresh_token,tokens.access_expires])? != 1 { return Err(Error::conflict("Credentials changed while the provider was responding")); }
+    let current = credentials(db, b, id, generation)?;
+    let digest = credential_digest(tokens)?;
+    if digest != credential_digest(&current)? {
+        return Err(Error::conflict(
+            "Credentials changed during provider retrieval",
+        ));
+    }
+    record_quota(db, &digest, &tokens.quota)?;
+    let newer = tokens.access_expires.unwrap_or(0) >= current.access_expires.unwrap_or(0);
+    let access = if newer {
+        tokens.access_token.as_ref()
+    } else {
+        current.access_token.as_ref()
+    };
+    let expiry = if newer {
+        tokens.access_expires
+    } else {
+        current.access_expires
+    };
+    let refresh = tokens
+        .refresh_token
+        .as_ref()
+        .or(current.refresh_token.as_ref());
+    if db.execute("UPDATE bank_gocardless_credentials SET access_token=?4,refresh_token=?5,access_expires=?6 WHERE budget_id=?1 AND connection_id=?2 AND generation=?3",params![b,id,generation,access,refresh,expiry])?!=1 {return Err(Error::conflict("Credentials changed while the provider was responding"));}
     Ok(())
 }
 #[derive(Deserialize)]
@@ -68,6 +170,7 @@ pub(super) async fn institutions(
     .map_err(|_| {
         transport::failure("provider_unavailable", "Provider retrieval was interrupted")
     })?;
+    observe_quota(store.clone(), &tokens).await?;
     store
         .run(move |db| {
             let tx = db.transaction()?;
@@ -225,4 +328,49 @@ pub(super) async fn custody(
             Ok(json!({"response_status":200,"response_body":{"data":connection(db,&b,&id)?}}))
         })
     }).await
+}
+
+pub(super) fn core(
+    account: &Value,
+    start: &str,
+    end: &str,
+    _settings: &settings::Settings,
+) -> Result<Vec<Value>, Error> {
+    let rows = account["_gocardless_core"]
+        .as_array()
+        .filter(|r| r.len() <= 10000)
+        .ok_or_else(|| {
+            transport::failure(
+                "provider_invalid_response",
+                "Missing bounded normalized GoCardless transactions",
+            )
+        })?;
+    let mut result = vec![];
+    for row in rows {
+        let date = row["date"].as_str().ok_or_else(|| {
+            transport::failure(
+                "provider_invalid_response",
+                "A normalized bank date is missing",
+            )
+        })?;
+        models::validate_date(date)?;
+        if date < start || date >= end {
+            continue;
+        }
+        normalize::minor(row["transactionAmount"]["amount"].as_str().ok_or_else(|| {
+            transport::failure(
+                "provider_invalid_response",
+                "A normalized bank amount is missing",
+            )
+        })?)?;
+        if !row["booked"].is_boolean() || !row["payeeName"].is_string() || !row["notes"].is_string()
+        {
+            return Err(transport::failure(
+                "provider_invalid_response",
+                "Normalized bank fields are invalid",
+            ));
+        }
+        result.push(row.clone());
+    }
+    Ok(result)
 }

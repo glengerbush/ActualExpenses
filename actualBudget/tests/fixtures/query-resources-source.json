@@ -2005,6 +2005,76 @@
             "table": "schedules"
           },
           "data": 4
+        },
+        {
+          "id": "transaction-schedule-join",
+          "query": {
+            "tableOptions": {
+              "splits": "all"
+            },
+            "filterExpressions": [],
+            "selectExpressions": [
+              "id",
+              "schedule",
+              "schedule.name",
+              "schedule.rule.stage"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [
+            {
+              "id": "0ab3d8b2-3644-462d-bcaf-5a8efe90e608",
+              "schedule": "21220000-0000-4000-8000-000000000001",
+              "schedule.name": "Schedule 1",
+              "schedule.rule.stage": null
+            },
+            {
+              "id": "1dcdeecc-3f65-4223-94ac-88ff665ce8e4",
+              "schedule": "21220000-0000-4000-8000-000000000002",
+              "schedule.name": "Schedule 2",
+              "schedule.rule.stage": null
+            },
+            {
+              "id": "4d382454-bdb1-4014-9466-6a66e426856c",
+              "schedule": "21220000-0000-4000-8000-000000000001",
+              "schedule.name": "Schedule 1",
+              "schedule.rule.stage": null
+            },
+            {
+              "id": "5054145f-249a-4f4f-a1f9-3ca1c07fddae",
+              "schedule": "21220000-0000-4000-8000-000000000001",
+              "schedule.name": "Schedule 1",
+              "schedule.rule.stage": null
+            },
+            {
+              "id": "8532bbe2-df9c-437f-8d58-5024f8c0d426",
+              "schedule": "21220000-0000-4000-8000-000000000001",
+              "schedule.name": "Schedule 1",
+              "schedule.rule.stage": null
+            },
+            {
+              "id": "c4fddca3-0069-4d1f-b49e-9ff50c1a1f92",
+              "schedule": "21220000-0000-4000-8000-000000000003",
+              "schedule.name": "Schedule 3",
+              "schedule.rule.stage": null
+            },
+            {
+              "id": "f89d2975-790b-409b-9a00-e99b5bf109ec",
+              "schedule": "21220000-0000-4000-8000-000000000001",
+              "schedule.name": "Schedule 1",
+              "schedule.rule.stage": null
+            }
+          ]
         }
       ]
     },

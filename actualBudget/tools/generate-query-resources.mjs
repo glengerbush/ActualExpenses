@@ -232,6 +232,14 @@ const sets = [
           .orderBy("id"),
       ],
       ["schedule-count", api.q("schedules").calculate({ $count: "*" })],
+      [
+        "transaction-schedule-join",
+        api
+          .q("transactions")
+          .options({ splits: "all" })
+          .select(["id", "schedule", "schedule.name", "schedule.rule.stage"])
+          .orderBy("id"),
+      ],
     ],
   ],
   [
@@ -320,7 +328,7 @@ try {
       flag: "wx",
     });
   console.log(
-    "PASS21 real source resource/relationship/JSON/aggregate query cases",
+    "PASS22 real source resource/relationship/JSON/aggregate query cases",
   );
 } finally {
   await api.shutdown().catch(() => {});

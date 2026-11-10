@@ -310,3 +310,11 @@ preservation). Guards also verify wildcard allowlists, unknown/private resources
 structured-field refusal and invalid aggregate ordering. BinClippy-Dwarnings PASS
 /tmp/query-registry-clippy-final.log. Batch/caller, final served contracts,
 representative browser/native observation and maintained wiring remain47 work.
+
+Registry follow-up: the schedule reference was initially advertised but dotted
+transaction paths refused400 (root/public red plus
+/tmp/query-schedule-reference-red.log). A22nd genuine source case compares seven
+linked rows' schedule.name and schedule.rule.stage through the same closed,
+budget-scoped resolver. Source22 check and focused public green:
+/tmp/query-schedule-reference-source-check.log,
+/tmp/query-schedule-reference-green.log. No unrelated financial writer change.

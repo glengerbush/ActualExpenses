@@ -274,6 +274,17 @@ impl Compiler<'_> {
                         "category" => Some(("categories", "c")),
                         _ => None,
                     };
+                    if head == "schedule" {
+                        let expression =
+                            resources::resolve("schedules", "qs", path, self.q.validate_refs, 0)?;
+                        return Ok(Expr::new(
+                            format!(
+                                "(SELECT {} FROM schedule_links sl JOIN schedules qs ON qs.budget_id=sl.budget_id AND qs.id=sl.schedule_id AND qs.tombstone=0 WHERE sl.budget_id=t.budget_id AND sl.id=t.id AND sl.tombstone=0)",
+                                expression.sql
+                            ),
+                            expression.kind,
+                        ));
+                    }
                     if let Some((table, alias)) = resource {
                         return resources::resolve(table, alias, path, self.q.validate_refs, 0);
                     }

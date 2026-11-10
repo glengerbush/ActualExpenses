@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
   import { t } from "./i18n.svelte";
+  import { displayDate } from "./dates";
   import { errorMessage, RequestError } from "./api";
   import { preferences } from "./preferences.svelte";
   import { readValue, writeValue } from "./offline/storage";
@@ -171,7 +172,10 @@
     </p>
     <p>
       {t("As of")}
-      {projection.as_of} · {query.options.startDate}–{query.options.endDate}
+      {displayDate(projection.as_of, preferences.shared.date_format)} · {displayDate(
+        query.options.startDate,
+        preferences.shared.date_format,
+      )}–{displayDate(query.options.endDate, preferences.shared.date_format)}
     </p>
     {#key projection.snapshot + JSON.stringify(query)}<SankeyResult
         {budgetId}

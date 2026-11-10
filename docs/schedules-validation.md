@@ -1,6 +1,6 @@
 # Schedules and matching qualification
 
-Tickets21/22 cover spec stories48–53. Acceptance is **pending** integrated production qualification. Code, source provenance and UI reviews pass through `87b9fdc`. This record distinguishes completed evidence from remaining work; it is not a production-cutover approval.
+Tickets21/22 accepted2026-11-09, covering spec stories48–53. Code, source provenance, public contracts and UI reviews pass through `87b9fdc`; combined production qualification passes as detailed below. Full replacement qualification and production cutover remain separate work.
 
 ## Independent reference evidence
 
@@ -52,6 +52,8 @@ Review found and closed two P2s: editing conditions removed transaction IDs but 
 - Affected HTTP groups: `/tmp/schedules2122-qualification-fixes.log` —82 pass, zero failures/skips. Together with the initial run, all223 distinct HTTP cases have passing evidence; this is combined coverage, not one uninterrupted passing run.
 - Full native API class:42 pass, zero failures/errors/skips; fresh debug APK and lint pass. `/tmp/schedules2122-native-qualification.log`; JUnit XML confirms the count. The genuine pre-upgrade schema17 binary was configured, including the app-first upgrade scenario. Unchanged legacy-protocol tests are not counted as rerun here.
 - Final all-target Clippy passes with `-D warnings`: `/tmp/schedules2122-final-clippy.log`.
-- Final production-container/browser qualification: pending. The reviewed `container-smoke.py --browser --keep-going` runs each package command once, records all failures and fails overall if any group fails; it does not retry or hide failures. The initial image freezes `be6ba1c`; the final two changed browser groups will also run against a freshly built `87b9fdc` image. This avoids repeating unchanged qualification after the review correction.
+- Production-container qualification covers all45 package commands (40 browser groups and five fixture checks) across recorded runs. `/tmp/schedules2122-container-complete.log` ran every command against the initial `be6ba1c` image:44 passed; the newly strengthened matching regression correctly failed the older image's retained-selection bug. It is a recorded failed run, not an uninterrupted45/45 claim. `/tmp/schedules2122-container-correction.log` builds the corrected `87b9fdc` source and passes both changed matching/conversion groups, then plain HTTP/no login, bundled assets, exact opening balance, receipt replay and persistence after container replacement. Unchanged groups reuse their valid initial-image evidence. The reviewed keep-going runner never retries or suppresses a failure.
+- Final image: `sha256:350a8031fc5b7ff02d0ce92688c3d4a39824dd071dbc75c58c9fcba1360927a7`,135112751 bytes,user10001:10001. Both runs' owned containers, volumes and image tags were verified removed afterward.
+- Preserved schema19 executable for genuine later upgrade fixtures: `.scratch/actualbudget-schema19-94bd0c2-server`, SHA256 `eb1b47e56443f805c5ae828916329d1501ad5f1f67481e2a91c29a28b5c6b135`. It is an immutable copy of the qualified backend, not a relabeled database.
 
 All work uses disposable budgets/containers/volumes. No production data, signing setup, version, release or deployment changed. Ticket51 still owns measured whole-system resource qualification; these functional bounds are not a universal latency or power claim.

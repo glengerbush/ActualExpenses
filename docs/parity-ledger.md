@@ -70,12 +70,12 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 45 | 19 | Rules and schedules | [19: complete change previews, bounded account/ID selection, protected graphs and immutable retry](rules-validation.md) |
 | 46 | 19 | Rules and schedules | [19: payee renaming, opt-in learning, global/per-payee controls and replay without retraining](rules-validation.md) |
 | 47 | 42 | Rules and schedules | Pending feature acceptance |
-| 48 | 21 | Rules and schedules | Pending feature acceptance |
-| 49 | 21 | Rules and schedules | Pending feature acceptance |
-| 50 | 22 | Rules and schedules | Pending feature acceptance |
-| 51 | 21 | Rules and schedules | Pending feature acceptance |
-| 52 | 22 | Rules and schedules | Pending feature acceptance |
-| 53 | 21, 22 | Rules and schedules | Pending feature acceptance |
+| 48 | 21 | Rules and schedules | [21: income/expense/transfer schedules, calendar previews and durable posting](schedules-validation.md) |
+| 49 | 21 | Rules and schedules | [21: pinned recurrence, month-day/end/weekend and horizon behavior](schedules-validation.md) |
+| 50 | 22 | Rules and schedules | [22: exact/approximate/ranged matching, atomic links and concurrent catch-up/import retries](schedules-validation.md) |
+| 51 | 21 | Rules and schedules | [21: manual/automatic posting, skip/completion, bounded catch-up and foreground-only recovery](schedules-validation.md) |
+| 52 | 22 | Rules and schedules | [22: source discovery, existing-history creation and atomic future conversion](schedules-validation.md) |
+| 53 | 21, 22 | Rules and schedules | [21/22: horizon settings/warnings, ordered account previews and coherent linked rules](schedules-validation.md) |
 | 54 | 25, 26 | File imports and bank providers | Pending feature acceptance |
 | 55 | 25 | File imports and bank providers | Pending feature acceptance |
 | 56 | 25, 26 | File imports and bank providers | Pending feature acceptance |

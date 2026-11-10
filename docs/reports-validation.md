@@ -1,6 +1,6 @@
 # Reporting33/34 contract and evidence
 
-Development base: main7c6a794 + reviewed imports78610a9, merge e8fce14.33 checkpoint complete for review;34 remains explicitly pending. Schema22 reporting registry is real, not a relabeled fixture. No acceptance, push, release or deployment claimed here.
+Ticket33 accepted locally on2026-11-10 through integration `79ef888`;34 remains explicitly pending. Development base: main7c6a794 + reviewed imports78610a9, merge e8fce14. Schema22 reporting registry is real, not a relabeled fixture. [Combined acceptance](import-report-integration-validation.md) records454 Rust tests,44 native API cases and63 container commands across recorded runs, with no outstanding review findings. No push, release or deployment.
 
 ## Acceptance / public seams
 

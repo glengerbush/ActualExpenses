@@ -626,6 +626,8 @@ try {
       const identity = (request) => ({
         key: request.headers()["idempotency-key"],
         clock: request.headers()["x-actual-edit-clock"],
+        epoch: request.headers()["x-actual-budget-epoch"],
+        owner: request.headers()["x-actual-history-owner"],
         body: request.postDataJSON(),
       });
       await expect(
@@ -672,18 +674,23 @@ try {
         await expect.poll(() => delayedStatus).toBe(201);
       }
       let cancellationStatus,
-        cancelAttempts = 0;
+        cancelAttempts = 0,
+        lostCancellationStatus;
       await overlap.route(pattern, async (route) => {
         if (!route.request().headers()["x-actual-cancel-if-uncommitted"])
           return route.continue();
+        expect(
+          route.request().headers()["x-actual-cancel-if-uncommitted"],
+        ).toBe("true");
         cancelAttempts++;
         if (!alreadyCommitted && cancelAttempts === 1)
           return route.abort("failed"); // Cancellation never reached server.
         const response = await forward(route);
         cancellationStatus = response.status();
-        if (cancelAttempts === (alreadyCommitted ? 1 : 2))
+        if (cancelAttempts === (alreadyCommitted ? 1 : 2)) {
           await route.abort("failed"); // Cancellation committed, acknowledgement lost.
-        else await route.fulfill({ response });
+          lostCancellationStatus = response.status();
+        } else await route.fulfill({ response });
       });
       await b.getByRole("button", { name: discardName, exact: true }).click();
       await expect.poll(() => cancelAttempts).toBe(1);
@@ -701,23 +708,17 @@ try {
       if (!alreadyCommitted) {
         expect(cancellationStatus).toBeUndefined();
         await b.reload();
-        await expect
-          .poll(() => cancelAttempts)
-          .toBe(2)
-          .catch(async (error) => {
-            console.log(
-              "CANCEL",
-              kind,
-              alreadyCommitted,
-              await b.locator("body").innerText(),
-            );
-            throw error;
-          });
-        await expect(
-          b.getByRole("button", { name: retryName, exact: true }),
-        ).toBeEnabled();
-        expect(cancelAttempts).toBe(2);
+        await expect.poll(() => lostCancellationStatus).toBe(409);
+        // Successful bootstrap reads may wake pending delivery after the lost
+        // cancellation ACK. Exercise that valid retry explicitly; every attempt
+        // above must preserve the exact identity and cancellation fence.
+        await b.evaluate(() => dispatchEvent(new Event("online")));
+        await expect.poll(() => cancelAttempts).toBeGreaterThanOrEqual(3);
+        await expect(b.getByTestId("pending-expenses")).toHaveCount(0);
       }
+      await expect
+        .poll(() => lostCancellationStatus)
+        .toBe(alreadyCommitted ? 201 : 409);
       expect(cancellationStatus).toBe(alreadyCommitted ? 201 : 409);
       if (!alreadyCommitted) {
         await new Promise((resolve) =>

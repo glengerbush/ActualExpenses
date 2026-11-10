@@ -399,6 +399,16 @@ try {
   await page
     .getByRole("combobox", { name: "Theme", exact: true })
     .selectOption("dark");
+  await page.locator("#date-format").selectOption("dd.MM.yyyy");
+  await page
+    .getByRole("button", { name: "Save shared preferences", exact: true })
+    .click();
+  await expect
+    .poll(
+      async () =>
+        (await api(`/budgets/${budget}/preferences`)).data.date_format,
+    )
+    .toBe("dd.MM.yyyy");
   await page.locator("#language").selectOption("de");
   await page.getByRole("button", { name: "Done", exact: true }).click();
   await page
@@ -407,6 +417,7 @@ try {
   await expect(
     widget.getByRole("columnheader", { name: "Von", exact: true }),
   ).toBeVisible();
+  await expect(widget).toContainText("09.11.2026 · 01.11.2026–30.11.2026");
   expect(
     (await api(`/budgets/${budget}/reporting`)).data.documents.find(
       (d) => d.id === saved.id,

@@ -1,0 +1,559 @@
+{
+  "sourceVersion": "26.10.0",
+  "sourceCommit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "apiBundleSha256": "fdfed936dac6ba6dc411bac27f94237a90c8cb0ea047a5d9d0d8a5d21ea9aa56",
+  "archive": {
+    "path": "gocardless-financial-source/linked-default-first-link-26.10.zip",
+    "sha256": "2be98c14d79cbed573cde7509bdf58b4f87b96780b70939579e85db2db5a95d2"
+  },
+  "scope": "Whole unchanged registered explicit GoCardless relink plus repeat using an immutable linked export. Every pre-existing source UUID and financial field remains literal; only genuinely new metadata UUIDs normalize for independent check.",
+  "before": {
+    "transactions": [
+      {
+        "id": "f6d348e8-e1a0-4367-8031-49d4e4b12a77",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "1c62124a-3502-48fa-8128-f71f45b7f913",
+        "category": null,
+        "amount": -200,
+        "payee": "7b33f575-2ab6-4c2b-ac20-5de4ab352fba",
+        "notes": "Pending ##purchase",
+        "date": "2026-11-03",
+        "imported_id": "pending-A",
+        "error": null,
+        "imported_payee": "Synthetic Shop",
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225600000,
+        "cleared": false,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": "{\"transactionId\":\"pending-A\",\"valueDateTime\":\"2026-11-03T12:30:00+01:00\",\"transactionAmount\":{\"amount\":\"-2.00\",\"currency\":\"EUR\"},\"creditorName\":\"SYNTHETIC SHOP\",\"remittanceInformationUnstructuredArray\":[\"Pending\",\"#purchase\"],\"remittanceInformationUnstructuredArrayString\":\"Pending,#purchase\",\"payeeName\":\"Synthetic Shop\",\"date\":\"2026-11-03\",\"notes\":\"Pending #purchase\",\"booked\":false,\"cleared\":false,\"amount\":\"-2.00\",\"imported_payee\":\"Synthetic Shop\",\"account\":\"1c62124a-3502-48fa-8128-f71f45b7f913\",\"payee\":\"7b33f575-2ab6-4c2b-ac20-5de4ab352fba\"}"
+      },
+      {
+        "id": "fd4f424a-7150-43c4-8844-9e52c4e94449",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "1c62124a-3502-48fa-8128-f71f45b7f913",
+        "category": null,
+        "amount": -1234,
+        "payee": "8439325b-67cf-481b-a4b2-d428e70a976c",
+        "notes": "Bank ##note",
+        "date": "2026-11-02",
+        "imported_id": "booked-A",
+        "error": null,
+        "imported_payee": "Synthetic Cafe (DE00 XXX 1234)",
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225598976,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": "{\"transactionId\":\"booked-A\",\"bookingDate\":\"2026-11-02\",\"valueDate\":\"2026-11-01\",\"transactionAmount\":{\"amount\":\"-12.34\",\"currency\":\"EUR\"},\"creditorName\":\"SYNTHETIC CAFE\",\"creditorAccount\":{\"iban\":\"DE0000000000001234\"},\"remittanceInformationUnstructured\":\"Bank #note\",\"payeeName\":\"Synthetic Cafe (DE00 XXX 1234)\",\"date\":\"2026-11-02\",\"notes\":\"Bank #note\",\"booked\":true,\"cleared\":true,\"amount\":\"-12.34\",\"imported_payee\":\"Synthetic Cafe (DE00 XXX 1234)\",\"account\":\"1c62124a-3502-48fa-8128-f71f45b7f913\",\"payee\":\"8439325b-67cf-481b-a4b2-d428e70a976c\"}"
+      },
+      {
+        "id": "e9ed15a3-a4d7-4d74-9d1e-b324fdad1750",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "1c62124a-3502-48fa-8128-f71f45b7f913",
+        "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+        "amount": 11284,
+        "payee": "bcdb9924-2efa-4ff5-ac01-dacb04a38c98",
+        "notes": null,
+        "date": "2026-11-01",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": true,
+        "transfer_id": null,
+        "sort_order": 1794225600000,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      }
+    ],
+    "accounts": [
+      {
+        "id": "1c62124a-3502-48fa-8128-f71f45b7f913",
+        "name": "GoCardless source checking",
+        "offbudget": 0,
+        "closed": 0,
+        "sort_order": null,
+        "last_reconciled": null,
+        "tombstone": 0,
+        "account_id": "remote-A",
+        "bank": "123b9a69-ce0d-4820-938b-d751b0abe5a4",
+        "bankName": "Synthetic institution",
+        "bankId": "123b9a69-ce0d-4820-938b-d751b0abe5a4",
+        "mask": "1234",
+        "official_name": "Synthetic checking",
+        "balance_current": null,
+        "balance_available": null,
+        "balance_limit": null,
+        "account_sync_source": "goCardless",
+        "last_sync": "1794225600000",
+        "bank_sync_status": "ok",
+        "account_group_id": null
+      }
+    ],
+    "payees": [
+      {
+        "id": "bcdb9924-2efa-4ff5-ac01-dacb04a38c98",
+        "name": "Starting Balance",
+        "transfer_acct": null
+      },
+      {
+        "id": "8439325b-67cf-481b-a4b2-d428e70a976c",
+        "name": "Synthetic Cafe (DE00 XXX 1234)",
+        "transfer_acct": null
+      },
+      {
+        "id": "7b33f575-2ab6-4c2b-ac20-5de4ab352fba",
+        "name": "Synthetic Shop",
+        "transfer_acct": null
+      },
+      {
+        "id": "31984c62-e6f1-4510-844b-5036850ed0d6",
+        "name": "GoCardless source checking",
+        "transfer_acct": "1c62124a-3502-48fa-8128-f71f45b7f913"
+      }
+    ],
+    "categories": [
+      {
+        "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+        "name": "Income",
+        "is_income": true,
+        "hidden": false,
+        "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+      },
+      {
+        "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+        "name": "Starting Balances",
+        "is_income": true,
+        "hidden": false,
+        "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+      }
+    ],
+    "preferences": {}
+  },
+  "input": {
+    "requisitionId": "renewed-requisition-B",
+    "account": {
+      "account_id": "renewed-remote-B",
+      "institution": {
+        "id": "FIXTURE_INSTITUTION",
+        "name": "Synthetic institution"
+      },
+      "name": "GoCardless source checking",
+      "mask": "1234",
+      "official_name": "Synthetic checking"
+    },
+    "upgradingId": "1c62124a-3502-48fa-8128-f71f45b7f913",
+    "startingDate": "2026-11-01"
+  },
+  "transport_response": {
+    "balances": [
+      {
+        "balanceType": "interimBooked",
+        "balanceAmount": {
+          "amount": "110.00",
+          "currency": "EUR"
+        }
+      },
+      {
+        "balanceType": "closingBooked",
+        "balanceAmount": {
+          "amount": "100.50",
+          "currency": "EUR"
+        }
+      }
+    ],
+    "institutionId": "FIXTURE_INSTITUTION",
+    "startingBalance": 11284,
+    "transactions": {
+      "booked": [
+        {
+          "transactionId": "booked-A",
+          "bookingDate": "2026-11-02",
+          "valueDate": "2026-11-01",
+          "transactionAmount": {
+            "amount": "-12.34",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC CAFE",
+          "creditorAccount": {
+            "iban": "DE0000000000001234"
+          },
+          "remittanceInformationUnstructured": "Bank #note",
+          "payeeName": "Synthetic Cafe (DE00 XXX 1234)",
+          "date": "2026-11-02",
+          "notes": "Bank #note"
+        }
+      ],
+      "pending": [
+        {
+          "transactionId": "pending-A",
+          "valueDateTime": "2026-11-03T12:30:00+01:00",
+          "transactionAmount": {
+            "amount": "-2.00",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC SHOP",
+          "remittanceInformationUnstructuredArray": [
+            "Pending",
+            "#purchase"
+          ],
+          "remittanceInformationUnstructuredArrayString": "Pending,#purchase",
+          "payeeName": "Synthetic Shop",
+          "date": "2026-11-03",
+          "notes": "Pending #purchase"
+        }
+      ],
+      "all": [
+        {
+          "transactionId": "pending-A",
+          "valueDateTime": "2026-11-03T12:30:00+01:00",
+          "transactionAmount": {
+            "amount": "-2.00",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC SHOP",
+          "remittanceInformationUnstructuredArray": [
+            "Pending",
+            "#purchase"
+          ],
+          "remittanceInformationUnstructuredArrayString": "Pending,#purchase",
+          "payeeName": "Synthetic Shop",
+          "date": "2026-11-03",
+          "notes": "Pending #purchase",
+          "booked": false
+        },
+        {
+          "transactionId": "booked-A",
+          "bookingDate": "2026-11-02",
+          "valueDate": "2026-11-01",
+          "transactionAmount": {
+            "amount": "-12.34",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC CAFE",
+          "creditorAccount": {
+            "iban": "DE0000000000001234"
+          },
+          "remittanceInformationUnstructured": "Bank #note",
+          "payeeName": "Synthetic Cafe (DE00 XXX 1234)",
+          "date": "2026-11-02",
+          "notes": "Bank #note",
+          "booked": true
+        }
+      ]
+    }
+  },
+  "requests": [
+    {
+      "path": "/gocardless/transactions",
+      "body": {
+        "requisitionId": "renewed-requisition-B",
+        "accountId": "renewed-remote-B",
+        "startDate": "2026-11-01",
+        "includeBalance": false
+      }
+    },
+    {
+      "path": "/gocardless/transactions",
+      "body": {
+        "requisitionId": "renewed-requisition-B",
+        "accountId": "renewed-remote-B",
+        "startDate": "2026-11-01",
+        "includeBalance": false
+      }
+    }
+  ],
+  "result": "ok",
+  "after": {
+    "transactions": [
+      {
+        "id": "f6d348e8-e1a0-4367-8031-49d4e4b12a77",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "1c62124a-3502-48fa-8128-f71f45b7f913",
+        "category": null,
+        "amount": -200,
+        "payee": "7b33f575-2ab6-4c2b-ac20-5de4ab352fba",
+        "notes": "Pending ##purchase",
+        "date": "2026-11-03",
+        "imported_id": "pending-A",
+        "error": null,
+        "imported_payee": "Synthetic Shop",
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225600000,
+        "cleared": false,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": "{\"transactionId\":\"pending-A\",\"valueDateTime\":\"2026-11-03T12:30:00+01:00\",\"transactionAmount\":{\"amount\":\"-2.00\",\"currency\":\"EUR\"},\"creditorName\":\"SYNTHETIC SHOP\",\"remittanceInformationUnstructuredArray\":[\"Pending\",\"#purchase\"],\"remittanceInformationUnstructuredArrayString\":\"Pending,#purchase\",\"payeeName\":\"Synthetic Shop\",\"date\":\"2026-11-03\",\"notes\":\"Pending #purchase\",\"booked\":false,\"cleared\":false,\"amount\":\"-2.00\",\"imported_payee\":\"Synthetic Shop\",\"account\":\"1c62124a-3502-48fa-8128-f71f45b7f913\",\"payee\":\"7b33f575-2ab6-4c2b-ac20-5de4ab352fba\"}"
+      },
+      {
+        "id": "fd4f424a-7150-43c4-8844-9e52c4e94449",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "1c62124a-3502-48fa-8128-f71f45b7f913",
+        "category": null,
+        "amount": -1234,
+        "payee": "8439325b-67cf-481b-a4b2-d428e70a976c",
+        "notes": "Bank ##note",
+        "date": "2026-11-02",
+        "imported_id": "booked-A",
+        "error": null,
+        "imported_payee": "Synthetic Cafe (DE00 XXX 1234)",
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225598976,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": "{\"transactionId\":\"booked-A\",\"bookingDate\":\"2026-11-02\",\"valueDate\":\"2026-11-01\",\"transactionAmount\":{\"amount\":\"-12.34\",\"currency\":\"EUR\"},\"creditorName\":\"SYNTHETIC CAFE\",\"creditorAccount\":{\"iban\":\"DE0000000000001234\"},\"remittanceInformationUnstructured\":\"Bank #note\",\"payeeName\":\"Synthetic Cafe (DE00 XXX 1234)\",\"date\":\"2026-11-02\",\"notes\":\"Bank #note\",\"booked\":true,\"cleared\":true,\"amount\":\"-12.34\",\"imported_payee\":\"Synthetic Cafe (DE00 XXX 1234)\",\"account\":\"1c62124a-3502-48fa-8128-f71f45b7f913\",\"payee\":\"8439325b-67cf-481b-a4b2-d428e70a976c\"}"
+      },
+      {
+        "id": "e9ed15a3-a4d7-4d74-9d1e-b324fdad1750",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "1c62124a-3502-48fa-8128-f71f45b7f913",
+        "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+        "amount": 11284,
+        "payee": "bcdb9924-2efa-4ff5-ac01-dacb04a38c98",
+        "notes": null,
+        "date": "2026-11-01",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": true,
+        "transfer_id": null,
+        "sort_order": 1794225600000,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      }
+    ],
+    "accounts": [
+      {
+        "id": "1c62124a-3502-48fa-8128-f71f45b7f913",
+        "name": "GoCardless source checking",
+        "offbudget": 0,
+        "closed": 0,
+        "sort_order": null,
+        "last_reconciled": null,
+        "tombstone": 0,
+        "account_id": "renewed-remote-B",
+        "bank": "0228f07b-21e8-4d35-bc16-468fe4049603",
+        "bankName": "Synthetic institution",
+        "bankId": "0228f07b-21e8-4d35-bc16-468fe4049603",
+        "mask": "1234",
+        "official_name": "Synthetic checking",
+        "balance_current": null,
+        "balance_available": null,
+        "balance_limit": null,
+        "account_sync_source": "goCardless",
+        "last_sync": "1794225600000",
+        "bank_sync_status": "ok",
+        "account_group_id": null
+      }
+    ],
+    "payees": [
+      {
+        "id": "bcdb9924-2efa-4ff5-ac01-dacb04a38c98",
+        "name": "Starting Balance",
+        "transfer_acct": null
+      },
+      {
+        "id": "8439325b-67cf-481b-a4b2-d428e70a976c",
+        "name": "Synthetic Cafe (DE00 XXX 1234)",
+        "transfer_acct": null
+      },
+      {
+        "id": "7b33f575-2ab6-4c2b-ac20-5de4ab352fba",
+        "name": "Synthetic Shop",
+        "transfer_acct": null
+      },
+      {
+        "id": "31984c62-e6f1-4510-844b-5036850ed0d6",
+        "name": "GoCardless source checking",
+        "transfer_acct": "1c62124a-3502-48fa-8128-f71f45b7f913"
+      }
+    ],
+    "categories": [
+      {
+        "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+        "name": "Income",
+        "is_income": true,
+        "hidden": false,
+        "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+      },
+      {
+        "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+        "name": "Starting Balances",
+        "is_income": true,
+        "hidden": false,
+        "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+      }
+    ],
+    "preferences": {}
+  },
+  "repeated": {
+    "errors": [],
+    "newTransactions": [],
+    "matchedTransactions": [],
+    "updatedAccounts": []
+  },
+  "repeat": {
+    "transactions": [
+      {
+        "id": "f6d348e8-e1a0-4367-8031-49d4e4b12a77",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "1c62124a-3502-48fa-8128-f71f45b7f913",
+        "category": null,
+        "amount": -200,
+        "payee": "7b33f575-2ab6-4c2b-ac20-5de4ab352fba",
+        "notes": "Pending ##purchase",
+        "date": "2026-11-03",
+        "imported_id": "pending-A",
+        "error": null,
+        "imported_payee": "Synthetic Shop",
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225600000,
+        "cleared": false,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": "{\"transactionId\":\"pending-A\",\"valueDateTime\":\"2026-11-03T12:30:00+01:00\",\"transactionAmount\":{\"amount\":\"-2.00\",\"currency\":\"EUR\"},\"creditorName\":\"SYNTHETIC SHOP\",\"remittanceInformationUnstructuredArray\":[\"Pending\",\"#purchase\"],\"remittanceInformationUnstructuredArrayString\":\"Pending,#purchase\",\"payeeName\":\"Synthetic Shop\",\"date\":\"2026-11-03\",\"notes\":\"Pending #purchase\",\"booked\":false,\"cleared\":false,\"amount\":\"-2.00\",\"imported_payee\":\"Synthetic Shop\",\"account\":\"1c62124a-3502-48fa-8128-f71f45b7f913\",\"payee\":\"7b33f575-2ab6-4c2b-ac20-5de4ab352fba\"}"
+      },
+      {
+        "id": "fd4f424a-7150-43c4-8844-9e52c4e94449",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "1c62124a-3502-48fa-8128-f71f45b7f913",
+        "category": null,
+        "amount": -1234,
+        "payee": "8439325b-67cf-481b-a4b2-d428e70a976c",
+        "notes": "Bank ##note",
+        "date": "2026-11-02",
+        "imported_id": "booked-A",
+        "error": null,
+        "imported_payee": "Synthetic Cafe (DE00 XXX 1234)",
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225598976,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": "{\"transactionId\":\"booked-A\",\"bookingDate\":\"2026-11-02\",\"valueDate\":\"2026-11-01\",\"transactionAmount\":{\"amount\":\"-12.34\",\"currency\":\"EUR\"},\"creditorName\":\"SYNTHETIC CAFE\",\"creditorAccount\":{\"iban\":\"DE0000000000001234\"},\"remittanceInformationUnstructured\":\"Bank #note\",\"payeeName\":\"Synthetic Cafe (DE00 XXX 1234)\",\"date\":\"2026-11-02\",\"notes\":\"Bank #note\",\"booked\":true,\"cleared\":true,\"amount\":\"-12.34\",\"imported_payee\":\"Synthetic Cafe (DE00 XXX 1234)\",\"account\":\"1c62124a-3502-48fa-8128-f71f45b7f913\",\"payee\":\"8439325b-67cf-481b-a4b2-d428e70a976c\"}"
+      },
+      {
+        "id": "e9ed15a3-a4d7-4d74-9d1e-b324fdad1750",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "1c62124a-3502-48fa-8128-f71f45b7f913",
+        "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+        "amount": 11284,
+        "payee": "bcdb9924-2efa-4ff5-ac01-dacb04a38c98",
+        "notes": null,
+        "date": "2026-11-01",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": true,
+        "transfer_id": null,
+        "sort_order": 1794225600000,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      }
+    ],
+    "accounts": [
+      {
+        "id": "1c62124a-3502-48fa-8128-f71f45b7f913",
+        "name": "GoCardless source checking",
+        "offbudget": 0,
+        "closed": 0,
+        "sort_order": null,
+        "last_reconciled": null,
+        "tombstone": 0,
+        "account_id": "renewed-remote-B",
+        "bank": "0228f07b-21e8-4d35-bc16-468fe4049603",
+        "bankName": "Synthetic institution",
+        "bankId": "0228f07b-21e8-4d35-bc16-468fe4049603",
+        "mask": "1234",
+        "official_name": "Synthetic checking",
+        "balance_current": null,
+        "balance_available": null,
+        "balance_limit": null,
+        "account_sync_source": "goCardless",
+        "last_sync": "1794225600000",
+        "bank_sync_status": "ok",
+        "account_group_id": null
+      }
+    ],
+    "payees": [
+      {
+        "id": "bcdb9924-2efa-4ff5-ac01-dacb04a38c98",
+        "name": "Starting Balance",
+        "transfer_acct": null
+      },
+      {
+        "id": "8439325b-67cf-481b-a4b2-d428e70a976c",
+        "name": "Synthetic Cafe (DE00 XXX 1234)",
+        "transfer_acct": null
+      },
+      {
+        "id": "7b33f575-2ab6-4c2b-ac20-5de4ab352fba",
+        "name": "Synthetic Shop",
+        "transfer_acct": null
+      },
+      {
+        "id": "31984c62-e6f1-4510-844b-5036850ed0d6",
+        "name": "GoCardless source checking",
+        "transfer_acct": "1c62124a-3502-48fa-8128-f71f45b7f913"
+      }
+    ],
+    "categories": [
+      {
+        "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+        "name": "Income",
+        "is_income": true,
+        "hidden": false,
+        "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+      },
+      {
+        "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+        "name": "Starting Balances",
+        "is_income": true,
+        "hidden": false,
+        "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+      }
+    ],
+    "preferences": {}
+  }
+}

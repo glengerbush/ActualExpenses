@@ -1,10 +1,10 @@
 # YNAB and custom-report integration — pending
 
-Integration branch `codex/integrate-ynab-custom`, initial reviewed custom-report
-head `84e5e08`, followed by reviewed locale correction `055e79e`. Accepted main
-remains `a5c784c`; no34 acceptance, push, release
-or deployment. Ticket27 is still independently implementing;35 has its own
-worktree and is not included. Combine final qualification where possible.
+Integration branch `codex/integrate-ynab-custom`, frozen composition `0a284f2`:
+reviewed custom reports through locale correction `055e79e` and complete YNAB
+migration `bbfa627`. Accepted main remains `a5c784c`; no27/34 acceptance, push,
+release or deployment yet.35 and28 remain separate.47 starts from the reviewed
+composition while root qualifies it. One combined verification batch is running.
 
 ##34 review and merge
 
@@ -78,9 +78,41 @@ cleanup and late-response fencing with a public delayed-provider witness.
 Other reviewed metadata/transport changes have no actionable findings; this
 checkpoint remains pending that correction and is not joined here.
 
+The cancellation finding is closed in `7f71f2a`: deletion shares the canceled
+receipt transaction, and late capture probes that receipt before writing bytes.
+Root reviewed code and the true public capacity red/green: four canceled held
+near16MiB responses no longer prevent the next2MiB capture, canceled outcomes
+remain exact, metadata/ledger stay unchanged and requests still count to quota.
+Known captured error codes are preserved, without claiming a separate
+interrupted-error restart witness. A second byte-bound issue is corrected in
+`f45aaa1`: both SQLite sums count UTF-8 blob bytes rather than TEXT characters.
+This narrow correction is reviewed; its next financial build/lint is pending.
+
+## Final27 review and composition
+
+Root reviewed final interface/contracts/companion changes and the bounded
+YNAB4 sparse-carry correction through `bbfa627`. The source importer propagates
+carry flags through its current-month-plus12 horizon; missing months now retain
+zero-amount carry cells with explicit resets and100000 cell/work limits. Two
+genuine SDK executions of labeled synthetic inputs expose gap/reset behavior;
+all nine public cases pass. No source formula is copied into expected outputs.
+
+Standards/Spec/Impeccable review has no unresolved27 findings. Root inspected
+mobile and dark enlarged-text renders, saved format/filename/operation behavior,
+visible source-model differences, privacy-aware balances, typed API contracts
+and companion offline delivery assertions. Existing Actual import behavior,
+retained originals and schema22 remain covered. Source-specific limitations are
+visible; no physical-device test or full offline budgeting claim is made.
+
+Merge conflicts were limited to capability and browser-command lists. Both
+intents are retained:105 paths with every parent operation definition unchanged,
+both capability sets and68 maintained browser commands. The six YNAB source
+checks remain wired into release verification. Svelte check, format, build and
+merged App autofixer pass. Broad Rust, native and container checks are running;
+their results are not yet acceptance evidence.
+
 ## Remaining gates
 
-- Complete and review27 before joining its public import/API/UI/native slice.
 - Qualify the frozen composition; reuse unchanged prior acceptance evidence.
 - Record exact checks, limitations and disposable resource cleanup before
   fast-forwarding main and closing notes. No new acceptance claimed here.

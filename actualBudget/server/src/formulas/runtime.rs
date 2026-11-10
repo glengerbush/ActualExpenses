@@ -46,7 +46,7 @@ fn bytecode() -> Result<&'static [u8], Error> {
         let rt = runtime()?;
         let context = Context::full(&rt).map_err(|e| e.to_string())?;
         context.with(|ctx| {
-            let module=Module::declare(ctx.clone(),"trusted-hyperformula",format!("var self=globalThis;{SOURCE};HyperFormula.HyperFormula.registerLanguage('enUS',{LANGUAGE});{FUNCTIONS};HyperFormula.HyperFormula.registerFunctionPlugin(ActualFormulaFunctions.CustomFunctionsPlugin,ActualFormulaFunctions.customFunctionsTranslations);"))
+            let module=Module::declare(ctx.clone(),"trusted-hyperformula",format!("var self=globalThis;{SOURCE};HyperFormula.HyperFormula.registerLanguage('enUS',{LANGUAGE});{FUNCTIONS};globalThis.ActualFormulaFunctions=ActualFormulaFunctions;HyperFormula.HyperFormula.registerFunctionPlugin(ActualFormulaFunctions.CustomFunctionsPlugin,ActualFormulaFunctions.customFunctionsTranslations);"))
                 .map_err(|e|failure(&ctx,e))?;
             module.write(WriteOptions::default()).map_err(|e|failure(&ctx,e))
         })
@@ -68,6 +68,24 @@ globalThis.Intl=Object.freeze({Collator:class {
 }});
 "#;
 const EVALUATE: &str = include_str!("evaluate.js");
+const CLOCK: &str = r#"
+{
+ const NativeDate = Date, now = JSON.parse(__input).local_clock_ms;
+ globalThis.Date = class extends NativeDate {
+  constructor(...args) { super(...(args.length ? args : [now])); }
+  static now() { return now; }
+  getFullYear() { return this.getUTCFullYear(); }
+  getMonth() { return this.getUTCMonth(); }
+  getDate() { return this.getUTCDate(); }
+  getDay() { return this.getUTCDay(); }
+  getHours() { return this.getUTCHours(); }
+  getMinutes() { return this.getUTCMinutes(); }
+  getSeconds() { return this.getUTCSeconds(); }
+  getMilliseconds() { return this.getUTCMilliseconds(); }
+  getTimezoneOffset() { return 0; }
+ };
+}
+"#;
 pub fn evaluate(
     input: &Value,
     mut prefetch: impl FnMut(&Value) -> Result<Value, Error>,
@@ -166,6 +184,8 @@ pub fn evaluate(
         ctx.globals()
             .set("__input", input.to_string())
             .map_err(Error::internal)?;
+        ctx.eval::<(), _>(CLOCK)
+            .map_err(|e| Error::invalid(failure(&ctx, e)))?;
         let mut updates = json!({});
         for phase in 0..3 {
             ctx.globals()

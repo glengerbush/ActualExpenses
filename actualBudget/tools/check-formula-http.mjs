@@ -4,12 +4,19 @@ import { readFile } from "node:fs/promises";
 import { randomUUID, createHash } from "node:crypto";
 import { startServer } from "../web/tests/server.mjs";
 import { cloneImportedTemplate } from "../web/tests/import-template.mjs";
-const edges = process.argv.includes("--edges"), budget = process.argv.includes("--budget"),
+const edges = process.argv.includes("--edges"),
+  budget = process.argv.includes("--budget"),
   fixture = JSON.parse(
     await readFile(
       new URL(
         "../tests/fixtures/" +
-          (edges ? "formula-edges-source.json" : budget ? "formula-budget-source.json" : "formula-source.json"),
+          (process.argv.includes("--clock")
+            ? "formula-clock-source.json"
+            : edges
+              ? "formula-edges-source.json"
+              : budget
+                ? "formula-budget-source.json"
+                : "formula-source.json"),
         import.meta.url,
       ),
     ),
@@ -66,7 +73,9 @@ async function check(archive, observations) {
         named_expressions: item.namedExpressions ?? {},
         snapshot: before.data.snapshot,
         as_of: "2026-11-09",
-        ...(item.locale?{locale:item.locale}:{}),
+        evaluated_at:
+          item.evaluated_at ?? fixture.clock ?? "2026-11-09T12:00:00Z",
+        ...(item.locale ? { locale: item.locale } : {}),
       },
       output = await call(root + "/reports/formula", input);
     assert.equal(output.data.snapshot, before.data.snapshot);
@@ -107,6 +116,28 @@ async function check(archive, observations) {
   await call(root + "/reports/formula", valid, 400, {
     "X-Actual-Receipt-Only": "true",
   });
+  if (edges) {
+    const bounded = await call(
+      root + "/reports/formula",
+      {
+        ...valid,
+        formula: '=QUERY_EXTRACT_CATEGORIES("Bounded")',
+        queries: {
+          Bounded: {
+            conditions: [
+              { field: "category", op: "matches", value: "a".repeat(2049) },
+            ],
+          },
+        },
+      },
+      400,
+    );
+    assert.equal(bounded.error.code, "regex_complexity_limit");
+    assert.deepEqual(
+      (await call(root + "/reports/formula", valid)).data.output,
+      { result: 6, error: null },
+    );
+  }
 
   if (process.argv.includes("--limits")) {
     const response = await fetch(api + root + "/reports/formula", {
@@ -151,9 +182,13 @@ async function check(archive, observations) {
 }
 try {
   if (budget || edges) {
-    const scenario=process.argv.find(a=>a.startsWith("--scenario="))?.slice(11);
-    const cases=fixture.cases.filter(c=>!scenario||new RegExp(scenario).test(c.id??c.method));
-    assert.ok(cases.length>0,"No matching scenarios");
+    const scenario = process.argv
+      .find((a) => a.startsWith("--scenario="))
+      ?.slice(11);
+    const cases = fixture.cases.filter(
+      (c) => !scenario || new RegExp(scenario).test(c.id ?? c.method),
+    );
+    assert.ok(cases.length > 0, "No matching scenarios");
     for (const c of cases) await check(c.archive, c.observations);
   } else
     await check(

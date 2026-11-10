@@ -124,6 +124,20 @@ and named-query editing/rendering/import flows, served contracts, representative
 companion checks and all42 rule/template integration are still unfinished.
 No whole-ticket or release qualification is claimed here.
 
+## Root continuation: query edges, preferences and volatile clock
+
+2026-11-10: preserved interrupted worker checkpoint b414539 and merged at0e5d174. Root independently reproduced its21 complete source-hook observations, then strengthened the producer to reload each actual exported archive before observation. Immutable ZIPs and expected outputs unchanged. `/tmp/formula-edges-root-reload-source.log` PASS covers named condition metadata, malformed category patterns, imported payee text, duplicate account names, EUR/JPY preference formatting and UTC TODAY/NOW.
+
+Root review found shared report filtering skipped named conditions in formula transaction queries (observed1204 versus source−58). The formula-local adapter now strips only `customName` before shared predicate evaluation; category extraction deliberately retains the source's different named-condition semantics. Invalid category regex syntax produces the source nonmatch; compilation/work limits still refuse explicitly. Account-name lookup retains ID priority and source ordering without preferring open accounts over earlier closed accounts. Imported-payee filtering uses its existing stored text column. Public source comparisons confirm all these changes.
+
+Formula contexts now receive current authoritative shared preferences and configure the unchanged pinned custom-functions plugin. Currency symbols/decimal places come from the pinned currency catalogue; five supported grouping/separator formats map to the source conventions. Currency-disabled formulas retain the source USD fallback. EUR hidden-fraction number formatting, explicit decimal overrides and EUR/JPY currency output match exactly. The tiny trusted bundle entry exposes the pinned currency helper alongside existing functions; generator records its hash and retains existing licenses. No new host bindings or executable user code.
+
+Optional `evaluated_at` is an RFC3339 instant with the caller's UTC offset; omitted uses the server's current UTC time. The response returns that instant. All three evaluation passes share one frozen wall clock for NOW/TODAY, independent of server timezone. `as_of` remains the separately explicit report/query calendar date. Six additional complete unchanged-source-hook observations use the same instant in UTC, Pacific/Kiritimati(+14, following day) and America/New_York(−05). `formula-clock-source.json` records the genuine archive/source hashes and outputs; `/tmp/formula-clock-root-source.log` and `/tmp/formula-clock-root-http.log` PASS exact results. Browser integration must supply its current RFC3339 local offset and label this snapshot.
+
+Focused verification: `/tmp/formula-edges-root-green.log`21/21; `/tmp/formula-preferences-root-core.log`40/40; `/tmp/formula-preferences-root-budget.log`10/10; clock6/6 =77 source comparisons, with exact financial/string/date equality and only the original predeclared statistical tolerances. Public checks preserve financial records/checkpoints, reject stale snapshots, distinguish oversized regex refusal from malformed-pattern nonmatch, and verify subsequent evaluations recover. Rust build/Clippy warnings-denied and reproducible assets pass (`/tmp/formula-preferences-root-{build,clippy,assets-check}.log`). Root consolidated standards/spec review found no remaining issue in this checkpoint.
+
+Still partial41: card/query UI, named-query editing, import/native/served-contract/Android integration and complete feature acceptance remain open. Missing preference values currently adopt the accepted native preference conversion defaults; before41 acceptance, compare formula formatting when original optional preferences are absent and address any mismatch. No broad suite, push, release or deployment.
+
 ## Root runtime review and composition
 
 Reviewed065c94d and79e6ba9 against pinned production prefetch/evaluation code;

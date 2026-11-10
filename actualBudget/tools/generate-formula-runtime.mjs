@@ -23,7 +23,7 @@ const dependencies = createRequire(
   sha = (v) => createHash("sha256").update(v).digest("hex");
 assert.equal(dependencies("hyperformula").HyperFormula.version, "3.5.0");
 const bundle = await rolldown({
-  input: base + "shared/formulas/customFunctions.ts",
+  input: fileURLToPath(new URL("./formula-runtime-entry.ts", import.meta.url)),
   external: ["hyperformula"],
   plugins: [
     {
@@ -72,6 +72,9 @@ for (const [name, text] of Object.entries(assets)) {
 const manifest = {
   source_commit: "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
   hyperformula: "3.5.0",
+  adapter_sha256: sha(
+    await readFile(new URL("./formula-runtime-entry.ts", import.meta.url)),
+  ),
   source_hashes: hashes,
   assets: Object.fromEntries(
     Object.entries(assets).map(([k, v]) => [k, sha(v)]),

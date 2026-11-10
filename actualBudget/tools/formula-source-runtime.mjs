@@ -69,7 +69,8 @@ export function formulaSourceRuntime(api, engine) {
           Fragment: () => null,
         };
       if (name === "./useLocale") return { useLocale: () => selectedLocale };
-      if (name === "./useGlobalPref") return { useGlobalPref: () => [selectedLocale] };
+      if (name === "./useGlobalPref")
+        return { useGlobalPref: () => [selectedLocale] };
       if (name === "hyperformula" || name.startsWith("hyperformula/"))
         return dependencies(name);
       if (name.startsWith("#util/"))
@@ -133,7 +134,13 @@ export function formulaSourceRuntime(api, engine) {
     return module.exports;
   }
   return {
-    async evaluate(formula, queries = {}, namedExpressions, accounts = [], locale = "en-US") {
+    async evaluate(
+      formula,
+      queries = {},
+      namedExpressions,
+      accounts = [],
+      locale = "en-US",
+    ) {
       selectedLocale = locale;
       states = [];
       stateIndex = 0;

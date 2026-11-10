@@ -56,8 +56,22 @@ impl Context<'_> {
             return Err(Error::invalid("Invalid named query configuration"));
         }
         let mut values = vec![SqlValue::Text(self.budget.into())];
-        let mut filter =
-            crate::reports::formula_predicate(self.db, self.budget, config, &mut values)?;
+        // Formula transaction queries apply named conditions; report graphs skip
+        // them. Strip only presentation metadata at this adapter boundary.
+        let mut transaction_config = config.clone();
+        if let Some(conditions) = transaction_config["conditions"].as_array_mut() {
+            for condition in conditions {
+                if let Some(condition) = condition.as_object_mut() {
+                    condition.remove("customName");
+                }
+            }
+        }
+        let mut filter = crate::reports::formula_predicate(
+            self.db,
+            self.budget,
+            &transaction_config,
+            &mut values,
+        )?;
         if truthy(&config["timeFrame"]["mode"]) {
             let frame = self.frame(&config["timeFrame"])?;
             let normal = |v: &Value, end: bool| -> Result<String, Error> {

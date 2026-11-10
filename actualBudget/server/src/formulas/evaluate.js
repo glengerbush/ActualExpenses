@@ -5,6 +5,29 @@ JSON.stringify(
     const input = JSON.parse(__input),
       updates = JSON.parse(__updates),
       HF = HyperFormula.HyperFormula;
+    const prefs = input.preferences,
+      customCurrency = prefs.experimental.currency && prefs.currency_code,
+      currency = ActualFormulaFunctions.getCurrency(customCurrency || "USD"),
+      separators = {
+        "comma-dot": [",", "."],
+        "dot-comma": [".", ","],
+        "space-comma": ["\u202f", ","],
+        "apostrophe-dot": ["\u2019", "."],
+        "comma-dot-in": [",", "."],
+      }[prefs.number_format];
+    ActualFormulaFunctions.setCachedUserPreferences({
+      currency,
+      numberFormat: prefs.number_format,
+      decimalPlaces: prefs.hide_fraction ? 0 : currency.decimalPlaces,
+      thousandsSeparator: separators[0],
+      decimalSeparator: separators[1],
+      locale: input.locale,
+      currencySymbolPosition: customCurrency
+        ? prefs.currency_symbol_position
+        : "before",
+      currencySpaceBetweenAmountAndSymbol:
+        !!customCurrency && prefs.currency_space,
+    });
     const context = (globalThis.__formulaContext ||= {
       queryNames: new Set(),
       queryCountNames: new Set(),

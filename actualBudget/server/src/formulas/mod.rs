@@ -18,6 +18,8 @@ use serde_json::{Value, json};
 struct Input {
     snapshot: String,
     as_of: String,
+    #[serde(default)]
+    evaluated_at: Option<String>,
     formula: String,
     #[serde(default)]
     locale: Option<String>,
@@ -43,6 +45,15 @@ async fn read(
     crate::models::validate_id(&b)?;
     let Json(input) = input.map_err(crate::api::json_error)?;
     crate::models::validate_date(&input.as_of)?;
+    let evaluated_at = match &input.evaluated_at {
+        Some(value) => chrono::DateTime::parse_from_rfc3339(value)
+            .map_err(|_| Error::invalid("Expected RFC3339 formula evaluation time"))?,
+        None => chrono::DateTime::<chrono::Utc>::from(std::time::SystemTime::now()).fixed_offset(),
+    };
+    // HyperFormula NOW/TODAY use wall-clock fields. Retain the supplied offset
+    // independently of the server's timezone and freeze all three passes.
+    let local_clock_ms =
+        evaluated_at.timestamp_millis() + i64::from(evaluated_at.offset().local_minus_utc()) * 1000;
     if input.formula.len() > 8192
         || !input.queries.is_object()
         || !input.named_expressions.is_object()
@@ -91,11 +102,12 @@ async fn read(
         let snapshot=concurrency::cursor(&tx,&b)?;
         if input.snapshot!=snapshot{return Err(Error::conflict("Formula snapshot changed; refresh before evaluating"));}
         let today=chrono::NaiveDate::parse_from_str(&input.as_of,"%Y-%m-%d").map_err(Error::internal)?;
+        let preferences=crate::preferences::get_preferences(&tx,&b)?;
         let output=crate::reports::formula_work(&tx,||crate::register::with_report_matcher(&tx,|matcher|{
             let mut context=context::Context{db:&tx,budget:&b,queries:&input.queries,today,work:500000,prefetch_values:0,matcher};
-            runtime::evaluate(&json!({"formula":input.formula,"named_expressions":input.named_expressions,"as_of":input.as_of,"locale":input.locale.as_deref().unwrap_or("en-US")}),|requests|context.prefetch(requests))
+            runtime::evaluate(&json!({"formula":input.formula,"named_expressions":input.named_expressions,"as_of":input.as_of,"local_clock_ms":local_clock_ms,"preferences":preferences,"locale":input.locale.as_deref().unwrap_or("en-US")}),|requests|context.prefetch(requests))
         }))?;
-        Ok(json!({"output":output,"snapshot":snapshot,"as_of":input.as_of,"locale":input.locale.as_deref().unwrap_or("en-US")}))
+        Ok(json!({"output":output,"snapshot":snapshot,"as_of":input.as_of,"evaluated_at":evaluated_at.to_rfc3339(),"locale":input.locale.as_deref().unwrap_or("en-US")}))
     }).await?;
     Ok(Json(json!({"data":result})))
 }

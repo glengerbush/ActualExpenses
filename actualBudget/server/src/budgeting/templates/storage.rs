@@ -67,7 +67,7 @@ pub(super) fn validate_config(row: &Value) -> Result<(), Error> {
 }
 pub fn install(db: &Connection, b: &str, data: &Value) -> Result<(), Error> {
     if let Some(currency) = data["currency"].as_str() {
-        db.execute("UPDATE budget_settings SET template_currency=?2 WHERE budget_id=?1 AND template_currency IS NULL",params![b,currency])?;
+        db.execute("UPDATE budget_settings SET template_currency=?2,template_currency_review=?3 WHERE budget_id=?1 AND template_currency IS NULL",params![b,currency,data["currency_review"].as_bool().unwrap_or(false)])?;
     }
     for row in data["rows"].as_array().into_iter().flatten() {
         validate_config(row)?;
@@ -145,6 +145,20 @@ pub fn record(db: &Connection, b: &str, entity: &str, id: &str) -> Result<Value,
     Ok(row)
 }
 pub fn enrich(db: &Connection, budget: Option<&str>) -> Result<(), Error> {
+    enrich_using(db, budget, None)
+}
+pub fn enrich_archive(
+    db: &Connection,
+    budget: Option<&str>,
+    receipts: &[(String, String, String)],
+) -> Result<(), Error> {
+    enrich_using(db, budget, Some(receipts))
+}
+fn enrich_using(
+    db: &Connection,
+    budget: Option<&str>,
+    receipts: Option<&[(String, String, String)]>,
+) -> Result<(), Error> {
     let mut q=db.prepare("SELECT s.budget_id,s.original FROM staged_imports s JOIN imported_sources i ON i.import_id=s.id WHERE s.status='activated' AND (?1 IS NULL OR s.budget_id=?1) UNION SELECT budget_id,original FROM budget_provenance WHERE kind='actual-import' AND original IS NOT NULL AND (?1 IS NULL OR budget_id=?1)")?;
     let originals = q
         .query_map([budget], |r| {
@@ -152,9 +166,24 @@ pub fn enrich(db: &Connection, budget: Option<&str>) -> Result<(), Error> {
         })?
         .collect::<Result<Vec<_>, _>>()?;
     for (b, bytes) in originals {
-        let Ok((_, data)) = crate::imports::conversion::inspect(&bytes) else {
+        let Ok((_, mut data)) = crate::imports::conversion::inspect(&bytes) else {
             continue;
         };
+        if db.query_row(
+            "SELECT template_currency IS NULL FROM budget_settings WHERE budget_id=?1",
+            [&b],
+            |r| r.get::<_, bool>(0),
+        )? {
+            let resolved = currency_lineage::resolve(
+                db,
+                &b,
+                &data["preferences"],
+                data["automations"]["currency"].as_str().unwrap_or(""),
+                receipts,
+            )?;
+            data["automations"]["currency"] = json!(resolved.0);
+            data["automations"]["currency_review"] = json!(resolved.1);
+        }
         install(db, &b, &data["automations"])?;
         for c in data["clocks"].as_array().into_iter().flatten() {
             clock(db, &b, c)?;

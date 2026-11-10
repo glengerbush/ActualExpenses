@@ -1,6 +1,7 @@
 mod calculators;
 mod configuration;
 mod context;
+mod currency_lineage;
 mod engine;
 mod parse;
 mod storage;
@@ -16,7 +17,7 @@ use rusqlite::Connection;
 use serde::Deserialize;
 use serde_json::Value;
 use serde_json::json;
-pub use storage::{clock, convert, enrich, install, record};
+pub use storage::{clock, convert, enrich, enrich_archive, install, record};
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Notes {

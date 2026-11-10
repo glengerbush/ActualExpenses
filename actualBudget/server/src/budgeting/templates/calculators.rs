@@ -15,6 +15,16 @@ pub(super) struct Environment<'a> {
 impl<'a> Environment<'a> {
     pub fn new(db: &'a Connection, b: &'a str, m: &str, current: Value) -> Result<Self, Error> {
         let p = crate::preferences::get_preferences(db, b)?;
+        let review: bool = db.query_row(
+            "SELECT template_currency_review FROM budget_settings WHERE budget_id=?1",
+            [b],
+            |r| r.get(0),
+        )?;
+        if review {
+            return Err(Error::invalid(
+                "Calculator currency needs review after the upgrade. Select the intended currency in Settings (or explicitly disable Currency display), then retry the template preview.",
+            ));
+        }
         let imported: Option<String> = db.query_row(
             "SELECT template_currency FROM budget_settings WHERE budget_id=?1",
             [b],

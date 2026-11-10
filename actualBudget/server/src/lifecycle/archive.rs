@@ -607,8 +607,10 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             return Err(invalid("Unexpected legacy template currency"));
         }
         settings.columns.push("template_currency".into());
+        settings.columns.push("template_currency_review".into());
         for row in &mut settings.rows {
             row.push(Value::Null);
+            row.push(json!(0));
         }
         for (name, columns) in [
             (
@@ -957,7 +959,16 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
         crate::categories::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
     }
     if archive.legacy_automations {
-        crate::budgeting::templates::enrich(db, archive.state.budget["id"].as_str())?;
+        crate::budgeting::templates::enrich_archive(
+            db,
+            archive.state.budget["id"].as_str(),
+            &archive
+                .state
+                .receipts
+                .iter()
+                .map(|r| (r.scope.clone(), r.payload.clone(), r.response.clone()))
+                .collect::<Vec<_>>(),
+        )?;
     }
     if archive.legacy_schedules {
         crate::schedules::enrich(db, archive.state.budget["id"].as_str())?;

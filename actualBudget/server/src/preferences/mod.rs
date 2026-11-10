@@ -99,7 +99,7 @@ pub fn validate_change(key: &str, value: &Value) -> Result<(), Error> {
     }
 }
 /// Actual clears the selected currency when its experimental feature is disabled.
-pub(super) fn normalize_currency(values: &mut Value) {
+pub(crate) fn normalize_currency(values: &mut Value) {
     if values["experimental"]["currency"] != true {
         values["currency_code"] = json!("");
     }
@@ -158,7 +158,7 @@ pub fn apply_changes(
     {
         let clock = crate::concurrency::clock(db, budget, None)?;
         db.execute(
-            "UPDATE budget_settings SET template_currency=?2 WHERE budget_id=?1",
+            "UPDATE budget_settings SET template_currency=?2,template_currency_review=0 WHERE budget_id=?1",
             params![budget, values["currency_code"].as_str().unwrap_or("")],
         )?;
         crate::concurrency::seed_field_version(
@@ -167,6 +167,14 @@ pub fn apply_changes(
             "budget_settings",
             "method",
             "template_currency",
+            &clock,
+        )?;
+        crate::concurrency::seed_field_version(
+            db,
+            budget,
+            "budget_settings",
+            "method",
+            "template_currency_review",
             &clock,
         )?;
         crate::concurrency::mark(db, budget, "budget_settings", "method")?;

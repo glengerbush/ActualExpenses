@@ -56,6 +56,7 @@ pub const TABLES: &[&str] = &[
 ];
 const AUXILIARY: &[&str] = &[
     "bank_credentials",
+    "bank_gocardless_credentials",
     "bank_jobs",
     "bank_request_log",
     "history_lineage",
@@ -174,7 +175,7 @@ pub fn capture(db: &Connection, budget: &str) -> Result<Vec<u8>, Error> {
     let body = serde_json::to_vec(&state).map_err(Error::internal)?;
     let mut entries = BTreeMap::from([("budget.json".to_owned(), body)]);
     entries.extend(blobs);
-    let manifest = json!({"format":"actualBudget","version":1,"schema_version":24,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
+    let manifest = json!({"format":"actualBudget","version":1,"schema_version":25,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
     if entries.len() + 1 > 1000
         || entries.values().map(Vec::len).sum::<usize>() + manifest.to_string().len() > MAX_EXPANDED
     {
@@ -250,7 +251,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || !matches!(manifest["schema_version"].as_u64(), Some(6..=24))
+        || !matches!(manifest["schema_version"].as_u64(), Some(6..=25))
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }

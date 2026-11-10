@@ -1,0 +1,725 @@
+{
+  "baseline_sdk": "@actual-app/api26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "source_file": "packages/api/methods.ts",
+  "source_file_sha256": "a8054e8635d32e77f09cd916ba9f67edfa197bbc89d75182766731d6ceb420a7",
+  "operations": [
+    {
+      "sdk": ["runImport"],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/v1/imports/actual"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/imports/ynab4"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/imports/nynab"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets"
+        }
+      ],
+      "translation": "Use a retained staged supported-format import and explicit activation. Custom construction uses typed resource commands and transaction batches; arbitrary SDK callbacks do not execute on the server. No cross-command rollback promise."
+    },
+    {
+      "sdk": ["loadBudget", "downloadBudget"],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/backups"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/backups/{id}/download"
+        }
+      ],
+      "translation": "Choose the native budget UUID explicitly; there is no caller-side engine/cache or source sync-ID/password handshake. Native backups are portable server-produced archives."
+    },
+    {
+      "sdk": ["getBudgets"],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets"
+        }
+      ],
+      "translation": "Native budget IDs, including source provenance where retained; never choose an ambiguous name or treat a source cloud ID as native ID."
+    },
+    {
+      "sdk": ["importBudget"],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/v1/imports/actual"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/imports/ynab4"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/imports/nynab"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/imports/{id}/activate"
+        }
+      ],
+      "translation": "Upload bytes, inspect stage/report/requirements, then activate. Explicit source format and retained original bytes replace source filesystem paths."
+    },
+    {
+      "sdk": ["exportBudget"],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/backups"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/backups/{id}/download"
+        }
+      ],
+      "translation": "Native portable archive; original source archive is separately downloadable from its import stage. History is deliberately excluded and restored epochs rotate."
+    },
+    {
+      "sdk": ["sync"],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/checkpoint"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/changes"
+        }
+      ],
+      "translation": "Server owns state. Read checkpoint/change pages; do not start a local sync engine or add periodic polling."
+    },
+    {
+      "sdk": ["runBankSync"],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/banking"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/banking/connections/{id}/commands"
+        }
+      ],
+      "translation": "Explicit refresh action for a configured supported provider/connection; secrets use specialized banking routes, never the example financial outbox."
+    },
+    {
+      "sdk": ["batchBudgetUpdates"],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/transactions/batch"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/budget"
+        }
+      ],
+      "translation": "SDK helper batches spreadsheet refreshes, not rollback. Transaction batch is explicitly atomic; planning commands have their own atomic scope. No arbitrary remote callback."
+    },
+    {
+      "sdk": ["runQuery", "aqlQuery"],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/query-capabilities"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/query"
+        }
+      ],
+      "translation": "Translate serialized QueryState to version1 typed JSON and advertised resource profiles. No SQL strings, arbitrary table/column names or remote JS."
+    },
+    {
+      "sdk": ["getBudgetMonths", "getBudgetMonth"],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/budget"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/query"
+        }
+      ],
+      "translation": "Request explicit ISO month windows (count1..12). Query existing budget_cells/transaction dates for data bounds; client calendar navigation replaces the SDK local-cache horizon array. No client financial calculation."
+    },
+    {
+      "sdk": [
+        "setBudgetAmount",
+        "setBudgetCarryover",
+        "holdBudgetForNextMonth",
+        "resetBudgetHold"
+      ],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/budget"
+        }
+      ],
+      "translation": "Actions set,carryover,hold,reset_hold respectively; month/category business keys, minor-unit integers, snapshot and owned replay contract. Method remains server-authoritative."
+    },
+    {
+      "sdk": ["addTransactions"],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/transactions"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/transactions/batch"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/rules/transactions"
+        }
+      ],
+      "translation": "Explicit UUIDs/native reference fields. Plain/manual writer preserves manual intent; rule-entry route is opt-in. Existing split/transfer routes own their graphs."
+    },
+    {
+      "sdk": ["importTransactions"],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/accounts/{account}/transaction-imports"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/transaction-imports/{id}/preview"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/transaction-imports/{id}/commit"
+        }
+      ],
+      "translation": "Retain original supported bank/CSV bytes; explicit mapping/options, read-only matching preview and selected row choices. Imported IDs are not content hashes; duplicate purchases survive."
+    },
+    {
+      "sdk": ["getTransactions"],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/transactions"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/query"
+        }
+      ],
+      "translation": "Bounded register pages or explicit query profiles; select split policy/date/account, original snapshot on continuations."
+    },
+    {
+      "sdk": ["updateTransaction", "deleteTransaction"],
+      "routes": [
+        {
+          "method": "PATCH",
+          "path": "/api/v1/budgets/{budget}/transactions/{id}"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/v1/budgets/{budget}/transactions/{id}"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/transactions/batch"
+        }
+      ],
+      "translation": "Captured immutable key/HLC/epoch and financial guards. Batch refuses all if any field loses; ordinary individual routes retain their documented field-level conflict behavior."
+    },
+    {
+      "sdk": ["mergeTransactions"],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/transactions/merge/preview"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/transactions/merge"
+        }
+      ],
+      "translation": "Preview complete keeper/affected graph then captured commit, preserving split/transfer/reconciliation safeguards."
+    },
+    {
+      "sdk": ["getAccounts"],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/accounts"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/query"
+        }
+      ],
+      "translation": "Ordered native account objects or closed accounts profile. Native positions/IDs replace private source storage ranks."
+    },
+    {
+      "sdk": ["createAccount"],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/accounts"
+        }
+      ],
+      "translation": "Name, explicit native UUID and optional opening balance/date; opening rows remain server-owned financial operations."
+    },
+    {
+      "sdk": ["updateAccount"],
+      "routes": [
+        {
+          "method": "PATCH",
+          "path": "/api/v1/budgets/{budget}/accounts/{id}"
+        }
+      ],
+      "translation": "Send only edited native fields using documented revision/clock/epoch conditions."
+    },
+    {
+      "sdk": ["closeAccount", "reopenAccount", "deleteAccount"],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/accounts/{id}/close"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/accounts/{id}/reopen"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/v1/budgets/{budget}/accounts/{id}"
+        }
+      ],
+      "translation": "Explicit lifecycle commands; protected financial peers remain guarded. Closing and deleting are distinct operations."
+    },
+    {
+      "sdk": ["getAccountBalance"],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/query"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/accounts"
+        }
+      ],
+      "translation": "SUM(amount) over live leaf transactions filtered by account and optional date<=ISO cutoff; integer minor units. Existing account list supplies current cached totals."
+    },
+    {
+      "sdk": [
+        "getAccountGroups",
+        "createAccountGroup",
+        "updateAccountGroup",
+        "deleteAccountGroup"
+      ],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/account-groups"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/account-groups"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/budgets/{budget}/account-groups/{id}"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/v1/budgets/{budget}/account-groups/{id}"
+        }
+      ],
+      "translation": "Native account-group routes; closed query profile supports scalar reads/references."
+    },
+    {
+      "sdk": [
+        "getCategoryGroups",
+        "createCategoryGroup",
+        "updateCategoryGroup",
+        "deleteCategoryGroup"
+      ],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/category-groups"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/category-groups"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/budgets/{budget}/category-groups/{id}"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/v1/budgets/{budget}/category-groups/{id}"
+        }
+      ],
+      "translation": "Management API retains grouped display data; closed category_groups query is flat, expand with categories(group=ID). Deletion/replacement stays an atomic domain action."
+    },
+    {
+      "sdk": [
+        "getCategories",
+        "createCategory",
+        "updateCategory",
+        "deleteCategory"
+      ],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/categories"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/categories"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/budgets/{budget}/categories/{id}"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/v1/budgets/{budget}/categories/{id}"
+        }
+      ],
+      "translation": "Native metadata fields and replacement actions; query filter IDs remain literal, mutation references resolve via existing domain rules."
+    },
+    {
+      "sdk": ["getNote", "updateNote"],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/notes/read"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/notes/commands"
+        }
+      ],
+      "translation": "Arbitrary bounded string IDs including known domain aliases; explicit empty vs missing. Captured note generation/epoch/HLC and history are retained."
+    },
+    {
+      "sdk": ["getCommonPayees"],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/query"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/payees"
+        }
+      ],
+      "translation": "Bounded transaction count grouped by payee over the chosen12-week calendar window, ordered by negative count then name; resolve public payee records. This is caller orchestration, not a new learning/default mutation."
+    },
+    {
+      "sdk": [
+        "getPayees",
+        "createPayee",
+        "updatePayee",
+        "deletePayee",
+        "mergePayees"
+      ],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/payees"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/payees"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/budgets/{budget}/payees/{id}"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/payees/batch"
+        }
+      ],
+      "translation": "Native payee metadata and merge action; merged references/cached simple defaults retain existing guards. Removal uses POST payees/batch action remove, not HTTP DELETE."
+    },
+    {
+      "sdk": ["getTags", "createTag", "updateTag", "deleteTag"],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/tags"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/tags"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/budgets/{budget}/tags/{id}"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/tags/batch"
+        }
+      ],
+      "translation": "Use typed tag management routes; tags are not unrestricted query tables. Removal uses POST tags/batch action remove, not HTTP DELETE."
+    },
+    {
+      "sdk": [
+        "getRules",
+        "getPayeeRules",
+        "createRule",
+        "updateRule",
+        "deleteRule"
+      ],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/rules"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/rules"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/budgets/{budget}/rules/{id}"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/v1/budgets/{budget}/rules/{id}"
+        }
+      ],
+      "translation": "GET rules accepts payee_id. Native canonical fields account/payee/imported_payee replace acct/description/imported_description. JSON actions/options preserved; templates/formulas follow their feature capabilities."
+    },
+    {
+      "sdk": [
+        "createSchedule",
+        "updateSchedule",
+        "deleteSchedule",
+        "getSchedules"
+      ],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/schedules/commands"
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/schedules"
+        }
+      ],
+      "translation": "Explicit create/update/delete commands, captured schedule generation, next-date reset behavior and bounded read pages. Posting/catch-up is a separate foreground command; reads never post."
+    },
+    {
+      "sdk": ["getIDByName"],
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/query"
+        }
+      ],
+      "translation": "Exact name equality on allowed profiles. SDK returns first match; callers should keep known UUIDs and handle ambiguous matches explicitly rather than silently choosing another financial identity."
+    },
+    {
+      "sdk": ["getServerVersion"],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/info"
+        }
+      ],
+      "translation": "Public build/API version plus capability discovery; no engine startup."
+    },
+    {
+      "sdk": ["getPreferences", "setPreference"],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/v1/budgets/{budget}/preferences"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/v1/budgets/{budget}/preferences"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/budgets/{budget}/budget"
+        }
+      ],
+      "translation": "Translate supported synced source preference IDs to documented native typed fields/revisions; budgetType uses budgeting method action. No arbitrary storage-cell write; source-only/deferred data remains retained with explicit import requirements."
+    }
+  ],
+  "query_resources": [
+    {
+      "source": "transactions",
+      "query_profile": "transactions",
+      "route": {
+        "method": "post",
+        "path": "/api/v1/budgets/{budget}/query"
+      }
+    },
+    {
+      "source": "accounts",
+      "query_profile": "accounts",
+      "route": {
+        "method": "post",
+        "path": "/api/v1/budgets/{budget}/query"
+      }
+    },
+    {
+      "source": "account_groups",
+      "query_profile": "account_groups",
+      "route": {
+        "method": "post",
+        "path": "/api/v1/budgets/{budget}/query"
+      }
+    },
+    {
+      "source": "payees",
+      "query_profile": "payees",
+      "route": {
+        "method": "post",
+        "path": "/api/v1/budgets/{budget}/query"
+      }
+    },
+    {
+      "source": "categories",
+      "query_profile": "categories",
+      "route": {
+        "method": "post",
+        "path": "/api/v1/budgets/{budget}/query"
+      }
+    },
+    {
+      "source": "category_groups",
+      "query_profile": "category_groups",
+      "route": {
+        "method": "post",
+        "path": "/api/v1/budgets/{budget}/query"
+      }
+    },
+    {
+      "source": "rules",
+      "query_profile": "rules",
+      "route": {
+        "method": "post",
+        "path": "/api/v1/budgets/{budget}/query"
+      }
+    },
+    {
+      "source": "schedules",
+      "query_profile": "schedules",
+      "route": {
+        "method": "post",
+        "path": "/api/v1/budgets/{budget}/query"
+      }
+    },
+    {
+      "source": "notes",
+      "query_profile": "notes",
+      "route": {
+        "method": "post",
+        "path": "/api/v1/budgets/{budget}/query"
+      }
+    },
+    {
+      "source": "reflect_budgets",
+      "query_profile": "budget_cells",
+      "method_filter": "tracking",
+      "representation": "ISO month, boolean carryover, decoded goal JSON, opaque native ID; use method/month/category business key",
+      "route": {
+        "method": "post",
+        "path": "/api/v1/budgets/{budget}/query"
+      }
+    },
+    {
+      "source": "zero_budgets",
+      "query_profile": "budget_cells",
+      "method_filter": "envelope",
+      "representation": "ISO month, boolean carryover, decoded goal JSON, opaque native ID; use method/month/category business key",
+      "route": {
+        "method": "post",
+        "path": "/api/v1/budgets/{budget}/query"
+      }
+    },
+    {
+      "source": "cleanup_groups",
+      "route": {
+        "method": "get",
+        "path": "/api/v1/budgets/{budget}/budget/templates"
+      },
+      "representation": "Typed feature resource, not a raw query table; see served schema and guide."
+    },
+    {
+      "source": "preferences",
+      "route": {
+        "method": "get",
+        "path": "/api/v1/budgets/{budget}/preferences"
+      },
+      "representation": "Typed feature resource, not a raw query table; see served schema and guide."
+    },
+    {
+      "source": "transaction_filters",
+      "route": {
+        "method": "get",
+        "path": "/api/v1/budgets/{budget}/register-settings"
+      },
+      "representation": "Typed feature resource, not a raw query table; see served schema and guide."
+    },
+    {
+      "source": "custom_reports",
+      "route": {
+        "method": "get",
+        "path": "/api/v1/budgets/{budget}/reporting"
+      },
+      "representation": "Typed feature resource, not a raw query table; see served schema and guide."
+    },
+    {
+      "source": "dashboard_pages",
+      "route": {
+        "method": "get",
+        "path": "/api/v1/budgets/{budget}/reporting"
+      },
+      "representation": "Typed feature resource, not a raw query table; see served schema and guide."
+    },
+    {
+      "source": "dashboard",
+      "route": {
+        "method": "get",
+        "path": "/api/v1/budgets/{budget}/reporting"
+      },
+      "representation": "Typed feature resource, not a raw query table; see served schema and guide."
+    },
+    {
+      "source": "payee_locations",
+      "route": {
+        "method": "get",
+        "path": "/api/v1/budgets/{budget}/payee-locations"
+      },
+      "representation": "Typed feature resource, not a raw query table; see served schema and guide."
+    }
+  ]
+}

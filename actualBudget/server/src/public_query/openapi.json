@@ -1,0 +1,1815 @@
+{
+  "paths": {
+    "/api/v1/query-capabilities": {
+      "get": {
+        "summary": "Discover version1 bounded query profiles/fields/references/functions/limits",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/QueryCapabilities"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/query": {
+      "post": {
+        "summary": "Run a validated budget-scoped read-only query",
+        "description": "64KiB request; no receipt/history/write. Fixed advertised profiles/references only, no SQL/remote JS. Depth8/nodes256,500 caller values,100000 matches,1000/page,10000 emitted roots+children/100000 values and conservative4MiB output; shared text/regex work and SQLite progress bounds. Preserve snapshot for continuations (409 on change). Flat category_groups; business-key native budget_cells; JSON structured fields refuse string/order operations. Dates ISO even raw. Distinct from report annotations. See docs/PUBLIC-API.md.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoundQueryResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoundQuery"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/notes/read": {
+      "post": {
+        "summary": "Read a logical arbitrary-ID/domain-alias note without writes",
+        "description": "Missing identity returns data:null; explicit empty remains a row. Arbitrary1..512-character IDs; no NUL. Reads have no receipt/clock/owner.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicNoteReadResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicNoteRead"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/notes/commands": {
+      "post": {
+        "summary": "Write a captured note with immutable receipt/history identity",
+        "description": "Snapshot, original HLC, epoch and optional owner. Empty clears without deleting identity. Domain fields remain authoritative; inactive history markers stay private. Fresh writes revive month notes with retained buffered values. Old-generation exact receipts replay before epoch checks; changed epoch conflicts. Receipt-only and cancel reuse original request. Explicit native reference-ID collision refuses rather than hiding standalone text.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Capture once with exact body/clock/epoch/owner. Same identity replays the original outcome; different identity conflicts. No automatic expiry."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Same original request with this header returns its known outcome or durably fences an uncommitted operation. Never combine with receipt-only."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
+          },
+          {
+            "name": "X-Actual-Receipt-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Read original outcome before epoch/precondition checks. Unknown operation returns404 operation_uncommitted without a write. Cannot combine with cancellation."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicNoteCommandResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicNoteCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/transactions/batch": {
+      "post": {
+        "summary": "Atomically apply1\u2013100 existing-writer transaction commands",
+        "description": "One ordered atomic command/receipt and optional owned undo. Existing financial writers preserve split/transfer/reconciliation and original per-field HLC guards. Any failure or losing field rolls back all; failed commands have no successful receipt. Distinct targets and one operation per connected graph; resolve inline refs first. Optional max_graph_members1..100000 bounds indexed discovery itself, refusing graph_limit rather than truncating. Conservative4MiB response bound. Stronger atomicity than SDK spreadsheet batching; not arbitrary callback execution. Original body/key/clock/epoch/owner stay unchanged for replay, lookup/cancel, restore and restart.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Capture once with exact body/clock/epoch/owner. Same identity replays the original outcome; different identity conflicts. No automatic expiry."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Same original request with this header returns its known outcome or durably fences an uncommitted operation. Never combine with receipt-only."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
+          },
+          {
+            "name": "X-Actual-Receipt-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Read original outcome before epoch/precondition checks. Unknown operation returns404 operation_uncommitted without a write. Cannot combine with cancellation."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionBatchResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Typed validation, missing, stale/identity/protection or resource refusal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionBatch"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BoundQueryScalar": {
+        "anyOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 10000
+          }
+        ]
+      },
+      "BoundQueryTable": {
+        "type": "string",
+        "enum": [
+          "transactions",
+          "accounts",
+          "account_groups",
+          "payees",
+          "categories",
+          "category_groups",
+          "rules",
+          "schedules",
+          "notes",
+          "budget_cells"
+        ]
+      },
+      "BoundQueryExpression": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/BoundQueryScalar"
+          },
+          {
+            "$ref": "#/components/schemas/BoundQueryFunction"
+          }
+        ]
+      },
+      "BoundQueryFunction": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "$condition": {
+                "$ref": "#/components/schemas/BoundQueryPredicate"
+              }
+            },
+            "required": [
+              "$condition"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "minProperties": 1,
+            "maxProperties": 1,
+            "propertyNames": {
+              "enum": [
+                "$sum",
+                "$count",
+                "$sumOver",
+                "$substr",
+                "$lower",
+                "$neg",
+                "$abs",
+                "$idiv",
+                "$id",
+                "$day",
+                "$month",
+                "$year",
+                "$nocase",
+                "$literal",
+                "literal"
+              ]
+            },
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/BoundQueryExpression"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BoundQueryExpression"
+                  },
+                  "minItems": 1,
+                  "maxItems": 3
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "BoundQueryComparison": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "$eq": {
+                "$ref": "#/components/schemas/BoundQueryScalar"
+              },
+              "$transform": {
+                "type": "string",
+                "enum": [
+                  "$id",
+                  "$lower",
+                  "$day",
+                  "$month",
+                  "$year",
+                  "$nocase",
+                  "$abs",
+                  "$neg"
+                ]
+              }
+            },
+            "required": [
+              "$eq"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "$ne": {
+                "$ref": "#/components/schemas/BoundQueryScalar"
+              },
+              "$transform": {
+                "type": "string",
+                "enum": [
+                  "$id",
+                  "$lower",
+                  "$day",
+                  "$month",
+                  "$year",
+                  "$nocase",
+                  "$abs",
+                  "$neg"
+                ]
+              }
+            },
+            "required": [
+              "$ne"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "$lt": {
+                "$ref": "#/components/schemas/BoundQueryScalar"
+              },
+              "$transform": {
+                "type": "string",
+                "enum": [
+                  "$id",
+                  "$lower",
+                  "$day",
+                  "$month",
+                  "$year",
+                  "$nocase",
+                  "$abs",
+                  "$neg"
+                ]
+              }
+            },
+            "required": [
+              "$lt"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "$lte": {
+                "$ref": "#/components/schemas/BoundQueryScalar"
+              },
+              "$transform": {
+                "type": "string",
+                "enum": [
+                  "$id",
+                  "$lower",
+                  "$day",
+                  "$month",
+                  "$year",
+                  "$nocase",
+                  "$abs",
+                  "$neg"
+                ]
+              }
+            },
+            "required": [
+              "$lte"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "$gt": {
+                "$ref": "#/components/schemas/BoundQueryScalar"
+              },
+              "$transform": {
+                "type": "string",
+                "enum": [
+                  "$id",
+                  "$lower",
+                  "$day",
+                  "$month",
+                  "$year",
+                  "$nocase",
+                  "$abs",
+                  "$neg"
+                ]
+              }
+            },
+            "required": [
+              "$gt"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "$gte": {
+                "$ref": "#/components/schemas/BoundQueryScalar"
+              },
+              "$transform": {
+                "type": "string",
+                "enum": [
+                  "$id",
+                  "$lower",
+                  "$day",
+                  "$month",
+                  "$year",
+                  "$nocase",
+                  "$abs",
+                  "$neg"
+                ]
+              }
+            },
+            "required": [
+              "$gte"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "$oneof": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BoundQueryScalar"
+                },
+                "minItems": 0,
+                "maxItems": 500
+              },
+              "$transform": {
+                "type": "string",
+                "enum": [
+                  "$id",
+                  "$lower",
+                  "$day",
+                  "$month",
+                  "$year",
+                  "$nocase",
+                  "$abs",
+                  "$neg"
+                ]
+              }
+            },
+            "required": [
+              "$oneof"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "$like": {
+                "type": "string",
+                "minLength": 0,
+                "maxLength": 10000
+              },
+              "$transform": {
+                "type": "string",
+                "enum": [
+                  "$id",
+                  "$lower",
+                  "$day",
+                  "$month",
+                  "$year",
+                  "$nocase",
+                  "$abs",
+                  "$neg"
+                ]
+              }
+            },
+            "required": [
+              "$like"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "$notlike": {
+                "type": "string",
+                "minLength": 0,
+                "maxLength": 10000
+              },
+              "$transform": {
+                "type": "string",
+                "enum": [
+                  "$id",
+                  "$lower",
+                  "$day",
+                  "$month",
+                  "$year",
+                  "$nocase",
+                  "$abs",
+                  "$neg"
+                ]
+              }
+            },
+            "required": [
+              "$notlike"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "$regexp": {
+                "type": "string",
+                "minLength": 0,
+                "maxLength": 10000
+              },
+              "$transform": {
+                "type": "string",
+                "enum": [
+                  "$id",
+                  "$lower",
+                  "$day",
+                  "$month",
+                  "$year",
+                  "$nocase",
+                  "$abs",
+                  "$neg"
+                ]
+              }
+            },
+            "required": [
+              "$regexp"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "BoundQueryFieldPredicate": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/BoundQueryScalar"
+          },
+          {
+            "$ref": "#/components/schemas/BoundQueryComparison"
+          },
+          {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/BoundQueryScalar"
+                },
+                {
+                  "$ref": "#/components/schemas/BoundQueryComparison"
+                }
+              ]
+            },
+            "minItems": 0,
+            "maxItems": 256
+          }
+        ]
+      },
+      "BoundQueryPredicate": {
+        "type": "object",
+        "maxProperties": 256,
+        "properties": {
+          "$and": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoundQueryPredicate"
+            },
+            "minItems": 0,
+            "maxItems": 256
+          },
+          "$or": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoundQueryPredicate"
+            },
+            "minItems": 0,
+            "maxItems": 256
+          }
+        },
+        "additionalProperties": {
+          "$ref": "#/components/schemas/BoundQueryFieldPredicate"
+        }
+      },
+      "BoundQuery": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "const": 1
+          },
+          "table": {
+            "$ref": "#/components/schemas/BoundQueryTable"
+          },
+          "select": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                {
+                  "type": "object",
+                  "minProperties": 1,
+                  "maxProperties": 1,
+                  "propertyNames": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/BoundQueryExpression"
+                  }
+                }
+              ]
+            },
+            "minItems": 0,
+            "maxItems": 32
+          },
+          "filter": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoundQueryPredicate"
+            },
+            "minItems": 0,
+            "maxItems": 256
+          },
+          "group_by": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoundQueryExpression"
+            },
+            "minItems": 0,
+            "maxItems": 8
+          },
+          "order_by": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                {
+                  "$ref": "#/components/schemas/BoundQueryFunction"
+                },
+                {
+                  "type": "object",
+                  "minProperties": 1,
+                  "maxProperties": 1,
+                  "additionalProperties": {
+                    "enum": [
+                      "asc",
+                      "desc"
+                    ]
+                  }
+                }
+              ]
+            },
+            "minItems": 0,
+            "maxItems": 8
+          },
+          "calculation": {
+            "type": "boolean",
+            "default": false
+          },
+          "splits": {
+            "enum": [
+              "inline",
+              "grouped",
+              "all",
+              "none"
+            ],
+            "default": "inline"
+          },
+          "include_deleted": {
+            "type": "boolean",
+            "default": false
+          },
+          "validate_refs": {
+            "type": "boolean",
+            "default": true
+          },
+          "raw": {
+            "type": "boolean",
+            "default": false
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "default": 100
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000,
+            "default": 0
+          },
+          "snapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChangeCursor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "version",
+          "table"
+        ],
+        "additionalProperties": false
+      },
+      "BoundQueryResult": {
+        "type": "object",
+        "properties": {
+          "data": {},
+          "matched_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          }
+        },
+        "required": [
+          "data",
+          "matched_count",
+          "next_offset",
+          "snapshot",
+          "epoch"
+        ],
+        "additionalProperties": false
+      },
+      "QueryProfileField": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "type": {
+            "enum": [
+              "text",
+              "id",
+              "money",
+              "integer",
+              "boolean",
+              "json",
+              "date",
+              "month",
+              "year"
+            ]
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BoundQueryTable"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "reference"
+        ],
+        "additionalProperties": false
+      },
+      "QueryProfile": {
+        "type": "object",
+        "properties": {
+          "table": {
+            "$ref": "#/components/schemas/BoundQueryTable"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueryProfileField"
+            },
+            "minItems": 1,
+            "maxItems": 32
+          },
+          "default_order": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "representation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "table",
+          "fields",
+          "default_order",
+          "representation"
+        ],
+        "additionalProperties": false
+      },
+      "QueryCapabilities": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "const": 1
+          },
+          "tables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoundQueryTable"
+            },
+            "minItems": 1,
+            "maxItems": 10,
+            "uniqueItems": true
+          },
+          "resource_profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueryProfile"
+            },
+            "minItems": 1,
+            "maxItems": 10
+          },
+          "splits": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "inline",
+                "grouped",
+                "all",
+                "none"
+              ]
+            },
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "max_rows": {
+            "const": 100000
+          },
+          "max_page": {
+            "const": 1000
+          },
+          "max_depth": {
+            "const": 8
+          },
+          "max_nodes": {
+            "const": 256
+          },
+          "max_bound_values": {
+            "const": 500
+          },
+          "max_reference_depth": {
+            "const": 4
+          },
+          "max_emitted_rows": {
+            "const": 10000
+          },
+          "max_emitted_values": {
+            "const": 100000
+          },
+          "max_response_bytes": {
+            "const": 4194304
+          },
+          "max_work_steps": {
+            "const": 2000000
+          },
+          "max_text_work_bytes": {
+            "const": 67108864
+          },
+          "functions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 32
+          },
+          "operators": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 32
+          },
+          "boolean_operators": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "$and",
+                "$or"
+              ]
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "pagination": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "version",
+          "tables",
+          "resource_profiles",
+          "splits",
+          "max_rows",
+          "max_page",
+          "max_depth",
+          "max_nodes",
+          "max_bound_values",
+          "max_reference_depth",
+          "max_emitted_rows",
+          "max_emitted_values",
+          "max_response_bytes",
+          "max_work_steps",
+          "max_text_work_bytes",
+          "functions",
+          "operators",
+          "boolean_operators",
+          "pagination"
+        ],
+        "additionalProperties": false
+      },
+      "PublicNote": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[^\\u0000]*$"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 10000
+          }
+        },
+        "required": [
+          "id",
+          "note"
+        ],
+        "additionalProperties": false
+      },
+      "PublicNoteRead": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[^\\u0000]*$"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "PublicNoteCommand": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[^\\u0000]*$"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 10000
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          }
+        },
+        "required": [
+          "id",
+          "note",
+          "snapshot"
+        ],
+        "additionalProperties": false
+      },
+      "PublicNoteReadResult": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicNote"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "PublicNoteCommandResult": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicNote"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "edit_clock": {
+            "$ref": "#/components/schemas/EditClock"
+          }
+        },
+        "required": [
+          "data",
+          "snapshot",
+          "edit_clock"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionBatchOperation": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "create"
+              },
+              "transaction": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/NewTransaction"
+                  },
+                  {
+                    "properties": {
+                      "new_payee": {
+                        "type": "null"
+                      },
+                      "new_category": {
+                        "type": "null"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "transaction"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "update"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "fields": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/TransactionPatch"
+                  },
+                  {
+                    "type": "object",
+                    "minProperties": 1,
+                    "not": {
+                      "anyOf": [
+                        {
+                          "required": [
+                            "new_payee"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "new_category"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "id",
+              "fields"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "delete"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "action",
+              "id"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "TransactionBatch": {
+        "type": "object",
+        "properties": {
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "operations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransactionBatchOperation"
+            },
+            "minItems": 1,
+            "maxItems": 100
+          },
+          "max_graph_members": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000,
+            "default": 100000
+          }
+        },
+        "required": [
+          "snapshot",
+          "operations"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionBatchItem": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "enum": [
+              "create",
+              "update",
+              "delete"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Transaction"
+              },
+              {
+                "$ref": "#/components/schemas/TransactionTombstone"
+              }
+            ]
+          }
+        },
+        "required": [
+          "action",
+          "id",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionBatchResult": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TransactionBatchItem"
+                },
+                "minItems": 1,
+                "maxItems": 100
+              },
+              "operation_count": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              }
+            },
+            "required": [
+              "results",
+              "operation_count"
+            ],
+            "additionalProperties": false
+          },
+          "edit_clock": {
+            "$ref": "#/components/schemas/EditClock"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          }
+        },
+        "required": [
+          "data",
+          "edit_clock",
+          "snapshot",
+          "epoch"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

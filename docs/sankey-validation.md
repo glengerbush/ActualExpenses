@@ -58,3 +58,23 @@ Cached views bind document revision and owned budget epoch, validate projection/
 - Inspected `web/artifacts/sankey-{desktop,mobile,german-editor,dark-large}.png`:1280 desktop,390 mobile,640 dark with root font size200% and keyboard focus. This is root-text enlargement/reflow, not browser zoom or a physical device claim. Final renders use increased diagram label separation and horizontally scrollable financial tables; document width remains within viewport. Screenshots are local review artifacts, not committed product assets.
 
 Root independently reviewed and composed unchanged backend/source evidence:26 full source/detail comparisons and native25 restore/duplicate/MAX plus two focused native consumers PASS at `fe5388a`; optimization `e402d52` indexes monthly category lookups and reuses shared truthy filtering, reviewed here without a new financial behavior change. No repeated source producer, broad native/device or container suite. Whole37 final review/integration remains root-owned. Resource guard exhaustion and large-volume/browser measurements remain explicitly assigned to51; no claim of exhaustive performance qualification. No push/release/deployment.
+## Root backend composition review
+
+2026-11-10:10f08489 reviewed and composed with current25/public API atfe5388a.
+Root reviewed source provenance, graph construction/bounds/cache, signed
+drilldown reconciliation and reporting-only budget evaluation. One efficiency
+finding corrected ine402d52: index each month's unique category IDs once instead
+of repeatedly scanning its rows. Source order and values remain unchanged;
+worker independently reviewed this delta. Shared report truthiness now replaces
+the duplicate local helper; Budgeted manual named conditions remain distinct.
+
+Combined build PASS without warnings. `/tmp/sankey37-compose-api.log` PASS
+20 envelope +6 tracking whole-source graphs, details/cache/errors/readonly state.
+`/tmp/sankey37-compose-native.log` PASS both methods' actual native25
+duplicate/restore, clocks/settings/epoch invalidation and both safe-money limits.
+Combined companion run has2 passing tests,0 skipped/errors/failures; its Sankey
+case exercises plain HTTP without financial or idle-state changes. No remaining
+backend review finding. UI and whole37 acceptance remain open;51 retains volume
+and exhausted-work-guard qualification. No source fixture was relabeled.
+
+Merged reviewed main08bae64 before the UI freeze, retaining current native25, shared predicate fixes, banking/public API commands and both root/backend and UI evidence. Only capability/test-list/document conflicts required resolution; no source financial calculation was replaced.

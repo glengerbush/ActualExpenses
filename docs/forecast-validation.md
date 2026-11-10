@@ -47,6 +47,50 @@ Forecast-only correction: lower account names before case-sensitive regex; liter
 
 Root backend reviews e26b6cc/a2c183e PASS. Root identified an inherited shared report-translator null-category rule owned by47: source excludes transfers/parents. Added a23rd genuine full-handler case (`category is null`) on the existing transfer/schedule archive with documented SDK mutations. `/tmp/forecast35-null-source.log` generated independent expectation, `/tmp/forecast35-null-source-check.log` reproduced it; `/tmp/forecast35-null-composition-red.log` intentionally records the current composed mismatch. No shared translator edit here. This single composed public check remains pending root’s47 integration; whole35 acceptance is not claimed. UI checkpoint is ready for consolidated review; no release/push/deployment.
 
+### Root composed review —2026-11-10
+
+Integration branch `codex/integrate-bank-forecast-query` at `5d12801` combines35
+through `54d201e`, reviewed47 read corrections through `3d26ae3`, and frozen
+banking23 foundation. The23rd whole-source forecast comparison now passes with
+the shared report predicate correction: `/tmp/bank-forecast-query-forecast-api.log`.
+Rust build and Svelte0/0 pass; OpenAPI parent106/108 operations are preserved in
+109 combined paths. This is scoped integration evidence, not complete28/47 or
+main acceptance. Earlier native22 evidence is not relabeled as23/24 evidence.
+
+Root reviewed financial/filter/cache code, both UI corrections and the actual
+quota-failure browser witness. Desktop/mobile/dark-large-text captures inspected.
+Merged ForecastWidget autofixer reports no issues; its two async-effect
+suggestions are intentional network reads guarded against stale responses.
+Impeccable static scan of the two new Svelte components reports no findings
+(`/tmp/bank-forecast-query-forecast-detect.json`); the first invocation used an
+invalid CLI flag and was corrected, not counted as a passing scan.
+
+Scoped Impeccable review:17/20 (accessibility3, performance3, theming4,
+responsive3, implementation integrity4). Native controls, labeled paged tables,
+token colors and privacy geometry removal fit the existing application. Browser
+evidence covers keyboard,390CSS width and640CSS with200% root font; physical
+touch/screen-reader and whole-system performance qualification remain51 work.
+No remaining35 review findings; final main composition is pending other slices.
+
 ### Narrow UI review correction
 
 Root found blank forecast names falling back to the internal card identifier, and optional downloaded-cache write failure erasing a successful calculation. Added translated default title and isolated cache-write warning; current online results survive while cached fallback remains reserved for failed calculation. `forecast-cache-browser.mjs` injects quota failure only for downloaded forecast entries on disposable browser data, verifies fresh104.00/table plus visible cache warning (not stale-cache label), then saves a blank name and verifies the default Balance forecast heading and current values. `/tmp/forecast35-review-ui-red.log` missing-table RED → `/tmp/forecast35-review-ui-green.log` PASS. Svelte0/0 and build PASS `/tmp/forecast35-review-ui-{check,build}.log`; two autofixers no issues (same documented async-read advisories); focused formatting/diff checks. Other unchanged source/native/layout proofs reused; shared23rd null-category gate is being composed by root, not silently skipped here.
+
+### Monetary contract boundary correction
+
+During36 schema work, the report worker identified35's four money schemas using
+±9000000000000000 instead of the runtime/public ±9007199254740991 range. Root
+extended the maintained native consumer with two publicly created budgets at
+the actual positive/negative safe-money limits. True RED
+`/tmp/forecast-money-schema-red.log`: runtime200 returned the exact negative
+boundary, rejected by the served chart schema. All four forecast amount/balance
+schema limits now match the existing runtime invariant. No financial algorithm
+or source fixture changed. Combined build and both boundary responses/schema
+validation plus the existing forecast native24 round trip PASS
+`/tmp/forecast-money-schema-{build,green}.log`. Review finding closed.
+
+### Local acceptance
+
+Ticket35 accepted on local main836918a after the documented source, public API,
+browser, monetary schema and native24 checks. No remaining feature findings;
+final whole-system qualification50–53 remains open. No push or deployment.

@@ -72,7 +72,11 @@ pub fn convert(source: &Value) -> Result<Value, Error> {
         months.insert(m.to_owned(), json!({"id":m,"buffered":held,"notes":""}));
     }
     for row in source["notes"].as_array().into_iter().flatten() {
-        if let Some(m) = row["id"].as_str().and_then(|id| id.strip_prefix("budget-")) {
+        if let Some(m) = row["id"]
+            .as_str()
+            .and_then(|id| id.strip_prefix("budget-"))
+            .filter(|m| month(m).is_ok())
+        {
             month(m)?;
             let note = row["note"].as_str().unwrap_or("");
             if note.chars().count() > 10000 {
@@ -129,6 +133,7 @@ pub fn clock(db: &Connection, b: &str, data: &Value, row: &Value) -> Result<(), 
     } else if dataset == "notes" && field == "note" {
         source_id
             .strip_prefix("budget-")
+            .filter(|m| month(m).is_ok())
             .map(|m| ("budget_months", m, "notes"))
     } else if dataset == "preferences" && source_id == "budgetType" && field == "value" {
         Some(("budget_settings", "method", "method"))

@@ -1,0 +1,1808 @@
+{
+  "sourceVersion": "26.10.0",
+  "sourceCommit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "sourceHashes": {
+    "app-gocardless/bank-factory.ts": "ccdffe819478de42040fb2e42e2d2c33d6225a39cec52b87b992d83cada1fbe6",
+    "app-gocardless/banks/abanca_caglesmm.ts": "a92fef829b6a5d33f9616dd75607ffacca8809eb36fd9a65469d75b29ac48828",
+    "app-gocardless/banks/abnamro_abnanl2a.ts": "262c11b9820819e68eab5c68cca3ea36f7734a874f2e4aa081e4480bb1e0427d",
+    "app-gocardless/banks/alior_albpplpw.ts": "76dba178c56c3f992f7955f92d2b202dca449035a21ea09f8bbe993c30ac6b04",
+    "app-gocardless/banks/american_express_aesudef1.ts": "3874f547b40ceb389ca6801def99dfa3bb1e548303ab6832661dc5ffbfcf5376",
+    "app-gocardless/banks/bancsabadell_bsabesbbb.ts": "7317d373056b482ac49e3bba41fb0f28963a0549632942566e3d7dd3aaa2b2d2",
+    "app-gocardless/banks/bank_of_ireland_b365_bofiie2d.ts": "96b16f0518267f18057440a8d34bbacfc7580e2bb2fde826703ca87d06840411",
+    "app-gocardless/banks/bankinter_bkbkesmm.ts": "b8de469d571a6490e59f4f37a27e5d9a898b473a0680a2a40ace05d1f00f69ec",
+    "app-gocardless/banks/belfius_gkccbebb.ts": "8731f988a3f795e192cacc39b35c4517d00b4bfb5e6e5b507bcb0984caff2395",
+    "app-gocardless/banks/berliner_sparkasse_beladebexxx.ts": "71feb8842d162298c149ecec376b15b6350d69831bbd15f81a330c1f37f14bba",
+    "app-gocardless/banks/bnp_be_gebabebb.ts": "22c9cf1ea7afde3f6b0975158a67373e5f824abbe24ea44aa1b973344fa8bd8b",
+    "app-gocardless/banks/boursobank_bousfrppxxx.ts": "4a3d617541cc0a93c7b3917c0bf638306222ad30a43ee76166bdcf92a7a56ee3",
+    "app-gocardless/banks/bper_retail_bpmoit22.ts": "6885b05a9dc5383571ef87ca0cbcbc2215e80194c1fd863dea40ccaaec8dd6fd",
+    "app-gocardless/banks/cbc_cregbebb.ts": "7c257aecade4ee57727f3383ca0d484f80ce2827dd1bf718a3fe711753675934",
+    "app-gocardless/banks/cetelem_cetmptp1xxx.ts": "60e931cbd1f01f2c7215bfe231c322c0c849b5a45d22a74c8a159473297afa16",
+    "app-gocardless/banks/commerzbank_cobadeff.ts": "247de7de8e4f96b7c1625ec35c2cf564bbfe119c7a9191aafba5143dd0661af7",
+    "app-gocardless/banks/danskebank_privat.ts": "b6ba4373009713ab2f4c196ccf2d2978e79dd504f53b0be5cd829794a5a44760",
+    "app-gocardless/banks/direkt_heladef1822.ts": "8aa4d3fca1ec56f614c743c8da553c183475ecbace70730377f677b357164daa",
+    "app-gocardless/banks/easybank_bawaatww.ts": "761e680d00adcb01b95e12a894e0368e2f7a1d89f5b081e4dc41b425af754c91",
+    "app-gocardless/banks/entercard_swednokk.ts": "9c614f248e8393db5a6669825a88897e2fc48559f2a64c91aea66d90ae088d29",
+    "app-gocardless/banks/fortuneo_ftnofrp1xxx.ts": "8520092f7cb448fe183406eb9a2b1bc090bb6fe8e5de984ad5d89668e71d5a95",
+    "app-gocardless/banks/hype_hyeeit22.ts": "bda2fba5602be06f61dd962cd890ece30b2ee69e0478ecb06fe992efdca527db",
+    "app-gocardless/banks/ing_ingbrobu.ts": "1a6278eb28a520e417dd2425cd9a65fbf822f37f8208d7af7afe846ea9b89d4f",
+    "app-gocardless/banks/ing_ingddeff.ts": "87be84742d42d7691fcb726c38bd2b243df54bcbcd61a488f3f53529d42cbbe0",
+    "app-gocardless/banks/ing_pl_ingbplpw.ts": "bd2a1ca039a25c28bc1f54655f82a94fd20137c7ed956b0205070202aac9bf55",
+    "app-gocardless/banks/integration-bank.ts": "4398136adf1b073813dabddca2851ec75a7b711b97d7252daba32ae0ec6ba4cb",
+    "app-gocardless/banks/isybank_itbbitmm.ts": "01e1fac9b1d0d9104b9fd4eca15aeebaac80bbbea1a3c819fe13319bd0a5e565",
+    "app-gocardless/banks/kbc_kredbebb.ts": "80632b329eb69162b9c7e69fa1686f8ad0046b086ecff99638bc11cf99b88f35",
+    "app-gocardless/banks/lhv_lhvbee22.ts": "89183e1334d32f75ea2d52f68e7494b75d39a3f58cc62b2ec55c426e1eea7fa1",
+    "app-gocardless/banks/mbank_retail_brexplpw.ts": "0fcda2d5f0ac34f5a6b795f19600283feb2e194935a0aaeb1d11018593854b7c",
+    "app-gocardless/banks/nationwide_naiagb21.ts": "8cac60d12b7d3195d33004de069735ba18ed41ee33f411f3ffca711c15e944f3",
+    "app-gocardless/banks/nbg_ethngraaxxx.ts": "cee39e78a4d6929612e17aeed067f5395694725dd3fd8fff100aa629dbfd47b1",
+    "app-gocardless/banks/norwegian_xx_norwnok1.ts": "8a6a49aa061cec02e3fbde389efdf056d69aa79ded14b05e1e0a88c9a187d6ab",
+    "app-gocardless/banks/raiffeisen_at_rzbaatww.ts": "072b83bc9b9bc528137a34bde0f341d8a9dcfc1e1d5762e8ec2f71cdc0f91f88",
+    "app-gocardless/banks/revolut_revolt21.ts": "4653025d6483a78d92fc57fca12d30d3de0e2f97e57e246b400d36a0e4f85e57",
+    "app-gocardless/banks/sandboxfinance_sfin0000.ts": "4c4417730037b4329e5fb42988b4cd1bc61777dfda2779053d84bbdf4b5619e4",
+    "app-gocardless/banks/seb_kort_bank_ab.ts": "d87dd42c364b86808a07014909fb430abd945ecc1f99fe36e6403cc696797754",
+    "app-gocardless/banks/seb_privat.ts": "4896c96a96fa28ae5bc6c5cef5cd117d10e76a9533146fd8f2f07d4a87d5bc0f",
+    "app-gocardless/banks/sparnord_spnodk22.ts": "c56c3f8cd50406bf4bbfaa78029199193144ad10f0404029f4731e00ec2f0c3c",
+    "app-gocardless/banks/spk_karlsruhe_karsde66.ts": "0269095eeebb9aa8fcc8d2253e6d66b1c05ddfa1cfa4e80800552bf337d2e944",
+    "app-gocardless/banks/spk_marburg_biedenkopf_heladef1mar.ts": "ca0ced40a5f048b4f4a83119c7f7517115c314d2ff39d4e31a6f861310822353",
+    "app-gocardless/banks/spk_worms_alzey_ried_malade51wor.ts": "8f35898216969abc7eac8a7d9aa4a86ecca8b07a7fd2a7a3fcc1e892c64f0f71",
+    "app-gocardless/banks/ssk_dusseldorf_dussdeddxxx.ts": "5311198232a780b5b8f795b65e8c31c7960bc8b7cf3a1b88869450b44a5c9829",
+    "app-gocardless/banks/ssk_munchen.ts": "a69234001f3f9a33bfa645ba612d245f70e93bf1f8e7ef77430c19b40cd3a782",
+    "app-gocardless/banks/swedbank_habalv22.ts": "2f1f89e9da262c18af7e7557e7cf76a4bee282a2357ffa5e03becd64607c5f3c",
+    "app-gocardless/banks/util/escape-regexp.ts": "d03dc762eb601dc9984529961dec8da0511e38c7bd9d83b159e627869d98e565",
+    "app-gocardless/banks/util/extract-payeeName-from-remittanceInfo.ts": "83b61f275112f45332b33c0c995baa0d27aba742d1c9eff3b96c5da9d3ce0342",
+    "app-gocardless/banks/virgin_nrnbgb22.ts": "ad345175c2df5e2a0a67e06a57e7c0b98865c56d1993fec14a7dc61081f2abbc",
+    "app-gocardless/errors.ts": "cc962e2566d1cb11a36b6adcf0b8da59a342a5fe2e2e64c75d103a1b30702c69",
+    "app-gocardless/services/gocardless-api.ts": "b71ee3737044e5da3116f274079c692cd1ce79d295c79a948bdfc8cb35208657",
+    "app-gocardless/services/gocardless-service.ts": "6c49e44c71c58cdd61c338f7178b326c9142968ddebc3e95cbf85a051b36965e",
+    "app-gocardless/utils.ts": "166d69ed9ae97ecb1ebabb68d3fbf57d15608d3dc935b73c8766354d50675b9c",
+    "util/payee-name.ts": "d737dfe8e6788be45cee58c2ee9b35d5d57578443122d9a345be4b21fd6e5c3c",
+    "util/title/index.ts": "293415cfbfac8b38b09015c861102a7a3637479b17aaabefc1719f3a03ac24ef",
+    "util/title/lower-case.ts": "ee1254d26e85b854ad413237a97fee2baf6901c1fb8a67cd6d2efe293e68798a",
+    "util/title/specials.ts": "e48d6ccb1cd3a8581ee7e8e8f76c432f032d4b50677149b3167445751548736c"
+  },
+  "dependencyVersions": {
+    "typescript": "5.9.3",
+    "dateFns": "4.4.0"
+  },
+  "normalization": "Only generated requisition reference UUID is aliased in request witness. Every transaction field, date, amount, original ID, multiplicity and ordered edge remains unchanged.",
+  "observations": [
+    {
+      "input": {
+        "id": "booked-pending-balance-priority",
+        "payment": {
+          "transactionId": "booked-A",
+          "bookingDate": "2026-11-02",
+          "valueDate": "2026-11-01",
+          "transactionAmount": {
+            "amount": "-12.34",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC CAFE",
+          "creditorAccount": {
+            "iban": "DE0000000000001234"
+          },
+          "remittanceInformationUnstructured": "Bank #note"
+        },
+        "pending": {
+          "transactionId": "pending-A",
+          "valueDateTime": "2026-11-03T12:30:00+01:00",
+          "transactionAmount": {
+            "amount": "-2.00",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC SHOP",
+          "remittanceInformationUnstructuredArray": [
+            "Pending",
+            "#purchase"
+          ]
+        },
+        "balances": [
+          {
+            "balanceType": "interimBooked",
+            "balanceAmount": {
+              "amount": "110.00",
+              "currency": "EUR"
+            }
+          },
+          {
+            "balanceType": "closingBooked",
+            "balanceAmount": {
+              "amount": "100.50",
+              "currency": "EUR"
+            }
+          }
+        ],
+        "institution": {
+          "id": "FIXTURE_INSTITUTION",
+          "name": "Synthetic institution",
+          "countries": [
+            "GB"
+          ],
+          "transaction_total_days": "730",
+          "max_access_valid_for_days": "180",
+          "supported_features": [
+            "account_selection",
+            "separate_continuous_history_consent"
+          ]
+        }
+      },
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/api/v2/token/new/",
+          "body": {
+            "secret_id": "SYNTHETIC-ID",
+            "secret_key": "SYNTHETIC-KEY"
+          },
+          "authorization": null,
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "access": "synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+              "refresh": "SYNTHETIC-REFRESH",
+              "access_expires": 86400,
+              "refresh_expires": 2592000
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/requisitions/requisition-A/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "id": "requisition-A",
+              "status": "LN",
+              "institution_id": "FIXTURE_INSTITUTION",
+              "accounts": [
+                "remote-A"
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/accounts/remote-A/balances/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "balances": [
+                {
+                  "balanceType": "interimBooked",
+                  "balanceAmount": {
+                    "amount": "110.00",
+                    "currency": "EUR"
+                  }
+                },
+                {
+                  "balanceType": "closingBooked",
+                  "balanceAmount": {
+                    "amount": "100.50",
+                    "currency": "EUR"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/requisitions/requisition-A/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "id": "requisition-A",
+              "status": "LN",
+              "institution_id": "FIXTURE_INSTITUTION",
+              "accounts": [
+                "remote-A"
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/accounts/remote-A/transactions/?date_from=2026-11-01&date_to=2026-11-10",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "transactions": {
+                "booked": [
+                  {
+                    "transactionId": "booked-A",
+                    "bookingDate": "2026-11-02",
+                    "valueDate": "2026-11-01",
+                    "transactionAmount": {
+                      "amount": "-12.34",
+                      "currency": "EUR"
+                    },
+                    "creditorName": "SYNTHETIC CAFE",
+                    "creditorAccount": {
+                      "iban": "DE0000000000001234"
+                    },
+                    "remittanceInformationUnstructured": "Bank #note"
+                  }
+                ],
+                "pending": [
+                  {
+                    "transactionId": "pending-A",
+                    "valueDateTime": "2026-11-03T12:30:00+01:00",
+                    "transactionAmount": {
+                      "amount": "-2.00",
+                      "currency": "EUR"
+                    },
+                    "creditorName": "SYNTHETIC SHOP",
+                    "remittanceInformationUnstructuredArray": [
+                      "Pending",
+                      "#purchase"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "result": {
+        "data": {
+          "balances": [
+            {
+              "balanceType": "interimBooked",
+              "balanceAmount": {
+                "amount": "110.00",
+                "currency": "EUR"
+              }
+            },
+            {
+              "balanceType": "closingBooked",
+              "balanceAmount": {
+                "amount": "100.50",
+                "currency": "EUR"
+              }
+            }
+          ],
+          "institutionId": "FIXTURE_INSTITUTION",
+          "startingBalance": 11284,
+          "transactions": {
+            "booked": [
+              {
+                "transactionId": "booked-A",
+                "bookingDate": "2026-11-02",
+                "valueDate": "2026-11-01",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "EUR"
+                },
+                "creditorName": "SYNTHETIC CAFE",
+                "creditorAccount": {
+                  "iban": "DE0000000000001234"
+                },
+                "remittanceInformationUnstructured": "Bank #note",
+                "payeeName": "Synthetic Cafe (DE00 XXX 1234)",
+                "date": "2026-11-02",
+                "notes": "Bank #note"
+              }
+            ],
+            "pending": [
+              {
+                "transactionId": "pending-A",
+                "valueDateTime": "2026-11-03T12:30:00+01:00",
+                "transactionAmount": {
+                  "amount": "-2.00",
+                  "currency": "EUR"
+                },
+                "creditorName": "SYNTHETIC SHOP",
+                "remittanceInformationUnstructuredArray": [
+                  "Pending",
+                  "#purchase"
+                ],
+                "remittanceInformationUnstructuredArrayString": "Pending,#purchase",
+                "payeeName": "Synthetic Shop",
+                "date": "2026-11-03",
+                "notes": "Pending #purchase"
+              }
+            ],
+            "all": [
+              {
+                "transactionId": "pending-A",
+                "valueDateTime": "2026-11-03T12:30:00+01:00",
+                "transactionAmount": {
+                  "amount": "-2.00",
+                  "currency": "EUR"
+                },
+                "creditorName": "SYNTHETIC SHOP",
+                "remittanceInformationUnstructuredArray": [
+                  "Pending",
+                  "#purchase"
+                ],
+                "remittanceInformationUnstructuredArrayString": "Pending,#purchase",
+                "payeeName": "Synthetic Shop",
+                "date": "2026-11-03",
+                "notes": "Pending #purchase",
+                "booked": false
+              },
+              {
+                "transactionId": "booked-A",
+                "bookingDate": "2026-11-02",
+                "valueDate": "2026-11-01",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "EUR"
+                },
+                "creditorName": "SYNTHETIC CAFE",
+                "creditorAccount": {
+                  "iban": "DE0000000000001234"
+                },
+                "remittanceInformationUnstructured": "Bank #note",
+                "payeeName": "Synthetic Cafe (DE00 XXX 1234)",
+                "date": "2026-11-02",
+                "notes": "Bank #note",
+                "booked": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "id": "fallback-dates-notes-and-missing-date",
+        "sparse": true,
+        "payment": {
+          "transactionId": "booked-A",
+          "bookingDate": "2026-11-02",
+          "valueDate": "2026-11-01",
+          "transactionAmount": {
+            "amount": "-12.34",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC CAFE",
+          "creditorAccount": {
+            "iban": "DE0000000000001234"
+          },
+          "remittanceInformationUnstructured": "Bank #note"
+        },
+        "pending": {
+          "transactionId": "pending-A",
+          "valueDateTime": "2026-11-03T12:30:00+01:00",
+          "transactionAmount": {
+            "amount": "-2.00",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC SHOP",
+          "remittanceInformationUnstructuredArray": [
+            "Pending",
+            "#purchase"
+          ]
+        },
+        "balances": [
+          {
+            "balanceType": "interimBooked",
+            "balanceAmount": {
+              "amount": "110.00",
+              "currency": "EUR"
+            }
+          },
+          {
+            "balanceType": "closingBooked",
+            "balanceAmount": {
+              "amount": "100.50",
+              "currency": "EUR"
+            }
+          }
+        ],
+        "institution": {
+          "id": "FIXTURE_INSTITUTION",
+          "name": "Synthetic institution",
+          "countries": [
+            "GB"
+          ],
+          "transaction_total_days": "730",
+          "max_access_valid_for_days": "180",
+          "supported_features": [
+            "account_selection",
+            "separate_continuous_history_consent"
+          ]
+        }
+      },
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/api/v2/token/new/",
+          "body": {
+            "secret_id": "SYNTHETIC-ID",
+            "secret_key": "SYNTHETIC-KEY"
+          },
+          "authorization": null,
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "access": "synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+              "refresh": "SYNTHETIC-REFRESH",
+              "access_expires": 86400,
+              "refresh_expires": 2592000
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/requisitions/requisition-A/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "id": "requisition-A",
+              "status": "LN",
+              "institution_id": "FIXTURE_INSTITUTION",
+              "accounts": [
+                "remote-A"
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/accounts/remote-A/balances/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "balances": [
+                {
+                  "balanceType": "interimBooked",
+                  "balanceAmount": {
+                    "amount": "110.00",
+                    "currency": "EUR"
+                  }
+                },
+                {
+                  "balanceType": "closingBooked",
+                  "balanceAmount": {
+                    "amount": "100.50",
+                    "currency": "EUR"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/requisitions/requisition-A/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "id": "requisition-A",
+              "status": "LN",
+              "institution_id": "FIXTURE_INSTITUTION",
+              "accounts": [
+                "remote-A"
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/accounts/remote-A/transactions/?date_from=2026-11-01&date_to=2026-11-10",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "transactions": {
+                "booked": [
+                  {
+                    "transactionId": "booked-A",
+                    "bookingDate": "2026-11-02",
+                    "valueDate": "2026-11-01",
+                    "transactionAmount": {
+                      "amount": "-12.34",
+                      "currency": "EUR"
+                    },
+                    "creditorName": "SYNTHETIC CAFE",
+                    "creditorAccount": {
+                      "iban": "DE0000000000001234"
+                    },
+                    "remittanceInformationUnstructured": "Bank #note"
+                  },
+                  {
+                    "transactionId": "datetime-B",
+                    "valueDate": "2026-11-01",
+                    "transactionAmount": {
+                      "amount": "-12.34",
+                      "currency": "EUR"
+                    },
+                    "creditorAccount": {
+                      "iban": "DE0000000000001234"
+                    },
+                    "bookingDateTime": "2026-11-04T23:00:00Z",
+                    "remittanceInformationUnstructuredArray": [
+                      "Array",
+                      "notes"
+                    ]
+                  },
+                  {
+                    "transactionId": "missing-date",
+                    "transactionAmount": {
+                      "amount": "-12.34",
+                      "currency": "EUR"
+                    },
+                    "creditorName": "SYNTHETIC CAFE",
+                    "creditorAccount": {
+                      "iban": "DE0000000000001234"
+                    },
+                    "remittanceInformationUnstructured": "Bank #note"
+                  }
+                ],
+                "pending": [
+                  {
+                    "transactionId": "pending-A",
+                    "valueDateTime": "2026-11-03T12:30:00+01:00",
+                    "transactionAmount": {
+                      "amount": "-2.00",
+                      "currency": "EUR"
+                    },
+                    "creditorName": "SYNTHETIC SHOP",
+                    "remittanceInformationUnstructuredArray": [
+                      "Pending",
+                      "#purchase"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "result": {
+        "data": {
+          "balances": [
+            {
+              "balanceType": "interimBooked",
+              "balanceAmount": {
+                "amount": "110.00",
+                "currency": "EUR"
+              }
+            },
+            {
+              "balanceType": "closingBooked",
+              "balanceAmount": {
+                "amount": "100.50",
+                "currency": "EUR"
+              }
+            }
+          ],
+          "institutionId": "FIXTURE_INSTITUTION",
+          "startingBalance": 12518,
+          "transactions": {
+            "booked": [
+              {
+                "transactionId": "datetime-B",
+                "valueDate": "2026-11-01",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "EUR"
+                },
+                "creditorAccount": {
+                  "iban": "DE0000000000001234"
+                },
+                "bookingDateTime": "2026-11-04T23:00:00Z",
+                "remittanceInformationUnstructuredArray": [
+                  "Array",
+                  "notes"
+                ],
+                "remittanceInformationUnstructuredArrayString": "Array,notes",
+                "payeeName": "Array, Notes (DE00 XXX 1234)",
+                "date": "2026-11-04",
+                "notes": "Array notes"
+              },
+              {
+                "transactionId": "booked-A",
+                "bookingDate": "2026-11-02",
+                "valueDate": "2026-11-01",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "EUR"
+                },
+                "creditorName": "SYNTHETIC CAFE",
+                "creditorAccount": {
+                  "iban": "DE0000000000001234"
+                },
+                "remittanceInformationUnstructured": "Bank #note",
+                "payeeName": "Synthetic Cafe (DE00 XXX 1234)",
+                "date": "2026-11-02",
+                "notes": "Bank #note"
+              }
+            ],
+            "pending": [
+              {
+                "transactionId": "pending-A",
+                "valueDateTime": "2026-11-03T12:30:00+01:00",
+                "transactionAmount": {
+                  "amount": "-2.00",
+                  "currency": "EUR"
+                },
+                "creditorName": "SYNTHETIC SHOP",
+                "remittanceInformationUnstructuredArray": [
+                  "Pending",
+                  "#purchase"
+                ],
+                "remittanceInformationUnstructuredArrayString": "Pending,#purchase",
+                "payeeName": "Synthetic Shop",
+                "date": "2026-11-03",
+                "notes": "Pending #purchase"
+              }
+            ],
+            "all": [
+              {
+                "transactionId": "pending-A",
+                "valueDateTime": "2026-11-03T12:30:00+01:00",
+                "transactionAmount": {
+                  "amount": "-2.00",
+                  "currency": "EUR"
+                },
+                "creditorName": "SYNTHETIC SHOP",
+                "remittanceInformationUnstructuredArray": [
+                  "Pending",
+                  "#purchase"
+                ],
+                "remittanceInformationUnstructuredArrayString": "Pending,#purchase",
+                "payeeName": "Synthetic Shop",
+                "date": "2026-11-03",
+                "notes": "Pending #purchase",
+                "booked": false
+              },
+              {
+                "transactionId": "datetime-B",
+                "valueDate": "2026-11-01",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "EUR"
+                },
+                "creditorAccount": {
+                  "iban": "DE0000000000001234"
+                },
+                "bookingDateTime": "2026-11-04T23:00:00Z",
+                "remittanceInformationUnstructuredArray": [
+                  "Array",
+                  "notes"
+                ],
+                "remittanceInformationUnstructuredArrayString": "Array,notes",
+                "payeeName": "Array, Notes (DE00 XXX 1234)",
+                "date": "2026-11-04",
+                "notes": "Array notes",
+                "booked": true
+              },
+              {
+                "transactionId": "booked-A",
+                "bookingDate": "2026-11-02",
+                "valueDate": "2026-11-01",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "EUR"
+                },
+                "creditorName": "SYNTHETIC CAFE",
+                "creditorAccount": {
+                  "iban": "DE0000000000001234"
+                },
+                "remittanceInformationUnstructured": "Bank #note",
+                "payeeName": "Synthetic Cafe (DE00 XXX 1234)",
+                "date": "2026-11-02",
+                "notes": "Bank #note",
+                "booked": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "id": "ing-bank-specific-notes-sort-balance",
+        "ing": true,
+        "payment": {
+          "transactionId": "booked-A",
+          "bookingDate": "2026-11-02",
+          "valueDate": "2026-11-01",
+          "transactionAmount": {
+            "amount": "-12.34",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC CAFE",
+          "creditorAccount": {
+            "iban": "DE0000000000001234"
+          },
+          "remittanceInformationUnstructured": "Bank #note"
+        },
+        "pending": {
+          "transactionId": "pending-A",
+          "valueDateTime": "2026-11-03T12:30:00+01:00",
+          "transactionAmount": {
+            "amount": "-2.00",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC SHOP",
+          "remittanceInformationUnstructuredArray": [
+            "Pending",
+            "#purchase"
+          ]
+        },
+        "balances": [
+          {
+            "balanceType": "interimBooked",
+            "balanceAmount": {
+              "amount": "110.00",
+              "currency": "EUR"
+            }
+          },
+          {
+            "balanceType": "closingBooked",
+            "balanceAmount": {
+              "amount": "100.50",
+              "currency": "EUR"
+            }
+          }
+        ],
+        "institution": {
+          "id": "FIXTURE_INSTITUTION",
+          "name": "Synthetic institution",
+          "countries": [
+            "GB"
+          ],
+          "transaction_total_days": "730",
+          "max_access_valid_for_days": "180",
+          "supported_features": [
+            "account_selection",
+            "separate_continuous_history_consent"
+          ]
+        }
+      },
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/api/v2/token/new/",
+          "body": {
+            "secret_id": "SYNTHETIC-ID",
+            "secret_key": "SYNTHETIC-KEY"
+          },
+          "authorization": null,
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "access": "synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+              "refresh": "SYNTHETIC-REFRESH",
+              "access_expires": 86400,
+              "refresh_expires": 2592000
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/requisitions/requisition-A/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "id": "requisition-A",
+              "status": "LN",
+              "institution_id": "ING_INGDDEFF",
+              "accounts": [
+                "remote-A"
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/accounts/remote-A/balances/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "balances": [
+                {
+                  "balanceType": "interimBooked",
+                  "balanceAmount": {
+                    "amount": "110.00",
+                    "currency": "EUR"
+                  }
+                },
+                {
+                  "balanceType": "closingBooked",
+                  "balanceAmount": {
+                    "amount": "100.50",
+                    "currency": "EUR"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/requisitions/requisition-A/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "id": "requisition-A",
+              "status": "LN",
+              "institution_id": "ING_INGDDEFF",
+              "accounts": [
+                "remote-A"
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/accounts/remote-A/transactions/?date_from=2026-11-01&date_to=2026-11-10",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "transactions": {
+                "booked": [
+                  {
+                    "transactionId": "2",
+                    "bookingDate": "2026-11-02",
+                    "valueDate": "2026-11-01",
+                    "transactionAmount": {
+                      "amount": "-12.34",
+                      "currency": "EUR"
+                    },
+                    "creditorName": "SYNTHETIC CAFE",
+                    "creditorAccount": {
+                      "iban": "DE0000000000001234"
+                    },
+                    "remittanceInformationUnstructured": "prefix remittanceinformation:Only this note"
+                  },
+                  {
+                    "transactionId": "10",
+                    "bookingDate": "2026-11-02",
+                    "valueDate": "2026-11-01",
+                    "transactionAmount": {
+                      "amount": "1.25",
+                      "currency": "EUR"
+                    },
+                    "creditorName": "SYNTHETIC CAFE",
+                    "creditorAccount": {
+                      "iban": "DE0000000000001234"
+                    },
+                    "remittanceInformationUnstructured": "Bank #note"
+                  }
+                ],
+                "pending": [
+                  {
+                    "transactionId": "pending-A",
+                    "valueDateTime": "2026-11-03T12:30:00+01:00",
+                    "transactionAmount": {
+                      "amount": "-2.00",
+                      "currency": "EUR"
+                    },
+                    "creditorName": "SYNTHETIC SHOP",
+                    "remittanceInformationUnstructuredArray": [
+                      "Pending",
+                      "#purchase"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "result": {
+        "data": {
+          "balances": [
+            {
+              "balanceType": "interimBooked",
+              "balanceAmount": {
+                "amount": "110.00",
+                "currency": "EUR"
+              }
+            },
+            {
+              "balanceType": "closingBooked",
+              "balanceAmount": {
+                "amount": "100.50",
+                "currency": "EUR"
+              }
+            }
+          ],
+          "institutionId": "ING_INGDDEFF",
+          "startingBalance": 12109,
+          "transactions": {
+            "booked": [
+              {
+                "transactionId": "10",
+                "bookingDate": "2026-11-02",
+                "valueDate": "2026-11-01",
+                "transactionAmount": {
+                  "amount": "1.25",
+                  "currency": "EUR"
+                },
+                "creditorName": "SYNTHETIC CAFE",
+                "creditorAccount": {
+                  "iban": "DE0000000000001234"
+                },
+                "remittanceInformationUnstructured": "Bank #note",
+                "payeeName": "Synthetic Cafe (DE00 XXX 1234)",
+                "date": "2026-11-02",
+                "notes": "Bank #note"
+              },
+              {
+                "transactionId": "2",
+                "bookingDate": "2026-11-02",
+                "valueDate": "2026-11-01",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "EUR"
+                },
+                "creditorName": "SYNTHETIC CAFE",
+                "creditorAccount": {
+                  "iban": "DE0000000000001234"
+                },
+                "remittanceInformationUnstructured": "prefix remittanceinformation:Only this note",
+                "payeeName": "Synthetic Cafe (DE00 XXX 1234)",
+                "date": "2026-11-02",
+                "notes": "Only this note"
+              }
+            ],
+            "pending": [
+              {
+                "transactionId": "pending-A",
+                "valueDateTime": "2026-11-03T12:30:00+01:00",
+                "transactionAmount": {
+                  "amount": "-2.00",
+                  "currency": "EUR"
+                },
+                "creditorName": "SYNTHETIC SHOP",
+                "remittanceInformationUnstructuredArray": [
+                  "Pending",
+                  "#purchase"
+                ],
+                "remittanceInformationUnstructuredArrayString": "Pending,#purchase",
+                "payeeName": "Synthetic Shop",
+                "date": "2026-11-03",
+                "notes": "Pending #purchase"
+              }
+            ],
+            "all": [
+              {
+                "transactionId": "10",
+                "bookingDate": "2026-11-02",
+                "valueDate": "2026-11-01",
+                "transactionAmount": {
+                  "amount": "1.25",
+                  "currency": "EUR"
+                },
+                "creditorName": "SYNTHETIC CAFE",
+                "creditorAccount": {
+                  "iban": "DE0000000000001234"
+                },
+                "remittanceInformationUnstructured": "Bank #note",
+                "payeeName": "Synthetic Cafe (DE00 XXX 1234)",
+                "date": "2026-11-02",
+                "notes": "Bank #note",
+                "booked": true
+              },
+              {
+                "transactionId": "2",
+                "bookingDate": "2026-11-02",
+                "valueDate": "2026-11-01",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "EUR"
+                },
+                "creditorName": "SYNTHETIC CAFE",
+                "creditorAccount": {
+                  "iban": "DE0000000000001234"
+                },
+                "remittanceInformationUnstructured": "prefix remittanceinformation:Only this note",
+                "payeeName": "Synthetic Cafe (DE00 XXX 1234)",
+                "date": "2026-11-02",
+                "notes": "Only this note",
+                "booked": true
+              },
+              {
+                "transactionId": "pending-A",
+                "valueDateTime": "2026-11-03T12:30:00+01:00",
+                "transactionAmount": {
+                  "amount": "-2.00",
+                  "currency": "EUR"
+                },
+                "creditorName": "SYNTHETIC SHOP",
+                "remittanceInformationUnstructuredArray": [
+                  "Pending",
+                  "#purchase"
+                ],
+                "remittanceInformationUnstructuredArrayString": "Pending,#purchase",
+                "payeeName": "Synthetic Shop",
+                "date": "2026-11-03",
+                "notes": "Pending #purchase",
+                "booked": false
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "id": "expired-consent",
+        "status": "EX",
+        "payment": {
+          "transactionId": "booked-A",
+          "bookingDate": "2026-11-02",
+          "valueDate": "2026-11-01",
+          "transactionAmount": {
+            "amount": "-12.34",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC CAFE",
+          "creditorAccount": {
+            "iban": "DE0000000000001234"
+          },
+          "remittanceInformationUnstructured": "Bank #note"
+        },
+        "pending": {
+          "transactionId": "pending-A",
+          "valueDateTime": "2026-11-03T12:30:00+01:00",
+          "transactionAmount": {
+            "amount": "-2.00",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC SHOP",
+          "remittanceInformationUnstructuredArray": [
+            "Pending",
+            "#purchase"
+          ]
+        },
+        "balances": [
+          {
+            "balanceType": "interimBooked",
+            "balanceAmount": {
+              "amount": "110.00",
+              "currency": "EUR"
+            }
+          },
+          {
+            "balanceType": "closingBooked",
+            "balanceAmount": {
+              "amount": "100.50",
+              "currency": "EUR"
+            }
+          }
+        ],
+        "institution": {
+          "id": "FIXTURE_INSTITUTION",
+          "name": "Synthetic institution",
+          "countries": [
+            "GB"
+          ],
+          "transaction_total_days": "730",
+          "max_access_valid_for_days": "180",
+          "supported_features": [
+            "account_selection",
+            "separate_continuous_history_consent"
+          ]
+        }
+      },
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/api/v2/token/new/",
+          "body": {
+            "secret_id": "SYNTHETIC-ID",
+            "secret_key": "SYNTHETIC-KEY"
+          },
+          "authorization": null,
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "access": "synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+              "refresh": "SYNTHETIC-REFRESH",
+              "access_expires": 86400,
+              "refresh_expires": 2592000
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/requisitions/requisition-A/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "id": "requisition-A",
+              "status": "EX",
+              "institution_id": "FIXTURE_INSTITUTION",
+              "accounts": [
+                "remote-A"
+              ]
+            }
+          }
+        }
+      ],
+      "result": {
+        "error": {
+          "name": "RequisitionNotLinked",
+          "message": "Requisition not linked yet",
+          "details": {
+            "requisitionStatus": "EX"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "id": "account-not-in-requisition",
+        "accountId": "foreign-account",
+        "payment": {
+          "transactionId": "booked-A",
+          "bookingDate": "2026-11-02",
+          "valueDate": "2026-11-01",
+          "transactionAmount": {
+            "amount": "-12.34",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC CAFE",
+          "creditorAccount": {
+            "iban": "DE0000000000001234"
+          },
+          "remittanceInformationUnstructured": "Bank #note"
+        },
+        "pending": {
+          "transactionId": "pending-A",
+          "valueDateTime": "2026-11-03T12:30:00+01:00",
+          "transactionAmount": {
+            "amount": "-2.00",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC SHOP",
+          "remittanceInformationUnstructuredArray": [
+            "Pending",
+            "#purchase"
+          ]
+        },
+        "balances": [
+          {
+            "balanceType": "interimBooked",
+            "balanceAmount": {
+              "amount": "110.00",
+              "currency": "EUR"
+            }
+          },
+          {
+            "balanceType": "closingBooked",
+            "balanceAmount": {
+              "amount": "100.50",
+              "currency": "EUR"
+            }
+          }
+        ],
+        "institution": {
+          "id": "FIXTURE_INSTITUTION",
+          "name": "Synthetic institution",
+          "countries": [
+            "GB"
+          ],
+          "transaction_total_days": "730",
+          "max_access_valid_for_days": "180",
+          "supported_features": [
+            "account_selection",
+            "separate_continuous_history_consent"
+          ]
+        }
+      },
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/api/v2/token/new/",
+          "body": {
+            "secret_id": "SYNTHETIC-ID",
+            "secret_key": "SYNTHETIC-KEY"
+          },
+          "authorization": null,
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "access": "synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+              "refresh": "SYNTHETIC-REFRESH",
+              "access_expires": 86400,
+              "refresh_expires": 2592000
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/requisitions/requisition-A/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "id": "requisition-A",
+              "status": "LN",
+              "institution_id": "FIXTURE_INSTITUTION",
+              "accounts": [
+                "remote-A"
+              ]
+            }
+          }
+        }
+      ],
+      "result": {
+        "error": {
+          "name": "AccountNotLinkedToRequisition",
+          "message": "Provided account id is not linked to given requisition",
+          "details": {
+            "accountId": "foreign-account",
+            "requisitionId": "requisition-A"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "id": "rate-limited-transactions",
+        "error": 429,
+        "payment": {
+          "transactionId": "booked-A",
+          "bookingDate": "2026-11-02",
+          "valueDate": "2026-11-01",
+          "transactionAmount": {
+            "amount": "-12.34",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC CAFE",
+          "creditorAccount": {
+            "iban": "DE0000000000001234"
+          },
+          "remittanceInformationUnstructured": "Bank #note"
+        },
+        "pending": {
+          "transactionId": "pending-A",
+          "valueDateTime": "2026-11-03T12:30:00+01:00",
+          "transactionAmount": {
+            "amount": "-2.00",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC SHOP",
+          "remittanceInformationUnstructuredArray": [
+            "Pending",
+            "#purchase"
+          ]
+        },
+        "balances": [
+          {
+            "balanceType": "interimBooked",
+            "balanceAmount": {
+              "amount": "110.00",
+              "currency": "EUR"
+            }
+          },
+          {
+            "balanceType": "closingBooked",
+            "balanceAmount": {
+              "amount": "100.50",
+              "currency": "EUR"
+            }
+          }
+        ],
+        "institution": {
+          "id": "FIXTURE_INSTITUTION",
+          "name": "Synthetic institution",
+          "countries": [
+            "GB"
+          ],
+          "transaction_total_days": "730",
+          "max_access_valid_for_days": "180",
+          "supported_features": [
+            "account_selection",
+            "separate_continuous_history_consent"
+          ]
+        }
+      },
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/api/v2/token/new/",
+          "body": {
+            "secret_id": "SYNTHETIC-ID",
+            "secret_key": "SYNTHETIC-KEY"
+          },
+          "authorization": null,
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "access": "synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+              "refresh": "SYNTHETIC-REFRESH",
+              "access_expires": 86400,
+              "refresh_expires": 2592000
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/requisitions/requisition-A/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "id": "requisition-A",
+              "status": "LN",
+              "institution_id": "FIXTURE_INSTITUTION",
+              "accounts": [
+                "remote-A"
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/accounts/remote-A/balances/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "balances": [
+                {
+                  "balanceType": "interimBooked",
+                  "balanceAmount": {
+                    "amount": "110.00",
+                    "currency": "EUR"
+                  }
+                },
+                {
+                  "balanceType": "closingBooked",
+                  "balanceAmount": {
+                    "amount": "100.50",
+                    "currency": "EUR"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/requisitions/requisition-A/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "id": "requisition-A",
+              "status": "LN",
+              "institution_id": "FIXTURE_INSTITUTION",
+              "accounts": [
+                "remote-A"
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/accounts/remote-A/transactions/?date_from=2026-11-01&date_to=2026-11-10",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 429,
+            "headers": {
+              "x-ratelimit-account-success-remaining": "0"
+            },
+            "body": {
+              "summary": "Rate limit exceeded",
+              "detail": "Synthetic diagnostic",
+              "status_code": 429
+            }
+          }
+        }
+      ],
+      "result": {
+        "error": {
+          "name": "RateLimitError",
+          "message": "Daily request limit set by the Institution has been exceeded",
+          "details": {
+            "response": {
+              "status": 429,
+              "headers": {
+                "content-type": "application/json",
+                "x-ratelimit-account-success-remaining": "0"
+              },
+              "data": {
+                "summary": "Rate limit exceeded",
+                "detail": "Synthetic diagnostic",
+                "status_code": 429
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "id": "end-user-agreement-expired",
+        "error": 401,
+        "payment": {
+          "transactionId": "booked-A",
+          "bookingDate": "2026-11-02",
+          "valueDate": "2026-11-01",
+          "transactionAmount": {
+            "amount": "-12.34",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC CAFE",
+          "creditorAccount": {
+            "iban": "DE0000000000001234"
+          },
+          "remittanceInformationUnstructured": "Bank #note"
+        },
+        "pending": {
+          "transactionId": "pending-A",
+          "valueDateTime": "2026-11-03T12:30:00+01:00",
+          "transactionAmount": {
+            "amount": "-2.00",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC SHOP",
+          "remittanceInformationUnstructuredArray": [
+            "Pending",
+            "#purchase"
+          ]
+        },
+        "balances": [
+          {
+            "balanceType": "interimBooked",
+            "balanceAmount": {
+              "amount": "110.00",
+              "currency": "EUR"
+            }
+          },
+          {
+            "balanceType": "closingBooked",
+            "balanceAmount": {
+              "amount": "100.50",
+              "currency": "EUR"
+            }
+          }
+        ],
+        "institution": {
+          "id": "FIXTURE_INSTITUTION",
+          "name": "Synthetic institution",
+          "countries": [
+            "GB"
+          ],
+          "transaction_total_days": "730",
+          "max_access_valid_for_days": "180",
+          "supported_features": [
+            "account_selection",
+            "separate_continuous_history_consent"
+          ]
+        }
+      },
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/api/v2/token/new/",
+          "body": {
+            "secret_id": "SYNTHETIC-ID",
+            "secret_key": "SYNTHETIC-KEY"
+          },
+          "authorization": null,
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "access": "synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+              "refresh": "SYNTHETIC-REFRESH",
+              "access_expires": 86400,
+              "refresh_expires": 2592000
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/requisitions/requisition-A/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "id": "requisition-A",
+              "status": "LN",
+              "institution_id": "FIXTURE_INSTITUTION",
+              "accounts": [
+                "remote-A"
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/accounts/remote-A/balances/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "balances": [
+                {
+                  "balanceType": "interimBooked",
+                  "balanceAmount": {
+                    "amount": "110.00",
+                    "currency": "EUR"
+                  }
+                },
+                {
+                  "balanceType": "closingBooked",
+                  "balanceAmount": {
+                    "amount": "100.50",
+                    "currency": "EUR"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/requisitions/requisition-A/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "id": "requisition-A",
+              "status": "LN",
+              "institution_id": "FIXTURE_INSTITUTION",
+              "accounts": [
+                "remote-A"
+              ]
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/accounts/remote-A/transactions/?date_from=2026-11-01&date_to=2026-11-10",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 401,
+            "headers": {
+              "x-ratelimit-account-success-remaining": "0"
+            },
+            "body": {
+              "summary": "End User Agreement has expired",
+              "detail": "Synthetic diagnostic",
+              "status_code": 401
+            }
+          }
+        }
+      ],
+      "result": {
+        "error": {
+          "name": "EndUserAgreementExpiredError",
+          "message": "End User Agreement (EUA) has expired",
+          "details": {
+            "response": {
+              "status": 401,
+              "headers": {
+                "content-type": "application/json",
+                "x-ratelimit-account-success-remaining": "0"
+              },
+              "data": {
+                "summary": "End User Agreement has expired",
+                "detail": "Synthetic diagnostic",
+                "status_code": 401
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "id": "create-consent-institution-limits",
+        "create": true,
+        "payment": {
+          "transactionId": "booked-A",
+          "bookingDate": "2026-11-02",
+          "valueDate": "2026-11-01",
+          "transactionAmount": {
+            "amount": "-12.34",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC CAFE",
+          "creditorAccount": {
+            "iban": "DE0000000000001234"
+          },
+          "remittanceInformationUnstructured": "Bank #note"
+        },
+        "pending": {
+          "transactionId": "pending-A",
+          "valueDateTime": "2026-11-03T12:30:00+01:00",
+          "transactionAmount": {
+            "amount": "-2.00",
+            "currency": "EUR"
+          },
+          "creditorName": "SYNTHETIC SHOP",
+          "remittanceInformationUnstructuredArray": [
+            "Pending",
+            "#purchase"
+          ]
+        },
+        "balances": [
+          {
+            "balanceType": "interimBooked",
+            "balanceAmount": {
+              "amount": "110.00",
+              "currency": "EUR"
+            }
+          },
+          {
+            "balanceType": "closingBooked",
+            "balanceAmount": {
+              "amount": "100.50",
+              "currency": "EUR"
+            }
+          }
+        ],
+        "institution": {
+          "id": "FIXTURE_INSTITUTION",
+          "name": "Synthetic institution",
+          "countries": [
+            "GB"
+          ],
+          "transaction_total_days": "730",
+          "max_access_valid_for_days": "180",
+          "supported_features": [
+            "account_selection",
+            "separate_continuous_history_consent"
+          ]
+        }
+      },
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/api/v2/token/new/",
+          "body": {
+            "secret_id": "SYNTHETIC-ID",
+            "secret_key": "SYNTHETIC-KEY"
+          },
+          "authorization": null,
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "access": "synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+              "refresh": "SYNTHETIC-REFRESH",
+              "access_expires": 86400,
+              "refresh_expires": 2592000
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/v2/institutions/FIXTURE_INSTITUTION/",
+          "body": null,
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "id": "FIXTURE_INSTITUTION",
+              "name": "Synthetic institution",
+              "countries": [
+                "GB"
+              ],
+              "transaction_total_days": "730",
+              "max_access_valid_for_days": "180",
+              "supported_features": [
+                "account_selection",
+                "separate_continuous_history_consent"
+              ]
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/v2/agreements/enduser/",
+          "body": {
+            "institution_id": "FIXTURE_INSTITUTION",
+            "max_historical_days": 90,
+            "access_valid_for_days": 180,
+            "access_scope": [
+              "balances",
+              "details",
+              "transactions"
+            ]
+          },
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "id": "agreement-A"
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/v2/requisitions/",
+          "body": {
+            "redirect": "http://app.synthetic.invalid/gocardless/link",
+            "institution_id": "FIXTURE_INSTITUTION",
+            "agreement": "agreement-A",
+            "user_language": "en",
+            "reference": "GENERATED-REFERENCE",
+            "redirect_immediate": false,
+            "account_selection": true
+          },
+          "authorization": "Bearer synthetic.eyJleHAiOjQxMDI0NDQ4MDB9.not-a-secret",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "id": "requisition-new",
+              "agreement": "agreement-A",
+              "link": "https://consent.synthetic.invalid/fixture"
+            }
+          }
+        }
+      ],
+      "result": {
+        "data": {
+          "link": "https://consent.synthetic.invalid/fixture",
+          "requisitionId": "requisition-new"
+        }
+      }
+    }
+  ]
+}

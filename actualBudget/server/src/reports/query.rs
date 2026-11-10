@@ -47,6 +47,15 @@ fn month_end(d: NaiveDate) -> NaiveDate {
 fn text<'a>(v: &'a Value, key: &str, default: &'a str) -> &'a str {
     v[key].as_str().unwrap_or(default)
 }
+fn truthy(value: &Value) -> bool {
+    match value {
+        Value::Null => false,
+        Value::Bool(value) => *value,
+        Value::String(value) => !value.is_empty(),
+        Value::Number(value) => value.as_f64().is_some_and(|value| value != 0.0),
+        _ => true,
+    }
+}
 fn predicate(
     db: &Connection,
     b: &str,
@@ -68,7 +77,7 @@ fn predicate(
         {
             return Err(Error::invalid("Invalid report condition"));
         }
-        if c.get("customName").is_some() {
+        if truthy(&c["customName"]) {
             continue;
         }
         let field = text(c, "field", "");
@@ -109,7 +118,7 @@ fn predicate(
             }
         }
         let condition=serde_json::from_value(json!({"field":field,"op":op,"value":value,"options":c.get("options").filter(|v|!v.is_null()).cloned().unwrap_or(json!({}))})).map_err(|_|Error::invalid("Invalid reporting condition"))?;
-        clauses.push(crate::register::report_predicate(
+        let predicate = crate::register::report_predicate(
             db,
             b,
             crate::register::Filter {
@@ -117,7 +126,16 @@ fn predicate(
                 ..Default::default()
             },
             values,
-        )?);
+        )?;
+        // Source report conditions use rule semantics for uncategorized rows;
+        // plain ActualQL/register null predicates remain literal SQL null tests.
+        clauses.push(if field == "category" && value.is_null() && op == "eq" {
+            format!("({predicate} AND t.transfer_id IS NULL AND t.is_parent=0)")
+        } else if field == "category" && value.is_null() && op == "ne" {
+            format!("({predicate} AND t.is_parent=0)")
+        } else {
+            predicate
+        });
     }
     if clauses.len() > 20 {
         return Err(Error::invalid("Maximum20 report conditions"));

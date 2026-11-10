@@ -55,15 +55,7 @@ fn exact(value: i128) -> Result<i64, Error> {
         Ok(value as i64)
     }
 }
-fn truthy(value: &Value) -> bool {
-    match value {
-        Value::Null => false,
-        Value::Bool(value) => *value,
-        Value::String(value) => !value.is_empty(),
-        Value::Number(value) => value.as_f64().is_some_and(|value| value != 0.0),
-        _ => true,
-    }
-}
+
 fn selection(db: &Connection, b: &str, options: &Options) -> Result<Vec<Category>, Error> {
     let count:i64=db.query_row("SELECT count(*) FROM (SELECT id FROM categories WHERE budget_id=?1 AND tombstone=0 LIMIT 5001)",[b],|r|r.get(0))?;
     if count > 5000 {

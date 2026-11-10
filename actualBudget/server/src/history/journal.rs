@@ -9,8 +9,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::BTreeSet;
 const TABLES: &[&str] = &[
+    "notes",
     "transactions",
     "transaction_import_metadata",
+    "bank_transaction_origins",
     "transaction_import_settings",
     "accounts",
     "account_groups",
@@ -49,6 +51,8 @@ pub struct Change {
     after_protection: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     graph: Vec<graph::Guard>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    note_binding: Option<String>,
 }
 fn columns(db: &Connection, table: &str) -> Result<Vec<String>, Error> {
     if !TABLES.contains(&table) {
@@ -155,6 +159,9 @@ fn capture_guard(
     c: &mut Change,
 ) -> Result<(), Error> {
     let current = row(db, budget, &c.table, &c.id)?;
+    if c.table == "notes" {
+        c.note_binding = Some(crate::notes::binding(db, budget, &c.id)?);
+    }
     c.guard = if c.full {
         current
     } else {
@@ -267,6 +274,7 @@ pub fn record(
             before_versions,
             after_versions,
             members: None,
+            note_binding: None,
             before_protection,
             after_protection,
             graph: vec![],
@@ -379,6 +387,16 @@ pub fn apply(
     )?;
     let mut changes: Vec<Change> = serde_json::from_str(&saved).map_err(Error::internal)?;
     for c in &changes {
+        if c.table == "notes"
+            && crate::notes::binding(db, budget, &c.id)?
+                != c.note_binding.as_deref().unwrap_or("notes")
+        {
+            return Err(Error::new(
+                StatusCode::CONFLICT,
+                "history_conflict",
+                "An account, category or month now uses this note identity. Review its current note and submit a new note change. Nothing was changed.",
+            ));
+        }
         graph::verify(db, budget, owner, &c.graph, clock)?;
     }
     let captured_protection: BTreeSet<&str> =

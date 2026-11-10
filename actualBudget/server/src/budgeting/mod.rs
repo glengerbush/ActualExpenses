@@ -389,6 +389,7 @@ fn scoped_view(
             ))
         })? {
             let (m, held, notes) = row?;
+            let notes = crate::notes::visible_text(db, b, &format!("budget-{m}"), notes)?;
             let m = month(&m)?;
             if m <= end {
                 earliest = earliest.min(m);
@@ -591,11 +592,19 @@ async fn detail(
 
 /// Change cursors include authoritative planning records, including retired cells.
 pub fn record(db: &Connection, b: &str, entity: &str, id: &str) -> Result<Value, Error> {
-    let value = match entity {
+    let mut value = match entity {
         "budget_cells" => db.query_row("SELECT method,month,category_id,amount,carryover,goal,long_goal,tombstone FROM budget_cells WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":id,"method":r.get::<_,String>(0)?,"month":r.get::<_,String>(1)?,"category_id":r.get::<_,String>(2)?,"amount":r.get::<_,i64>(3)?,"carryover":r.get::<_,bool>(4)?,"goal":r.get::<_,Option<String>>(5)?,"long_goal":r.get::<_,Option<String>>(6)?,"deleted":r.get::<_,bool>(7)?})))?,
         "budget_months" => db.query_row("SELECT buffered,notes,tombstone FROM budget_months WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":id,"buffered":r.get::<_,i64>(0)?,"notes":r.get::<_,String>(1)?,"deleted":r.get::<_,bool>(2)?})))?,
         "budget_settings" => db.query_row("SELECT method,template_currency,template_currency_review FROM budget_settings WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":id,"method":r.get::<_,String>(0)?,"template_currency":r.get::<_,Option<String>>(1)?,"template_currency_review":r.get::<_,bool>(2)?,"deleted":false})))?,
         _ => return Err(Error::internal("Unknown planning change entity")),
     };
+    if entity == "budget_months" {
+        value["notes"] = json!(crate::notes::visible_text(
+            db,
+            b,
+            &format!("budget-{id}"),
+            value["notes"].as_str().unwrap_or_default().to_owned()
+        )?);
+    }
     Ok(value)
 }

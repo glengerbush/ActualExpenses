@@ -42,6 +42,25 @@ Root identified an unused scoped budget-summary overflow and the distinction bet
 - Both analysis reads now scope a32m SQLite VM-step progress guard, using the public-query evaluator’s existing pattern with guaranteed hook reset, and return typed `analysis_work_limit` refusal. This complements row/carry/regex/output limits; row counts alone do not establish bounded SQL work. Guard exhaustion is not claimed exercised here; final51 volume measurements remain separate. Drilldown uses explicit inclusive ISO date bounds rather than `substr(date)`.
 - Read-only EXPLAIN diagnostic on a disposable native22 budget imported through the public API (`/tmp/analysis36-explain.log`) observed `transactions_category_history` category/tombstone/date range seeks for scoped history and spent details; details additionally use a temporary ordering B-tree. This is a plan observation for that fixture, not a financial test seam or performance guarantee. No DB writes, schema/index change or broad performance suite.
 
+## Root composed backend review
+
+2026-11-10: Reviewed878cc96 and corrective678c7f7 against the source contract,
+including scoped carry arithmetic, category selection, cache invalidation,
+drilldown basis and SQLite progress-hook cleanup. Both reported backend findings
+are closed. Integrated at `baef1cb` with reviewed bank/query schema24 changes.
+Semantic OpenAPI merge retains both parents' operations/schemas and resolves all
+local references:113paths/192schemas. Existing forecast safe-money limits remain.
+
+Combined build PASS `/tmp/analysis36-compose-build.log`; all14 independent source
+projections and detail/cache/error checks PASS `/tmp/analysis36-compose-api.log`;
+funded-history overflow regression PASS `/tmp/analysis36-compose-large.log`.
+Served request/response/error schemas and both methods' current-native24
+duplicate/restore, settings/clocks and epoch-cache checks PASS
+`/tmp/analysis36-compose-native.log`. The consumer observes the produced schema
+version; original Actual26.10 archives remain unchanged. Prior source reproduction,
+native companion and budgeting-regression evidence reused. UI and whole36
+acceptance remain pending; no broad suite or guard-exhaustion claim.
+
 ## Complete UI checkpoint (root review pending)
 
 - Delivered saved `budget-analysis-card` widgets, a remembered Budget Analysis view and registered command, opt-in creation, translated default title, monthly dates, Line/Bar, balance-only/show-balance, hidden categories and category/group condition editing. Source IDs, omitted settings and ignored conditions stay preserved; edited category-name conditions retain source field/operator semantics. Defaults match pinned `BudgetAnalysisCard` (Bar, show balance); balance-only draws a line. Shared document CAS, saved cancellation fences, drafts and cache-reset retention reuse the reviewed reporting pipeline.
@@ -54,3 +73,31 @@ Root identified an unused scoped budget-summary overflow and the distinction bet
 - Svelte check0errors/0warnings `/tmp/analysis36-ui-check.log`, production build `/tmp/analysis36-ui-build.log`, all7 edited/new Svelte components autofixer0issues `/tmp/analysis36-autofixer.log`; analysis loader's async-effect advisories reviewed (external reads/generation guard, not derived calculations). Focused shared dashboard recovery/layout regression `/tmp/analysis36-reports-browser.log` and forecast source/settings/recovery/privacy regression `/tmp/analysis36-forecast-browser.log` PASS. Shared custom report localization/filter/save/recovery regression `/tmp/analysis36-custom-browser.log` also PASS. Reuse root-composed backend API/large/native24 evidence from `/tmp/analysis36-compose-{build,api,large,native}.log`; no broad repeat.
 
 Final limitations: root composition/review and combined qualification remain pending. Scoped SQLite progress guard exhaustion and final volume/resource measurements are explicitly assigned51; no universal index/performance guarantee. No migration36, login, analytics, deployment or external update checks.
+
+## Root UI review and composition
+
+2026-11-10: Reviewed43dfcc0 against the source/settings and recovery contracts.
+No blocking standards/spec findings. Composed at `c8a79c3`, preserving bank/notes
+capabilities and36's earlier scoped calculation fixes. Combined Rust/web builds
+and Svelte0errors/0warnings PASS `/tmp/analysis36-ui-compose-{rust,build,check}.log`.
+Both maintained browser consumers PASS
+`/tmp/analysis36-ui-compose-{browser,money}.log`: source monthly values/CSV,
+planned/recorded inspection, filter/chart preservation, cache/network/quota
+recovery, locale/privacy/navigation and exact native MAX_MONEY cents.
+
+Impeccable technical audit17/20: accessibility3, performance3, theming4,
+responsive3, integrity4. Inspected desktop/mobile/German/dark large-text renders;
+scannable controls, exact table alternatives, retained visual tokens and visible
+focus. Detector returned[] (`/tmp/analysis36-root-detect.json`). Root loader
+autofixer found0issues; two async-effect advisories are intentional external
+reads protected by generation/unmount guards (`/tmp/analysis36-root-autofix.log`).
+Other six components' recorded checks and shared report/forecast regressions
+reused. No screen-reader/device/full conformance claim;51 owns those final
+checks and volume/resource qualification, including existing build chunk warning.
+Feature review closed; main acceptance and whole-system qualification pending.
+
+### Local acceptance
+
+Ticket36 accepted on local main836918a after the documented source14+large-history,
+widget/CSV, public API, browser, native24 and root UI review. No remaining feature
+findings; final whole-system qualification50–53 remains open. No push or deployment.

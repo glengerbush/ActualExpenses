@@ -96,3 +96,23 @@ source rule-condition semantics; report-only translation adds transfer/parent
 exclusion while direct register/ActualQL null behavior stays unchanged.
 All comparisons and both native roundtrips PASS
 /tmp/retired-query-http-green.log. No monetary expected value was adjusted.
+
+## Read-checkpoint review corrections
+
+Review identified aggregate pagination cardinality, invalid aggregate/window
+placement, and missing cumulative grouped-output limits. Public reds retained:
+/tmp/public-query-review-{aggregate,placement,output}-red.log. Sole SUM advertised
+next_offset1; group SUM returned500; two40-allocation split families with repeated
+long-note projections returned an unbounded response. No source expected values
+changed. Aggregate metadata now uses result cardinality; group/filter/order only
+accept scalar row expressions. One cumulative allowance covers all roots and
+expanded children:10000 emitted rows,100000 values,4MiB serialized JSON including
+escaped text. Refusal occurs before retaining the over-budget record. Ordinary
+pagination still uses complete matching cardinality. Tests verify untouched
+checkpoint and complete financial graph after all refusals. A premature run
+/tmp/public-query-review-green.log used the old binary while linking; it is not
+correction evidence. Final built run is recorded separately.
+Final focused correction PASS /tmp/public-query-review-built-green.log;
+all50 source reads PASS /tmp/public-query-review-source50.log;
+existing bounds PASS /tmp/public-query-review-guards.log;
+binClippy-Dwarnings PASS /tmp/public-query-review-clippy.log.

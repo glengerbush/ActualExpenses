@@ -120,6 +120,7 @@ struct Expr {
     sql: String,
     kind: Kind,
     aggregate: bool,
+    window: bool,
 }
 impl Expr {
     fn new(sql: impl Into<String>, kind: Kind) -> Self {
@@ -127,6 +128,7 @@ impl Expr {
             sql: sql.into(),
             kind,
             aggregate: false,
+            window: false,
         }
     }
 }
@@ -256,6 +258,7 @@ impl Compiler<'_> {
                     sql: "COUNT(*)".into(),
                     kind: Kind::Integer,
                     aggregate: true,
+                    window: false,
                 });
             }
             let values = args
@@ -271,7 +274,7 @@ impl Compiler<'_> {
             if !required.contains(&n) {
                 return Err(invalid(format!("Wrong argument count for {name}")));
             }
-            if values.iter().any(|e| e.aggregate) {
+            if values.iter().any(|e| e.aggregate || e.window) {
                 return Err(invalid("Nested aggregate expressions are not supported"));
             }
             let e = &values[0];
@@ -282,6 +285,7 @@ impl Compiler<'_> {
                         return Err(invalid("Sum requires exact numbers"));
                     }
                     result.aggregate = name == "$sum";
+                    result.window = name == "$sumOver";
                     let sum = format!("SUM({})", e.sql);
                     if result.aggregate {
                         format!("coalesce({sum},0)")
@@ -406,6 +410,11 @@ impl Compiler<'_> {
                     return Err(invalid("Transform must name a function"));
                 };
                 left = self.expr(&expr, depth + 1)?;
+                if left.aggregate || left.window {
+                    return Err(invalid(
+                        "Filter transforms require row-level scalar functions",
+                    ));
+                }
             }
             let ops = o
                 .iter()
@@ -507,6 +516,11 @@ impl Compiler<'_> {
                     "asc",
                 )
             };
+            if expr.window || expr.aggregate {
+                return Err(invalid(
+                    "Order expressions require row-level scalar functions",
+                ));
+            }
             terms.push(format!("{} {direction}", expr.sql));
         }
         if terms.is_empty() {
@@ -550,6 +564,40 @@ fn value(row: &rusqlite::Row<'_>, index: usize, kind: Kind, raw: bool) -> Result
         ValueRef::Blob(_) => return Err(invalid("Binary fields are not queryable")),
     })
 }
+/// One cumulative allowance for roots and all expanded children. Charge JSON
+/// bytes while serializing into a counter, before retaining each record.
+#[derive(Default)]
+struct OutputBudget {
+    rows: usize,
+    values: usize,
+    bytes: usize,
+}
+impl std::io::Write for OutputBudget {
+    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+        self.bytes = self.bytes.saturating_add(bytes.len());
+        if self.bytes > 4 * 1024 * 1024 - 1024 {
+            return Err(std::io::Error::other("Query response output exceeds4MiB"));
+        }
+        Ok(bytes.len())
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+impl OutputBudget {
+    fn record(&mut self, record: &serde_json::Map<String, Value>) -> Result<(), Error> {
+        self.rows += 1;
+        self.values += record.len();
+        if self.rows > 10000 || self.values > 100000 {
+            return Err(invalid(
+                "Query output exceeds10000 emitted rows or100000 values; narrow fields/page",
+            ));
+        }
+        serde_json::to_writer(self, record)
+            .map_err(|_| invalid("Query response output exceeds4MiB; narrow fields/page"))
+    }
+}
+
 fn run(
     db: &Connection,
     b: &str,
@@ -650,6 +698,11 @@ fn run(
             }
         })
         .collect::<Result<Vec<_>, _>>()?;
+    if groups.iter().any(|e| e.aggregate || e.window) {
+        return Err(invalid(
+            "Group expressions require row-level scalar functions",
+        ));
+    }
     let group_sql = if groups.is_empty() {
         String::new()
     } else {
@@ -698,6 +751,7 @@ fn run(
         .query(params_from_iter(c.values.iter()))
         .map_err(sql_error)?;
     let mut data = vec![];
+    let mut output = OutputBudget::default();
     while let Some(row) = rows.next().map_err(sql_error)? {
         let mut record = serde_json::Map::new();
         for (index, (name, _, expr)) in projected.iter().enumerate() {
@@ -729,15 +783,25 @@ fn run(
                 if !row.get::<_, bool>(projected.len())? {
                     item.insert("_unmatched".into(), json!(true));
                 }
+                output.record(&item)?;
                 nested.push(Value::Object(item));
             }
+            output.record(&record)?;
             record.insert("subtransactions".into(), json!(nested));
+        }
+        if !group {
+            output.record(&record)?;
         }
         data.push(Value::Object(record));
     }
     if let Some(error) = regex.error() {
         return Err(error);
     }
+    let result_count = if aggregate && groups.is_empty() {
+        1
+    } else {
+        count
+    };
     let data = if q.calculation {
         data.first()
             .and_then(Value::as_object)
@@ -748,7 +812,7 @@ fn run(
         json!(data)
     };
     Ok(
-        json!({"data":data,"matched_count":if aggregate&&groups.is_empty(){1}else{count},"next_offset":if !q.calculation&&q.offset+q.limit<count as usize{Some(q.offset+q.limit)}else{None},"snapshot":crate::concurrency::cursor(db,b)?,"epoch":crate::lifecycle::epoch(db,b)?}),
+        json!({"data":data,"matched_count":result_count,"next_offset":if !q.calculation&&q.offset+q.limit<result_count as usize{Some(q.offset+q.limit)}else{None},"snapshot":crate::concurrency::cursor(db,b)?,"epoch":crate::lifecycle::epoch(db,b)?}),
     )
 }
 pub fn execute(db: &Connection, b: &str, q: &Query) -> Result<Value, Error> {

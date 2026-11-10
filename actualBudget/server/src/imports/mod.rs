@@ -231,7 +231,7 @@ pub(crate) fn backfill_payees_tags(db: &rusqlite::Connection) -> Result<(), Erro
     // Unactivated stages have no native budget archive yet. Refresh their
     // conversion without changing immutable upload receipts or original bytes.
     let mut staged = db.prepare(
-        "SELECT id,original,archive_sha256 FROM staged_imports WHERE status<>'activated'",
+        "SELECT id,original,archive_sha256 FROM staged_imports WHERE status<>'activated' AND COALESCE(json_extract(report,'$.source_format'),'actual') NOT IN('ynab4','nynab')",
     )?;
     let unactivated = staged
         .query_map([], |r| {
@@ -263,7 +263,7 @@ pub(crate) fn backfill_payees_tags(db: &rusqlite::Connection) -> Result<(), Erro
         )?;
     }
 
-    let mut q=db.prepare("SELECT s.budget_id,s.original FROM staged_imports s JOIN imported_sources i ON i.import_id=s.id WHERE s.status='activated' UNION SELECT budget_id,original FROM budget_provenance WHERE kind='actual-import' AND original IS NOT NULL")?;
+    let mut q=db.prepare("SELECT s.budget_id,s.original FROM staged_imports s JOIN imported_sources i ON i.import_id=s.id WHERE s.status='activated' AND COALESCE(json_extract(s.report,'$.source_format'),'actual') NOT IN('ynab4','nynab') UNION SELECT budget_id,original FROM budget_provenance WHERE kind='actual-import' AND original IS NOT NULL")?;
     let sources = q
         .query_map([], |r| {
             Ok((r.get::<_, String>(0)?, r.get::<_, Vec<u8>>(1)?))

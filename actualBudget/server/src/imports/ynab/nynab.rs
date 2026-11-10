@@ -413,7 +413,10 @@ pub(super) fn convert(
         let rank = (100001 - index as i64) * 100001;
         let (mut p, imported) = payee(&s, r, &Value::Null);
         let mut cat = mapped(&s, "category", &r["category_id"]);
-        if r["payee_id"].as_str() == starting && cat == identity("builtin", "income") {
+        if starting.is_some()
+            && r["payee_id"].as_str() == starting
+            && cat == identity("builtin", "income")
+        {
             cat = json!(identity("builtin", "starting-balances"));
             p = Value::Null;
         }
@@ -506,8 +509,35 @@ pub(super) fn convert(
             .replace('-', "")
             .parse::<i64>()
             .map_err(|_| invalid("Invalid schedule date"))?;
-        let title = r["memo"].as_str().unwrap_or("");
-        let title = unique(title, false, &mut schedule_names)?;
+        // Schedule names have a different source contract from category names:
+        // blank names stay null, and only exact normalized nonempty names collide.
+        let base = r["memo"].as_str().unwrap_or("");
+        let title = if base
+            .trim_matches(crate::payees_tags::js_whitespace)
+            .is_empty()
+        {
+            Value::Null
+        } else {
+            let mut assigned = None;
+            for n in 0..20 {
+                let candidate = if n == 0 {
+                    base.to_owned()
+                } else {
+                    format!("{base} ({n})")
+                };
+                let candidate = candidate
+                    .trim_matches(crate::payees_tags::js_whitespace)
+                    .to_owned();
+                if schedule_names.insert(candidate.clone()) {
+                    assigned = Some(candidate);
+                    break;
+                }
+            }
+            json!(
+                assigned
+                    .ok_or_else(|| invalid("Could not assign a unique imported schedule name"))?
+            )
+        };
         let mut actions = vec![json!({"op":"link-schedule","value":id})];
         let note = notes(r, &conflicts);
         if !note.is_null() {

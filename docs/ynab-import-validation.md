@@ -167,3 +167,45 @@ malformed/restart/archive/duplication, representative companion, complete UI,
 served contracts and maintained qualification wiring. No source schedule/edit
 history is invented as native undo history; original source-only fields remain
 in the downloadable export.
+
+## Corrective source and recovery checkpoint
+
+Root's bounded review found two nYNAB defects, retained as actual source/public
+reds (`/tmp/nynab-null-payee-review-red.log`,
+`/tmp/nynab-unnamed-review-red.log`). An absent starting-payee ID no longer equals
+a null ordinary payee. Three new unchanged source JSONs/genuine Actual exports
+prove absent/null/explicit starting-payee handling and exact income/category
+values. Schedule naming now uses the source schedule-specific semantics: blank
+or whitespace becomes null; normalized nonempty names collide by exact case,
+with the source retry suffix. Separate genuine 22-unnamed and trim/case inputs
+retain complete definitions/actions and prove no schedule money is posted.
+The consumer strips only top-level rule annotations; recurrence pattern `type`
+discriminants remain compared exactly.
+
+Recovery exposed another real failure: duplicate/native validation tried to
+interpret retained YNAB originals as Actual SQLite ZIPs
+(`/tmp/ynab-recovery-fourth.log`). Historical Actual-only enrichment queries now
+filter authoritative stage source format. They never reconstruct current YNAB
+financial rows or rebase schedule dates from old originals. Source upload
+receipts are budget-linked alongside activation receipts; duplicate provenance
+uses its actual YNAB kind. Raw originals, immutable original receipts and
+financial identities survive same-budget and fresh-server portable restores.
+
+Focused evidence (no broad repeat):
+
+- `generate-nynab-income.mjs` and `--check`: PASS three genuine source cases.
+- `generate-nynab-names.mjs` and `--check`: PASS 22 unnamed plus trim/case witness.
+- `/tmp/ynab-corrective-http.log`: PASS both demos and all five new cases.
+- `/tmp/ynab-recovery-portable.log`: PASS both formats across staged/activated
+  process restarts, exact lost-ACK receipt retry, duplicate source-kind/raw bytes,
+  public native archive inspection and same-budget/fresh-server restore;
+  malformed inputs leave stage list and active budgets unchanged.
+- `/tmp/ynab-existing-actual-archive.log`: existing Actual original-byte/clock
+  receipt fresh-server archive regression PASS (one focused test).
+- `/tmp/ynab-corrective-clippy.log`: bin Clippy `-D warnings` PASS.
+
+Recovery consumer reuses an explicitly supplied isolated server when present;
+process restart and a second fresh server are additionally exercised with its
+owned debug server. Earlier recovery attempts also corrected harness assumptions
+(activation201, canonical owner header, ZIP content type, typed restore name);
+those are not claimed as product failures.

@@ -161,7 +161,7 @@ pub fn import_clock(db: &Connection, b: &str, row: &Value) -> Result<(), Error> 
     Ok(())
 }
 pub fn enrich(db: &Connection, budget: Option<&str>) -> Result<(), Error> {
-    let mut q=db.prepare("SELECT id,original,archive_sha256 FROM staged_imports WHERE status<>'activated' AND (?1 IS NULL OR budget_id=?1)")?;
+    let mut q=db.prepare("SELECT id,original,archive_sha256 FROM staged_imports WHERE COALESCE(json_extract(report,'$.source_format'),'actual') NOT IN('ynab4','nynab') AND status<>'activated' AND (?1 IS NULL OR budget_id=?1)")?;
     let stages = q
         .query_map([budget], |r| {
             Ok((
@@ -191,7 +191,7 @@ pub fn enrich(db: &Connection, budget: Option<&str>) -> Result<(), Error> {
             params![id, status, report.to_string(), data.to_string()],
         )?;
     }
-    let mut q=db.prepare("SELECT s.budget_id,s.original FROM staged_imports s JOIN imported_sources i ON i.import_id=s.id WHERE s.status='activated' AND (?1 IS NULL OR s.budget_id=?1) UNION SELECT budget_id,original FROM budget_provenance WHERE kind='actual-import' AND original IS NOT NULL AND (?1 IS NULL OR budget_id=?1)")?;
+    let mut q=db.prepare("SELECT s.budget_id,s.original FROM staged_imports s JOIN imported_sources i ON i.import_id=s.id AND COALESCE(json_extract(s.report,'$.source_format'),'actual') NOT IN('ynab4','nynab') WHERE s.status='activated' AND (?1 IS NULL OR s.budget_id=?1) UNION SELECT budget_id,original FROM budget_provenance WHERE kind='actual-import' AND original IS NOT NULL AND (?1 IS NULL OR budget_id=?1)")?;
     let sources = q
         .query_map([budget], |r| {
             Ok((r.get::<_, String>(0)?, r.get::<_, Vec<u8>>(1)?))

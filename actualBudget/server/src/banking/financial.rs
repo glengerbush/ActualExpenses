@@ -245,7 +245,8 @@ pub(super) async fn refresh(
   let current=connection(db,&b,&id)?;if current["generation"]!=body.generation||current["deleted"]==true{return Err(Error::conflict("Provider credentials changed while refreshing"));}
   sync::check_snapshot(db,&b,Some(&body.snapshot))?;
   let selected=links(db,&b,&id,&body)?;
-  let raw=match download{Ok(v)=>v,Err(e)=>{
+  if current["revision"]!=download.revision{return Err(Error::new(StatusCode::CONFLICT,"provider_capture_stale","Newer provider metadata was saved. Cancel this captured request and refresh again"));}
+  let raw=match download.result{Ok(v)=>v,Err(e)=>{
    db.execute("UPDATE bank_connections SET error_code=?3,message=?4,state=CASE WHEN ?3='provider_revoked' THEN 'credentials_missing' ELSE state END,revision=revision+1 WHERE budget_id=?1 AND id=?2",params![b,id,e.code,e.message])?;sync::mark(db,&b,"bank_connections",&id)?;
    db.execute("DELETE FROM bank_jobs WHERE budget_id=?1 AND connection_id=?2 AND id=?3",params![b,id,request.key])?;
    return Ok(json!({"response_status":200,"response_body":{"data":{"status":"failed","accounts":[],"errors":[{"code":e.code,"message":e.message}]},"cursor":sync::cursor(db,&b)?}}));

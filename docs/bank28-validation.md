@@ -303,3 +303,9 @@ native labels changed. Original22 fixture hashes are now checked by the consumer
 fixture bytes and financial assertions stay unchanged. Focused formatting and
 staged whitespace checks pass. Complete28 recovery/client gates remain pending;
 this is not main acceptance or live-provider qualification.
+
+### Ordering captured provider reads
+
+`check-bank-order-http.mjs` holds an actual older provider GET (111.00), commits a newer GET (222.00), then releases the older response. Before correction it returned200 and replaced the cache with111.00 (`/tmp/bank28-order-red.log`). Private capture now persists a versioned connection-revision witness alongside the raw result; commit requires that revision to remain current. The stale capture refuses409 without any metadata/cursor/ledger write; explicit original-identity cancellation frees it and subsequent original replay cannot resurrect it. Captured data missing an ordering witness conservatively requires cancellation rather than claiming freshness. No schema23 DDL or generic receipt shape changed.
+
+`/tmp/bank28-order-green.log` passes the reverse-order public proof. The six source financial cases/76 served contract observations and existing lifecycle/cancellation/capacity/transport checks pass in `/tmp/bank28-order-financial.log` and `/tmp/bank28-order-lifecycle.log`. Bin Clippy/build pass `bank28-order-{clippy,build}.log`. An initial new harness draft omitted required budget ID and assumed cancellation200; corrected to the existing public schema and terminal409 cancellation contract before claiming the actual behavioral red/green.

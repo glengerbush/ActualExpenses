@@ -1,4 +1,5 @@
 //! Retained bank files, read-only review, and receipt-owned ledger application.
+mod apply;
 mod formats;
 mod matching;
 mod settings;
@@ -208,6 +209,29 @@ fn plan(
         .unwrap_or("")
         .to_ascii_lowercase();
     let parsed = parse::file(&filename, &bytes, &body.options)?;
+    let selected = if let Some(choices) = &body.rows {
+        if choices.len() > 10000 {
+            return Err(Error::invalid("Select at most10000 rows per atomic import"));
+        }
+        let mut selected = BTreeSet::new();
+        let mut seen = BTreeSet::new();
+        for choice in choices {
+            if choice.row >= parsed.len()
+                || !seen.insert(choice.row)
+                || !matches!(choice.action.as_str(), "auto" | "merge" | "add" | "skip")
+            {
+                return Err(Error::invalid(
+                    "Choose a distinct valid source row and auto, merge, add or skip",
+                ));
+            }
+            if choice.action != "skip" {
+                selected.insert(choice.row);
+            }
+        }
+        Some(selected)
+    } else {
+        None
+    };
     let mut rows = vec![];
     let mut errors = vec![];
 
@@ -233,7 +257,11 @@ fn plan(
         .map(|p| p.0.clone())
         .collect::<BTreeSet<_>>();
     let mut runner = crate::rules::import_runner(db, b, crate::rules::Work::default())?;
+    let mut provisional_payees = BTreeMap::new();
     for (index, source) in parsed.into_iter().enumerate() {
+        if selected.as_ref().is_some_and(|rows| !rows.contains(&index)) {
+            continue;
+        }
         let mut transaction = match if matches!(kind.as_str(), "csv" | "tsv") {
             parse::mapped(&source, &body.mapping, &body.options)
         } else {
@@ -274,12 +302,13 @@ fn plan(
             transaction["payee_id"] = json!(payee);
             transaction["payee_name"] = json!(name);
             transaction["new_payee"] = json!({"id":payee,"name":name});
+            provisional_payees.insert(payee.clone(), transaction["new_payee"].clone());
         }
         if let Some(payee) = transaction["payee_id"].as_str()
             && !existing_payees.contains(payee)
-            && let Some((_, name)) = payees.values().find(|p| p.0 == payee)
+            && let Some(reference) = provisional_payees.get(payee)
         {
-            transaction["new_payee"] = json!({"id":payee,"name":name});
+            transaction["new_payee"] = reference.clone();
         }
         transaction["imported_payee"] = name.as_deref().map(|n| json!(n)).unwrap_or(Value::Null);
         transaction["account_id"] = json!(account);
@@ -310,6 +339,29 @@ fn plan(
         &body.options,
         &mut work.remaining,
     )?;
+    let mut existing = BTreeMap::new();
+    for row in &mut rows {
+        if let Some(target) = row["match_id"].as_str().map(str::to_owned) {
+            if !existing.contains_key(&target) {
+                let mut before = crate::ledger::get_any(db, b, &target)?;
+                let count = before["children"].as_array().map_or(0, Vec::len);
+                work.remaining = work.remaining.checked_sub(count + 1).ok_or_else(|| {
+                    Error::invalid("Import graph work limit reached. Select fewer rows")
+                })?;
+                before.as_object_mut().unwrap().remove("children");
+                before["child_count"] = json!(count);
+                existing.insert(target.clone(), before);
+            }
+            let before = &existing[&target];
+            row["ignored"] = json!(apply::ignored(before, &row["transaction"]));
+            row["existing"] = before.clone();
+        } else {
+            row["ignored"] = json!(false);
+            if row["transaction"]["deleted"] == true {
+                row["action"] = json!("skip");
+            }
+        }
+    }
     Ok((
         json!({"id":id,"filename":filename,"account_id":account,"rows":rows,"errors":errors,"snapshot":sync::cursor(db,b)?,"epoch":crate::lifecycle::epoch(db,b)?}),
         work,
@@ -495,7 +547,10 @@ if !plan["errors"].as_array().unwrap().is_empty(){return Err(Error::invalid("Rep
 }let choices=body.rows.as_ref().ok_or_else(||Error::invalid("Select the reviewed rows to import"))?;
 if choices.is_empty()||choices.len()>10000{return Err(Error::invalid("Select1–10000 rows per atomic import"));
 }let reviewed=plan["rows"].as_array().unwrap().iter().map(|r|(r["row"].as_u64().unwrap() as usize,r)).collect::<BTreeMap<_,_>>();
-let mut selected=BTreeSet::new();
+let mut last_merge=BTreeMap::new();
+for choice in choices{if choice.action=="skip"{continue;}let row=reviewed.get(&choice.row).copied().ok_or_else(||Error::invalid("Unknown selected source row"))?;let action=if choice.action=="auto"{row["action"].as_str().unwrap()}else{choice.action.as_str()};if action=="merge"{if choice.action=="merge"&&choice.match_id.is_none(){return Err(Error::invalid("A merge requires its captured match ID"));}let target=row["match_id"].as_str().ok_or_else(||Error::conflict("Review the selected match again"))?;if choice.match_id.as_deref().is_some_and(|id|id!=target){return Err(Error::conflict("The selected match differs from the captured preview"));}
+if row["ignored"]!=true{last_merge.insert(target.to_owned(),choice.row);}}}
+let order_base:i64=db.query_row("SELECT COALESCE(MAX(sort_order),0) FROM transactions WHERE budget_id=?1",[&b],|r|r.get(0))?;
 let clock=sync::clock(db,&b,proposed.as_deref())?;
 let mut updated=vec![];
 let mut updated_ids=BTreeSet::new();
@@ -503,13 +558,14 @@ let mut added=vec![];
 let mut ignored=vec![];
 let mut created_payees=BTreeSet::new();
 
- for choice in choices{if !selected.insert(choice.row){return Err(Error::invalid("A source row was selected twice"));
-}let row=reviewed.get(&choice.row).copied().ok_or_else(||Error::invalid("Unknown source row"))?;
+ for choice in choices{if choice.action=="skip"{continue;}let row=reviewed.get(&choice.row).copied().ok_or_else(||Error::invalid("Unknown source row"))?;
 let mut transaction=row["transaction"].clone();
 if transaction["new_payee"]["id"].as_str().is_some_and(|id|created_payees.contains(id)){transaction.as_object_mut().unwrap().remove("new_payee");}
-if choice.action=="skip"||transaction["deleted"]==true{continue;
-}
-if choice.action=="merge"{let target=choice.match_id.as_deref().ok_or_else(||Error::invalid("A merge requires its reviewed match"))?;
+let action=if choice.action=="auto"{row["action"].as_str().unwrap()}else{choice.action.as_str()};
+if action=="skip"||action=="add"&&transaction["deleted"]==true{continue;}
+if action=="merge"{let target=row["match_id"].as_str().ok_or_else(||Error::invalid("A merge requires its reviewed match"))?;
+if row["ignored"]==true{ignored.push(target.to_owned());continue;}
+if last_merge.get(target)!=Some(&choice.row){continue;}
 if row["match_id"]!=target{return Err(Error::conflict("The selected match differs from the captured preview"));
 }let before=crate::ledger::get_any(db,&b,target)?;
 if before["reconciled"]==true{ignored.push(target.to_owned());
@@ -524,7 +580,7 @@ if patch.get("payee_id").is_some() && transaction["new_payee"].is_object(){patch
 for field in patch.keys().filter(|field|field.as_str()!="new_payee"){guard(db,&b,"transactions",target,field,&clock)?;
 }
 let creating_payee=patch.get("new_payee").and_then(|p|p["id"].as_str()).map(str::to_owned);
-if !patch.is_empty(){let response=sync::execute(db,&b,Some(&clock),false,epoch.as_deref(),sync::Mutation::Patch(target.into(),Value::Object(patch)))?;
+if !patch.is_empty(){let response=apply::patch(db,&b,target,&before,Value::Object(patch),apply::Intent{clock:&clock,epoch:epoch.as_deref(),work:&mut work})?;
 if response["response_status"].as_u64().unwrap_or(500)>=400{return Err(Error::conflict("The matched transaction requires review before import"));
 }
 if let Some(id)=creating_payee{created_payees.insert(id);}
@@ -536,7 +592,7 @@ sync::seed_field_version(db,&b,"transactions",target,"imported_payee",&clock)?;
 sync::mark(db,&b,"transactions",target)?;
 }
  if storage::save(db,&b,target,&transaction,&clock)? && updated_ids.insert(target.to_owned()){updated.push(target.to_owned());}
- }else if choice.action=="add"{
+ }else if action=="add"{
 let new_id=transaction["id"].as_str().unwrap().to_owned();
 let matched=serde_json::from_value(row["matched_rule_ids"].clone()).map_err(Error::internal)?;
 let runner=crate::rules::import_runner(db,&b,work)?;
@@ -550,6 +606,7 @@ added.push(new_id);
 }
 }else{return Err(Error::invalid("Choose add, merge or skip"));
 }}
+ apply::order(db,&b,&added,order_base,&clock,&mut work)?;
  if body.remember{remember(db,&b,plan["account_id"].as_str().unwrap(),plan["filename"].as_str().unwrap(),&body,&clock)?;
 }
  Ok(json!({"response_status":200,"response_body":{"data":{"added":added,"updated":updated,"ignored":ignored},"edit_clock":clock,"cursor":sync::cursor(db,&b)?}}))})}).await

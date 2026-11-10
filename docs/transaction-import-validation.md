@@ -1,6 +1,6 @@
 # Transaction imports — working evidence
 
-Tickets25/26 remain incomplete. Accepted main: `4d7498c`. Working branch:
+Tickets25/26 remain incomplete. Accepted integration base includes main45 (`145a761`); current accepted main will be merged before final qualification. Working branch:
 `codex/imports25-26`; implementation checkpoint `adc8a03`, reviewed source
 evidence `d97f329` / `5ac7751`. No release, push or live deployment.
 
@@ -10,8 +10,7 @@ One implementer owns the complete25/26 slice, its remaining public consumers,
 UI, OpenAPI, conversion and tests. Root supplied independent source evidence and
 owns consolidated review/integration/qualification. Review coherent completed
 checkpoints; reuse unaffected evidence. Keep this record current rather than
-repeating handoffs. Ticket45 runs separately on `codex/navigation45`; keep
-App integration thin to simplify merging.
+repeating handoffs. Ticket45 is accepted and merged; reuse its navigation registry and privacy formatting.
 
 Public import routes under `/api/v1/budgets/{budget}`:
 
@@ -114,7 +113,7 @@ also needs an observable fixture; do not rewrite existing private order anchors.
 
 ## Rules/payee checkpoint
 
-Source4 public workflows PASS `/tmp/transaction-import-rules-green.log`; raw
+Source5 public workflows PASS `/tmp/transaction-import-rules-green.log`; raw
 preview leaves references, checkpoint and financial rows unchanged. The consumer
 compares every parent/child monetary/reference/status field and first-import IDs
 across repeats; account-managed transfer payees use the established separate
@@ -165,3 +164,33 @@ Still open: selected-scope rematching/ignored rows, source file order for new
 distinct purchases, duplicate same-bank-ID rows within one command; graph-aware
 manual merge, CSV export, format commit/browser/native paths and complete UI
 contracts/qualification. These remain incomplete acceptance gates.
+
+## Selection and ordering edge checkpoint
+
+New independently executed source/frontend fixture
+`transaction-import-edges.json` and five genuine pre-import ZIPs cover exact file
+ordering, repeated primary IDs, a matched split status update, selected-scope
+rematching and unselected ignored rows. Generation and separate `--check` PASS
+`/tmp/transaction-import-edges-source-check.log`. Only random UUID ties at equal
+date/rank are canonicalized; distinct file order remains asserted.
+
+Four real public reds are retained in `/tmp/transaction-import-edges-red.log`;
+all five now PASS `/tmp/transaction-import-edges-green.log`. Existing matching14,
+rule/payee5, current Rust import2 and bin Clippy also pass changed-scope checks.
+No whole-suite qualification was repeated.
+
+Captured `rows` narrows evaluation/matching before preview and commit. `auto`
+uses the captured snapshot's selected-scope result; explicit `merge` requires
+its captured match ID; `add` forces a new purchase; `skip` excludes a source row.
+Ignored source rows remain included with `auto`/`merge` to consume their match;
+explicitly adding one remains a visible force-add decision. Invalid excluded
+rows do not invalidate a separately reviewed valid selection.
+
+Repeated primary-ID proposals compare against one original state, then only
+changed proposals coalesce to the final source update. Actual can alternate the
+imported-payee text when a file repeats one bank ID with differing payee text;
+both genuine after/repeated states are retained and matched. Original operation
+receipt replay remains exact and never repeats that update. Existing split
+status updates use the guarded aggregate writer, preserving allocations and
+paired protections. New file ordering touches only the graph inserted by that
+command, with its original HLC; existing private native/Android anchors remain.

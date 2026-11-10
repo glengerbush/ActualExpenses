@@ -1,0 +1,576 @@
+{
+  "schema_version": 24,
+  "accepted_commit": "278e51f",
+  "binary_sha256": "e0d425e2c5c9809f673f98ce700987f8286be0957fb12f03d05331513249edd9",
+  "budget_id": "7b46b292-6c41-45cf-a67a-d6b3de9f65ea",
+  "account_id": "34037357-828a-4d05-b76a-5cc4c512fc33",
+  "owner": "29290000-0000-4000-8000-000000000024",
+  "note_id": "genuine24-arbitrary-note",
+  "snapshot": {
+    "budget": {
+      "data": {
+        "auto_due": 1794315830,
+        "backup_error": null,
+        "budget_type": "envelope",
+        "deleted": false,
+        "epoch": "13198f076dd6e8d4083fb4186e32bedf",
+        "generation": 0,
+        "id": "7b46b292-6c41-45cf-a67a-d6b3de9f65ea",
+        "last_auto": null,
+        "name": "first-sync-opening"
+      }
+    },
+    "accounts": {
+      "data": [
+        {
+          "balance": 9800,
+          "closed": false,
+          "deleted": false,
+          "field_versions": {},
+          "group_id": null,
+          "id": "34037357-828a-4d05-b76a-5cc4c512fc33",
+          "last_reconciled": null,
+          "name": "Source checking",
+          "notes": "",
+          "off_budget": false,
+          "sort_order": 0
+        }
+      ]
+    },
+    "transactions": {
+      "as_of": null,
+      "balances": {
+        "cleared": 10077,
+        "total": 9800,
+        "uncleared": -277
+      },
+      "data": [
+        {
+          "account_id": "34037357-828a-4d05-b76a-5cc4c512fc33",
+          "account_name": "Source checking",
+          "amount": -77,
+          "category_group_name": null,
+          "category_id": null,
+          "category_is_income": null,
+          "category_name": null,
+          "cleared": false,
+          "date": "2026-11-08",
+          "field_versions": {
+            "account_id": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "amount": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "category_id": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "cleared": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "date": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "notes": "2026-11-10T12:48:50.299Z-0003-2929292929292929",
+            "payee_id": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "reconciled": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "starting_balance": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "tombstone": "2026-11-10T12:48:50.299Z-0002-2929292929292929"
+          },
+          "id": "29290000-0000-4000-8000-000000000077",
+          "imported_payee": null,
+          "notes": "Genuine24 retained edit",
+          "payee_id": null,
+          "payee_name": null,
+          "reconciled": false,
+          "retained_payee_id": null,
+          "running_balance": 9800,
+          "sort_order": 4,
+          "starting_balance": false
+        },
+        {
+          "account_id": "34037357-828a-4d05-b76a-5cc4c512fc33",
+          "account_name": "Source checking",
+          "amount": -123,
+          "category_group_name": null,
+          "category_id": null,
+          "category_is_income": null,
+          "category_name": null,
+          "cleared": true,
+          "date": "2026-11-07",
+          "field_versions": {
+            "account_id": "2026-11-10T12:48:50.299Z-0001-2929292929292929",
+            "amount": "2026-11-10T12:48:50.299Z-0001-2929292929292929",
+            "category_id": "2026-11-10T12:48:50.299Z-0001-2929292929292929",
+            "cleared": "2026-11-10T12:48:50.299Z-0001-2929292929292929",
+            "date": "2026-11-10T12:48:50.299Z-0001-2929292929292929",
+            "imported_payee": "2026-11-10T12:48:50.299Z-0001-2929292929292929",
+            "notes": "2026-11-10T12:48:50.299Z-0001-2929292929292929",
+            "payee_id": "2026-11-10T12:48:50.299Z-0001-2929292929292929",
+            "reconciled": "2026-11-10T12:48:50.299Z-0001-2929292929292929",
+            "sort_order": "2026-11-10T12:48:50.299Z-0001-2929292929292929",
+            "starting_balance": "2026-11-10T12:48:50.299Z-0001-2929292929292929",
+            "tombstone": "2026-11-10T12:48:50.299Z-0001-2929292929292929"
+          },
+          "id": "35b005c2-b5b1-4a1f-b01a-9581bb8e3432",
+          "imported_id": "before-gocardless-bank-row",
+          "imported_payee": "UPGRADE SHOP",
+          "notes": "Retained bank ##note",
+          "payee_id": "93eb0d82-2bbd-48a4-8ed0-4d78b388df3e",
+          "payee_name": "UPGRADE SHOP",
+          "raw_synced_data": "{\"account\":\"34037357-828a-4d05-b76a-5cc4c512fc33\",\"amount\":\"-1.23\",\"booked\":true,\"cleared\":true,\"date\":\"2026-11-07\",\"imported_payee\":\"UPGRADE SHOP\",\"notes\":\"Retained bank #note\",\"payee\":\"93eb0d82-2bbd-48a4-8ed0-4d78b388df3e\",\"payeeName\":\"UPGRADE SHOP\",\"postedDate\":\"2026-11-07\",\"sortOrder\":1794009600,\"transactionAmount\":{\"amount\":\"-1.23\",\"currency\":\"USD\"},\"transactionId\":\"before-gocardless-bank-row\"}",
+          "reconciled": false,
+          "retained_payee_id": "93eb0d82-2bbd-48a4-8ed0-4d78b388df3e",
+          "running_balance": 9877,
+          "sort_order": 3,
+          "starting_balance": false
+        },
+        {
+          "account_id": "34037357-828a-4d05-b76a-5cc4c512fc33",
+          "account_name": "Source checking",
+          "amount": -1234,
+          "category_group_name": null,
+          "category_id": null,
+          "category_is_income": null,
+          "category_name": null,
+          "cleared": true,
+          "date": "2026-11-01",
+          "field_versions": {
+            "account_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "amount": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "cleared": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "date": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "notes": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "reconciled": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+          },
+          "id": "3ebeae6c-1bad-4bb2-a885-ba16efc0041c",
+          "imported_id": "posted",
+          "imported_payee": "CAFE",
+          "notes": "Bank ##note",
+          "payee_id": "ea6b5a68-c4f0-4c89-b502-d99f6bf7a774",
+          "payee_name": "CAFE",
+          "raw_synced_data": "{\"transactionId\":\"posted\",\"date\":\"2026-11-01\",\"booked\":true,\"payeeName\":\"CAFE\",\"notes\":\"Bank #note\",\"transactionAmount\":{\"amount\":\"-12.34\",\"currency\":\"USD\"},\"cleared\":true,\"amount\":\"-12.34\",\"imported_payee\":\"CAFE\",\"account\":\"34037357-828a-4d05-b76a-5cc4c512fc33\",\"payee\":\"ea6b5a68-c4f0-4c89-b502-d99f6bf7a774\"}",
+          "reconciled": false,
+          "retained_payee_id": "ea6b5a68-c4f0-4c89-b502-d99f6bf7a774",
+          "running_balance": 10000,
+          "sort_order": 2,
+          "starting_balance": false
+        },
+        {
+          "account_id": "34037357-828a-4d05-b76a-5cc4c512fc33",
+          "account_name": "Source checking",
+          "amount": -200,
+          "category_group_name": null,
+          "category_id": null,
+          "category_is_income": null,
+          "category_name": null,
+          "cleared": false,
+          "date": "2026-11-01",
+          "field_versions": {
+            "account_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "amount": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "cleared": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "date": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "notes": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "reconciled": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+          },
+          "id": "aad6b9db-b5cc-4e6d-90ba-4fcdfc201924",
+          "imported_id": "pending",
+          "imported_payee": "CAFE",
+          "notes": "Bank ##note",
+          "payee_id": "ea6b5a68-c4f0-4c89-b502-d99f6bf7a774",
+          "payee_name": "CAFE",
+          "raw_synced_data": "{\"transactionId\":\"pending\",\"date\":\"2026-11-01\",\"booked\":false,\"payeeName\":\"CAFE\",\"notes\":\"Bank #note\",\"transactionAmount\":{\"amount\":\"-2.00\",\"currency\":\"USD\"},\"cleared\":false,\"amount\":\"-2.00\",\"imported_payee\":\"CAFE\",\"account\":\"34037357-828a-4d05-b76a-5cc4c512fc33\",\"payee\":\"ea6b5a68-c4f0-4c89-b502-d99f6bf7a774\"}",
+          "reconciled": false,
+          "retained_payee_id": "ea6b5a68-c4f0-4c89-b502-d99f6bf7a774",
+          "running_balance": 11234,
+          "sort_order": 1,
+          "starting_balance": false
+        },
+        {
+          "account_id": "34037357-828a-4d05-b76a-5cc4c512fc33",
+          "account_name": "Source checking",
+          "amount": 11434,
+          "category_group_name": "Income",
+          "category_id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+          "category_is_income": true,
+          "category_name": "Starting Balances",
+          "cleared": true,
+          "date": "2026-11-01",
+          "field_versions": {
+            "account_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "amount": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "cleared": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "date": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "notes": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "reconciled": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+            "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+          },
+          "id": "86c1a6c3-b4fa-4851-87c5-b6ebc5042026",
+          "imported_payee": null,
+          "notes": "",
+          "payee_id": "95fbd520-8be8-473a-8da2-1c0cc44cbcb5",
+          "payee_name": "Starting Balance",
+          "reconciled": false,
+          "retained_payee_id": "95fbd520-8be8-473a-8da2-1c0cc44cbcb5",
+          "running_balance": 11434,
+          "sort_order": 2,
+          "starting_balance": true
+        }
+      ],
+      "filtered_balances": {
+        "cleared": 10077,
+        "total": 9800,
+        "uncleared": -277
+      },
+      "filtered_count": 5,
+      "next_offset": null,
+      "snapshot": "c113198f076dd6e8d4083fb4186e32bedf0000000000000028"
+    },
+    "payees": {
+      "data": [
+        {
+          "category_id": null,
+          "deleted": false,
+          "favorite": false,
+          "field_versions": {},
+          "id": "ea6b5a68-c4f0-4c89-b502-d99f6bf7a774",
+          "learn_categories": true,
+          "merged_into": null,
+          "name": "CAFE",
+          "transaction_count": 2,
+          "transfer_account_id": null
+        },
+        {
+          "category_id": null,
+          "deleted": false,
+          "favorite": false,
+          "field_versions": {},
+          "id": "95fbd520-8be8-473a-8da2-1c0cc44cbcb5",
+          "learn_categories": true,
+          "merged_into": null,
+          "name": "Starting Balance",
+          "transaction_count": 1,
+          "transfer_account_id": null
+        },
+        {
+          "category_id": null,
+          "deleted": false,
+          "favorite": false,
+          "field_versions": {
+            "name": "2026-11-10T12:48:50.299Z-0001-2929292929292929"
+          },
+          "id": "93eb0d82-2bbd-48a4-8ed0-4d78b388df3e",
+          "learn_categories": true,
+          "merged_into": null,
+          "name": "UPGRADE SHOP",
+          "transaction_count": 1,
+          "transfer_account_id": null
+        }
+      ],
+      "next_offset": null
+    },
+    "categories": {
+      "data": [
+        {
+          "deleted": false,
+          "field_versions": {},
+          "group_hidden": false,
+          "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+          "hidden": false,
+          "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+          "is_income": true,
+          "name": "Income",
+          "notes": "",
+          "replacement_id": null,
+          "sort_order": 32768.0
+        },
+        {
+          "deleted": false,
+          "field_versions": {},
+          "group_hidden": false,
+          "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+          "hidden": false,
+          "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+          "is_income": true,
+          "name": "Starting Balances",
+          "notes": "",
+          "replacement_id": null,
+          "sort_order": 32768.0
+        }
+      ],
+      "next_offset": null
+    },
+    "banking": {
+      "data": {
+        "accounts": [
+          {
+            "available_balance": null,
+            "balance": "100.00",
+            "balance_date": 1794225600,
+            "connection_id": "ddf1a5fd-df15-4194-8cde-a14425ae02c0",
+            "currency": "USD",
+            "deleted": false,
+            "diagnostics": [],
+            "generation": "d3e2c24e-8e3f-40b6-9e9a-d6b42aeb111d",
+            "id": "22e71d5f-6551-4a10-8ad4-fdb3f598bdce",
+            "institution": "Synthetic institution",
+            "name": "Genuine24 retained checking",
+            "remote_connection_id": "actual-export:625621c2-f1c1-471b-925b-cb1e29865381",
+            "remote_id": "synthetic-remote-account"
+          }
+        ],
+        "clock": "2026-11-10T12:48:50.607Z-0000-3078153fc4458cf2",
+        "connections": [
+          {
+            "deleted": false,
+            "error_code": null,
+            "generation": "d3e2c24e-8e3f-40b6-9e9a-d6b42aeb111d",
+            "id": "ddf1a5fd-df15-4194-8cde-a14425ae02c0",
+            "last_success": "2026-11-10T12:48:50.554Z",
+            "message": null,
+            "name": "SimpleFIN",
+            "provider": "simplefin",
+            "revision": 6,
+            "state": "connected"
+          }
+        ],
+        "epoch": "13198f076dd6e8d4083fb4186e32bedf",
+        "links": [
+          {
+            "connection_generation": "d3e2c24e-8e3f-40b6-9e9a-d6b42aeb111d",
+            "connection_id": "ddf1a5fd-df15-4194-8cde-a14425ae02c0",
+            "deleted": false,
+            "id": "34037357-828a-4d05-b76a-5cc4c512fc33",
+            "initial_sync": false,
+            "last_sync_end": "2026-11-10",
+            "opening_amount": null,
+            "opening_date": null,
+            "opening_mode": "none",
+            "remote_account_id": "22e71d5f-6551-4a10-8ad4-fdb3f598bdce",
+            "revision": 2
+          }
+        ],
+        "snapshot": "c113198f076dd6e8d4083fb4186e32bedf0000000000000028"
+      }
+    },
+    "history": {
+      "data": {
+        "edit_clock": "2026-11-10T12:48:50.607Z-0000-3078153fc4458cf2",
+        "epoch": "13198f076dd6e8d4083fb4186e32bedf",
+        "limit": 20,
+        "redo": null,
+        "undo": {
+          "id": "68d9a4eb-4e1d-4e51-86d5-630aa58960bf",
+          "label": "Edit budget"
+        }
+      }
+    },
+    "checkpoint": {
+      "data": {
+        "epoch": "13198f076dd6e8d4083fb4186e32bedf",
+        "generation": 0,
+        "snapshot": "c113198f076dd6e8d4083fb4186e32bedf0000000000000028"
+      }
+    },
+    "note": {
+      "data": {
+        "id": "genuine24-arbitrary-note",
+        "note": "Notes24 edit while bank GET held"
+      }
+    }
+  },
+  "receipts": [
+    {
+      "path": "/budgets/7b46b292-6c41-45cf-a67a-d6b3de9f65ea/banking/connections/ddf1a5fd-df15-4194-8cde-a14425ae02c0/commands",
+      "body": {
+        "action": "refresh",
+        "generation": "d3e2c24e-8e3f-40b6-9e9a-d6b42aeb111d",
+        "snapshot": "c113198f076dd6e8d4083fb4186e32bedf0000000000000017",
+        "start_date": "2026-11-01",
+        "end_date": "2026-11-10",
+        "accounts": [
+          {
+            "account_id": "34037357-828a-4d05-b76a-5cc4c512fc33",
+            "revision": 2
+          }
+        ]
+      },
+      "key": "old-bank-refresh",
+      "headers": {
+        "X-Actual-Budget-Epoch": "13198f076dd6e8d4083fb4186e32bedf",
+        "X-Actual-History-Owner": "29290000-0000-4000-8000-000000000024",
+        "X-Actual-Edit-Clock": "2026-11-10T12:48:50.299Z-0001-2929292929292929"
+      },
+      "response": {
+        "cursor": "c113198f076dd6e8d4083fb4186e32bedf0000000000000021",
+        "data": {
+          "accounts": [
+            {
+              "account_id": "34037357-828a-4d05-b76a-5cc4c512fc33",
+              "added": [
+                "35b005c2-b5b1-4a1f-b01a-9581bb8e3432"
+              ],
+              "ignored": [],
+              "status": "complete",
+              "updated": []
+            }
+          ],
+          "errors": [],
+          "status": "complete"
+        },
+        "edit_clock": "2026-11-10T12:48:50.299Z-0001-2929292929292929"
+      }
+    },
+    {
+      "path": "/budgets/7b46b292-6c41-45cf-a67a-d6b3de9f65ea/transactions",
+      "body": {
+        "id": "29290000-0000-4000-8000-000000000077",
+        "account_id": "34037357-828a-4d05-b76a-5cc4c512fc33",
+        "date": "2026-11-08",
+        "amount": -77,
+        "notes": "Genuine24 owned expense"
+      },
+      "key": "old-owned-expense",
+      "headers": {
+        "X-Actual-Budget-Epoch": "13198f076dd6e8d4083fb4186e32bedf",
+        "X-Actual-History-Owner": "29290000-0000-4000-8000-000000000024",
+        "X-Actual-Edit-Clock": "2026-11-10T12:48:50.299Z-0002-2929292929292929"
+      },
+      "status": 201,
+      "response": {
+        "conflicts": [],
+        "cursor": "c113198f076dd6e8d4083fb4186e32bedf0000000000000024",
+        "data": {
+          "account_id": "34037357-828a-4d05-b76a-5cc4c512fc33",
+          "account_name": "Source checking",
+          "amount": -77,
+          "category_id": null,
+          "category_is_income": null,
+          "category_name": null,
+          "cleared": false,
+          "date": "2026-11-08",
+          "field_versions": {
+            "account_id": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "amount": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "category_id": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "cleared": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "date": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "notes": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "payee_id": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "reconciled": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "starting_balance": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "tombstone": "2026-11-10T12:48:50.299Z-0002-2929292929292929"
+          },
+          "id": "29290000-0000-4000-8000-000000000077",
+          "imported_payee": null,
+          "notes": "Genuine24 owned expense",
+          "payee_id": null,
+          "payee_name": null,
+          "reconciled": false,
+          "retained_payee_id": null,
+          "sort_order": 4,
+          "starting_balance": false
+        },
+        "edit_clock": "2026-11-10T12:48:50.299Z-0002-2929292929292929"
+      }
+    },
+    {
+      "path": "/budgets/7b46b292-6c41-45cf-a67a-d6b3de9f65ea/transactions/29290000-0000-4000-8000-000000000077",
+      "method": "PATCH",
+      "body": {
+        "notes": "Genuine24 retained edit"
+      },
+      "key": "old-owned-edit",
+      "headers": {
+        "X-Actual-Budget-Epoch": "13198f076dd6e8d4083fb4186e32bedf",
+        "X-Actual-History-Owner": "29290000-0000-4000-8000-000000000024",
+        "X-Actual-Edit-Clock": "2026-11-10T12:48:50.299Z-0003-2929292929292929"
+      },
+      "response": {
+        "conflicts": [],
+        "cursor": "c113198f076dd6e8d4083fb4186e32bedf0000000000000026",
+        "data": {
+          "account_id": "34037357-828a-4d05-b76a-5cc4c512fc33",
+          "account_name": "Source checking",
+          "amount": -77,
+          "category_id": null,
+          "category_is_income": null,
+          "category_name": null,
+          "cleared": false,
+          "date": "2026-11-08",
+          "field_versions": {
+            "account_id": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "amount": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "category_id": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "cleared": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "date": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "notes": "2026-11-10T12:48:50.299Z-0003-2929292929292929",
+            "payee_id": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "reconciled": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "starting_balance": "2026-11-10T12:48:50.299Z-0002-2929292929292929",
+            "tombstone": "2026-11-10T12:48:50.299Z-0002-2929292929292929"
+          },
+          "id": "29290000-0000-4000-8000-000000000077",
+          "imported_payee": null,
+          "notes": "Genuine24 retained edit",
+          "payee_id": null,
+          "payee_name": null,
+          "reconciled": false,
+          "retained_payee_id": null,
+          "sort_order": 4,
+          "starting_balance": false
+        },
+        "edit_clock": "2026-11-10T12:48:50.299Z-0003-2929292929292929"
+      }
+    }
+  ],
+  "captured_request": {
+    "path": "/budgets/7b46b292-6c41-45cf-a67a-d6b3de9f65ea/banking/connections/ddf1a5fd-df15-4194-8cde-a14425ae02c0/commands",
+    "body": {
+      "action": "refresh",
+      "generation": "d3e2c24e-8e3f-40b6-9e9a-d6b42aeb111d",
+      "snapshot": "c113198f076dd6e8d4083fb4186e32bedf0000000000000027",
+      "start_date": "2026-11-01",
+      "end_date": "2026-11-10",
+      "accounts": [
+        {
+          "account_id": "34037357-828a-4d05-b76a-5cc4c512fc33",
+          "revision": 2
+        }
+      ]
+    },
+    "key": "old-captured-refresh",
+    "headers": {
+      "X-Actual-Budget-Epoch": "13198f076dd6e8d4083fb4186e32bedf",
+      "X-Actual-History-Owner": "29290000-0000-4000-8000-000000000024",
+      "X-Actual-Edit-Clock": "2026-11-10T12:48:50.299Z-0005-2929292929292929"
+    }
+  },
+  "source": {
+    "path": "bank-sync-source/linked-first-sync-opening-26.10.zip",
+    "sha256": "f5d436eac8cf6b4a7d2a65d459350d8548ee5a25726ed5e1d4ea5c2ca7bdf06c"
+  },
+  "readonly_counts": {
+    "bank_connections": 1,
+    "bank_credentials": 1,
+    "bank_remote_accounts": 1,
+    "bank_links": 1,
+    "bank_jobs": 1,
+    "bank_request_log": 3,
+    "bank_transaction_origins": 3,
+    "notes": 1
+  },
+  "scope": "Genuine24 public setup, real controlled-provider delivery and stale captured request. Every banking table is nonempty; notes24/history/receipts/financial graph retained. SQLite is never rewritten. NativeZIP excludes private credentials/jobs; DB retains them. Only synthetic provider/credentials are used.",
+  "artifacts": {
+    ".zip": {
+      "sha256": "5e246e4cf4c0df6e8b56dadf5e3be944c651f4e34ac9bcb4e46dec293ee986d3",
+      "bytes": 21851
+    },
+    ".sqlite3": {
+      "sha256": "80deb9c82a7e1e0fc8f65fad2b7cd6f976d0018b9b5f3345292730f37b7c8d7e",
+      "bytes": 692224
+    }
+  }
+}

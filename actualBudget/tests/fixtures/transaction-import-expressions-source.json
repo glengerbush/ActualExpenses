@@ -1,0 +1,2373 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "cases": [
+    {
+      "id": "new-payee",
+      "ids": {
+        "manual": "25280000-0000-4000-8000-000000000001",
+        "account": "a4d46b24-8322-4284-8bc0-47e210611fd0",
+        "cafe": "ca45c729-7b06-4b17-a1e1-68a9e1f76c2b",
+        "group": "de3a73a6-c164-40f3-87f3-ba244f11f5d8",
+        "food": "b82b08ff-7071-4e8e-968f-76d56b23427d"
+      },
+      "settings": {
+        "csv-mappings-a4d46b24-8322-4284-8bc0-47e210611fd0": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+        "csv-delimiter-a4d46b24-8322-4284-8bc0-47e210611fd0": ",",
+        "csv-encoding-a4d46b24-8322-4284-8bc0-47e210611fd0": "windows-1252",
+        "csv-has-header-a4d46b24-8322-4284-8bc0-47e210611fd0": "false",
+        "csv-skip-start-lines-a4d46b24-8322-4284-8bc0-47e210611fd0": "2",
+        "csv-skip-end-lines-a4d46b24-8322-4284-8bc0-47e210611fd0": "1",
+        "csv-in-out-mode-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+        "csv-out-value-a4d46b24-8322-4284-8bc0-47e210611fd0": "Debit",
+        "parse-date-a4d46b24-8322-4284-8bc0-47e210611fd0-csv": "dd mm yyyy",
+        "parse-date-a4d46b24-8322-4284-8bc0-47e210611fd0-qif": "mm dd yy",
+        "flip-amount-a4d46b24-8322-4284-8bc0-47e210611fd0-csv": "true",
+        "flip-amount-a4d46b24-8322-4284-8bc0-47e210611fd0-qif": "false",
+        "import-notes-a4d46b24-8322-4284-8bc0-47e210611fd0-csv": "true",
+        "import-notes-a4d46b24-8322-4284-8bc0-47e210611fd0-qif": "false",
+        "ofx-fallback-missing-payee-a4d46b24-8322-4284-8bc0-47e210611fd0": "false",
+        "ofx-swap-payee-memo-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+        "qif-swap-payee-memo-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+        "camt-swap-payee-memo-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+        "import-reimport-deleted-a4d46b24-8322-4284-8bc0-47e210611fd0": "false"
+      },
+      "rules": [
+        {
+          "id": "25280000-0000-4000-8001-000000000001",
+          "stage": "post",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "is",
+              "value": -1234
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": null,
+              "options": {
+                "template": "{{notes}} / {{payee_name}}"
+              }
+            }
+          ]
+        }
+      ],
+      "input": {
+        "accountId": "a4d46b24-8322-4284-8bc0-47e210611fd0",
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "amount": -1234,
+            "payee_name": "BRAND NEW SHOP",
+            "imported_payee": "BRAND NEW SHOP",
+            "notes": "Bank note",
+            "cleared": true
+          }
+        ],
+        "opts": {
+          "reimportDeleted": false
+        }
+      },
+      "archive": {
+        "filename": "transaction-import-expressions-new-payee-26.10.zip",
+        "sha256": "8915af999dc4d3559aad77fd2d75a96e22f8ca601cb67e597bcaf88a0d7a7bb4"
+      },
+      "before": {
+        "transactions": [],
+        "payees": [
+          {
+            "id": "ca45c729-7b06-4b17-a1e1-68a9e1f76c2b",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "15f61648-d199-4b65-b835-cae81c9d29f8",
+            "name": "Checking",
+            "transfer_acct": "a4d46b24-8322-4284-8bc0-47e210611fd0"
+          }
+        ],
+        "categories": [
+          {
+            "id": "b82b08ff-7071-4e8e-968f-76d56b23427d",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "de3a73a6-c164-40f3-87f3-ba244f11f5d8"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "csv-mappings-a4d46b24-8322-4284-8bc0-47e210611fd0": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+          "csv-delimiter-a4d46b24-8322-4284-8bc0-47e210611fd0": ",",
+          "csv-encoding-a4d46b24-8322-4284-8bc0-47e210611fd0": "windows-1252",
+          "csv-has-header-a4d46b24-8322-4284-8bc0-47e210611fd0": "false",
+          "csv-skip-start-lines-a4d46b24-8322-4284-8bc0-47e210611fd0": "2",
+          "csv-skip-end-lines-a4d46b24-8322-4284-8bc0-47e210611fd0": "1",
+          "csv-in-out-mode-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+          "csv-out-value-a4d46b24-8322-4284-8bc0-47e210611fd0": "Debit",
+          "parse-date-a4d46b24-8322-4284-8bc0-47e210611fd0-csv": "dd mm yyyy",
+          "parse-date-a4d46b24-8322-4284-8bc0-47e210611fd0-qif": "mm dd yy",
+          "flip-amount-a4d46b24-8322-4284-8bc0-47e210611fd0-csv": "true",
+          "flip-amount-a4d46b24-8322-4284-8bc0-47e210611fd0-qif": "false",
+          "import-notes-a4d46b24-8322-4284-8bc0-47e210611fd0-csv": "true",
+          "import-notes-a4d46b24-8322-4284-8bc0-47e210611fd0-qif": "false",
+          "ofx-fallback-missing-payee-a4d46b24-8322-4284-8bc0-47e210611fd0": "false",
+          "ofx-swap-payee-memo-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+          "qif-swap-payee-memo-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+          "camt-swap-payee-memo-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+          "import-reimport-deleted-a4d46b24-8322-4284-8bc0-47e210611fd0": "false"
+        }
+      },
+      "preview": {
+        "errors": [],
+        "added": [
+          "1e5682f4-804b-439a-85f6-9027bb5e2e90"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "first": {
+        "errors": [],
+        "added": [
+          "f9c2d0c7-418b-4ee7-aaa4-32f882123f64"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "f9c2d0c7-418b-4ee7-aaa4-32f882123f64",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "a4d46b24-8322-4284-8bc0-47e210611fd0",
+            "category": null,
+            "amount": -1234,
+            "payee": "d3c4cebd-69df-45c3-8ec7-50333fc4bd3d",
+            "notes": "Bank note / ",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "BRAND NEW SHOP",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "d3c4cebd-69df-45c3-8ec7-50333fc4bd3d",
+            "name": "Brand New Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "ca45c729-7b06-4b17-a1e1-68a9e1f76c2b",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "15f61648-d199-4b65-b835-cae81c9d29f8",
+            "name": "Checking",
+            "transfer_acct": "a4d46b24-8322-4284-8bc0-47e210611fd0"
+          }
+        ],
+        "categories": [
+          {
+            "id": "b82b08ff-7071-4e8e-968f-76d56b23427d",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "de3a73a6-c164-40f3-87f3-ba244f11f5d8"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "csv-mappings-a4d46b24-8322-4284-8bc0-47e210611fd0": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+          "csv-delimiter-a4d46b24-8322-4284-8bc0-47e210611fd0": ",",
+          "csv-encoding-a4d46b24-8322-4284-8bc0-47e210611fd0": "windows-1252",
+          "csv-has-header-a4d46b24-8322-4284-8bc0-47e210611fd0": "false",
+          "csv-skip-start-lines-a4d46b24-8322-4284-8bc0-47e210611fd0": "2",
+          "csv-skip-end-lines-a4d46b24-8322-4284-8bc0-47e210611fd0": "1",
+          "csv-in-out-mode-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+          "csv-out-value-a4d46b24-8322-4284-8bc0-47e210611fd0": "Debit",
+          "parse-date-a4d46b24-8322-4284-8bc0-47e210611fd0-csv": "dd mm yyyy",
+          "parse-date-a4d46b24-8322-4284-8bc0-47e210611fd0-qif": "mm dd yy",
+          "flip-amount-a4d46b24-8322-4284-8bc0-47e210611fd0-csv": "true",
+          "flip-amount-a4d46b24-8322-4284-8bc0-47e210611fd0-qif": "false",
+          "import-notes-a4d46b24-8322-4284-8bc0-47e210611fd0-csv": "true",
+          "import-notes-a4d46b24-8322-4284-8bc0-47e210611fd0-qif": "false",
+          "ofx-fallback-missing-payee-a4d46b24-8322-4284-8bc0-47e210611fd0": "false",
+          "ofx-swap-payee-memo-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+          "qif-swap-payee-memo-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+          "camt-swap-payee-memo-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+          "import-reimport-deleted-a4d46b24-8322-4284-8bc0-47e210611fd0": "false"
+        }
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "amount": -1234,
+              "imported_payee": "BRAND NEW SHOP",
+              "notes": "Bank note / Brand New Shop",
+              "cleared": true,
+              "account": "a4d46b24-8322-4284-8bc0-47e210611fd0",
+              "payee": "d3c4cebd-69df-45c3-8ec7-50333fc4bd3d",
+              "category": null,
+              "_account": {
+                "id": "a4d46b24-8322-4284-8bc0-47e210611fd0",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "f9c2d0c7-418b-4ee7-aaa4-32f882123f64",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "a4d46b24-8322-4284-8bc0-47e210611fd0",
+            "category": null,
+            "amount": -1234,
+            "payee": "d3c4cebd-69df-45c3-8ec7-50333fc4bd3d",
+            "notes": "Bank note / ",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "BRAND NEW SHOP",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "d3c4cebd-69df-45c3-8ec7-50333fc4bd3d",
+            "name": "Brand New Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "ca45c729-7b06-4b17-a1e1-68a9e1f76c2b",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "15f61648-d199-4b65-b835-cae81c9d29f8",
+            "name": "Checking",
+            "transfer_acct": "a4d46b24-8322-4284-8bc0-47e210611fd0"
+          }
+        ],
+        "categories": [
+          {
+            "id": "b82b08ff-7071-4e8e-968f-76d56b23427d",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "de3a73a6-c164-40f3-87f3-ba244f11f5d8"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "csv-mappings-a4d46b24-8322-4284-8bc0-47e210611fd0": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+          "csv-delimiter-a4d46b24-8322-4284-8bc0-47e210611fd0": ",",
+          "csv-encoding-a4d46b24-8322-4284-8bc0-47e210611fd0": "windows-1252",
+          "csv-has-header-a4d46b24-8322-4284-8bc0-47e210611fd0": "false",
+          "csv-skip-start-lines-a4d46b24-8322-4284-8bc0-47e210611fd0": "2",
+          "csv-skip-end-lines-a4d46b24-8322-4284-8bc0-47e210611fd0": "1",
+          "csv-in-out-mode-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+          "csv-out-value-a4d46b24-8322-4284-8bc0-47e210611fd0": "Debit",
+          "parse-date-a4d46b24-8322-4284-8bc0-47e210611fd0-csv": "dd mm yyyy",
+          "parse-date-a4d46b24-8322-4284-8bc0-47e210611fd0-qif": "mm dd yy",
+          "flip-amount-a4d46b24-8322-4284-8bc0-47e210611fd0-csv": "true",
+          "flip-amount-a4d46b24-8322-4284-8bc0-47e210611fd0-qif": "false",
+          "import-notes-a4d46b24-8322-4284-8bc0-47e210611fd0-csv": "true",
+          "import-notes-a4d46b24-8322-4284-8bc0-47e210611fd0-qif": "false",
+          "ofx-fallback-missing-payee-a4d46b24-8322-4284-8bc0-47e210611fd0": "false",
+          "ofx-swap-payee-memo-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+          "qif-swap-payee-memo-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+          "camt-swap-payee-memo-a4d46b24-8322-4284-8bc0-47e210611fd0": "true",
+          "import-reimport-deleted-a4d46b24-8322-4284-8bc0-47e210611fd0": "false"
+        }
+      }
+    },
+    {
+      "id": "matched-new-payee",
+      "ids": {
+        "manual": "25280000-0000-4000-8000-000000000002",
+        "account": "bfac6cf1-e320-4295-bf28-bedbaa518ba0",
+        "cafe": "62fc1f74-4f49-41c5-8263-6855ae6b07b4",
+        "group": "a2d87e7f-424c-4e85-819e-5da0db6e8b65",
+        "food": "ca3eeeb7-01a9-497c-bafe-365da037b7a1"
+      },
+      "settings": {
+        "csv-mappings-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+        "csv-delimiter-bfac6cf1-e320-4295-bf28-bedbaa518ba0": ",",
+        "csv-encoding-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "windows-1252",
+        "csv-has-header-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "false",
+        "csv-skip-start-lines-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "2",
+        "csv-skip-end-lines-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "1",
+        "csv-in-out-mode-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+        "csv-out-value-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "Debit",
+        "parse-date-bfac6cf1-e320-4295-bf28-bedbaa518ba0-csv": "dd mm yyyy",
+        "parse-date-bfac6cf1-e320-4295-bf28-bedbaa518ba0-qif": "mm dd yy",
+        "flip-amount-bfac6cf1-e320-4295-bf28-bedbaa518ba0-csv": "true",
+        "flip-amount-bfac6cf1-e320-4295-bf28-bedbaa518ba0-qif": "false",
+        "import-notes-bfac6cf1-e320-4295-bf28-bedbaa518ba0-csv": "true",
+        "import-notes-bfac6cf1-e320-4295-bf28-bedbaa518ba0-qif": "false",
+        "ofx-fallback-missing-payee-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "false",
+        "ofx-swap-payee-memo-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+        "qif-swap-payee-memo-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+        "camt-swap-payee-memo-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+        "import-reimport-deleted-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "false"
+      },
+      "rules": [
+        {
+          "id": "25280000-0000-4000-8001-000000000002",
+          "stage": "post",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "is",
+              "value": -1234
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": null,
+              "options": {
+                "template": "{{notes}} / {{payee_name}}"
+              }
+            }
+          ]
+        }
+      ],
+      "input": {
+        "accountId": "bfac6cf1-e320-4295-bf28-bedbaa518ba0",
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "amount": -1234,
+            "payee_name": "BRAND NEW SHOP",
+            "imported_payee": "BRAND NEW SHOP",
+            "notes": "Bank note",
+            "cleared": true
+          }
+        ],
+        "opts": {
+          "reimportDeleted": false
+        }
+      },
+      "archive": {
+        "filename": "transaction-import-expressions-matched-new-payee-26.10.zip",
+        "sha256": "3a0dd4bb47126c7026e342cfa660df12ae7564d7bbb57721d17c7dd1261eec3c"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25280000-0000-4000-8000-000000000002",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "bfac6cf1-e320-4295-bf28-bedbaa518ba0",
+            "category": null,
+            "amount": -1234,
+            "payee": "62fc1f74-4f49-41c5-8263-6855ae6b07b4",
+            "notes": "",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "62fc1f74-4f49-41c5-8263-6855ae6b07b4",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "1e6509a6-505c-4453-8929-4aa05eb65893",
+            "name": "Checking",
+            "transfer_acct": "bfac6cf1-e320-4295-bf28-bedbaa518ba0"
+          }
+        ],
+        "categories": [
+          {
+            "id": "ca3eeeb7-01a9-497c-bafe-365da037b7a1",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "a2d87e7f-424c-4e85-819e-5da0db6e8b65"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "csv-mappings-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+          "csv-delimiter-bfac6cf1-e320-4295-bf28-bedbaa518ba0": ",",
+          "csv-encoding-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "windows-1252",
+          "csv-has-header-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "false",
+          "csv-skip-start-lines-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "2",
+          "csv-skip-end-lines-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "1",
+          "csv-in-out-mode-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+          "csv-out-value-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "Debit",
+          "parse-date-bfac6cf1-e320-4295-bf28-bedbaa518ba0-csv": "dd mm yyyy",
+          "parse-date-bfac6cf1-e320-4295-bf28-bedbaa518ba0-qif": "mm dd yy",
+          "flip-amount-bfac6cf1-e320-4295-bf28-bedbaa518ba0-csv": "true",
+          "flip-amount-bfac6cf1-e320-4295-bf28-bedbaa518ba0-qif": "false",
+          "import-notes-bfac6cf1-e320-4295-bf28-bedbaa518ba0-csv": "true",
+          "import-notes-bfac6cf1-e320-4295-bf28-bedbaa518ba0-qif": "false",
+          "ofx-fallback-missing-payee-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "false",
+          "ofx-swap-payee-memo-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+          "qif-swap-payee-memo-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+          "camt-swap-payee-memo-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+          "import-reimport-deleted-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "false"
+        }
+      },
+      "preview": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25280000-0000-4000-8000-000000000002"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "amount": -1234,
+              "imported_payee": "BRAND NEW SHOP",
+              "notes": "Bank note / ",
+              "cleared": true,
+              "account": "bfac6cf1-e320-4295-bf28-bedbaa518ba0",
+              "payee": "657480ce-e5ee-46c7-9fd7-611541061b69",
+              "category": null,
+              "_account": {
+                "id": "bfac6cf1-e320-4295-bf28-bedbaa518ba0",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25280000-0000-4000-8000-000000000002",
+              "is_parent": 0,
+              "date": "2026-11-09",
+              "imported_id": null,
+              "payee": "62fc1f74-4f49-41c5-8263-6855ae6b07b4",
+              "imported_payee": null,
+              "category": null,
+              "notes": "",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "first": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25280000-0000-4000-8000-000000000002"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "amount": -1234,
+              "imported_payee": "BRAND NEW SHOP",
+              "notes": "Bank note / ",
+              "cleared": true,
+              "account": "bfac6cf1-e320-4295-bf28-bedbaa518ba0",
+              "payee": "6bbfc2e0-370c-40be-917c-c2df3d88cd96",
+              "category": null,
+              "_account": {
+                "id": "bfac6cf1-e320-4295-bf28-bedbaa518ba0",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25280000-0000-4000-8000-000000000002",
+              "is_parent": 0,
+              "date": "2026-11-09",
+              "imported_id": null,
+              "payee": "62fc1f74-4f49-41c5-8263-6855ae6b07b4",
+              "imported_payee": null,
+              "category": null,
+              "notes": "",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -12.34,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25280000-0000-4000-8000-000000000002",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "bfac6cf1-e320-4295-bf28-bedbaa518ba0",
+            "category": null,
+            "amount": -1234,
+            "payee": "62fc1f74-4f49-41c5-8263-6855ae6b07b4",
+            "notes": "Bank note / ",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "BRAND NEW SHOP",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "62fc1f74-4f49-41c5-8263-6855ae6b07b4",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "1e6509a6-505c-4453-8929-4aa05eb65893",
+            "name": "Checking",
+            "transfer_acct": "bfac6cf1-e320-4295-bf28-bedbaa518ba0"
+          }
+        ],
+        "categories": [
+          {
+            "id": "ca3eeeb7-01a9-497c-bafe-365da037b7a1",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "a2d87e7f-424c-4e85-819e-5da0db6e8b65"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "csv-mappings-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+          "csv-delimiter-bfac6cf1-e320-4295-bf28-bedbaa518ba0": ",",
+          "csv-encoding-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "windows-1252",
+          "csv-has-header-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "false",
+          "csv-skip-start-lines-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "2",
+          "csv-skip-end-lines-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "1",
+          "csv-in-out-mode-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+          "csv-out-value-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "Debit",
+          "parse-date-bfac6cf1-e320-4295-bf28-bedbaa518ba0-csv": "dd mm yyyy",
+          "parse-date-bfac6cf1-e320-4295-bf28-bedbaa518ba0-qif": "mm dd yy",
+          "flip-amount-bfac6cf1-e320-4295-bf28-bedbaa518ba0-csv": "true",
+          "flip-amount-bfac6cf1-e320-4295-bf28-bedbaa518ba0-qif": "false",
+          "import-notes-bfac6cf1-e320-4295-bf28-bedbaa518ba0-csv": "true",
+          "import-notes-bfac6cf1-e320-4295-bf28-bedbaa518ba0-qif": "false",
+          "ofx-fallback-missing-payee-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "false",
+          "ofx-swap-payee-memo-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+          "qif-swap-payee-memo-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+          "camt-swap-payee-memo-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+          "import-reimport-deleted-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "false"
+        }
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "amount": -1234,
+              "imported_payee": "BRAND NEW SHOP",
+              "notes": "Bank note / ",
+              "cleared": true,
+              "account": "bfac6cf1-e320-4295-bf28-bedbaa518ba0",
+              "payee": "0898b844-e777-45d1-9ace-7a1abd9b2e34",
+              "category": null,
+              "_account": {
+                "id": "bfac6cf1-e320-4295-bf28-bedbaa518ba0",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25280000-0000-4000-8000-000000000002",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "bfac6cf1-e320-4295-bf28-bedbaa518ba0",
+            "category": null,
+            "amount": -1234,
+            "payee": "62fc1f74-4f49-41c5-8263-6855ae6b07b4",
+            "notes": "Bank note / ",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "BRAND NEW SHOP",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "62fc1f74-4f49-41c5-8263-6855ae6b07b4",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "1e6509a6-505c-4453-8929-4aa05eb65893",
+            "name": "Checking",
+            "transfer_acct": "bfac6cf1-e320-4295-bf28-bedbaa518ba0"
+          }
+        ],
+        "categories": [
+          {
+            "id": "ca3eeeb7-01a9-497c-bafe-365da037b7a1",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "a2d87e7f-424c-4e85-819e-5da0db6e8b65"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "csv-mappings-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+          "csv-delimiter-bfac6cf1-e320-4295-bf28-bedbaa518ba0": ",",
+          "csv-encoding-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "windows-1252",
+          "csv-has-header-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "false",
+          "csv-skip-start-lines-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "2",
+          "csv-skip-end-lines-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "1",
+          "csv-in-out-mode-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+          "csv-out-value-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "Debit",
+          "parse-date-bfac6cf1-e320-4295-bf28-bedbaa518ba0-csv": "dd mm yyyy",
+          "parse-date-bfac6cf1-e320-4295-bf28-bedbaa518ba0-qif": "mm dd yy",
+          "flip-amount-bfac6cf1-e320-4295-bf28-bedbaa518ba0-csv": "true",
+          "flip-amount-bfac6cf1-e320-4295-bf28-bedbaa518ba0-qif": "false",
+          "import-notes-bfac6cf1-e320-4295-bf28-bedbaa518ba0-csv": "true",
+          "import-notes-bfac6cf1-e320-4295-bf28-bedbaa518ba0-qif": "false",
+          "ofx-fallback-missing-payee-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "false",
+          "ofx-swap-payee-memo-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+          "qif-swap-payee-memo-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+          "camt-swap-payee-memo-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "true",
+          "import-reimport-deleted-bfac6cf1-e320-4295-bf28-bedbaa518ba0": "false"
+        }
+      }
+    },
+    {
+      "id": "rules-before-match",
+      "ids": {
+        "manual": "25280000-0000-4000-8000-000000000003",
+        "account": "c480e0e3-898b-4b4c-b8eb-7937044e517b",
+        "cafe": "3f79bfc8-6346-4382-aaf7-a8127511a2e2",
+        "group": "c40b2833-5a4b-4967-b0ca-df47a51cf5cb",
+        "food": "6d975bad-713c-427b-821c-25baac4e5904"
+      },
+      "settings": {
+        "csv-mappings-c480e0e3-898b-4b4c-b8eb-7937044e517b": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+        "csv-delimiter-c480e0e3-898b-4b4c-b8eb-7937044e517b": ",",
+        "csv-encoding-c480e0e3-898b-4b4c-b8eb-7937044e517b": "windows-1252",
+        "csv-has-header-c480e0e3-898b-4b4c-b8eb-7937044e517b": "false",
+        "csv-skip-start-lines-c480e0e3-898b-4b4c-b8eb-7937044e517b": "2",
+        "csv-skip-end-lines-c480e0e3-898b-4b4c-b8eb-7937044e517b": "1",
+        "csv-in-out-mode-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+        "csv-out-value-c480e0e3-898b-4b4c-b8eb-7937044e517b": "Debit",
+        "parse-date-c480e0e3-898b-4b4c-b8eb-7937044e517b-csv": "dd mm yyyy",
+        "parse-date-c480e0e3-898b-4b4c-b8eb-7937044e517b-qif": "mm dd yy",
+        "flip-amount-c480e0e3-898b-4b4c-b8eb-7937044e517b-csv": "true",
+        "flip-amount-c480e0e3-898b-4b4c-b8eb-7937044e517b-qif": "false",
+        "import-notes-c480e0e3-898b-4b4c-b8eb-7937044e517b-csv": "true",
+        "import-notes-c480e0e3-898b-4b4c-b8eb-7937044e517b-qif": "false",
+        "ofx-fallback-missing-payee-c480e0e3-898b-4b4c-b8eb-7937044e517b": "false",
+        "ofx-swap-payee-memo-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+        "qif-swap-payee-memo-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+        "camt-swap-payee-memo-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+        "import-reimport-deleted-c480e0e3-898b-4b4c-b8eb-7937044e517b": "false"
+      },
+      "rules": [
+        {
+          "id": "25280000-0000-4000-8001-000000000003",
+          "stage": "post",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "is",
+              "value": -1234
+            },
+            {
+              "field": "payee_name",
+              "op": "is",
+              "value": "Cafe"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "amount",
+              "value": null,
+              "options": {
+                "formula": "=-15"
+              }
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "6d975bad-713c-427b-821c-25baac4e5904"
+            },
+            {
+              "op": "set",
+              "field": "notes",
+              "value": null,
+              "options": {
+                "formula": "=CONCATENATE(notes,\" / checked\")"
+              }
+            }
+          ]
+        }
+      ],
+      "input": {
+        "accountId": "c480e0e3-898b-4b4c-b8eb-7937044e517b",
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "amount": -1234,
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "notes": "Bank note",
+            "cleared": true
+          }
+        ],
+        "opts": {
+          "reimportDeleted": false
+        }
+      },
+      "archive": {
+        "filename": "transaction-import-expressions-rules-before-match-26.10.zip",
+        "sha256": "f70984e18304570d8bf7e79286f6fe7306148db7a849c007a2be86d629919431"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25280000-0000-4000-8000-000000000003",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "c480e0e3-898b-4b4c-b8eb-7937044e517b",
+            "category": null,
+            "amount": -1500,
+            "payee": "3f79bfc8-6346-4382-aaf7-a8127511a2e2",
+            "notes": "",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "3f79bfc8-6346-4382-aaf7-a8127511a2e2",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "eee46906-3c08-4fc0-9be8-61073afea496",
+            "name": "Checking",
+            "transfer_acct": "c480e0e3-898b-4b4c-b8eb-7937044e517b"
+          }
+        ],
+        "categories": [
+          {
+            "id": "6d975bad-713c-427b-821c-25baac4e5904",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "c40b2833-5a4b-4967-b0ca-df47a51cf5cb"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "csv-mappings-c480e0e3-898b-4b4c-b8eb-7937044e517b": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+          "csv-delimiter-c480e0e3-898b-4b4c-b8eb-7937044e517b": ",",
+          "csv-encoding-c480e0e3-898b-4b4c-b8eb-7937044e517b": "windows-1252",
+          "csv-has-header-c480e0e3-898b-4b4c-b8eb-7937044e517b": "false",
+          "csv-skip-start-lines-c480e0e3-898b-4b4c-b8eb-7937044e517b": "2",
+          "csv-skip-end-lines-c480e0e3-898b-4b4c-b8eb-7937044e517b": "1",
+          "csv-in-out-mode-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+          "csv-out-value-c480e0e3-898b-4b4c-b8eb-7937044e517b": "Debit",
+          "parse-date-c480e0e3-898b-4b4c-b8eb-7937044e517b-csv": "dd mm yyyy",
+          "parse-date-c480e0e3-898b-4b4c-b8eb-7937044e517b-qif": "mm dd yy",
+          "flip-amount-c480e0e3-898b-4b4c-b8eb-7937044e517b-csv": "true",
+          "flip-amount-c480e0e3-898b-4b4c-b8eb-7937044e517b-qif": "false",
+          "import-notes-c480e0e3-898b-4b4c-b8eb-7937044e517b-csv": "true",
+          "import-notes-c480e0e3-898b-4b4c-b8eb-7937044e517b-qif": "false",
+          "ofx-fallback-missing-payee-c480e0e3-898b-4b4c-b8eb-7937044e517b": "false",
+          "ofx-swap-payee-memo-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+          "qif-swap-payee-memo-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+          "camt-swap-payee-memo-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+          "import-reimport-deleted-c480e0e3-898b-4b4c-b8eb-7937044e517b": "false"
+        }
+      },
+      "preview": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25280000-0000-4000-8000-000000000003"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "amount": -1500,
+              "imported_payee": "Cafe",
+              "notes": "Bank note / checked",
+              "cleared": true,
+              "account": "c480e0e3-898b-4b4c-b8eb-7937044e517b",
+              "payee": "3f79bfc8-6346-4382-aaf7-a8127511a2e2",
+              "category": "6d975bad-713c-427b-821c-25baac4e5904",
+              "_account": {
+                "id": "c480e0e3-898b-4b4c-b8eb-7937044e517b",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking",
+              "_ruleErrors": []
+            },
+            "existing": {
+              "id": "25280000-0000-4000-8000-000000000003",
+              "is_parent": 0,
+              "date": "2026-11-09",
+              "imported_id": null,
+              "payee": "3f79bfc8-6346-4382-aaf7-a8127511a2e2",
+              "imported_payee": null,
+              "category": null,
+              "notes": "",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -15,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "first": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25280000-0000-4000-8000-000000000003"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "amount": -1500,
+              "imported_payee": "Cafe",
+              "notes": "Bank note / checked",
+              "cleared": true,
+              "account": "c480e0e3-898b-4b4c-b8eb-7937044e517b",
+              "payee": "3f79bfc8-6346-4382-aaf7-a8127511a2e2",
+              "category": "6d975bad-713c-427b-821c-25baac4e5904",
+              "_account": {
+                "id": "c480e0e3-898b-4b4c-b8eb-7937044e517b",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking",
+              "_ruleErrors": []
+            },
+            "existing": {
+              "id": "25280000-0000-4000-8000-000000000003",
+              "is_parent": 0,
+              "date": "2026-11-09",
+              "imported_id": null,
+              "payee": "3f79bfc8-6346-4382-aaf7-a8127511a2e2",
+              "imported_payee": null,
+              "category": null,
+              "notes": "",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -15,
+              "payee_name": "Cafe"
+            }
+          }
+        ]
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25280000-0000-4000-8000-000000000003",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "c480e0e3-898b-4b4c-b8eb-7937044e517b",
+            "category": "6d975bad-713c-427b-821c-25baac4e5904",
+            "amount": -1500,
+            "payee": "3f79bfc8-6346-4382-aaf7-a8127511a2e2",
+            "notes": "Bank note / checked",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "3f79bfc8-6346-4382-aaf7-a8127511a2e2",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "eee46906-3c08-4fc0-9be8-61073afea496",
+            "name": "Checking",
+            "transfer_acct": "c480e0e3-898b-4b4c-b8eb-7937044e517b"
+          }
+        ],
+        "categories": [
+          {
+            "id": "6d975bad-713c-427b-821c-25baac4e5904",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "c40b2833-5a4b-4967-b0ca-df47a51cf5cb"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "csv-mappings-c480e0e3-898b-4b4c-b8eb-7937044e517b": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+          "csv-delimiter-c480e0e3-898b-4b4c-b8eb-7937044e517b": ",",
+          "csv-encoding-c480e0e3-898b-4b4c-b8eb-7937044e517b": "windows-1252",
+          "csv-has-header-c480e0e3-898b-4b4c-b8eb-7937044e517b": "false",
+          "csv-skip-start-lines-c480e0e3-898b-4b4c-b8eb-7937044e517b": "2",
+          "csv-skip-end-lines-c480e0e3-898b-4b4c-b8eb-7937044e517b": "1",
+          "csv-in-out-mode-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+          "csv-out-value-c480e0e3-898b-4b4c-b8eb-7937044e517b": "Debit",
+          "parse-date-c480e0e3-898b-4b4c-b8eb-7937044e517b-csv": "dd mm yyyy",
+          "parse-date-c480e0e3-898b-4b4c-b8eb-7937044e517b-qif": "mm dd yy",
+          "flip-amount-c480e0e3-898b-4b4c-b8eb-7937044e517b-csv": "true",
+          "flip-amount-c480e0e3-898b-4b4c-b8eb-7937044e517b-qif": "false",
+          "import-notes-c480e0e3-898b-4b4c-b8eb-7937044e517b-csv": "true",
+          "import-notes-c480e0e3-898b-4b4c-b8eb-7937044e517b-qif": "false",
+          "ofx-fallback-missing-payee-c480e0e3-898b-4b4c-b8eb-7937044e517b": "false",
+          "ofx-swap-payee-memo-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+          "qif-swap-payee-memo-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+          "camt-swap-payee-memo-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+          "import-reimport-deleted-c480e0e3-898b-4b4c-b8eb-7937044e517b": "false"
+        }
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "amount": -1500,
+              "imported_payee": "Cafe",
+              "notes": "Bank note / checked",
+              "cleared": true,
+              "account": "c480e0e3-898b-4b4c-b8eb-7937044e517b",
+              "payee": "3f79bfc8-6346-4382-aaf7-a8127511a2e2",
+              "category": "6d975bad-713c-427b-821c-25baac4e5904",
+              "_account": {
+                "id": "c480e0e3-898b-4b4c-b8eb-7937044e517b",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking",
+              "_ruleErrors": []
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25280000-0000-4000-8000-000000000003",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "c480e0e3-898b-4b4c-b8eb-7937044e517b",
+            "category": "6d975bad-713c-427b-821c-25baac4e5904",
+            "amount": -1500,
+            "payee": "3f79bfc8-6346-4382-aaf7-a8127511a2e2",
+            "notes": "Bank note / checked",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "3f79bfc8-6346-4382-aaf7-a8127511a2e2",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "eee46906-3c08-4fc0-9be8-61073afea496",
+            "name": "Checking",
+            "transfer_acct": "c480e0e3-898b-4b4c-b8eb-7937044e517b"
+          }
+        ],
+        "categories": [
+          {
+            "id": "6d975bad-713c-427b-821c-25baac4e5904",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "c40b2833-5a4b-4967-b0ca-df47a51cf5cb"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "csv-mappings-c480e0e3-898b-4b4c-b8eb-7937044e517b": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+          "csv-delimiter-c480e0e3-898b-4b4c-b8eb-7937044e517b": ",",
+          "csv-encoding-c480e0e3-898b-4b4c-b8eb-7937044e517b": "windows-1252",
+          "csv-has-header-c480e0e3-898b-4b4c-b8eb-7937044e517b": "false",
+          "csv-skip-start-lines-c480e0e3-898b-4b4c-b8eb-7937044e517b": "2",
+          "csv-skip-end-lines-c480e0e3-898b-4b4c-b8eb-7937044e517b": "1",
+          "csv-in-out-mode-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+          "csv-out-value-c480e0e3-898b-4b4c-b8eb-7937044e517b": "Debit",
+          "parse-date-c480e0e3-898b-4b4c-b8eb-7937044e517b-csv": "dd mm yyyy",
+          "parse-date-c480e0e3-898b-4b4c-b8eb-7937044e517b-qif": "mm dd yy",
+          "flip-amount-c480e0e3-898b-4b4c-b8eb-7937044e517b-csv": "true",
+          "flip-amount-c480e0e3-898b-4b4c-b8eb-7937044e517b-qif": "false",
+          "import-notes-c480e0e3-898b-4b4c-b8eb-7937044e517b-csv": "true",
+          "import-notes-c480e0e3-898b-4b4c-b8eb-7937044e517b-qif": "false",
+          "ofx-fallback-missing-payee-c480e0e3-898b-4b4c-b8eb-7937044e517b": "false",
+          "ofx-swap-payee-memo-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+          "qif-swap-payee-memo-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+          "camt-swap-payee-memo-c480e0e3-898b-4b4c-b8eb-7937044e517b": "true",
+          "import-reimport-deleted-c480e0e3-898b-4b4c-b8eb-7937044e517b": "false"
+        }
+      }
+    },
+    {
+      "id": "rules-split",
+      "ids": {
+        "manual": "25280000-0000-4000-8000-000000000004",
+        "account": "e9a198fc-530c-42f4-9913-389917312a73",
+        "cafe": "08c01776-ce49-4958-9e13-121a64c66c72",
+        "group": "65f9d6cb-5e52-4b5d-94a1-5e3801a5916f",
+        "food": "d1f37fd6-d827-40bd-acd7-4fe32cb4d9fc"
+      },
+      "settings": {
+        "csv-mappings-e9a198fc-530c-42f4-9913-389917312a73": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+        "csv-delimiter-e9a198fc-530c-42f4-9913-389917312a73": ",",
+        "csv-encoding-e9a198fc-530c-42f4-9913-389917312a73": "windows-1252",
+        "csv-has-header-e9a198fc-530c-42f4-9913-389917312a73": "false",
+        "csv-skip-start-lines-e9a198fc-530c-42f4-9913-389917312a73": "2",
+        "csv-skip-end-lines-e9a198fc-530c-42f4-9913-389917312a73": "1",
+        "csv-in-out-mode-e9a198fc-530c-42f4-9913-389917312a73": "true",
+        "csv-out-value-e9a198fc-530c-42f4-9913-389917312a73": "Debit",
+        "parse-date-e9a198fc-530c-42f4-9913-389917312a73-csv": "dd mm yyyy",
+        "parse-date-e9a198fc-530c-42f4-9913-389917312a73-qif": "mm dd yy",
+        "flip-amount-e9a198fc-530c-42f4-9913-389917312a73-csv": "true",
+        "flip-amount-e9a198fc-530c-42f4-9913-389917312a73-qif": "false",
+        "import-notes-e9a198fc-530c-42f4-9913-389917312a73-csv": "true",
+        "import-notes-e9a198fc-530c-42f4-9913-389917312a73-qif": "false",
+        "ofx-fallback-missing-payee-e9a198fc-530c-42f4-9913-389917312a73": "false",
+        "ofx-swap-payee-memo-e9a198fc-530c-42f4-9913-389917312a73": "true",
+        "qif-swap-payee-memo-e9a198fc-530c-42f4-9913-389917312a73": "true",
+        "camt-swap-payee-memo-e9a198fc-530c-42f4-9913-389917312a73": "true",
+        "import-reimport-deleted-e9a198fc-530c-42f4-9913-389917312a73": "false"
+      },
+      "rules": [
+        {
+          "id": "25280000-0000-4000-8001-000000000004",
+          "stage": "post",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "is",
+              "value": -1234
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": null,
+              "options": {
+                "template": "{{notes}} / checked"
+              }
+            },
+            {
+              "op": "set-split-amount",
+              "value": null,
+              "options": {
+                "method": "formula",
+                "splitIndex": 1,
+                "formula": "=parent_amount/200"
+              }
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "d1f37fd6-d827-40bd-acd7-4fe32cb4d9fc",
+              "options": {
+                "splitIndex": 1
+              }
+            },
+            {
+              "op": "set-split-amount",
+              "value": null,
+              "options": {
+                "method": "remainder",
+                "splitIndex": 2
+              }
+            }
+          ]
+        }
+      ],
+      "input": {
+        "accountId": "e9a198fc-530c-42f4-9913-389917312a73",
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "amount": -1234,
+            "payee_name": "Cafe",
+            "imported_payee": "Cafe",
+            "notes": "Bank note",
+            "cleared": true
+          }
+        ],
+        "opts": {
+          "reimportDeleted": false
+        }
+      },
+      "archive": {
+        "filename": "transaction-import-expressions-rules-split-26.10.zip",
+        "sha256": "4cd2c55ee8a01ccaa09686beea55b1ff758a359af0db63e6db7aa3b494b3f08b"
+      },
+      "before": {
+        "transactions": [],
+        "payees": [
+          {
+            "id": "08c01776-ce49-4958-9e13-121a64c66c72",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "9dfc117f-aa20-4812-abea-cc9d39f6c089",
+            "name": "Checking",
+            "transfer_acct": "e9a198fc-530c-42f4-9913-389917312a73"
+          }
+        ],
+        "categories": [
+          {
+            "id": "d1f37fd6-d827-40bd-acd7-4fe32cb4d9fc",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "65f9d6cb-5e52-4b5d-94a1-5e3801a5916f"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "csv-mappings-e9a198fc-530c-42f4-9913-389917312a73": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+          "csv-delimiter-e9a198fc-530c-42f4-9913-389917312a73": ",",
+          "csv-encoding-e9a198fc-530c-42f4-9913-389917312a73": "windows-1252",
+          "csv-has-header-e9a198fc-530c-42f4-9913-389917312a73": "false",
+          "csv-skip-start-lines-e9a198fc-530c-42f4-9913-389917312a73": "2",
+          "csv-skip-end-lines-e9a198fc-530c-42f4-9913-389917312a73": "1",
+          "csv-in-out-mode-e9a198fc-530c-42f4-9913-389917312a73": "true",
+          "csv-out-value-e9a198fc-530c-42f4-9913-389917312a73": "Debit",
+          "parse-date-e9a198fc-530c-42f4-9913-389917312a73-csv": "dd mm yyyy",
+          "parse-date-e9a198fc-530c-42f4-9913-389917312a73-qif": "mm dd yy",
+          "flip-amount-e9a198fc-530c-42f4-9913-389917312a73-csv": "true",
+          "flip-amount-e9a198fc-530c-42f4-9913-389917312a73-qif": "false",
+          "import-notes-e9a198fc-530c-42f4-9913-389917312a73-csv": "true",
+          "import-notes-e9a198fc-530c-42f4-9913-389917312a73-qif": "false",
+          "ofx-fallback-missing-payee-e9a198fc-530c-42f4-9913-389917312a73": "false",
+          "ofx-swap-payee-memo-e9a198fc-530c-42f4-9913-389917312a73": "true",
+          "qif-swap-payee-memo-e9a198fc-530c-42f4-9913-389917312a73": "true",
+          "camt-swap-payee-memo-e9a198fc-530c-42f4-9913-389917312a73": "true",
+          "import-reimport-deleted-e9a198fc-530c-42f4-9913-389917312a73": "false"
+        }
+      },
+      "preview": {
+        "errors": [],
+        "added": [
+          "5ad9d6c8-1322-43d0-bc96-60f038390fe8",
+          "fd7164ba-bfb6-4b8f-9ebc-d3e4f0abba99",
+          "94d7a7dc-b8c2-4862-b643-2e38aaa08733"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "first": {
+        "errors": [],
+        "added": [
+          "dd6e8739-ca39-4c83-aba3-bd7b378ba848",
+          "6a4e2c79-b032-4c50-b3df-2b592861c72e",
+          "148cb6cf-409e-42f6-b950-57b3e1c07482"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "dd6e8739-ca39-4c83-aba3-bd7b378ba848",
+            "is_parent": true,
+            "is_child": false,
+            "parent_id": null,
+            "account": "e9a198fc-530c-42f4-9913-389917312a73",
+            "category": null,
+            "amount": -1234,
+            "payee": null,
+            "notes": "Bank note / checked",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": [
+              {
+                "id": "6a4e2c79-b032-4c50-b3df-2b592861c72e",
+                "is_parent": false,
+                "is_child": true,
+                "parent_id": "dd6e8739-ca39-4c83-aba3-bd7b378ba848",
+                "account": "e9a198fc-530c-42f4-9913-389917312a73",
+                "category": "d1f37fd6-d827-40bd-acd7-4fe32cb4d9fc",
+                "amount": -617,
+                "payee": "08c01776-ce49-4958-9e13-121a64c66c72",
+                "notes": null,
+                "date": "2026-11-09",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": null,
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "sort_order": 0,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null
+              },
+              {
+                "id": "148cb6cf-409e-42f6-b950-57b3e1c07482",
+                "is_parent": false,
+                "is_child": true,
+                "parent_id": "dd6e8739-ca39-4c83-aba3-bd7b378ba848",
+                "account": "e9a198fc-530c-42f4-9913-389917312a73",
+                "category": null,
+                "amount": -617,
+                "payee": "08c01776-ce49-4958-9e13-121a64c66c72",
+                "notes": null,
+                "date": "2026-11-09",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": null,
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "sort_order": -1,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null
+              }
+            ]
+          }
+        ],
+        "payees": [
+          {
+            "id": "08c01776-ce49-4958-9e13-121a64c66c72",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "9dfc117f-aa20-4812-abea-cc9d39f6c089",
+            "name": "Checking",
+            "transfer_acct": "e9a198fc-530c-42f4-9913-389917312a73"
+          }
+        ],
+        "categories": [
+          {
+            "id": "d1f37fd6-d827-40bd-acd7-4fe32cb4d9fc",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "65f9d6cb-5e52-4b5d-94a1-5e3801a5916f"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "csv-mappings-e9a198fc-530c-42f4-9913-389917312a73": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+          "csv-delimiter-e9a198fc-530c-42f4-9913-389917312a73": ",",
+          "csv-encoding-e9a198fc-530c-42f4-9913-389917312a73": "windows-1252",
+          "csv-has-header-e9a198fc-530c-42f4-9913-389917312a73": "false",
+          "csv-skip-start-lines-e9a198fc-530c-42f4-9913-389917312a73": "2",
+          "csv-skip-end-lines-e9a198fc-530c-42f4-9913-389917312a73": "1",
+          "csv-in-out-mode-e9a198fc-530c-42f4-9913-389917312a73": "true",
+          "csv-out-value-e9a198fc-530c-42f4-9913-389917312a73": "Debit",
+          "parse-date-e9a198fc-530c-42f4-9913-389917312a73-csv": "dd mm yyyy",
+          "parse-date-e9a198fc-530c-42f4-9913-389917312a73-qif": "mm dd yy",
+          "flip-amount-e9a198fc-530c-42f4-9913-389917312a73-csv": "true",
+          "flip-amount-e9a198fc-530c-42f4-9913-389917312a73-qif": "false",
+          "import-notes-e9a198fc-530c-42f4-9913-389917312a73-csv": "true",
+          "import-notes-e9a198fc-530c-42f4-9913-389917312a73-qif": "false",
+          "ofx-fallback-missing-payee-e9a198fc-530c-42f4-9913-389917312a73": "false",
+          "ofx-swap-payee-memo-e9a198fc-530c-42f4-9913-389917312a73": "true",
+          "qif-swap-payee-memo-e9a198fc-530c-42f4-9913-389917312a73": "true",
+          "camt-swap-payee-memo-e9a198fc-530c-42f4-9913-389917312a73": "true",
+          "import-reimport-deleted-e9a198fc-530c-42f4-9913-389917312a73": "false"
+        }
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "amount": -1234,
+              "imported_payee": "Cafe",
+              "notes": "Bank note / checked",
+              "cleared": true,
+              "account": "e9a198fc-530c-42f4-9913-389917312a73",
+              "payee": null,
+              "category": null,
+              "_account": {
+                "id": "e9a198fc-530c-42f4-9913-389917312a73",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking",
+              "is_parent": true,
+              "subtransactions": [
+                {
+                  "amount": -617,
+                  "payee": "08c01776-ce49-4958-9e13-121a64c66c72",
+                  "sort_order": -2,
+                  "category": "d1f37fd6-d827-40bd-acd7-4fe32cb4d9fc",
+                  "id": "07914c44-18d6-4b8a-963c-eef463591734",
+                  "account": "e9a198fc-530c-42f4-9913-389917312a73",
+                  "date": "2026-11-09",
+                  "cleared": true,
+                  "reconciled": null,
+                  "starting_balance_flag": null,
+                  "is_child": true,
+                  "error": null,
+                  "_ruleErrors": []
+                },
+                {
+                  "amount": -617,
+                  "payee": "08c01776-ce49-4958-9e13-121a64c66c72",
+                  "sort_order": -3,
+                  "category": null,
+                  "id": "edae9f7b-947d-4816-9cb7-b7668a6686cd",
+                  "account": "e9a198fc-530c-42f4-9913-389917312a73",
+                  "date": "2026-11-09",
+                  "cleared": true,
+                  "reconciled": null,
+                  "starting_balance_flag": null,
+                  "is_child": true,
+                  "error": null
+                }
+              ],
+              "error": null
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "dd6e8739-ca39-4c83-aba3-bd7b378ba848",
+            "is_parent": true,
+            "is_child": false,
+            "parent_id": null,
+            "account": "e9a198fc-530c-42f4-9913-389917312a73",
+            "category": null,
+            "amount": -1234,
+            "payee": null,
+            "notes": "Bank note / checked",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Cafe",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": [
+              {
+                "id": "6a4e2c79-b032-4c50-b3df-2b592861c72e",
+                "is_parent": false,
+                "is_child": true,
+                "parent_id": "dd6e8739-ca39-4c83-aba3-bd7b378ba848",
+                "account": "e9a198fc-530c-42f4-9913-389917312a73",
+                "category": "d1f37fd6-d827-40bd-acd7-4fe32cb4d9fc",
+                "amount": -617,
+                "payee": "08c01776-ce49-4958-9e13-121a64c66c72",
+                "notes": null,
+                "date": "2026-11-09",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": null,
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "sort_order": 0,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null
+              },
+              {
+                "id": "148cb6cf-409e-42f6-b950-57b3e1c07482",
+                "is_parent": false,
+                "is_child": true,
+                "parent_id": "dd6e8739-ca39-4c83-aba3-bd7b378ba848",
+                "account": "e9a198fc-530c-42f4-9913-389917312a73",
+                "category": null,
+                "amount": -617,
+                "payee": "08c01776-ce49-4958-9e13-121a64c66c72",
+                "notes": null,
+                "date": "2026-11-09",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": null,
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "sort_order": -1,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null
+              }
+            ]
+          }
+        ],
+        "payees": [
+          {
+            "id": "08c01776-ce49-4958-9e13-121a64c66c72",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "9dfc117f-aa20-4812-abea-cc9d39f6c089",
+            "name": "Checking",
+            "transfer_acct": "e9a198fc-530c-42f4-9913-389917312a73"
+          }
+        ],
+        "categories": [
+          {
+            "id": "d1f37fd6-d827-40bd-acd7-4fe32cb4d9fc",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "65f9d6cb-5e52-4b5d-94a1-5e3801a5916f"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "csv-mappings-e9a198fc-530c-42f4-9913-389917312a73": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+          "csv-delimiter-e9a198fc-530c-42f4-9913-389917312a73": ",",
+          "csv-encoding-e9a198fc-530c-42f4-9913-389917312a73": "windows-1252",
+          "csv-has-header-e9a198fc-530c-42f4-9913-389917312a73": "false",
+          "csv-skip-start-lines-e9a198fc-530c-42f4-9913-389917312a73": "2",
+          "csv-skip-end-lines-e9a198fc-530c-42f4-9913-389917312a73": "1",
+          "csv-in-out-mode-e9a198fc-530c-42f4-9913-389917312a73": "true",
+          "csv-out-value-e9a198fc-530c-42f4-9913-389917312a73": "Debit",
+          "parse-date-e9a198fc-530c-42f4-9913-389917312a73-csv": "dd mm yyyy",
+          "parse-date-e9a198fc-530c-42f4-9913-389917312a73-qif": "mm dd yy",
+          "flip-amount-e9a198fc-530c-42f4-9913-389917312a73-csv": "true",
+          "flip-amount-e9a198fc-530c-42f4-9913-389917312a73-qif": "false",
+          "import-notes-e9a198fc-530c-42f4-9913-389917312a73-csv": "true",
+          "import-notes-e9a198fc-530c-42f4-9913-389917312a73-qif": "false",
+          "ofx-fallback-missing-payee-e9a198fc-530c-42f4-9913-389917312a73": "false",
+          "ofx-swap-payee-memo-e9a198fc-530c-42f4-9913-389917312a73": "true",
+          "qif-swap-payee-memo-e9a198fc-530c-42f4-9913-389917312a73": "true",
+          "camt-swap-payee-memo-e9a198fc-530c-42f4-9913-389917312a73": "true",
+          "import-reimport-deleted-e9a198fc-530c-42f4-9913-389917312a73": "false"
+        }
+      }
+    },
+    {
+      "id": "new-payee-two",
+      "ids": {
+        "manual": "25280000-0000-4000-8000-000000000005",
+        "account": "8c94d4e4-3a65-4f0a-a0d0-73916ac26d33",
+        "cafe": "09914f66-de8e-4c98-bec6-182e0e569e5f",
+        "group": "355cf2f7-c4e8-401b-b006-351634b6681d",
+        "food": "cba58d78-74b0-453c-b657-ed7ae48476c1"
+      },
+      "settings": {
+        "csv-mappings-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+        "csv-delimiter-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": ",",
+        "csv-encoding-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "windows-1252",
+        "csv-has-header-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "false",
+        "csv-skip-start-lines-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "2",
+        "csv-skip-end-lines-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "1",
+        "csv-in-out-mode-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+        "csv-out-value-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "Debit",
+        "parse-date-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-csv": "dd mm yyyy",
+        "parse-date-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-qif": "mm dd yy",
+        "flip-amount-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-csv": "true",
+        "flip-amount-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-qif": "false",
+        "import-notes-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-csv": "true",
+        "import-notes-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-qif": "false",
+        "ofx-fallback-missing-payee-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "false",
+        "ofx-swap-payee-memo-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+        "qif-swap-payee-memo-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+        "camt-swap-payee-memo-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+        "import-reimport-deleted-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "false"
+      },
+      "rules": [
+        {
+          "id": "25280000-0000-4000-8001-000000000005",
+          "stage": "post",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "is",
+              "value": -1234
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": null,
+              "options": {
+                "template": "{{notes}} / {{payee_name}}"
+              }
+            }
+          ]
+        }
+      ],
+      "input": {
+        "accountId": "8c94d4e4-3a65-4f0a-a0d0-73916ac26d33",
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "amount": -1234,
+            "payee_name": "BRAND NEW SHOP",
+            "imported_payee": "BRAND NEW SHOP",
+            "notes": "Bank note",
+            "cleared": true
+          },
+          {
+            "date": "2026-11-10",
+            "amount": -5678,
+            "payee_name": "BRAND NEW SHOP",
+            "imported_payee": "BRAND NEW SHOP",
+            "notes": "Second purchase",
+            "cleared": true
+          }
+        ],
+        "opts": {
+          "reimportDeleted": false
+        }
+      },
+      "archive": {
+        "filename": "transaction-import-expressions-new-payee-two-26.10.zip",
+        "sha256": "167820160a9c4ff75c7e340c925a73b18a051f1600db3cdc827d483fb49455d0"
+      },
+      "before": {
+        "transactions": [],
+        "payees": [
+          {
+            "id": "09914f66-de8e-4c98-bec6-182e0e569e5f",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "cc92fe03-0c61-4a7d-b46f-4b9d069eadc3",
+            "name": "Checking",
+            "transfer_acct": "8c94d4e4-3a65-4f0a-a0d0-73916ac26d33"
+          }
+        ],
+        "categories": [
+          {
+            "id": "cba58d78-74b0-453c-b657-ed7ae48476c1",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "355cf2f7-c4e8-401b-b006-351634b6681d"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "csv-mappings-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+          "csv-delimiter-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": ",",
+          "csv-encoding-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "windows-1252",
+          "csv-has-header-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "false",
+          "csv-skip-start-lines-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "2",
+          "csv-skip-end-lines-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "1",
+          "csv-in-out-mode-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+          "csv-out-value-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "Debit",
+          "parse-date-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-csv": "dd mm yyyy",
+          "parse-date-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-qif": "mm dd yy",
+          "flip-amount-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-csv": "true",
+          "flip-amount-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-qif": "false",
+          "import-notes-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-csv": "true",
+          "import-notes-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-qif": "false",
+          "ofx-fallback-missing-payee-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "false",
+          "ofx-swap-payee-memo-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+          "qif-swap-payee-memo-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+          "camt-swap-payee-memo-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+          "import-reimport-deleted-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "false"
+        }
+      },
+      "preview": {
+        "errors": [],
+        "added": [
+          "61cc9305-0d39-4599-bef8-41f4230a9ee4",
+          "21a2b49a-c569-4edb-850b-74c4ea27f8da"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "first": {
+        "errors": [],
+        "added": [
+          "dd7479f4-162a-49d0-a225-ba827e014bf9",
+          "375842c8-988a-4fba-80ca-f14f5955747e"
+        ],
+        "updated": [],
+        "updatedPreview": []
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "375842c8-988a-4fba-80ca-f14f5955747e",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "8c94d4e4-3a65-4f0a-a0d0-73916ac26d33",
+            "category": null,
+            "amount": -5678,
+            "payee": "8fc73bf4-95ec-4465-93be-4063b7f6a399",
+            "notes": "Second purchase",
+            "date": "2026-11-10",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "BRAND NEW SHOP",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225598976,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "dd7479f4-162a-49d0-a225-ba827e014bf9",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "8c94d4e4-3a65-4f0a-a0d0-73916ac26d33",
+            "category": null,
+            "amount": -1234,
+            "payee": "8fc73bf4-95ec-4465-93be-4063b7f6a399",
+            "notes": "Bank note / ",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "BRAND NEW SHOP",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "8fc73bf4-95ec-4465-93be-4063b7f6a399",
+            "name": "Brand New Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "09914f66-de8e-4c98-bec6-182e0e569e5f",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "cc92fe03-0c61-4a7d-b46f-4b9d069eadc3",
+            "name": "Checking",
+            "transfer_acct": "8c94d4e4-3a65-4f0a-a0d0-73916ac26d33"
+          }
+        ],
+        "categories": [
+          {
+            "id": "cba58d78-74b0-453c-b657-ed7ae48476c1",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "355cf2f7-c4e8-401b-b006-351634b6681d"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "csv-mappings-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+          "csv-delimiter-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": ",",
+          "csv-encoding-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "windows-1252",
+          "csv-has-header-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "false",
+          "csv-skip-start-lines-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "2",
+          "csv-skip-end-lines-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "1",
+          "csv-in-out-mode-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+          "csv-out-value-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "Debit",
+          "parse-date-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-csv": "dd mm yyyy",
+          "parse-date-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-qif": "mm dd yy",
+          "flip-amount-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-csv": "true",
+          "flip-amount-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-qif": "false",
+          "import-notes-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-csv": "true",
+          "import-notes-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-qif": "false",
+          "ofx-fallback-missing-payee-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "false",
+          "ofx-swap-payee-memo-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+          "qif-swap-payee-memo-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+          "camt-swap-payee-memo-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+          "import-reimport-deleted-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "false"
+        }
+      },
+      "second": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "date": "2026-11-09",
+              "amount": -1234,
+              "imported_payee": "BRAND NEW SHOP",
+              "notes": "Bank note / Brand New Shop",
+              "cleared": true,
+              "account": "8c94d4e4-3a65-4f0a-a0d0-73916ac26d33",
+              "payee": "8fc73bf4-95ec-4465-93be-4063b7f6a399",
+              "category": null,
+              "_account": {
+                "id": "8c94d4e4-3a65-4f0a-a0d0-73916ac26d33",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          },
+          {
+            "transaction": {
+              "date": "2026-11-10",
+              "amount": -5678,
+              "imported_payee": "BRAND NEW SHOP",
+              "notes": "Second purchase",
+              "cleared": true,
+              "account": "8c94d4e4-3a65-4f0a-a0d0-73916ac26d33",
+              "payee": "8fc73bf4-95ec-4465-93be-4063b7f6a399",
+              "category": null,
+              "_account": {
+                "id": "8c94d4e4-3a65-4f0a-a0d0-73916ac26d33",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "375842c8-988a-4fba-80ca-f14f5955747e",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "8c94d4e4-3a65-4f0a-a0d0-73916ac26d33",
+            "category": null,
+            "amount": -5678,
+            "payee": "8fc73bf4-95ec-4465-93be-4063b7f6a399",
+            "notes": "Second purchase",
+            "date": "2026-11-10",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "BRAND NEW SHOP",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225598976,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "dd7479f4-162a-49d0-a225-ba827e014bf9",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "8c94d4e4-3a65-4f0a-a0d0-73916ac26d33",
+            "category": null,
+            "amount": -1234,
+            "payee": "8fc73bf4-95ec-4465-93be-4063b7f6a399",
+            "notes": "Bank note / ",
+            "date": "2026-11-09",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "BRAND NEW SHOP",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "8fc73bf4-95ec-4465-93be-4063b7f6a399",
+            "name": "Brand New Shop",
+            "transfer_acct": null
+          },
+          {
+            "id": "09914f66-de8e-4c98-bec6-182e0e569e5f",
+            "name": "Cafe",
+            "transfer_acct": null
+          },
+          {
+            "id": "cc92fe03-0c61-4a7d-b46f-4b9d069eadc3",
+            "name": "Checking",
+            "transfer_acct": "8c94d4e4-3a65-4f0a-a0d0-73916ac26d33"
+          }
+        ],
+        "categories": [
+          {
+            "id": "cba58d78-74b0-453c-b657-ed7ae48476c1",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "355cf2f7-c4e8-401b-b006-351634b6681d"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "csv-mappings-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "{\"date\":\"Date\",\"payee\":\"Payee\",\"amount\":\"Amount\",\"notes\":\"Memo\",\"category\":null,\"inOut\":\"Direction\",\"outflow\":null,\"inflow\":null}",
+          "csv-delimiter-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": ",",
+          "csv-encoding-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "windows-1252",
+          "csv-has-header-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "false",
+          "csv-skip-start-lines-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "2",
+          "csv-skip-end-lines-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "1",
+          "csv-in-out-mode-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+          "csv-out-value-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "Debit",
+          "parse-date-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-csv": "dd mm yyyy",
+          "parse-date-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-qif": "mm dd yy",
+          "flip-amount-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-csv": "true",
+          "flip-amount-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-qif": "false",
+          "import-notes-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-csv": "true",
+          "import-notes-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33-qif": "false",
+          "ofx-fallback-missing-payee-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "false",
+          "ofx-swap-payee-memo-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+          "qif-swap-payee-memo-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+          "camt-swap-payee-memo-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "true",
+          "import-reimport-deleted-8c94d4e4-3a65-4f0a-a0d0-73916ac26d33": "false"
+        }
+      }
+    }
+  ]
+}

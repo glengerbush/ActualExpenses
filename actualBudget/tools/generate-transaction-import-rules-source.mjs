@@ -10,8 +10,8 @@ globalThis.Date=class extends NativeDate{constructor(...args){super(...(args.len
 const require=createRequire(new URL('../../actualExpenses/tools/compatibility/package.json',import.meta.url));
 const api=require('@actual-app/api');
 assert.equal(JSON.parse(await readFile(require.resolve('@actual-app/api').replace(/dist\/index\.js$/,'package.json'),'utf8')).version,'26.10.0');
-const directory=await mkdtemp(tmpdir()+'/transaction-import-rules-'),check=process.argv.includes('--check'),extend=process.argv.includes('--extend');
-const fixture=new URL('../tests/fixtures/transaction-import-rules-source.json',import.meta.url);
+const directory=await mkdtemp(tmpdir()+'/transaction-import-rules-'),check=process.argv.includes('--check'),extend=process.argv.includes('--extend'),expressions=process.argv.includes('--expressions');
+const fixture=new URL('../tests/fixtures/'+(expressions?'transaction-import-expressions-source.json':'transaction-import-rules-source.json'),import.meta.url);
 const plain=value=>JSON.parse(JSON.stringify(value)),hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 try{
   const engine=await api.init({dataDir:directory});
@@ -43,15 +43,26 @@ try{
     await api.setPreference(`csv-delimiter-${ids.account}`,',');
     settings[`csv-delimiter-${ids.account}`]=',';
     const rules=[];
-    if(name.startsWith('rules')){
-      const actions=name==='rules-before-match'?[{op:'set',field:'amount',value:-1500},{op:'set',field:'category',value:ids.food},{op:'append-notes',value:' / checked'}]:[{op:'append-notes',value:' / checked'},{op:'set-split-amount',value:50,options:{method:'fixed-percent',splitIndex:1}},{op:'set',field:'category',value:ids.food,options:{splitIndex:1}},{op:'set-split-amount',value:null,options:{method:'remainder',splitIndex:2}}];
+    if(name.startsWith('rules')||expressions){
+      let actions=name==='rules-before-match'?[{op:'set',field:'amount',value:-1500},{op:'set',field:'category',value:ids.food},{op:'append-notes',value:' / checked'}]:[{op:'append-notes',value:' / checked'},{op:'set-split-amount',value:50,options:{method:'fixed-percent',splitIndex:1}},{op:'set',field:'category',value:ids.food,options:{splitIndex:1}},{op:'set-split-amount',value:null,options:{method:'remainder',splitIndex:2}}];
+      if(expressions) actions=name==='rules-before-match'?[
+        {op:'set',field:'amount',value:null,options:{formula:'=-15'}},
+        {op:'set',field:'category',value:ids.food},
+        {op:'set',field:'notes',value:null,options:{formula:'=CONCATENATE(notes," / checked")'}}
+      ]:name==='rules-split'?[
+        {op:'set',field:'notes',value:null,options:{template:'{{notes}} / checked'}},
+        {op:'set-split-amount',value:null,options:{method:'formula',splitIndex:1,formula:'=parent_amount/200'}},
+        {op:'set',field:'category',value:ids.food,options:{splitIndex:1}},
+        {op:'set-split-amount',value:null,options:{method:'remainder',splitIndex:2}}
+      ]:[{op:'set',field:'notes',value:null,options:{template:'{{notes}} / {{payee_name}}'}}];
       rules.push({id:`25280000-0000-4000-8001-${String(index+1).padStart(12,'0')}`,stage:'post',conditionsOp:'and',conditions:[{field:'amount',op:'is',value:-1234}],actions});
+      if(expressions&&name==='rules-before-match')rules.at(-1).conditions.push({field:'payee_name',op:'is',value:'Cafe'});
       for(const rule of rules){const result=await engine.send('rule-add',rule);assert.ok(!result.error,JSON.stringify(result));}
     }
     const snapshot=async()=>plain({transactions:await api.getTransactions(ids.account,'2026-01-01','2026-12-31'),payees:await api.getPayees(),categories:await api.getCategories(),preferences:await api.getPreferences()});
     const before=await snapshot();
     for(const [key,value] of Object.entries(settings))assert.equal(before.preferences[key],value);
-    const archiveName=`transaction-import-${name}-26.10.zip`,archivePath=new URL('../tests/fixtures/'+archiveName,import.meta.url);
+    const archiveName=`transaction-import-${expressions?'expressions-':''}${name}-26.10.zip`,archivePath=new URL('../tests/fixtures/'+archiveName,import.meta.url);
     const retained=check||extend&&index<4;
     const archive=retained?await readFile(archivePath):await api.exportBudget();
     if(!retained)await writeFile(archivePath,archive,{flag:'wx'});

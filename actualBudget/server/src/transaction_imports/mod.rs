@@ -344,7 +344,28 @@ fn plan_input(
             .and_then(|name| categories.get(name))
             .map(|id| json!(id))
             .unwrap_or(Value::Null);
+        // Source import normalization keeps the proposed display name outside
+        // the rule transaction. Only already-persisted payees enrich rule
+        // context; a lazy payee is not visible to templates until saved.
+        let display_payee = transaction.as_object_mut().unwrap().remove("payee_name");
+        if let Some(payee) = transaction["payee_id"].as_str()
+            && existing_payees.contains(payee)
+        {
+            let name: String = db.query_row(
+                "SELECT name FROM payees WHERE budget_id=?1 AND id=?2",
+                params![b, payee],
+                |r| r.get(0),
+            )?;
+            transaction["payee_name"] = json!(name);
+        }
         let (mut transaction, matched) = runner.evaluate(db, b, &transaction)?;
+        if let Some(name) = display_payee {
+            transaction
+                .as_object_mut()
+                .unwrap()
+                .entry("payee_name")
+                .or_insert(name);
+        }
         if transaction["new_payee"].is_object()
             && transaction["payee_id"] != transaction["new_payee"]["id"]
             && !transaction["children"].as_array().is_some_and(|children| {

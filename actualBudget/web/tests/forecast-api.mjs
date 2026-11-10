@@ -29,10 +29,13 @@ try {
       },
       { path, body, headers, method },
     );
-  const extended = process.argv.includes("--extended"),
-    stem = extended
-      ? "forecast-scenarios-source-26.10"
-      : "forecast-source-26.10";
+  const expressions = process.argv.includes("--expressions"),
+    extended = expressions || process.argv.includes("--extended"),
+    stem = expressions
+      ? "forecast-expressions-source-26.10"
+      : extended
+        ? "forecast-scenarios-source-26.10"
+        : "forecast-source-26.10";
   const source = JSON.parse(
       await readFile(
         new URL("../../tests/fixtures/" + stem + ".json", import.meta.url),
@@ -122,7 +125,7 @@ try {
     assert.equal(repeated.data.snapshot, projection.data.snapshot);
   }
   let supplemental;
-  if (extended) {
+  if (extended && !expressions) {
     supplemental = JSON.parse(
       await readFile(
         new URL(

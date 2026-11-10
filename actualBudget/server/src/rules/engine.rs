@@ -210,7 +210,13 @@ impl Runner {
                 matched.push(rule.id.clone());
                 if expressions.is_none() && rule.actions.iter().any(super::expressions::calculated)
                 {
-                    expressions = Some(super::expressions::Context::new(db, b, input, stored)?);
+                    expressions = Some(super::expressions::Context::new(
+                        db,
+                        b,
+                        input,
+                        stored,
+                        account_override,
+                    )?);
                     expressions.as_mut().unwrap().prefetch(
                         db,
                         b,

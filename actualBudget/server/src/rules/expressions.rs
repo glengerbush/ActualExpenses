@@ -62,9 +62,20 @@ pub struct Context {
     balance: Option<i64>,
 }
 impl Context {
-    pub fn new(db: &Connection, b: &str, original: &Value, stored: bool) -> Result<Self, Error> {
+    pub fn new(
+        db: &Connection,
+        b: &str,
+        original: &Value,
+        stored: bool,
+        virtual_account: Option<bool>,
+    ) -> Result<Self, Error> {
         let mut helpers = json!({});
-        if let Some(id) = original["account_id"].as_str() {
+        if let Some(off_budget) = virtual_account {
+            // Forecast supplies this synthetic account in its source rule map;
+            // it is intentionally absent from the persisted account registry.
+            helpers["_account_name"] = json!("");
+            helpers["_account"] = json!({"id":original["account_id"],"name":"", "offbudget":u8::from(off_budget),"closed":0,"tombstone":0,"sort_order":-1,"bankName":"","bankId":""});
+        } else if let Some(id) = original["account_id"].as_str() {
             let account = crate::accounts::get(db, b, id)?;
             helpers["_account_name"] = account["name"].clone();
             // Only the source account fields; native computed summaries are not

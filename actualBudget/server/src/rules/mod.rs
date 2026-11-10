@@ -11,7 +11,7 @@ pub(crate) fn template_actions(
         .actions
         .iter()
         .any(expressions::calculated)
-        .then(|| expressions::Context::new(db, b, row, false))
+        .then(|| expressions::Context::new(db, b, row, false, None))
         .transpose()?;
     if let Some(context) = context.as_mut() {
         context.prefetch(db, b, std::iter::once(rule))?;

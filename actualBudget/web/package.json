@@ -21,7 +21,9 @@
     "test:formula-native": "uv run ../tools/formula-native-smoke.py && uv run ../tools/formula-formatting-recovery.py",
     "test:rule-expressions-api": "node ../tools/check-rule-expressions-http.mjs && node ../tools/check-rule-expressions-http.mjs --context && node ../tools/check-rule-expression-commits-http.mjs && node ../tools/check-rule-expressions-http.mjs --chains && node ../tools/check-rule-expressions-http.mjs --execution && node ../tools/check-rule-expression-commits-http.mjs --splits",
     "test:rule-expressions-browser": "node tests/rule-expressions-browser.mjs",
-    "test:rule-expressions-native": "python3 ../tools/check-rule-expression-recovery.py"
+    "test:rule-expressions-native": "python3 ../tools/check-rule-expression-recovery.py",
+    "test:rule-expression-workflows-source": "node ../tools/generate-transaction-import-rules-source.mjs --expressions --check && node ../tools/generate-forecast-source.mjs --expressions --check",
+    "test:rule-expression-workflows-api": "node ../tools/check-transaction-import-rules-http.mjs --expressions && node tests/forecast-api.mjs --expressions"
   },
   "dependencies": {
     "mdast-util-from-markdown": "2.1.0",

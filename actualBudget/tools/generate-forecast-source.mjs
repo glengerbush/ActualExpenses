@@ -33,8 +33,13 @@ assert.equal(
   ).version,
   "26.10.0",
 );
-const extended = process.argv.includes("--extended"),
-  stem = extended ? "forecast-scenarios-source-26.10" : "forecast-source-26.10";
+const expressions = process.argv.includes("--expressions"),
+  extended = expressions || process.argv.includes("--extended"),
+  stem = expressions
+    ? "forecast-expressions-source-26.10"
+    : extended
+      ? "forecast-scenarios-source-26.10"
+      : "forecast-source-26.10";
 const fixtures = new URL("../tests/fixtures/", import.meta.url),
   jsonPath = new URL(stem + ".json", fixtures),
   zipPath = new URL(stem + ".zip", fixtures),
@@ -210,7 +215,14 @@ try {
       conditionsOp: "and",
       conditions: [{ field: "payee", op: "is", value: controlled }],
       actions: [
-        { op: "set", field: "amount", value: -250 },
+        expressions
+          ? {
+              op: "set",
+              field: "amount",
+              value: null,
+              options: { formula: "=amount/100-0.5" },
+            }
+          : { op: "set", field: "amount", value: -250 },
         { op: "set", field: "category", value: original.ids.food },
       ],
     });
@@ -222,7 +234,16 @@ try {
         { field: "account", op: "onBudget", value: null },
         { field: "amount", op: "is", value: -50 },
       ],
-      actions: [{ op: "set", field: "amount", value: -60 }],
+      actions: [
+        expressions
+          ? {
+              op: "set",
+              field: "amount",
+              value: null,
+              options: { formula: "=amount/100-0.1" },
+            }
+          : { op: "set", field: "amount", value: -60 },
+      ],
     });
     assert.ok(!unassignedRule.error);
     await scheduleCase(

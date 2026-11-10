@@ -325,3 +325,51 @@ metadata/context, broader calculated transaction workflows and cumulative
 evaluation/resource/performance qualification. Nonfinite split projections
 explicitly fail instead of returning a source NaN graph; this remains part of42
 qualification. No additional acceptance boxes closed; no push or deployment.
+
+## Calculated import and forecast workflow checkpoint
+
+Five new whole-source CSV-import observations exercise proposed payees, existing
+payee-name conditions, calculated amount changes before matching, template notes,
+calculated split allocation and repeated imports. Genuine source archives and
+results are separate from the earlier literal-rule fixtures. `--expressions
+--check` reproduces the source behavior. The public checker compares the complete
+ledger/reference results, ensures previews create nothing, and checks stable
+transaction/child IDs and exact receipt replay after repeated imports.
+
+The first native comparison exposed premature proposed-payee visibility inside
+templates. Source normalization strips the proposed display name before rules;
+only persisted payee names enter rule context. A second condition witness exposed
+the need to retain canonical names for existing payees. The importer now honors
+both cases and restores proposed names for preview display after evaluation.
+The original failure is `/tmp/rule-expression-import-api.log`; the condition
+witness is `/tmp/rule-expression-import-condition-red.log`. Final source and API
+checks pass in `/tmp/rule-expression-import-source-check2.log` and
+`/tmp/rule-expression-import-api3.log`. All five existing literal import workflows
+also pass in `/tmp/rule-expression-import-literal-final.log`.
+
+Twelve new whole-source forecast observations use calculated actions, covering
+ordinary and accountless schedules, transfers, filters, ranges, paid schedules
+and tracking-budget projections. The source check passes in
+`/tmp/rule-expression-forecast-source-check.log`. Native initially returned404
+for an accountless schedule (`/tmp/rule-expression-forecast-red.log`): the
+expression context tried to load the synthetic account from persistent storage.
+The runner now supplies the source virtual-account fields for these simulations.
+The final browser-driven public API comparison passes in
+`/tmp/rule-expression-forecast-final.log`, including cache reuse/invalidation,
+feature opt-out/re-enable and unchanged companion balances/ledger cursors and
+schedule state. Synthetic accounts are never persisted.
+
+Maintained focused commands from `actualBudget/web`:
+`npm run test:rule-expression-workflows-source` and
+`npm run test:rule-expression-workflows-api`. Existing12 rule/13 split tests,
+4 import/recovery tests, Rust warnings-denied checks and changed-file formatting
+pass. The import recovery check caught a stale assertion for a newly exported
+archive's schema22; updated to27 (`/tmp/rule-expression-import-rust2.log`).
+Historical fixtures were not changed. Other older suites still contain version
+assertions to reconcile during final integrated verification. Root standards/spec
+review against `45148b8`: source fixture generation remains independent,
+normalization retains its existing display contract, and virtual context is
+restricted to the simulation caller.42 still needs calculated Android/manual
+entry, schedule posting and schedule-template workflows, existing-child context,
+nonfinite split behavior and cumulative resource/performance qualification.
+No additional acceptance boxes closed, push or deployment.

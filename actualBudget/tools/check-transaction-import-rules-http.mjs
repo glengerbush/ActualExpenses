@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {randomUUID,createHash} from 'node:crypto';
 import {startServer} from '../web/tests/server.mjs';
-const fixture=JSON.parse(await readFile(new URL('../tests/fixtures/transaction-import-rules-source.json',import.meta.url)));
+const fixture=JSON.parse(await readFile(new URL('../tests/fixtures/'+(process.argv.includes('--expressions')?'transaction-import-expressions-source.json':'transaction-import-rules-source.json'),import.meta.url)));
 const server=await startServer(),api=server.url.replace('actualbudget.test','127.0.0.1')+'/api/v1';
 async function call(path,body,headers={}){const r=await fetch(api+path,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json','Idempotency-Key':randomUUID(),...headers},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(r.ok,`${path}: ${r.status} ${await r.clone().text()}`);return r.json();}
 function shape(rows,payees,categories,source){

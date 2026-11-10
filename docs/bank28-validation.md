@@ -247,3 +247,17 @@ No gate was bypassed. The nativeZIP contains active-budget state only; those oth
 budget/global stages are DB-only. All referenced original source ZIP/JSON hashes
 are recorded in the manifest. These are inputs for forthcoming upgrade/restore
 consumers; no23 migration green is claimed yet.
+
+## Actual-source and genuine22 upgrade checkpoint
+
+`check-bank-upgrade-http.mjs` copies the immutable genuine22 SQLite fixture, then separately restores its genuine active-budget native archive. Public assertions retain complete original register/reference/settings envelopes and field clocks, four original operation responses, and database history/checkpoint. Native restore excludes only operational epoch/cursor comparisons and independently requires the epoch to rotate. Receipt replay must leave the new checkpoint unchanged.
+
+The original blocked Actual SimpleFIN mapping and bank-preference stages become ready; the unrelated nYNAB stage stays byte-for-byte equivalent at the public response. Activating the linked source retains original transaction/payee/category IDs, dates, money, notes, status, bank IDs and reciprocal references. Credentials are missing; no source credential is inferred. Explicit replace/claim/discover/relink and refresh through a disposable loopback provider preserve every source transaction ID and avoid duplicate opening/import entries. The user must select the rediscovered account: source exports lack SimpleFIN connection selectors.
+
+Actual source institution/mapping/cache is installed without changing schema23 DDL. Supported source preference cells use the existing independent settings representation. Original account selector clocks are retained separately and participate in subsequent link guards. Newly imported ownership requires matching original normalized account plus financial ID; explicit same-connection/same-remote-ID relink can move its legacy namespace to the user-selected discovered mapping. Existing metadata, tombstones and settings are not overwritten on enrichment. Actual-only source-format/provenance filters keep YNAB originals out of SQLite conversion.
+
+Provider currency, provider balance date and completed request window are absent from these Actual exports. They remain explicitly unknown (`""`, `0`, null), with reconnect/review diagnostics; no USD, timestamp or request window is invented. Original `last_sync`/status and all source bytes remain in the retained original. Unsupported provider configurations and unrepresented credit-limit/mask/type/subtype metadata remain blocked.
+
+Evidence: `/tmp/bank28-upgrade-first-red.log` proves the genuine blocked mapping remained blocked before conversion. `/tmp/bank28-upgrade-reconnect.log` passes both database and native routes plus original-identity reconnect. `/tmp/bank28-upgrade-build.log` and `/tmp/bank28-upgrade-clippy.log` are focused build/bin-Clippy evidence. Initial consumer corrections used the actual public `accounts` key and excluded only native operational epoch/cursors; no financial expectation was changed.
+
+Remaining ticket28 gates: current23 portable restore/duplicate credential exclusion and delayed-response fences, remaining partial/parallel recovery cases, complete client/API contracts and rendered web UI. This is a converter/upgrade checkpoint, not full acceptance.

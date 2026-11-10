@@ -1003,6 +1003,7 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
     db.execute("UPDATE bank_connections SET state='credentials_missing',generation=?2,error_code=NULL,message=NULL WHERE budget_id=?1 AND tombstone=0",params![archive.state.budget["id"].as_str(),uuid::Uuid::new_v4().to_string()])?;
     crate::register_settings::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
     crate::reports::import::enrich(db, archive.state.budget["id"].as_str())?;
+    crate::banking::import::enrich(db, archive.state.budget["id"].as_str())?;
     if archive.legacy_category_metadata {
         crate::categories::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
     }

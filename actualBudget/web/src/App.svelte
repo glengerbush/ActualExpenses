@@ -229,6 +229,21 @@
           showForm("reports");
         },
       });
+    if (
+      preferences.budgetId === budget!.id &&
+      preferences.hasUsableShared &&
+      preferences.shared.experimental.sankeyReport
+    )
+      result.push({
+        id: "sankey",
+        label: "Sankey",
+        disabled: locked || !compatible,
+        run: async () => {
+          await writeValue(`view:reporting-tab:${budget!.id}`, "sankey");
+          reportEntryKey++;
+          showForm("reports");
+        },
+      });
     const views = [
       ["planning", "Budget", false],
       ["categories", "Categories", disconnected],

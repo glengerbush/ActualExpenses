@@ -43,6 +43,21 @@ Observed source distinctions: tracking budget-month context fields are null and 
 
 UI, delivered navigation/capability, browser/locale/privacy/recovery/visual proof and final whole37 acceptance remain pending. Backend checkpoint can be reviewed independently; root owns current-main24/shared47 composition. No push/release/deployment.
 
+## UI checkpoint
+
+Delivered the imported `sankey-card` in dashboards and the default-off Sankey view/command. Source metadata remains in the existing revision/epoch-bound reporting documents; no migration. Controls retain source API values, imported IDs/user names and otherwise-unmodified settings. Spent/Budgeted changes normalize only incompatible layer endpoints. Static/sliding ranges, categories/groups, other source conditions, maximum/All, sorting, layers, percentages and grouped-account/transfer choices use the shared reporting draft/CAS/recovery path. Budgeted manual category/group filtering and Spent named-condition omission are explicitly disclosed.
+
+The diagram draws positive financial flows with a keyboard-scrollable exact table and source node percentages/context. Non-positive financial links remain in the table; hidden routing and outside-selection links are excluded safely. Labels are separate from financial geometry; user-owned names are never translated. Grouped Other labels and snapshot-bound record/transfer/plan/context contributions are paginated. Explicit size refusal falls back to the complete paginated table rather than drawing partial flows. Small-screen tables scroll horizontally instead of wrapping amounts or controls into unreadable columns. Financial privacy removes diagram geometry and masks all flow/original/contribution amounts; names/notes retain the established amount-focused source behavior.
+
+Cached views bind document revision and owned budget epoch, validate projection/query structure, display their stale status and disable record inspection until recalculated. Typed request failures do not fall back silently. Fresh online calculations survive optional IndexedDB quota failure with a visible warning. The existing shared operation queue retains exact key/body/epoch and cancellation intent; no separate Sankey mutation/outbox was introduced.
+
+- `/tmp/sankey37-browser-red.log`: genuine imported saved Sankey widget was unsupported before UI delivery. `/tmp/sankey37-browser-final.log`: source-exact visible cross-month Spent, small global Other and Budgeted flow rows; actual saved control changes and preserved settings; keyboard record inspection/Other labels; cached reconnect and injected optional browser-cache quota failure; privacy; delivered command/new blank-title widget/removal; feature opt-out/re-enable without document loss; German through real Settings with translated shipped sort/mode labels and unchanged document/financial configuration. Newly written prose uses natural English fallback; catalog bytes unchanged. Supplied `ACTUALBUDGET_TEST_URL` is honored, with fixture packaging isolation.
+- A delivered-but-lost reporting save/reload/exact retry uses only the public endpoint and verifies identical key/body/epoch and a single source-style widget. Initial test harness attempts were corrected: remembered reporting already reopens after reload; Playwright's Node request transport needs a loopback hostname for its local-only synthetic browser hostname; pending state alone does not prove request delivery, so the test waits for the real public response before dropping it. These are harness corrections, not claimed product defects.
+- `/tmp/sankey37-analysis-regression.log`: affected shared source-category condition editor regression PASS (source monthly results/CSV, plan/recorded details, save/config, cache/quota/privacy/German/reflow). Other unchanged shared reporting cancellation/cache-reset/native proof above is reused.
+- `/tmp/sankey37-ui-check.log` Svelte diagnostics and `/tmp/sankey37-ui-build.log` production build. Autofixer logs `/tmp/sankey37-autofixer-*.log` cover all seven edited/new Svelte components: zero issues. Reviewed advisories: loader effect initiates asynchronous external reads with generation guards; layout Maps are local ephemeral calculations, not reactive state requiring SvelteMap. `/tmp/sankey37-impeccable-detect.log` scans the three new components with regex rules only; no findings, explicitly not a parsed-page contrast/a11y audit.
+- Inspected `web/artifacts/sankey-{desktop,mobile,german-editor,dark-large}.png`:1280 desktop,390 mobile,640 dark with root font size200% and keyboard focus. This is root-text enlargement/reflow, not browser zoom or a physical device claim. Final renders use increased diagram label separation and horizontally scrollable financial tables; document width remains within viewport. Screenshots are local review artifacts, not committed product assets.
+
+Root independently reviewed and composed unchanged backend/source evidence:26 full source/detail comparisons and native25 restore/duplicate/MAX plus two focused native consumers PASS at `fe5388a`; optimization `e402d52` indexes monthly category lookups and reuses shared truthy filtering, reviewed here without a new financial behavior change. No repeated source producer, broad native/device or container suite. Whole37 final review/integration remains root-owned. Resource guard exhaustion and large-volume/browser measurements remain explicitly assigned to51; no claim of exhaustive performance qualification. No push/release/deployment.
 ## Root backend composition review
 
 2026-11-10:10f08489 reviewed and composed with current25/public API atfe5388a.
@@ -61,3 +76,48 @@ Combined companion run has2 passing tests,0 skipped/errors/failures; its Sankey
 case exercises plain HTTP without financial or idle-state changes. No remaining
 backend review finding. UI and whole37 acceptance remain open;51 retains volume
 and exhausted-work-guard qualification. No source fixture was relabeled.
+
+Merged reviewed main08bae64 before the UI freeze, retaining current native25, shared predicate fixes, banking/public API commands and both root/backend and UI evidence. Only capability/test-list/document conflicts required resolution; no source financial calculation was replaced.
+
+## Root final UI review and local acceptance
+
+2026-11-10:966e596/3c4d5ca and date correction62f4f6b reviewed against all37
+criteria and repository standards. Source-specific controls, imported documents,
+financial/cached result validation, epoch/revision guards, scoped record
+inspection, privacy masking and bounded presentation were checked. The diagram
+uses server-calculated amounts; client arithmetic only lays out geometry.
+No extra polling, financial engine or mutation queue was introduced.
+
+Two visible review corrections are closed. Full report dates now use selected
+date_format without changing request/document dates (worker genuine Settings
+red/green). Shared report field columns now have a responsive15rem minimum;
+the390px month selector shows the full year instead of clipping it behind the
+calendar icon. Root inspected desktop/mobile/German/dark large-text captures and
+the corrected month selector. Horizontally scrolling diagrams/tables are
+intentional; named keyboard regions and exact signed tables remain available.
+
+Composedd8b5d52 Rust build, Svelte0errors/0warnings and production web build PASS
+(`/tmp/sankey-root-ui-{build,check,webbuild}.log`). Browser workflow PASS
+`/tmp/sankey-root-ui-browser.log`; after the CSS-only correction, rebuilt browser
+workflow PASS `/tmp/sankey-root-fields-browser.log` and build PASS
+`/tmp/sankey-root-fields-webbuild.log`. These include source-exact flow records,
+lost committed save/reload/exact retry, cache failure/fallback, privacy, opt-out,
+keyboard inspection and non-ISO dates with unchanged source configuration.
+Existing backend26/native25/companion evidence above is reused unchanged.
+
+Impeccable technical audit:17/20 (accessibility3, performance3, theming4,
+responsive3, integrity4); no remaining scoped finding. Amounts/percentages and
+geometry obey privacy; theme tokens,44px controls and semantic tables preserve
+the existing Operate design. Root detector returned[] (source scan, not rendered
+contrast certification); Svelte autofixer reports0issues. Its local Map
+advisories concern ephemeral layout calculations, not reactive shared state.
+Reports autofixer has0issues/suggestions after the layout fix. Final51 still
+owns browser zoom/physical accessibility and resource qualification; the bundle
+advisory remains visible. No real-device or live screen-reader claim.
+
+All37 feature criteria are met locally. Whole-system qualification50–53 remains
+open; no version bump, publication or live deployment.
+
+Post-merge Svelte0errors/0warnings and production build PASS (`/tmp/sankey37-ui-merge-{check,build}.log`); owned UI/test formatting PASS `/tmp/sankey37-ui-format-check.log`. Final formatting-only change expands one browser-test header object; no behavior changed. The merged Rust build is recorded separately at `/tmp/sankey37-ui-merge-rust.log`.
+
+Root's final UI review found the header's full dates bypassed `date_format`. `/tmp/sankey37-date-format-red.log` reproduces ISO text after saving `dd.MM.yyyy` through real Settings. The header now uses the existing `displayDate` helper for as-of/start/end; stored/query dates are unchanged. Extended existing browser witness PASS `/tmp/sankey37-date-format-green.log`, including `09.11.2026 ·01.11.2026–30.11.2026` and identical saved document/financial configuration. Svelte0/0/build PASS `/tmp/sankey37-date-format-{check,build}.log`; targeted loader autofixer still zero issues. No backend/source/native rerun.

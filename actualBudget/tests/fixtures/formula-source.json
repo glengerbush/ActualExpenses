@@ -1,0 +1,535 @@
+{
+  "source": {
+    "commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+    "api": "26.10.0",
+    "hyperformula": "3.5.0",
+    "clock": "2026-11-09T12:00:00.000Z",
+    "archive": "reports-source-26.10.zip",
+    "archive_sha256": "8b54cf9bc377ecd3d608382995efb5c7445c748f849bc971ce70a1610f1ed250",
+    "module_hashes": {
+      "packages/desktop-client/src/hooks/useFormulaExecution.ts": "8dd26fd03722245ed6cceed9028ecd6779ad70711b143c2d4ea3092d6659eb2f",
+      "packages/loot-core/src/shared/formulas/customFunctions.ts": "7ef1b4bff4d5efae961b96fcdf308f5e7745748339ca9d9a700d05d63bfa8558",
+      "packages/loot-core/src/shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419",
+      "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+      "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+      "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+      "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+      "packages/desktop-client/src/components/formula/queryTimeFrame.ts": "8d43a56d140a4e9e02eba12c30b7cc5f1337facb3e155d48f6fe69829b99b715",
+      "packages/desktop-client/src/components/reports/reportRanges.ts": "82ce4574b3814dcdde05d2d7a91a09e37f9a80ea3beb9c63467f45d62aaf339b",
+      "packages/desktop-client/src/util/bootstrapHyperFormula.ts": "36243cfd8735ea08cb1fca38dc215e4c9aac6d759fe86eb73f54dda91689373a"
+    }
+  },
+  "observations": [
+    {
+      "name": "spreadsheet-sum",
+      "formula": "=SUM(1,2,3)",
+      "output": {
+        "result": 6,
+        "error": null
+      }
+    },
+    {
+      "name": "query-sum",
+      "formula": "=QUERY(\"All\")",
+      "queries": {
+        "All": {
+          "conditions": []
+        }
+      },
+      "output": {
+        "result": 1204,
+        "error": null
+      }
+    },
+    {
+      "name": "query-count",
+      "formula": "=QUERY_COUNT(\"All\")",
+      "queries": {
+        "All": {
+          "conditions": []
+        }
+      },
+      "output": {
+        "result": 19,
+        "error": null
+      }
+    },
+    {
+      "name": "query-filtered",
+      "formula": "=QUERY(\"Food\")",
+      "queries": {
+        "Food": {
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": "18c4cef2-d782-4544-a460-7c04c275a581"
+            }
+          ],
+          "timeFrame": {
+            "mode": "sliding-window",
+            "start": "2026-10",
+            "end": "2026-11"
+          }
+        }
+      },
+      "output": {
+        "result": -58,
+        "error": null
+      }
+    },
+    {
+      "name": "query-filtered-count",
+      "formula": "=QUERY_COUNT(\"Food\")",
+      "queries": {
+        "Food": {
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": "18c4cef2-d782-4544-a460-7c04c275a581"
+            }
+          ],
+          "timeFrame": {
+            "mode": "sliding-window",
+            "start": "2026-10",
+            "end": "2026-11"
+          }
+        }
+      },
+      "output": {
+        "result": 6,
+        "error": null
+      }
+    },
+    {
+      "name": "query-missing",
+      "formula": "=QUERY(\"Absent\")",
+      "output": {
+        "result": 0,
+        "error": null
+      }
+    },
+    {
+      "name": "query-case-sensitive",
+      "formula": "=QUERY(\"all\")",
+      "queries": {
+        "All": {
+          "conditions": []
+        }
+      },
+      "output": {
+        "result": 0,
+        "error": null
+      }
+    },
+    {
+      "name": "query-composition",
+      "formula": "=ROUND(QUERY(\"All\")/QUERY_COUNT(\"All\"),2)",
+      "queries": {
+        "All": {
+          "conditions": []
+        }
+      },
+      "output": {
+        "result": 63.37,
+        "error": null
+      }
+    },
+    {
+      "name": "balance-name",
+      "formula": "=BALANCE_OF(\"checking\")",
+      "output": {
+        "result": 98,
+        "error": null
+      }
+    },
+    {
+      "name": "balance-id",
+      "formula": "=BALANCE_OF(\"79a2f9e2-41b3-4f2b-a751-8937604f5857\")",
+      "output": {
+        "result": 98,
+        "error": null
+      }
+    },
+    {
+      "name": "balance-missing",
+      "formula": "=BALANCE_OF(\"Missing\")",
+      "output": {
+        "result": 0,
+        "error": null
+      }
+    },
+    {
+      "name": "categories-count",
+      "formula": "=COUNTA(QUERY_EXTRACT_CATEGORIES(\"Food\"))",
+      "queries": {
+        "Food": {
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": "18c4cef2-d782-4544-a460-7c04c275a581"
+            }
+          ],
+          "timeFrame": {
+            "mode": "sliding-window",
+            "start": "2026-10",
+            "end": "2026-11"
+          }
+        }
+      },
+      "output": {
+        "result": 1,
+        "error": null
+      }
+    },
+    {
+      "name": "timeframe-start",
+      "formula": "=QUERY_EXTRACT_TIMEFRAME_START(\"Food\")",
+      "queries": {
+        "Food": {
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": "18c4cef2-d782-4544-a460-7c04c275a581"
+            }
+          ],
+          "timeFrame": {
+            "mode": "sliding-window",
+            "start": "2026-10",
+            "end": "2026-11"
+          }
+        }
+      },
+      "output": {
+        "result": "2026-10",
+        "error": null
+      }
+    },
+    {
+      "name": "timeframe-end",
+      "formula": "=QUERY_EXTRACT_TIMEFRAME_END(\"Food\")",
+      "queries": {
+        "Food": {
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": "18c4cef2-d782-4544-a460-7c04c275a581"
+            }
+          ],
+          "timeFrame": {
+            "mode": "sliding-window",
+            "start": "2026-10",
+            "end": "2026-11"
+          }
+        }
+      },
+      "output": {
+        "result": "2026-11",
+        "error": null
+      }
+    },
+    {
+      "name": "missing-timeframe",
+      "formula": "=QUERY_EXTRACT_TIMEFRAME_START(\"Absent\")",
+      "output": {
+        "result": "2026-11",
+        "error": null
+      }
+    },
+    {
+      "name": "format-number",
+      "formula": "=FORMATNUMBER(12345.678,2)",
+      "output": {
+        "result": "12,345.68",
+        "error": null
+      }
+    },
+    {
+      "name": "format-separators",
+      "formula": "=FORMATNUMBER(-12345.678,3,\" \",\",\")",
+      "output": {
+        "result": "-12 345,678",
+        "error": null
+      }
+    },
+    {
+      "name": "format-currency",
+      "formula": "=FORMATCURRENCY(-1234.56,\"€\",2)",
+      "output": {
+        "result": "-€1,234.56",
+        "error": null
+      }
+    },
+    {
+      "name": "fixed-extra-argument-error",
+      "formula": "=FIXED(1234.567,2,TRUE)",
+      "output": {
+        "result": null,
+        "error": "Formula error: NA"
+      }
+    },
+    {
+      "name": "fixed",
+      "formula": "=FIXED(1234.567,2)",
+      "output": {
+        "result": "1234.57",
+        "error": null
+      }
+    },
+    {
+      "name": "minor-to-display",
+      "formula": "=INTEGER_TO_AMOUNT(7299)",
+      "output": {
+        "result": 72.99,
+        "error": null
+      }
+    },
+    {
+      "name": "named-values",
+      "formula": "=ROUND(Rate*Base,2)",
+      "namedExpressions": {
+        "Rate": 0.075,
+        "Base": 1234.56
+      },
+      "output": {
+        "result": 92.59,
+        "error": null
+      }
+    },
+    {
+      "name": "conditional-color",
+      "formula": "=IF(RESULT>0,theme_positive,theme_negative)",
+      "namedExpressions": {
+        "RESULT": 1204,
+        "theme_positive": "#123456",
+        "theme_negative": "#654321"
+      },
+      "output": {
+        "result": "#123456",
+        "error": null
+      }
+    },
+    {
+      "name": "unicode-comparison",
+      "formula": "=IF(\"é\"=\"e\",\"same\",\"different\")",
+      "output": {
+        "result": "same",
+        "error": null
+      }
+    },
+    {
+      "name": "unicode-ligature",
+      "formula": "=IF(\"ß\"=\"ss\",\"same\",\"different\")",
+      "output": {
+        "result": "same",
+        "error": null
+      }
+    },
+    {
+      "name": "lookup-boolean-name-error",
+      "formula": "=VLOOKUP(2,{1,10;2,20;3,30},2,FALSE)",
+      "output": {
+        "result": null,
+        "error": "Formula error: NAME"
+      }
+    },
+    {
+      "name": "lookup",
+      "formula": "=VLOOKUP(2,{1,10;2,20;3,30},2,FALSE())",
+      "output": {
+        "result": null,
+        "error": "Formula error: VALUE"
+      }
+    },
+    {
+      "name": "statistics",
+      "formula": "=STDEV(1,2,3,4,5)",
+      "tolerance": 1e-12,
+      "output": {
+        "result": 1.5811388301,
+        "error": null
+      }
+    },
+    {
+      "name": "net-present-value",
+      "formula": "=NPV(0.1,100,200,300)",
+      "tolerance": 1e-12,
+      "output": {
+        "result": 481.59278738,
+        "error": null
+      }
+    },
+    {
+      "name": "date-leap-year",
+      "formula": "=TEXT(DATE(2024,2,29),\"yyyy-mm-dd\")",
+      "output": {
+        "result": "2024-02-29",
+        "error": null
+      }
+    },
+    {
+      "name": "if-error",
+      "formula": "=IFERROR(1/0,\"unavailable\")",
+      "output": {
+        "result": "unavailable",
+        "error": null
+      }
+    },
+    {
+      "name": "divide-zero",
+      "formula": "=1/0",
+      "output": {
+        "result": null,
+        "error": "Formula error: DIV_BY_ZERO"
+      }
+    },
+    {
+      "name": "unknown-function",
+      "formula": "=NOT_A_FUNCTION(1)",
+      "output": {
+        "result": null,
+        "error": "Formula error: NAME"
+      }
+    },
+    {
+      "name": "invalid-syntax",
+      "formula": "=SUM(",
+      "output": {
+        "result": null,
+        "error": "Formula error: ERROR"
+      }
+    },
+    {
+      "name": "missing-equals",
+      "formula": "SUM(1,2)",
+      "output": {
+        "result": null,
+        "error": "Formula must start with ="
+      }
+    },
+    {
+      "name": "budget-budgeted",
+      "formula": "=BUDGET_QUERY(\"budgeted\",QUERY_EXTRACT_CATEGORIES(\"Food\"),QUERY_EXTRACT_TIMEFRAME_START(\"Food\"),QUERY_EXTRACT_TIMEFRAME_END(\"Food\"))",
+      "queries": {
+        "Food": {
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": "18c4cef2-d782-4544-a460-7c04c275a581"
+            }
+          ],
+          "timeFrame": {
+            "mode": "sliding-window",
+            "start": "2026-10",
+            "end": "2026-11"
+          }
+        }
+      },
+      "output": {
+        "result": 50,
+        "error": null
+      }
+    },
+    {
+      "name": "budget-spent",
+      "formula": "=BUDGET_QUERY(\"spent\",QUERY_EXTRACT_CATEGORIES(\"Food\"),QUERY_EXTRACT_TIMEFRAME_START(\"Food\"),QUERY_EXTRACT_TIMEFRAME_END(\"Food\"))",
+      "queries": {
+        "Food": {
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": "18c4cef2-d782-4544-a460-7c04c275a581"
+            }
+          ],
+          "timeFrame": {
+            "mode": "sliding-window",
+            "start": "2026-10",
+            "end": "2026-11"
+          }
+        }
+      },
+      "output": {
+        "result": -58,
+        "error": null
+      }
+    },
+    {
+      "name": "budget-goal",
+      "formula": "=BUDGET_QUERY(\"goal\",QUERY_EXTRACT_CATEGORIES(\"Food\"),QUERY_EXTRACT_TIMEFRAME_START(\"Food\"),QUERY_EXTRACT_TIMEFRAME_END(\"Food\"))",
+      "queries": {
+        "Food": {
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": "18c4cef2-d782-4544-a460-7c04c275a581"
+            }
+          ],
+          "timeFrame": {
+            "mode": "sliding-window",
+            "start": "2026-10",
+            "end": "2026-11"
+          }
+        }
+      },
+      "output": {
+        "result": 0,
+        "error": null
+      }
+    },
+    {
+      "name": "budget-balance_start",
+      "formula": "=BUDGET_QUERY(\"balance_start\",QUERY_EXTRACT_CATEGORIES(\"Food\"),QUERY_EXTRACT_TIMEFRAME_START(\"Food\"),QUERY_EXTRACT_TIMEFRAME_END(\"Food\"))",
+      "queries": {
+        "Food": {
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": "18c4cef2-d782-4544-a460-7c04c275a581"
+            }
+          ],
+          "timeFrame": {
+            "mode": "sliding-window",
+            "start": "2026-10",
+            "end": "2026-11"
+          }
+        }
+      },
+      "output": {
+        "result": 0,
+        "error": null
+      }
+    },
+    {
+      "name": "budget-balance_end",
+      "formula": "=BUDGET_QUERY(\"balance_end\",QUERY_EXTRACT_CATEGORIES(\"Food\"),QUERY_EXTRACT_TIMEFRAME_START(\"Food\"),QUERY_EXTRACT_TIMEFRAME_END(\"Food\"))",
+      "queries": {
+        "Food": {
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": "18c4cef2-d782-4544-a460-7c04c275a581"
+            }
+          ],
+          "timeFrame": {
+            "mode": "sliding-window",
+            "start": "2026-10",
+            "end": "2026-11"
+          }
+        }
+      },
+      "output": {
+        "result": -8,
+        "error": null
+      }
+    }
+  ]
+}

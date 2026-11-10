@@ -24,6 +24,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("migrations/018_android_upgrade.sql"),
     include_str!("migrations/019_schedules.sql"),
     include_str!("migrations/020_budget_automations.sql"),
+    include_str!("migrations/021_transaction_imports.sql"),
 ];
 pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     crate::android_upgrade::order::configure(db)?;

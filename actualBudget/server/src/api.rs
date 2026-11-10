@@ -64,6 +64,7 @@ pub fn router(store: Store) -> Router {
         .route("/api/{*rest}", any(|| async { Error::missing() }))
         .layer(DefaultBodyLimit::max(65536))
         .merge(crate::imports::router())
+        .merge(crate::transaction_imports::router())
         .merge(crate::themes::router())
         .merge(crate::lifecycle::router())
         .method_not_allowed_fallback(|| async {

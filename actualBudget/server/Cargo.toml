@@ -6,6 +6,8 @@ rust-version = "1.88"
 publish = false
 
 [dependencies]
+csv = "=1.4.0"
+encoding_rs = "=0.8.35"
 regress = { package = "jlens-regress", version = "=0.31.0", path = "vendor/jlens-regress", default-features = false, features = ["std", "utf16", "prohibit-unsafe"] }
 axum = "=0.8.9"
 chrono = { version = "=0.4.44", default-features = false, features = ["std"] }

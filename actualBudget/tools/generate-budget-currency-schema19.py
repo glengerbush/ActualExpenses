@@ -23,6 +23,9 @@ cases = [
     ("disabled", [{"currency_code": "JPY", "experimental": {"currency": True}},
                   {"experimental": {"currency": False}}], 7299),
     ("unrelated", [{"date_format": "yyyy-MM-dd"}], 73),
+    ("reset", [{"currency_code": "JPY", "experimental": {"currency": True}},
+               {"experimental": None}], 7299),
+    ("reset_only", [{"experimental": None}], 7299),
 ]
 only = next((arg.removeprefix("--only=") for arg in sys.argv[2:] if arg.startswith("--only=")), None)
 if only:

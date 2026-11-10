@@ -392,3 +392,66 @@ fn schema19_unrelated_preference_keeps_original_jpy() {
 fn native19_unrelated_preference_keeps_original_jpy() {
     currency_upgrade_case("unrelated", true)
 }
+
+#[test]
+fn schema19_experimental_reset_overrides_original_jpy() {
+    currency_upgrade_case("reset", false)
+}
+
+#[test]
+fn native19_experimental_reset_overrides_original_jpy() {
+    currency_upgrade_case("reset", true)
+}
+
+#[test]
+fn schema19_reset_only_overrides_original_jpy() {
+    currency_upgrade_case("reset_only", false)
+}
+
+#[test]
+fn native19_reset_only_overrides_original_jpy() {
+    currency_upgrade_case("reset_only", true)
+}
+
+#[test]
+fn current_experimental_reset_replaces_raw_imported_calculation_currency() {
+    let f: Value =
+        serde_json::from_slice(&fixture("budget-currency-schema19-untouched.json")).unwrap();
+    let data = tempfile::tempdir().unwrap();
+    std::fs::write(
+        data.path().join("actualbudget.sqlite3"),
+        fixture("budget-currency-schema19-untouched.sqlite3"),
+    )
+    .unwrap();
+    let server = Server::start(data);
+    let root = format!("/api/v1/budgets/{}", f["metadata"]["id"].as_str().unwrap());
+    let response = server
+        .client
+        .patch(format!("{}{root}/preferences", server.url))
+        .header("Idempotency-Key", "current-explicit-reset")
+        .json(&json!({"experimental":null}))
+        .send()
+        .unwrap();
+    assert_eq!(response.status(), 200);
+    let checkpoint = server.get(&format!("{root}/checkpoint"));
+    let before = server.get(&format!("{root}/transactions"));
+    let response = server
+        .client
+        .post(format!("{}{root}/budget/templates/preview", server.url))
+        .json(&json!({"month":"2026-11","snapshot":checkpoint["data"]["snapshot"],"force":true}))
+        .send()
+        .unwrap();
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let preview: Value = response.json().unwrap();
+    assert_eq!(preview["data"]["errors"], json!([]));
+    let row = preview["data"]["categories"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["id"] == f["category_id"])
+        .unwrap();
+    assert_eq!(row["budgeted"], 7299);
+    assert_eq!(row["goal"], 100000);
+    assert_eq!(server.get(&format!("{root}/transactions")), before);
+    assert_eq!(server.get(&format!("{root}/checkpoint")), checkpoint);
+}

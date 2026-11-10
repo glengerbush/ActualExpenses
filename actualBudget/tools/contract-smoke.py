@@ -59,6 +59,11 @@ def main():
             base = "http://" + line.removeprefix("LISTENING ")
             status, contract = request(base, "/api/v1/openapi.json")
             assert status == 200 and contract["openapi"] == "3.1.0"
+            import_fragment = json.loads((project / 'server/src/transaction_imports/openapi.json').read_text())
+            for path, operations in import_fragment['paths'].items():
+                assert contract['paths'][path] == operations
+            for name, schema in import_fragment['components']['schemas'].items():
+                assert contract['components']['schemas'][name] == schema
             for schema in contract["components"]["schemas"].values():
                 Draft202012Validator.check_schema(schema)
 
@@ -701,6 +706,108 @@ def main():
                                  {"Idempotency-Key": "pool-" + str(index)})["data"]
                 assert resolved["pool"]["name"] == "Reserve"
             check(template_root + "/changes?cursor=" + template_cursor, budgets + "/{budget}/changes")
+            # Isolated import fixture: every expectation crosses the served public contract.
+            import_id, import_account = str(uuid.uuid4()), str(uuid.uuid4())
+            import_root = budgets + '/' + import_id
+            check(budgets, budgets, 'POST', {'id': import_id, 'name': 'Import contract', 'budget_type': 'tracking'}, {'Idempotency-Key': 'import-budget'}, 201)
+            check(import_root + '/accounts', account_template, 'POST', {'id': import_account, 'name': 'Bank', 'opening_balance': 0, 'opening_date': '2026-11-01'}, {'Idempotency-Key': 'import-account'}, 201)
+            checkpoint_template = budgets + '/{budget}/checkpoint'
+            transaction_template = budgets + '/{budget}/transactions'
+            cp = check(import_root + '/checkpoint', checkpoint_template)['data']
+            file_template = budgets + '/{budget}/transaction-imports/{id}'
+            upload_template = budgets + '/{budget}/accounts/{account}/transaction-imports'
+            csv = b'Date,Payee,Amount,Notes\n2026-11-09,Cafe,-12.34,Contract purchase\n'
+            upload_path = import_root + '/accounts/' + import_account + '/transaction-imports?filename=contract.csv'
+            uploaded = check(upload_path, upload_template, 'POST', csv, {'Content-Type': 'application/octet-stream', 'Idempotency-Key': 'import-upload'}, 201)
+            assert check(upload_path, upload_template, 'POST', csv, {'Content-Type': 'application/octet-stream', 'Idempotency-Key': 'import-upload'}, 201) == uploaded
+            retained = uploaded['data']
+            import_path = import_root + '/transaction-imports/' + retained['id']
+            assert check(import_path, file_template)['data'] == retained
+
+            def validate_request(template, body):
+                schema = contract['paths'][template]['post']['requestBody']['content']['application/json']['schema']
+                Draft202012Validator({**schema, 'components': contract['components']}, format_checker=FormatChecker()).validate(body)
+
+            def binary(path, template, media, body=None):
+                if body is not None:
+                    validate_request(template, body)
+                req = urllib.request.Request(base + path, data=None if body is None else json.dumps(body).encode(), headers={'Content-Type': 'application/json'}, method='GET' if body is None else 'POST')
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    assert response.status == 200 and response.headers['Content-Type'].startswith(media)
+                    assert response.headers['Cache-Control'] == 'no-store'
+                    assert 'attachment;' in response.headers['Content-Disposition']
+                    value = response.read()
+                schema = contract['paths'][template]['get' if body is None else 'post']['responses']['200']['content'][media]['schema']
+                assert schema['format'] == 'binary' and len(value) <= schema['maxLength']
+                return value
+
+            assert binary(import_path + '/original', file_template + '/original', 'application/octet-stream') == csv
+            parsed = check(import_path + '/parse', file_template + '/parse', 'POST', {'options': {'has_header_row': True}})['data']
+            assert parsed['format'] == 'csv' and parsed['errors'] == [] and parsed['transactions'][0]['Amount'] == '-12.34'
+            parse_error = check(import_path + '/parse', file_template + '/parse', 'POST', {'options': {'delimiter': 'xx'}})['data']
+            assert parse_error['errors'] and parse_error['transactions'] == [] and 'format' not in parse_error
+            check(import_path + '/parse', file_template + '/parse', 'POST', {'unexpected': True}, expected=400)
+            mapping = {'date': 'Date', 'payee': 'Payee', 'amount': 'Amount', 'notes': 'Notes'}
+            review = {'snapshot': cp['snapshot'], 'mapping': mapping, 'options': {'has_header_row': True}, 'remember': True}
+            validate_request(file_template + '/preview', review)
+            preview = check(import_path + '/preview', file_template + '/preview', 'POST', review)['data']
+            assert preview['errors'] == [] and len(preview['rows']) == 1
+            assert preview['rows'][0]['transaction']['amount'] == -1234
+            assert check(import_root + '/checkpoint', checkpoint_template)['data'] == cp
+            commit = {**review, 'rows': [{'row': 0, 'action': 'auto'}]}
+            validate_request(file_template + '/commit', commit)
+            identity = {'Idempotency-Key': 'import-commit', 'X-Actual-Budget-Epoch': cp['epoch'], 'X-Actual-History-Owner': str(uuid.uuid4())}
+            check(import_path + '/commit', file_template + '/commit', 'POST', commit, {**identity, 'X-Actual-Receipt-Only': 'true'}, 404)
+            imported = check(import_path + '/commit', file_template + '/commit', 'POST', commit, identity)
+            assert len(imported['data']['added']) == 1
+            assert check(import_path + '/commit', file_template + '/commit', 'POST', commit, identity) == imported
+            assert check(import_path + '/commit', file_template + '/commit', 'POST', commit, {**identity, 'X-Actual-Receipt-Only': 'true'}) == imported
+            saved = check(import_root + '/transactions', transaction_template)
+            assert saved['balances']['total'] == -1234
+            settings_path = import_root + '/accounts/' + import_account + '/transaction-import-settings'
+            settings_template = budgets + '/{budget}/accounts/{account}/transaction-import-settings'
+            settings = check(settings_path, settings_template)['data']
+            assert settings['mapping']['amount'] == 'Amount' and settings['field_versions']
+            check(settings_path + '?format=bad', settings_template, expected=400)
+            export_template = budgets + '/{budget}/transactions/export'
+            export_body = {'snapshot': settings['snapshot'], 'account_id': import_account, 'layout': 'standard'}
+            exported = binary(import_root + '/transactions/export', export_template, 'text/csv', export_body)
+            assert b'Contract purchase' in exported and b'-12.34' in exported
+            assert binary(import_root + '/transactions/export', export_template, 'text/csv', {**export_body, 'query': {'search': 'No matching row'}}) == b''
+            check(import_root + '/transactions/export', export_template, 'POST', {**export_body, 'layout': 'bad'}, expected=400)
+            canceled_body = {**commit, 'snapshot': settings['snapshot']}
+            cancel_identity = {**identity, 'Idempotency-Key': 'import-cancel'}
+            canceled = check(import_path + '/commit', file_template + '/commit', 'POST', canceled_body, {**cancel_identity, 'X-Actual-Cancel-If-Uncommitted': 'true'}, 409)
+            assert canceled['error']['code'] == 'operation_canceled'
+            assert check(import_path + '/commit', file_template + '/commit', 'POST', canceled_body, cancel_identity, 409) == canceled
+            check(import_path + '/preview', file_template + '/preview', 'POST', review, expected=409)
+            assert check(import_root + '/transactions', transaction_template) == saved
+
+            duplicate = {'id': str(uuid.uuid4()), 'account_id': import_account, 'date': '2026-11-09', 'amount': -1234, 'notes': 'Manual duplicate'}
+            check(import_root + '/transactions', transaction_template, 'POST', duplicate, {'Idempotency-Key': 'merge-duplicate'}, 201)
+            merge_cp = check(import_root + '/checkpoint', checkpoint_template)['data']
+            merge_body = {'snapshot': merge_cp['snapshot'], 'ids': [imported['data']['added'][0], duplicate['id']]}
+            merge_template = budgets + '/{budget}/transactions/merge'
+            validate_request(merge_template + '/preview', merge_body)
+            proposal = check(import_root + '/transactions/merge/preview', merge_template + '/preview', 'POST', merge_body)['data']
+            assert len(proposal['before']) == 2 and len(proposal['after']) == 1
+            assert check(import_root + '/checkpoint', checkpoint_template)['data'] == merge_cp
+            check(import_root + '/transactions/merge/preview', merge_template + '/preview', 'POST', {**merge_body, 'ids': [duplicate['id'], duplicate['id']]}, expected=400)
+            merge_identity = {'Idempotency-Key': 'merge-cancel', 'X-Actual-Budget-Epoch': merge_cp['epoch']}
+            fenced = check(import_root + '/transactions/merge', merge_template, 'POST', merge_body, {**merge_identity, 'X-Actual-Cancel-If-Uncommitted': 'true'}, 409)
+            assert fenced['error']['code'] == 'operation_canceled'
+            assert check(import_root + '/transactions/merge', merge_template, 'POST', merge_body, merge_identity, 409) == fenced
+            assert check(import_root + '/checkpoint', checkpoint_template)['data'] == merge_cp
+            merge_identity['Idempotency-Key'] = 'merge-success'
+            check(import_root + '/transactions/merge', merge_template, 'POST', merge_body, {**merge_identity, 'X-Actual-Receipt-Only': 'true'}, 404)
+            merged = check(import_root + '/transactions/merge', merge_template, 'POST', merge_body, merge_identity)
+            assert merged['data']['keeper_id'] == proposal['keeper_id']
+            assert check(import_root + '/transactions/merge', merge_template, 'POST', merge_body, merge_identity) == merged
+            assert check(import_root + '/transactions/merge', merge_template, 'POST', merge_body, {**merge_identity, 'X-Actual-Receipt-Only': 'true'}) == merged
+            final = check(import_root + '/transactions', transaction_template)
+            assert final['balances']['total'] == -1234 and len(final['data']) == 1
+            print('PASS: import parse/plan/commit/settings/original/export and merge served schemas, exact receipts, cancellation and financial totals')
+
             print("PASS: served OpenAPI schemas validate real success, validation, conflict, origin and missing-resource responses")
         finally:
             process.terminate()

@@ -251,6 +251,40 @@ fn run_case(name: &str) {
     );
     let original = assert_source_ledger(&server, &root, case);
     assert_budget(&server, &root, case, &case["seed"]);
+    // Actual's per-category projection intentionally ignores available-funds
+    // clamping; compare it separately from the full apply preview below.
+    let checkpoint = server.get(&format!("{root}/checkpoint"));
+    for (category, expected) in case["projections"].as_object().unwrap() {
+        let response = server.post(
+            &format!("{root}/budget/templates/projection"),
+            "projection",
+            &json!({"month":case["month"],"snapshot":checkpoint["data"]["snapshot"],
+                "category_id":case["ids"][category],"templates":case["templates"][category]}),
+            None,
+        );
+        assert_eq!(
+            response.status(),
+            200,
+            "{name} {category}: {}",
+            response.text().unwrap()
+        );
+        let projection: Value = response.json().unwrap();
+        assert_eq!(
+            projection["data"]["budgeted"], expected["budgeted"],
+            "{name} {category} projection total"
+        );
+        assert_eq!(
+            projection["data"]["per_template"], expected["perTemplate"],
+            "{name} {category} projection contributions"
+        );
+        assert_eq!(
+            server.get(&format!("{root}/checkpoint")),
+            checkpoint,
+            "read-only projection"
+        );
+    }
+    assert_budget(&server, &root, case, &case["seed"]);
+    assert_eq!(assert_source_ledger(&server, &root, case), original);
     let mut receipts = vec![];
     for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
         let checkpoint = server.get(&format!("{root}/checkpoint"));

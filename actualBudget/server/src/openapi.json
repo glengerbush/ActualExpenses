@@ -17888,6 +17888,854 @@
           }
         }
       }
+    },
+    "/api/v1/budgets/{budget}/budget/templates": {
+      "get": {
+        "description": "Read original category notes, effective source definitions and experimental preferences. No financial changes.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found; receipt-only lookup also returns operation_uncommitted when no matching operation identity is stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MutationConflict"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetAutomationView"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/budget/templates/parse": {
+      "post": {
+        "description": "Read-only parse of note directives. Preserve original descriptions and line errors; no receipts, clocks or writes.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found; receipt-only lookup also returns operation_uncommitted when no matching operation identity is stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MutationConflict"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetTemplateParse"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "notes"
+                ],
+                "properties": {
+                  "notes": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/budget/templates/preview": {
+      "post": {
+        "description": "Read-only exact-snapshot full application preview. Explicit category IDs force selection; default apply skips nonzero allocations. Errors prevent all command writes.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found; receipt-only lookup also returns operation_uncommitted when no matching operation identity is stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MutationConflict"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetTemplatePreview"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "month",
+                  "snapshot"
+                ],
+                "properties": {
+                  "month": {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+                  },
+                  "snapshot": {
+                    "type": "string"
+                  },
+                  "category_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "uniqueItems": true
+                  },
+                  "force": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/budget/templates/projection": {
+      "post": {
+        "description": "Read-only isolated category projection. Matches source per-directive contributions without available-funds priority clamping; distinct from full application preview. Invalid directives return structured errors and zero projection.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found; receipt-only lookup also returns operation_uncommitted when no matching operation identity is stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MutationConflict"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetTemplateProjection"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "month",
+                  "snapshot",
+                  "category_id",
+                  "templates"
+                ],
+                "properties": {
+                  "month": {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+                  },
+                  "snapshot": {
+                    "type": "string"
+                  },
+                  "category_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "templates": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/BudgetTemplate"
+                    },
+                    "maxItems": 256
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/budget/templates/commands": {
+      "post": {
+        "description": "Atomic owned command. Apply/overwrite exact plans; configure switches effective notes/UI definitions while retaining original notes. Capture snapshot, epoch, original edit clock, owner, key and body before send. Exact receipts replay before current preconditions; cancellation fences unknown operations, and receipt-only lookup never executes. Financial and configuration effects join one undo group; validation or stale state refuses all writes.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            },
+            "description": "Stable operation ID scoped to HTTP method and resource path. Same normalized payload replays original 201 result after restart; different payload returns 409 idempotency_conflict. Successful writes and replay outcome commit atomically. Retained indefinitely until a safe acknowledgement protocol exists."
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Persist with Idempotency-Key before sending; same key/body with changed clock conflicts. Absent header supports historical callers/receipts. New clients must supply stable original intent ordering."
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Atomically return the original receipt or record terminal operation_canceled before any planning change."
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "description": "Capture when intent is created; persist unchanged across retries. Exact receipts replay first. An unknown request with missing epoch after restore, or any retired epoch, returns budget_restored without applying. Never automatically replace a pending intent epoch."
+          },
+          {
+            "name": "X-Actual-Receipt-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            },
+            "description": "Read the exact original planning receipt without executing an unknown operation."
+          },
+          {
+            "name": "X-Actual-History-Owner",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Persistent client engine identity, not authentication. Capture before preparing requests. Owner and captured epoch join the immutable receipt fingerprint; never add/change it on legacy retries. Twenty action groups per budget epoch survive reload/restart. History is not exported or cloned."
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found; receipt-only lookup also returns operation_uncommitted when no matching operation identity is stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MutationConflict"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "oneOf": [
+                        {
+                          "$ref": "#/components/schemas/BudgetPlan"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "category",
+                            "snapshot",
+                            "epoch"
+                          ],
+                          "properties": {
+                            "category": {
+                              "$ref": "#/components/schemas/BudgetAutomationCategory"
+                            },
+                            "snapshot": {
+                              "type": "string"
+                            },
+                            "epoch": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "cursor": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetTemplateCommand"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -19964,6 +20812,46 @@
                     "data"
                   ],
                   "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "entity": {
+                      "const": "budget_automations"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetAutomationRecord"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "entity": {
+                      "const": "budget_cleanup_groups"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetCleanupGroupRecord"
+                    }
+                  }
                 }
               ]
             }
@@ -20419,7 +21307,8 @@
                   16,
                   17,
                   18,
-                  19
+                  19,
+                  20
                 ]
               },
               "domains": {
@@ -21802,6 +22691,21 @@
                       },
                       "carryover": {
                         "type": "boolean"
+                      },
+                      "goal": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "long_goal": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "notes": {
+                        "type": "string"
                       }
                     }
                   }
@@ -24077,6 +24981,526 @@
           "upcoming_days"
         ],
         "additionalProperties": false
+      },
+      "BudgetTemplate": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "simple",
+              "periodic",
+              "by",
+              "spend",
+              "percentage",
+              "schedule",
+              "average",
+              "copy",
+              "remainder",
+              "goal",
+              "limit",
+              "refill",
+              "error"
+            ]
+          },
+          "directive": {
+            "type": "string"
+          },
+          "priority": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "description": "Pinned Actual26.10 structured directive. Type-specific fields retain original units: amounts in directives use major units; all calculated results use exact integer minor units. Source parse errors remain inspectable. Server validates supported fields and bounded execution before applying."
+      },
+      "BudgetTemplateParse": {
+        "type": "object",
+        "required": [
+          "templates",
+          "errors"
+        ],
+        "properties": {
+          "templates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BudgetTemplate"
+            }
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "BudgetAutomationCategory": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "notes",
+          "source",
+          "templates",
+          "cleanup",
+          "notes_templates",
+          "parse_errors",
+          "template_settings",
+          "field_versions"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "notes",
+              "ui"
+            ]
+          },
+          "templates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BudgetTemplate"
+            },
+            "maxItems": 256
+          },
+          "cleanup": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "notes_templates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BudgetTemplate"
+            }
+          },
+          "parse_errors": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "template_settings": {
+            "type": "object"
+          },
+          "field_versions": {
+            "type": "object"
+          }
+        }
+      },
+      "BudgetAutomationView": {
+        "type": "object",
+        "required": [
+          "month",
+          "method",
+          "categories",
+          "pools",
+          "snapshot",
+          "epoch",
+          "experimental"
+        ],
+        "properties": {
+          "month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "method": {
+            "enum": [
+              "envelope",
+              "tracking"
+            ]
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BudgetAutomationCategory"
+            }
+          },
+          "pools": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "string"
+          },
+          "experimental": {
+            "type": "object"
+          }
+        }
+      },
+      "BudgetTemplatePreviewRow": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "templates",
+          "before_budgeted",
+          "budgeted",
+          "goal",
+          "long_goal",
+          "applies",
+          "clear_goal",
+          "notes",
+          "per_template"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "templates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BudgetTemplate"
+            }
+          },
+          "before_budgeted": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "budgeted": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "goal": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "long_goal": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "applies": {
+            "type": "boolean"
+          },
+          "clear_goal": {
+            "type": "boolean"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "per_template": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        }
+      },
+      "BudgetTemplatePreview": {
+        "type": "object",
+        "required": [
+          "month",
+          "method",
+          "categories",
+          "errors",
+          "available_after",
+          "snapshot",
+          "epoch"
+        ],
+        "properties": {
+          "month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "method": {
+            "enum": [
+              "envelope",
+              "tracking"
+            ]
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BudgetTemplatePreviewRow"
+            }
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "available_after": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "string"
+          }
+        }
+      },
+      "BudgetTemplateProjection": {
+        "type": "object",
+        "required": [
+          "category_id",
+          "budgeted",
+          "per_template",
+          "goal",
+          "long_goal",
+          "errors",
+          "snapshot",
+          "epoch"
+        ],
+        "properties": {
+          "category_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "budgeted": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "per_template": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "goal": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "long_goal": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "string"
+          }
+        }
+      },
+      "BudgetTemplateCommand": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "action",
+              "month",
+              "snapshot"
+            ],
+            "properties": {
+              "action": {
+                "enum": [
+                  "apply",
+                  "overwrite"
+                ]
+              },
+              "month": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+              },
+              "snapshot": {
+                "type": "string"
+              },
+              "category_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "uniqueItems": true
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "action",
+              "snapshot",
+              "category_id",
+              "source"
+            ],
+            "properties": {
+              "action": {
+                "const": "configure"
+              },
+              "snapshot": {
+                "type": "string"
+              },
+              "category_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "source": {
+                "enum": [
+                  "notes",
+                  "ui"
+                ]
+              },
+              "templates": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BudgetTemplate"
+                },
+                "maxItems": 256
+              },
+              "cleanup": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object"
+                },
+                "maxItems": 256
+              }
+            },
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "source": {
+                      "const": "ui"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "templates"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "BudgetAutomationRecord": {
+        "type": "object",
+        "required": [
+          "id",
+          "deleted",
+          "goal_def",
+          "cleanup_def",
+          "template_settings"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "goal_def": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/BudgetTemplate"
+            }
+          },
+          "cleanup_def": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object"
+            }
+          },
+          "template_settings": {
+            "type": "object"
+          }
+        }
+      },
+      "BudgetCleanupGroupRecord": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "deleted"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "deleted": {
+            "type": "boolean"
+          }
+        }
       }
     }
   }

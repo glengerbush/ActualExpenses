@@ -627,6 +627,40 @@ def main():
             check(upgrade_root + "/companion?account_id=" + legacy["accountId"], budgets + "/{budget}/companion")
             check(upgrade_path, upgrade_template, "POST", handoff,
                   {**headers, "X-Actual-Edit-Clock": "2026-11-08T23:50:10.000Z-0000-bbbbbbbbbbbbbbbb"}, 400)
+            # Isolated template workflow: exercise the served new schemas rather
+            # than asserting their shape without a real response.
+            template_budget, template_category = str(uuid.uuid4()), str(uuid.uuid4())
+            check(budgets, budgets, "POST", {"id": template_budget, "name": "Automation contract"},
+                  {"Idempotency-Key": "template-budget"}, 201)
+            template_root = budgets + "/" + template_budget
+            check(template_root + "/categories", categories_template, "POST",
+                  {"id": template_category, "name": "Reserve", "is_income": False,
+                   "notes": "Original description\n#template 12.34"},
+                  {"Idempotency-Key": "template-category"}, 201)
+            template_path = template_root + "/budget/templates"
+            template_contract = budgets + "/{budget}/budget/templates"
+            current = check(template_path + "?month=2026-11", template_contract)["data"]
+            template_cursor = current["snapshot"]
+            parsed = check(template_path + "/parse", template_contract + "/parse", "POST",
+                           {"notes": "Original description\n#template 12.34"})["data"]
+            check(template_path + "/parse", template_contract + "/parse", "POST",
+                  {"notes": "#template invalid"})
+            check(template_path + "/projection", template_contract + "/projection", "POST",
+                  {"month": "2026-11", "snapshot": current["snapshot"],
+                   "category_id": template_category, "templates": parsed["templates"]})
+            check(template_path + "/preview", template_contract + "/preview", "POST",
+                  {"month": "2026-11", "snapshot": current["snapshot"]})
+            check(template_path + "/preview", template_contract + "/preview", "POST",
+                  {"month": "2026-11"}, expected=400)
+            check(template_path + "/commands", template_contract + "/commands", "POST",
+                  {"action": "configure", "snapshot": current["snapshot"], "category_id": template_category,
+                   "source": "ui", "templates": parsed["templates"]},
+                  {"Idempotency-Key": "template-configure"})
+            current = check(template_path + "?month=2026-11", template_contract)["data"]
+            check(template_path + "/commands", template_contract + "/commands", "POST",
+                  {"action": "apply", "month": "2026-11", "snapshot": current["snapshot"]},
+                  {"Idempotency-Key": "template-apply"})
+            check(template_root + "/changes?cursor=" + template_cursor, budgets + "/{budget}/changes")
             print("PASS: served OpenAPI schemas validate real success, validation, conflict, origin and missing-resource responses")
         finally:
             process.terminate()

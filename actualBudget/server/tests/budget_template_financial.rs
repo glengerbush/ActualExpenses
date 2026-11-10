@@ -104,21 +104,23 @@ fn assert_budget(server: &Server, root: &str, case: &Value, expected: &Value) {
     // expense-category order; source monetary results below remain authoritative
     // for allocation ordering, rather than inferring it from either UI layout.
     let expense = |v: &Value| matches!(v.as_str(), Some("A" | "B" | "C"));
-    let source_order = case["category_order"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .filter(|v| expense(v))
-        .cloned()
-        .collect::<Vec<_>>();
-    assert_eq!(
-        rows.iter()
-            .map(|r| r["name"].clone())
-            .filter(expense)
-            .collect::<Vec<_>>(),
-        source_order,
-        "source category order"
-    );
+    if case["category_order"].is_array() {
+        let source_order = case["category_order"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|v| expense(v))
+            .cloned()
+            .collect::<Vec<_>>();
+        assert_eq!(
+            rows.iter()
+                .map(|r| r["name"].clone())
+                .filter(expense)
+                .collect::<Vec<_>>(),
+            source_order,
+            "source category order"
+        );
+    }
     for (name, source) in expected["categories"].as_object().unwrap() {
         let row = rows.iter().find(|r| r["id"] == case["ids"][name]).unwrap();
         assert_eq!(row["name"], *name);
@@ -213,6 +215,10 @@ fn run_case(name: &str) {
         .iter()
         .find(|c| c["name"] == name)
         .unwrap();
+    assert!(
+        case["category_order"].is_array(),
+        "financial fixture requires source order"
+    );
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../tests/fixtures/budget-template-financial")
         .join(case["archive"]["filename"].as_str().unwrap());
@@ -425,6 +431,314 @@ fn run_case(name: &str) {
     assert_eq!(assert_source_ledger(&server, &root, case), original);
 }
 
+fn run_cleanup_case(name: &str) {
+    let oracle: Value =
+        serde_json::from_str(include_str!("../../tests/fixtures/budget-cleanup.json")).unwrap();
+    let case = oracle["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|c| c["name"] == name)
+        .unwrap();
+    let bytes = std::fs::read(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../tests/fixtures/budget-cleanup")
+            .join(case["archive"]["filename"].as_str().unwrap()),
+    )
+    .unwrap();
+    assert_eq!(
+        format!("{:x}", Sha256::digest(&bytes)),
+        case["archive"]["sha256"]
+    );
+    let server = Server::start(tempfile::tempdir().unwrap());
+    let stage: Value = server
+        .client
+        .post(format!("{}/api/v1/imports/actual", server.url))
+        .header("Content-Type", "application/zip")
+        .header("Idempotency-Key", "cleanup-source")
+        .body(bytes)
+        .send()
+        .unwrap()
+        .error_for_status()
+        .unwrap()
+        .json()
+        .unwrap();
+    assert_eq!(stage["data"]["status"], "ready", "{stage}");
+    let response = server.post(
+        &format!(
+            "/api/v1/imports/{}/activate",
+            stage["data"]["id"].as_str().unwrap()
+        ),
+        "activate-cleanup",
+        &json!({}),
+        None,
+    );
+    assert_eq!(response.status(), 201, "{}", response.text().unwrap());
+    let root = format!(
+        "/api/v1/budgets/{}",
+        stage["data"]["budget_id"].as_str().unwrap()
+    );
+    assert_budget(&server, &root, case, &case["seed"]);
+    let original = assert_source_ledger(&server, &root, case);
+    let definitions = server.get(&format!("{root}/budget/templates?month=2026-11"));
+    for (category, expected) in case["definitions"].as_object().unwrap() {
+        let row = definitions["data"]["categories"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["id"] == case["ids"][category])
+            .unwrap();
+        let mut cleanup = expected["cleanup"].as_array().cloned().unwrap_or_default();
+        for directive in &mut cleanup {
+            if let Some(label) = directive["groupId"].as_str().map(str::to_owned) {
+                directive["groupId"] = case["ids"][label].clone();
+            }
+        }
+        assert_eq!(
+            row["cleanup"],
+            json!(cleanup),
+            "{name} imported cleanup definition"
+        );
+        assert_eq!(
+            row["template_settings"], expected["template_settings"],
+            "{name} effective source precedence"
+        );
+    }
+    let mut receipts = vec![];
+    for (index, step) in case["steps"].as_array().unwrap().iter().enumerate() {
+        let checkpoint = server.get(&format!("{root}/checkpoint"));
+        let epoch = checkpoint["data"]["epoch"].as_str().unwrap().to_owned();
+        let body = json!({"action":"cleanup","month":case["month"],"snapshot":checkpoint["data"]["snapshot"]});
+        let preview = server.post(
+            &format!("{root}/budget/templates/preview"),
+            "cleanup-preview",
+            &body,
+            None,
+        );
+        assert_eq!(preview.status(), 200, "{name}: {}", preview.text().unwrap());
+        let preview: Value = preview.json().unwrap();
+        assert_eq!(
+            preview["data"]["notification"], step["notification"],
+            "{name} preview warnings"
+        );
+        for (category, expected) in step["result"]["categories"].as_object().unwrap() {
+            let row = preview["data"]["categories"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|r| r["id"] == case["ids"][category])
+                .unwrap();
+            let income = case["method"] == "envelope" && category == "Salary";
+            assert_eq!(
+                row["budgeted"],
+                if income {
+                    json!(0)
+                } else {
+                    expected["budget"].clone()
+                },
+                "{name} {category} cleanup preview"
+            );
+            assert_eq!(
+                row["goal"], expected["goal"],
+                "{name} {category} cleanup goal"
+            );
+            assert_eq!(
+                row["long_goal"], expected["long-goal"],
+                "{name} {category} cleanup long goal"
+            );
+        }
+        assert_eq!(
+            server.get(&format!("{root}/checkpoint")),
+            checkpoint,
+            "read-only cleanup preview"
+        );
+        assert_eq!(assert_source_ledger(&server, &root, case), original);
+        let key = format!("cleanup-{index}");
+        let response = server.post(
+            &format!("{root}/budget/templates/commands"),
+            &key,
+            &body,
+            Some(&epoch),
+        );
+        assert_eq!(
+            response.status(),
+            200,
+            "{name}: {}",
+            response.text().unwrap()
+        );
+        let receipt: Value = response.json().unwrap();
+        assert_eq!(
+            receipt["notification"], step["notification"],
+            "{name} source warning/count result"
+        );
+        receipts.push((key, body, epoch, receipt));
+        assert_budget(&server, &root, case, &step["result"]);
+        assert_eq!(assert_source_ledger(&server, &root, case), original);
+    }
+    let checkpoint = server.get(&format!("{root}/checkpoint"));
+    let server = server.restart();
+    for (key, body, epoch, expected) in receipts {
+        let replay = server.post(
+            &format!("{root}/budget/templates/commands"),
+            &key,
+            &body,
+            Some(&epoch),
+        );
+        assert_eq!(replay.status(), 200);
+        assert_eq!(replay.json::<Value>().unwrap(), expected);
+    }
+    assert_eq!(
+        server.get(&format!("{root}/checkpoint")),
+        checkpoint,
+        "replay never reallocates"
+    );
+    assert_budget(
+        &server,
+        &root,
+        case,
+        &case["steps"].as_array().unwrap().last().unwrap()["result"],
+    );
+    assert_eq!(assert_source_ledger(&server, &root, case), original);
+}
+
+fn run_visual_case(name: &str) {
+    let oracle: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/budget-visual-automations.json"
+    ))
+    .unwrap();
+    let case = oracle["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|c| c["name"] == name)
+        .unwrap();
+    let bytes = std::fs::read(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../tests/fixtures/budget-visual-automations")
+            .join(case["archive"]["filename"].as_str().unwrap()),
+    )
+    .unwrap();
+    assert_eq!(
+        format!("{:x}", Sha256::digest(&bytes)),
+        case["archive"]["sha256"]
+    );
+    let server = Server::start(tempfile::tempdir().unwrap());
+    let stage: Value = server
+        .client
+        .post(format!("{}/api/v1/imports/actual", server.url))
+        .header("Content-Type", "application/zip")
+        .header("Idempotency-Key", "visual-source")
+        .body(bytes)
+        .send()
+        .unwrap()
+        .error_for_status()
+        .unwrap()
+        .json()
+        .unwrap();
+    assert_eq!(stage["data"]["status"], "ready", "{stage}");
+    let response = server.post(
+        &format!(
+            "/api/v1/imports/{}/activate",
+            stage["data"]["id"].as_str().unwrap()
+        ),
+        "activate-visual",
+        &json!({}),
+        None,
+    );
+    assert_eq!(response.status(), 201, "{}", response.text().unwrap());
+    let root = format!(
+        "/api/v1/budgets/{}",
+        stage["data"]["budget_id"].as_str().unwrap()
+    );
+    assert_budget(&server, &root, case, &case["seed"]);
+    let original = assert_source_ledger(&server, &root, case);
+    let definitions = server.get(&format!("{root}/budget/templates?month=2026-11"));
+    let def = definitions["data"]["categories"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["id"] == case["ids"]["A"])
+        .unwrap();
+    assert_eq!(
+        def["source"],
+        if case["mode"] == "ui" { "ui" } else { "notes" }
+    );
+    let mut effective = def["templates"].clone();
+    for t in effective.as_array_mut().unwrap() {
+        for field in ["category", "scheduleId"] {
+            if let Some((label, _)) = case["ids"]
+                .as_object()
+                .unwrap()
+                .iter()
+                .find(|(_, id)| **id == t[field])
+            {
+                t[field] = json!(label);
+            }
+        }
+    }
+    assert_eq!(
+        effective, case["effective"],
+        "{name} effective imported definition"
+    );
+    let checkpoint = server.get(&format!("{root}/checkpoint"));
+    let epoch = checkpoint["data"]["epoch"].as_str().unwrap();
+    let request =
+        json!({"month":case["month"],"snapshot":checkpoint["data"]["snapshot"],"force":true});
+    let preview = server.post(
+        &format!("{root}/budget/templates/preview"),
+        "visual-preview",
+        &request,
+        None,
+    );
+    assert_eq!(preview.status(), 200, "{}", preview.text().unwrap());
+    let preview: Value = preview.json().unwrap();
+    assert_eq!(preview["data"]["errors"], json!([]), "{name}: {preview}");
+    for (category, expected) in case["result"]["categories"].as_object().unwrap() {
+        let row = preview["data"]["categories"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["id"] == case["ids"][category])
+            .unwrap();
+        assert_eq!(
+            row["budgeted"],
+            if case["method"] == "envelope" && category == "Salary" {
+                json!(0)
+            } else {
+                expected["budget"].clone()
+            },
+            "{name} {category} visual preview"
+        );
+        assert_eq!(row["goal"], expected["goal"]);
+        assert_eq!(row["long_goal"], expected["long-goal"]);
+    }
+    assert_eq!(server.get(&format!("{root}/checkpoint")), checkpoint);
+    let body = json!({"action":"overwrite","month":case["month"],"snapshot":checkpoint["data"]["snapshot"]});
+    let response = server.post(
+        &format!("{root}/budget/templates/commands"),
+        "visual-apply",
+        &body,
+        Some(epoch),
+    );
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let receipt: Value = response.json().unwrap();
+    assert_budget(&server, &root, case, &case["result"]);
+    assert_eq!(assert_source_ledger(&server, &root, case), original);
+    let committed = server.get(&format!("{root}/checkpoint"));
+    let server = server.restart();
+    let replay = server.post(
+        &format!("{root}/budget/templates/commands"),
+        "visual-apply",
+        &body,
+        Some(epoch),
+    );
+    assert_eq!(replay.status(), 200);
+    assert_eq!(replay.json::<Value>().unwrap(), receipt);
+    assert_eq!(server.get(&format!("{root}/checkpoint")), committed);
+    assert_budget(&server, &root, case, &case["result"]);
+    assert_eq!(assert_source_ledger(&server, &root, case), original);
+}
+
 macro_rules! cases { ($($test:ident => $name:literal),* $(,)?) => { $(#[test] fn $test(){run_case($name);})* }; }
 
 cases! {
@@ -479,4 +793,348 @@ cases! {
     envelope_kwd_minor_units => "envelope-kwd-minor-units",
     tracking_kwd_minor_units => "tracking-kwd-minor-units",
     tracking_tracking_income_category => "tracking-tracking-income-category",
+}
+
+mod cleanup {
+    use super::run_cleanup_case;
+    #[test]
+    fn envelope_global_weighted() {
+        run_cleanup_case("envelope-global-weighted");
+    }
+    #[test]
+    fn tracking_global_weighted() {
+        run_cleanup_case("tracking-global-weighted");
+    }
+    #[test]
+    fn envelope_global_unallocated_and_pennies() {
+        run_cleanup_case("envelope-global-unallocated-and-pennies");
+    }
+    #[test]
+    fn tracking_global_unallocated_and_pennies() {
+        run_cleanup_case("tracking-global-unallocated-and-pennies");
+    }
+    #[test]
+    fn envelope_source_without_sink() {
+        run_cleanup_case("envelope-source-without-sink");
+    }
+    #[test]
+    fn tracking_source_without_sink() {
+        run_cleanup_case("tracking-source-without-sink");
+    }
+    #[test]
+    fn envelope_sink_without_source() {
+        run_cleanup_case("envelope-sink-without-source");
+    }
+    #[test]
+    fn tracking_sink_without_source() {
+        run_cleanup_case("tracking-sink-without-source");
+    }
+    #[test]
+    fn envelope_overspending_no_directives() {
+        run_cleanup_case("envelope-overspending-no-directives");
+    }
+    #[test]
+    fn tracking_overspending_no_directives() {
+        run_cleanup_case("tracking-overspending-no-directives");
+    }
+    #[test]
+    fn envelope_global_overspending_first() {
+        run_cleanup_case("envelope-global-overspending-first");
+    }
+    #[test]
+    fn tracking_global_overspending_first() {
+        run_cleanup_case("tracking-global-overspending-first");
+    }
+    #[test]
+    fn envelope_rollover_overspending() {
+        run_cleanup_case("envelope-rollover-overspending");
+    }
+    #[test]
+    fn tracking_rollover_overspending() {
+        run_cleanup_case("tracking-rollover-overspending");
+    }
+    #[test]
+    fn envelope_negative_source() {
+        run_cleanup_case("envelope-negative-source");
+    }
+    #[test]
+    fn tracking_negative_source() {
+        run_cleanup_case("tracking-negative-source");
+    }
+    #[test]
+    fn envelope_negative_global_available() {
+        run_cleanup_case("envelope-negative-global-available");
+    }
+    #[test]
+    fn tracking_negative_global_available() {
+        run_cleanup_case("tracking-negative-global-available");
+    }
+    #[test]
+    fn envelope_buffer_source_and_sink() {
+        run_cleanup_case("envelope-buffer-source-and-sink");
+    }
+    #[test]
+    fn tracking_buffer_source_and_sink() {
+        run_cleanup_case("tracking-buffer-source-and-sink");
+    }
+    #[test]
+    fn envelope_pool_weighted_isolated() {
+        run_cleanup_case("envelope-pool-weighted-isolated");
+    }
+    #[test]
+    fn tracking_pool_weighted_isolated() {
+        run_cleanup_case("tracking-pool-weighted-isolated");
+    }
+    #[test]
+    fn envelope_pool_rounding_pennies() {
+        run_cleanup_case("envelope-pool-rounding-pennies");
+    }
+    #[test]
+    fn tracking_pool_rounding_pennies() {
+        run_cleanup_case("tracking-pool-rounding-pennies");
+    }
+    #[test]
+    fn envelope_pool_overspend_before_sink() {
+        run_cleanup_case("envelope-pool-overspend-before-sink");
+    }
+    #[test]
+    fn tracking_pool_overspend_before_sink() {
+        run_cleanup_case("tracking-pool-overspend-before-sink");
+    }
+    #[test]
+    fn envelope_pool_partial_overspend() {
+        run_cleanup_case("envelope-pool-partial-overspend");
+    }
+    #[test]
+    fn tracking_pool_partial_overspend() {
+        run_cleanup_case("tracking-pool-partial-overspend");
+    }
+    #[test]
+    fn envelope_pool_rollover() {
+        run_cleanup_case("envelope-pool-rollover");
+    }
+    #[test]
+    fn tracking_pool_rollover() {
+        run_cleanup_case("tracking-pool-rollover");
+    }
+    #[test]
+    fn envelope_pool_missing_sink() {
+        run_cleanup_case("envelope-pool-missing-sink");
+    }
+    #[test]
+    fn tracking_pool_missing_sink() {
+        run_cleanup_case("tracking-pool-missing-sink");
+    }
+    #[test]
+    fn envelope_pool_negative_source() {
+        run_cleanup_case("envelope-pool-negative-source");
+    }
+    #[test]
+    fn tracking_pool_negative_source() {
+        run_cleanup_case("tracking-pool-negative-source");
+    }
+    #[test]
+    fn envelope_pool_case_insensitive() {
+        run_cleanup_case("envelope-pool-case-insensitive");
+    }
+    #[test]
+    fn tracking_pool_case_insensitive() {
+        run_cleanup_case("tracking-pool-case-insensitive");
+    }
+    #[test]
+    fn envelope_pool_then_global() {
+        run_cleanup_case("envelope-pool-then-global");
+    }
+    #[test]
+    fn tracking_pool_then_global() {
+        run_cleanup_case("tracking-pool-then-global");
+    }
+    #[test]
+    fn envelope_grammar_and_original_notes() {
+        run_cleanup_case("envelope-grammar-and-original-notes");
+    }
+    #[test]
+    fn tracking_grammar_and_original_notes() {
+        run_cleanup_case("tracking-grammar-and-original-notes");
+    }
+    #[test]
+    fn envelope_ui_source_ignores_stale_notes() {
+        run_cleanup_case("envelope-ui-source-ignores-stale-notes");
+    }
+    #[test]
+    fn tracking_ui_source_ignores_stale_notes() {
+        run_cleanup_case("tracking-ui-source-ignores-stale-notes");
+    }
+    #[test]
+    fn envelope_ui_pool_ignores_stale_notes() {
+        run_cleanup_case("envelope-ui-pool-ignores-stale-notes");
+    }
+    #[test]
+    fn tracking_ui_pool_ignores_stale_notes() {
+        run_cleanup_case("tracking-ui-pool-ignores-stale-notes");
+    }
+}
+
+mod visual {
+    use super::run_visual_case;
+    #[test]
+    fn envelope_fixed_with_standalone_cap_ui() {
+        run_visual_case("envelope-fixed-with-standalone-cap-ui");
+    }
+    #[test]
+    fn envelope_fixed_with_standalone_cap_rendered_notes() {
+        run_visual_case("envelope-fixed-with-standalone-cap-rendered-notes");
+    }
+    #[test]
+    fn tracking_fixed_with_standalone_cap_ui() {
+        run_visual_case("tracking-fixed-with-standalone-cap-ui");
+    }
+    #[test]
+    fn tracking_fixed_with_standalone_cap_rendered_notes() {
+        run_visual_case("tracking-fixed-with-standalone-cap-rendered-notes");
+    }
+    #[test]
+    fn envelope_refill_with_standalone_cap_ui() {
+        run_visual_case("envelope-refill-with-standalone-cap-ui");
+    }
+    #[test]
+    fn envelope_refill_with_standalone_cap_rendered_notes() {
+        run_visual_case("envelope-refill-with-standalone-cap-rendered-notes");
+    }
+    #[test]
+    fn tracking_refill_with_standalone_cap_ui() {
+        run_visual_case("tracking-refill-with-standalone-cap-ui");
+    }
+    #[test]
+    fn tracking_refill_with_standalone_cap_rendered_notes() {
+        run_visual_case("tracking-refill-with-standalone-cap-rendered-notes");
+    }
+    #[test]
+    fn envelope_held_weekly_cap_ui() {
+        run_visual_case("envelope-held-weekly-cap-ui");
+    }
+    #[test]
+    fn envelope_held_weekly_cap_rendered_notes() {
+        run_visual_case("envelope-held-weekly-cap-rendered-notes");
+    }
+    #[test]
+    fn tracking_held_weekly_cap_ui() {
+        run_visual_case("tracking-held-weekly-cap-ui");
+    }
+    #[test]
+    fn tracking_held_weekly_cap_rendered_notes() {
+        run_visual_case("tracking-held-weekly-cap-rendered-notes");
+    }
+    #[test]
+    fn envelope_fixed_plus_long_goal_ui() {
+        run_visual_case("envelope-fixed-plus-long-goal-ui");
+    }
+    #[test]
+    fn envelope_fixed_plus_long_goal_rendered_notes() {
+        run_visual_case("envelope-fixed-plus-long-goal-rendered-notes");
+    }
+    #[test]
+    fn tracking_fixed_plus_long_goal_ui() {
+        run_visual_case("tracking-fixed-plus-long-goal-ui");
+    }
+    #[test]
+    fn tracking_fixed_plus_long_goal_rendered_notes() {
+        run_visual_case("tracking-fixed-plus-long-goal-rendered-notes");
+    }
+    #[test]
+    fn envelope_save_target_ui() {
+        run_visual_case("envelope-save-target-ui");
+    }
+    #[test]
+    fn envelope_save_target_rendered_notes() {
+        run_visual_case("envelope-save-target-rendered-notes");
+    }
+    #[test]
+    fn tracking_save_target_ui() {
+        run_visual_case("tracking-save-target-ui");
+    }
+    #[test]
+    fn tracking_save_target_rendered_notes() {
+        run_visual_case("tracking-save-target-rendered-notes");
+    }
+    #[test]
+    fn envelope_spend_target_ui() {
+        run_visual_case("envelope-spend-target-ui");
+    }
+    #[test]
+    fn envelope_spend_target_rendered_notes() {
+        run_visual_case("envelope-spend-target-rendered-notes");
+    }
+    #[test]
+    fn tracking_spend_target_ui() {
+        run_visual_case("tracking-spend-target-ui");
+    }
+    #[test]
+    fn tracking_spend_target_rendered_notes() {
+        run_visual_case("tracking-spend-target-rendered-notes");
+    }
+    #[test]
+    fn envelope_history_adjusted_ui() {
+        run_visual_case("envelope-history-adjusted-ui");
+    }
+    #[test]
+    fn envelope_history_adjusted_rendered_notes() {
+        run_visual_case("envelope-history-adjusted-rendered-notes");
+    }
+    #[test]
+    fn tracking_history_adjusted_ui() {
+        run_visual_case("tracking-history-adjusted-ui");
+    }
+    #[test]
+    fn tracking_history_adjusted_rendered_notes() {
+        run_visual_case("tracking-history-adjusted-rendered-notes");
+    }
+    #[test]
+    fn envelope_income_category_id_ui() {
+        run_visual_case("envelope-income-category-id-ui");
+    }
+    #[test]
+    fn envelope_income_category_id_rendered_notes() {
+        run_visual_case("envelope-income-category-id-rendered-notes");
+    }
+    #[test]
+    fn tracking_income_category_id_ui() {
+        run_visual_case("tracking-income-category-id-ui");
+    }
+    #[test]
+    fn tracking_income_category_id_rendered_notes() {
+        run_visual_case("tracking-income-category-id-rendered-notes");
+    }
+    #[test]
+    fn envelope_schedule_id_and_adjustment_ui() {
+        run_visual_case("envelope-schedule-id-and-adjustment-ui");
+    }
+    #[test]
+    fn envelope_schedule_id_and_adjustment_rendered_notes() {
+        run_visual_case("envelope-schedule-id-and-adjustment-rendered-notes");
+    }
+    #[test]
+    fn tracking_schedule_id_and_adjustment_ui() {
+        run_visual_case("tracking-schedule-id-and-adjustment-ui");
+    }
+    #[test]
+    fn tracking_schedule_id_and_adjustment_rendered_notes() {
+        run_visual_case("tracking-schedule-id-and-adjustment-rendered-notes");
+    }
+    #[test]
+    fn envelope_weighted_remainder_cap_ui() {
+        run_visual_case("envelope-weighted-remainder-cap-ui");
+    }
+    #[test]
+    fn envelope_weighted_remainder_cap_rendered_notes() {
+        run_visual_case("envelope-weighted-remainder-cap-rendered-notes");
+    }
+    #[test]
+    fn tracking_weighted_remainder_cap_ui() {
+        run_visual_case("tracking-weighted-remainder-cap-ui");
+    }
+    #[test]
+    fn tracking_weighted_remainder_cap_rendered_notes() {
+        run_visual_case("tracking-weighted-remainder-cap-rendered-notes");
+    }
 }

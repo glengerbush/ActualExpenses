@@ -73,3 +73,9 @@ production-hook observations establish envelope budget42.97/spent−15/goal1000/
 starting carry70/ending97.97 and tracking42.97/−15/1000/40/67.97.
 Generation and independent check passed in `/tmp/formula-budget-source.log` and
 `/tmp/formula-budget-source-check.log`; no previous forty observations changed.
+
+Root reviewedb12eaeb and independently reproduced all10 in
+`/tmp/formula-budget-root-source-check.log`. Preparation uses genuine public
+engine commands over immutable prior archives; exported result archives are
+never overwritten. Both method/nonzero-goal/carry source coverage gaps above
+are closed. Runtime financial equality, UI and whole41 acceptance remain open.

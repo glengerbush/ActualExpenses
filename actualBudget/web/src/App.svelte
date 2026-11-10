@@ -49,6 +49,8 @@
   import Settings from "./lib/Settings.svelte";
   import RecoveryTools from "./lib/RecoveryTools.svelte";
   import Reports from "./lib/Reports.svelte";
+  let reportEntryKey = $state(0);
+  import { writeValue } from "./lib/offline/storage";
   import { readRepair } from "./lib/recovery";
   import NavigationTools from "./lib/NavigationTools.svelte";
   import {
@@ -167,6 +169,16 @@
         run: () => manage(budget!),
       },
     );
+    result.push({
+      id: "custom-reports",
+      label: "Custom reports",
+      disabled: locked || !compatible,
+      run: async () => {
+        await writeValue(`view:reporting-tab:${budget!.id}`, "custom");
+        reportEntryKey++;
+        showForm("reports");
+      },
+    });
     const views = [
       ["planning", "Budget", false],
       ["categories", "Categories", disconnected],
@@ -714,7 +726,7 @@
           onclose={() => showForm(null)}
           onchanged={refreshAccounts}
         />{/key}
-    {:else if form === "reports" && budget}{#key budget.id}<Reports
+    {:else if form === "reports" && budget}{#key budget.id + reportEntryKey}<Reports
           budgetId={budget.id}
           {accounts}
           {disconnected}

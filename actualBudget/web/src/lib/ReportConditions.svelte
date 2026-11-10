@@ -78,6 +78,34 @@
   onMount(() => {
     void load();
   });
+  function allowed(field: string) {
+    const names =
+      field === "amount"
+        ? ["eq", "ne", "gt", "gte", "lt", "lte", "isapprox", "isbetween"]
+        : field === "date"
+          ? ["eq", "ne", "gt", "gte", "lt", "lte", "isapprox"]
+          : ["cleared", "reconciled", "transfer", "parent"].includes(field)
+            ? ["eq", "ne"]
+            : ["account", "payee", "category", "category_group"].includes(field)
+              ? [
+                  "eq",
+                  "ne",
+                  "in",
+                  "not_in",
+                  ...(field === "account" ? ["onBudget", "offBudget"] : []),
+                ]
+              : [
+                  "eq",
+                  "ne",
+                  "contains",
+                  "not_contains",
+                  "matches",
+                  "in",
+                  "not_in",
+                  ...(field === "notes" ? ["hasTags", "hasAnyTag"] : []),
+                ];
+    return operators.filter((op) => names.includes(op[0]));
+  }
   function canonical(row: Record<string, unknown>): Condition {
     const map: Record<string, string> = {
       is: "eq",
@@ -88,7 +116,15 @@
     };
     return {
       ...row,
-      field: String(row.field),
+      field:
+        ["account", "payee", "category", "category_group"].includes(
+          String(row.field),
+        ) &&
+        ["contains", "doesNotContain", "not_contains", "matches"].includes(
+          String(row.op),
+        )
+          ? String(row.field) + "_name"
+          : String(row.field),
       op: map[String(row.op)] || String(row.op),
       value: row.value as Condition["value"],
     };
@@ -169,10 +205,10 @@
         >Report operator {index + 1}<select
           value={condition.op}
           onchange={(e) => operator(index, e.currentTarget.value)}
-          >{#if !operators.some((o) => o[0] === condition.op)}<option
+          >{#if !allowed(condition.field).some((o) => o[0] === condition.op)}<option
               value={condition.op}>Preserved: {condition.op}</option
-            >{/if}{#each operators as op (op[0])}<option value={op[0]}
-              >{op[1]}</option
+            >{/if}{#each allowed(condition.field) as op (op[0])}<option
+              value={op[0]}>{op[1]}</option
             >{/each}</select
         ></label
       >

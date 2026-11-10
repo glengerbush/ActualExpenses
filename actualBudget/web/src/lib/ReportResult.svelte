@@ -1,9 +1,11 @@
 <script lang="ts">
+  import CustomReportPlot from "./CustomReportPlot.svelte";
   import { errorMessage } from "./api";
   import { formatAmount } from "./money";
   import { preferences } from "./preferences.svelte";
   import {
     displayProjection,
+    customMetric,
     array,
     inspectReport,
     type ReportQuery,
@@ -132,7 +134,25 @@
   }
 </script>
 
-{#if query.kind === "summary"}
+{#if query.kind === "custom"}
+  {#if !preferences.shared.privacy_mode}<CustomReportPlot
+      {query}
+      {projection}
+    />{:else}<p class="muted">Financial plot hidden for privacy.</p>{/if}
+  <p class="summary-value">
+    {amount(
+      customMetric(
+        projection.result,
+        String(query.options.balanceTypeOp || "totalDebts"),
+      ),
+    )}
+  </p>
+  <p class="muted">
+    Report total · {String(query.options.balanceTypeOp).startsWith("net")
+      ? "Net values retain their recorded sign."
+      : "Payments are shown as positive chart magnitudes; details retain recorded signs."}
+  </p>
+{:else if query.kind === "summary"}
   <p class="summary-value">{amount(view.rows[0]?.values[0] ?? null)}</p>
   <p class="muted">
     {view.rows[0]
@@ -210,7 +230,10 @@
 {:else if preferences.shared.privacy_mode}<p class="muted">
     Financial plot hidden for privacy.
   </p>{/if}
-<details>
+<details
+  open={query.kind === "custom" &&
+    ["Table", "TableGraph"].includes(String(query.options.graphType))}
+>
   <summary>Exact values</summary>
   <!-- svelte-ignore a11y_no_noninteractive_tabindex (Scrollable financial tables need keyboard access.) -->
   <div
@@ -222,7 +245,9 @@
     <table>
       <thead
         ><tr
-          ><th scope="col">Period</th>{#each view.columns as column (column)}<th
+          ><th scope="col"
+            >{query.kind === "custom" ? "Group / period" : "Period"}</th
+          >{#each view.columns as column, columnIndex (columnIndex)}<th
               scope="col"
               class="amount">{column}</th
             >{/each}</tr
@@ -250,7 +275,11 @@
     </div>{/if}
 </details>
 {#if projection.cells.length}<details>
-    <summary>Inspect recorded entries</summary>
+    <summary
+      >{projection.basis === "budget_allocations"
+        ? "Inspect budget allocations"
+        : "Inspect recorded entries"}</summary
+    >
     <label
       >Report value<select bind:value={cell} disabled={busy}
         >{#each projection.cells as value (value.id)}<option value={value.id}
@@ -260,9 +289,10 @@
     ><button disabled={busy} onclick={() => inspect()}>Load entries</button>
     {#if error}<p role="alert">{error}</p>{/if}
     {#if inspection}<p>
-        {inspection.total_count} recorded entries · Sum {formatAmount(
-          inspection.total_amount,
-        )}
+        {inspection.total_count}
+        {inspection.record_kind === "budget_allocations"
+          ? "budget allocations"
+          : "recorded entries"} · Sum {formatAmount(inspection.total_amount)}
       </p>
       <!-- svelte-ignore a11y_no_noninteractive_tabindex (Scrollable financial tables need keyboard access.) -->
       <div

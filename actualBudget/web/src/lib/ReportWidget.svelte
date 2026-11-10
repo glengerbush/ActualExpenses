@@ -5,6 +5,7 @@
   import { readValue, writeValue } from "./offline/storage";
   import {
     queryReport,
+    customReportQuery,
     object,
     localDay,
     type ReportDocument,
@@ -19,12 +20,16 @@
     disconnected = false,
     onedit,
     onremove,
+    report = null,
+    onopenreport,
   }: {
     budgetId: string;
     document: ReportDocument;
     disconnected?: boolean;
     onedit: () => void;
     onremove: () => void;
+    report?: ReportDocument | null;
+    onopenreport: (id: string) => void;
   } = $props();
   let meta = $derived(object(document.config.meta)),
     type = $derived(String(document.config.type)),
@@ -39,6 +44,9 @@
               "summary-card": "Summary",
               "calendar-card": "Transaction calendar",
               "markdown-card": "Text",
+              "custom-report": String(
+                report?.config.name || "Saved custom report",
+              ),
             } as Record<string, string>
           )[type] ||
           type,
@@ -56,6 +64,7 @@
     "spending-card": "spending",
     "summary-card": "summary",
     "calendar-card": "calendar",
+    "custom-report": "custom",
   };
   const cache = () => `view:report-widget:${budgetId}:${document.id}`;
   async function load() {
@@ -64,6 +73,30 @@
     error = "";
     cached = false;
     try {
+      if (type === "custom-report") {
+        if (!report)
+          throw Error(
+            "This saved report is unavailable. Its widget reference is preserved; choose another saved report or remove the widget.",
+          );
+        const q = await customReportQuery(
+            budgetId,
+            report.config,
+            localDay(),
+            preferences.shared.first_day_of_week,
+          ),
+          p = await queryReport(budgetId, q);
+        await writeValue(cache(), {
+          query: q,
+          projection: p,
+          revision: document.revision,
+          reportRevision: report.revision,
+        });
+        if (mounted) {
+          query = q;
+          projection = p;
+        }
+        return;
+      }
       const as_of = localDay(),
         dates = await queryReport(budgetId, {
           version: 1,
@@ -116,10 +149,15 @@
         query: ReportQuery;
         projection: Projection;
         revision: number;
+        reportRevision?: number;
       }>(cache()).catch(() => undefined);
       if (mounted) {
         error = errorMessage(e);
-        if (prior?.revision === document.revision) {
+        if (
+          prior?.revision === document.revision &&
+          (type !== "custom-report" ||
+            (report && prior.reportRevision === report.revision))
+        ) {
           query = prior.query;
           projection = prior.projection;
           cached = true;
@@ -148,6 +186,10 @@
       >
     </div>
   </header>
+  {#if type === "custom-report" && report}<button
+      onclick={() => onopenreport(report!.id)}
+      disabled={disconnected}>Open saved report</button
+    >{/if}
   {#if type === "markdown-card"}<div
       style:text-align={["left", "center", "right"].includes(
         String(meta.text_align),
@@ -162,7 +204,9 @@
       this version.
     </p>
   {:else}<p class="muted">
-      Recorded entries · {#if cached}Cached view ·
+      {projection?.basis === "budget_allocations"
+        ? "Planned budget allocations"
+        : "Recorded entries"} · {#if cached}Cached view ·
       {/if}{query?.as_of || localDay()}
     </p>
     {#if busy}<p role="status">Loading report…</p>{/if}{#if error}<p

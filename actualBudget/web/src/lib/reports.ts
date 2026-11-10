@@ -31,15 +31,18 @@ export interface ReportCell {
   end: string;
   metric: string;
   account: string | null;
+  group?: string;
 }
 export interface Projection {
   result: Record<string, unknown>;
   cells: ReportCell[];
   snapshot: string;
   as_of: string;
-  recorded: true;
+  recorded: boolean;
+  basis?: "recorded_transactions" | "budget_allocations" | "date_resolution";
 }
 export interface Inspection {
+  record_kind?: "transactions" | "budget_allocations";
   rows: {
     id: string;
     date: string;
@@ -301,5 +304,203 @@ export function displayProjection(
     }));
   }
 
+  if (q.kind === "custom") {
+    const metric = String(q.options.balanceTypeOp || "totalDebts");
+    const primary = array(r.groupedData).length
+      ? array(r.groupedData)
+      : array(r.data);
+    const groups: Record<string, unknown>[] = primary.flatMap((group) => [
+      group,
+      ...array(group.categories).map((child) => ({
+        ...child,
+        name: `${String(group.name)} / ${String(child.name)}`,
+      })),
+    ]);
+    if (q.options.mode === "time" && q.options.groupBy !== "Interval") {
+      columns = groups.map((group) => String(group.name));
+      rows = array(r.intervalData).map((period, index) => ({
+        id: String(index),
+        label: String(period.date),
+        values: groups.map((group) =>
+          customMetric(
+            array(group.intervalData).find(
+              (value) => value.intervalStartDate === period.intervalStartDate,
+            ),
+            metric,
+          ),
+        ),
+      }));
+    } else {
+      columns = [
+        balanceModes.find((mode) => mode[1] === metric)?.[0] || "Amount",
+      ];
+      rows = (
+        q.options.groupBy === "Interval" ? array(r.intervalData) : groups
+      ).map((group, index) => ({
+        id: String(index),
+        label: String(group.name || group.date),
+        values: [customMetric(group, metric)],
+      }));
+    }
+  }
   return { columns, rows };
+}
+export const balanceModes = [
+  ["Payment", "totalDebts"],
+  ["Deposit", "totalAssets"],
+  ["Net", "totalTotals"],
+  ["Net Payment", "netDebts"],
+  ["Net Deposit", "netAssets"],
+  ["Budgeted", "totalBudgeted"],
+] as const;
+export const graphTypes = [
+  ["TableGraph", "Table"],
+  ["BarGraph", "Bar"],
+  ["LineGraph", "Line"],
+  ["AreaGraph", "Area"],
+  ["DonutGraph", "Donut"],
+] as const;
+export const liveDateRanges = [
+  "This week",
+  "Last week",
+  "This month",
+  "Last month",
+  "Current quarter",
+  "Previous quarter",
+  "Last 30 days",
+  "Last 3 months",
+  "Last 6 months",
+  "Last 12 months",
+  "Year to date",
+  "Last year",
+  "Prior year to date",
+  "All time",
+];
+export const customDraftKey = (budget: string) =>
+  `custom-report-draft:${budget}`;
+export function flag(value: unknown, fallback = false) {
+  return value === undefined || value === null
+    ? fallback
+    : value === true || value === 1;
+}
+export interface CustomDraft {
+  version: 1;
+  origin: string;
+  budget: string;
+  epoch: string;
+  document: ReportDocument;
+}
+export async function readCustomDraft(
+  budget: string,
+): Promise<CustomDraft | null> {
+  const draft = await readValue<CustomDraft>(customDraftKey(budget));
+  if (!draft) return null;
+  if (
+    draft.version !== 1 ||
+    draft.origin !== location.origin ||
+    draft.budget !== budget ||
+    !/^[a-f0-9]{32}$/.test(draft.epoch) ||
+    draft.document?.kind !== "custom_report" ||
+    !/^[a-f0-9-]{36}$/.test(draft.document.id) ||
+    !Number.isSafeInteger(draft.document.revision) ||
+    draft.document.revision < 0 ||
+    !draft.document.config ||
+    typeof draft.document.config !== "object"
+  )
+    throw new OfflineStateError(
+      "Saved custom report draft is unreadable. Keep browser data; no change was sent.",
+    );
+  return draft;
+}
+export function newCustomReport(): ReportDocument {
+  const today = localDay();
+  return {
+    id: uuid(),
+    kind: "custom_report",
+    revision: 0,
+    tombstone: false,
+    config: {
+      name: "New custom report",
+      start_date: today,
+      end_date: today,
+      date_static: 0,
+      date_range: "Last 6 months",
+      mode: "total",
+      group_by: "Category",
+      interval: "Monthly",
+      balance_type: "Payment",
+      sort_by: "desc",
+      show_empty: 0,
+      show_offbudget: 0,
+      show_hidden: 1,
+      show_uncategorized: 1,
+      trim_intervals: 0,
+      show_trend_lines: 0,
+      include_current: 1,
+      graph_type: "BarGraph",
+      conditions: [],
+      conditions_op: "and",
+      metadata: null,
+      color_scheme: null,
+    },
+  };
+}
+export async function customReportQuery(
+  budget: string,
+  config: Record<string, unknown>,
+  as_of = localDay(),
+  weekday = 0,
+): Promise<ReportQuery> {
+  let startDate = String(config.start_date || as_of),
+    endDate = String(config.end_date || as_of);
+  if (!flag(config.date_static)) {
+    const dates = await queryReport(budget, {
+      version: 1,
+      kind: "range",
+      as_of,
+      options: {
+        range: String(config.date_range || "Last 6 months"),
+        includeCurrent: flag(config.include_current, true),
+        first_day_of_week: String(weekday),
+      },
+    });
+    [startDate, endDate] = dates.result as unknown as string[];
+  }
+  const metric = balanceModes.find(
+    ([name]) => name === config.balance_type,
+  )?.[1];
+  if (!metric)
+    throw Error(
+      "This saved balance mode is preserved but unavailable. Choose a supported mode to run the report.",
+    );
+  const groupBy = String(config.group_by || "Category");
+  return {
+    version: 1,
+    kind: "custom",
+    as_of,
+    options: {
+      startDate,
+      endDate,
+      interval: String(config.interval || "Monthly"),
+      mode: String(config.mode || "total"),
+      groupBy,
+      balanceTypeOp: metric,
+      sortByOp: String(config.sort_by || "desc"),
+      showEmpty: flag(config.show_empty),
+      showOffBudget: flag(config.show_offbudget),
+      showHiddenCategories: flag(config.show_hidden, true),
+      showUncategorized: flag(config.show_uncategorized, true),
+      trimIntervals: flag(config.trim_intervals),
+      showTrendLines: flag(config.show_trend_lines),
+      graphType: String(config.graph_type || "BarGraph"),
+      conditions: Array.isArray(config.conditions) ? config.conditions : [],
+      conditionsOp: String(config.conditions_op || "and"),
+      firstDayOfWeekIdx: String(weekday),
+      nested: groupBy === "CategoryGroup",
+    },
+  };
+}
+export function customMetric(value: unknown, metric: string): number {
+  const n = Number(object(value)[metric] || 0);
+  return ["totalDebts", "netDebts"].includes(metric) ? Math.abs(n) : n;
 }

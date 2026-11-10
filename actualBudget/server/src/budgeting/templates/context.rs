@@ -223,7 +223,10 @@ impl Context {
     }
     pub fn goal_only(&self) -> bool {
         self.templates.iter().any(|t| t["type"] == "goal")
-            && self.templates.iter().all(|t| t["type"] == "goal")
+            && self
+                .templates
+                .iter()
+                .all(|t| t["type"] == "goal" || t["type"] == "limit")
     }
     pub fn priority(
         &mut self,
@@ -253,18 +256,12 @@ impl Context {
             let request = match t["type"].as_str().unwrap() {
                 "simple" => {
                     if t["monthly"].is_null() {
-                        self.limit
-                            .ok_or_else(|| Error::invalid("Refill requires a limit"))?
-                            - self.from
+                        self.limit.unwrap_or(0.0) - self.from
                     } else {
                         env.money(Environment::value(t, "monthly")?)?
                     }
                 }
-                "refill" => {
-                    self.limit
-                        .ok_or_else(|| Error::invalid("Refill requires a limit"))?
-                        - self.from
-                }
+                "refill" => self.limit.unwrap_or(0.0) - self.from,
                 "copy" => {
                     let n = t["lookBack"]
                         .as_i64()

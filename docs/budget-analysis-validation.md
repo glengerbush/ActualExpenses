@@ -73,3 +73,25 @@ acceptance remain pending; no broad suite or guard-exhaustion claim.
 - Svelte check0errors/0warnings `/tmp/analysis36-ui-check.log`, production build `/tmp/analysis36-ui-build.log`, all7 edited/new Svelte components autofixer0issues `/tmp/analysis36-autofixer.log`; analysis loader's async-effect advisories reviewed (external reads/generation guard, not derived calculations). Focused shared dashboard recovery/layout regression `/tmp/analysis36-reports-browser.log` and forecast source/settings/recovery/privacy regression `/tmp/analysis36-forecast-browser.log` PASS. Shared custom report localization/filter/save/recovery regression `/tmp/analysis36-custom-browser.log` also PASS. Reuse root-composed backend API/large/native24 evidence from `/tmp/analysis36-compose-{build,api,large,native}.log`; no broad repeat.
 
 Final limitations: root composition/review and combined qualification remain pending. Scoped SQLite progress guard exhaustion and final volume/resource measurements are explicitly assigned51; no universal index/performance guarantee. No migration36, login, analytics, deployment or external update checks.
+
+## Root UI review and composition
+
+2026-11-10: Reviewed43dfcc0 against the source/settings and recovery contracts.
+No blocking standards/spec findings. Composed at `c8a79c3`, preserving bank/notes
+capabilities and36's earlier scoped calculation fixes. Combined Rust/web builds
+and Svelte0errors/0warnings PASS `/tmp/analysis36-ui-compose-{rust,build,check}.log`.
+Both maintained browser consumers PASS
+`/tmp/analysis36-ui-compose-{browser,money}.log`: source monthly values/CSV,
+planned/recorded inspection, filter/chart preservation, cache/network/quota
+recovery, locale/privacy/navigation and exact native MAX_MONEY cents.
+
+Impeccable technical audit17/20: accessibility3, performance3, theming4,
+responsive3, integrity4. Inspected desktop/mobile/German/dark large-text renders;
+scannable controls, exact table alternatives, retained visual tokens and visible
+focus. Detector returned[] (`/tmp/analysis36-root-detect.json`). Root loader
+autofixer found0issues; two async-effect advisories are intentional external
+reads protected by generation/unmount guards (`/tmp/analysis36-root-autofix.log`).
+Other six components' recorded checks and shared report/forecast regressions
+reused. No screen-reader/device/full conformance claim;51 owns those final
+checks and volume/resource qualification, including existing build chunk warning.
+Feature review closed; main acceptance and whole-system qualification pending.

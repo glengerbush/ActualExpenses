@@ -510,35 +510,67 @@
         "additionalProperties": false
       },
       "BankConnectionCreate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "provider": {
+                "const": "simplefin"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "setup_token": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 8192,
+                "writeOnly": true,
+                "description": "Base64 one-use HTTPS claim URL. Stored only in the private server credential store; generic receipts retain a SHA-256 fingerprint."
+              }
+            },
+            "required": [
+              "id",
+              "provider",
+              "name",
+              "setup_token"
+            ],
+            "additionalProperties": false
           },
-          "provider": {
-            "const": "simplefin"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 120
-          },
-          "setup_token": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 8192,
-            "writeOnly": true,
-            "description": "Base64 one-use HTTPS claim URL. Stored only in the private server credential store; generic receipts retain a SHA-256 fingerprint."
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "provider": {
+                "const": "simplefin"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "setup_token_sha256": {
+                "$ref": "#/components/schemas/BankSecretDigest"
+              }
+            },
+            "required": [
+              "id",
+              "provider",
+              "name",
+              "setup_token_sha256"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "id",
-          "provider",
-          "name",
-          "setup_token"
         ],
-        "additionalProperties": false
+        "description": "Submit a write-only setup token once. Durable client recovery must retain only its SHA256 and original nonsecret identity, then probe the receipt or cancel the original operation; never persist the raw token."
       },
       "BankConnectionCommand": {
         "oneOf": [
@@ -619,6 +651,27 @@
           },
           {
             "$ref": "#/components/schemas/BankRefresh"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "replace"
+              },
+              "generation": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "setup_token_sha256": {
+                "$ref": "#/components/schemas/BankSecretDigest"
+              }
+            },
+            "required": [
+              "action",
+              "generation",
+              "setup_token_sha256"
+            ],
+            "additionalProperties": false
           }
         ]
       },
@@ -1652,6 +1705,11 @@
           "deleted"
         ],
         "additionalProperties": false
+      },
+      "BankSecretDigest": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$",
+        "description": "SHA256 of the exact original setup_token string. Only valid with X-Actual-Receipt-Only:true or X-Actual-Cancel-If-Uncommitted:true. It cannot stage or replace credentials. Preserve every original nonsecret field, idempotency key and epoch with this digest."
       }
     }
   }

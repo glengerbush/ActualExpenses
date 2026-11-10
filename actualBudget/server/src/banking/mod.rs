@@ -66,13 +66,44 @@ async fn read(
         json!({"data":store.run(move|db|{let tx=db.transaction()?;state(&tx,&budget)}).await?}),
     ))
 }
+fn secret_fingerprint(
+    token: Option<&str>,
+    digest: Option<&str>,
+    recovery: bool,
+) -> Result<String, Error> {
+    match (token, digest) {
+        (Some(token), None)
+            if !token.is_empty()
+                && token.len() <= 8192
+                && token
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b"+/=".contains(&b)) =>
+        {
+            transport::setup(token)?;
+            Ok(format!("{:x}", Sha256::digest(token.as_bytes())))
+        }
+        (None, Some(digest))
+            if recovery
+                && digest.len() == 64
+                && digest
+                    .bytes()
+                    .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)) =>
+        {
+            Ok(digest.to_owned())
+        }
+        _ => Err(Error::invalid(
+            "Supply a valid setup token. Its SHA256 fingerprint is accepted only for original receipt lookup or cancellation",
+        )),
+    }
+}
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct NewConnection {
     id: String,
     provider: String,
     name: String,
-    setup_token: String,
+    setup_token: Option<String>,
+    setup_token_sha256: Option<String>,
 }
 async fn create(
     State(store): State<Store>,
@@ -84,26 +115,21 @@ async fn create(
     let Json(body) = input.map_err(api::json_error)?;
     models::validate_id(&body.id)?;
     models::validate_name(&body.name)?;
-    if body.provider != "simplefin"
-        || body.setup_token.is_empty()
-        || body.setup_token.len() > 8192
-        || !body
-            .setup_token
-            .bytes()
-            .all(|b| b.is_ascii_alphanumeric() || b"+/=".contains(&b))
-    {
-        return Err(Error::invalid(
-            "Choose SimpleFIN and paste a valid setup token",
-        ));
+    if body.provider != "simplefin" {
+        return Err(Error::invalid("Choose SimpleFIN"));
     }
-    transport::setup(&body.setup_token)?;
     let key = api::idempotency_key(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;
-    // Raw external secrets must not enter the generic receipt payload. A stable
-    // one-way fingerprint still refuses same-key/different-secret substitutions.
     let lookup = sync::receipt_only_header(&headers)?;
     let cancel = sync::cancel_header(&headers)?;
-    let payload=json!({"id":body.id,"provider":body.provider,"name":body.name,"setup_token_sha256":format!("{:x}",Sha256::digest(body.setup_token.as_bytes())),"epoch":epoch}).to_string();
+    let digest = secret_fingerprint(
+        body.setup_token.as_deref(),
+        body.setup_token_sha256.as_deref(),
+        lookup || cancel,
+    )?;
+    // A browser may retain this nonsecret recovery envelope, never the token.
+    // Its canonical receipt identity is identical to the original raw request.
+    let payload=json!({"id":body.id,"provider":body.provider,"name":body.name,"setup_token_sha256":digest,"epoch":epoch}).to_string();
     store.run(move|db|{let scope=format!("POST /budgets/{budget}/banking/connections");
     if lookup {return sync::receipt(db,&scope,&key,&payload,None,StatusCode::CREATED);}
     sync::write(db,&scope,&key,&payload,None,StatusCode::CREATED,|db|{
@@ -129,6 +155,7 @@ struct Command {
     action: String,
     generation: String,
     setup_token: Option<String>,
+    setup_token_sha256: Option<String>,
 }
 async fn command(
     State(store): State<Store>,
@@ -151,33 +178,30 @@ async fn command(
         return Err(Error::invalid("Unsupported connection action"));
     }
     models::validate_id(&body.generation)?;
-    if body.action == "replace" {
-        let token = body
-            .setup_token
-            .as_deref()
-            .filter(|v| !v.is_empty() && v.len() <= 8192)
-            .ok_or_else(|| Error::invalid("Supply a new setup token"))?;
-        transport::setup(token)?;
-    } else if body.setup_token.is_some() {
-        return Err(Error::invalid(
-            "Only credential replacement accepts a setup token",
-        ));
-    }
     let key = api::idempotency_key(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;
+    let lookup = sync::receipt_only_header(&headers)?;
+    let cancel = sync::cancel_header(&headers)?;
     let mut fingerprint = json!({"action":body.action,"generation":body.generation,"epoch":epoch});
-    if let Some(token) = &body.setup_token {
-        fingerprint["setup_token_sha256"] =
-            json!(format!("{:x}", Sha256::digest(token.as_bytes())));
+    if body.action == "replace" {
+        fingerprint["setup_token_sha256"] = json!(secret_fingerprint(
+            body.setup_token.as_deref(),
+            body.setup_token_sha256.as_deref(),
+            lookup || cancel
+        )?);
+    } else if body.setup_token.is_some() || body.setup_token_sha256.is_some() {
+        return Err(Error::invalid(
+            "Only credential replacement accepts a token or recovery fingerprint",
+        ));
     }
     let payload = fingerprint.to_string();
     let scope = format!("POST /budgets/{b}/banking/connections/{id}/commands");
-    if sync::receipt_only_header(&headers)? {
+    if lookup {
         return store
             .run(move |db| sync::receipt(db, &scope, &key, &payload, None, StatusCode::OK))
             .await;
     }
-    if sync::cancel_header(&headers)? {
+    if cancel {
         return store
             .run(move |db| {
                 sync::write(db, &scope, &key, &payload, None, StatusCode::OK, |db| {

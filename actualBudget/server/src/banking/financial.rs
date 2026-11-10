@@ -256,7 +256,7 @@ pub(super) async fn refresh(
   let mut results=vec![];let mut work=crate::rules::Work::default();let mut total=0usize;
   for(link,prior,prefs)in selected{
    let account=link["id"].as_str().unwrap();let remote_id=link["remote_account_id"].as_str().unwrap();
-   let Some(remote)=remotes.iter().find(|r|r["id"]==remote_id)else{db.execute("UPDATE bank_remote_accounts SET tombstone=1 WHERE budget_id=?1 AND id=?2",params![b,remote_id])?;sync::mark(db,&b,"bank_remote_accounts",remote_id)?;results.push(json!({"account_id":account,"status":"failed","code":"provider_account_missing","message":"This provider account was not returned. Retry or review its link"}));continue;};
+   let Some(remote)=remotes.iter().find(|r|r["id"]==remote_id)else{results.push(json!({"account_id":account,"status":"failed","code":"provider_account_missing","message":"This provider account was not returned. Retry or review its link"}));continue;};
    if remote["diagnostics"].as_array().is_some_and(|e|!e.is_empty()){results.push(json!({"account_id":account,"status":"failed","diagnostics":remote["diagnostics"]}));continue;}
    if !prefs.import_transactions{results.push(json!({"account_id":account,"status":"balance_only","added":[],"updated":[],"ignored":[]}));continue;}
    let source=raw["accounts"].as_array().unwrap().iter().find(|a|a["id"]==prior["remote_id"]&&a["conn_id"].as_str().or_else(||a["org"]["id"].as_str()).unwrap_or("legacy")==prior["remote_connection_id"].as_str().unwrap()).ok_or_else(||Error::invalid("Provider account identity changed during normalization"))?;

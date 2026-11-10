@@ -1,3 +1,6 @@
+> Historical evidence only. External connections are removed by ticket29;
+> see [manual-only scope](manual-only-scope.md) and [retirement validation](bank-retirement-validation.md). No active provider support or qualification claim.
+
 # SimpleFIN28 development contract
 
 Branch `codex/bank28`, source witness510128b, runtime basea5c784c. Schema23 reserved. Work in progress, not acceptance. Agreed seams: public HTTP, real browser, representative native HTTP adapter; disposable loopback provider responses and unchanged pinned source witnesses. No real provider access, credentials or budget data.

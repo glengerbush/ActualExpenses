@@ -1,3 +1,6 @@
+> Historical evidence only. External connections are removed by ticket29;
+> see [manual-only scope](manual-only-scope.md) and [retirement validation](bank-retirement-validation.md). No active provider support or qualification claim.
+
 # GoCardless29 validation — WIP
 
 ## Root financial checkpoint review (correction closed below)

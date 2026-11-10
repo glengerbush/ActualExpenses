@@ -1,3 +1,6 @@
+> Historical evidence only. External connections are removed by ticket29;
+> see [manual-only scope](manual-only-scope.md) and [retirement validation](bank-retirement-validation.md). No active provider support or qualification claim.
+
 # Bank providers28–32: implementation plan
 
 Prepared2026-11-10 against accepted main5573884 and pinned Actual26.10.0 (`2bebdbaae0b701120a8cad9d56aafd64fa04c577`). Planning only; no fixtures generated, provider/account calls, credentials or live qualification. Scope: tickets28–32, spec58–62; reuse accepted25/26 financial writer, not a second matcher.

@@ -33,7 +33,7 @@ native validation/literal behavior needs separate public assertions.
 `check-public-query-http.mjs` is the public consumer. True route RED404 is
 /tmp/public-query-http-route-red.log. The earlier first attempt's upload400 was
 only a missing ZIP Content-Type in the harness, corrected before route red.
-No implemented query endpoint or acceptance claimed yet.
+Read-only transaction query checkpoint implemented; whole47 remains incomplete.
 
 ## Planned joins
 
@@ -48,3 +48,51 @@ Generic arbitrary-ID notes currently remain blocked/preserved in original Actual
 imports (conversion.rs explicitly reports unmatched notes). Root reserved schema24
 after banking23; standalone genuine source/public witness precedes implementation.
 No placeholder23, relabeled migration, or bank-secret projection permitted.
+
+
+## Frozen transaction read slice
+
+GET query-capabilities and read-only POST budgets/{id}/query expose a closed,
+budget-scoped transaction AST, fixed joins, literal bindings, exact money checks,
+inline/grouped/all/none splits and snapshot-bound pagination. Bounds:64KiB body,
+32 selected expressions,8 group/order expressions, depth8/nodes256,500 values,
+1000/page,100000 matched rows, shared regex and2million SQLite progress steps.
+No query receipt, history action or clock is minted. Native safe literals and
+quoted aliases deliberately avoid the source raw-literal SQL error behavior.
+Only transactions are advertised at this checkpoint; remaining table registry,
+notes24, atomic command batches, public contracts and external caller are WIP.
+Unicode normalization parity is also an explicit remaining query gate.
+
+Strict50 source cases PASS /tmp/public-query-read-50-green.log; bounded public
+validation/literal/overflow/stale-page checks PASS
+/tmp/public-query-read-guards-green.log. Bin Clippy -Dwarnings PASS
+/tmp/public-query-read-clippy.log. Earlier grouped unmatched-row and joined-null
+boolean failures were genuine red→green; missing-upload-header and stale binary
+runs were harness/setup failures, not product defect evidence.
+
+## Retired category identities and imported saved filters
+
+`generate-retired-query-source.mjs` executes real deleteCategory independently
+with and without replacement, then real ActualQL and unchanged source custom
+spreadsheet for old equality/membership, explicit null, target equality and
+mixed membership. `--saved` creates actual saved filters before deletion.
+Four genuine original ZIPs retain financial rows, references, saved IDs and
+predicate literals. Source checks PASS:
+/tmp/retired-query-{source,saved-source}-final-check.log. Only generated saved
+filter IDs are normalized by name when reexecuting the oracle; immutable ZIP
+IDs remain preserved. Grouped outputs were added with --extend after asserting
+all earlier observations unchanged. Source reports omit presentation legend.
+
+`check-retired-query-http.mjs` imports genuine saved-filter ZIPs, duplicates
+pristine templates publicly, and compares source financial graphs, literal
+saved predicates, register grouped membership, inline ActualQL and complete
+custom spreadsheet results. Native backup/restore then repeats the same proof
+and exact saved settings comparison. True RED
+/tmp/retired-query-http-red.log: retired equality unexpectedly selected6 roots.
+The category-only canonicalization correction preserves literal old IDs for
+both deletion modes; mutation resolution and payee identity remain untouched.
+A second genuine report red showed category-is-null included transfers unlike
+source rule-condition semantics; report-only translation adds transfer/parent
+exclusion while direct register/ActualQL null behavior stays unchanged.
+All comparisons and both native roundtrips PASS
+/tmp/retired-query-http-green.log. No monetary expected value was adjusted.

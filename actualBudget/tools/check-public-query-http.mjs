@@ -46,41 +46,56 @@ try {
     root = "/budgets/" + activated.id,
     before = await request(root + "/transactions?limit=1000"),
     checkpoint = (await request(root + "/checkpoint")).data;
+  const failures = [];
+  let tested = 0;
   for (const item of fixture.cases) {
     const selected = process.argv
       .find((a) => a.startsWith("--case="))
       ?.slice(7);
     if (selected && item.id !== selected) continue;
     if (["scalar-functions", "literal-unicode"].includes(item.id)) continue; // Baseline first-key-only and raw literal bugs are retained, not accepted as a native SQL escape.
-    const q = item.query,
-      body = {
-        version: 1,
-        table: q.table,
-        select: q.selectExpressions,
-        filter: q.filterExpressions,
-        group_by: q.groupExpressions,
-        order_by: q.orderExpressions,
-        calculation: q.calculation,
-        splits: q.tableOptions.splits ?? "inline",
-        include_deleted: q.withDead,
-        validate_refs: q.validateRefs,
-        raw: q.rawMode,
-        limit: q.limit ?? 1000,
-        offset: q.offset ?? 0,
-        snapshot: checkpoint.snapshot,
-      };
-    const result = await request(root + "/query", body, item.error ? 400 : 200);
-    if (!item.error) {
-      assert.deepEqual(
-        result.data,
-        item.data,
-        item.id + " exact source query output",
+    tested++;
+    try {
+      const q = item.query,
+        body = {
+          version: 1,
+          table: q.table,
+          select: q.selectExpressions,
+          filter: q.filterExpressions,
+          group_by: q.groupExpressions,
+          order_by: q.orderExpressions,
+          calculation: q.calculation,
+          splits: q.tableOptions.splits ?? "inline",
+          include_deleted: q.withDead,
+          validate_refs: q.validateRefs,
+          raw: q.rawMode,
+          limit: q.limit ?? 1000,
+          offset: q.offset ?? 0,
+          snapshot: checkpoint.snapshot,
+        };
+      const result = await request(
+        root + "/query",
+        body,
+        item.error ? 400 : 200,
       );
-      assert.equal(result.snapshot, checkpoint.snapshot);
-      assert.equal(typeof result.epoch, "string");
+      if (!item.error) {
+        assert.deepEqual(
+          result.data,
+          item.data,
+          item.id + " exact source query output",
+        );
+        assert.equal(result.snapshot, checkpoint.snapshot);
+        assert.equal(typeof result.epoch, "string");
+      }
+      console.log("PASS " + item.id);
+    } catch (error) {
+      if (!process.argv.includes("--keep-going")) throw error;
+      failures.push(item.id);
+      console.error("FAIL " + item.id + ": " + String(error).slice(0, 1800));
     }
-    console.log("PASS " + item.id);
   }
+  assert.ok(tested > 0, "At least one supported case must execute");
+  assert.deepEqual(failures, [], "Every source case must pass");
   assert.deepEqual(await request(root + "/transactions?limit=1000"), before);
   assert.deepEqual(
     (await request(root + "/checkpoint")).data,

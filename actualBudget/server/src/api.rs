@@ -58,6 +58,7 @@ pub fn router(store: Store) -> Router {
         .merge(crate::payee_locations::router())
         .merge(crate::register_settings::router())
         .merge(crate::reports::router())
+        .merge(crate::public_query::router())
         .merge(crate::preferences::router())
         .merge(crate::recovery::router())
         .merge(concurrency::router())

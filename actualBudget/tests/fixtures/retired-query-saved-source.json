@@ -1,0 +1,1828 @@
+{
+  "oracle": "Actual26.10 public deleteCategory/aqlQuery +unchanged custom spreadsheet using real AQL",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00.000Z",
+  "provenance": "Original genuine seed reimported independently for each actual deletion mode. Input IDs, all monetary/category/graph rows, saved predicate shapes, source report results and genuine post-delete exports retained. Presentation-only legend omitted as prior report source fixture.",
+  "cases": [
+    {
+      "id": "deleted-no-replacement",
+      "input": {
+        "filename": "transaction-export-base-26.10.zip",
+        "sha256": "21b1b822a1c2676fcabeae288a0156013b9f4ccf89130eac8ede991a00adc2fd"
+      },
+      "ids": {
+        "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "off": "0920450a-b9e3-48a6-9b96-89f9d32717fe",
+        "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+        "shop": "cf8e8de4-01b2-4b13-8847-bb2003a4505b",
+        "group": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+        "food": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+        "other": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+        "first": "25300000-0000-4000-8000-000000000001",
+        "refund": "25300000-0000-4000-8000-000000000002",
+        "zero": "25300000-0000-4000-8000-000000000003",
+        "parent": "25300000-0000-4000-8000-000000000004",
+        "child1": "25300000-0000-4000-8000-000000000005",
+        "child2": "25300000-0000-4000-8000-000000000006",
+        "transfer": "25300000-0000-4000-8000-000000000007",
+        "peer": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa"
+      },
+      "before": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "amount": -1234,
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "amount": 500,
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "amount": 0,
+          "category": null,
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000004",
+          "amount": -101,
+          "category": null,
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "amount": -40,
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "parent_id": "25300000-0000-4000-8000-000000000004",
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "amount": -61,
+          "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+          "parent_id": "25300000-0000-4000-8000-000000000004",
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "amount": -200,
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "parent_id": null,
+          "transfer_id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa"
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "amount": 200,
+          "category": null,
+          "parent_id": null,
+          "transfer_id": "25300000-0000-4000-8000-000000000007"
+        }
+      ],
+      "after": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "amount": -1234,
+          "category": null,
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "amount": 500,
+          "category": null,
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "amount": 0,
+          "category": null,
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000004",
+          "amount": -101,
+          "category": null,
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "amount": -40,
+          "category": null,
+          "parent_id": "25300000-0000-4000-8000-000000000004",
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "amount": -61,
+          "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+          "parent_id": "25300000-0000-4000-8000-000000000004",
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "amount": -200,
+          "category": null,
+          "parent_id": null,
+          "transfer_id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa"
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "amount": 200,
+          "category": null,
+          "parent_id": null,
+          "transfer_id": "25300000-0000-4000-8000-000000000007"
+        }
+      ],
+      "archive": {
+        "filename": "retired-query-saved-deleted-no-replacement-26.10.zip",
+        "sha256": "c47fe9b4c73167e033dba0163b70c2a4d798372173da70031dbeb93420366679"
+      },
+      "source_files": {
+        "packages/desktop-client/src/components/reports/spreadsheets/custom-spreadsheet.ts": "434f1add25a4ee4ff07e6e26f6eaad7fd4e8d50fc7c73aa2c416c86d08177c0c",
+        "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+        "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+        "packages/desktop-client/src/components/reports/ReportOptions.ts": "f62377d8d1b90da65f7dab33e9a3ecbd4a5fba62f1003c84aa403b627635a056",
+        "packages/desktop-client/src/components/reports/spreadsheets/calculateLegend.ts": "bf7a6985ee0fa9553892b8fa4ea97cff511e47ff0904affad8f3fe74f8e392d9",
+        "packages/desktop-client/src/components/reports/spreadsheets/fetchSpreadsheetQueryData.ts": "6cc3b87a135799fce86af9b30ae1b85f2c4220e571b4b58a24db6cf799b978d4",
+        "packages/desktop-client/src/components/reports/spreadsheets/budgetDataQuery.ts": "2a8a2557717a7558a316f69f2bca15c2b9828a2e37c4a6fbb822468ca54c50f2",
+        "packages/desktop-client/src/components/reports/spreadsheets/makeQuery.ts": "150571e8eba514ff7cf7e37cecb437c41db1f02c525ddd435932cf5421f37a64",
+        "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+        "packages/desktop-client/src/components/reports/spreadsheets/filterEmptyRows.ts": "a85ae9d3bca8bcd8129e0affc9dd4d3db25e659d94b2e1be441bfccf4455868a",
+        "packages/desktop-client/src/components/reports/spreadsheets/filterHiddenItems.ts": "2b9d0d734cceab58d69a1f9397ffe99a074e4cd96d91b18e7fd9c41226cf0ef7",
+        "packages/desktop-client/src/components/reports/spreadsheets/recalculate.ts": "e25799cc08517f1654e54baba7ec7b9d27dcc63a2f125037a30faf00335c109d",
+        "packages/desktop-client/src/components/reports/spreadsheets/sortData.ts": "97c1f53a9906fa4293ada7df0bf0115ac3967663a1ccd62430d624394a352445",
+        "packages/desktop-client/src/components/reports/spreadsheets/trimIntervals.ts": "eeca5f12a0767437c47efb3ef2b6d8dc48a5d78ee8c4530760298a23e02cdf6a"
+      },
+      "saved_filters": [
+        {
+          "id": "11c2071f-0a01-4aca-85b6-918e9feb9f34",
+          "name": "explicit-null",
+          "conditions_op": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": null
+            }
+          ],
+          "tombstone": false
+        },
+        {
+          "id": "625720e0-a835-44c2-b05b-8c85b6564763",
+          "name": "old-and-target-membership",
+          "conditions_op": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "oneOf",
+              "value": [
+                "6b7e4f01-1f93-4dff-9033-6a9915519035",
+                "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+              ]
+            }
+          ],
+          "tombstone": false
+        },
+        {
+          "id": "fa4fc6e9-df27-4a84-8d86-23f15c23cc50",
+          "name": "old-equality",
+          "conditions_op": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": "6b7e4f01-1f93-4dff-9033-6a9915519035"
+            }
+          ],
+          "tombstone": false
+        },
+        {
+          "id": "7c1ae664-30a1-4324-8f68-553de2911097",
+          "name": "old-membership",
+          "conditions_op": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "oneOf",
+              "value": [
+                "6b7e4f01-1f93-4dff-9033-6a9915519035"
+              ]
+            }
+          ],
+          "tombstone": false
+        },
+        {
+          "id": "808e205f-19f7-4853-94de-00c3480be11d",
+          "name": "target-equality",
+          "conditions_op": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            }
+          ],
+          "tombstone": false
+        }
+      ],
+      "cases": [
+        {
+          "id": "old-equality",
+          "filter": {
+            "category": "6b7e4f01-1f93-4dff-9033-6a9915519035"
+          },
+          "condition": {
+            "field": "category",
+            "op": "is",
+            "value": "6b7e4f01-1f93-4dff-9033-6a9915519035"
+          },
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "category": "6b7e4f01-1f93-4dff-9033-6a9915519035"
+              }
+            ],
+            "selectExpressions": [
+              "id",
+              "amount",
+              "category"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [],
+          "total": 0,
+          "options": {
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "interval": "Monthly",
+            "conditions": [
+              {
+                "field": "category",
+                "op": "is",
+                "value": "6b7e4f01-1f93-4dff-9033-6a9915519035"
+              }
+            ],
+            "conditionsOp": "and",
+            "showEmpty": false,
+            "showOffBudget": true,
+            "showHiddenCategories": true,
+            "showUncategorized": true,
+            "trimIntervals": false,
+            "groupBy": "Account",
+            "balanceTypeOp": "totalTotals",
+            "sortByOp": "asc",
+            "graphType": "BarGraph",
+            "firstDayOfWeekIdx": "1"
+          },
+          "report": {
+            "data": [],
+            "intervalData": [
+              {
+                "date": "Nov '26",
+                "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e": 0,
+                "0920450a-b9e3-48a6-9b96-89f9d32717fe": 0,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0
+              }
+            ],
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "totalAssets": 0,
+            "totalDebts": 0,
+            "netAssets": 0,
+            "netDebts": 0,
+            "totalTotals": 0,
+            "totalBudgeted": 0
+          },
+          "grouped": []
+        },
+        {
+          "id": "old-membership",
+          "filter": {
+            "category": {
+              "$oneof": [
+                "6b7e4f01-1f93-4dff-9033-6a9915519035"
+              ]
+            }
+          },
+          "condition": {
+            "field": "category",
+            "op": "oneOf",
+            "value": [
+              "6b7e4f01-1f93-4dff-9033-6a9915519035"
+            ]
+          },
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "category": {
+                  "$oneof": [
+                    "6b7e4f01-1f93-4dff-9033-6a9915519035"
+                  ]
+                }
+              }
+            ],
+            "selectExpressions": [
+              "id",
+              "amount",
+              "category"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [],
+          "total": 0,
+          "options": {
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "interval": "Monthly",
+            "conditions": [
+              {
+                "field": "category",
+                "op": "oneOf",
+                "value": [
+                  "6b7e4f01-1f93-4dff-9033-6a9915519035"
+                ]
+              }
+            ],
+            "conditionsOp": "and",
+            "showEmpty": false,
+            "showOffBudget": true,
+            "showHiddenCategories": true,
+            "showUncategorized": true,
+            "trimIntervals": false,
+            "groupBy": "Account",
+            "balanceTypeOp": "totalTotals",
+            "sortByOp": "asc",
+            "graphType": "BarGraph",
+            "firstDayOfWeekIdx": "1"
+          },
+          "report": {
+            "data": [],
+            "intervalData": [
+              {
+                "date": "Nov '26",
+                "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e": 0,
+                "0920450a-b9e3-48a6-9b96-89f9d32717fe": 0,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0
+              }
+            ],
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "totalAssets": 0,
+            "totalDebts": 0,
+            "netAssets": 0,
+            "netDebts": 0,
+            "totalTotals": 0,
+            "totalBudgeted": 0
+          },
+          "grouped": []
+        },
+        {
+          "id": "explicit-null",
+          "filter": {
+            "category": null
+          },
+          "condition": {
+            "field": "category",
+            "op": "is",
+            "value": null
+          },
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "category": null
+              }
+            ],
+            "selectExpressions": [
+              "id",
+              "amount",
+              "category"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [
+            {
+              "id": "25300000-0000-4000-8000-000000000001",
+              "amount": -1234,
+              "category": null
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000002",
+              "amount": 500,
+              "category": null
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000003",
+              "amount": 0,
+              "category": null
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000005",
+              "amount": -40,
+              "category": null
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000007",
+              "amount": -200,
+              "category": null
+            },
+            {
+              "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+              "amount": 200,
+              "category": null
+            }
+          ],
+          "total": -774,
+          "options": {
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "interval": "Monthly",
+            "conditions": [
+              {
+                "field": "category",
+                "op": "is",
+                "value": null
+              }
+            ],
+            "conditionsOp": "and",
+            "showEmpty": false,
+            "showOffBudget": true,
+            "showHiddenCategories": true,
+            "showUncategorized": true,
+            "trimIntervals": false,
+            "groupBy": "Account",
+            "balanceTypeOp": "totalTotals",
+            "sortByOp": "asc",
+            "graphType": "BarGraph",
+            "firstDayOfWeekIdx": "1"
+          },
+          "report": {
+            "data": [
+              {
+                "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+                "name": "@Checking, Main",
+                "totalAssets": 500,
+                "totalDebts": -1274,
+                "netAssets": 0,
+                "netDebts": -774,
+                "totalTotals": -774,
+                "totalBudgeted": -774,
+                "intervalData": [
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 500,
+                    "totalDebts": -1274,
+                    "netAssets": 0,
+                    "netDebts": -774,
+                    "totalTotals": -774,
+                    "totalBudgeted": -774,
+                    "change": 0,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ],
+            "intervalData": [
+              {
+                "date": "Nov '26",
+                "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e": -774,
+                "0920450a-b9e3-48a6-9b96-89f9d32717fe": 0,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11",
+                "totalAssets": 500,
+                "totalDebts": -1274,
+                "netAssets": 0,
+                "netDebts": -774,
+                "totalTotals": -774,
+                "totalBudgeted": -774
+              }
+            ],
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "totalAssets": 500,
+            "totalDebts": -1274,
+            "netAssets": 0,
+            "netDebts": -774,
+            "totalTotals": -774,
+            "totalBudgeted": -774
+          },
+          "grouped": [
+            {
+              "id": "25300000-0000-4000-8000-000000000001",
+              "amount": -1234,
+              "category": null,
+              "subtransactions": []
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000002",
+              "amount": 500,
+              "category": null,
+              "subtransactions": []
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000003",
+              "amount": 0,
+              "category": null,
+              "subtransactions": []
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000004",
+              "amount": -101,
+              "category": null,
+              "subtransactions": [
+                {
+                  "id": "25300000-0000-4000-8000-000000000005",
+                  "amount": -40,
+                  "category": null
+                },
+                {
+                  "id": "25300000-0000-4000-8000-000000000006",
+                  "amount": -61,
+                  "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+                  "_unmatched": true
+                }
+              ]
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000007",
+              "amount": -200,
+              "category": null,
+              "subtransactions": []
+            },
+            {
+              "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+              "amount": 200,
+              "category": null,
+              "subtransactions": []
+            }
+          ]
+        },
+        {
+          "id": "target-equality",
+          "filter": {
+            "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+          },
+          "condition": {
+            "field": "category",
+            "op": "is",
+            "value": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+          },
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+              }
+            ],
+            "selectExpressions": [
+              "id",
+              "amount",
+              "category"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [
+            {
+              "id": "25300000-0000-4000-8000-000000000006",
+              "amount": -61,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            }
+          ],
+          "total": -61,
+          "options": {
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "interval": "Monthly",
+            "conditions": [
+              {
+                "field": "category",
+                "op": "is",
+                "value": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+              }
+            ],
+            "conditionsOp": "and",
+            "showEmpty": false,
+            "showOffBudget": true,
+            "showHiddenCategories": true,
+            "showUncategorized": true,
+            "trimIntervals": false,
+            "groupBy": "Account",
+            "balanceTypeOp": "totalTotals",
+            "sortByOp": "asc",
+            "graphType": "BarGraph",
+            "firstDayOfWeekIdx": "1"
+          },
+          "report": {
+            "data": [
+              {
+                "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+                "name": "@Checking, Main",
+                "totalAssets": 0,
+                "totalDebts": -61,
+                "netAssets": 0,
+                "netDebts": -61,
+                "totalTotals": -61,
+                "totalBudgeted": -61,
+                "intervalData": [
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 0,
+                    "totalDebts": -61,
+                    "netAssets": 0,
+                    "netDebts": -61,
+                    "totalTotals": -61,
+                    "totalBudgeted": -61,
+                    "change": 0,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ],
+            "intervalData": [
+              {
+                "date": "Nov '26",
+                "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e": -61,
+                "0920450a-b9e3-48a6-9b96-89f9d32717fe": 0,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": -61,
+                "netAssets": 0,
+                "netDebts": -61,
+                "totalTotals": -61,
+                "totalBudgeted": -61
+              }
+            ],
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "totalAssets": 0,
+            "totalDebts": -61,
+            "netAssets": 0,
+            "netDebts": -61,
+            "totalTotals": -61,
+            "totalBudgeted": -61
+          },
+          "grouped": [
+            {
+              "id": "25300000-0000-4000-8000-000000000004",
+              "amount": -101,
+              "category": null,
+              "_unmatched": true,
+              "subtransactions": [
+                {
+                  "id": "25300000-0000-4000-8000-000000000005",
+                  "amount": -40,
+                  "category": null,
+                  "_unmatched": true
+                },
+                {
+                  "id": "25300000-0000-4000-8000-000000000006",
+                  "amount": -61,
+                  "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "old-and-target-membership",
+          "filter": {
+            "category": {
+              "$oneof": [
+                "6b7e4f01-1f93-4dff-9033-6a9915519035",
+                "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+              ]
+            }
+          },
+          "condition": {
+            "field": "category",
+            "op": "oneOf",
+            "value": [
+              "6b7e4f01-1f93-4dff-9033-6a9915519035",
+              "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            ]
+          },
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "category": {
+                  "$oneof": [
+                    "6b7e4f01-1f93-4dff-9033-6a9915519035",
+                    "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+                  ]
+                }
+              }
+            ],
+            "selectExpressions": [
+              "id",
+              "amount",
+              "category"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [
+            {
+              "id": "25300000-0000-4000-8000-000000000006",
+              "amount": -61,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            }
+          ],
+          "total": -61,
+          "options": {
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "interval": "Monthly",
+            "conditions": [
+              {
+                "field": "category",
+                "op": "oneOf",
+                "value": [
+                  "6b7e4f01-1f93-4dff-9033-6a9915519035",
+                  "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+                ]
+              }
+            ],
+            "conditionsOp": "and",
+            "showEmpty": false,
+            "showOffBudget": true,
+            "showHiddenCategories": true,
+            "showUncategorized": true,
+            "trimIntervals": false,
+            "groupBy": "Account",
+            "balanceTypeOp": "totalTotals",
+            "sortByOp": "asc",
+            "graphType": "BarGraph",
+            "firstDayOfWeekIdx": "1"
+          },
+          "report": {
+            "data": [
+              {
+                "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+                "name": "@Checking, Main",
+                "totalAssets": 0,
+                "totalDebts": -61,
+                "netAssets": 0,
+                "netDebts": -61,
+                "totalTotals": -61,
+                "totalBudgeted": -61,
+                "intervalData": [
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 0,
+                    "totalDebts": -61,
+                    "netAssets": 0,
+                    "netDebts": -61,
+                    "totalTotals": -61,
+                    "totalBudgeted": -61,
+                    "change": 0,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ],
+            "intervalData": [
+              {
+                "date": "Nov '26",
+                "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e": -61,
+                "0920450a-b9e3-48a6-9b96-89f9d32717fe": 0,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": -61,
+                "netAssets": 0,
+                "netDebts": -61,
+                "totalTotals": -61,
+                "totalBudgeted": -61
+              }
+            ],
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "totalAssets": 0,
+            "totalDebts": -61,
+            "netAssets": 0,
+            "netDebts": -61,
+            "totalTotals": -61,
+            "totalBudgeted": -61
+          },
+          "grouped": [
+            {
+              "id": "25300000-0000-4000-8000-000000000004",
+              "amount": -101,
+              "category": null,
+              "_unmatched": true,
+              "subtransactions": [
+                {
+                  "id": "25300000-0000-4000-8000-000000000005",
+                  "amount": -40,
+                  "category": null,
+                  "_unmatched": true
+                },
+                {
+                  "id": "25300000-0000-4000-8000-000000000006",
+                  "amount": -61,
+                  "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "deleted-with-replacement",
+      "input": {
+        "filename": "transaction-export-base-26.10.zip",
+        "sha256": "21b1b822a1c2676fcabeae288a0156013b9f4ccf89130eac8ede991a00adc2fd"
+      },
+      "ids": {
+        "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "off": "0920450a-b9e3-48a6-9b96-89f9d32717fe",
+        "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+        "shop": "cf8e8de4-01b2-4b13-8847-bb2003a4505b",
+        "group": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+        "food": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+        "other": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+        "first": "25300000-0000-4000-8000-000000000001",
+        "refund": "25300000-0000-4000-8000-000000000002",
+        "zero": "25300000-0000-4000-8000-000000000003",
+        "parent": "25300000-0000-4000-8000-000000000004",
+        "child1": "25300000-0000-4000-8000-000000000005",
+        "child2": "25300000-0000-4000-8000-000000000006",
+        "transfer": "25300000-0000-4000-8000-000000000007",
+        "peer": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa"
+      },
+      "before": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "amount": -1234,
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "amount": 500,
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "amount": 0,
+          "category": null,
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000004",
+          "amount": -101,
+          "category": null,
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "amount": -40,
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "parent_id": "25300000-0000-4000-8000-000000000004",
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "amount": -61,
+          "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+          "parent_id": "25300000-0000-4000-8000-000000000004",
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "amount": -200,
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "parent_id": null,
+          "transfer_id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa"
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "amount": 200,
+          "category": null,
+          "parent_id": null,
+          "transfer_id": "25300000-0000-4000-8000-000000000007"
+        }
+      ],
+      "after": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "amount": -1234,
+          "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "amount": 500,
+          "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "amount": 0,
+          "category": null,
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000004",
+          "amount": -101,
+          "category": null,
+          "parent_id": null,
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "amount": -40,
+          "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+          "parent_id": "25300000-0000-4000-8000-000000000004",
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "amount": -61,
+          "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+          "parent_id": "25300000-0000-4000-8000-000000000004",
+          "transfer_id": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "amount": -200,
+          "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+          "parent_id": null,
+          "transfer_id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa"
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "amount": 200,
+          "category": null,
+          "parent_id": null,
+          "transfer_id": "25300000-0000-4000-8000-000000000007"
+        }
+      ],
+      "archive": {
+        "filename": "retired-query-saved-deleted-with-replacement-26.10.zip",
+        "sha256": "cb98da914f98d6705b8fe254426a1602bd00d184f9a0c34850af0184c087f3d9"
+      },
+      "source_files": {
+        "packages/desktop-client/src/components/reports/spreadsheets/custom-spreadsheet.ts": "434f1add25a4ee4ff07e6e26f6eaad7fd4e8d50fc7c73aa2c416c86d08177c0c",
+        "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+        "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+        "packages/desktop-client/src/components/reports/ReportOptions.ts": "f62377d8d1b90da65f7dab33e9a3ecbd4a5fba62f1003c84aa403b627635a056",
+        "packages/desktop-client/src/components/reports/spreadsheets/calculateLegend.ts": "bf7a6985ee0fa9553892b8fa4ea97cff511e47ff0904affad8f3fe74f8e392d9",
+        "packages/desktop-client/src/components/reports/spreadsheets/fetchSpreadsheetQueryData.ts": "6cc3b87a135799fce86af9b30ae1b85f2c4220e571b4b58a24db6cf799b978d4",
+        "packages/desktop-client/src/components/reports/spreadsheets/budgetDataQuery.ts": "2a8a2557717a7558a316f69f2bca15c2b9828a2e37c4a6fbb822468ca54c50f2",
+        "packages/desktop-client/src/components/reports/spreadsheets/makeQuery.ts": "150571e8eba514ff7cf7e37cecb437c41db1f02c525ddd435932cf5421f37a64",
+        "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+        "packages/desktop-client/src/components/reports/spreadsheets/filterEmptyRows.ts": "a85ae9d3bca8bcd8129e0affc9dd4d3db25e659d94b2e1be441bfccf4455868a",
+        "packages/desktop-client/src/components/reports/spreadsheets/filterHiddenItems.ts": "2b9d0d734cceab58d69a1f9397ffe99a074e4cd96d91b18e7fd9c41226cf0ef7",
+        "packages/desktop-client/src/components/reports/spreadsheets/recalculate.ts": "e25799cc08517f1654e54baba7ec7b9d27dcc63a2f125037a30faf00335c109d",
+        "packages/desktop-client/src/components/reports/spreadsheets/sortData.ts": "97c1f53a9906fa4293ada7df0bf0115ac3967663a1ccd62430d624394a352445",
+        "packages/desktop-client/src/components/reports/spreadsheets/trimIntervals.ts": "eeca5f12a0767437c47efb3ef2b6d8dc48a5d78ee8c4530760298a23e02cdf6a"
+      },
+      "saved_filters": [
+        {
+          "id": "a6825856-8246-4a2c-9bf1-f5523dde6fa0",
+          "name": "explicit-null",
+          "conditions_op": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": null
+            }
+          ],
+          "tombstone": false
+        },
+        {
+          "id": "4e471a77-6d67-424f-8f41-facf75d661e7",
+          "name": "old-and-target-membership",
+          "conditions_op": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "oneOf",
+              "value": [
+                "6b7e4f01-1f93-4dff-9033-6a9915519035",
+                "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+              ]
+            }
+          ],
+          "tombstone": false
+        },
+        {
+          "id": "242d9d2a-93e7-4a71-90cd-db427b75138a",
+          "name": "old-equality",
+          "conditions_op": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": "6b7e4f01-1f93-4dff-9033-6a9915519035"
+            }
+          ],
+          "tombstone": false
+        },
+        {
+          "id": "3f67d79d-6856-451c-903f-70e0f39ec8c4",
+          "name": "old-membership",
+          "conditions_op": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "oneOf",
+              "value": [
+                "6b7e4f01-1f93-4dff-9033-6a9915519035"
+              ]
+            }
+          ],
+          "tombstone": false
+        },
+        {
+          "id": "402a902e-57ba-42ed-a170-ca72c6895de5",
+          "name": "target-equality",
+          "conditions_op": "and",
+          "conditions": [
+            {
+              "field": "category",
+              "op": "is",
+              "value": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            }
+          ],
+          "tombstone": false
+        }
+      ],
+      "cases": [
+        {
+          "id": "old-equality",
+          "filter": {
+            "category": "6b7e4f01-1f93-4dff-9033-6a9915519035"
+          },
+          "condition": {
+            "field": "category",
+            "op": "is",
+            "value": "6b7e4f01-1f93-4dff-9033-6a9915519035"
+          },
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "category": "6b7e4f01-1f93-4dff-9033-6a9915519035"
+              }
+            ],
+            "selectExpressions": [
+              "id",
+              "amount",
+              "category"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [],
+          "total": 0,
+          "options": {
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "interval": "Monthly",
+            "conditions": [
+              {
+                "field": "category",
+                "op": "is",
+                "value": "6b7e4f01-1f93-4dff-9033-6a9915519035"
+              }
+            ],
+            "conditionsOp": "and",
+            "showEmpty": false,
+            "showOffBudget": true,
+            "showHiddenCategories": true,
+            "showUncategorized": true,
+            "trimIntervals": false,
+            "groupBy": "Account",
+            "balanceTypeOp": "totalTotals",
+            "sortByOp": "asc",
+            "graphType": "BarGraph",
+            "firstDayOfWeekIdx": "1"
+          },
+          "report": {
+            "data": [],
+            "intervalData": [
+              {
+                "date": "Nov '26",
+                "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e": 0,
+                "0920450a-b9e3-48a6-9b96-89f9d32717fe": 0,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0
+              }
+            ],
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "totalAssets": 0,
+            "totalDebts": 0,
+            "netAssets": 0,
+            "netDebts": 0,
+            "totalTotals": 0,
+            "totalBudgeted": 0
+          },
+          "grouped": []
+        },
+        {
+          "id": "old-membership",
+          "filter": {
+            "category": {
+              "$oneof": [
+                "6b7e4f01-1f93-4dff-9033-6a9915519035"
+              ]
+            }
+          },
+          "condition": {
+            "field": "category",
+            "op": "oneOf",
+            "value": [
+              "6b7e4f01-1f93-4dff-9033-6a9915519035"
+            ]
+          },
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "category": {
+                  "$oneof": [
+                    "6b7e4f01-1f93-4dff-9033-6a9915519035"
+                  ]
+                }
+              }
+            ],
+            "selectExpressions": [
+              "id",
+              "amount",
+              "category"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [],
+          "total": 0,
+          "options": {
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "interval": "Monthly",
+            "conditions": [
+              {
+                "field": "category",
+                "op": "oneOf",
+                "value": [
+                  "6b7e4f01-1f93-4dff-9033-6a9915519035"
+                ]
+              }
+            ],
+            "conditionsOp": "and",
+            "showEmpty": false,
+            "showOffBudget": true,
+            "showHiddenCategories": true,
+            "showUncategorized": true,
+            "trimIntervals": false,
+            "groupBy": "Account",
+            "balanceTypeOp": "totalTotals",
+            "sortByOp": "asc",
+            "graphType": "BarGraph",
+            "firstDayOfWeekIdx": "1"
+          },
+          "report": {
+            "data": [],
+            "intervalData": [
+              {
+                "date": "Nov '26",
+                "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e": 0,
+                "0920450a-b9e3-48a6-9b96-89f9d32717fe": 0,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0
+              }
+            ],
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "totalAssets": 0,
+            "totalDebts": 0,
+            "netAssets": 0,
+            "netDebts": 0,
+            "totalTotals": 0,
+            "totalBudgeted": 0
+          },
+          "grouped": []
+        },
+        {
+          "id": "explicit-null",
+          "filter": {
+            "category": null
+          },
+          "condition": {
+            "field": "category",
+            "op": "is",
+            "value": null
+          },
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "category": null
+              }
+            ],
+            "selectExpressions": [
+              "id",
+              "amount",
+              "category"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [
+            {
+              "id": "25300000-0000-4000-8000-000000000003",
+              "amount": 0,
+              "category": null
+            },
+            {
+              "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+              "amount": 200,
+              "category": null
+            }
+          ],
+          "total": 200,
+          "options": {
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "interval": "Monthly",
+            "conditions": [
+              {
+                "field": "category",
+                "op": "is",
+                "value": null
+              }
+            ],
+            "conditionsOp": "and",
+            "showEmpty": false,
+            "showOffBudget": true,
+            "showHiddenCategories": true,
+            "showUncategorized": true,
+            "trimIntervals": false,
+            "groupBy": "Account",
+            "balanceTypeOp": "totalTotals",
+            "sortByOp": "asc",
+            "graphType": "BarGraph",
+            "firstDayOfWeekIdx": "1"
+          },
+          "report": {
+            "data": [],
+            "intervalData": [
+              {
+                "date": "Nov '26",
+                "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e": 0,
+                "0920450a-b9e3-48a6-9b96-89f9d32717fe": 0,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0
+              }
+            ],
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "totalAssets": 0,
+            "totalDebts": 0,
+            "netAssets": 0,
+            "netDebts": 0,
+            "totalTotals": 0,
+            "totalBudgeted": 0
+          },
+          "grouped": [
+            {
+              "id": "25300000-0000-4000-8000-000000000003",
+              "amount": 0,
+              "category": null,
+              "subtransactions": []
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000004",
+              "amount": -101,
+              "category": null,
+              "subtransactions": [
+                {
+                  "id": "25300000-0000-4000-8000-000000000005",
+                  "amount": -40,
+                  "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+                  "_unmatched": true
+                },
+                {
+                  "id": "25300000-0000-4000-8000-000000000006",
+                  "amount": -61,
+                  "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+                  "_unmatched": true
+                }
+              ]
+            },
+            {
+              "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+              "amount": 200,
+              "category": null,
+              "subtransactions": []
+            }
+          ]
+        },
+        {
+          "id": "target-equality",
+          "filter": {
+            "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+          },
+          "condition": {
+            "field": "category",
+            "op": "is",
+            "value": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+          },
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+              }
+            ],
+            "selectExpressions": [
+              "id",
+              "amount",
+              "category"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [
+            {
+              "id": "25300000-0000-4000-8000-000000000001",
+              "amount": -1234,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000002",
+              "amount": 500,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000005",
+              "amount": -40,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000006",
+              "amount": -61,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000007",
+              "amount": -200,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            }
+          ],
+          "total": -1035,
+          "options": {
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "interval": "Monthly",
+            "conditions": [
+              {
+                "field": "category",
+                "op": "is",
+                "value": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+              }
+            ],
+            "conditionsOp": "and",
+            "showEmpty": false,
+            "showOffBudget": true,
+            "showHiddenCategories": true,
+            "showUncategorized": true,
+            "trimIntervals": false,
+            "groupBy": "Account",
+            "balanceTypeOp": "totalTotals",
+            "sortByOp": "asc",
+            "graphType": "BarGraph",
+            "firstDayOfWeekIdx": "1"
+          },
+          "report": {
+            "data": [
+              {
+                "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+                "name": "@Checking, Main",
+                "totalAssets": 500,
+                "totalDebts": -1535,
+                "netAssets": 0,
+                "netDebts": -1035,
+                "totalTotals": -1035,
+                "totalBudgeted": -1035,
+                "intervalData": [
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 500,
+                    "totalDebts": -1535,
+                    "netAssets": 0,
+                    "netDebts": -1035,
+                    "totalTotals": -1035,
+                    "totalBudgeted": -1035,
+                    "change": 0,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ],
+            "intervalData": [
+              {
+                "date": "Nov '26",
+                "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e": -1035,
+                "0920450a-b9e3-48a6-9b96-89f9d32717fe": 0,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11",
+                "totalAssets": 500,
+                "totalDebts": -1535,
+                "netAssets": 0,
+                "netDebts": -1035,
+                "totalTotals": -1035,
+                "totalBudgeted": -1035
+              }
+            ],
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "totalAssets": 500,
+            "totalDebts": -1535,
+            "netAssets": 0,
+            "netDebts": -1035,
+            "totalTotals": -1035,
+            "totalBudgeted": -1035
+          },
+          "grouped": [
+            {
+              "id": "25300000-0000-4000-8000-000000000001",
+              "amount": -1234,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+              "subtransactions": []
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000002",
+              "amount": 500,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+              "subtransactions": []
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000004",
+              "amount": -101,
+              "category": null,
+              "_unmatched": true,
+              "subtransactions": [
+                {
+                  "id": "25300000-0000-4000-8000-000000000005",
+                  "amount": -40,
+                  "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+                },
+                {
+                  "id": "25300000-0000-4000-8000-000000000006",
+                  "amount": -61,
+                  "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+                }
+              ]
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000007",
+              "amount": -200,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+              "subtransactions": []
+            }
+          ]
+        },
+        {
+          "id": "old-and-target-membership",
+          "filter": {
+            "category": {
+              "$oneof": [
+                "6b7e4f01-1f93-4dff-9033-6a9915519035",
+                "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+              ]
+            }
+          },
+          "condition": {
+            "field": "category",
+            "op": "oneOf",
+            "value": [
+              "6b7e4f01-1f93-4dff-9033-6a9915519035",
+              "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            ]
+          },
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "category": {
+                  "$oneof": [
+                    "6b7e4f01-1f93-4dff-9033-6a9915519035",
+                    "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+                  ]
+                }
+              }
+            ],
+            "selectExpressions": [
+              "id",
+              "amount",
+              "category"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [
+            {
+              "id": "25300000-0000-4000-8000-000000000001",
+              "amount": -1234,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000002",
+              "amount": 500,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000005",
+              "amount": -40,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000006",
+              "amount": -61,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000007",
+              "amount": -200,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+            }
+          ],
+          "total": -1035,
+          "options": {
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "interval": "Monthly",
+            "conditions": [
+              {
+                "field": "category",
+                "op": "oneOf",
+                "value": [
+                  "6b7e4f01-1f93-4dff-9033-6a9915519035",
+                  "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+                ]
+              }
+            ],
+            "conditionsOp": "and",
+            "showEmpty": false,
+            "showOffBudget": true,
+            "showHiddenCategories": true,
+            "showUncategorized": true,
+            "trimIntervals": false,
+            "groupBy": "Account",
+            "balanceTypeOp": "totalTotals",
+            "sortByOp": "asc",
+            "graphType": "BarGraph",
+            "firstDayOfWeekIdx": "1"
+          },
+          "report": {
+            "data": [
+              {
+                "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+                "name": "@Checking, Main",
+                "totalAssets": 500,
+                "totalDebts": -1535,
+                "netAssets": 0,
+                "netDebts": -1035,
+                "totalTotals": -1035,
+                "totalBudgeted": -1035,
+                "intervalData": [
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 500,
+                    "totalDebts": -1535,
+                    "netAssets": 0,
+                    "netDebts": -1035,
+                    "totalTotals": -1035,
+                    "totalBudgeted": -1035,
+                    "change": 0,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ],
+            "intervalData": [
+              {
+                "date": "Nov '26",
+                "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e": -1035,
+                "0920450a-b9e3-48a6-9b96-89f9d32717fe": 0,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11",
+                "totalAssets": 500,
+                "totalDebts": -1535,
+                "netAssets": 0,
+                "netDebts": -1035,
+                "totalTotals": -1035,
+                "totalBudgeted": -1035
+              }
+            ],
+            "startDate": "2026-11",
+            "endDate": "2026-11",
+            "totalAssets": 500,
+            "totalDebts": -1535,
+            "netAssets": 0,
+            "netDebts": -1035,
+            "totalTotals": -1035,
+            "totalBudgeted": -1035
+          },
+          "grouped": [
+            {
+              "id": "25300000-0000-4000-8000-000000000001",
+              "amount": -1234,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+              "subtransactions": []
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000002",
+              "amount": 500,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+              "subtransactions": []
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000004",
+              "amount": -101,
+              "category": null,
+              "_unmatched": true,
+              "subtransactions": [
+                {
+                  "id": "25300000-0000-4000-8000-000000000005",
+                  "amount": -40,
+                  "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+                },
+                {
+                  "id": "25300000-0000-4000-8000-000000000006",
+                  "amount": -61,
+                  "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+                }
+              ]
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000007",
+              "amount": -200,
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+              "subtransactions": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

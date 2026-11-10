@@ -1,0 +1,780 @@
+//! Validated read-only automation queries. Data never becomes SQL identifiers.
+use crate::{error::Error, store::Store};
+use axum::{
+    Json, Router,
+    extract::{DefaultBodyLimit, Path, State, rejection::JsonRejection},
+    routing::{get, post},
+};
+use rusqlite::{
+    Connection, params_from_iter,
+    types::{Value as SqlValue, ValueRef},
+};
+use serde::Deserialize;
+use serde_json::{Value, json};
+use std::{
+    collections::BTreeSet,
+    sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    },
+};
+fn sql_error(error: rusqlite::Error) -> Error {
+    if matches!(&error, rusqlite::Error::SqliteFailure(_,Some(message)) if message == "integer overflow")
+    {
+        return invalid("Aggregate exceeds exact numeric range; narrow the query");
+    }
+    Error::internal(error)
+}
+fn invalid(message: impl Into<String>) -> Error {
+    Error::new(
+        axum::http::StatusCode::BAD_REQUEST,
+        "invalid_query",
+        message,
+    )
+}
+fn limit() -> usize {
+    100
+}
+fn yes() -> bool {
+    true
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Query {
+    version: u8,
+    table: String,
+    #[serde(default)]
+    select: Vec<Value>,
+    #[serde(default)]
+    filter: Vec<Value>,
+    #[serde(default)]
+    group_by: Vec<Value>,
+    #[serde(default)]
+    order_by: Vec<Value>,
+    #[serde(default)]
+    calculation: bool,
+    #[serde(default)]
+    splits: Split,
+    #[serde(default)]
+    include_deleted: bool,
+    #[serde(default = "yes")]
+    validate_refs: bool,
+    #[serde(default)]
+    raw: bool,
+    #[serde(default = "limit")]
+    limit: usize,
+    #[serde(default)]
+    offset: usize,
+    snapshot: Option<String>,
+}
+#[derive(Default, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+enum Split {
+    #[default]
+    Inline,
+    Grouped,
+    All,
+    None,
+}
+pub fn router() -> Router<Store> {
+    Router::new()
+        .route("/api/v1/query-capabilities", get(capabilities))
+        .route(
+            "/api/v1/budgets/{budget}/query",
+            post(query).layer(DefaultBodyLimit::max(65536)),
+        )
+}
+async fn capabilities() -> Json<Value> {
+    Json(
+        json!({"data":{"version":1,"tables":["transactions"],"splits":["inline","grouped","all","none"],"max_rows":100000,"max_page":1000,"max_depth":8,"max_nodes":256}}),
+    )
+}
+async fn query(
+    State(store): State<Store>,
+    Path(budget): Path<String>,
+    input: Result<Json<Query>, JsonRejection>,
+) -> Result<Json<Value>, Error> {
+    crate::models::validate_id(&budget)?;
+    let Json(input) = input.map_err(crate::api::json_error)?;
+    let result = store
+        .run(move |db| {
+            let tx = db.transaction()?;
+            let result = execute(&tx, &budget, &input)?;
+            tx.commit()?;
+            Ok(result)
+        })
+        .await?;
+    Ok(Json(result))
+}
+#[derive(Clone, Copy, PartialEq)]
+enum Kind {
+    Text,
+    Id,
+    Money,
+    Integer,
+    Boolean,
+    Json,
+}
+#[derive(Clone)]
+struct Expr {
+    sql: String,
+    kind: Kind,
+    aggregate: bool,
+}
+impl Expr {
+    fn new(sql: impl Into<String>, kind: Kind) -> Self {
+        Self {
+            sql: sql.into(),
+            kind,
+            aggregate: false,
+        }
+    }
+}
+struct Compiler<'a> {
+    q: &'a Query,
+    values: Vec<SqlValue>,
+    orders: String,
+    nodes: usize,
+}
+const JOINS: &str = "FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id AND p.tombstone=0 LEFT JOIN accounts y ON y.budget_id=p.budget_id AND y.id=p.transfer_account_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id AND c.tombstone=0 LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id AND g.tombstone=0";
+fn quote(name: &str) -> Result<String, Error> {
+    if name.is_empty()
+        || name.len() > 128
+        || name.starts_with("__query_")
+        || name.chars().any(char::is_control)
+    {
+        return Err(invalid("Invalid select alias"));
+    }
+    Ok(format!("\"{}\"", name.replace('"', "\"\"")))
+}
+impl Compiler<'_> {
+    fn charge(&mut self, depth: usize) -> Result<(), Error> {
+        self.nodes += 1;
+        if depth > 8 || self.nodes > 256 {
+            return Err(invalid(
+                "Query exceeds depth8 or256 expression nodes; simplify it",
+            ));
+        }
+        Ok(())
+    }
+    fn bind(&mut self, value: &Value) -> Result<String, Error> {
+        if self.values.len() > 500 {
+            return Err(invalid("Query exceeds500 bound values"));
+        }
+        let value = match value {
+            Value::Null => SqlValue::Null,
+            Value::Bool(b) => SqlValue::Integer(i64::from(*b)),
+            Value::Number(n) => SqlValue::Integer(
+                n.as_i64()
+                    .filter(|v| v.unsigned_abs() <= crate::models::MAX_MONEY as u64)
+                    .ok_or_else(|| invalid("Query numbers must be exact safe integers"))?,
+            ),
+            Value::String(s) if s.len() <= 10000 => SqlValue::Text(s.clone()),
+            _ => return Err(invalid("Expected bounded scalar query literal")),
+        };
+        self.values.push(value);
+        Ok(format!("?{}", self.values.len()))
+    }
+    fn field(&self, name: &str) -> Result<Expr, Error> {
+        let (sql, kind) = match name {
+            "id" => ("t.id", Kind::Id),
+            "account" => ("t.account_id", Kind::Id),
+            "payee" => (
+                if self.q.validate_refs {
+                    "p.id"
+                } else {
+                    "t.payee_id"
+                },
+                Kind::Id,
+            ),
+            "category" => (
+                if self.q.validate_refs {
+                    "c.id"
+                } else {
+                    "t.category_id"
+                },
+                Kind::Id,
+            ),
+            "amount" => ("t.amount", Kind::Money),
+            "date" => ("t.date", Kind::Text),
+            "notes" => ("t.notes", Kind::Text),
+            "is_parent" => ("t.is_parent", Kind::Boolean),
+            "is_child" => ("(t.parent_id IS NOT NULL)", Kind::Boolean),
+            "parent_id" => ("t.parent_id", Kind::Id),
+            "transfer_id" => ("t.transfer_id", Kind::Id),
+            "cleared" => ("t.cleared", Kind::Boolean),
+            "reconciled" => ("t.reconciled", Kind::Boolean),
+            "starting_balance_flag" => ("t.starting_balance", Kind::Boolean),
+            "tombstone" => ("t.tombstone", Kind::Boolean),
+            "error" => ("NULL", Kind::Json),
+            "imported_payee" => ("t.imported_payee", Kind::Text),
+            "account.name" => ("a.name", Kind::Text),
+            "account.offbudget" => ("a.off_budget", Kind::Boolean),
+            "account.closed" => ("a.closed", Kind::Boolean),
+            "payee.name" => ("coalesce(y.name,p.name)", Kind::Text),
+            "category.name" => ("c.name", Kind::Text),
+            "category.is_income" => ("c.is_income", Kind::Boolean),
+            "category.hidden" => ("c.hidden", Kind::Boolean),
+            "category.group" => ("c.group_id", Kind::Id),
+            "category.group.name" => ("g.name", Kind::Text),
+            "category.group.hidden" => ("g.hidden", Kind::Boolean),
+            "category.group.is_income" => ("g.is_income", Kind::Boolean),
+            _ => return Err(invalid(format!("Unknown transactions field: {name}"))),
+        };
+        Ok(Expr::new(sql, kind))
+    }
+    fn expr(&mut self, v: &Value, depth: usize) -> Result<Expr, Error> {
+        self.charge(depth)?;
+        if let Some(s) = v.as_str().and_then(|s| s.strip_prefix('$')) {
+            return self.field(s);
+        }
+        if let Some(o) = v.as_object() {
+            if o.len() != 1 {
+                return Err(invalid("An expression requires exactly one function"));
+            }
+            let (name, args) = o.iter().next().unwrap();
+            if name == "$condition" {
+                return Ok(Expr::new(self.predicate(args, depth + 1)?, Kind::Boolean));
+            }
+            if name == "$literal" || name == "literal" {
+                let kind = if args.is_boolean() {
+                    Kind::Boolean
+                } else if args.is_number() {
+                    Kind::Integer
+                } else {
+                    Kind::Text
+                };
+                return Ok(Expr::new(self.bind(args)?, kind));
+            }
+            let args = if let Some(a) = args.as_array() {
+                a.clone()
+            } else {
+                vec![args.clone()]
+            };
+            if name == "$count" && args == vec![json!("*")] {
+                return Ok(Expr {
+                    sql: "COUNT(*)".into(),
+                    kind: Kind::Integer,
+                    aggregate: true,
+                });
+            }
+            let values = args
+                .iter()
+                .map(|a| self.expr(a, depth + 1))
+                .collect::<Result<Vec<_>, _>>()?;
+            let n = values.len();
+            let required = match name.as_str() {
+                "$substr" => 2..=3,
+                "$idiv" => 2..=2,
+                _ => 1..=1,
+            };
+            if !required.contains(&n) {
+                return Err(invalid(format!("Wrong argument count for {name}")));
+            }
+            if values.iter().any(|e| e.aggregate) {
+                return Err(invalid("Nested aggregate expressions are not supported"));
+            }
+            let e = &values[0];
+            let mut result = Expr::new("", e.kind);
+            result.sql = match name.as_str() {
+                "$sum" | "$sumOver" => {
+                    if !matches!(e.kind, Kind::Money | Kind::Integer) {
+                        return Err(invalid("Sum requires exact numbers"));
+                    }
+                    result.aggregate = name == "$sum";
+                    let sum = format!("SUM({})", e.sql);
+                    if result.aggregate {
+                        format!("coalesce({sum},0)")
+                    } else {
+                        format!(
+                            "{sum} OVER (ORDER BY {} ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING)",
+                            self.orders
+                        )
+                    }
+                }
+                "$count" => {
+                    result.kind = Kind::Integer;
+                    result.aggregate = true;
+                    format!("COUNT({})", e.sql)
+                }
+                "$abs" | "$neg" | "$idiv" => {
+                    if values
+                        .iter()
+                        .any(|v| !matches!(v.kind, Kind::Money | Kind::Integer))
+                    {
+                        return Err(invalid("Arithmetic requires exact numbers"));
+                    }
+                    match name.as_str() {
+                        "$abs" => format!("abs({})", e.sql),
+                        "$neg" => format!("(-{})", e.sql),
+                        _ => format!("({}/{})", e.sql, values[1].sql),
+                    }
+                }
+                "$lower" => {
+                    result.kind = Kind::Text;
+                    format!("query_lower({})", e.sql)
+                }
+                "$substr" => {
+                    result.kind = Kind::Text;
+                    format!(
+                        "substr({})",
+                        values
+                            .iter()
+                            .map(|e| e.sql.as_str())
+                            .collect::<Vec<_>>()
+                            .join(",")
+                    )
+                }
+                "$year" | "$month" => {
+                    result.kind = Kind::Text;
+                    format!(
+                        "substr({},1,{})",
+                        e.sql,
+                        if name == "$year" { 4 } else { 7 }
+                    )
+                }
+                "$day" | "$id" => e.sql.clone(),
+                "$nocase" => format!("({} COLLATE NOCASE)", e.sql),
+                _ => return Err(invalid(format!("Unknown query function: {name}"))),
+            };
+            return Ok(result);
+        }
+        let kind = if v.is_number() {
+            Kind::Integer
+        } else if v.is_boolean() {
+            Kind::Boolean
+        } else {
+            Kind::Text
+        };
+        Ok(Expr::new(self.bind(v)?, kind))
+    }
+    fn predicate(&mut self, value: &Value, depth: usize) -> Result<String, Error> {
+        self.charge(depth)?;
+        let o = value
+            .as_object()
+            .ok_or_else(|| invalid("Filter must be an object"))?;
+        let mut terms = vec![];
+        for (field, value) in o {
+            if field == "$and" || field == "$or" {
+                let a = value
+                    .as_array()
+                    .ok_or_else(|| invalid("Filter junction requires an array"))?;
+                let parts = a
+                    .iter()
+                    .map(|v| self.predicate(v, depth + 1))
+                    .collect::<Result<Vec<_>, _>>()?;
+                terms.push(if parts.is_empty() {
+                    if field == "$and" { "1" } else { "0" }.into()
+                } else {
+                    format!(
+                        "({})",
+                        parts.join(if field == "$and" { " AND " } else { " OR " })
+                    )
+                });
+                continue;
+            }
+            if value.is_array() {
+                let parts = value
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|v| self.comparison(field, v, depth + 1))
+                    .collect::<Result<Vec<_>, _>>()?;
+                terms.push(if parts.is_empty() {
+                    "1".into()
+                } else {
+                    format!("({})", parts.join(" AND "))
+                });
+            } else {
+                terms.push(self.comparison(field, value, depth + 1)?)
+            }
+        }
+        Ok(if terms.is_empty() {
+            "1".into()
+        } else {
+            format!("({})", terms.join(" AND "))
+        })
+    }
+    fn comparison(&mut self, field: &str, value: &Value, depth: usize) -> Result<String, Error> {
+        self.charge(depth)?;
+        let mut left = self.field(field)?;
+        let (op, right) = if let Some(o) = value.as_object() {
+            if let Some(transform) = o.get("$transform") {
+                let expr = if let Some(name) = transform.as_str() {
+                    json!({name:format!("${field}")})
+                } else {
+                    return Err(invalid("Transform must name a function"));
+                };
+                left = self.expr(&expr, depth + 1)?;
+            }
+            let ops = o
+                .iter()
+                .filter(|(k, _)| k.as_str() != "$transform")
+                .collect::<Vec<_>>();
+            if ops.len() != 1 {
+                return Err(invalid("Each field predicate needs exactly one operator"));
+            }
+            (ops[0].0.as_str(), ops[0].1)
+        } else {
+            ("$eq", value)
+        };
+        if right.is_null() {
+            return match op {
+                "$eq" => Ok(format!("{} IS NULL", left.sql)),
+                "$ne" => Ok(format!("{} IS NOT NULL", left.sql)),
+                _ => Err(invalid("Null supports equality/inequality only")),
+            };
+        }
+        if op == "$oneof" {
+            let a = right
+                .as_array()
+                .ok_or_else(|| invalid("Membership needs an array"))?;
+            let values = a
+                .iter()
+                .map(|v| self.bind(v))
+                .collect::<Result<Vec<_>, _>>()?;
+            return Ok(if values.is_empty() {
+                "0".into()
+            } else {
+                format!("{} IN({})", left.sql, values.join(","))
+            });
+        }
+        if matches!(op, "$like" | "$notlike" | "$regexp") {
+            let pattern = right
+                .as_str()
+                .ok_or_else(|| invalid("Pattern must be text"))?;
+            let pattern = if op == "$regexp" {
+                pattern.to_owned()
+            } else {
+                crate::register::like_regex(pattern)
+            };
+            let parameter = self.bind(&json!(pattern))?;
+            return Ok(format!(
+                "{}{}({parameter},coalesce({},'')){}",
+                if op == "$notlike" { "(NOT " } else { "" },
+                if op == "$regexp" {
+                    "register_regex"
+                } else {
+                    "register_like"
+                },
+                left.sql,
+                if op == "$notlike" {
+                    format!(" OR {} IS NULL)", left.sql)
+                } else {
+                    String::new()
+                }
+            ));
+        }
+        let operator = match op {
+            "$eq" => "=",
+            "$ne" => "!=",
+            "$lt" => "<",
+            "$lte" => "<=",
+            "$gt" => ">",
+            "$gte" => ">=",
+            _ => return Err(invalid(format!("Unknown query operator: {op}"))),
+        };
+        if left.kind == Kind::Money && right.as_i64().is_none() {
+            return Err(invalid("Amount predicates require exact minor units"));
+        }
+        let parameter = self.bind(right)?;
+        Ok(if op == "$ne" {
+            format!("({} != {parameter} OR {} IS NULL)", left.sql, left.sql)
+        } else {
+            format!("{} {operator} {parameter}", left.sql)
+        })
+    }
+    fn order(&mut self) -> Result<String, Error> {
+        let mut terms = vec![];
+        for v in &self.q.order_by {
+            let (expr, direction) = if let Some(o) = v.as_object() {
+                if o.len() == 1
+                    && o.values()
+                        .next()
+                        .is_some_and(|v| matches!(v.as_str(), Some("asc" | "desc")))
+                {
+                    let (k, v) = o.iter().next().unwrap();
+                    (self.field(k)?, v.as_str().unwrap())
+                } else {
+                    (self.expr(v, 1)?, "asc")
+                }
+            } else {
+                (
+                    self.field(
+                        v.as_str()
+                            .ok_or_else(|| invalid("Order requires field/function"))?,
+                    )?,
+                    "asc",
+                )
+            };
+            terms.push(format!("{} {direction}", expr.sql));
+        }
+        if terms.is_empty() {
+            terms = vec![
+                "t.date DESC".into(),
+                format!("{} DESC", crate::android_upgrade::order::SQL),
+            ]
+        }
+        terms.push("t.id ASC".into());
+        Ok(terms.join(","))
+    }
+}
+fn value(row: &rusqlite::Row<'_>, index: usize, kind: Kind, raw: bool) -> Result<Value, Error> {
+    Ok(match row.get_ref(index)? {
+        ValueRef::Null => {
+            if kind == Kind::Boolean && !raw {
+                json!(false)
+            } else {
+                Value::Null
+            }
+        }
+        ValueRef::Integer(n) => {
+            if n.unsigned_abs() > crate::models::MAX_MONEY as u64 {
+                return Err(invalid("Aggregate exceeds exact safe numeric range"));
+            }
+            if kind == Kind::Boolean && !raw {
+                json!(n != 0)
+            } else {
+                json!(n)
+            }
+        }
+        ValueRef::Real(_) => return Err(invalid("Result is not an exact integer")),
+        ValueRef::Text(t) => {
+            let s = std::str::from_utf8(t).map_err(Error::internal)?;
+            if kind == Kind::Json && !raw {
+                serde_json::from_str(s).map_err(Error::internal)?
+            } else {
+                json!(s)
+            }
+        }
+        ValueRef::Blob(_) => return Err(invalid("Binary fields are not queryable")),
+    })
+}
+fn run(
+    db: &Connection,
+    b: &str,
+    q: &Query,
+    regex: &crate::register_regex::Budget,
+) -> Result<Value, Error> {
+    crate::store::require_budget(db, b)?;
+    crate::concurrency::check_snapshot(db, b, q.snapshot.as_deref())?;
+    if q.version != 1 || q.table != "transactions" {
+        return Err(invalid("Unsupported query version/table"));
+    }
+    if q.limit == 0
+        || q.limit > 1000
+        || q.offset > 100000
+        || q.select.len() > 32
+        || q.group_by.len() > 8
+        || q.order_by.len() > 8
+    {
+        return Err(invalid(
+            "Narrow query fields/groups/order or page1..1000/offset0..100000",
+        ));
+    }
+    let mut c = Compiler {
+        q,
+        values: vec![SqlValue::Text(b.into())],
+        orders: String::new(),
+        nodes: 0,
+    };
+    c.orders = c.order()?;
+    if q.calculation && q.select.len() != 1 {
+        return Err(invalid("Calculation requires exactly one named expression"));
+    }
+    let mut projected = vec![];
+    let mut aliases = BTreeSet::new();
+    let selection = if q.select.is_empty() {
+        vec![json!("id")]
+    } else {
+        q.select.clone()
+    };
+    for v in selection {
+        let (name, expr) = if let Some(field) = v.as_str() {
+            (field.to_owned(), c.field(field)?)
+        } else {
+            let o = v
+                .as_object()
+                .filter(|o| o.len() == 1)
+                .ok_or_else(|| invalid("Each select alias requires one expression"))?;
+            let (name, expr) = o.iter().next().unwrap();
+            (name.clone(), c.expr(expr, 1)?)
+        };
+        let alias = quote(&name)?;
+        if !aliases.insert(name.clone()) {
+            return Err(invalid("Duplicate select alias"));
+        }
+        projected.push((name, alias, expr));
+    }
+    let aggregate = projected.iter().any(|(_, _, e)| e.aggregate) || !q.group_by.is_empty();
+    let filters = q
+        .filter
+        .iter()
+        .map(|v| c.predicate(v, 1))
+        .collect::<Result<Vec<_>, _>>()?;
+    let filter = if filters.is_empty() {
+        "1".into()
+    } else {
+        filters.join(" AND ")
+    };
+    let live = if q.include_deleted {
+        "1"
+    } else {
+        "t.tombstone=0"
+    };
+    let group = q.splits == Split::Grouped && !aggregate;
+    let base = format!("t.budget_id=?1 AND {live}");
+    let matched = format!("SELECT t.id,t.parent_id {JOINS} WHERE {base} AND ({filter})");
+    let where_sql = if group {
+        format!(
+            "{base} AND t.parent_id IS NULL AND (t.id IN (SELECT id FROM matched) OR t.id IN (SELECT parent_id FROM matched))"
+        )
+    } else {
+        format!(
+            "{base} AND ({filter}) AND {}",
+            match q.splits {
+                Split::Inline | Split::Grouped => "t.is_parent=0",
+                Split::None => "t.parent_id IS NULL",
+                Split::All => "1",
+            }
+        )
+    };
+    let groups = q
+        .group_by
+        .iter()
+        .map(|v| {
+            if let Some(s) = v.as_str() {
+                c.field(s)
+            } else {
+                c.expr(v, 1)
+            }
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let group_sql = if groups.is_empty() {
+        String::new()
+    } else {
+        format!(
+            " GROUP BY {}",
+            groups
+                .iter()
+                .map(|e| e.sql.as_str())
+                .collect::<Vec<_>>()
+                .join(",")
+        )
+    };
+    let cte = if group {
+        format!("WITH matched AS({matched}) ")
+    } else {
+        String::new()
+    };
+    let bound_count = c.values.len();
+    let count_sql = format!(
+        "{cte}SELECT COUNT(*) FROM(SELECT t.id {JOINS} WHERE {where_sql} AND (?{bound_count} IS ?{bound_count}){group_sql} LIMIT 100001)"
+    );
+    let count: i64 = db
+        .query_row(&count_sql, params_from_iter(c.values.iter()), |r| r.get(0))
+        .map_err(|e| regex.error().unwrap_or_else(|| Error::internal(e)))?;
+    if count > 100000 {
+        return Err(invalid(
+            "Query matches more than100000 rows; narrow account/date filters",
+        ));
+    }
+    let select = projected
+        .iter()
+        .map(|(_, alias, e)| format!("{} AS {alias}", e.sql))
+        .collect::<Vec<_>>()
+        .join(",");
+    let match_column = if group {
+        ",EXISTS(SELECT 1 FROM matched m WHERE m.id=t.id) AS __query_matched"
+    } else {
+        ""
+    };
+    let sql = format!(
+        "{cte}SELECT {select},t.id AS __query_id{match_column} {JOINS} WHERE {where_sql}{group_sql} ORDER BY {} LIMIT {} OFFSET {}",
+        c.orders, q.limit, q.offset
+    );
+    let mut statement = db.prepare(&sql)?;
+    let mut rows = statement
+        .query(params_from_iter(c.values.iter()))
+        .map_err(sql_error)?;
+    let mut data = vec![];
+    while let Some(row) = rows.next().map_err(sql_error)? {
+        let mut record = serde_json::Map::new();
+        for (index, (name, _, expr)) in projected.iter().enumerate() {
+            record.insert(name.clone(), value(row, index, expr.kind, q.raw)?);
+        }
+        if group {
+            if !row.get::<_, bool>(projected.len() + 1)? {
+                record.insert("_unmatched".into(), json!(true));
+            }
+            let id: String = row.get(projected.len())?;
+            let child_sql = format!(
+                "{cte}SELECT {select},EXISTS(SELECT 1 FROM matched m WHERE m.id=t.id) AS __query_matched {JOINS} WHERE t.budget_id=?1 AND t.parent_id=?{} AND {live} ORDER BY {} LIMIT 100001",
+                c.values.len() + 1,
+                c.orders
+            );
+            let mut values = c.values.clone();
+            values.push(SqlValue::Text(id));
+            let mut stmt = db.prepare(&child_sql)?;
+            let mut children = stmt.query(params_from_iter(values)).map_err(sql_error)?;
+            let mut nested = vec![];
+            while let Some(row) = children.next().map_err(sql_error)? {
+                if nested.len() >= 100000 {
+                    return Err(invalid("Grouped split exceeds100000 children"));
+                }
+                let mut item = serde_json::Map::new();
+                for (i, (name, _, expr)) in projected.iter().enumerate() {
+                    item.insert(name.clone(), value(row, i, expr.kind, q.raw)?);
+                }
+                if !row.get::<_, bool>(projected.len())? {
+                    item.insert("_unmatched".into(), json!(true));
+                }
+                nested.push(Value::Object(item));
+            }
+            record.insert("subtransactions".into(), json!(nested));
+        }
+        data.push(Value::Object(record));
+    }
+    if let Some(error) = regex.error() {
+        return Err(error);
+    }
+    let data = if q.calculation {
+        data.first()
+            .and_then(Value::as_object)
+            .and_then(|o| o.values().next())
+            .cloned()
+            .unwrap_or(json!(0))
+    } else {
+        json!(data)
+    };
+    Ok(
+        json!({"data":data,"matched_count":if aggregate&&groups.is_empty(){1}else{count},"next_offset":if !q.calculation&&q.offset+q.limit<count as usize{Some(q.offset+q.limit)}else{None},"snapshot":crate::concurrency::cursor(db,b)?,"epoch":crate::lifecycle::epoch(db,b)?}),
+    )
+}
+pub fn execute(db: &Connection, b: &str, q: &Query) -> Result<Value, Error> {
+    use rusqlite::functions::FunctionFlags;
+    db.create_scalar_function(
+        "query_lower",
+        1,
+        FunctionFlags::SQLITE_UTF8 | FunctionFlags::SQLITE_DETERMINISTIC,
+        |ctx| Ok(ctx.get::<Option<String>>(0)?.map(|s| s.to_lowercase())),
+    )?;
+    let regex = crate::register_regex::install(db)?;
+    let steps = Arc::new(AtomicUsize::new(0));
+    let progress = steps.clone();
+    db.progress_handler(
+        1000,
+        Some(move || progress.fetch_add(1000, Ordering::Relaxed) >= 2_000_000),
+    )?;
+    let result = run(db, b, q, &regex);
+    db.progress_handler(0, None::<fn() -> bool>)?;
+    if let Some(error) = regex.error() {
+        return Err(error);
+    }
+    if steps.load(Ordering::Relaxed) >= 2_000_000 {
+        return Err(invalid(
+            "Query work limit reached; narrow fields/account/date",
+        ));
+    }
+    result
+}

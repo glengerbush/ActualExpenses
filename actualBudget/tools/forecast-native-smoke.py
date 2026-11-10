@@ -27,7 +27,7 @@ with tempfile.TemporaryDirectory(prefix='forecast-native-') as directory:
   backup=call(root+'/backups',{'label':'Before forecast native round trip'},headers,201);data=call(root+'/backups/'+backup['data']['id']+'/download')
   def portable(bytes):
    with zipfile.ZipFile(io.BytesIO(bytes)) as contents:
-    assert json.loads(contents.read('manifest.json'))['schema_version']==26;return json.loads(contents.read('budget.json'))
+    assert json.loads(contents.read('manifest.json'))['schema_version']==27;return json.loads(contents.read('budget.json'))
   original=portable(data)
   def report_clocks(value):
    table=value['tables']['field_versions'];return [dict(zip(table['columns'],row)) for row in table['rows'] if dict(zip(table['columns'],row))['entity']=='reporting_documents']
@@ -43,5 +43,5 @@ with tempfile.TemporaryDirectory(prefix='forecast-native-') as directory:
    assert result['data']['result']['lowestBalance']['balance']==amount
    assert all(point['balance']==amount for point in result['data']['result']['dataPoints'])
    check(result)
-  print('PASS forecast served schemas including both safe-money boundaries, source opt-in/config, native24 duplicate/restore, retained reporting clocks and epoch-bound cache invalidation')
+  print('PASS forecast served schemas including both safe-money boundaries, source opt-in/config, native duplicate/restore, retained reporting clocks and epoch-bound cache invalidation')
  finally:process.terminate();process.wait(timeout=15)

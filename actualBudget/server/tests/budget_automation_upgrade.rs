@@ -244,7 +244,7 @@ fn genuine_schema19_native_backup_restores_goals_notes_and_schedule_with_new_epo
         .unwrap();
     assert_eq!(uploaded.status(), 201, "{}", uploaded.text().unwrap());
     let stage: Value = uploaded.json().unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 26);
+    assert_eq!(stage["data"]["report"]["schema_version"], 27);
     let activated = server
         .client
         .post(format!(

@@ -30,6 +30,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("migrations/024_notes.sql"),
     include_str!("migrations/025_gocardless.sql"),
     include_str!("migrations/026_retire_external_banks.sql"),
+    include_str!("migrations/027_rule_expressions.sql"),
 ];
 pub(crate) const CURRENT_VERSION: usize = MIGRATIONS.len();
 pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
@@ -50,6 +51,9 @@ pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     let tx = db.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     for (index, sql) in MIGRATIONS.iter().enumerate().skip(version as usize) {
         tx.execute_batch(sql)?;
+        if index == 26 {
+            crate::imports::refresh_rule_capabilities(&tx, None)?;
+        }
         if index == 23 {
             crate::notes::configure(&tx)?;
             crate::notes::enrich(&tx, None)?;

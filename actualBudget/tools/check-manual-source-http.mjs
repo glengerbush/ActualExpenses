@@ -133,7 +133,7 @@ try {
       { input: archive, encoding: "utf8" },
     ),
   );
-  assert.equal(portable.manifest.schema_version, 26);
+  assert.equal(portable.manifest.schema_version, 27);
   assert.ok(
     !Object.keys(portable.state.tables).some((name) =>
       name.startsWith("bank_"),
@@ -155,7 +155,7 @@ try {
   );
   noFlags((await call(root + "/preferences")).data);
   console.log(
-    "PASS genuine linked source becomes manual; exact financial/import data, original retained, retired flags refused and native26 round trip",
+    "PASS genuine linked source becomes manual; exact financial/import data, original retained, retired flags refused and native archive round trip",
   );
 } finally {
   await server.stop();

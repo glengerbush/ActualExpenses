@@ -230,3 +230,54 @@ Android/import/schedule/manual/forecast execution, remaining field/child context
 execution candidate filtering versus direct selected-action prefetch semantics,
 fractional split previews, and resource/performance qualification. No push,
 release, container qualification or live deployment at this checkpoint.
+
+## Import capability and native recovery checkpoint
+
+Migration27 refreshes unactivated Actual plans with rule converter version2.
+Valid expressions no longer retain the obsolete ticket42 capability block.
+Malformed syntax remains blocked with a reason, raw rule and original archive.
+Refresh reads one archive at a time, preserves upload identities and operation
+receipts, and excludes activated sources so later user edits survive. Fresh
+upload review and native restore use the same capability version. Archive
+validation accepts schemas6 through the server's current migration version.
+The existing transactional migration makes a standalone26 backup first.
+
+`check-rule-expression-recovery.py --capture <legacy-binary>` generated a
+disposable fixture using source commit `5e9cb42`, executable SHA256
+`876ca190be5a202d014f870a5fa57a93387f76f331892099e490238c49152ef3`.
+`rule-expressions-schema26.json` records executable/archive/database hashes,
+public responses and ledger observations. The producer stages the genuine
+saved-expression archive, a deliberately malformed template archive, and an
+ordinary source budget whose imported rule is then manually edited. The invalid
+input is explicitly a damaged-source fixture, not a financial oracle. The
+producer also records a manual expense, exact write receipt and genuine native26
+archive. No current database is relabeled as an older version.
+
+The running pre-change server fails the ready-stage assertion in
+`/tmp/rule-recovery-current-red.log`. The final public-API checker passes in
+`/tmp/rule-recovery-final.log`: upgrade preserves ledger and edited active rules,
+refreshes valid stages, retains malformed diagnostics and original bytes, replays
+old upload/write responses exactly, activates valid expressions, exports and
+duplicates them, restores changed definitions, applies the restored formula with
+the current epoch, retries exactly, restores the old native26 budget and survives
+a second startup without another migration backup. Financial output comes from
+the existing pinned-source commit fixture. The maintained command is
+`npm run test:rule-expressions-native` from `actualBudget/web`.
+
+Focused regression checks also pass:
+
+- `/tmp/rule-recovery-rust.log`:17 automation-upgrade and12 rule tests.
+- `/tmp/rule-recovery-manual.log`: genuine linked-source manual conversion and
+  genuine24 database/archive external-connection retirement.
+- `/tmp/rule-recovery-native-regression.log`: forecast/report schemas, archive
+  duplicate/restore, old21 upgrade, receipts and epoch behavior. Historical log
+  labels say native24/26; their current archive assertions explicitly check27.
+- `/tmp/rule-recovery-clippy.log`: warnings-denied Rust check.
+
+Root standards/spec review against `b433bbb`: migration is transactional,
+source blobs/receipts stay immutable, active edits are untouched, archive support
+tracks the migration registry, and recovery is tested through public operations.
+Ticket42's expression-import/diagnostic/original-recovery criterion is now
+verified. Whole42 remains open for execution-candidate/direct-action semantics,
+remaining child/field contexts, fractional split previews, broader transaction
+workflows and evaluation-limit/performance qualification. No push or deployment.

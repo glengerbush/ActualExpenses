@@ -72,7 +72,7 @@ for (const mode of ["database", "archive"]) {
       });
       assert.equal(res.status, 201, await res.clone().text());
       const stage = (await res.json()).data;
-      assert.equal(stage.report.schema_version, 26);
+      assert.equal(stage.report.schema_version, 27);
       assert.ok(
         stage.report.retired_external_connections > 0,
         "Legacy native conversion reports removed external configuration",
@@ -97,7 +97,9 @@ for (const mode of ["database", "archive"]) {
     }
     const before = await call(root + "/checkpoint");
     const preferences = (await call(root + "/preferences")).data.experimental;
-    assert.ok(!("enableBanking" in preferences) && !("akahuBankSync" in preferences));
+    assert.ok(
+      !("enableBanking" in preferences) && !("akahuBankSync" in preferences),
+    );
     const connection =
       fixture.snapshot.banking?.data?.connections?.[0]?.id ?? randomUUID();
     for (const path of [

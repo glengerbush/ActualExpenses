@@ -244,7 +244,9 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || !matches!(manifest["schema_version"].as_u64(), Some(6..=26))
+        || manifest["schema_version"].as_u64().is_none_or(|version| {
+            !(6..=crate::migrations::CURRENT_VERSION as u64).contains(&version)
+        })
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }
@@ -1051,6 +1053,7 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
     }
     crate::register_settings::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
     crate::reports::import::enrich(db, archive.state.budget["id"].as_str())?;
+    crate::imports::refresh_rule_capabilities(db, archive.state.budget["id"].as_str())?;
     crate::notes::domain_identities(db, archive.state.budget["id"].as_str())?;
     if archive.legacy_notes {
         crate::notes::enrich(db, archive.state.budget["id"].as_str())?;

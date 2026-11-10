@@ -20,7 +20,8 @@
     "test:rule-expressions-source": "node ../tools/generate-rule-expressions-source.mjs --check && node ../tools/generate-rule-expressions-source.mjs --context --check && node ../tools/generate-rule-expression-commits-source.mjs --check && node ../tools/generate-rule-actions-runtime.mjs --check && node ../tools/check-rule-actions-bundle.mjs && node ../tools/generate-rule-expressions-source.mjs --chains --check",
     "test:formula-native": "uv run ../tools/formula-native-smoke.py && uv run ../tools/formula-formatting-recovery.py",
     "test:rule-expressions-api": "node ../tools/check-rule-expressions-http.mjs && node ../tools/check-rule-expressions-http.mjs --context && node ../tools/check-rule-expression-commits-http.mjs && node ../tools/check-rule-expressions-http.mjs --chains",
-    "test:rule-expressions-browser": "node tests/rule-expressions-browser.mjs"
+    "test:rule-expressions-browser": "node tests/rule-expressions-browser.mjs",
+    "test:rule-expressions-native": "python3 ../tools/check-rule-expression-recovery.py"
   },
   "dependencies": {
     "mdast-util-from-markdown": "2.1.0",

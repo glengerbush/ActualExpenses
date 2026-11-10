@@ -1,0 +1,2 @@
+-- Re-evaluate unactivated Actual import plans with calculated rule support.
+-- The Rust migration preserves original archives, receipts and live budgets.

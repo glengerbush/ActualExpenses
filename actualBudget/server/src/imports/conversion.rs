@@ -903,7 +903,7 @@ pub(super) fn convert_loaded(
     }
     converted["reporting"] = crate::reports::import::convert(&source)?;
     converted["rules"] = crate::rules::convert_actual(&source, &payee_map, &category_map)?;
-    converted["rules_version"] = json!(1);
+    converted["rules_version"] = json!(super::capabilities::RULES_VERSION);
     converted["schedules"] = crate::schedules::convert_actual(&source, &converted["rules"])?;
     converted["schedules_version"] = json!(1);
     requirements.extend(

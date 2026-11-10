@@ -42,7 +42,7 @@ with tempfile.TemporaryDirectory(prefix='reporting-native-copy-') as directory:
   cancel_body={'writes':[{'id':page,'kind':'page','revision':1,'config':{'name':'Canceled'},'tombstone':False}]};cancel_key='cancel21';canceled=call(root+'/reporting/commands',cancel_body,cancel_key,{**headers,'X-Actual-Cancel-If-Uncommitted':'true'},409);check('/reporting/commands',canceled,'POST',409);assert call(root+'/reporting/commands',cancel_body,cancel_key,headers,409)==canceled
   after_companion=call(root+'/companion?account_id='+evidence['account'])['data'];assert {k:v for k,v in after_companion.items() if k!='snapshot'}=={k:v for k,v in before_companion['data'].items() if k!='snapshot'}
   backup=call(root+'/backups',{'label':'Reporting22'},headers=headers,expected=201);archive=call(root+'/backups/'+backup['data']['id']+'/download')
-  with zipfile.ZipFile(io.BytesIO(archive)) as contents:assert json.loads(contents.read('manifest.json'))['schema_version']==26
+  with zipfile.ZipFile(io.BytesIO(archive)) as contents:assert json.loads(contents.read('manifest.json'))['schema_version']==27
   duplicate=str(uuid.uuid4());call(root+'/duplicate',{'id':duplicate,'name':'History duplicate'},headers=headers,expected=201);assert call('/budgets/'+duplicate+'/reporting')['data']['documents']==command['data']['documents']
   # Restore the genuine21 ZIP through supported native upload/activation; reporting
   # is empty by construction and money/receipt bytes remain preserved in that ZIP.
@@ -72,5 +72,5 @@ with tempfile.TemporaryDirectory(prefix='reporting-native-copy-') as directory:
   allocation_root='/budgets/'+allocation_import['data']['budget_id'];allocation_oracle=json.loads((fixtures/'custom-reports-source-26.10.json').read_text());allocation_options=next(c['options'] for c in allocation_oracle['cases'] if c['options']['balanceTypeOp']=='totalBudgeted' and c['options']['groupBy']=='Category')
   allocation_query={'version':1,'kind':'custom','as_of':'2026-11-09','options':allocation_options};allocation_projection=call(allocation_root+'/reports/query',allocation_query);check('/reports/query',allocation_projection,'POST');allocation_cell=next(c for c in allocation_projection['data']['cells'] if c['label']=='food total')
   allocation_rows=call(allocation_root+'/reports/drilldown',{'query':allocation_query,'snapshot':allocation_projection['data']['snapshot'],'cell_id':allocation_cell['id'],'offset':0,'limit':2});check('/reports/drilldown',allocation_rows,'POST');assert allocation_rows['data']['total_amount']==5000;assert all(r['account_id'] is None for r in allocation_rows['data']['rows'])
-  print('PASS reporting genuine21 upgrade, schemas, receipts/cancel, companion money, duplication, native24 source-clock/layout round trip and genuine21 restore/epoch fence')
+  print('PASS reporting genuine21 upgrade, schemas, receipts/cancel, companion money, duplication, native source-clock/layout round trip and genuine21 restore/epoch fence')
  finally:process.terminate();process.wait(timeout=15)

@@ -1,0 +1,848 @@
+{
+  "source_commit": "5e9cb4244f2d5173961596eefb86e2223bbb3667",
+  "executable_sha256": "876ca190be5a202d014f870a5fa57a93387f76f331892099e490238c49152ef3",
+  "source_sha256": "35ead5dd57edda3bd04b1b44a2d3c112db3635e868a3ff2fec564897239f63d6",
+  "malformed_sha256": "7d4999eab054d1bedeeaebf31582d2e485e09170b717dc339e83bb809b92fb82",
+  "valid": {
+    "data": {
+      "budget_id": "79355808-ce10-4de6-a336-adedcdf1a3d7",
+      "id": "a0e64d1b-5592-4bfc-9466-234a815e00d1",
+      "report": {
+        "accounts": [
+          {
+            "closed": false,
+            "group_id": null,
+            "id": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "last_reconciled": null,
+            "name": "checking",
+            "notes": "",
+            "off_budget": false,
+            "sort_order": 1,
+            "tombstone": false
+          },
+          {
+            "closed": false,
+            "group_id": null,
+            "id": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "last_reconciled": null,
+            "name": "savings",
+            "notes": "",
+            "off_budget": false,
+            "sort_order": 2,
+            "tombstone": false
+          },
+          {
+            "closed": false,
+            "group_id": null,
+            "id": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "last_reconciled": null,
+            "name": "brokerage",
+            "notes": "",
+            "off_budget": true,
+            "sort_order": 0,
+            "tombstone": false
+          },
+          {
+            "closed": true,
+            "group_id": null,
+            "id": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "last_reconciled": null,
+            "name": "closed",
+            "notes": "",
+            "off_budget": false,
+            "sort_order": 3,
+            "tombstone": false
+          }
+        ],
+        "archive_sha256": "35ead5dd57edda3bd04b1b44a2d3c112db3635e868a3ff2fec564897239f63d6",
+        "balances": [
+          {
+            "account_id": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "cleared": 99100,
+            "total": 101600,
+            "uncleared": 2500
+          },
+          {
+            "account_id": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "cleared": 9800,
+            "total": 8566,
+            "uncleared": -1234
+          },
+          {
+            "account_id": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "cleared": 5000,
+            "total": 7000,
+            "uncleared": 2000
+          },
+          {
+            "account_id": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "cleared": 2000,
+            "total": 2000,
+            "uncleared": 0
+          }
+        ],
+        "checks": {
+          "converted_relationships": true,
+          "financial_totals": true,
+          "identifiers": true,
+          "sqlite_integrity": true
+        },
+        "counts": {
+          "__meta__": 1,
+          "__migrations__": 60,
+          "account_groups": 0,
+          "accounts": 4,
+          "banks": 0,
+          "categories": 7,
+          "category_groups": 4,
+          "category_mapping": 12,
+          "cleanup_groups": 0,
+          "created_budgets": 0,
+          "custom_reports": 1,
+          "dashboard": 15,
+          "dashboard_pages": 2,
+          "kvcache": 0,
+          "kvcache_key": 0,
+          "messages_clock": 1,
+          "messages_crdt": 0,
+          "messages_pending": 0,
+          "notes": 0,
+          "payee_locations": 0,
+          "payee_mapping": 7,
+          "payees": 7,
+          "pending_transactions": 0,
+          "preferences": 2,
+          "reflect_budgets": 0,
+          "rules": 2,
+          "schedules": 0,
+          "schedules_json_paths": 0,
+          "schedules_next_date": 0,
+          "sqlite_stat1": 4,
+          "sqlite_stat4": 31,
+          "tags": 0,
+          "transaction_filters": 0,
+          "transactions": 21,
+          "zero_budget_months": 0,
+          "zero_budgets": 2
+        },
+        "extra_archive_entries": [],
+        "preferences": {
+          "device": {
+            "language": "",
+            "preferred_dark_theme": "dark",
+            "theme": "system"
+          },
+          "shared": {
+            "currency_code": "",
+            "currency_space": false,
+            "currency_symbol_position": "before",
+            "date_format": "MM/dd/yyyy",
+            "experimental": {
+              "actionTemplating": true,
+              "balanceForecastReport": false,
+              "budgetAnalysisReport": false,
+              "currency": false,
+              "customThemes": false,
+              "formulaMode": true,
+              "goalTemplatesEnabled": false,
+              "goalTemplatesUIEnabled": false,
+              "mobileCalculator": false,
+              "monteCarloReport": false,
+              "newSidebarUI": false,
+              "sankeyReport": false
+            },
+            "first_day_of_week": 0,
+            "hide_fraction": false,
+            "number_format": "comma-dot"
+          },
+          "unmapped": {
+            "global": {},
+            "synced": {}
+          },
+          "warnings": []
+        },
+        "requirements": [
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "__meta__",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 60,
+            "feature": "__migrations__",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 12,
+            "feature": "category_mapping",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "messages_clock",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 7,
+            "feature": "payee_mapping",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 4,
+            "feature": "sqlite_stat1",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 31,
+            "feature": "sqlite_stat4",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 4,
+            "feature": "transfer_payees",
+            "reason": "Transfer payee metadata preserved; excluded from ordinary payee selection"
+          },
+          {
+            "blocking": false,
+            "count": 5,
+            "feature": "unreferenced_category_alias",
+            "reason": "Obsolete source alias retained; converted transactions must still resolve to an existing category"
+          },
+          {
+            "blocking": true,
+            "count": 1,
+            "feature": "rules",
+            "raw": {
+              "field": "notes",
+              "op": "set",
+              "options": {
+                "template": "{{notes}} / {{{imported_payee}}}"
+              },
+              "value": ""
+            },
+            "reason": "Template/formula execution requires the expression capability",
+            "rule_id": "42420000-0000-4000-8000-000000000101",
+            "ticket": 42
+          },
+          {
+            "blocking": true,
+            "count": 1,
+            "feature": "rules",
+            "raw": {
+              "field": "amount",
+              "op": "set",
+              "options": {
+                "formula": "=amount/100+1"
+              },
+              "value": 0
+            },
+            "reason": "Template/formula execution requires the expression capability",
+            "rule_id": "42420000-0000-4000-8000-000000000113",
+            "ticket": 42
+          }
+        ],
+        "source": {
+          "budgetName": "Historical reports baseline",
+          "encryptKeyId": null,
+          "groupId": null,
+          "id": "Historical-reports-baseline-bcb4b74",
+          "lastUploaded": "2026-11-09",
+          "resetClock": true
+        },
+        "source_field_clock_count": 0,
+        "source_preferences": [
+          {
+            "id": "flags.formulaMode",
+            "value": "true"
+          },
+          {
+            "id": "flags.actionTemplating",
+            "value": "true"
+          }
+        ]
+      },
+      "status": "blocked"
+    }
+  },
+  "invalid": {
+    "data": {
+      "budget_id": "e46c85e7-06ff-4f6d-bc02-6a5a6c28615f",
+      "id": "3b118efa-45f5-4efe-8f58-33387b6180fd",
+      "report": {
+        "accounts": [
+          {
+            "closed": false,
+            "group_id": null,
+            "id": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "last_reconciled": null,
+            "name": "checking",
+            "notes": "",
+            "off_budget": false,
+            "sort_order": 1,
+            "tombstone": false
+          },
+          {
+            "closed": false,
+            "group_id": null,
+            "id": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "last_reconciled": null,
+            "name": "savings",
+            "notes": "",
+            "off_budget": false,
+            "sort_order": 2,
+            "tombstone": false
+          },
+          {
+            "closed": false,
+            "group_id": null,
+            "id": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "last_reconciled": null,
+            "name": "brokerage",
+            "notes": "",
+            "off_budget": true,
+            "sort_order": 0,
+            "tombstone": false
+          },
+          {
+            "closed": true,
+            "group_id": null,
+            "id": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "last_reconciled": null,
+            "name": "closed",
+            "notes": "",
+            "off_budget": false,
+            "sort_order": 3,
+            "tombstone": false
+          }
+        ],
+        "archive_sha256": "7d4999eab054d1bedeeaebf31582d2e485e09170b717dc339e83bb809b92fb82",
+        "balances": [
+          {
+            "account_id": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "cleared": 99100,
+            "total": 101600,
+            "uncleared": 2500
+          },
+          {
+            "account_id": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "cleared": 9800,
+            "total": 8566,
+            "uncleared": -1234
+          },
+          {
+            "account_id": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "cleared": 5000,
+            "total": 7000,
+            "uncleared": 2000
+          },
+          {
+            "account_id": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "cleared": 2000,
+            "total": 2000,
+            "uncleared": 0
+          }
+        ],
+        "checks": {
+          "converted_relationships": true,
+          "financial_totals": true,
+          "identifiers": true,
+          "sqlite_integrity": true
+        },
+        "counts": {
+          "__meta__": 1,
+          "__migrations__": 60,
+          "account_groups": 0,
+          "accounts": 4,
+          "banks": 0,
+          "categories": 7,
+          "category_groups": 4,
+          "category_mapping": 12,
+          "cleanup_groups": 0,
+          "created_budgets": 0,
+          "custom_reports": 1,
+          "dashboard": 15,
+          "dashboard_pages": 2,
+          "kvcache": 0,
+          "kvcache_key": 0,
+          "messages_clock": 1,
+          "messages_crdt": 0,
+          "messages_pending": 0,
+          "notes": 0,
+          "payee_locations": 0,
+          "payee_mapping": 7,
+          "payees": 7,
+          "pending_transactions": 0,
+          "preferences": 2,
+          "reflect_budgets": 0,
+          "rules": 2,
+          "schedules": 0,
+          "schedules_json_paths": 0,
+          "schedules_next_date": 0,
+          "sqlite_stat1": 4,
+          "sqlite_stat4": 31,
+          "tags": 0,
+          "transaction_filters": 0,
+          "transactions": 21,
+          "zero_budget_months": 0,
+          "zero_budgets": 2
+        },
+        "extra_archive_entries": [],
+        "preferences": {
+          "device": {
+            "language": "",
+            "preferred_dark_theme": "dark",
+            "theme": "system"
+          },
+          "shared": {
+            "currency_code": "",
+            "currency_space": false,
+            "currency_symbol_position": "before",
+            "date_format": "MM/dd/yyyy",
+            "experimental": {
+              "actionTemplating": true,
+              "balanceForecastReport": false,
+              "budgetAnalysisReport": false,
+              "currency": false,
+              "customThemes": false,
+              "formulaMode": true,
+              "goalTemplatesEnabled": false,
+              "goalTemplatesUIEnabled": false,
+              "mobileCalculator": false,
+              "monteCarloReport": false,
+              "newSidebarUI": false,
+              "sankeyReport": false
+            },
+            "first_day_of_week": 0,
+            "hide_fraction": false,
+            "number_format": "comma-dot"
+          },
+          "unmapped": {
+            "global": {},
+            "synced": {}
+          },
+          "warnings": []
+        },
+        "requirements": [
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "__meta__",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 60,
+            "feature": "__migrations__",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 12,
+            "feature": "category_mapping",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "messages_clock",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 7,
+            "feature": "payee_mapping",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 4,
+            "feature": "sqlite_stat1",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 31,
+            "feature": "sqlite_stat4",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 4,
+            "feature": "transfer_payees",
+            "reason": "Transfer payee metadata preserved; excluded from ordinary payee selection"
+          },
+          {
+            "blocking": false,
+            "count": 5,
+            "feature": "unreferenced_category_alias",
+            "reason": "Obsolete source alias retained; converted transactions must still resolve to an existing category"
+          },
+          {
+            "blocking": true,
+            "count": 1,
+            "feature": "rules",
+            "raw": {
+              "field": "notes",
+              "op": "set",
+              "options": {
+                "template": "{{#if amount}}unterminated"
+              },
+              "value": ""
+            },
+            "reason": "Template/formula execution requires the expression capability",
+            "rule_id": "42420000-0000-4000-8000-000000000101",
+            "ticket": 42
+          },
+          {
+            "blocking": true,
+            "count": 1,
+            "feature": "rules",
+            "raw": {
+              "field": "amount",
+              "op": "set",
+              "options": {
+                "formula": "=amount/100+1"
+              },
+              "value": 0
+            },
+            "reason": "Template/formula execution requires the expression capability",
+            "rule_id": "42420000-0000-4000-8000-000000000113",
+            "ticket": 42
+          }
+        ],
+        "source": {
+          "budgetName": "Historical reports baseline",
+          "encryptKeyId": null,
+          "groupId": null,
+          "id": "Historical-reports-baseline-bcb4b74",
+          "lastUploaded": "2026-11-09",
+          "resetClock": true
+        },
+        "source_field_clock_count": 0,
+        "source_preferences": [
+          {
+            "id": "flags.formulaMode",
+            "value": "true"
+          },
+          {
+            "id": "flags.actionTemplating",
+            "value": "true"
+          }
+        ]
+      },
+      "status": "blocked"
+    }
+  },
+  "budget": "950c0a6b-ed6b-4643-ae99-cdae6a695847",
+  "body": {
+    "id": "faca8d0d-b431-402f-bbb6-b3b07a5b9d38",
+    "account_id": "c20092b4-5faf-4de8-b2fc-9dcdf73dfa67",
+    "amount": -1234,
+    "date": "2026-01-02",
+    "cleared": true,
+    "notes": "Keep this manual expense"
+  },
+  "receipt": {
+    "conflicts": [],
+    "cursor": "c1686b8ca7f9b91ace97000f1931ee418f0000000000000006",
+    "data": {
+      "account_id": "c20092b4-5faf-4de8-b2fc-9dcdf73dfa67",
+      "account_name": "Manual",
+      "amount": -1234,
+      "category_id": null,
+      "category_is_income": null,
+      "category_name": null,
+      "cleared": true,
+      "date": "2026-01-02",
+      "field_versions": {
+        "account_id": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "amount": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "category_id": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "cleared": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "date": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "notes": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "payee_id": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "reconciled": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "starting_balance": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "tombstone": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362"
+      },
+      "id": "faca8d0d-b431-402f-bbb6-b3b07a5b9d38",
+      "imported_payee": null,
+      "notes": "Keep this manual expense",
+      "payee_id": null,
+      "payee_name": null,
+      "reconciled": false,
+      "retained_payee_id": null,
+      "sort_order": 1,
+      "starting_balance": false
+    },
+    "edit_clock": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362"
+  },
+  "before": [
+    {
+      "account_id": "c20092b4-5faf-4de8-b2fc-9dcdf73dfa67",
+      "account_name": "Manual",
+      "amount": -1234,
+      "category_group_name": null,
+      "category_id": null,
+      "category_is_income": null,
+      "category_name": null,
+      "cleared": true,
+      "date": "2026-01-02",
+      "field_versions": {
+        "account_id": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "amount": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "category_id": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "cleared": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "date": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "notes": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "payee_id": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "reconciled": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "starting_balance": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362",
+        "tombstone": "2026-11-10T18:08:35.214Z-0000-081c0b0d00fff362"
+      },
+      "id": "faca8d0d-b431-402f-bbb6-b3b07a5b9d38",
+      "imported_payee": null,
+      "notes": "Keep this manual expense",
+      "payee_id": null,
+      "payee_name": null,
+      "reconciled": false,
+      "retained_payee_id": null,
+      "running_balance": -1234,
+      "sort_order": 1,
+      "starting_balance": false
+    }
+  ],
+  "backup_sha256": "190ed2d2e8d4388b7c205b9af4cf348918d5eb68e70232cf8aef9bf9614521a8",
+  "live_root": "/budgets/11ce5ac7-cd3e-4790-b1ab-4b2b72334abb",
+  "live_rules": [
+    {
+      "actions": [
+        {
+          "field": "notes",
+          "op": "set",
+          "value": "Manual edit must survive upgrade"
+        }
+      ],
+      "conditions": [
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "0834e38a-14df-400a-bfd6-29df8258618b"
+        }
+      ],
+      "conditionsOp": "and",
+      "id": "3affa97a-92bc-48f8-aa0a-971105af9aa1",
+      "stage": null
+    }
+  ],
+  "live_transactions": [
+    {
+      "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+      "account_name": "Spending",
+      "amount": -100,
+      "category_group_name": null,
+      "category_id": null,
+      "category_is_income": null,
+      "category_name": null,
+      "cleared": false,
+      "date": "2027-01-01",
+      "field_versions": {
+        "account_id": "2026-11-08T23:27:13.763Z-0024-8e9471b631211c5d",
+        "amount": "2026-11-08T23:27:13.763Z-0021-8e9471b631211c5d",
+        "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "cleared": "2026-11-08T23:27:13.763Z-0022-8e9471b631211c5d",
+        "date": "2026-11-08T23:27:13.763Z-0020-8e9471b631211c5d",
+        "notes": "2026-11-08T23:27:13.763Z-0023-8e9471b631211c5d",
+        "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "reconciled": "2026-11-08T23:27:13.763Z-0026-8e9471b631211c5d",
+        "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "id": "04000000-0000-4000-8000-000000000005",
+      "imported_payee": null,
+      "notes": "Future expense",
+      "payee_id": null,
+      "payee_name": null,
+      "reconciled": false,
+      "retained_payee_id": null,
+      "running_balance": 26434,
+      "sort_order": 1,
+      "starting_balance": false
+    },
+    {
+      "account_id": "dbec986e-8154-43b3-86e7-8494d76ff0d3",
+      "account_name": "Reserve",
+      "amount": -5000,
+      "category_group_name": null,
+      "category_id": null,
+      "category_is_income": null,
+      "category_name": null,
+      "cleared": true,
+      "date": "2026-11-08",
+      "field_versions": {
+        "account_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "amount": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "cleared": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "date": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "notes": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "reconciled": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "id": "b958973e-223a-4a68-8651-8d3d6c47c74e",
+      "imported_payee": null,
+      "notes": "",
+      "payee_id": "68d04619-f896-4db0-8aa5-ce4f066d2610",
+      "payee_name": "Starting Balance",
+      "reconciled": false,
+      "retained_payee_id": "68d04619-f896-4db0-8aa5-ce4f066d2610",
+      "running_balance": 26534,
+      "sort_order": 6,
+      "starting_balance": true
+    },
+    {
+      "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+      "account_name": "Spending",
+      "amount": 12500,
+      "category_group_name": "Income",
+      "category_id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+      "category_is_income": true,
+      "category_name": "Starting Balances",
+      "cleared": true,
+      "date": "2026-11-08",
+      "field_versions": {
+        "account_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "amount": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "cleared": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "date": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "notes": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "reconciled": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "id": "c4e26ad7-701c-483f-8e0f-2a6b8f7e3261",
+      "imported_payee": null,
+      "notes": "",
+      "payee_id": "68d04619-f896-4db0-8aa5-ce4f066d2610",
+      "payee_name": "Starting Balance",
+      "reconciled": false,
+      "retained_payee_id": "68d04619-f896-4db0-8aa5-ce4f066d2610",
+      "running_balance": 31534,
+      "sort_order": 5,
+      "starting_balance": true
+    },
+    {
+      "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+      "account_name": "Spending",
+      "amount": 234,
+      "category_group_name": "Everyday",
+      "category_id": "ca062065-44a8-4b6e-b666-89b6ba19b5ff",
+      "category_is_income": false,
+      "category_name": "Food",
+      "cleared": true,
+      "date": "2026-01-03",
+      "field_versions": {
+        "account_id": "2026-11-08T23:27:13.763Z-0016-8e9471b631211c5d",
+        "amount": "2026-11-08T23:27:13.763Z-0011-8e9471b631211c5d",
+        "category_id": "2026-11-08T23:27:13.763Z-0013-8e9471b631211c5d",
+        "cleared": "2026-11-08T23:27:13.763Z-0014-8e9471b631211c5d",
+        "date": "2026-11-08T23:27:13.763Z-0010-8e9471b631211c5d",
+        "notes": "2026-11-08T23:27:13.763Z-0015-8e9471b631211c5d",
+        "payee_id": "2026-11-08T23:27:13.763Z-0012-8e9471b631211c5d",
+        "reconciled": "2026-11-08T23:27:13.763Z-0018-8e9471b631211c5d",
+        "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "id": "04000000-0000-4000-8000-000000000003",
+      "imported_payee": null,
+      "notes": "Refund",
+      "payee_id": "0834e38a-14df-400a-bfd6-29df8258618b",
+      "payee_name": "Fixture shop",
+      "reconciled": false,
+      "retained_payee_id": "0834e38a-14df-400a-bfd6-29df8258618b",
+      "running_balance": 19034,
+      "sort_order": 3,
+      "starting_balance": false
+    },
+    {
+      "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+      "account_name": "Spending",
+      "amount": -1200,
+      "category_group_name": "Everyday",
+      "category_id": "ca062065-44a8-4b6e-b666-89b6ba19b5ff",
+      "category_is_income": false,
+      "category_name": "Food",
+      "cleared": true,
+      "date": "2026-01-02",
+      "field_versions": {
+        "account_id": "2026-11-08T23:27:13.763Z-000D-8e9471b631211c5d",
+        "amount": "2026-11-08T23:27:13.822Z-0000-8e9471b631211c5d",
+        "category_id": "2026-11-08T23:27:13.763Z-000A-8e9471b631211c5d",
+        "cleared": "2026-11-08T23:27:13.823Z-0001-8e9471b631211c5d",
+        "date": "2026-11-08T23:27:13.763Z-0007-8e9471b631211c5d",
+        "notes": "2026-11-08T23:27:13.823Z-0000-8e9471b631211c5d",
+        "payee_id": "2026-11-08T23:27:13.763Z-0009-8e9471b631211c5d",
+        "reconciled": "2026-11-08T23:27:13.763Z-000F-8e9471b631211c5d",
+        "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "id": "04000000-0000-4000-8000-000000000002",
+      "imported_payee": null,
+      "notes": "Corrected expense",
+      "payee_id": "0834e38a-14df-400a-bfd6-29df8258618b",
+      "payee_name": "Fixture shop",
+      "reconciled": false,
+      "retained_payee_id": "0834e38a-14df-400a-bfd6-29df8258618b",
+      "running_balance": 18800,
+      "sort_order": 4,
+      "starting_balance": false
+    },
+    {
+      "account_id": "0165d0a7-99e2-4719-a102-c007b7a8daaa",
+      "account_name": "Spending",
+      "amount": 20000,
+      "category_group_name": null,
+      "category_id": null,
+      "category_is_income": null,
+      "category_name": null,
+      "cleared": true,
+      "date": "2026-01-01",
+      "field_versions": {
+        "account_id": "2026-11-08T23:27:13.763Z-0004-8e9471b631211c5d",
+        "amount": "2026-11-08T23:27:13.763Z-0001-8e9471b631211c5d",
+        "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "cleared": "2026-11-08T23:27:13.763Z-0002-8e9471b631211c5d",
+        "date": "2026-11-08T23:27:13.763Z-0000-8e9471b631211c5d",
+        "notes": "2026-11-08T23:27:13.763Z-0003-8e9471b631211c5d",
+        "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "reconciled": "2026-11-08T23:27:13.763Z-0006-8e9471b631211c5d",
+        "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+        "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+      },
+      "id": "04000000-0000-4000-8000-000000000001",
+      "imported_payee": null,
+      "notes": "Income",
+      "payee_id": null,
+      "payee_name": null,
+      "reconciled": false,
+      "retained_payee_id": null,
+      "running_balance": 20000,
+      "sort_order": 7,
+      "starting_balance": false
+    }
+  ],
+  "database_sha256": "183e1a62e6109f70e22f94c9e659c44e155534a7c58b8da3ce9023ce026dcbf8"
+}

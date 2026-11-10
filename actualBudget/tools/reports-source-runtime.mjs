@@ -7,7 +7,7 @@ import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import vm from "node:vm";
-export function sourceRuntime(api, engine) {
+export function sourceRuntime(api, engine, presentation = {}) {
   const dependencies = createRequire(
       new URL(
         "../../actualExpenses/tools/compatibility/package.json",
@@ -42,7 +42,8 @@ export function sourceRuntime(api, engine) {
         return { aqlQuery: (query) => api.aqlQuery(query) };
       if (name === "#shared/platform")
         return { OS: "linux", env: "web", isPlaywright: false };
-      if (name === "i18next") return { t: (value) => value };
+      if (name === "i18next")
+        return { t: presentation.translate ?? ((value) => value) };
       if (name === "csv-stringify/browser/esm/sync") return dependencies(name);
       if (name === "react")
         return { createElement: () => null, Fragment: () => null };
@@ -52,10 +53,13 @@ export function sourceRuntime(api, engine) {
             reportsNumberNegative: "#a00",
             reportsNumberPositive: "#060",
             reportsNumberNeutral: "#555",
+            ...presentation.theme,
           },
         };
       if (name === "#components/reports/chart-theme")
-        return { getColorScale: () => ["#060", "#a00", "#555"] };
+        return {
+          getColorScale: () => presentation.colors ?? ["#060", "#a00", "#555"],
+        };
       if (
         name === "@actual-app/components/aligned-text" ||
         name === "#components/FinancialText"

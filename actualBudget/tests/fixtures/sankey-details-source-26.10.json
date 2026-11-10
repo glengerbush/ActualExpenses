@@ -1,0 +1,1519 @@
+{
+  "oracle": "Unchanged full Sankey engine/projection for falsy-name and ending-layer seams; real AQL leaf membership and source grouping/transfer functions",
+  "archive_sha256": "0e002748899f3cba865a6e7f809c9b0e13e468eb3148e7782d6cbc1c8c6dde30",
+  "source_files": {
+    "packages/desktop-client/src/components/reports/spreadsheets/sankey-spreadsheet.ts": "74e7ec600438b29054d58dda5eed44e39a912755716541135af5d1865991519a",
+    "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+    "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+    "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685"
+  },
+  "cases": [
+    {
+      "name": "empty-named-condition",
+      "options": {
+        "startDate": "2026-11-01",
+        "endDate": "2026-11-30",
+        "mode": "spent",
+        "conditions": [
+          {
+            "field": "category",
+            "op": "is",
+            "value": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "customName": ""
+          }
+        ],
+        "conditionsOp": "and",
+        "groupAccounts": false,
+        "showTransfers": false,
+        "topNcategories": 15,
+        "categorySort": "per-group",
+        "layerFrom": "payee",
+        "layerTo": "category"
+      },
+      "baseGraph": [
+        {
+          "key": "18c4cef2-d782-4544-a460-7c04c275a581__NEGATIVE",
+          "to": [
+            [
+              "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+              1200
+            ]
+          ],
+          "type": "income_category",
+          "name": "Market"
+        },
+        {
+          "key": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "to": [],
+          "type": "account",
+          "name": "savings"
+        },
+        {
+          "key": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "to": [
+            [
+              "cdf3e63a-4372-452e-b0ae-893efa976265",
+              4800
+            ]
+          ],
+          "type": "account",
+          "name": "checking"
+        },
+        {
+          "key": "cdf3e63a-4372-452e-b0ae-893efa976265",
+          "to": [
+            [
+              "18c4cef2-d782-4544-a460-7c04c275a581",
+              4800
+            ]
+          ],
+          "type": "category_group",
+          "name": "Expenses"
+        },
+        {
+          "key": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "to": [],
+          "type": "category",
+          "name": "Food café ? %"
+        }
+      ],
+      "result": {
+        "nodes": [
+          {
+            "key": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "name": "checking",
+            "percentageLabel": "0.0%",
+            "color": "palette2"
+          },
+          {
+            "key": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "percentageLabel": "100.0%",
+            "color": "palette1"
+          },
+          {
+            "key": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "name": "Food café ? %",
+            "percentageLabel": "100.0%",
+            "color": "palette0"
+          },
+          {
+            "key": "18c4cef2-d782-4544-a460-7c04c275a581__NEGATIVE",
+            "name": "Market",
+            "percentageLabel": "100.0%",
+            "color": "palette0"
+          },
+          {
+            "key": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "name": "savings",
+            "percentageLabel": "100.0%",
+            "color": "palette2"
+          },
+          {
+            "key": "79a2f9e2-41b3-4f2b-a751-8937604f5857_income_category__HIDDEN",
+            "name": "",
+            "percentageLabel": "",
+            "color": "palette2"
+          },
+          {
+            "key": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85_category_group__HIDDEN",
+            "name": "",
+            "percentageLabel": "",
+            "color": "palette2"
+          },
+          {
+            "key": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85_category__HIDDEN",
+            "name": "",
+            "percentageLabel": "",
+            "color": "palette2"
+          }
+        ],
+        "links": [
+          {
+            "source": 0,
+            "target": 1,
+            "value": 4800,
+            "tooltipInfo": [],
+            "color": "palette2"
+          },
+          {
+            "source": 1,
+            "target": 2,
+            "value": 4800,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 3,
+            "target": 4,
+            "value": 1200,
+            "tooltipInfo": [],
+            "color": "palette0"
+          },
+          {
+            "source": 4,
+            "target": 6,
+            "value": -1,
+            "tooltipInfo": [],
+            "color": "palette2"
+          },
+          {
+            "source": 5,
+            "target": 0,
+            "value": -1,
+            "tooltipInfo": [],
+            "color": "palette2"
+          },
+          {
+            "source": 6,
+            "target": 7,
+            "value": -1,
+            "tooltipInfo": [],
+            "color": "palette2"
+          }
+        ]
+      }
+    },
+    {
+      "name": "spent-end-account",
+      "options": {
+        "startDate": "2026-11-01",
+        "endDate": "2026-11-30",
+        "mode": "spent",
+        "conditions": [],
+        "conditionsOp": "and",
+        "groupAccounts": false,
+        "showTransfers": true,
+        "topNcategories": 15,
+        "categorySort": "per-group",
+        "layerFrom": "payee",
+        "layerTo": "account"
+      },
+      "baseGraph": [
+        {
+          "key": "3af41890-0a79-43ec-a60f-045551c4bbe5",
+          "to": [
+            [
+              "cdf3e63a-4372-452e-b0ae-893efa976265",
+              250
+            ],
+            [
+              "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+              400
+            ]
+          ],
+          "type": "account",
+          "name": "Sankey card account"
+        },
+        {
+          "key": "cdf3e63a-4372-452e-b0ae-893efa976265",
+          "to": [
+            [
+              "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+              1950
+            ],
+            [
+              "18c4cef2-d782-4544-a460-7c04c275a581",
+              4800
+            ]
+          ],
+          "type": "category_group",
+          "name": "Expenses"
+        },
+        {
+          "key": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+          "to": [],
+          "type": "category",
+          "name": "hidden"
+        },
+        {
+          "key": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "to": [
+            [
+              "cdf3e63a-4372-452e-b0ae-893efa976265",
+              6500
+            ],
+            [
+              "987dfc68-5882-472c-87b6-40a282c4d269",
+              400
+            ],
+            [
+              "7bb57499-bc1e-4e53-b4cd-c0b81574ebf7__NEGATIVE",
+              213
+            ],
+            [
+              "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+              300
+            ]
+          ],
+          "type": "account",
+          "name": "checking"
+        },
+        {
+          "key": "18c4cef2-d782-4544-a460-7c04c275a581__NEGATIVE",
+          "to": [
+            [
+              "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+              1200
+            ]
+          ],
+          "type": "income_category",
+          "name": "Market"
+        },
+        {
+          "key": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "to": [
+            [
+              "e29b4019-d83b-48be-98a9-7ace287b2869",
+              500
+            ],
+            [
+              "3af41890-0a79-43ec-a60f-045551c4bbe5",
+              700
+            ]
+          ],
+          "type": "account",
+          "name": "savings"
+        },
+        {
+          "key": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "to": [],
+          "type": "category",
+          "name": "Food café ? %"
+        },
+        {
+          "key": "e29b4019-d83b-48be-98a9-7ace287b2869",
+          "to": [
+            [
+              "95610153-0d9b-4abd-b817-bdc32291a737",
+              500
+            ]
+          ],
+          "type": "category_group",
+          "name": "Report income"
+        },
+        {
+          "key": "95610153-0d9b-4abd-b817-bdc32291a737",
+          "to": [],
+          "type": "category",
+          "name": "salary"
+        },
+        {
+          "key": "95610153-0d9b-4abd-b817-bdc32291a737__NEGATIVE",
+          "to": [
+            [
+              "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+              10000
+            ]
+          ],
+          "type": "income_category",
+          "name": "Employer"
+        },
+        {
+          "key": "987dfc68-5882-472c-87b6-40a282c4d269",
+          "to": [
+            [
+              "42250427-aac5-4179-b77d-247994a381a2",
+              400
+            ]
+          ],
+          "type": "category_group",
+          "name": "Hidden group"
+        },
+        {
+          "key": "42250427-aac5-4179-b77d-247994a381a2",
+          "to": [],
+          "type": "category",
+          "name": "hiddenGroupCategory"
+        },
+        {
+          "key": "e4da35dd-b665-4e34-afae-adc728f8fe06",
+          "to": [
+            [
+              "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+              3000
+            ]
+          ],
+          "type": "income_category",
+          "name": "Sankey income"
+        },
+        {
+          "key": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "to": [
+            [
+              "e4da35dd-b665-4e34-afae-adc728f8fe06",
+              1000
+            ]
+          ],
+          "type": "payee",
+          "name": "Market"
+        },
+        {
+          "key": "aca47852-d5a7-42e9-acf3-76a971bc33e2",
+          "to": [
+            [
+              "e4da35dd-b665-4e34-afae-adc728f8fe06",
+              2000
+            ]
+          ],
+          "type": "payee",
+          "name": "Employer"
+        },
+        {
+          "key": "7bb57499-bc1e-4e53-b4cd-c0b81574ebf7__NEGATIVE",
+          "to": [],
+          "type": "category_group",
+          "labelKey": "Market",
+          "isNegative": true
+        }
+      ],
+      "result": {
+        "nodes": [
+          {
+            "key": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "name": "checking",
+            "percentageLabel": "85.9%",
+            "color": "palette2"
+          },
+          {
+            "key": "95610153-0d9b-4abd-b817-bdc32291a737__NEGATIVE",
+            "name": "Employer",
+            "percentageLabel": "0.0%",
+            "color": "palette2"
+          },
+          {
+            "key": "aca47852-d5a7-42e9-acf3-76a971bc33e2",
+            "name": "Employer",
+            "percentageLabel": "66.7%",
+            "color": "palette2"
+          },
+          {
+            "key": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "name": "Market",
+            "percentageLabel": "33.3%",
+            "color": "palette1"
+          },
+          {
+            "key": "e4da35dd-b665-4e34-afae-adc728f8fe06",
+            "name": "Sankey income",
+            "percentageLabel": "100.0%",
+            "color": "palette1"
+          },
+          {
+            "key": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "name": "savings",
+            "percentageLabel": "9.6%",
+            "color": "palette2"
+          },
+          {
+            "key": "18c4cef2-d782-4544-a460-7c04c275a581__NEGATIVE",
+            "name": "Market",
+            "percentageLabel": "0.0%",
+            "color": "palette0"
+          },
+          {
+            "key": "3af41890-0a79-43ec-a60f-045551c4bbe5",
+            "name": "Sankey card account",
+            "percentageLabel": "4.5%",
+            "color": "palette1"
+          },
+          {
+            "key": "95610153-0d9b-4abd-b817-bdc32291a737__NEGATIVE_payee__HIDDEN",
+            "name": "",
+            "percentageLabel": "",
+            "color": "palette2"
+          },
+          {
+            "key": "18c4cef2-d782-4544-a460-7c04c275a581__NEGATIVE_payee__HIDDEN",
+            "name": "",
+            "percentageLabel": "",
+            "color": "palette0"
+          }
+        ],
+        "links": [
+          {
+            "source": 0,
+            "target": -1,
+            "value": 6500,
+            "tooltipInfo": [],
+            "color": "palette2"
+          },
+          {
+            "source": 0,
+            "target": -1,
+            "value": 400,
+            "tooltipInfo": [],
+            "color": "palette2"
+          },
+          {
+            "source": 0,
+            "target": -1,
+            "value": 213,
+            "tooltipInfo": []
+          },
+          {
+            "source": 0,
+            "target": 5,
+            "value": 300,
+            "tooltipInfo": [],
+            "color": "palette2"
+          },
+          {
+            "source": 1,
+            "target": 0,
+            "value": 10000,
+            "tooltipInfo": [],
+            "color": "palette2"
+          },
+          {
+            "source": 2,
+            "target": 4,
+            "value": 2000,
+            "tooltipInfo": [],
+            "color": "palette2"
+          },
+          {
+            "source": 3,
+            "target": 4,
+            "value": 1000,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 4,
+            "target": 0,
+            "value": 3000,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 5,
+            "target": -1,
+            "value": 500,
+            "tooltipInfo": [],
+            "color": "palette2"
+          },
+          {
+            "source": 5,
+            "target": 7,
+            "value": 700,
+            "tooltipInfo": [],
+            "color": "palette2"
+          },
+          {
+            "source": 6,
+            "target": 5,
+            "value": 1200,
+            "tooltipInfo": [],
+            "color": "palette0"
+          },
+          {
+            "source": 7,
+            "target": -1,
+            "value": 250,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 7,
+            "target": 0,
+            "value": 400,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 8,
+            "target": 1,
+            "value": -1,
+            "tooltipInfo": [],
+            "color": "palette2"
+          },
+          {
+            "source": 9,
+            "target": 6,
+            "value": -1,
+            "tooltipInfo": [],
+            "color": "palette0"
+          }
+        ]
+      }
+    },
+    {
+      "name": "budgeted-end-group",
+      "options": {
+        "startDate": "2026-11-01",
+        "endDate": "2026-11-30",
+        "mode": "budgeted",
+        "conditions": [],
+        "conditionsOp": "and",
+        "groupAccounts": false,
+        "showTransfers": false,
+        "topNcategories": 15,
+        "categorySort": "per-group",
+        "layerFrom": "income_category",
+        "layerTo": "category_group"
+      },
+      "baseGraph": [
+        {
+          "key": "budgeted",
+          "to": [
+            [
+              "cdf3e63a-4372-452e-b0ae-893efa976265",
+              1500
+            ]
+          ],
+          "type": "budget",
+          "name": "Budgeted"
+        },
+        {
+          "key": "available_income",
+          "to": [
+            [
+              "budgeted",
+              1300
+            ],
+            [
+              "to_budget",
+              13887
+            ],
+            [
+              "for_next_month",
+              400
+            ],
+            [
+              "last_month_overspent",
+              0
+            ]
+          ],
+          "type": "account",
+          "name": "Available funds"
+        },
+        {
+          "key": "84afd06e-255f-4246-bd00-89965986f788",
+          "to": [
+            [
+              "budgeted",
+              200
+            ]
+          ],
+          "type": "account",
+          "labelKey": "From {{category}}",
+          "labelParams": {
+            "category": "empty"
+          },
+          "isNegative": true
+        },
+        {
+          "key": "cdf3e63a-4372-452e-b0ae-893efa976265",
+          "to": [
+            [
+              "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+              500
+            ],
+            [
+              "18c4cef2-d782-4544-a460-7c04c275a581",
+              1000
+            ]
+          ],
+          "type": "category_group",
+          "name": "Expenses"
+        },
+        {
+          "key": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+          "to": [],
+          "type": "category",
+          "name": "hidden"
+        },
+        {
+          "key": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "to": [],
+          "type": "category",
+          "name": "Food café ? %"
+        },
+        {
+          "key": "e4da35dd-b665-4e34-afae-adc728f8fe06",
+          "to": [
+            [
+              "available_income",
+              3000
+            ]
+          ],
+          "type": "income_category",
+          "name": "Sankey income"
+        },
+        {
+          "key": "7bb57499-bc1e-4e53-b4cd-c0b81574ebf7",
+          "to": [
+            [
+              "available_income",
+              -213
+            ]
+          ],
+          "type": "income_category",
+          "name": "Analysis expense in income group"
+        },
+        {
+          "key": "to_budget",
+          "to": [],
+          "type": "category_group",
+          "labelKey": "To budget",
+          "isNegative": false
+        },
+        {
+          "key": "from_previous_month",
+          "to": [
+            [
+              "available_income",
+              12800
+            ]
+          ],
+          "type": "income_category",
+          "labelKey": "From {{month}}",
+          "labelParams": {
+            "month": "2026-10"
+          }
+        },
+        {
+          "key": "for_next_month",
+          "to": [],
+          "type": "budget",
+          "labelKey": "For {{month}}",
+          "labelParams": {
+            "month": "2026-12"
+          }
+        },
+        {
+          "key": "last_month_overspent",
+          "to": [],
+          "type": "budget",
+          "name": "Overspent"
+        }
+      ],
+      "result": {
+        "nodes": [
+          {
+            "key": "84afd06e-255f-4246-bd00-89965986f788",
+            "name": "From empty",
+            "percentageLabel": "0.0%",
+            "color": "negative"
+          },
+          {
+            "key": "available_income",
+            "name": "Available funds",
+            "percentageLabel": "100.0%",
+            "color": "flow"
+          },
+          {
+            "key": "e4da35dd-b665-4e34-afae-adc728f8fe06",
+            "name": "Sankey income",
+            "percentageLabel": "19.2%",
+            "color": "palette1"
+          },
+          {
+            "key": "budgeted",
+            "name": "Budgeted",
+            "percentageLabel": "9.5%",
+            "color": "flow"
+          },
+          {
+            "key": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "percentageLabel": "100.0%",
+            "color": "palette1"
+          },
+          {
+            "key": "7bb57499-bc1e-4e53-b4cd-c0b81574ebf7",
+            "name": "Analysis expense in income group",
+            "percentageLabel": "-1.4%",
+            "color": "palette2"
+          },
+          {
+            "key": "to_budget",
+            "name": "To budget",
+            "percentageLabel": "88.0%",
+            "color": "positive"
+          },
+          {
+            "key": "for_next_month",
+            "name": "For 2026-12",
+            "percentageLabel": "2.5%",
+            "color": "neutral"
+          },
+          {
+            "key": "from_previous_month",
+            "name": "From 2026-10",
+            "percentageLabel": "82.1%",
+            "color": "neutral"
+          },
+          {
+            "key": "84afd06e-255f-4246-bd00-89965986f788_income_category__HIDDEN",
+            "name": "",
+            "percentageLabel": "",
+            "color": "palette1"
+          },
+          {
+            "key": "for_next_month_category_group__HIDDEN",
+            "name": "",
+            "percentageLabel": "",
+            "color": "palette2"
+          }
+        ],
+        "links": [
+          {
+            "source": 0,
+            "target": 3,
+            "value": 200,
+            "tooltipInfo": [],
+            "color": "negative"
+          },
+          {
+            "source": 1,
+            "target": 3,
+            "value": 1300,
+            "tooltipInfo": [],
+            "color": "flow"
+          },
+          {
+            "source": 1,
+            "target": 6,
+            "value": 13887,
+            "tooltipInfo": [],
+            "color": "positive"
+          },
+          {
+            "source": 1,
+            "target": 7,
+            "value": 400,
+            "tooltipInfo": [],
+            "color": "neutral"
+          },
+          {
+            "source": 2,
+            "target": 1,
+            "value": 3000,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 3,
+            "target": 4,
+            "value": 1500,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 4,
+            "target": -1,
+            "value": 500,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 4,
+            "target": -1,
+            "value": 1000,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 5,
+            "target": 1,
+            "value": -213,
+            "tooltipInfo": [],
+            "color": "palette2"
+          },
+          {
+            "source": 6,
+            "target": -1,
+            "value": -1,
+            "tooltipInfo": [],
+            "color": "positive"
+          },
+          {
+            "source": 7,
+            "target": 10,
+            "value": -1,
+            "tooltipInfo": [],
+            "color": "palette2"
+          },
+          {
+            "source": 8,
+            "target": 1,
+            "value": 12800,
+            "tooltipInfo": [],
+            "color": "neutral"
+          },
+          {
+            "source": 9,
+            "target": 0,
+            "value": -1,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 10,
+            "target": -1,
+            "value": -1,
+            "tooltipInfo": [],
+            "color": "palette2"
+          }
+        ]
+      }
+    }
+  ],
+  "ledger_query": {
+    "tableOptions": {
+      "splits": "inline"
+    },
+    "filterExpressions": [
+      {
+        "date": {
+          "$gte": "2026-10-01"
+        }
+      },
+      {
+        "date": {
+          "$lte": "2026-12-31"
+        }
+      },
+      {
+        "is_parent": false
+      }
+    ],
+    "selectExpressions": [
+      "id",
+      "date",
+      "amount",
+      "account",
+      "category",
+      "payee",
+      "transfer_id",
+      "notes",
+      {
+        "account_name": {
+          "$id": "$account.name"
+        }
+      },
+      {
+        "category_name": {
+          "$id": "$category.name"
+        }
+      },
+      {
+        "payee_name": {
+          "$id": "$payee.name"
+        }
+      }
+    ],
+    "groupExpressions": [],
+    "orderExpressions": [
+      "id"
+    ],
+    "calculation": false,
+    "rawMode": false,
+    "withDead": false,
+    "validateRefs": true,
+    "limit": null,
+    "offset": null,
+    "table": "transactions"
+  },
+  "ledger": [
+    {
+      "id": "0d23d008-5183-4741-8010-efa622785f56",
+      "date": "2026-12-02",
+      "amount": 2000,
+      "account": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+      "category": null,
+      "payee": "9f3f2ebb-1569-4b47-b641-f6baa2b0f4ec",
+      "transfer_id": "33340000-0000-4000-8000-000000000011",
+      "notes": "Internal transfer",
+      "account_name": "savings",
+      "category_name": null,
+      "payee_name": "checking"
+    },
+    {
+      "id": "109a70d2-dc2e-4f20-badb-65679fd50ebe",
+      "date": "2026-10-01",
+      "amount": 100000,
+      "account": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+      "category": null,
+      "payee": "c27081d6-38c1-4751-8005-8a77de40c72c",
+      "transfer_id": null,
+      "notes": null,
+      "account_name": "brokerage",
+      "category_name": null,
+      "payee_name": "Starting Balance"
+    },
+    {
+      "id": "145a5bb6-ae4b-4291-bd55-2f2b2d2a409c",
+      "date": "2026-11-08",
+      "amount": 2500,
+      "account": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+      "category": null,
+      "payee": "9f3f2ebb-1569-4b47-b641-f6baa2b0f4ec",
+      "transfer_id": "33340000-0000-4000-8000-000000000012",
+      "notes": "Boundary transfer",
+      "account_name": "brokerage",
+      "category_name": null,
+      "payee_name": "checking"
+    },
+    {
+      "id": "2ad76720-caac-4d46-b5bb-c22f6c9c206b",
+      "date": "2026-10-01",
+      "amount": 5000,
+      "account": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+      "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+      "payee": "c27081d6-38c1-4751-8005-8a77de40c72c",
+      "transfer_id": null,
+      "notes": null,
+      "account_name": "savings",
+      "category_name": "Starting Balances",
+      "payee_name": "Starting Balance"
+    },
+    {
+      "id": "33340000-0000-4000-8000-000000000001",
+      "date": "2026-10-02",
+      "amount": -1000,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+      "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+      "transfer_id": null,
+      "notes": "Previous period food",
+      "account_name": "checking",
+      "category_name": "Food café ? %",
+      "payee_name": "Market"
+    },
+    {
+      "id": "33340000-0000-4000-8000-000000000002",
+      "date": "2026-11-01",
+      "amount": 10000,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": "95610153-0d9b-4abd-b817-bdc32291a737",
+      "payee": "aca47852-d5a7-42e9-acf3-76a971bc33e2",
+      "transfer_id": null,
+      "notes": null,
+      "account_name": "checking",
+      "category_name": "salary",
+      "payee_name": "Employer"
+    },
+    {
+      "id": "33340000-0000-4000-8000-000000000003",
+      "date": "2026-11-02",
+      "amount": -1200,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+      "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+      "transfer_id": null,
+      "notes": null,
+      "account_name": "checking",
+      "category_name": "Food café ? %",
+      "payee_name": "Market"
+    },
+    {
+      "id": "33340000-0000-4000-8000-000000000004",
+      "date": "2026-11-03",
+      "amount": 200,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+      "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+      "transfer_id": null,
+      "notes": "Refund",
+      "account_name": "checking",
+      "category_name": "Food café ? %",
+      "payee_name": "Market"
+    },
+    {
+      "id": "33340000-0000-4000-8000-000000000005",
+      "date": "2026-11-04",
+      "amount": -300,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": null,
+      "payee": null,
+      "transfer_id": null,
+      "notes": "Uncategorized",
+      "account_name": "checking",
+      "category_name": null,
+      "payee_name": null
+    },
+    {
+      "id": "33340000-0000-4000-8000-000000000006",
+      "date": "2026-11-05",
+      "amount": -700,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+      "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+      "transfer_id": null,
+      "notes": null,
+      "account_name": "checking",
+      "category_name": "hidden",
+      "payee_name": "Market"
+    },
+    {
+      "id": "33340000-0000-4000-8000-000000000007",
+      "date": "2026-11-06",
+      "amount": -400,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": "42250427-aac5-4179-b77d-247994a381a2",
+      "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+      "transfer_id": null,
+      "notes": null,
+      "account_name": "checking",
+      "category_name": "hiddenGroupCategory",
+      "payee_name": "Market"
+    },
+    {
+      "id": "33340000-0000-4000-8000-000000000009",
+      "date": "2026-11-07",
+      "amount": -500,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+      "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+      "transfer_id": null,
+      "notes": null,
+      "account_name": "checking",
+      "category_name": "Food café ? %",
+      "payee_name": "Market"
+    },
+    {
+      "id": "33340000-0000-4000-8000-000000000010",
+      "date": "2026-11-07",
+      "amount": -1000,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+      "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+      "transfer_id": null,
+      "notes": null,
+      "account_name": "checking",
+      "category_name": "hidden",
+      "payee_name": "Market"
+    },
+    {
+      "id": "33340000-0000-4000-8000-000000000011",
+      "date": "2026-11-08",
+      "amount": -2000,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": null,
+      "payee": "e04b9930-9dad-46a9-ab5a-ec1f1a061de1",
+      "transfer_id": "0d23d008-5183-4741-8010-efa622785f56",
+      "notes": "Internal transfer",
+      "account_name": "checking",
+      "category_name": null,
+      "payee_name": "savings"
+    },
+    {
+      "id": "33340000-0000-4000-8000-000000000012",
+      "date": "2026-11-08",
+      "amount": -2500,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+      "payee": "a8f5803b-f77c-48d5-9e8b-41188ceb6135",
+      "transfer_id": "145a5bb6-ae4b-4291-bd55-2f2b2d2a409c",
+      "notes": "Boundary transfer",
+      "account_name": "checking",
+      "category_name": "Food café ? %",
+      "payee_name": "brokerage"
+    },
+    {
+      "id": "33340000-0000-4000-8000-000000000013",
+      "date": "2026-11-20",
+      "amount": -800,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+      "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+      "transfer_id": null,
+      "notes": "Future dated recorded entry",
+      "account_name": "checking",
+      "category_name": "Food café ? %",
+      "payee_name": "Market"
+    },
+    {
+      "id": "33340000-0000-4000-8000-000000000014",
+      "date": "2026-11-03",
+      "amount": -900,
+      "account": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+      "category": null,
+      "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+      "transfer_id": null,
+      "notes": "Off budget purchase",
+      "account_name": "brokerage",
+      "category_name": null,
+      "payee_name": "Market"
+    },
+    {
+      "id": "36360000-0000-4000-8000-000000000001",
+      "date": "2026-12-05",
+      "amount": -2500,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": "84afd06e-255f-4246-bd00-89965986f788",
+      "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+      "transfer_id": null,
+      "notes": "Analysis overspending without carryover",
+      "account_name": "checking",
+      "category_name": "empty",
+      "payee_name": "Market"
+    },
+    {
+      "id": "36360000-0000-4000-8000-000000000003",
+      "date": "2026-11-23",
+      "amount": -213,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": "7bb57499-bc1e-4e53-b4cd-c0b81574ebf7",
+      "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+      "transfer_id": null,
+      "notes": "Supported source expense-category/income-group membership",
+      "account_name": "checking",
+      "category_name": "Analysis expense in income group",
+      "payee_name": "Market"
+    },
+    {
+      "id": "37370000-0000-4000-8000-000000000001",
+      "date": "2026-11-12",
+      "amount": 1200,
+      "account": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+      "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+      "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+      "transfer_id": null,
+      "notes": "Positive net category refund ? literal%",
+      "account_name": "savings",
+      "category_name": "Food café ? %",
+      "payee_name": "Market"
+    },
+    {
+      "id": "37370000-0000-4000-8000-000000000002",
+      "date": "2026-11-13",
+      "amount": -500,
+      "account": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+      "category": "95610153-0d9b-4abd-b817-bdc32291a737",
+      "payee": "aca47852-d5a7-42e9-acf3-76a971bc33e2",
+      "transfer_id": null,
+      "notes": "Income reversal",
+      "account_name": "savings",
+      "category_name": "salary",
+      "payee_name": "Employer"
+    },
+    {
+      "id": "37370000-0000-4000-8000-000000000003",
+      "date": "2026-11-14",
+      "amount": -700,
+      "account": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+      "category": null,
+      "payee": "c2984e25-f7aa-47a7-ac00-687be72e4a80",
+      "transfer_id": "575c26cd-655c-495f-ad48-a87daff33b41",
+      "notes": "Cycle leg A",
+      "account_name": "savings",
+      "category_name": null,
+      "payee_name": "Sankey card account"
+    },
+    {
+      "id": "37370000-0000-4000-8000-000000000004",
+      "date": "2026-11-15",
+      "amount": -300,
+      "account": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+      "category": null,
+      "payee": "9f3f2ebb-1569-4b47-b641-f6baa2b0f4ec",
+      "transfer_id": "9c437f00-d110-4afb-8ae0-89476afb6b2d",
+      "notes": "Reverse transfer",
+      "account_name": "savings",
+      "category_name": null,
+      "payee_name": "checking"
+    },
+    {
+      "id": "37370000-0000-4000-8000-000000000005",
+      "date": "2026-11-14",
+      "amount": -400,
+      "account": "3af41890-0a79-43ec-a60f-045551c4bbe5",
+      "category": null,
+      "payee": "9f3f2ebb-1569-4b47-b641-f6baa2b0f4ec",
+      "transfer_id": "6d288bf2-aa65-4789-b065-4122fb2962dd",
+      "notes": "Cycle leg B",
+      "account_name": "Sankey card account",
+      "category_name": null,
+      "payee_name": "checking"
+    },
+    {
+      "id": "37370000-0000-4000-8000-000000000006",
+      "date": "2026-11-15",
+      "amount": -250,
+      "account": "3af41890-0a79-43ec-a60f-045551c4bbe5",
+      "category": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+      "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+      "transfer_id": null,
+      "notes": "Card expense",
+      "account_name": "Sankey card account",
+      "category_name": "hidden",
+      "payee_name": "Market"
+    },
+    {
+      "id": "37370000-0000-4000-8000-000000000007",
+      "date": "2026-11-14",
+      "amount": -600,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": null,
+      "payee": "e04b9930-9dad-46a9-ab5a-ec1f1a061de1",
+      "transfer_id": "f587cbb9-1880-4951-88df-a9488dd1c7e4",
+      "notes": "Cycle leg C",
+      "account_name": "checking",
+      "category_name": null,
+      "payee_name": "savings"
+    },
+    {
+      "id": "37370000-0000-4000-8000-000000000008",
+      "date": "2026-11-16",
+      "amount": 2000,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": "e4da35dd-b665-4e34-afae-adc728f8fe06",
+      "payee": "aca47852-d5a7-42e9-acf3-76a971bc33e2",
+      "transfer_id": null,
+      "notes": null,
+      "account_name": "checking",
+      "category_name": "Sankey income",
+      "payee_name": "Employer"
+    },
+    {
+      "id": "37370000-0000-4000-8000-000000000009",
+      "date": "2026-11-17",
+      "amount": 1000,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": "e4da35dd-b665-4e34-afae-adc728f8fe06",
+      "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+      "transfer_id": null,
+      "notes": null,
+      "account_name": "checking",
+      "category_name": "Sankey income",
+      "payee_name": "Market"
+    },
+    {
+      "id": "408303c0-0847-4d57-b20e-f9b28c5dd356",
+      "date": "2026-10-01",
+      "amount": 10000,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+      "payee": "c27081d6-38c1-4751-8005-8a77de40c72c",
+      "transfer_id": null,
+      "notes": null,
+      "account_name": "checking",
+      "category_name": "Starting Balances",
+      "payee_name": "Starting Balance"
+    },
+    {
+      "id": "575c26cd-655c-495f-ad48-a87daff33b41",
+      "date": "2026-11-14",
+      "amount": 700,
+      "account": "3af41890-0a79-43ec-a60f-045551c4bbe5",
+      "category": null,
+      "payee": "e04b9930-9dad-46a9-ab5a-ec1f1a061de1",
+      "transfer_id": "37370000-0000-4000-8000-000000000003",
+      "notes": "Cycle leg A",
+      "account_name": "Sankey card account",
+      "category_name": null,
+      "payee_name": "savings"
+    },
+    {
+      "id": "6d288bf2-aa65-4789-b065-4122fb2962dd",
+      "date": "2026-11-14",
+      "amount": 400,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": null,
+      "payee": "c2984e25-f7aa-47a7-ac00-687be72e4a80",
+      "transfer_id": "37370000-0000-4000-8000-000000000005",
+      "notes": "Cycle leg B",
+      "account_name": "checking",
+      "category_name": null,
+      "payee_name": "Sankey card account"
+    },
+    {
+      "id": "9c437f00-d110-4afb-8ae0-89476afb6b2d",
+      "date": "2026-11-15",
+      "amount": 300,
+      "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "category": null,
+      "payee": "e04b9930-9dad-46a9-ab5a-ec1f1a061de1",
+      "transfer_id": "37370000-0000-4000-8000-000000000004",
+      "notes": "Reverse transfer",
+      "account_name": "checking",
+      "category_name": null,
+      "payee_name": "savings"
+    },
+    {
+      "id": "aa395631-b99f-4674-9e8a-16027484b063",
+      "date": "2026-10-01",
+      "amount": 2000,
+      "account": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+      "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+      "payee": "c27081d6-38c1-4751-8005-8a77de40c72c",
+      "transfer_id": null,
+      "notes": null,
+      "account_name": "closed",
+      "category_name": "Starting Balances",
+      "payee_name": "Starting Balance"
+    },
+    {
+      "id": "f587cbb9-1880-4951-88df-a9488dd1c7e4",
+      "date": "2026-11-14",
+      "amount": 600,
+      "account": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+      "category": null,
+      "payee": "9f3f2ebb-1569-4b47-b641-f6baa2b0f4ec",
+      "transfer_id": "37370000-0000-4000-8000-000000000007",
+      "notes": "Cycle leg C",
+      "account_name": "savings",
+      "category_name": null,
+      "payee_name": "checking"
+    }
+  ],
+  "entry_groups": [
+    {
+      "categoryGroup": "Expenses",
+      "categoryGroupId": "cdf3e63a-4372-452e-b0ae-893efa976265",
+      "category": "hidden",
+      "categoryId": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+      "value": 250,
+      "isIncome": false,
+      "isNegative": true,
+      "accountName": "Sankey card account",
+      "accountId": "3af41890-0a79-43ec-a60f-045551c4bbe5",
+      "payeeName": "Market",
+      "payeeId": "790d6a36-147d-4e6b-8537-a8b07e85f059"
+    },
+    {
+      "categoryGroup": "Expenses",
+      "categoryGroupId": "cdf3e63a-4372-452e-b0ae-893efa976265",
+      "category": "hidden",
+      "categoryId": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+      "value": 1700,
+      "isIncome": false,
+      "isNegative": true,
+      "accountName": "checking",
+      "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "payeeName": "Market",
+      "payeeId": "790d6a36-147d-4e6b-8537-a8b07e85f059"
+    },
+    {
+      "categoryGroup": "Expenses",
+      "categoryGroupId": "cdf3e63a-4372-452e-b0ae-893efa976265",
+      "category": "Food café ? %",
+      "categoryId": "18c4cef2-d782-4544-a460-7c04c275a581",
+      "value": 1200,
+      "isIncome": false,
+      "isNegative": false,
+      "accountName": "savings",
+      "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+      "payeeName": "Market",
+      "payeeId": "790d6a36-147d-4e6b-8537-a8b07e85f059"
+    },
+    {
+      "categoryGroup": "Expenses",
+      "categoryGroupId": "cdf3e63a-4372-452e-b0ae-893efa976265",
+      "category": "Food café ? %",
+      "categoryId": "18c4cef2-d782-4544-a460-7c04c275a581",
+      "value": 4800,
+      "isIncome": false,
+      "isNegative": true,
+      "accountName": "checking",
+      "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "payeeName": "Market",
+      "payeeId": "790d6a36-147d-4e6b-8537-a8b07e85f059"
+    },
+    {
+      "categoryGroup": "Report income",
+      "categoryGroupId": "e29b4019-d83b-48be-98a9-7ace287b2869",
+      "category": "salary",
+      "categoryId": "95610153-0d9b-4abd-b817-bdc32291a737",
+      "value": 500,
+      "isIncome": false,
+      "isNegative": true,
+      "accountName": "savings",
+      "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+      "payeeName": "Employer",
+      "payeeId": "aca47852-d5a7-42e9-acf3-76a971bc33e2"
+    },
+    {
+      "categoryGroup": "Report income",
+      "categoryGroupId": "e29b4019-d83b-48be-98a9-7ace287b2869",
+      "category": "salary",
+      "categoryId": "95610153-0d9b-4abd-b817-bdc32291a737",
+      "value": 10000,
+      "isIncome": false,
+      "isNegative": false,
+      "accountName": "checking",
+      "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "payeeName": "Employer",
+      "payeeId": "aca47852-d5a7-42e9-acf3-76a971bc33e2"
+    },
+    {
+      "categoryGroup": "Hidden group",
+      "categoryGroupId": "987dfc68-5882-472c-87b6-40a282c4d269",
+      "category": "hiddenGroupCategory",
+      "categoryId": "42250427-aac5-4179-b77d-247994a381a2",
+      "value": 400,
+      "isIncome": false,
+      "isNegative": true,
+      "accountName": "checking",
+      "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "payeeName": "Market",
+      "payeeId": "790d6a36-147d-4e6b-8537-a8b07e85f059"
+    },
+    {
+      "categoryGroup": "Income",
+      "categoryGroupId": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+      "category": "Sankey income",
+      "categoryId": "e4da35dd-b665-4e34-afae-adc728f8fe06",
+      "value": 1000,
+      "isIncome": true,
+      "isNegative": false,
+      "accountName": "checking",
+      "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "payeeName": "Market",
+      "payeeId": "790d6a36-147d-4e6b-8537-a8b07e85f059"
+    },
+    {
+      "categoryGroup": "Income",
+      "categoryGroupId": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+      "category": "Sankey income",
+      "categoryId": "e4da35dd-b665-4e34-afae-adc728f8fe06",
+      "value": 2000,
+      "isIncome": true,
+      "isNegative": false,
+      "accountName": "checking",
+      "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "payeeName": "Employer",
+      "payeeId": "aca47852-d5a7-42e9-acf3-76a971bc33e2"
+    },
+    {
+      "categoryGroup": "Income",
+      "categoryGroupId": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+      "category": "Analysis expense in income group",
+      "categoryId": "7bb57499-bc1e-4e53-b4cd-c0b81574ebf7",
+      "value": 213,
+      "isIncome": true,
+      "isNegative": true,
+      "accountName": "checking",
+      "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "payeeName": "Market",
+      "payeeId": "790d6a36-147d-4e6b-8537-a8b07e85f059"
+    }
+  ],
+  "transfer_pairs": [
+    {
+      "fromAccountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "fromAccountName": "checking",
+      "toAccountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+      "toAccountName": "savings",
+      "amount": 300
+    },
+    {
+      "fromAccountId": "3af41890-0a79-43ec-a60f-045551c4bbe5",
+      "fromAccountName": "Sankey card account",
+      "toAccountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "toAccountName": "checking",
+      "amount": 400
+    },
+    {
+      "fromAccountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+      "fromAccountName": "savings",
+      "toAccountId": "3af41890-0a79-43ec-a60f-045551c4bbe5",
+      "toAccountName": "Sankey card account",
+      "amount": 700
+    }
+  ]
+}

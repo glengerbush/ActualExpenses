@@ -89,6 +89,8 @@ or source fixture changed. Combined build and both boundary responses/schema
 validation plus the existing forecast native24 round trip PASS
 `/tmp/forecast-money-schema-{build,green}.log`. Review finding closed.
 
-### Narrow UI review correction
+### Local acceptance
 
-Root found blank forecast names falling back to the internal card identifier, and optional downloaded-cache write failure erasing a successful calculation. Added translated default title and isolated cache-write warning; current online results survive while cached fallback remains reserved for failed calculation. `forecast-cache-browser.mjs` injects quota failure only for downloaded forecast entries on disposable browser data, verifies fresh104.00/table plus visible cache warning (not stale-cache label), then saves a blank name and verifies the default Balance forecast heading and current values. `/tmp/forecast35-review-ui-red.log` missing-table RED → `/tmp/forecast35-review-ui-green.log` PASS. Svelte0/0 and build PASS `/tmp/forecast35-review-ui-{check,build}.log`; two autofixers no issues (same documented async-read advisories); focused formatting/diff checks. Other unchanged source/native/layout proofs reused; shared23rd null-category gate is being composed by root, not silently skipped here.
+Ticket35 accepted on local main836918a after the documented source, public API,
+browser, monetary schema and native24 checks. No remaining feature findings;
+final whole-system qualification50–53 remains open. No push or deployment.

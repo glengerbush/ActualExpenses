@@ -2605,4 +2605,61 @@ class NativeApiIntegrationTest {
             )
         }
     }
+
+    @Test
+    fun `sankey preserves source flows and companion state over plain HTTP`() {
+        Server().use { server ->
+            val fixture = Path.of("../../actualBudget/tests/fixtures/sankey-envelope-source-26.10")
+            val source =
+                JsonParser.parseString(Files.readString(Path.of("$fixture.json"))).asJsonObject
+            val stage = server.upload(Files.readAllBytes(Path.of("$fixture.zip")))
+            if (stage["status"].asString == "ready")
+                server.post("/imports/${stage["id"].asString}/activate", "{}")
+            val root = "/budgets/${stage["budget_id"].asString}"
+            val case = source.getAsJsonArray("cases")[0].asJsonObject
+            val ids = source.getAsJsonObject("ids")
+            val account = ids["checking"].asString
+            val before = server.get("$root/companion?account_id=$account")
+            val query =
+                JsonObject().apply {
+                    addProperty("version", 1)
+                    addProperty("as_of", "2026-11-09")
+                    add("options", case["options"])
+                }
+            val projection = server.post("$root/reports/sankey", query.toString(), 200)
+            assertTrue(projection["recorded"].asBoolean)
+            assertEquals("envelope", projection["method"].asString)
+            assertEquals(case["result"], projection["result"])
+            assertEquals(case["baseGraph"], projection["base_graph"])
+            val link =
+                JsonObject().apply {
+                    add("source", ids["expenses"])
+                    add("target", ids["food"])
+                }
+            val body =
+                JsonObject().apply {
+                    add("query", query)
+                    add("snapshot", projection["snapshot"])
+                    add("link", link)
+                    addProperty("limit", 2)
+                }
+            val detail = server.post("$root/reports/sankey/drilldown", body.toString(), 200)
+            val group =
+                case
+                    .getAsJsonArray("baseGraph")
+                    .first { it.asJsonObject["key"] == ids["expenses"] }
+                    .asJsonObject
+            val expected =
+                group.getAsJsonArray("to").first { it.asJsonArray[0] == ids["food"] }.asJsonArray[1]
+            assertEquals(expected, detail["total_amount"])
+            assertTrue(detail["has_more"].asBoolean)
+            assertEquals(before, server.get("$root/companion?account_id=$account"))
+            assertTrue(
+                server
+                    .post("$root/reports/sankey", query.toString(), 200)
+                    .getAsJsonObject("cache")["hit"]
+                    .asBoolean
+            )
+        }
+    }
 }

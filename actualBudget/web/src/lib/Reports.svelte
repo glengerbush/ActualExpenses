@@ -19,6 +19,7 @@
     type ReportOperation,
   } from "./reports";
   import { preferences } from "./preferences.svelte";
+  import SankeyFields from "./SankeyFields.svelte";
   import BudgetAnalysisFields from "./BudgetAnalysisFields.svelte";
   import ForecastFields from "./ForecastFields.svelte";
   import { addMonths } from "./forecasts";
@@ -95,12 +96,19 @@
       preferences.hasUsableShared &&
       preferences.shared.experimental.budgetAnalysisReport,
   );
+  let sankeyEnabled = $derived(
+    preferences.budgetId === budgetId &&
+      preferences.hasUsableShared &&
+      preferences.shared.experimental.sankeyReport,
+  );
   let displayedWidgets = $derived(
     tab === "forecast"
       ? widgets.filter((w) => w.config.type === "balance-forecast-card")
       : tab === "analysis"
         ? widgets.filter((w) => w.config.type === "budget-analysis-card")
-        : widgets,
+        : tab === "sankey"
+          ? widgets.filter((w) => w.config.type === "sankey-card")
+          : widgets,
   );
   let types = $derived([
     ["cash-flow-card", "Cash flow"],
@@ -110,6 +118,7 @@
     ["summary-card", "Summary"],
     ["calendar-card", "Transaction calendar"],
     ["custom-report", "Saved custom report"],
+    ...(sankeyEnabled ? [["sankey-card", "Sankey"]] : []),
     ...(analysisEnabled ? [["budget-analysis-card", "Budget Analysis"]] : []),
     ...(forecastEnabled ? [["balance-forecast-card", "Balance forecast"]] : []),
   ]);
@@ -316,7 +325,7 @@
         type,
         ...position,
         width: 6,
-        height: 3,
+        height: type === "sankey-card" ? 6 : 3,
         meta: {
           name: "",
           timeFrame: {
@@ -469,6 +478,11 @@
         disabled={!!editor || busy}
         onclick={() => switchTab("analysis")}>{t("Budget Analysis")}</button
       >{/if}
+    {#if sankeyEnabled || tab === "sankey"}<button
+        aria-pressed={tab === "sankey"}
+        disabled={!!editor || busy}
+        onclick={() => switchTab("sankey")}>{t("Sankey")}</button
+      >{/if}
   </nav>
   {#if tab === "custom"}{#key customId}<CustomReports
         {budgetId}
@@ -486,6 +500,16 @@
       {#if !forecastEnabled}<p role="status">
           {t(
             "Enable Balance forecast in Settings → Experimental features. Saved settings are preserved.",
+          )}
+        </p>{/if}{/if}
+    {#if tab === "sankey"}<p>
+        {t(
+          "Saved Sankey reports show grouped money flows. Choose a dashboard, then create or edit a flow report.",
+        )}
+      </p>
+      {#if !sankeyEnabled}<p role="status">
+          {t(
+            "Enable Sankey report in Settings → Experimental features. Saved settings are preserved.",
           )}
         </p>{/if}{/if}
     {#if tab === "analysis"}<p>
@@ -577,7 +601,9 @@
                   ? "balance-forecast-card"
                   : tab === "analysis"
                     ? "budget-analysis-card"
-                    : "cash-flow-card",
+                    : tab === "sankey"
+                      ? "sankey-card"
+                      : "cash-flow-card",
               )}
             disabled={busy ||
               !!editor ||
@@ -585,13 +611,16 @@
               cached ||
               disconnected ||
               (tab === "forecast" && !forecastEnabled) ||
-              (tab === "analysis" && !analysisEnabled)}
+              (tab === "analysis" && !analysisEnabled) ||
+              (tab === "sankey" && !sankeyEnabled)}
             >{t(
               tab === "forecast"
                 ? "New forecast"
                 : tab === "analysis"
                   ? "New analysis"
-                  : "Add widget",
+                  : tab === "sankey"
+                    ? "New flow"
+                    : "Add widget",
             )}</button
           >{/if}
       </div>
@@ -732,6 +761,14 @@
                   /></label
                 >
               </div>
+              {#if editor.config.type === "sankey-card"}<SankeyFields
+                  {meta}
+                  onchange={(patch) => {
+                    void change(() => {
+                      if (editor) editor.config.meta = { ...meta, ...patch };
+                    });
+                  }}
+                />{/if}
               {#if editor.config.type === "budget-analysis-card"}<BudgetAnalysisFields
                   {meta}
                   onchange={metadata}
@@ -870,7 +907,11 @@
                 {budgetId}
                 {accounts}
                 sourceCategoryFilters={editor.config.type ===
-                  "budget-analysis-card"}
+                  "budget-analysis-card" ||
+                  (editor.config.type === "sankey-card" &&
+                    meta.mode === "budgeted")}
+                sourceSyntax={editor.config.type === "sankey-card"}
+                namedConditionsIgnored={editor.config.type !== "sankey-card"}
                 conditions={meta.conditions}
                 conditionsOp={meta.conditionsOp}
                 onchange={(conditions, conditionsOp) => {
@@ -928,10 +969,16 @@
           "No saved analyses on this dashboard. Choose New analysis to begin.",
         )}
       </p>{/if}
+    {#if tab === "sankey" && !displayedWidgets.length && pages.length}<p>
+        {t("No saved flows on this dashboard. Choose New flow to begin.")}
+      </p>{/if}
     <div
       class={[
         "dashboard",
-        { forecasts: tab === "forecast" || tab === "analysis" },
+        {
+          forecasts:
+            tab === "forecast" || tab === "analysis" || tab === "sankey",
+        },
       ]}
     >
       {#each displayedWidgets as widget (widget.id + ":" + widget.revision + ":" + (customReports.find((d) => d.id === object(widget.config.meta).id)?.revision ?? "missing"))}<div
@@ -1000,7 +1047,7 @@
   }
   .field-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
     gap: 1rem;
   }
   form,

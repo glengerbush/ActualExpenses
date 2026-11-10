@@ -13,6 +13,7 @@
     type ReportQuery,
     type Projection,
   } from "./reports";
+  import SankeyWidget from "./SankeyWidget.svelte";
   import BudgetAnalysisWidget from "./BudgetAnalysisWidget.svelte";
   import ForecastWidget from "./ForecastWidget.svelte";
   import MarkdownNotes from "./MarkdownNotes.svelte";
@@ -50,6 +51,7 @@
               "calendar-card": t("Transaction calendar"),
               "balance-forecast-card": t("Balance forecast"),
               "budget-analysis-card": t("Budget Analysis"),
+              "sankey-card": t("Sankey"),
               "markdown-card": t("Text"),
               "custom-report": String(
                 report?.config.name || t("Saved custom report"),
@@ -213,6 +215,12 @@
       {disconnected}
     />
   {:else if type === "budget-analysis-card"}<BudgetAnalysisWidget
+      {budgetId}
+      {document}
+      {epoch}
+      {disconnected}
+    />
+  {:else if type === "sankey-card"}<SankeyWidget
       {budgetId}
       {document}
       {epoch}

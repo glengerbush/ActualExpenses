@@ -68,7 +68,7 @@ pub(super) fn setup(token: &str) -> Result<Url, Error> {
         .map_err(|_| Error::invalid("The SimpleFIN setup token is not a URL"))?;
     url(raw, false)
 }
-fn client(url: &Url) -> Result<Client, Error> {
+pub(super) fn client(url: &Url) -> Result<Client, Error> {
     let host = url
         .host_str()
         .ok_or_else(|| Error::invalid("Missing provider host"))?;

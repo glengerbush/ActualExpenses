@@ -52,6 +52,20 @@ benchmark. Production work uses ICU collation, not a lexical approximation;
 comparison text/work are bounded. Runtime dependencies and source assets remain
 under development and are excluded from this source-only review checkpoint.
 
+## Root source review
+
+2026-11-10:abe6be4 reviewed and composed as94e09c8. The adapter invokes the
+unchanged full production hook; lifecycle stubs merely capture completion/state.
+Actual query, budget, account and preference messages use the genuine engine;
+no native replacement or financial callback supplies expected values. Trusted
+module hashes, original report archive digest and source errors are preserved.
+Independent reproduction `/tmp/formula-root-source-check.log` PASS40. No source
+provenance finding remains. This corpus is a reviewed foundation, not complete41:
+tracking-mode budget queries and nonzero goal/carry observations still need a
+small append-only supplement, alongside runtime/UI/contracts/recovery evidence.
+
+## Nonzero budget supplement
+
 The small budget supplement reuses both genuine `multiline-long-goal` preapply
 archives, executes the real `budget/overwrite-goal-template` message, proves no
 transaction changes, and retains genuine resulting Actual ZIPs. Ten unchanged
@@ -59,6 +73,12 @@ production-hook observations establish envelope budget42.97/spent−15/goal1000/
 starting carry70/ending97.97 and tracking42.97/−15/1000/40/67.97.
 Generation and independent check passed in `/tmp/formula-budget-source.log` and
 `/tmp/formula-budget-source-check.log`; no previous forty observations changed.
+
+Root reviewedb12eaeb and independently reproduced all10 in
+`/tmp/formula-budget-root-source-check.log`. Preparation uses genuine public
+engine commands over immutable prior archives; exported result archives are
+never overwritten. Both method/nonzero-goal/carry source coverage gaps above
+are closed. Runtime financial equality, UI and whole41 acceptance remain open.
 
 ## Bounded evaluator checkpoint (partial41)
 

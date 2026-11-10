@@ -39,6 +39,7 @@ pub fn router() -> Router<Store> {
         .merge(crate::formulas::router())
         .merge(query::forecast_router())
         .merge(query::analysis_router())
+        .merge(query::sankey_router())
         .route(
             "/api/v1/budgets/{budget}/reports/drilldown",
             post(query::drilldown),

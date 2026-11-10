@@ -118,7 +118,7 @@ fn perform(
             "Consent account identities must be distinct",
         ));
     }
-    let (selected, range) = match download {
+    let (selected, range, balance_accounts, balance_only_accounts) = match download {
         transport::Download::Balances => {
             if authorized.len() > 20 {
                 return Err(transport::failure(
@@ -126,13 +126,20 @@ fn perform(
                     "Select a bounded discovery page before loading more than20 accounts",
                 ));
             }
-            (authorized.clone(), None)
+            (authorized.clone(), None, vec![], vec![])
         }
         transport::Download::Transactions {
             accounts,
             start,
             end,
-        } => (accounts, Some((start, end))),
+            balance_accounts,
+            balance_only_accounts,
+        } => (
+            accounts,
+            Some((start, end)),
+            balance_accounts,
+            balance_only_accounts,
+        ),
     };
     normalization::supported(&session.institution)?;
     let institution = if range.is_none() {
@@ -164,13 +171,24 @@ fn perform(
             } else {
                 None
             };
-            let balances = client.request(
-                Method::GET,
-                &format!("/api/v2/accounts/{id}/balances/"),
-                None,
-                true,
-            )?;
-            let primary = normalization::balance(&balances, &session.institution)?;
+            // The immutable plan is captured from the original link/snapshot.
+            // Existing-account transactions do not spend the balance endpoint quota.
+            let needs_balance = balance_accounts.contains(&id);
+            let balances = if needs_balance {
+                client.request(
+                    Method::GET,
+                    &format!("/api/v2/accounts/{id}/balances/"),
+                    None,
+                    true,
+                )?
+            } else {
+                Value::Null
+            };
+            let primary = if needs_balance {
+                normalization::balance(&balances, &session.institution)?
+            } else {
+                None
+            };
             let currency = metadata
                 .as_ref()
                 .and_then(|v| v["currency"].as_str())
@@ -198,9 +216,12 @@ fn perform(
                     .and_then(|v| v["institution"].as_str())
                     .unwrap_or("")
             };
-            let balance = primary
-                .and_then(|v| v["balanceAmount"]["amount"].as_str())
-                .unwrap_or("");
+            let balance = if needs_balance {
+                primary.and_then(|v| v["balanceAmount"]["amount"].as_str()).ok_or_else(||
+                    transport::failure("provider_invalid_response", "Provider balance is unavailable; no opening or balance update was applied"))?
+            } else {
+                previous.and_then(|v| v["balance"].as_str()).unwrap_or("")
+            };
             if !balance.is_empty() {
                 normalize::minor(balance)?;
             }
@@ -211,18 +232,34 @@ fn perform(
                         .find(|v| v["balanceType"] == "interimAvailable")
                         .or_else(|| r.iter().find(|v| v["balanceType"] == "forwardAvailable"))
                 })
-                .and_then(|v| v["balanceAmount"]["amount"].as_str());
+                .and_then(|v| v["balanceAmount"]["amount"].as_str())
+                .or_else(|| {
+                    if needs_balance {
+                        None
+                    } else {
+                        previous.and_then(|v| v["available_balance"].as_str())
+                    }
+                });
             let date = primary
                 .and_then(|v| v["referenceDate"].as_str())
                 .and_then(|v| chrono::NaiveDate::parse_from_str(v, "%Y-%m-%d").ok())
                 .and_then(|d| d.and_hms_opt(0, 0, 0))
                 .map(|d| d.and_utc().timestamp())
-                .unwrap_or(0);
+                .unwrap_or_else(|| {
+                    if needs_balance {
+                        0
+                    } else {
+                        previous
+                            .and_then(|v| v["balance_date"].as_i64())
+                            .unwrap_or(0)
+                    }
+                });
             let mut account = json!({"id":id,"conn_id":session.requisition,"name":name,"org":{"id":session.requisition,"name":org},"currency":currency,"balance":balance,"balance-date":date,"transactions":[]});
+            account["_gocardless_balance_fresh"] = json!(needs_balance);
             if let Some(available) = available {
                 account["available-balance"] = json!(available);
             }
-            if let Some((start, end)) = range {
+            if let Some((start, end)) = range.filter(|_| !balance_only_accounts.contains(&id)) {
                 let start = chrono::DateTime::from_timestamp(start, 0)
                     .ok_or_else(|| Error::invalid("Invalid refresh start"))?
                     .format("%Y-%m-%d")
@@ -238,9 +275,14 @@ fn perform(
                     true,
                 )?;
                 let rows = normalization::transactions(&raw, &session.institution)?;
-                let opening = normalization::opening(&rows, &balances, &session.institution)?;
+                if needs_balance {
+                    account["_gocardless_opening"] = json!(normalization::opening(
+                        &rows,
+                        &balances,
+                        &session.institution
+                    )?);
+                }
                 account["_gocardless_core"] = json!(rows);
-                account["_gocardless_opening"] = json!(opening);
             }
             Ok(account)
         })();

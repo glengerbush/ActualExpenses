@@ -25,7 +25,9 @@ const adapter = JSON.parse(
     "utf8",
   ),
 );
-let current;
+let current,
+  denyBalance = false,
+  balanceCalls = 0;
 const provider = createServer((req, res) => {
   const row = adapter.observations.find(
       (c) => c.input.id === current.input.source,
@@ -33,6 +35,15 @@ const provider = createServer((req, res) => {
     institution = current.transport_response.institutionId;
   const raw = row.requests.find((r) => r.path.includes("/transactions/"))
     .response.body;
+  if (req.url === "/api/v2/accounts/remote-A/balances/") {
+    balanceCalls++;
+    if (denyBalance) {
+      res.statusCode = 503;
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify({ summary: "Synthetic balance outage" }));
+      return;
+    }
+  }
   const data = (() => {
     if (req.url === "/api/v2/token/new/")
       return {
@@ -176,6 +187,8 @@ function projection(rows, payees, categories, source, before) {
 }
 try {
   for (current of financial.cases) {
+    denyBalance = false;
+    balanceCalls = 0;
     const bytes = await readFile(
       new URL(
         "../tests/fixtures/gocardless-financial-source/" +
@@ -257,6 +270,8 @@ try {
       )
     ).data;
     assert.equal(connection.state, "connected");
+    denyBalance = true;
+    const beforeDiscovery = balanceCalls;
     const discovered = await call(
       path,
       { action: "discover", generation: connection.generation },
@@ -265,6 +280,22 @@ try {
     assert.equal(discovered.data.errors.length, 0, JSON.stringify(discovered));
     let bank = (await call(root + "/banking")).data;
     assert.equal(bank.accounts.length, 1);
+    assert.equal(
+      balanceCalls,
+      beforeDiscovery,
+      "Metadata discovery must not request balances",
+    );
+    assert.equal(
+      bank.accounts[0].balance,
+      null,
+      "Unknown balance must remain unavailable",
+    );
+    assert.equal(
+      bank.accounts[0].balance_date,
+      0,
+      "Unknown balance must not receive a fresh timestamp",
+    );
+    denyBalance = false;
     await call(
       root + `/accounts/${account}/banking/commands`,
       {
@@ -283,7 +314,7 @@ try {
       headers,
     );
     bank = (await call(root + "/banking")).data;
-    const body = {
+    let body = {
         action: "refresh",
         generation: connection.generation,
         snapshot: bank.snapshot,
@@ -292,13 +323,44 @@ try {
         accounts: [{ account_id: account, revision: bank.links[0].revision }],
       },
       key = randomUUID();
-    const wire = {
+    let wire = {
       ...headers,
       "Idempotency-Key": key,
       "X-Actual-History-Owner": owner,
       "X-Actual-Edit-Clock": nextClock(bank.clock),
     };
+    if (current.id === "default-first-link") {
+      const empty = (await call(root + "/transactions")).data;
+      denyBalance = true;
+      const failed = await call(path, body, {
+        ...wire,
+        "Idempotency-Key": randomUUID(),
+      });
+      assert.equal(
+        failed.data.status,
+        "failed",
+        "Automatic first opening must require its actual balance endpoint",
+      );
+      assert.deepEqual((await call(root + "/transactions")).data, empty);
+      denyBalance = false;
+      bank = (await call(root + "/banking")).data;
+      body = { ...body, snapshot: bank.snapshot };
+      wire = {
+        ...wire,
+        "Idempotency-Key": randomUUID(),
+        "X-Actual-Edit-Clock": nextClock(bank.clock),
+      };
+    }
+    if (current.input.manual || current.input.opening !== undefined)
+      denyBalance = true;
+    const callsBefore = balanceCalls;
     const result = await call(path, body, wire);
+    if (current.input.manual || current.input.opening !== undefined)
+      assert.equal(
+        balanceCalls,
+        callsBefore,
+        "Existing/custom opening must not call balances",
+      );
     assert.equal(result.data.status, "complete", JSON.stringify(result));
     const rows = (await call(root + "/transactions")).data,
       payees = (await call(root + "/payees")).data,
@@ -320,6 +382,14 @@ try {
       result,
     );
     bank = (await call(root + "/banking")).data;
+    const cachedBalance = bank.accounts.map((a) => ({
+      id: a.id,
+      balance: a.balance,
+      available_balance: a.available_balance,
+      balance_date: a.balance_date,
+    }));
+    denyBalance = true;
+    const callsBeforeRepeat = balanceCalls;
     const repeated = await call(
       path,
       {
@@ -333,7 +403,22 @@ try {
         "X-Actual-Edit-Clock": nextClock(bank.clock),
       },
     );
-    assert.equal(repeated.data.status, "complete");
+    assert.equal(repeated.data.status, "complete", JSON.stringify(repeated));
+    assert.equal(
+      balanceCalls,
+      callsBeforeRepeat,
+      "Transaction-only repeat must not contact an unavailable balance endpoint",
+    );
+    assert.deepEqual(
+      (await call(root + "/banking")).data.accounts.map((a) => ({
+        id: a.id,
+        balance: a.balance,
+        available_balance: a.available_balance,
+        balance_date: a.balance_date,
+      })),
+      cachedBalance,
+      "Transaction-only refresh retains the prior balance and its original reported date",
+    );
     assert.deepEqual(
       (await call(root + "/transactions")).data.map((t) => t.id).sort(),
       firstIds,

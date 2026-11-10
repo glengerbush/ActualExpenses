@@ -171,6 +171,8 @@ pub(super) enum Download {
     Balances,
     Transactions {
         accounts: Vec<String>,
+        balance_accounts: Vec<String>,
+        balance_only_accounts: Vec<String>,
         start: i64,
         end: i64,
     },
@@ -206,6 +208,7 @@ pub(super) fn accounts(access: &str, download: Download) -> Result<serde_json::V
                 accounts,
                 start,
                 end,
+                ..
             } => {
                 query
                     .append_pair("pending", "1")

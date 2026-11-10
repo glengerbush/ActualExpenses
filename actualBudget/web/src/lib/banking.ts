@@ -34,7 +34,7 @@ export interface BankRemote {
   institution: string;
   name: string;
   currency: string;
-  balance: string;
+  balance: string | null;
   available_balance: string | null;
   balance_date: number;
   diagnostics: BankDiagnostic[];

@@ -214,29 +214,37 @@ pub(super) async fn refresh(
     })?;
     let (start, end) = validate(&body)?;
     let (bb, ii, pre, req) = (b.clone(), id.clone(), body.clone(), request.clone());
-    let remote_ids = store
+    let download_plan = store
         .run(move |db| {
             let tx = db.transaction()?;
             crate::lifecycle::require_epoch(&tx, &bb, req.epoch.as_deref())?;
             sync::check_snapshot(&tx, &bb, Some(&pre.snapshot))?;
-            Ok(links(&tx, &bb, &ii, &pre)?
-                .into_iter()
-                .map(|(_, r, _)| r["remote_id"].as_str().unwrap().to_owned())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect())
+            let mut accounts = BTreeSet::new();
+            let mut balance_accounts = BTreeSet::new();
+            let mut balance_only_accounts = BTreeSet::new();
+            for (link, remote, prefs) in links(&tx, &bb, &ii, &pre)? {
+                let id = remote["remote_id"].as_str().unwrap().to_owned();
+                let occupied: bool = tx.query_row(
+                    "SELECT EXISTS(SELECT 1 FROM transactions WHERE budget_id=?1 AND account_id=?2 AND tombstone=0)",
+                    params![bb, link["id"].as_str()], |r| r.get(0),
+                )?;
+                if !prefs.import_transactions {
+                    balance_only_accounts.insert(id.clone());
+                    balance_accounts.insert(id.clone());
+                } else if link["initial_sync"] == true && link["opening_mode"] == "auto" && !occupied {
+                    balance_accounts.insert(id.clone());
+                }
+                accounts.insert(id);
+            }
+            Ok(transport::Download::Transactions {
+                accounts: accounts.into_iter().collect(),
+                balance_accounts: balance_accounts.into_iter().collect(),
+                balance_only_accounts: balance_only_accounts.into_iter().collect(),
+                start, end,
+            })
         })
         .await?;
-    let Some(download) = remote::capture(
-        store.clone(),
-        request.clone(),
-        transport::Download::Transactions {
-            accounts: remote_ids,
-            start,
-            end,
-        },
-    )
-    .await?
+    let Some(download) = remote::capture(store.clone(), request.clone(), download_plan).await?
     else {
         return request.receipt(store).await;
     };

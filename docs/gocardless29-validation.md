@@ -19,6 +19,29 @@ Carry the scoped balance/opening need into capture, preserve truthful prior
 balance freshness, and prove existing-account refresh without that request.
 Initial automatic opening must still require its actual balance data.
 
+Worker correction (pending independent review): the original snapshot/link
+preflight now freezes which selected accounts require balances (automatic empty
+opening or explicit balance-only settings). Existing/manual/custom transaction
+refreshes request transactions alone. Discovery requests metadata alone. Unknown
+provider balances project as null (date0 means unavailable); cached amounts and
+reported dates remain unchanged on transaction-only requests. SimpleFIN keeps
+its existing provider request. The shared served BankRemoteAccount contract and
+web type admit unavailable balances; no new freshness timestamp is fabricated.
+
+Public `/tmp/gocardless-balance-need-red.log` reproduced the old balance503
+blocking a transaction-only repeat. The focused consumer also requires discovery
+to make zero balance calls, automatic opening503 to leave the ledger empty, and
+existing/custom/repeated imports to succeed without balance calls while retaining
+exact original source financial graphs, IDs, cached balance/date and receipts.
+
+Correction evidence: `/tmp/gocardless-balance-need-green.log` PASS five source
+cases/82 served contract observations; build and bin Clippy PASS
+`/tmp/gocardless-balance-need-{build,clippy}.log`. Existing SimpleFIN financial
+consumer PASS six cases/76 served observations
+`/tmp/gocardless-balance-simplefin-regression.log`; web check0errors/0warnings
+`/tmp/gocardless-balance-null-web-check.log`. No unchanged source regeneration,
+full suite or production provider call. Independent closure review remains due.
+
 Renewal source checkpointa111b09 reviewed; independent reproduction
 `/tmp/gocardless-renewal-root-source-check.log` PASS. An immutable genuine linked
 export is explicitly relinked through the registered source handler to new

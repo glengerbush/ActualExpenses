@@ -33833,7 +33833,11 @@
             "type": "string"
           },
           "balance": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Last retained provider balance; null when unavailable. Transaction-only refreshes do not refresh this value or its date."
           },
           "available_balance": {
             "type": [

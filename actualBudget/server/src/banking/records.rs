@@ -45,7 +45,7 @@ pub(super) fn identity(connection: &str, remote_connection: &str, remote: &str) 
     uuid::Uuid::from_bytes(bytes).to_string()
 }
 pub(super) fn remote(db: &Connection, b: &str, id: &str) -> Result<Value, Error> {
-    db.query_row("SELECT id,connection_id,generation,remote_connection_id,remote_id,institution,name,currency,balance,available_balance,balance_date,diagnostics,tombstone FROM bank_remote_accounts WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":r.get::<_,String>(0)?,"connection_id":r.get::<_,String>(1)?,"generation":r.get::<_,String>(2)?,"remote_connection_id":r.get::<_,String>(3)?,"remote_id":r.get::<_,String>(4)?,"institution":r.get::<_,String>(5)?,"name":r.get::<_,String>(6)?,"currency":r.get::<_,String>(7)?,"balance":r.get::<_,String>(8)?,"available_balance":r.get::<_,Option<String>>(9)?,"balance_date":r.get::<_,i64>(10)?,"diagnostics":serde_json::from_str::<Value>(&r.get::<_,String>(11)?).map_err(|e|rusqlite::Error::FromSqlConversionFailure(11,rusqlite::types::Type::Text,Box::new(e)))?,"deleted":r.get::<_,bool>(12)?}))).optional()?.ok_or_else(Error::missing)
+    db.query_row("SELECT id,connection_id,generation,remote_connection_id,remote_id,institution,name,currency,balance,available_balance,balance_date,diagnostics,tombstone FROM bank_remote_accounts WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":r.get::<_,String>(0)?,"connection_id":r.get::<_,String>(1)?,"generation":r.get::<_,String>(2)?,"remote_connection_id":r.get::<_,String>(3)?,"remote_id":r.get::<_,String>(4)?,"institution":r.get::<_,String>(5)?,"name":r.get::<_,String>(6)?,"currency":r.get::<_,String>(7)?,"balance":r.get::<_,Option<String>>(8)?.filter(|s|!s.is_empty()),"available_balance":r.get::<_,Option<String>>(9)?,"balance_date":r.get::<_,i64>(10)?,"diagnostics":serde_json::from_str::<Value>(&r.get::<_,String>(11)?).map_err(|e|rusqlite::Error::FromSqlConversionFailure(11,rusqlite::types::Type::Text,Box::new(e)))?,"deleted":r.get::<_,bool>(12)?}))).optional()?.ok_or_else(Error::missing)
 }
 pub(super) fn links(db: &Connection, b: &str) -> Result<Vec<Value>, Error> {
     db.prepare("SELECT id,connection_id,remote_account_id,connection_generation,revision,initial_sync,opening_mode,opening_amount,opening_date,last_sync_end,tombstone FROM bank_links WHERE budget_id=?1 ORDER BY id")?.query_map([b],|r|Ok(json!({"id":r.get::<_,String>(0)?,"connection_id":r.get::<_,String>(1)?,"remote_account_id":r.get::<_,String>(2)?,"connection_generation":r.get::<_,String>(3)?,"revision":r.get::<_,i64>(4)?,"initial_sync":r.get::<_,bool>(5)?,"opening_mode":r.get::<_,String>(6)?,"opening_amount":r.get::<_,Option<i64>>(7)?,"opening_date":r.get::<_,Option<String>>(8)?,"last_sync_end":r.get::<_,Option<String>>(9)?,"deleted":r.get::<_,bool>(10)?})))?.collect::<Result<Vec<_>,_>>().map_err(Error::from)
@@ -252,7 +252,14 @@ pub(super) fn install_remote(
         let institution = institution.to_owned();
         let name = label(account, "name", 512)?;
         let currency = label(account, "currency", 512)?;
-        let balance = decimal(account, "balance", true)?.unwrap();
+        let balance = if gocardless
+            && account["_gocardless_balance_fresh"] == false
+            && account["balance"] == ""
+        {
+            String::new()
+        } else {
+            decimal(account, "balance", true)?.unwrap()
+        };
         let available = decimal(account, "available-balance", false)?;
         let date = account["balance-date"]
             .as_i64()

@@ -16,6 +16,18 @@ export interface PreferenceDraft {
 const key = (budget: string) => `actualBudget.preferencesDraft.v1.${budget}`;
 const equal = (a: unknown, b: unknown) =>
   JSON.stringify(a) === JSON.stringify(b);
+function withoutRetiredFeatures(draft: PreferenceDraft): PreferenceDraft {
+  const clean = (values: SharedPreferences): SharedPreferences => {
+    const experimental = { ...values.experimental } as Record<string, boolean>;
+    delete experimental.enableBanking;
+    delete experimental.akahuBankSync;
+    return {
+      ...values,
+      experimental: experimental as SharedPreferences["experimental"],
+    };
+  };
+  return { ...draft, base: clean(draft.base), values: clean(draft.values) };
+}
 function changesBetween(
   base: SharedPreferences,
   values: SharedPreferences,
@@ -132,6 +144,9 @@ export class SettingsSession {
         values: structuredClone($state.snapshot(preferences.shared)),
         pending: null,
       };
+      // Never rewrite the body/key of an unconfirmed request. Once resolved,
+      // keep unrelated settings edits while removing retired connector flags.
+      if (!this.draft.pending) this.draft = withoutRetiredFeatures(this.draft);
       write(this.draft);
       this.error = "";
       this.status = stored ? "Recovered your saved settings changes." : "";
@@ -250,7 +265,10 @@ export class SettingsSession {
         this.draft.pending
       ) {
         try {
-          const editable = { ...this.draft, pending: null };
+          const editable = withoutRetiredFeatures({
+            ...this.draft,
+            pending: null,
+          });
           write(editable, this.draft.pending);
           this.draft = editable;
         } catch (storageError) {

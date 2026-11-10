@@ -23,5 +23,5 @@ contract. Story IDs58–60 are explicit scope exceptions;61 retains manual impor
 preferences/identity;62 covers credential retirement. Stories13/100 no longer
 require live provider balances/bank refresh. Final50–53 qualify the revised scope.
 
-Removal implementation/review is pending. This decision record does not claim
-that connectors are already absent or that the whole replacement is complete.
+Removal is implemented and reviewed locally; see [retirement evidence](bank-retirement-validation.md).
+The remaining rewrite tickets and whole-system qualification are still open.

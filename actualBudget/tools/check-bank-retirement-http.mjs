@@ -96,6 +96,8 @@ for (const mode of ["database", "archive"]) {
       );
     }
     const before = await call(root + "/checkpoint");
+    const preferences = (await call(root + "/preferences")).data.experimental;
+    assert.ok(!("enableBanking" in preferences) && !("akahuBankSync" in preferences));
     const connection =
       fixture.snapshot.banking?.data?.connections?.[0]?.id ?? randomUUID();
     for (const path of [

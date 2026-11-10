@@ -27,9 +27,7 @@ pub const FEATURES: &[&str] = &[
     "balanceForecastReport",
     "customThemes",
     "budgetAnalysisReport",
-    "enableBanking",
     "sankeyReport",
-    "akahuBankSync",
     "mobileCalculator",
     "monteCarloReport",
 ];
@@ -108,6 +106,12 @@ pub(crate) fn normalize_currency(values: &mut Value) {
         values["currency_code"] = json!("");
     }
 }
+pub(crate) fn remove_retired_features(values: &mut Value) {
+    if let Some(flags) = values["experimental"].as_object_mut() {
+        flags.remove("enableBanking");
+        flags.remove("akahuBankSync");
+    }
+}
 pub fn get_preferences(db: &Connection, budget: &str) -> Result<Value, Error> {
     store::require_budget(db, budget)?;
     let existing: Option<(String, i64)> = db
@@ -124,6 +128,7 @@ pub fn get_preferences(db: &Connection, budget: &str) -> Result<Value, Error> {
         ),
         None => (defaults(), 0),
     };
+    remove_retired_features(&mut values);
     normalize_currency(&mut values);
     values["revision"] = json!(revision);
     Ok(values)
@@ -214,7 +219,17 @@ async fn update(
         .ok_or_else(|| Error::invalid("Expected a preference changes object"))?
         .clone();
     for (key, value) in &changes {
-        validate_change(key, value)?;
+        // Old committed requests must still resolve their original receipt.
+        // apply_changes rejects these retired flags for every new write.
+        if key == "experimental" && value.is_object() {
+            let mut supported = value.clone();
+            supported.as_object_mut().unwrap().retain(|flag, enabled| {
+                !matches!(flag.as_str(), "enableBanking" | "akahuBankSync") || !enabled.is_boolean()
+            });
+            validate_change(key, &supported)?;
+        } else {
+            validate_change(key, value)?;
+        }
     }
     let key = idempotency_key(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;

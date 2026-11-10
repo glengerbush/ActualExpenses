@@ -10,7 +10,7 @@ IDs in URLs are native budget UUIDs, not names or source cloud IDs.
 pinned Actual26.10 `packages/api/methods.ts` and all18 declared query resources.
 This is a semantic migration, not a drop-in implementation of its local SDK.
 Native route bodies/field names are defined by the served schema. Existing import,
-metadata, budgeting, rule, schedule, reporting and banking writers retain their
+metadata, budgeting, rule, schedule and reporting writers retain their
 own validation and revision contracts.
 
 | SDK/resource family | Remote interface |
@@ -25,7 +25,7 @@ own validation and revision contracts.
 | Preferences/saved filters | `/preferences`, `/register-settings`. Translate supported source preference IDs to native typed fields; budgetType uses budgeting method action. Retained/deferred source data is not silently made executable. |
 | Reports/cards/pages | `/reporting`, `/reports/query`, drilldown and dedicated report routes. Metadata/calculations use their validated schemas, not arbitrary table access. |
 | Cleanup pools / payee locations | `/budget/templates` pools / `/payee-locations`. Native metadata types and bounds remain authoritative. |
-| Bank refresh | Explicit configured connection refresh via banking commands. Provider secrets use specialized routes; the example financial outbox excludes credential commands. |
+| Bank refresh | Removed by the user's manual-only scope. No connection or refresh routes exist; use explicit file imports. |
 | SDK callbacks/batching | Supported-format staged imports or explicit typed calls. No remote JS callback. Transaction batches are atomic; there is no cross-command rollback promise for arbitrary custom construction. |
 
 ## Typed read queries

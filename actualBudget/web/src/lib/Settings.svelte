@@ -95,9 +95,7 @@
     balanceForecastReport: "Balance forecast",
     customThemes: "Custom themes",
     budgetAnalysisReport: "Budget analysis",
-    enableBanking: "Enable Banking",
     sankeyReport: "Sankey report",
-    akahuBankSync: "Akahu bank sync",
     mobileCalculator: "Mobile calculator",
     monteCarloReport: "Monte Carlo report",
   };

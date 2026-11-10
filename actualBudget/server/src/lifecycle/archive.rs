@@ -268,6 +268,25 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             .ok_or_else(|| invalid("Missing budget data"))?,
     )
     .map_err(|_| invalid("Invalid budget state"))?;
+    if let Some(table) = state.tables.get_mut("budget_preferences") {
+        let settings = table
+            .columns
+            .iter()
+            .position(|c| c == "settings")
+            .ok_or_else(|| invalid("Missing preference settings"))?;
+        for row in &mut table.rows {
+            let raw = row
+                .get_mut(settings)
+                .ok_or_else(|| invalid("Invalid preference row"))?;
+            let mut values: Value = serde_json::from_str(
+                raw.as_str()
+                    .ok_or_else(|| invalid("Invalid preference settings"))?,
+            )
+            .map_err(|_| invalid("Invalid preference settings"))?;
+            crate::preferences::remove_retired_features(&mut values);
+            *raw = json!(values.to_string());
+        }
+    }
     let retired_external_connections = state
         .tables
         .get("bank_connections")

@@ -23411,13 +23411,7 @@
               "budgetAnalysisReport": {
                 "type": "boolean"
               },
-              "enableBanking": {
-                "type": "boolean"
-              },
               "sankeyReport": {
-                "type": "boolean"
-              },
-              "akahuBankSync": {
                 "type": "boolean"
               },
               "mobileCalculator": {
@@ -23437,9 +23431,7 @@
               "balanceForecastReport",
               "customThemes",
               "budgetAnalysisReport",
-              "enableBanking",
               "sankeyReport",
-              "akahuBankSync",
               "mobileCalculator",
               "monteCarloReport"
             ]
@@ -23651,13 +23643,7 @@
                   "budgetAnalysisReport": {
                     "type": "boolean"
                   },
-                  "enableBanking": {
-                    "type": "boolean"
-                  },
                   "sankeyReport": {
-                    "type": "boolean"
-                  },
-                  "akahuBankSync": {
                     "type": "boolean"
                   },
                   "mobileCalculator": {
@@ -23831,13 +23817,7 @@
                   "budgetAnalysisReport": {
                     "type": "boolean"
                   },
-                  "enableBanking": {
-                    "type": "boolean"
-                  },
                   "sankeyReport": {
-                    "type": "boolean"
-                  },
-                  "akahuBankSync": {
                     "type": "boolean"
                   },
                   "mobileCalculator": {
@@ -23857,9 +23837,7 @@
                   "balanceForecastReport",
                   "customThemes",
                   "budgetAnalysisReport",
-                  "enableBanking",
                   "sankeyReport",
-                  "akahuBankSync",
                   "mobileCalculator",
                   "monteCarloReport"
                 ]

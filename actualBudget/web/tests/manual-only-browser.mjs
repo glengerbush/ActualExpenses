@@ -104,7 +104,7 @@ try {
   await page.keyboard.press("Control+k");
   await page.getByLabel("Search commands").fill("bank");
   await expect(page.locator("#command-results button")).toHaveCount(0);
-  await page.getByRole("button",{name:"Close search",exact:true}).click();
+  await page.getByRole("button", { name: "Close search", exact: true }).click();
   await expect(page.getByRole("dialog")).not.toBeVisible();
   const recovered = await page.evaluate(
     (budget) =>
@@ -125,6 +125,70 @@ try {
     budget,
   );
   expect(recovered).toEqual(retained);
+  await page.evaluate(async (budget) => {
+    const base = (
+      await (await fetch(`/api/v1/budgets/${budget}/preferences`)).json()
+    ).data;
+    base.experimental.enableBanking = false;
+    base.experimental.akahuBankSync = false;
+    const epoch = (
+      await (await fetch(`/api/v1/budgets/${budget}/checkpoint`)).json()
+    ).data.epoch;
+    const key = "29100000-0000-4000-8000-000000000026";
+    localStorage.setItem(
+      `actualBudget.preferencesDraft.v1.${budget}`,
+      JSON.stringify({
+        version: 1,
+        origin: location.origin,
+        budget_id: budget,
+        draft_id: key,
+        budget_epoch: epoch,
+        base,
+        values: {
+          ...base,
+          date_format: "dd.MM.yyyy",
+          experimental: { ...base.experimental, enableBanking: true },
+        },
+        pending: {
+          key,
+          changes: {
+            date_format: "dd.MM.yyyy",
+            experimental: { enableBanking: true },
+          },
+        },
+      }),
+    );
+  }, budget);
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Retry saving", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Save shared preferences", exact: true }),
+  ).toBeEnabled();
+  await page
+    .getByRole("button", { name: "Save shared preferences", exact: true })
+    .click();
+  await expect(
+    page.getByText("Shared preferences saved.", { exact: true }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      async (budget) =>
+        (await (await fetch(`/api/v1/budgets/${budget}/preferences`)).json())
+          .data.date_format,
+      budget,
+    ),
+  ).toBe("dd.MM.yyyy");
+  await page.getByText("Experimental features", { exact: true }).click();
+  await expect(
+    page.getByRole("checkbox", { name: "Enable Banking", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("checkbox", { name: "Akahu bank sync", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("checkbox", { name: "Sankey report", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Done", exact: true }).click();
   const directory = new URL("../test-results/manual-only/", import.meta.url);
   await mkdir(directory, { recursive: true });
   await page.screenshot({
@@ -143,7 +207,10 @@ try {
     .getByRole("button", { name: "Transaction files", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Transaction files", exact: true }),
+    page.getByRole("heading", {
+      name: "Import and export transactions",
+      exact: true,
+    }),
   ).toBeVisible();
   expect(
     requests.filter((url) =>

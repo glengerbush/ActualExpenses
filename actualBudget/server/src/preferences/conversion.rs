@@ -69,6 +69,10 @@ pub fn convert_actual(input: &Value) -> Result<Value, Error> {
                 );
             }
         } else if let Some(flag) = key.strip_prefix("flags.") {
+            if matches!(flag, "enableBanking" | "akahuBankSync") {
+                warnings.push(json!({"key":key,"reason":"External bank connection feature removed; original source retained"}));
+                continue;
+            }
             if FEATURES.contains(&flag)
                 && (value.is_boolean() || matches!(value.as_str(), Some("true" | "false")))
             {

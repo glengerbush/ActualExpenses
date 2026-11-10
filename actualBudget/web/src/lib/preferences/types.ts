@@ -25,9 +25,7 @@ export const featureNames = [
   "balanceForecastReport",
   "customThemes",
   "budgetAnalysisReport",
-  "enableBanking",
   "sankeyReport",
-  "akahuBankSync",
   "mobileCalculator",
   "monteCarloReport",
 ] as const;

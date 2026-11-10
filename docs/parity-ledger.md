@@ -84,11 +84,11 @@ traceability; explicit exceptions are not implementation-completion claims.
 | 55 | 25 | File imports and bank providers | [25: retained mapping/options, exact rounding, preview and durable failure recovery](transaction-import-validation.md) |
 | 56 | 25, 26 | File imports and bank providers | [25/26: IDs, source-ordered matching, status/deleted choices, rules once and repeat imports](transaction-import-validation.md) |
 | 57 | 08, 25 | File imports and bank providers | [08: native budget export](budget-lifecycle-validation.md); [25: source-backed CSV bytes/cells and canonical filtered export](transaction-import-validation.md) |
-| 58 | 29 retirement | File imports and bank providers | Explicit user exception2026-11-10: SimpleFIN/GoCardless/Pluggy removed; retirement verification pending |
-| 59 | 29 retirement | File imports and bank providers | Explicit user exception2026-11-10: Enable Banking/Akahu removed; retirement verification pending |
-| 60 | 29 retirement | File imports and bank providers | Explicit user exception2026-11-10: external connection/refresh workflows removed; retirement verification pending |
-| 61 | 25, 26, 29 retirement | File imports and bank providers | Revised: retain manual-import preferences and historical identifiers; remove provider balances/mappings; retirement verification pending |
-| 62 | 29 retirement | File imports and bank providers | Revised: remove operational credentials/configuration, preserve original recovery artifacts; retirement verification pending |
+| 58 | 29 retirement | File imports and bank providers | Explicit user exception2026-11-10: SimpleFIN/GoCardless/Pluggy removed; [retirement verified](bank-retirement-validation.md) |
+| 59 | 29 retirement | File imports and bank providers | Explicit user exception2026-11-10: Enable Banking/Akahu removed; [retirement verified](bank-retirement-validation.md) |
+| 60 | 29 retirement | File imports and bank providers | Explicit user exception2026-11-10: external connection/refresh workflows removed; [retirement verified](bank-retirement-validation.md) |
+| 61 | 25, 26, 29 retirement | File imports and bank providers | Revised: retain manual-import preferences and historical identifiers; remove provider balances/mappings; [retirement verified](bank-retirement-validation.md) |
+| 62 | 29 retirement | File imports and bank providers | Revised: remove operational credentials/configuration, preserve original recovery artifacts; [retirement verified](bank-retirement-validation.md) |
 | 63 | 33 | Reports, dashboards and formulas | [33: named dashboards, persistent layout/settings, source clocks and native round trips](reports-validation.md) |
 | 64 | 33 | Reports, dashboards and formulas | [33: source-backed cash flow/net worth/spending, bounded aggregates and snapshot drilldowns](reports-validation.md) |
 | 65 | 33 | Reports, dashboards and formulas | [33: text, summary/calendar widgets and accessible exact-value tables](reports-validation.md) |

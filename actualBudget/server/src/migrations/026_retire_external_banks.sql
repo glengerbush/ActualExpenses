@@ -11,3 +11,7 @@ DROP TABLE bank_connections;
 DROP TABLE bank_gocardless_limits;
 DELETE FROM field_versions WHERE entity IN ('bank_connections','bank_remote_accounts','bank_links','bank_transaction_origins');
 DELETE FROM budget_changes WHERE entity IN ('bank_connections','bank_remote_accounts','bank_links','bank_transaction_origins');
+UPDATE budget_preferences
+SET settings=json_remove(settings,'$.experimental.enableBanking','$.experimental.akahuBankSync'),revision=revision+1
+WHERE json_type(settings,'$.experimental.enableBanking') IS NOT NULL
+   OR json_type(settings,'$.experimental.akahuBankSync') IS NOT NULL;

@@ -16,6 +16,9 @@ Manage accounts and finances with Actual 26.10.0 financial behavior and a simple
 ## Operating Context
 Plain HTTP is supported. No application login, identity, roles or sessions. Server persistence is authoritative. Full offline budgeting and desktop packaging are excluded.
 
+Accounts are fully manual: no external bank connectors. Retain manual file imports,
+internal rules/schedules and Android delivery. Previously linked account history survives migration.
+
 ## Capabilities and Constraints
 Initial slice: select/create budgets, create/select on/off-budget accounts, exact opening balances and calendar dates, reopen persisted data. Future features follow the canonical rewrite tickets; do not present unfinished controls. Native clients share the versioned public API.
 

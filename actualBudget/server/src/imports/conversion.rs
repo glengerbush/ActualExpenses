@@ -969,9 +969,11 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
             return Err(invalid("Converted financial totals differ from source"));
         }
     }
+    let mut preferences = data["preferences"].clone();
+    crate::preferences::remove_retired_features(&mut preferences);
     db.execute(
         "INSERT INTO budget_preferences(budget_id,settings,revision) VALUES(?1,?2,0)",
-        params![budget, data["preferences"].to_string()],
+        params![budget, preferences.to_string()],
     )?;
     if let Some(settings) = data.get("register_settings") {
         db.execute(

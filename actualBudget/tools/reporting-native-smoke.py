@@ -42,7 +42,7 @@ with tempfile.TemporaryDirectory(prefix='reporting-native-copy-') as directory:
   cancel_body={'writes':[{'id':page,'kind':'page','revision':1,'config':{'name':'Canceled'},'tombstone':False}]};cancel_key='cancel21';canceled=call(root+'/reporting/commands',cancel_body,cancel_key,{**headers,'X-Actual-Cancel-If-Uncommitted':'true'},409);check('/reporting/commands',canceled,'POST',409);assert call(root+'/reporting/commands',cancel_body,cancel_key,headers,409)==canceled
   after_companion=call(root+'/companion?account_id='+evidence['account'])['data'];assert {k:v for k,v in after_companion.items() if k!='snapshot'}=={k:v for k,v in before_companion['data'].items() if k!='snapshot'}
   backup=call(root+'/backups',{'label':'Reporting22'},headers=headers,expected=201);archive=call(root+'/backups/'+backup['data']['id']+'/download')
-  with zipfile.ZipFile(io.BytesIO(archive)) as contents:assert json.loads(contents.read('manifest.json'))['schema_version']==24
+  with zipfile.ZipFile(io.BytesIO(archive)) as contents:assert json.loads(contents.read('manifest.json'))['schema_version']==26
   duplicate=str(uuid.uuid4());call(root+'/duplicate',{'id':duplicate,'name':'History duplicate'},headers=headers,expected=201);assert call('/budgets/'+duplicate+'/reporting')['data']['documents']==command['data']['documents']
   # Restore the genuine21 ZIP through supported native upload/activation; reporting
   # is empty by construction and money/receipt bytes remain preserved in that ZIP.

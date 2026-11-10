@@ -27,7 +27,7 @@ with tempfile.TemporaryDirectory(prefix='forecast-native-') as directory:
   backup=call(root+'/backups',{'label':'Before forecast native round trip'},headers,201);data=call(root+'/backups/'+backup['data']['id']+'/download')
   def portable(bytes):
    with zipfile.ZipFile(io.BytesIO(bytes)) as contents:
-    assert json.loads(contents.read('manifest.json'))['schema_version']==24;return json.loads(contents.read('budget.json'))
+    assert json.loads(contents.read('manifest.json'))['schema_version']==26;return json.loads(contents.read('budget.json'))
   original=portable(data)
   def report_clocks(value):
    table=value['tables']['field_versions'];return [dict(zip(table['columns'],row)) for row in table['rows'] if dict(zip(table['columns'],row))['entity']=='reporting_documents']

@@ -4,6 +4,9 @@ The replacement web/server application uses a static Svelte 5 frontend, Rust/Axu
 
 ## Run locally
 
+Accounts are fully manual. File imports, rules/schedules, Android and the public
+API remain; external bank connections and automatic bank sync are removed.
+
 Requires Node 24 and Rust 1.99.1 (or the Docker build). From the repository root:
 
 ```sh

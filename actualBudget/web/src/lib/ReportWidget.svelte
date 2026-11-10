@@ -47,6 +47,7 @@
               "spending-card": t("Spending analysis"),
               "summary-card": t("Summary"),
               "calendar-card": t("Transaction calendar"),
+              "balance-forecast-card": t("Balance forecast"),
               "markdown-card": t("Text"),
               "custom-report": String(
                 report?.config.name || t("Saved custom report"),

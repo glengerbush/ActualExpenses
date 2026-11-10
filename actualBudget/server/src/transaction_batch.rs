@@ -17,6 +17,11 @@ use std::collections::BTreeSet;
 struct Batch {
     snapshot: String,
     operations: Vec<Operation>,
+    #[serde(default = "graph_limit")]
+    max_graph_members: usize,
+}
+fn graph_limit() -> usize {
+    100000
 }
 #[derive(Deserialize)]
 #[serde(tag = "action", rename_all = "snake_case", deny_unknown_fields)]
@@ -62,8 +67,12 @@ fn apply(
 ) -> Result<Value, Error> {
     crate::lifecycle::require_epoch(db, b, epoch)?;
     sync::check_snapshot(db, b, Some(&input.snapshot))?;
-    if input.operations.is_empty() || input.operations.len() > 100 {
-        return Err(Error::invalid("Provide1–100 transaction operations"));
+    if input.operations.is_empty()
+        || input.operations.len() > 100
+        || input.max_graph_members == 0
+        || input.max_graph_members > 100000
+    {
+        return Err(Error::invalid("Provide1–100 transaction operations and graph allowance1–100000"));
     }
     let mut targets = BTreeSet::new();
     let mut graph = BTreeSet::new();
@@ -95,13 +104,12 @@ fn apply(
         if !matches!(op, Operation::Create { .. }) {
             // Validate every original target before writes; a published tombstone
             // is never silently revived as a new batch purchase.
-            ledger::get(db, b, op.id())?;
-            let members = crate::transfers::protection::members(db, b, &[op.id()])?;
-            if graph.len() + members.len() > 100000 {
-                return Err(Error::invalid(
-                    "Batch graph exceeds100000 members; use smaller independent commands",
-                ));
-            }
+            let members = crate::transfers::protection::members_bounded(
+                db,
+                b,
+                &[op.id()],
+                input.max_graph_members - graph.len(),
+            )?;
             for row in members {
                 if !graph.insert(row["id"].as_str().unwrap().to_owned()) {
                     return Err(Error::conflict(

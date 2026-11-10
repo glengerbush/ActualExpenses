@@ -353,3 +353,21 @@ the caller/container; isolated local execution proves restart. Source independen
 check PASS /tmp/public-batch-source-freeze-check.log; binClippy PASS
 /tmp/public-batch-clippy-green.log. Final caller guide, served contracts,
 representative web/native observation and maintained wiring remain47 work.
+
+Batch review correction: the first adapter checked the graph cap only after
+unlimited members() and ledger::get expansion. That did not bound discovery.
+`members_bounded` now walks indexed live parent/child/reciprocal-peer edges with a
+bounded discovered map/queue and an early-stopped child cursor; no get_many or
+high-fanout recursive queue is materialized first. Ordinary confirmation's
+members() implementation is unchanged. Optional `max_graph_members`1..100000
+(default100000) lets callers choose a stricter captured allowance; overflow
+refuses the whole command with graph_limit, never returns a truncated graph.
+
+Public red /tmp/public-batch-graph-bound-red.log specifically distinguishes
+unknown-field400 from a real graph_limit. A genuine parent+two-child graph with
+allowance2 refuses without ledger/checkpoint/history changes; the following
+independent mixed command succeeds with allowance2, proving guard reset. All
+batch/replay/restore/restart assertions remain green
+/tmp/public-batch-graph-bound-green.log; binClippy PASS
+/tmp/public-batch-bound-clippy.log. This is a functional bounded-discovery proof,
+not a100000-row timing/energy claim (qualification51 remains separate).

@@ -80,9 +80,41 @@ try {
     },
     before = await query();
   assert.deepEqual(before, source.before);
+  const boundBefore = await checkpoint(),
+    boundHistory = (await call(root + "/history", undefined, 200, headers))
+      .data;
+  const boundRefusal = await call(
+    root + "/transactions/batch",
+    {
+      snapshot: boundBefore.snapshot,
+      max_graph_members: 2,
+      operations: [
+        source.operations[0],
+        {
+          action: "update",
+          id: source.before.find((r) => r.is_parent).id,
+          fields: { notes: "Must not expand unbounded children" },
+        },
+      ],
+    },
+    400,
+    { ...headers, "Idempotency-Key": randomUUID() },
+  );
+  assert.equal(
+    boundRefusal.error.code,
+    "graph_limit",
+    "Resource refusal comes from bounded traversal, not unsupported input syntax",
+  );
+  assert.deepEqual(await checkpoint(), boundBefore);
+  assert.deepEqual(await query(), before);
+  assert.deepEqual(
+    (await call(root + "/history", undefined, 200, headers)).data,
+    boundHistory,
+  );
   const body = {
       snapshot: (await checkpoint()).snapshot,
       operations: source.operations,
+      max_graph_members: 2,
     },
     saved = await call(root + "/transactions/batch", body, 200, headers);
   assert.equal(saved.edit_clock, clock);

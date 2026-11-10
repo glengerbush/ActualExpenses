@@ -24,6 +24,8 @@ import uuid
 MAX_JSON = 65536
 MAX_UPLOAD = 16 * 1024 * 1024
 MAX_RESPONSE = 4 * 1024 * 1024
+# UTF-8 response text may expand sixfold when JSON escapes control characters.
+MAX_OUTBOX = 4 * ((MAX_UPLOAD + 2) // 3) + 12 * MAX_RESPONSE + 1024 * 1024
 UUID = r"[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}"
 
 
@@ -124,11 +126,29 @@ def relative(path):
     return path
 
 
+def next_clock(observed):
+    if not isinstance(observed, str) or not re.fullmatch(
+            r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z-[0-9A-F]{4}-[0-9a-fA-F]{16}", observed):
+        raise ValueError("Server did not supply a canonical edit clock")
+    date = datetime.datetime.fromisoformat(observed[:24].replace("Z", "+00:00"))
+    epoch = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
+    tick = datetime.timedelta(milliseconds=1)
+    millis = (date - epoch) // tick
+    now = (datetime.datetime.now(datetime.timezone.utc) - epoch) // tick
+    if millis < 0 or millis - now > 300_000:
+        raise ValueError("Observed clock exceeds five-minute skew bound; correct clocks before preparing")
+    counter = int(observed[25:29], 16) + 1 if millis >= now else 0
+    if counter > 65535:
+        raise ValueError("Logical clock counter exhausted; wait for time to advance before preparing")
+    date = epoch + max(now, millis) * tick
+    return date.isoformat(timespec="milliseconds").replace("+00:00", "Z") + f"-{counter:04X}-" + secrets.token_hex(8)
+
+
 def prepare(args, upload=False):
     _, root = context(args)
     if not root:
         raise ValueError("New mutations require --budget")
-    status, checkpoint = fetch(root + "/checkpoint")
+    status, checkpoint = fetch(root + "/checkpoint?include_clock=true")
     if status != 200:
         return status, checkpoint
     checkpoint = checkpoint["data"]
@@ -152,7 +172,7 @@ def prepare(args, upload=False):
         if len(body) > MAX_JSON:
             raise ValueError("Command exceeds64KiB")
         content_type = "application/json"
-    clock = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z") + "-0000-" + secrets.token_hex(8)
+    clock = next_clock(checkpoint.get("edit_clock"))
     owner = args.owner or str(uuid.uuid4())
     if not re.fullmatch(UUID, owner):
         raise ValueError("History owner must be a UUID")
@@ -169,7 +189,7 @@ def prepare(args, upload=False):
 
 
 def deliver(args):
-    box = read_json(args.outbox, 24 * 1024 * 1024)
+    box = read_json(args.outbox, MAX_OUTBOX)
     if box.get("version") != 1 or digest(box["request"]) != box["request_sha256"]:
         raise ValueError("Outbox identity changed; retained file requires explicit review")
     request = box["request"]

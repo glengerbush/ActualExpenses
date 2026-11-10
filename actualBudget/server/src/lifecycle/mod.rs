@@ -142,14 +142,29 @@ async fn read(
         json!({"data":store.run(move|db|metadata(db,&budget,query.include_deleted)).await?}),
     ))
 }
+#[derive(Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CheckpointQuery {
+    #[serde(default)]
+    include_clock: bool,
+}
 async fn checkpoint(
     State(store): State<Store>,
     path: Result<Path<String>, PathRejection>,
+    query: Result<Query<CheckpointQuery>, QueryRejection>,
 ) -> Result<Json<Value>, Error> {
     let budget = budget_id(path)?;
-    Ok(Json(
-        json!({"data":store.run(move|db|{let value=metadata(db,&budget,false)?;Ok(json!({"snapshot":crate::concurrency::cursor(db,&budget)?,"epoch":value["epoch"],"generation":value["generation"]}))}).await?}),
-    ))
+    let query = query
+        .map_err(|_| Error::invalid("Invalid checkpoint query"))?
+        .0;
+    Ok(Json(json!({"data":store.run(move|db| {
+        let value=metadata(db,&budget,false)?;
+        let mut result=json!({"snapshot":crate::concurrency::cursor(db,&budget)?,"epoch":value["epoch"],"generation":value["generation"]});
+        if query.include_clock {
+            result["edit_clock"]=db.query_row("SELECT clock FROM budget_sync WHERE budget_id=?1",[&budget],|r|r.get::<_,String>(0))?.into();
+        }
+        Ok(result)
+    }).await?})))
 }
 #[derive(Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]

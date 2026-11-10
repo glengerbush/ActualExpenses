@@ -527,3 +527,7 @@ Isolated genuine23→current task PASS /tmp/public-api-upgrade-maintained.log.
 Final formatter/py_compile checks PASS /tmp/public-api-final-format.log; no
 worker-wide Rust/native/container repetition. Later schema25 composition is root
 owned; current-version assertions are not hardcoded24 and genuine fixtures stay23.
+
+### Caller review corrections
+
+The future-clock public regression failed before correction (`/tmp/public-caller-clock-red.log`): an existing edit one minute ahead defeated a fresh caller intent. Checkpoint now optionally returns global `edit_clock` atomically with snapshot/epoch; default response stays unchanged. Caller preparation observes it once, checks five-minute skew/counter bounds, and retains that exact clock through delivery/replay. The focused real caller consumer passes (`/tmp/public-caller-clock-green.log`), including the future-clock update and immutable replay. It also round-trips a maximum-upload saved state with both response records beyond the former 24MiB reload limit; derived saved-state capacity preserves unchanged upload/network limits. No source fixtures changed.

@@ -306,7 +306,11 @@ def main():
             root = f"{budgets}/{budget_id}"
             root_template = budgets + "/{budget}"
             metadata = check(root, root_template)["data"]
-            check(root + "/checkpoint", root_template + "/checkpoint")
+            checkpoint = check(root + "/checkpoint", root_template + "/checkpoint")
+            clock_checkpoint = check(root + "/checkpoint?include_clock=true", root_template + "/checkpoint")
+            assert set(clock_checkpoint["data"]) == set(checkpoint["data"]) | {"edit_clock"}
+            assert {k: v for k, v in clock_checkpoint["data"].items() if k != "edit_clock"} == checkpoint["data"]
+            assert check(root + "/checkpoint", root_template + "/checkpoint") == checkpoint
             epoch = metadata["epoch"]
             point = check(root + "/backups", root_template + "/backups", "POST", {"label": "Contract backup"},
                           {"Idempotency-Key": "backup", "X-Actual-Budget-Epoch": epoch}, 201)["data"]

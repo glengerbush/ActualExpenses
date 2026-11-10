@@ -190,3 +190,5 @@ ledger before retry, compares exact bytes/key/HLC/epoch/owner across processes,
 then uploads/reviews/imports a genuine independently captured manual-match case.
 Validation/provenance and remaining qualification are recorded in
 [public-query-validation.md](public-query-validation.md).
+
+New caller intents request `/checkpoint?include_clock=true`: snapshot, epoch and global observed HLC come from one read. The caller advances that clock once, refusing observed clocks over five minutes ahead or exhausted logical counters. Delivery/receipt/cancel retain the original clock. Ordinary checkpoint responses remain unchanged. Saved-state capacity includes the maximum base64 upload and both retained bounded response records; upload, command and network response limits remain unchanged.

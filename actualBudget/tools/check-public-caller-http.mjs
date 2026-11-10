@@ -382,6 +382,102 @@ try {
     importedReceipt,
   );
   assert.deepEqual(await rows(imported), expected);
+  // Exercise saved-state capacity independently of network/upload size caps.
+  await new Promise((resolve, reject) =>
+    execFile(
+      "python3",
+      [
+        "-c",
+        `
+import base64, importlib.util, pathlib, sys
+spec=importlib.util.spec_from_file_location("caller",sys.argv[1])
+m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+p=pathlib.Path(sys.argv[2])/"maximum-saved-state.json"
+value={"request":{"body_base64":base64.b64encode(b"x"*m.MAX_UPLOAD).decode()},
+       "committed_response":{"body":"x"*m.MAX_RESPONSE},
+       "last_response":{"body":"x"*m.MAX_RESPONSE}}
+m.save(p,value)
+assert p.stat().st_size > 24*1024*1024
+assert m.read_json(p,m.MAX_OUTBOX)==value
+try: m.next_clock("2999-01-01T00:00:00.000Z-0000-1111111111111111")
+except ValueError: pass
+else: raise AssertionError("Future skew accepted")
+import datetime
+future=(datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(seconds=60)).isoformat(timespec="milliseconds").replace("+00:00","Z")
+try: m.next_clock(future+"-FFFF-1111111111111111")
+except ValueError: pass
+else: raise AssertionError("Counter overflow accepted")
+`,
+        tool,
+        directory,
+      ],
+      (error, stdout, stderr) =>
+        error ? reject(new Error(stderr)) : resolve(),
+    ),
+  );
+  // A fresh review must observe server HLCs, including valid future edits.
+  const futureClock =
+      new Date(Date.now() + 60_000).toISOString() + "-0010-1111111111111111",
+    target = manual.ids.manual,
+    seeded = await fetch(api + importRoot + "/transactions/" + target, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": randomUUID(),
+        "X-Actual-Budget-Epoch": (await call(importRoot + "/checkpoint")).data
+          .epoch,
+        "X-Actual-Edit-Clock": futureClock,
+      },
+      body: JSON.stringify({ notes: "Future-clock winner" }),
+    });
+  assert.equal(seeded.status, 200, await seeded.clone().text());
+  const plainPoint = (await call(importRoot + "/checkpoint")).data,
+    clockPoint = (await call(importRoot + "/checkpoint?include_clock=true"))
+      .data;
+  assert.deepEqual(Object.keys(plainPoint).sort(), [
+    "epoch",
+    "generation",
+    "snapshot",
+  ]);
+  const { edit_clock: observedClock, ...samePoint } = clockPoint;
+  assert.ok(observedClock >= futureClock);
+  assert.deepEqual(samePoint, plainPoint);
+  assert.deepEqual((await call(importRoot + "/checkpoint")).data, plainPoint);
+  const clockBody = await jsonFile("clock-update.json", {
+      operations: [
+        {
+          action: "update",
+          id: target,
+          fields: { notes: "Observed-clock update" },
+        },
+      ],
+    }),
+    clockBox = directory + "/clock.outbox.json";
+  await python([
+    ...importCommon,
+    "prepare",
+    "--path",
+    "/transactions/batch",
+    "--body",
+    clockBody,
+    "--outbox",
+    clockBox,
+  ]);
+  const clockRequest = JSON.parse(await readFile(clockBox)).request;
+  assert.ok(
+    clockRequest.headers["X-Actual-Edit-Clock"] > futureClock,
+    "Preparation observes global server HLC before minting once",
+  );
+  const clockReceipt = (await python(["send", "--outbox", clockBox])).body;
+  assert.deepEqual(
+    (await python(["send", "--outbox", clockBox])).body,
+    clockReceipt,
+  );
+  assert.deepEqual(JSON.parse(await readFile(clockBox)).request, clockRequest);
+  assert.equal(
+    (await rows(imported)).find((row) => row.id === target).notes,
+    "Observed-clock update",
+  );
   assert.deepEqual(proxyErrors, []);
   console.log(
     "PASS real external caller original-byte upload/read-only review/import/exact retry against genuine source manual matching",

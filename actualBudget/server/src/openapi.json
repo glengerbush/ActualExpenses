@@ -3747,6 +3747,15 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "include_clock",
+            "in": "query",
+            "description": "Include the observed global edit HLC atomically with this snapshot; read-only. Mint new intents after this clock; never rewrite retries.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
           }
         ],
         "responses": {
@@ -3778,6 +3787,9 @@
                         "generation": {
                           "type": "integer",
                           "minimum": 0
+                        },
+                        "edit_clock": {
+                          "$ref": "#/components/schemas/EditClock"
                         }
                       },
                       "additionalProperties": false

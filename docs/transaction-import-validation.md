@@ -321,3 +321,17 @@ corrected checkbox widths inherited from global full-width inputs; this was a
 rendered layout correction, not a financial behavior change. No generated raster
 is shipped as product UI. Final finish/review and integrated qualification remain
 authoritative before ticket acceptance.
+
+### Interface review corrections
+
+Reviewer31263cb findings are closed by the focused UI delta: successful counts
+use the lengths of the API's ID arrays, never their UUID text; arbitrary raw
+parsed values are hidden under shared privacy mode while column mapping remains
+available. The browser now asserts the exact `2 added, 0 updated, 0 unchanged`
+message and privacy hide/reveal behavior. A one-shot local quota failure also
+proves that preview stays fenced until the current visible options are saved;
+retry persists those same entered options, and reload retains them. Previous
+saved options cannot silently authorize an import after a failed checkpoint.
+Focused browser PASS `/tmp/transaction-import-review-browser-second.log`, UI
+build/check PASS, Svelte autofixer reports no issues or suggestions. Financial
+API/native code is unchanged; earlier source and native evidence is reused.

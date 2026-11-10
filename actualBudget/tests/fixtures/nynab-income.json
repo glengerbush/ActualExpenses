@@ -1,0 +1,43 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "normalization": "Only generated IDs omitted; all three original source JSONs and genuine Actual exports retained. Income category is asserted by public name.",
+  "cases": [
+    {
+      "id": "absent-starting-payee",
+      "input": "nynab-income-absent-starting-payee.json",
+      "input_sha256": "ef6d7cbfe60c51b270cb309728d44599b312cf9b7dd07cfd527d72fe00b78b5f",
+      "actual": "nynab-income-absent-starting-payee-actual-26.10.zip",
+      "actual_sha256": "5f1c3f9e2945011a254a967901fbd9c4914fc3ed069658d6223121530066d1f3",
+      "category": "Income",
+      "amount": 1000,
+      "balance": 1000,
+      "payee": null,
+      "starting_balance_flag": false
+    },
+    {
+      "id": "present-null-payee",
+      "input": "nynab-income-present-null-payee.json",
+      "input_sha256": "752c04d980cfb4b94a82853be43cdf23d830f4f0f7ae4f633a744163ab4d2d12",
+      "actual": "nynab-income-present-null-payee-actual-26.10.zip",
+      "actual_sha256": "f714ae4b254df889eea0f52cb9b5b140b5b62d3aad61f28c0a8ff434e8167da0",
+      "category": "Income",
+      "amount": 1000,
+      "balance": 1000,
+      "payee": null,
+      "starting_balance_flag": false
+    },
+    {
+      "id": "explicit-starting-payee",
+      "input": "nynab-income-explicit-starting-payee.json",
+      "input_sha256": "9396c356cf941dd4bbb2eddde6ffed71a9de20854ac65b4da3ef5e62e0c3a31b",
+      "actual": "nynab-income-explicit-starting-payee-actual-26.10.zip",
+      "actual_sha256": "a5130cc416b72311725b98d1365b5e75d4975766ebb3b6767cf457c74dd3e422",
+      "category": "Starting Balances",
+      "amount": 1000,
+      "balance": 1000,
+      "payee": null,
+      "starting_balance_flag": false
+    }
+  ]
+}

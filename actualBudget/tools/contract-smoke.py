@@ -76,6 +76,23 @@ def main():
                 return result
 
             check("/api/v1/info", "/api/v1/info")
+            # Retained YNAB files use the same typed stage/activation contract.
+            for source_kind, filename in [("ynab4", "ynab4-demo.zip"), ("nynab", "nynab-demo.json")]:
+                original = (project / "tests/fixtures/ynab" / filename).read_bytes()
+                path = "/api/v1/imports/" + source_kind
+                upload_path = path + "?filename=" + urllib.parse.quote(filename)
+                headers = {"Idempotency-Key": "ynab-contract-" + source_kind}
+                staged = check(upload_path, path, "POST", original, headers, 201)
+                assert staged["data"]["report"]["source_format"] == source_kind
+                assert staged["data"]["report"]["checks"]["sqlite_integrity"] is None
+                assert check(upload_path, path, "POST", original, headers, 201) == staged
+                sid = staged["data"]["id"]
+                with urllib.request.urlopen(base + f"/api/v1/imports/{sid}/original", timeout=5) as response:
+                    assert response.read() == original
+                check(f"/api/v1/imports/{sid}", "/api/v1/imports/{id}")
+                activated = check(f"/api/v1/imports/{sid}/activate", "/api/v1/imports/{id}/activate", "POST", {}, {"Idempotency-Key": "ynab-activate-" + source_kind}, 201)
+                assert activated["data"]["id"] == staged["data"]["budget_id"]
+                check(upload_path, path, "POST", b"not a budget", {"Idempotency-Key": "ynab-invalid-" + source_kind}, 422)
             budgets = "/api/v1/budgets"
             budget_id, account_id = str(uuid.uuid4()), str(uuid.uuid4())
             budget = {"id": budget_id, "name": "Contract fixture", "budget_type": "envelope"}

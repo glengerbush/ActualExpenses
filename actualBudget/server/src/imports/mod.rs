@@ -8,7 +8,7 @@ use axum::{
     Json, Router,
     body::Bytes,
     extract::{
-        DefaultBodyLimit, Path, State,
+        DefaultBodyLimit, Path, Query, State,
         rejection::{BytesRejection, JsonRejection, PathRejection},
     },
     http::{HeaderMap, StatusCode, header},
@@ -20,10 +20,20 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
 pub(crate) mod conversion;
+mod ynab;
 const MAX_ARCHIVE: usize = 16 * 1024 * 1024;
 
 pub fn router() -> Router<Store> {
     Router::new()
+        .route(
+            "/api/v1/imports/ynab4",
+            post(upload_ynab4).layer(DefaultBodyLimit::max(MAX_ARCHIVE)),
+        )
+        .route(
+            "/api/v1/imports/nynab",
+            post(upload_nynab).layer(DefaultBodyLimit::max(MAX_ARCHIVE)),
+        )
+        .route("/api/v1/imports/{id}/original", get(original))
         .route(
             "/api/v1/imports/actual",
             post(upload).layer(DefaultBodyLimit::max(MAX_ARCHIVE)),
@@ -74,24 +84,33 @@ async fn original(
     path: Result<Path<String>, PathRejection>,
 ) -> Result<impl IntoResponse, Error> {
     let id = import_id(path)?;
-    let bytes = store
+    let (bytes, source_format) = store
         .run(move |db| {
             db.query_row(
-                "SELECT original FROM staged_imports WHERE id=?1",
+                "SELECT original,report FROM staged_imports WHERE id=?1",
                 [id],
-                |r| r.get::<_, Vec<u8>>(0),
+                |r| Ok((r.get::<_, Vec<u8>>(0)?, r.get::<_, String>(1)?)),
             )
             .optional()?
             .ok_or_else(Error::missing)
         })
         .await?;
+    let report: Value = serde_json::from_str(&source_format).map_err(Error::internal)?;
+    let (content_type, attachment) = match report["source_format"].as_str() {
+        Some("ynab4") => ("application/zip", "attachment; filename=ynab4-original.zip"),
+        Some("nynab") => (
+            "application/json",
+            "attachment; filename=nynab-original.json",
+        ),
+        _ => (
+            "application/zip",
+            "attachment; filename=actual-original.zip",
+        ),
+    };
     Ok((
         [
-            (header::CONTENT_TYPE, "application/zip"),
-            (
-                header::CONTENT_DISPOSITION,
-                "attachment; filename=actual-original.zip",
-            ),
+            (header::CONTENT_TYPE, content_type),
+            (header::CONTENT_DISPOSITION, attachment),
             (header::CACHE_CONTROL, "no-store"),
         ],
         bytes,
@@ -121,6 +140,7 @@ async fn upload(
     let result=store.run(move|db|{
         store::write(db,"POST /imports/actual",&key,&hash,|db|{
             if let Some(id)=db.query_row("SELECT id FROM staged_imports WHERE archive_sha256=?1",[&hash],|r|r.get::<_,String>(0)).optional()? {
+                let existing=read_import(db,&id)?;if matches!(existing["report"]["source_format"].as_str(),Some("ynab4"|"nynab")){return Err(Error::conflict("These original bytes were already staged using another source format. Review the existing import."));}
                 let (status,plan):(String,String)=db.query_row("SELECT status,conversion FROM staged_imports WHERE id=?1",[&id],|r|Ok((r.get(0)?,r.get(1)?)))?;
                 let plan:Value=serde_json::from_str(&plan).map_err(Error::internal)?;
                 // A new upload intent explicitly reviews a stage predating newer converters.
@@ -164,7 +184,7 @@ async fn activate(
         let mut converted:Value=serde_json::from_str(&converted).map_err(Error::internal)?;
         if stage["status"]!="activated" && (converted.get("category_groups").is_none() || converted.get("account_groups").is_none() || converted.get("register_settings").is_none() || converted["budgeting_version"] != 1 || converted["rules_version"] != 1 || converted["schedules_version"] != 1) {
             let original:Vec<u8>=db.query_row("SELECT original FROM staged_imports WHERE id=?1",[&id],|r|r.get(0))?;
-            let (_,current)=conversion::inspect(&original)?;
+            let (_,current)=inspect_original(&original,&stage["report"])?;
             if converted["schedules_version"] != 1 {converted["schedules"]=current["schedules"].clone();converted["schedules_version"]=json!(1);}
             if converted["rules_version"] != 1 {converted["rules"]=current["rules"].clone();converted["rules_version"]=json!(1);}
             if converted["automations_version"] != 1 {converted["automations"]=current["automations"].clone();converted["automations_version"]=json!(1);}
@@ -192,7 +212,9 @@ async fn activate(
                 return Err(Error::new(StatusCode::CONFLICT,"import_budget_conflict","Assigned budget identity already exists; this import cannot replace it"));
             }
             conversion::install(db,budget,&converted)?;
-            for (id,order) in original_orders(&db.query_row("SELECT original FROM staged_imports WHERE id=?1",[&id],|r|r.get::<_,Vec<u8>>(0))?)? {db.execute("UPDATE android_upgrade_order SET source_order=?3 WHERE budget_id=?1 AND id=?2",params![budget,id,order])?;}
+            if matches!(stage["report"]["source_format"].as_str(),Some("ynab4"|"nynab")){let clock=crate::concurrency::clock(db,budget,None)?;crate::rules::learning::imported(db,budget,&clock)?;}
+
+            if !matches!(stage["report"]["source_format"].as_str(),Some("ynab4"|"nynab")){for (id,order) in original_orders(&db.query_row("SELECT original FROM staged_imports WHERE id=?1",[&id],|r|r.get::<_,Vec<u8>>(0))?)? {db.execute("UPDATE android_upgrade_order SET source_order=?3 WHERE budget_id=?1 AND id=?2",params![budget,id,order])?;}}
             crate::transfers::validate(db,budget)?;
             let source=&stage["report"]["source"];
             db.execute("INSERT INTO imported_sources(budget_id,import_id,source_local_id,source_cloud_id,source_group_id,source_metadata) VALUES(?1,?2,?3,?4,?5,?6)",params![budget,id,source["id"].as_str(),source["cloudFileId"].as_str(),source["groupId"].as_str(),source.to_string()])?;
@@ -209,7 +231,7 @@ pub(crate) fn backfill_payees_tags(db: &rusqlite::Connection) -> Result<(), Erro
     // Unactivated stages have no native budget archive yet. Refresh their
     // conversion without changing immutable upload receipts or original bytes.
     let mut staged = db.prepare(
-        "SELECT id,original,archive_sha256 FROM staged_imports WHERE status<>'activated'",
+        "SELECT id,original,archive_sha256 FROM staged_imports WHERE status<>'activated' AND COALESCE(json_extract(report,'$.source_format'),'actual') NOT IN('ynab4','nynab')",
     )?;
     let unactivated = staged
         .query_map([], |r| {
@@ -241,7 +263,7 @@ pub(crate) fn backfill_payees_tags(db: &rusqlite::Connection) -> Result<(), Erro
         )?;
     }
 
-    let mut q=db.prepare("SELECT s.budget_id,s.original FROM staged_imports s JOIN imported_sources i ON i.import_id=s.id WHERE s.status='activated' UNION SELECT budget_id,original FROM budget_provenance WHERE kind='actual-import' AND original IS NOT NULL")?;
+    let mut q=db.prepare("SELECT s.budget_id,s.original FROM staged_imports s JOIN imported_sources i ON i.import_id=s.id WHERE s.status='activated' AND COALESCE(json_extract(s.report,'$.source_format'),'actual') NOT IN('ynab4','nynab') UNION SELECT budget_id,original FROM budget_provenance WHERE kind='actual-import' AND original IS NOT NULL")?;
     let sources = q
         .query_map([], |r| {
             Ok((r.get::<_, String>(0)?, r.get::<_, Vec<u8>>(1)?))
@@ -311,4 +333,62 @@ pub(crate) fn original_orders(bytes: &[u8]) -> Result<Vec<(String, Option<f64>)>
             )
         })
         .collect())
+}
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct SourceFilename {
+    filename: String,
+}
+fn inspect_original(bytes: &[u8], source: &Value) -> Result<(Value, Value), Error> {
+    match source["source_format"].as_str() {
+        Some(kind @ ("ynab4" | "nynab")) => ynab::inspect(
+            kind,
+            source["source"]["filename"]
+                .as_str()
+                .ok_or_else(|| Error::invalid("Original filename is missing"))?,
+            bytes,
+        ),
+        _ => conversion::inspect(bytes),
+    }
+}
+async fn upload_ynab4(
+    State(store): State<Store>,
+    Query(query): Query<SourceFilename>,
+    headers: HeaderMap,
+    body: Result<Bytes, BytesRejection>,
+) -> Result<(StatusCode, Json<Value>), Error> {
+    upload_ynab(store, query, headers, body, "ynab4").await
+}
+async fn upload_nynab(
+    State(store): State<Store>,
+    Query(query): Query<SourceFilename>,
+    headers: HeaderMap,
+    body: Result<Bytes, BytesRejection>,
+) -> Result<(StatusCode, Json<Value>), Error> {
+    upload_ynab(store, query, headers, body, "nynab").await
+}
+async fn upload_ynab(
+    store: Store,
+    query: SourceFilename,
+    headers: HeaderMap,
+    body: Result<Bytes, BytesRejection>,
+    kind: &'static str,
+) -> Result<(StatusCode, Json<Value>), Error> {
+    crate::models::validate_name(&query.filename)?;
+    let key = idempotency_key(&headers)?;
+    let bytes = body.map_err(|_| {
+        Error::new(
+            StatusCode::PAYLOAD_TOO_LARGE,
+            "archive_too_large",
+            "Export must be at most16 MiB",
+        )
+    })?;
+    let hash = format!("{:x}", Sha256::digest(&bytes));
+    let payload = json!({"filename":query.filename,"sha256":hash}).to_string();
+    let result=store.run(move|db|store::write(db,&format!("POST /imports/{kind}"),&key,&payload,|db|{
+  if let Some(id)=db.query_row("SELECT id FROM staged_imports WHERE archive_sha256=?1",[&hash],|r|r.get::<_,String>(0)).optional()?{let existing=read_import(db,&id)?;if existing["report"]["source_format"]!=kind{return Err(Error::conflict("These original bytes were already staged using another source format. Review the existing import."));}return Ok(existing);}
+  let (mut report,converted)=ynab::inspect(kind,&query.filename,&bytes)?;report["archive_sha256"]=json!(hash);let status=if report["requirements"].as_array().unwrap().iter().any(|r|r["blocking"]==true){"blocked"}else{"ready"};let id=Uuid::new_v4().to_string();let budget=Uuid::new_v4().to_string();db.execute("INSERT INTO staged_imports(id,archive_sha256,original,budget_id,status,report,conversion) VALUES(?1,?2,?3,?4,?5,?6,?7)",params![id,hash,bytes.as_ref(),budget,status,report.to_string(),converted.to_string()])?;read_import(db,&id)
+ })).await?;
+    Ok((StatusCode::CREATED, data(result)))
 }

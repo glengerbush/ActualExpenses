@@ -1,10 +1,12 @@
 import { RequestError } from "./api";
 import type { SharedPreferences } from "./preferences/types";
+export type ImportSource = "actual" | "ynab4" | "nynab";
 export interface ImportStage {
   id: string;
   budget_id: string;
   status: "ready" | "blocked" | "activated";
   report: {
+    source_format?: ImportSource;
     source: { id: string; budgetName: string };
     archive_sha256: string;
     counts: Record<string, number>;
@@ -19,7 +21,8 @@ export interface ImportStage {
       feature: string;
       count: number;
       blocking: boolean;
-      reason: string;
+      reason?: string;
+      message?: string;
     }[];
     preferences: {
       shared: SharedPreferences;
@@ -30,12 +33,22 @@ export interface ImportStage {
 export async function uploadArchive(
   file: Blob,
   key: string,
+  source: ImportSource = "actual",
+  filename?: string,
 ): Promise<ImportStage> {
   let response: Response;
   try {
-    response = await fetch("/api/v1/imports/actual", {
+    const path =
+      source === "actual"
+        ? "/api/v1/imports/actual"
+        : `/api/v1/imports/${source}?filename=${encodeURIComponent(filename ?? "")}`;
+    response = await fetch(path, {
       method: "POST",
-      headers: { "Content-Type": "application/zip", "Idempotency-Key": key },
+      headers: {
+        "Content-Type":
+          source === "nynab" ? "application/json" : "application/zip",
+        "Idempotency-Key": key,
+      },
       body: file,
       signal: AbortSignal.timeout(60000),
     });

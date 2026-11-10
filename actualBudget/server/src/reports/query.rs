@@ -1,5 +1,6 @@
 mod forecast;
 use super::*;
+mod custom;
 use chrono::{Datelike, Duration, NaiveDate};
 pub(super) use forecast::router as forecast_router;
 use rusqlite::{params_from_iter, types::Value as SqlValue};
@@ -82,7 +83,26 @@ fn predicate(
             "doesNotContain" => "not_contains",
             s => s,
         };
-        let condition=serde_json::from_value(json!({"field":if field=="categoryGroup"{"category_group"}else{field},"op":op,"value":c["value"],"options":c.get("options").cloned().unwrap_or(json!({}))})).map_err(|_|Error::invalid("Invalid reporting condition"))?;
+        let mut field = if field == "categoryGroup" {
+            "category_group".to_string()
+        } else {
+            field.to_string()
+        };
+        if ["contains", "not_contains", "matches"].contains(&op)
+            && ["account", "payee", "category", "category_group"].contains(&field.as_str())
+        {
+            field += "_name";
+        }
+        let mut value = c["value"].clone();
+        if field == "date"
+            && let Some(number) = value.as_i64()
+        {
+            let text = number.to_string();
+            if text.len() == 8 {
+                value = json!(format!("{}-{}-{}", &text[..4], &text[4..6], &text[6..]));
+            }
+        }
+        let condition=serde_json::from_value(json!({"field":field,"op":op,"value":value,"options":c.get("options").filter(|v|!v.is_null()).cloned().unwrap_or(json!({}))})).map_err(|_|Error::invalid("Invalid reporting condition"))?;
         clauses.push(crate::register::report_predicate(
             db,
             b,
@@ -117,7 +137,11 @@ struct Row {
     account: String,
     account_name: String,
     off: bool,
+    payee: Option<String>,
     payee_name: String,
+    category: Option<String>,
+    group: Option<String>,
+    hidden: bool,
     category_name: String,
     income: bool,
     transfer: Option<String>,
@@ -148,6 +172,10 @@ fn rows(db: &Connection, b: &str, o: &Value, parent: bool) -> Result<Vec<Row>, E
                 account_name: r.get(4)?,
                 off: r.get(5)?,
                 payee_name: r.get(7)?,
+                payee: r.get(6)?,
+                category: r.get(8)?,
+                group: r.get(10)?,
+                hidden: r.get(12)?,
                 category_name: r.get(9)?,
                 transfer: r.get(13)?,
                 peer_date: r
@@ -277,7 +305,7 @@ pub async fn read(
         return Err(Error::invalid("Unsupported report query version/config"));
     }
     let today = day(&q.as_of)?;
-    let value=store.run(move|db|{let tx=db.transaction()?;crate::register::with_report_predicates(&tx, || {store::require_budget(&tx,&b)?;let(result,cells,_)=evaluate(&tx,&b,&q,today)?;Ok(json!({"result":result,"cells":cells,"snapshot":sync::cursor(&tx,&b)?,"recorded":true,"as_of":q.as_of}))})}).await?;
+    let value=store.run(move|db|{let tx=db.transaction()?;crate::register::with_report_predicates(&tx, || {store::require_budget(&tx,&b)?;let(result,cells,_)=evaluate(&tx,&b,&q,today)?;let basis=if matches!(q.kind.as_str(),"range"|"widget-range"){"date_resolution"}else if q.kind=="custom"&&q.options["balanceTypeOp"]=="totalBudgeted"{"budget_allocations"}else{"recorded_transactions"};Ok(json!({"result":result,"cells":cells,"snapshot":sync::cursor(&tx,&b)?,"recorded":basis=="recorded_transactions","basis":basis,"as_of":q.as_of}))})}).await?;
     Ok(Json(json!({"data":value})))
 }
 
@@ -855,6 +883,8 @@ struct Cell {
     end: String,
     metric: String,
     account: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    group: Option<String>,
 }
 fn cells(q: &Query, result: &Value, today: NaiveDate) -> Result<Vec<Cell>, Error> {
     let mut cells = vec![];
@@ -868,6 +898,7 @@ fn cells(q: &Query, result: &Value, today: NaiveDate) -> Result<Vec<Cell>, Error
                 end: end.to_string(),
                 metric: metric.into(),
                 account,
+                group: None,
             });
         };
     let o = &q.options;
@@ -986,6 +1017,11 @@ fn evaluate(
     if q.kind == "range" {
         return Ok((live_range(db, b, &q.options, today)?, vec![], vec![]));
     }
+    if q.kind == "custom" {
+        let (result, data) = custom::calculate(db, b, &q.options)?;
+        let cells = custom::cells(&q.options, &result)?;
+        return Ok((result, cells, data));
+    }
     let data = rows(db, b, &q.options, false)?;
     let result = match q.kind.as_str() {
         "cash-flow" => cash_flow(&data, &q.options, today)?,
@@ -1022,16 +1058,18 @@ pub async fn drilldown(
     let today = day(&input.query.as_of)?;
     let value=store.run(move|db|{let tx=db.transaction()?;crate::register::with_report_predicates(&tx, || {sync::check_snapshot(&tx,&b,Some(&input.snapshot))?;let(result,cells,mut data)=evaluate(&tx,&b,&input.query,today)?;let cell=cells.iter().find(|c|c.id==input.cell_id).ok_or_else(||Error::invalid("Unknown report cell"))?;let start=day(&cell.start)?;let end=day(&cell.end)?;let kind=input.query.kind.as_str();let ids=input.query.options["accounts"].as_array();
  if kind=="net-worth"{for row in &mut data{if row.peer_account.as_ref().is_some_and(|id|ids.is_none_or(|ids|ids.contains(&json!(id))))&&let Some(peer)=row.peer_date&&peer>row.date{row.date=peer;}}}
- let selected=data.iter().filter(|r|{
+ let custom_matches=if kind=="custom"{let keys=custom::membership_keys(&tx,&b,&input.query.options)?;Some(data.iter().map(|row|custom::matching(&input.query.options,row,cell,&keys)).collect::<Result<Vec<_>,_>>()?)}else{None};
+ let selected=data.iter().enumerate().filter(|(index,r)|{
+  if custom_matches.as_ref().is_some_and(|matches|!matches[*index]){return false;}
   if r.date<start||r.date>end||cell.account.as_ref().is_some_and(|id|id!=&r.account){return false;}
   if kind=="net-worth"&&ids.is_some_and(|ids|!ids.contains(&json!(r.account))){return false;}
   if kind=="cash-flow"&&(r.off||(cell.metric!="transfer"&&cell.metric!="balance"&&r.transfer.is_some())){return false;}
   if cell.metric=="transfer"&&r.transfer.is_none(){return false;}
   if cell.metric=="income"&&r.amount<=0||cell.metric=="expense"&&r.amount>=0{return false;}
   if cell.metric=="spending"&&(r.off||r.income){return false;}true
- }).collect::<Vec<_>>();
- let amount:i64=selected.iter().map(|r|r.amount).sum();let count=selected.len();let rows=selected.into_iter().skip(input.offset).take(input.limit).map(|r|json!({"id":r.id,"date":r.date.to_string(),"amount":r.amount,"account_id":r.account,"account":r.account_name,"payee":r.payee_name,"category":r.category_name,"notes":r.notes})).collect::<Vec<_>>();
- let _=result;Ok(json!({"rows":rows,"total_count":count,"total_amount":amount,"offset":input.offset,"limit":input.limit,"has_more":input.offset+rows.len()<count,"snapshot":input.snapshot,"cell":cell}))})}).await?;
+ }).map(|(_,row)|row).collect::<Vec<_>>();
+ let amount:i64=selected.iter().map(|r|r.amount).sum();let count=selected.len();let rows=selected.into_iter().skip(input.offset).take(input.limit).map(|r|json!({"id":r.id,"date":r.date.to_string(),"amount":r.amount,"account_id":if r.account.is_empty(){None}else{Some(&r.account)},"account":r.account_name,"payee":r.payee_name,"category":r.category_name,"notes":r.notes})).collect::<Vec<_>>();
+ let _=result;Ok(json!({"rows":rows,"total_count":count,"total_amount":amount,"offset":input.offset,"limit":input.limit,"has_more":input.offset+rows.len()<count,"snapshot":input.snapshot,"cell":cell,"record_kind":if input.query.options["balanceTypeOp"]=="totalBudgeted"{"budget_allocations"}else{"transactions"}}))})}).await?;
     Ok(Json(json!({"data":value})))
 }
 fn widget_range(db: &Connection, b: &str, o: &Value, today: NaiveDate) -> Result<Value, Error> {

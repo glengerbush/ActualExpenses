@@ -1,10 +1,12 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { onMount } from "svelte";
   import { errorMessage } from "./api";
   import { preferences } from "./preferences.svelte";
   import { readValue, writeValue } from "./offline/storage";
   import {
     queryReport,
+    customReportQuery,
     object,
     localDay,
     type ReportDocument,
@@ -19,12 +21,16 @@
     disconnected = false,
     onedit,
     onremove,
+    report = null,
+    onopenreport,
   }: {
     budgetId: string;
     document: ReportDocument;
     disconnected?: boolean;
     onedit: () => void;
     onremove: () => void;
+    report?: ReportDocument | null;
+    onopenreport: (id: string) => void;
   } = $props();
   let meta = $derived(object(document.config.meta)),
     type = $derived(String(document.config.type)),
@@ -33,12 +39,15 @@
         meta.name ||
           (
             {
-              "cash-flow-card": "Cash flow",
-              "net-worth-card": "Net worth",
-              "spending-card": "Spending analysis",
-              "summary-card": "Summary",
-              "calendar-card": "Transaction calendar",
-              "markdown-card": "Text",
+              "cash-flow-card": t("Cash flow"),
+              "net-worth-card": t("Net worth"),
+              "spending-card": t("Spending analysis"),
+              "summary-card": t("Summary"),
+              "calendar-card": t("Transaction calendar"),
+              "markdown-card": t("Text"),
+              "custom-report": String(
+                report?.config.name || t("Saved custom report"),
+              ),
             } as Record<string, string>
           )[type] ||
           type,
@@ -56,6 +65,7 @@
     "spending-card": "spending",
     "summary-card": "summary",
     "calendar-card": "calendar",
+    "custom-report": "custom",
   };
   const cache = () => `view:report-widget:${budgetId}:${document.id}`;
   async function load() {
@@ -64,6 +74,30 @@
     error = "";
     cached = false;
     try {
+      if (type === "custom-report") {
+        if (!report)
+          throw Error(
+            "This saved report is unavailable. Its widget reference is preserved; choose another saved report or remove the widget.",
+          );
+        const q = await customReportQuery(
+            budgetId,
+            report.config,
+            localDay(),
+            preferences.shared.first_day_of_week,
+          ),
+          p = await queryReport(budgetId, q);
+        await writeValue(cache(), {
+          query: q,
+          projection: p,
+          revision: document.revision,
+          reportRevision: report.revision,
+        });
+        if (mounted) {
+          query = q;
+          projection = p;
+        }
+        return;
+      }
       const as_of = localDay(),
         dates = await queryReport(budgetId, {
           version: 1,
@@ -116,10 +150,15 @@
         query: ReportQuery;
         projection: Projection;
         revision: number;
+        reportRevision?: number;
       }>(cache()).catch(() => undefined);
       if (mounted) {
         error = errorMessage(e);
-        if (prior?.revision === document.revision) {
+        if (
+          prior?.revision === document.revision &&
+          (type !== "custom-report" ||
+            (report && prior.reportRevision === report.revision))
+        ) {
           query = prior.query;
           projection = prior.projection;
           cached = true;
@@ -142,12 +181,16 @@
     <h3>{name}</h3>
     <div class="actions">
       <button onclick={onedit} disabled={disconnected}
-        >Edit <span class="sr-only">{name}</span></button
+        >{t("Edit")} <span class="sr-only">{name}</span></button
       ><button onclick={onremove} disabled={disconnected}
-        >Remove <span class="sr-only">{name}</span></button
+        >{t("Remove")} <span class="sr-only">{name}</span></button
       >
     </div>
   </header>
+  {#if type === "custom-report" && report}<button
+      onclick={() => onopenreport(report!.id)}
+      disabled={disconnected}>{t("Open saved report")}</button
+    >{/if}
   {#if type === "markdown-card"}<div
       style:text-align={["left", "center", "right"].includes(
         String(meta.text_align),
@@ -158,20 +201,23 @@
       <MarkdownNotes text={String(meta.content || "")} />
     </div>
   {:else if !kinds[type]}<p>
-      This widget’s settings are preserved. Its report type is not available in
-      this version.
+      {t(
+        "This widget’s settings are preserved. Its report type is not available in this version.",
+      )}
     </p>
   {:else}<p class="muted">
-      Recorded entries · {#if cached}Cached view ·
+      {projection?.basis === "budget_allocations"
+        ? t("Planned budget allocations")
+        : t("Recorded entries")} · {#if cached}{t("Cached view ·")}
       {/if}{query?.as_of || localDay()}
     </p>
-    {#if busy}<p role="status">Loading report…</p>{/if}{#if error}<p
+    {#if busy}<p role="status">{t("Loading report…")}</p>{/if}{#if error}<p
         role="alert"
       >
-        {error}
+        {t(error)}
       </p>
       <button onclick={load} disabled={busy || disconnected}
-        >Refresh report</button
+        >{t("Refresh report")}</button
       >{/if}{#if query && projection}{#key projection.snapshot + JSON.stringify(query)}<ReportResult
           {budgetId}
           {query}

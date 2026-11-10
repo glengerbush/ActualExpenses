@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { onMount } from "svelte";
   import { errorMessage, RequestError, uuid, type Account } from "./api";
   import { readValue, writeValue } from "./offline/storage";
@@ -10,12 +11,14 @@
     cancelReportOperation,
     completeReportOperation,
     draftKey,
+    readCustomDraft,
     object,
     localDay,
     type Reporting,
     type ReportDocument,
     type ReportOperation,
   } from "./reports";
+  import CustomReports from "./CustomReports.svelte";
   import ReportWidget from "./ReportWidget.svelte";
   import ReportConditions from "./ReportConditions.svelte";
   let {
@@ -39,7 +42,25 @@
     error = $state(""),
     notice = $state(""),
     confirm = $state(""),
-    storageBlocked = $state(false);
+    storageBlocked = $state(false),
+    tab = $state("dashboards"),
+    customId = $state("");
+  let customReports = $derived(
+    (data?.documents || []).filter(
+      (d) => d.kind === "custom_report" && !d.tombstone,
+    ),
+  );
+  async function switchTab(value: string, id = "") {
+    tab = value;
+    customId = id;
+    await writeValue(`view:reporting-tab:${budgetId}`, value);
+    if (value === "dashboards") await load();
+  }
+  function reportsChanged(value: Reporting) {
+    data = value;
+    pending = null;
+    cached = false;
+  }
   let pages = $derived(
     (data?.documents || []).filter((d) => d.kind === "page" && !d.tombstone),
   );
@@ -67,6 +88,7 @@
     ["markdown-card", "Text"],
     ["summary-card", "Summary"],
     ["calendar-card", "Transaction calendar"],
+    ["custom-report", "Saved custom report"],
   ];
   const dateModes = [
     ["sliding-window", "Live sliding window"],
@@ -79,7 +101,8 @@
     ["currentQuarter", "Current quarter"],
     ["previousQuarter", "Previous quarter"],
   ];
-  let alive = true;
+  let alive = true,
+    initialized = false;
   async function remember() {
     await writeValue(`view:reporting-selection:${budgetId}`, selected);
   }
@@ -159,6 +182,18 @@
       data = response.data;
       cached = response.cached;
       pending = await readReportOperation(budgetId);
+      if (!initialized) {
+        initialized = true;
+        if (
+          pending?.body.writes.every((d) => d.kind === "custom_report") ||
+          (await readCustomDraft(budgetId))
+        )
+          tab = "custom";
+        else
+          tab =
+            (await readValue<string>(`view:reporting-tab:${budgetId}`)) ||
+            "dashboards";
+      }
       const prior = await readValue<string>(
         `view:reporting-selection:${budgetId}`,
       );
@@ -367,362 +402,437 @@
 <section aria-labelledby="reporting-title">
   <header class="heading">
     <div>
-      <h2 id="reporting-title">Dashboards and reports</h2>
+      <h2 id="reporting-title">{t("Dashboards and reports")}</h2>
       <p class="muted">
-        Recorded history, saved views and bounded transaction inspection.
+        {t("Recorded history, saved views and transaction details.")}
       </p>
     </div>
-    <button onclick={onclose}>Close reports</button>
+    <button onclick={onclose}>{t("Close reports")}</button>
   </header>
-  {#if error}<p role="alert">{error}</p>{/if}{#if notice}<p role="status">
-      {notice}
-    </p>{/if}{#if cached}<p role="status">
-      Cached dashboard settings. Reconnect and refresh before editing or loading
-      current reports.
-    </p>{/if}
-  {#if pending}<section class="pending" aria-label="Saved reporting change">
-      <h3>Saved change needs confirmation</h3>
-      <p>
-        The original request and budget version are retained. {pending.cancelRequested
-          ? "Cancellation is pending. Retrying keeps the cancellation fence."
-          : "Retry to learn whether the change was saved, or request cancellation."}
-      </p>
-      <div class="actions">
-        <button disabled={busy || disconnected} onclick={() => deliver()}
-          >Retry saved reporting change</button
-        ><button
-          disabled={busy || disconnected || pending.cancelRequested}
-          onclick={() => deliver(true)}>Cancel saved reporting change</button
-        >
-      </div>
-    </section>{/if}
-  {#if busy}<p role="status">Loading reporting settings…</p>{/if}
-  <div class="toolbar">
-    <label
-      >Dashboard<select
-        bind:value={selected}
-        onchange={() => {
-          confirm = "";
-          void remember();
-        }}
-        disabled={busy || !!editor || !!pending}
-        >{#each pages as value (value.id)}<option value={value.id}
-            >{String(value.config.name)}</option
-          >{/each}</select
-      ></label
+  <nav class="actions" aria-label={t("Reporting views")}>
+    <button
+      aria-pressed={tab === "dashboards"}
+      disabled={!!editor || busy}
+      onclick={() => switchTab("dashboards")}>{t("Dashboards")}</button
+    ><button
+      aria-pressed={tab === "custom"}
+      disabled={!!editor || busy}
+      onclick={() => switchTab("custom")}>{t("Custom reports")}</button
     >
-    <div class="actions">
-      <button
-        onclick={newPage}
-        disabled={busy || !!editor || !!pending || cached || disconnected}
-        >New dashboard</button
-      ><button
-        onclick={load}
-        disabled={busy || !!editor || !!pending || disconnected}
-        >Refresh dashboards</button
-      >{#if page}<button
-          onclick={() => edit(page!)}
-          disabled={busy || !!editor || !!pending || cached || disconnected}
-          >Rename dashboard</button
-        ><button
-          onclick={duplicatePage}
-          disabled={busy || !!editor || !!pending || cached || disconnected}
-          >Duplicate dashboard</button
-        ><button
-          onclick={() => (confirm = page!.id)}
-          disabled={busy ||
-            !!editor ||
-            !!pending ||
-            pages.length < 2 ||
-            cached ||
-            disconnected}>Delete dashboard</button
-        ><button
-          onclick={newWidget}
-          disabled={busy || !!editor || !!pending || cached || disconnected}
-          >Add widget</button
-        >{/if}
-    </div>
-  </div>
-  {#if confirm}{@const document = data?.documents.find(
-      (d) => d.id === confirm,
-    )}{#if document}<section class="confirmation">
+  </nav>
+  {#if tab === "custom"}{#key customId}<CustomReports
+        {budgetId}
+        {accounts}
+        {disconnected}
+        initialId={customId}
+        onchanged={reportsChanged}
+      />{/key}
+  {:else}
+    {#if error}<p role="alert">{t(error)}</p>{/if}{#if notice}<p role="status">
+        {t(notice)}
+      </p>{/if}{#if cached}<p role="status">
+        {t(
+          "Cached dashboard settings. Reconnect and refresh before editing or loading current reports.",
+        )}
+      </p>{/if}
+    {#if pending}<section
+        class="pending"
+        aria-label={t("Saved reporting change")}
+      >
+        <h3>{t("Saved change needs confirmation")}</h3>
         <p>
-          Remove {document.kind === "page"
-            ? "this dashboard and its widgets"
-            : "this widget"} from your saved layout?
+          {t("The original request and budget version are retained.")}
+          {pending.cancelRequested
+            ? t(
+                "Cancellation is pending. Retrying keeps the cancellation fence.",
+              )
+            : t(
+                "Retry to learn whether the change was saved, or request cancellation.",
+              )}
         </p>
-        <button disabled={busy || !!pending} onclick={() => remove(document)}
-          >Confirm remove</button
-        ><button onclick={() => (confirm = "")} disabled={busy}
-          >Keep saved layout</button
-        >
-      </section>{/if}{/if}
-  {#if editor}<form
-      onsubmit={(e) => {
-        e.preventDefault();
-        void saveEditor();
-      }}
-      aria-label="Reporting editor"
-    >
-      <h3>
-        {editor.kind === "page"
-          ? editor.revision
-            ? "Rename dashboard"
-            : "New dashboard"
-          : "Edit widget"}
-      </h3>
-      <fieldset disabled={busy || !!pending || cached || disconnected}>
-        {#if editor.kind === "page"}<label
-            >Dashboard name<input
-              required
-              maxlength="120"
-              value={String(editor.config.name || "")}
-              oninput={(e) => config("name", e.currentTarget.value)}
-            /></label
-          >
-        {:else}<label
-            >Widget type<select
-              value={String(editor.config.type)}
-              onchange={(e) => config("type", e.currentTarget.value)}
-              >{#if !types.some((t) => t[0] === editor?.config.type)}<option
-                  value={String(editor.config.type)}
-                  >Preserved: {String(editor.config.type)}</option
-                >{/if}{#each types as type (type[0])}<option value={type[0]}
-                  >{type[1]}</option
-                >{/each}</select
-            ></label
-          ><label
-            >Widget name<input
-              maxlength="120"
-              value={String(meta.name || "")}
-              oninput={(e) => metadata("name", e.currentTarget.value)}
-            /></label
-          >
-          {#if editor.config.type === "markdown-card"}<label
-              >Text content<textarea
-                rows="5"
-                value={String(meta.content || "")}
-                oninput={(e) => metadata("content", e.currentTarget.value)}
-              ></textarea></label
-            ><label
-              >Text alignment<select
-                value={String(meta.text_align || "left")}
-                onchange={(e) => metadata("text_align", e.currentTarget.value)}
-                ><option>left</option><option>center</option><option
-                  >right</option
-                ></select
-              ></label
-            >
-          {:else}<div class="field-grid">
-              <label
-                >Date mode<select
-                  value={String(
-                    object(meta.timeFrame).mode || "sliding-window",
-                  )}
-                  onchange={(e) => timeframe("mode", e.currentTarget.value)}
-                  >{#each dateModes as mode (mode[0])}<option value={mode[0]}
-                      >{mode[1]}</option
-                    >{/each}</select
-                ></label
-              ><label
-                >Start month<input
-                  type="month"
-                  required
-                  value={String(
-                    object(meta.timeFrame).start || localDay(),
-                  ).slice(0, 7)}
-                  oninput={(e) => timeframe("start", e.currentTarget.value)}
-                /></label
-              ><label
-                >End month<input
-                  type="month"
-                  required
-                  value={String(object(meta.timeFrame).end || localDay()).slice(
-                    0,
-                    7,
-                  )}
-                  oninput={(e) => timeframe("end", e.currentTarget.value)}
-                /></label
-              >
-            </div>
-            {#if editor.config.type === "net-worth-card"}<label
-                >Interval<select
-                  value={String(meta.interval || "Monthly")}
-                  onchange={(e) => metadata("interval", e.currentTarget.value)}
-                  >{#each ["Daily", "Weekly", "Monthly", "Yearly"] as interval (interval)}<option
-                      >{interval}</option
-                    >{/each}</select
-                ></label
-              ><label
-                >Net worth view<select
-                  value={String(meta.mode || "trend")}
-                  onchange={(e) => metadata("mode", e.currentTarget.value)}
-                  ><option value="trend">Trend</option><option value="stacked"
-                    >Stacked accounts</option
-                  ></select
-                ></label
-              ><label
-                >Account breakdown<select
-                  multiple
-                  value={Array.isArray(meta.accounts)
-                    ? (meta.accounts as string[])
-                    : accounts.map((a) => a.id)}
-                  onchange={(e) =>
-                    metadata(
-                      "accounts",
-                      Array.from(e.currentTarget.selectedOptions).map(
-                        (o) => o.value,
-                      ),
-                    )}
-                  >{#each accounts as account (account.id)}<option
-                      value={account.id}
-                      >{account.name}{account.off_budget
-                        ? " (off budget)"
-                        : ""}</option
-                    >{/each}</select
-                ></label
-              >
-            {:else if editor.config.type === "cash-flow-card"}<label
-                class="check"
-                ><input
-                  type="checkbox"
-                  checked={meta.isConcise === true}
-                  onchange={(e) =>
-                    metadata("isConcise", e.currentTarget.checked)}
-                />Monthly totals</label
-              ><label class="check"
-                ><input
-                  type="checkbox"
-                  checked={meta.showBalance !== false}
-                  onchange={(e) =>
-                    metadata("showBalance", e.currentTarget.checked)}
-                />Show balance in plot</label
-              >
-            {:else if editor.config.type === "summary-card"}<label
-                >Summary calculation<select
-                  value={String(summaryType())}
-                  onchange={(e) => setSummaryType(e.currentTarget.value)}
-                  >{#each [["sum", "Sum"], ["avgPerMonth", "Average per month"], ["avgPerYear", "Average per year"], ["avgPerTransact", "Average per entry"], ["percentage", "Percentage of deposits"]] as type (type[0])}<option
-                      value={type[0]}>{type[1]}</option
-                    >{/each}</select
-                ></label
-              >
-            {:else if editor.config.type === "spending-card"}<label
-                >Spending comparison<select
-                  value={String(meta.mode || "single-month")}
-                  onchange={(e) => metadata("mode", e.currentTarget.value)}
-                  ><option value="single-month"
-                    >Previous or selected month</option
-                  ><option value="budget">Budget</option><option value="average"
-                    >Historical average</option
-                  ></select
-                ></label
-              ><label class="check"
-                ><input
-                  type="checkbox"
-                  checked={meta.isLive !== false}
-                  onchange={(e) => metadata("isLive", e.currentTarget.checked)}
-                />Live spending dates</label
-              >
-              <div class="field-grid">
-                <label
-                  >Selected spending month<input
-                    type="month"
-                    value={String(meta.compare || localDay()).slice(0, 7)}
-                    oninput={(e) => metadata("compare", e.currentTarget.value)}
-                  /></label
-                ><label
-                  >Comparison month<input
-                    type="month"
-                    value={String(meta.compareTo || "")}
-                    oninput={(e) =>
-                      metadata("compareTo", e.currentTarget.value)}
-                  /></label
-                ><label
-                  >Spending average<select
-                    value={String(
-                      object(meta.averageRange).mode || "last-n-months",
-                    ) +
-                      ":" +
-                      String(object(meta.averageRange).months || 3)}
-                    onchange={(e) => {
-                      const [mode, n] = e.currentTarget.value.split(":");
-                      metadata("averageRange", {
-                        mode,
-                        ...(mode === "last-n-months"
-                          ? { months: Number(n) }
-                          : {}),
-                      });
-                    }}
-                    ><option value="last-n-months:3">Last 3 months</option
-                    ><option value="last-n-months:6">Last 6 months</option
-                    ><option value="last-n-months:12">Last 12 months</option
-                    ><option value="year-to-date:3">Year to date</option><option
-                      value="all-time:3">All time</option
-                    ></select
-                  ></label
-                >
-              </div>{/if}{/if}
-          {#if editor.config.type !== "markdown-card"}<ReportConditions
-              {budgetId}
-              {accounts}
-              conditions={meta.conditions}
-              conditionsOp={meta.conditionsOp}
-              onchange={(conditions, conditionsOp) => {
-                void change(() => {
-                  if (editor)
-                    editor.config.meta = { ...meta, conditions, conditionsOp };
-                });
-              }}
-            />{/if}
-          <div class="field-grid">
-            {#each [["x", "Column", 0, 11], ["y", "Row", 0, 100000], ["width", "Width", 1, 12], ["height", "Height", 1, 100]] as field (String(field[0]))}<label
-                >{String(field[1])}<input
-                  type="number"
-                  required
-                  min={Number(field[2])}
-                  max={Number(field[3])}
-                  value={Number(editor.config[String(field[0])])}
-                  oninput={(e) =>
-                    config(String(field[0]), Number(e.currentTarget.value))}
-                /></label
-              >{/each}
-          </div>
-          <p class="muted">
-            Layout uses 12 columns. Column and row controls work with keyboard
-            and touch. Imported conditions and metadata are retained when other
-            settings change.
-          </p>{/if}
         <div class="actions">
-          <button type="submit" disabled={storageBlocked}
-            >{editor.kind === "page" ? "Save dashboard" : "Save widget"}</button
-          ><button type="button" onclick={resetEditor}>Reset to saved</button
-          ><button type="button" onclick={closeEditor}
-            >Discard local draft</button
+          <button disabled={busy || disconnected} onclick={() => deliver()}
+            >{t("Retry saved reporting change")}</button
+          ><button
+            disabled={busy || disconnected || pending.cancelRequested}
+            onclick={() => deliver(true)}
+            >{t("Cancel saved reporting change")}</button
           >
         </div>
-      </fieldset>
-    </form>{/if}
-  {#if !pages.length && !busy && !editor}<p>
-      No dashboards yet. Create one, then add a report or text widget.
-    </p>{/if}
-  <div class="dashboard">
-    {#each widgets as widget (widget.id + ":" + widget.revision)}<div
-        class="widget"
-        style:--column={Number(widget.config.x) + 1}
-        style:--width={Number(widget.config.width)}
-        style:--row={Number(widget.config.y) + 1}
-        style:--height={Number(widget.config.height)}
+      </section>{/if}
+    {#if busy}<p role="status">{t("Loading reporting settings…")}</p>{/if}
+    <div class="toolbar">
+      <label
+        >{t("Dashboard")}<select
+          bind:value={selected}
+          onchange={() => {
+            confirm = "";
+            void remember();
+          }}
+          disabled={busy || !!editor || !!pending}
+          >{#each pages as value (value.id)}<option value={value.id}
+              >{String(value.config.name)}</option
+            >{/each}</select
+        ></label
       >
-        <ReportWidget
-          {budgetId}
-          document={widget}
-          disconnected={disconnected || busy || !!editor || !!pending || cached}
-          onedit={() => edit(widget)}
-          onremove={() => (confirm = widget.id)}
-        />
-      </div>{/each}
-  </div>
+      <div class="actions">
+        <button
+          onclick={newPage}
+          disabled={busy || !!editor || !!pending || cached || disconnected}
+          >{t("New dashboard")}</button
+        ><button
+          onclick={load}
+          disabled={busy || !!editor || !!pending || disconnected}
+          >{t("Refresh dashboards")}</button
+        >{#if page}<button
+            onclick={() => edit(page!)}
+            disabled={busy || !!editor || !!pending || cached || disconnected}
+            >{t("Rename dashboard")}</button
+          ><button
+            onclick={duplicatePage}
+            disabled={busy || !!editor || !!pending || cached || disconnected}
+            >{t("Duplicate dashboard")}</button
+          ><button
+            onclick={() => (confirm = page!.id)}
+            disabled={busy ||
+              !!editor ||
+              !!pending ||
+              pages.length < 2 ||
+              cached ||
+              disconnected}>{t("Delete dashboard")}</button
+          ><button
+            onclick={newWidget}
+            disabled={busy || !!editor || !!pending || cached || disconnected}
+            >{t("Add widget")}</button
+          >{/if}
+      </div>
+    </div>
+    {#if confirm}{@const document = data?.documents.find(
+        (d) => d.id === confirm,
+      )}{#if document}<section class="confirmation">
+          <p>
+            {t("Remove")}
+            {document.kind === "page"
+              ? t("this dashboard and its widgets")
+              : t("this widget")}
+            {t("from your saved layout?")}
+          </p>
+          <button disabled={busy || !!pending} onclick={() => remove(document)}
+            >{t("Confirm remove")}</button
+          ><button onclick={() => (confirm = "")} disabled={busy}
+            >{t("Keep saved layout")}</button
+          >
+        </section>{/if}{/if}
+    {#if editor}<form
+        onsubmit={(e) => {
+          e.preventDefault();
+          void saveEditor();
+        }}
+        aria-label={t("Reporting editor")}
+      >
+        <h3>
+          {editor.kind === "page"
+            ? editor.revision
+              ? t("Rename dashboard")
+              : t("New dashboard")
+            : t("Edit widget")}
+        </h3>
+        <fieldset disabled={busy || !!pending || cached || disconnected}>
+          {#if editor.kind === "page"}<label
+              >{t("Dashboard name")}<input
+                required
+                maxlength="120"
+                value={String(editor.config.name || "")}
+                oninput={(e) => config("name", e.currentTarget.value)}
+              /></label
+            >
+          {:else}<label
+              >{t("Widget type")}<select
+                value={String(editor.config.type)}
+                onchange={(e) => config("type", e.currentTarget.value)}
+                >{#if !types.some((t) => t[0] === editor?.config.type)}<option
+                    value={String(editor.config.type)}
+                    >{t("Preserved:")} {String(editor.config.type)}</option
+                  >{/if}{#each types as type (type[0])}<option value={type[0]}
+                    >{t(type[1])}</option
+                  >{/each}</select
+              ></label
+            ><label
+              >{t("Widget name")}<input
+                maxlength="120"
+                value={String(meta.name || "")}
+                oninput={(e) => metadata("name", e.currentTarget.value)}
+              /></label
+            >
+            {#if editor.config.type === "markdown-card"}<label
+                >{t("Text content")}<textarea
+                  rows="5"
+                  value={String(meta.content || "")}
+                  oninput={(e) => metadata("content", e.currentTarget.value)}
+                ></textarea></label
+              ><label
+                >{t("Text alignment")}<select
+                  value={String(meta.text_align || "left")}
+                  onchange={(e) =>
+                    metadata("text_align", e.currentTarget.value)}
+                  ><option value="left">{t("left")}</option><option
+                    value="center">{t("center")}</option
+                  ><option value="right">{t("right")}</option></select
+                ></label
+              >
+            {:else if editor.config.type === "custom-report"}<label
+                >{t("Saved custom report")}<select
+                  value={String(meta.id || "")}
+                  required
+                  onchange={(e) => metadata("id", e.currentTarget.value)}
+                  ><option value="">{t("Choose a saved report")}</option
+                  >{#if meta.id && !customReports.some((d) => d.id === meta.id)}<option
+                      value={String(meta.id)}
+                      >{t(
+                        "Unavailable saved report (reference preserved)",
+                      )}</option
+                    >{/if}{#each customReports as report (report.id)}<option
+                      value={report.id}>{String(report.config.name)}</option
+                    >{/each}</select
+                ></label
+              >
+              <p class="muted">
+                {t(
+                  "This widget follows the saved report’s settings. Edit the report in Custom reports.",
+                )}
+              </p>
+            {:else}<div class="field-grid">
+                <label
+                  >{t("Date mode")}<select
+                    value={String(
+                      object(meta.timeFrame).mode || "sliding-window",
+                    )}
+                    onchange={(e) => timeframe("mode", e.currentTarget.value)}
+                    >{#each dateModes as mode (mode[0])}<option value={mode[0]}
+                        >{t(mode[1])}</option
+                      >{/each}</select
+                  ></label
+                ><label
+                  >{t("Start month")}<input
+                    type="month"
+                    required
+                    value={String(
+                      object(meta.timeFrame).start || localDay(),
+                    ).slice(0, 7)}
+                    oninput={(e) => timeframe("start", e.currentTarget.value)}
+                  /></label
+                ><label
+                  >{t("End month")}<input
+                    type="month"
+                    required
+                    value={String(
+                      object(meta.timeFrame).end || localDay(),
+                    ).slice(0, 7)}
+                    oninput={(e) => timeframe("end", e.currentTarget.value)}
+                  /></label
+                >
+              </div>
+              {#if editor.config.type === "net-worth-card"}<label
+                  >{t("Interval")}<select
+                    value={String(meta.interval || "Monthly")}
+                    onchange={(e) =>
+                      metadata("interval", e.currentTarget.value)}
+                    >{#each ["Daily", "Weekly", "Monthly", "Yearly"] as interval (interval)}<option
+                        value={interval}>{t(interval)}</option
+                      >{/each}</select
+                  ></label
+                ><label
+                  >{t("Net worth view")}<select
+                    value={String(meta.mode || "trend")}
+                    onchange={(e) => metadata("mode", e.currentTarget.value)}
+                    ><option value="trend">{t("Trend")}</option><option
+                      value="stacked">{t("Stacked accounts")}</option
+                    ></select
+                  ></label
+                ><label
+                  >{t("Account breakdown")}<select
+                    multiple
+                    value={Array.isArray(meta.accounts)
+                      ? (meta.accounts as string[])
+                      : accounts.map((a) => a.id)}
+                    onchange={(e) =>
+                      metadata(
+                        "accounts",
+                        Array.from(e.currentTarget.selectedOptions).map(
+                          (o) => o.value,
+                        ),
+                      )}
+                    >{#each accounts as account (account.id)}<option
+                        value={account.id}
+                        >{account.name}{account.off_budget
+                          ? t(" (off budget)")
+                          : ""}</option
+                      >{/each}</select
+                  ></label
+                >
+              {:else if editor.config.type === "cash-flow-card"}<label
+                  class="check"
+                  ><input
+                    type="checkbox"
+                    checked={meta.isConcise === true}
+                    onchange={(e) =>
+                      metadata("isConcise", e.currentTarget.checked)}
+                  />{t("Monthly totals")}</label
+                ><label class="check"
+                  ><input
+                    type="checkbox"
+                    checked={meta.showBalance !== false}
+                    onchange={(e) =>
+                      metadata("showBalance", e.currentTarget.checked)}
+                  />{t("Show balance in plot")}</label
+                >
+              {:else if editor.config.type === "summary-card"}<label
+                  >{t("Summary calculation")}<select
+                    value={String(summaryType())}
+                    onchange={(e) => setSummaryType(e.currentTarget.value)}
+                    >{#each [["sum", "Sum"], ["avgPerMonth", "Average per month"], ["avgPerYear", "Average per year"], ["avgPerTransact", "Average per entry"], ["percentage", "Percentage of deposits"]] as type (type[0])}<option
+                        value={type[0]}>{t(type[1])}</option
+                      >{/each}</select
+                  ></label
+                >
+              {:else if editor.config.type === "spending-card"}<label
+                  >{t("Spending comparison")}<select
+                    value={String(meta.mode || "single-month")}
+                    onchange={(e) => metadata("mode", e.currentTarget.value)}
+                    ><option value="single-month"
+                      >{t("Previous or selected month")}</option
+                    ><option value="budget">{t("Budget")}</option><option
+                      value="average">{t("Historical average")}</option
+                    ></select
+                  ></label
+                ><label class="check"
+                  ><input
+                    type="checkbox"
+                    checked={meta.isLive !== false}
+                    onchange={(e) =>
+                      metadata("isLive", e.currentTarget.checked)}
+                  />{t("Live spending dates")}</label
+                >
+                <div class="field-grid">
+                  <label
+                    >{t("Selected spending month")}<input
+                      type="month"
+                      value={String(meta.compare || localDay()).slice(0, 7)}
+                      oninput={(e) =>
+                        metadata("compare", e.currentTarget.value)}
+                    /></label
+                  ><label
+                    >{t("Comparison month")}<input
+                      type="month"
+                      value={String(meta.compareTo || "")}
+                      oninput={(e) =>
+                        metadata("compareTo", e.currentTarget.value)}
+                    /></label
+                  ><label
+                    >{t("Spending average")}<select
+                      value={String(
+                        object(meta.averageRange).mode || "last-n-months",
+                      ) +
+                        ":" +
+                        String(object(meta.averageRange).months || 3)}
+                      onchange={(e) => {
+                        const [mode, n] = e.currentTarget.value.split(":");
+                        metadata("averageRange", {
+                          mode,
+                          ...(mode === "last-n-months"
+                            ? { months: Number(n) }
+                            : {}),
+                        });
+                      }}
+                      ><option value="last-n-months:3"
+                        >{t("Last 3 months")}</option
+                      ><option value="last-n-months:6"
+                        >{t("Last 6 months")}</option
+                      ><option value="last-n-months:12"
+                        >{t("Last 12 months")}</option
+                      ><option value="year-to-date:3"
+                        >{t("Year to date")}</option
+                      ><option value="all-time:3">{t("All time")}</option
+                      ></select
+                    ></label
+                  >
+                </div>{/if}{/if}
+            {#if editor.config.type !== "markdown-card"}<ReportConditions
+                {budgetId}
+                {accounts}
+                conditions={meta.conditions}
+                conditionsOp={meta.conditionsOp}
+                onchange={(conditions, conditionsOp) => {
+                  void change(() => {
+                    if (editor)
+                      editor.config.meta = {
+                        ...meta,
+                        conditions,
+                        conditionsOp,
+                      };
+                  });
+                }}
+              />{/if}
+            <div class="field-grid">
+              {#each [["x", "Column", 0, 11], ["y", "Row", 0, 100000], ["width", "Width", 1, 12], ["height", "Height", 1, 100]] as field (String(field[0]))}<label
+                  >{t(String(field[1]))}<input
+                    type="number"
+                    required
+                    min={Number(field[2])}
+                    max={Number(field[3])}
+                    value={Number(editor.config[String(field[0])])}
+                    oninput={(e) =>
+                      config(String(field[0]), Number(e.currentTarget.value))}
+                  /></label
+                >{/each}
+            </div>
+            <p class="muted">
+              {t(
+                "Layout uses 12 columns. Column and row controls work with keyboard and touch. Imported conditions and metadata are retained when other settings change.",
+              )}
+            </p>{/if}
+          <div class="actions">
+            <button type="submit" disabled={storageBlocked}
+              >{editor.kind === "page"
+                ? t("Save dashboard")
+                : t("Save widget")}</button
+            ><button type="button" onclick={resetEditor}
+              >{t("Reset to saved")}</button
+            ><button type="button" onclick={closeEditor}
+              >{t("Discard local draft")}</button
+            >
+          </div>
+        </fieldset>
+      </form>{/if}
+    {#if !pages.length && !busy && !editor}<p>
+        {t("No dashboards yet. Create one, then add a report or text widget.")}
+      </p>{/if}
+    <div class="dashboard">
+      {#each widgets as widget (widget.id + ":" + widget.revision + ":" + (customReports.find((d) => d.id === object(widget.config.meta).id)?.revision ?? "missing"))}<div
+          class="widget"
+          style:--column={Number(widget.config.x) + 1}
+          style:--width={Number(widget.config.width)}
+          style:--row={Number(widget.config.y) + 1}
+          style:--height={Number(widget.config.height)}
+        >
+          <ReportWidget
+            {budgetId}
+            document={widget}
+            report={customReports.find(
+              (d) => d.id === object(widget.config.meta).id,
+            ) || null}
+            onopenreport={(id) => switchTab("custom", id)}
+            disconnected={disconnected ||
+              busy ||
+              !!editor ||
+              !!pending ||
+              cached}
+            onedit={() => edit(widget)}
+            onremove={() => (confirm = widget.id)}
+          />
+        </div>{/each}
+    </div>
+  {/if}
 </section>
 
 <style>

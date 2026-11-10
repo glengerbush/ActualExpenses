@@ -1,0 +1,1441 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "normalization": "Generated reference IDs labeled by public names; schedule links labeled by unique source amount. Exact name values/case/whitespace and financial/action multiplicity retained.",
+  "cases": [
+    {
+      "id": "unnamed-22",
+      "input": "nynab-names-unnamed-22.json",
+      "input_sha256": "23e5fd9ac1c9c5beb0bd2b5d9deab52dc5d368e4eb8d7ab60ed25ca274dd9dfb",
+      "actual": "nynab-names-unnamed-22-actual-26.10.zip",
+      "actual_sha256": "939ab1b5e25250cabd435d58e2abbd505bed7663823ffab80e3c34efc7acc865",
+      "definitions": [
+        {
+          "name": null,
+          "amount": -1021,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1021,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1021",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1020,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1020,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1020",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1019,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1019,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1019",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1018,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1018,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1018",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1017,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1017,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1017",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1016,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1016,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1016",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1015,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1015,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1015",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1014,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1014,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1014",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1013,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1013,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1013",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1012,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1012,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1012",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1011,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1011,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1011",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1010,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1010,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1010",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1009,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1009,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1009",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1008,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1008,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1008",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1007,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1007,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1007",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1006,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1006,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1006",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1005,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1005,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1005",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1004,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1004,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1004",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1003,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1003,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1003",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1002,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1002,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1002",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1001,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1001,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1001",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1000,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1000,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1000",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "trim-case",
+      "input": "nynab-names-trim-case.json",
+      "input_sha256": "c56d427e10133091fd2b4c118fff197a8a985c977686f75959f5cb25f126a828",
+      "actual": "nynab-names-trim-case-actual-26.10.zip",
+      "actual_sha256": "1bfab3c927ded32c9624d94760fa5b2878fff6a70ef333e2daad2de4b7e320a4",
+      "definitions": [
+        {
+          "name": "Payee  (1)",
+          "amount": -1006,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1006,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1006",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "Payee",
+              "type": "string"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": "payee",
+          "amount": -1005,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1005,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1005",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "payee",
+              "type": "string"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": "Payee (1)",
+          "amount": -1004,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1004,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1004",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "Payee",
+              "type": "string"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": "Payee",
+          "amount": -1003,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1003,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1003",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "Payee",
+              "type": "string"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1002,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1002,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1002",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1001,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1001,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1001",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        },
+        {
+          "name": null,
+          "amount": -1000,
+          "date": "2026-11-12",
+          "next_date": "2026-11-12",
+          "posts_transaction": false,
+          "completed": false,
+          "conditions": [
+            {
+              "op": "is",
+              "field": "payee",
+              "value": "payee:Schedule Payee",
+              "type": "id"
+            },
+            {
+              "op": "is",
+              "field": "account",
+              "value": "account:Checking",
+              "type": "id"
+            },
+            {
+              "op": "isapprox",
+              "field": "date",
+              "value": "2026-11-12",
+              "type": "date"
+            },
+            {
+              "op": "is",
+              "field": "amount",
+              "value": -1000,
+              "type": "number"
+            }
+          ],
+          "actions": [
+            {
+              "op": "link-schedule",
+              "field": null,
+              "value": "schedule:-1000",
+              "type": "id"
+            },
+            {
+              "op": "set",
+              "field": "category",
+              "value": "category:Category Group/Category",
+              "type": "id"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

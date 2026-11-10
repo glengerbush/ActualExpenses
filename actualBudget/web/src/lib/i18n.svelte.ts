@@ -53,6 +53,31 @@ export function resolveLanguage(requested: string): string {
   }
   return "en";
 }
+// Shipped i18next catalogs contain dotted message keys represented as nested objects.
+// Normalize only string leaves; application callers still use the original message key.
+function flattenCatalog(catalog: unknown): Record<string, string> {
+  const entries: Record<string, string> = Object.create(null);
+  function visit(value: unknown, prefix: string[]) {
+    if (
+      !value ||
+      typeof value !== "object" ||
+      Array.isArray(value) ||
+      prefix.length > 32
+    )
+      throw Error("Language catalog is invalid.");
+    for (const [key, child] of Object.entries(value)) {
+      const parts = [...prefix, key],
+        path = parts.join(".");
+      if (typeof child === "string") {
+        if (Object.hasOwn(entries, path) && entries[path] !== child)
+          throw Error("Language catalog contains conflicting message keys.");
+        entries[path] = child;
+      } else visit(child, parts);
+    }
+  }
+  visit(catalog, []);
+  return entries;
+}
 export async function setLanguage(requested: string): Promise<void> {
   const current = ++generation;
   const language = resolveLanguage(requested);
@@ -66,14 +91,7 @@ export async function setLanguage(requested: string): Promise<void> {
       const response = await fetch(url);
       if (!response.ok) throw new Error("Language catalog could not load.");
       const catalog: unknown = await response.json();
-      if (
-        !catalog ||
-        typeof catalog !== "object" ||
-        Array.isArray(catalog) ||
-        Object.values(catalog).some((value) => typeof value !== "string")
-      )
-        throw new Error("Language catalog is invalid.");
-      messages = catalog as Record<string, string>;
+      messages = flattenCatalog(catalog);
       loadedCatalogs[language] = messages;
     }
   }

@@ -8,24 +8,44 @@
     RequestError,
     type Budget,
   } from "./api";
-  import { uploadArchive, type ImportStage } from "./imports-api";
+  import {
+    uploadArchive,
+    type ImportStage,
+    type ImportSource,
+  } from "./imports-api";
   import {
     readImportSession,
     saveImportSession,
     clearImportSession,
     type ImportSession,
   } from "./import-storage";
-  import { formatAmountInput } from "./money";
+  import { formatSavedAmount } from "./money";
   import { getCurrency } from "./preferences/currencies";
   import { t } from "./i18n.svelte";
   let {
     oncreated,
     oncancel,
+    initialSource = "actual",
   }: {
+    initialSource?: ImportSource;
     oncreated: (budget: Budget) => void | Promise<void>;
     oncancel: () => void;
   } = $props();
   let session = $state.raw<ImportSession | null>(null);
+  let sourceKind = $state<ImportSource>("actual");
+  const activeSource = $derived(
+    session?.sourceKind ?? session?.stage?.report.source_format ?? sourceKind,
+  );
+  const sourceLabel = $derived(
+    activeSource === "ynab4"
+      ? "YNAB4"
+      : activeSource === "nynab"
+        ? "nYNAB"
+        : "Actual",
+  );
+  const title = $derived(
+    activeSource === "actual" ? "Import Actual budget" : "Import YNAB budget",
+  );
   let imports = $state.raw<ImportStage[]>([]);
   let files = $state<FileList>();
   let busy = $state(true);
@@ -43,6 +63,7 @@
     error = "";
     try {
       session = await readImportSession();
+      sourceKind = initialSource;
       imports = await list<ImportStage>("/imports");
       if (session?.stage && !session.pendingActivation) {
         const response = await request<{ data: ImportStage }>(
@@ -68,11 +89,13 @@
       let saved = session;
       if (!saved) {
         const file = files?.[0];
-        if (!file) throw new Error("Choose an Actual ZIP export.");
+        if (!file)
+          throw new Error("Choose a budget export for the selected format.");
         if (file.size > 16 * 1024 * 1024)
-          throw new Error("Choose a ZIP export no larger than 16 MiB.");
+          throw new Error("Choose an export no larger than 16 MiB.");
         saved = {
           version: 1,
+          sourceKind,
           key: uuid(),
           activationKey: uuid(),
           file,
@@ -88,7 +111,12 @@
         );
       await saveImportSession(saved);
       session = saved;
-      const result = await uploadArchive(saved.file, saved.key);
+      const result = await uploadArchive(
+        saved.file,
+        saved.key,
+        saved.sourceKind ?? "actual",
+        saved.filename,
+      );
       const confirmed = { ...saved, stage: result, pendingUpload: false };
       await saveImportSession(confirmed);
       session = confirmed;
@@ -112,6 +140,7 @@
     try {
       const saved: ImportSession = {
         version: 1,
+        sourceKind: value.report.source_format ?? "actual",
         key: uuid(),
         activationKey: uuid(),
         file: null,
@@ -186,7 +215,7 @@
   }
   function amount(value: number) {
     const settings = stage!.report.preferences.shared;
-    return formatAmountInput(value, {
+    return formatSavedAmount(value, {
       number_format: settings.number_format,
       decimal_places: getCurrency(
         settings.experimental.currency ? settings.currency_code : "",
@@ -200,11 +229,16 @@
   aria-busy={busy}
   class="import-budget"
 >
-  <h1 id="import-heading">{t("Import Actual budget")}</h1>
+  <h1 id="import-heading">{t(title)}</h1>
   <p class="muted">
     {t(
-      "Review an unencrypted Actual 26.10.0 ZIP export before opening it. Your original file is kept for recovery.",
+      activeSource === "actual"
+        ? "Review an unencrypted Actual 26.10.0 ZIP export before opening it. Your original file is kept for recovery."
+        : "Review your YNAB export before opening a separate budget. Your original file is kept for recovery.",
     )}
+    {#if activeSource !== "actual"}{t(
+        "YNAB4 uses a ZIP of its budget folder; nYNAB uses a JSON export. Source edit logs do not become undo history.",
+      )}{/if}
   </p>
   {#if error}<p class="error" role="alert">{t(error)}</p>{/if}
   {#if busy}<p role="status">{t("Checking import…")}</p>{/if}
@@ -233,6 +267,19 @@
               "The archive passed integrity and relationship checks. Review the balances before activation.",
             )}
     </p>
+    {#if activeSource !== "actual"}<div class="source-differences">
+        <h3>{t("Review migration differences")}</h3>
+        <p>
+          {t(
+            "Credit-card reserves and available funds follow Actual's envelope model. Recheck card debt and historical overspending after migration.",
+          )}
+        </p>
+        {#each retained.filter( (item) => item.feature.endsWith("source_model") ) as item (item.feature)}<p
+          >
+            {t(item.reason ?? item.message ?? "")}
+          </p>{/each}
+        <p>{t("Imported source:")} {sourceLabel}</p>
+      </div>{/if}
     <div class="import-balances">
       <h3>{t("Source balances, including future entries")}</h3>
       <dl>
@@ -252,7 +299,8 @@
         <h3>{t("Conversion required")}</h3>
         <ul>
           {#each blockers as item, index (`${item.feature}-${index}`)}<li>
-              <strong>{featureLabel(item.feature)}</strong> ({item.count}): {item.reason}
+              <strong>{featureLabel(item.feature)}</strong> ({item.count}): {item.reason ??
+                item.message}
             </li>{/each}
         </ul>
       </div>{/if}
@@ -265,12 +313,13 @@
       </p>
       <ul>
         {#each retained as item, index (`${item.feature}-${index}`)}<li>
-            {featureLabel(item.feature)} ({item.count}): {item.reason}
+            {featureLabel(item.feature)} ({item.count}): {item.reason ??
+              item.message}
           </li>{/each}
       </ul>
     </details>
     <p>
-      <a href={`/api/v1/imports/${stage.id}/original.zip`} download
+      <a href={`/api/v1/imports/${stage.id}/original`} download
         >{t("Download original archive")}</a
       >
     </p>
@@ -296,11 +345,34 @@
         void upload();
       }}
     >
-      <label for="actual-archive">{t("Actual ZIP export")}</label>
+      <label for="import-format">{t("Budget file format")}</label>
+      <select
+        id="import-format"
+        bind:value={sourceKind}
+        disabled={busy}
+        onchange={() => {
+          files = undefined;
+        }}
+      >
+        <option value="actual">{t("Actual ZIP")}</option><option value="ynab4"
+          >{t("YNAB4 ZIP")}</option
+        ><option value="nynab">{t("nYNAB JSON")}</option>
+      </select>
+      <label for="actual-archive"
+        >{t(
+          activeSource === "actual"
+            ? "Actual ZIP export"
+            : activeSource === "ynab4"
+              ? "YNAB4 ZIP export"
+              : "nYNAB JSON export",
+        )}</label
+      >
       <input
         id="actual-archive"
         type="file"
-        accept=".zip,application/zip"
+        accept={activeSource === "nynab"
+          ? ".json,application/json"
+          : ".zip,application/zip"}
         bind:files
         required
         disabled={busy}
@@ -308,7 +380,7 @@
       />
       <p id="archive-limit" class="hint">
         {t(
-          "Maximum 16 MiB compressed and 64 MiB expanded. This release supports ordinary account ledgers; other financial features require conversion.",
+          "Maximum 16 MiB per file and 64 MiB expanded for ZIP files. Review any source-model differences before activation.",
         )}
       </p>
       <button class="primary" disabled={busy || !files?.length}

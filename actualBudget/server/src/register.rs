@@ -146,7 +146,15 @@ fn condition_sql(condition: &Condition, values: &mut Vec<SqlValue>) -> Result<St
         col = format!("(-{col})");
     }
     let scalar_value = |v: &Value| -> Result<SqlValue, Error> {
-        let value = scalar(v, if kind == "name" { "text" } else { kind })?;
+        let value = if kind == "id" && condition.field == "category_group" {
+            let id = v
+                .as_str()
+                .ok_or_else(|| Error::invalid("Invalid category group filter"))?;
+            crate::categories::validate_group_id(id)?;
+            SqlValue::Text(id.into())
+        } else {
+            scalar(v, if kind == "name" { "text" } else { kind })?
+        };
         Ok(match value {
             SqlValue::Text(s) if kind == "text" => SqlValue::Text(s.to_lowercase()),
             v => v,
@@ -480,7 +488,7 @@ impl Query {
 fn canonical_query(db: &Connection, budget: &str, query: &Query) -> Result<Query, Error> {
     let mut query = query.clone();
     for condition in &mut query.filter.conditions {
-        if condition.field != "payee" {
+        if !["payee", "category"].contains(&condition.field.as_str()) {
             continue;
         }
         let values: Vec<&mut Value> = match &mut condition.value {
@@ -489,13 +497,22 @@ fn canonical_query(db: &Connection, budget: &str, query: &Query) -> Result<Query
         };
         for value in values {
             if let Some(id) = value.as_str() {
+                let table = if condition.field == "payee" {
+                    "payees"
+                } else {
+                    "categories"
+                };
                 let exists: bool = db.query_row(
-                    "SELECT EXISTS(SELECT 1 FROM payees WHERE budget_id=?1 AND id=?2)",
+                    &format!("SELECT EXISTS(SELECT 1 FROM {table} WHERE budget_id=?1 AND id=?2)"),
                     rusqlite::params![budget, id],
                     |r| r.get(0),
                 )?;
                 if exists {
-                    *value = json!(crate::payees_tags::canonical(db, budget, id)?);
+                    *value = if condition.field == "payee" {
+                        json!(crate::payees_tags::canonical(db, budget, id)?)
+                    } else {
+                        json!(crate::categories::resolve(db, budget, Some(id.into()))?)
+                    };
                 }
             }
         }

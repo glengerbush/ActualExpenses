@@ -1,0 +1,2932 @@
+{
+  "oracle": "Unchanged pinned26.10 custom spreadsheet +real AQL +get-categories internal DTOs",
+  "clock": "2026-11-09T12:00:00Z",
+  "source_archive": "reports-source-26.10.zip",
+  "source_sha256": "8b54cf9bc377ecd3d608382995efb5c7445c748f849bc971ce70a1610f1ed250",
+  "source_files": {
+    "packages/desktop-client/src/components/reports/spreadsheets/custom-spreadsheet.ts": "434f1add25a4ee4ff07e6e26f6eaad7fd4e8d50fc7c73aa2c416c86d08177c0c",
+    "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+    "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+    "packages/desktop-client/src/components/reports/ReportOptions.ts": "f62377d8d1b90da65f7dab33e9a3ecbd4a5fba62f1003c84aa403b627635a056",
+    "packages/desktop-client/src/components/reports/spreadsheets/calculateLegend.ts": "bf7a6985ee0fa9553892b8fa4ea97cff511e47ff0904affad8f3fe74f8e392d9",
+    "packages/desktop-client/src/components/reports/spreadsheets/fetchSpreadsheetQueryData.ts": "6cc3b87a135799fce86af9b30ae1b85f2c4220e571b4b58a24db6cf799b978d4",
+    "packages/desktop-client/src/components/reports/spreadsheets/budgetDataQuery.ts": "2a8a2557717a7558a316f69f2bca15c2b9828a2e37c4a6fbb822468ca54c50f2",
+    "packages/desktop-client/src/components/reports/spreadsheets/makeQuery.ts": "150571e8eba514ff7cf7e37cecb437c41db1f02c525ddd435932cf5421f37a64",
+    "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+    "packages/desktop-client/src/components/reports/spreadsheets/filterEmptyRows.ts": "a85ae9d3bca8bcd8129e0affc9dd4d3db25e659d94b2e1be441bfccf4455868a",
+    "packages/desktop-client/src/components/reports/spreadsheets/filterHiddenItems.ts": "2b9d0d734cceab58d69a1f9397ffe99a074e4cd96d91b18e7fd9c41226cf0ef7",
+    "packages/desktop-client/src/components/reports/spreadsheets/recalculate.ts": "e25799cc08517f1654e54baba7ec7b9d27dcc63a2f125037a30faf00335c109d",
+    "packages/desktop-client/src/components/reports/spreadsheets/sortData.ts": "97c1f53a9906fa4293ada7df0bf0115ac3967663a1ccd62430d624394a352445",
+    "packages/desktop-client/src/components/reports/spreadsheets/trimIntervals.ts": "eeca5f12a0767437c47efb3ef2b6d8dc48a5d78ee8c4530760298a23e02cdf6a",
+    "packages/desktop-client/src/components/reports/spreadsheets/grouped-spreadsheet.ts": "01d2ff9de7a7b3f6f0f930298bb6b0a2f9c4a9502e4a6584a3f19eec7cdbb12a"
+  },
+  "categories": {
+    "grouped": [
+      {
+        "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+        "name": "Expenses",
+        "is_income": false,
+        "hidden": false,
+        "sort_order": 49152,
+        "tombstone": false,
+        "categories": [
+          {
+            "id": "84afd06e-255f-4246-bd00-89965986f788",
+            "name": "empty",
+            "is_income": false,
+            "hidden": false,
+            "group": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "goal_def": null,
+            "cleanup_def": null,
+            "template_settings": {
+              "source": "notes"
+            },
+            "sort_order": 4096,
+            "tombstone": false
+          },
+          {
+            "id": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+            "name": "hidden",
+            "is_income": false,
+            "hidden": true,
+            "group": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "goal_def": null,
+            "cleanup_def": null,
+            "template_settings": {
+              "source": "notes"
+            },
+            "sort_order": 8192,
+            "tombstone": false
+          },
+          {
+            "id": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "name": "food",
+            "is_income": false,
+            "hidden": false,
+            "group": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "goal_def": null,
+            "cleanup_def": null,
+            "template_settings": {
+              "source": "notes"
+            },
+            "sort_order": 16384,
+            "tombstone": false
+          }
+        ]
+      },
+      {
+        "id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+        "name": "Report income",
+        "is_income": false,
+        "hidden": false,
+        "sort_order": 65536,
+        "tombstone": false,
+        "categories": [
+          {
+            "id": "95610153-0d9b-4abd-b817-bdc32291a737",
+            "name": "salary",
+            "is_income": true,
+            "hidden": false,
+            "group": "e29b4019-d83b-48be-98a9-7ace287b2869",
+            "goal_def": null,
+            "cleanup_def": null,
+            "template_settings": {
+              "source": "notes"
+            },
+            "sort_order": 16384,
+            "tombstone": false
+          }
+        ]
+      },
+      {
+        "id": "987dfc68-5882-472c-87b6-40a282c4d269",
+        "name": "Hidden group",
+        "is_income": false,
+        "hidden": true,
+        "sort_order": 81920,
+        "tombstone": false,
+        "categories": [
+          {
+            "id": "42250427-aac5-4179-b77d-247994a381a2",
+            "name": "hiddenGroupCategory",
+            "is_income": false,
+            "hidden": false,
+            "group": "987dfc68-5882-472c-87b6-40a282c4d269",
+            "goal_def": null,
+            "cleanup_def": null,
+            "template_settings": {
+              "source": "notes"
+            },
+            "sort_order": 16384,
+            "tombstone": false
+          }
+        ]
+      },
+      {
+        "id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+        "name": "Income",
+        "is_income": true,
+        "hidden": false,
+        "sort_order": 32768,
+        "tombstone": false,
+        "categories": [
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+            "goal_def": null,
+            "cleanup_def": null,
+            "template_settings": {
+              "source": "notes"
+            },
+            "sort_order": 32768,
+            "tombstone": false
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+            "goal_def": null,
+            "cleanup_def": null,
+            "template_settings": {
+              "source": "notes"
+            },
+            "sort_order": 32768,
+            "tombstone": false
+          }
+        ]
+      }
+    ],
+    "list": [
+      {
+        "id": "84afd06e-255f-4246-bd00-89965986f788",
+        "name": "empty",
+        "is_income": false,
+        "hidden": false,
+        "group": "cdf3e63a-4372-452e-b0ae-893efa976265",
+        "goal_def": null,
+        "cleanup_def": null,
+        "template_settings": {
+          "source": "notes"
+        },
+        "sort_order": 4096,
+        "tombstone": false
+      },
+      {
+        "id": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+        "name": "hidden",
+        "is_income": false,
+        "hidden": true,
+        "group": "cdf3e63a-4372-452e-b0ae-893efa976265",
+        "goal_def": null,
+        "cleanup_def": null,
+        "template_settings": {
+          "source": "notes"
+        },
+        "sort_order": 8192,
+        "tombstone": false
+      },
+      {
+        "id": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "name": "food",
+        "is_income": false,
+        "hidden": false,
+        "group": "cdf3e63a-4372-452e-b0ae-893efa976265",
+        "goal_def": null,
+        "cleanup_def": null,
+        "template_settings": {
+          "source": "notes"
+        },
+        "sort_order": 16384,
+        "tombstone": false
+      },
+      {
+        "id": "95610153-0d9b-4abd-b817-bdc32291a737",
+        "name": "salary",
+        "is_income": true,
+        "hidden": false,
+        "group": "e29b4019-d83b-48be-98a9-7ace287b2869",
+        "goal_def": null,
+        "cleanup_def": null,
+        "template_settings": {
+          "source": "notes"
+        },
+        "sort_order": 16384,
+        "tombstone": false
+      },
+      {
+        "id": "42250427-aac5-4179-b77d-247994a381a2",
+        "name": "hiddenGroupCategory",
+        "is_income": false,
+        "hidden": false,
+        "group": "987dfc68-5882-472c-87b6-40a282c4d269",
+        "goal_def": null,
+        "cleanup_def": null,
+        "template_settings": {
+          "source": "notes"
+        },
+        "sort_order": 16384,
+        "tombstone": false
+      },
+      {
+        "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+        "name": "Income",
+        "is_income": true,
+        "hidden": false,
+        "group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+        "goal_def": null,
+        "cleanup_def": null,
+        "template_settings": {
+          "source": "notes"
+        },
+        "sort_order": 32768,
+        "tombstone": false
+      },
+      {
+        "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+        "name": "Starting Balances",
+        "is_income": true,
+        "hidden": false,
+        "group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+        "goal_def": null,
+        "cleanup_def": null,
+        "template_settings": {
+          "source": "notes"
+        },
+        "sort_order": 32768,
+        "tombstone": false
+      }
+    ]
+  },
+  "accounts": [
+    {
+      "id": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+      "name": "brokerage",
+      "offbudget": true,
+      "closed": false,
+      "balance_current": null,
+      "account_group_id": null
+    },
+    {
+      "id": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "name": "checking",
+      "offbudget": false,
+      "closed": false,
+      "balance_current": null,
+      "account_group_id": null
+    },
+    {
+      "id": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+      "name": "savings",
+      "offbudget": false,
+      "closed": false,
+      "balance_current": null,
+      "account_group_id": null
+    },
+    {
+      "id": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+      "name": "closed",
+      "offbudget": false,
+      "closed": true,
+      "balance_current": null,
+      "account_group_id": null
+    }
+  ],
+  "payees": [
+    {
+      "id": "aca47852-d5a7-42e9-acf3-76a971bc33e2",
+      "name": "Employer",
+      "transfer_acct": null
+    },
+    {
+      "id": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+      "name": "Market",
+      "transfer_acct": null
+    },
+    {
+      "id": "c27081d6-38c1-4751-8005-8a77de40c72c",
+      "name": "Starting Balance",
+      "transfer_acct": null
+    },
+    {
+      "id": "9f3f2ebb-1569-4b47-b641-f6baa2b0f4ec",
+      "name": "checking",
+      "transfer_acct": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+    },
+    {
+      "id": "e04b9930-9dad-46a9-ab5a-ec1f1a061de1",
+      "name": "savings",
+      "transfer_acct": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85"
+    },
+    {
+      "id": "82be121d-3e8c-4f1e-b8b6-f309bda0614b",
+      "name": "closed",
+      "transfer_acct": "fc5467bb-3dba-4d6f-aae9-366eca9678b8"
+    },
+    {
+      "id": "a8f5803b-f77c-48d5-9e8b-41188ceb6135",
+      "name": "brokerage",
+      "transfer_acct": "1c1e03c6-7c75-4cd9-bee0-169482a0de26"
+    }
+  ],
+  "cases": [
+    {
+      "options": {
+        "startDate": "2026-10",
+        "endDate": "2026-11",
+        "interval": "Monthly",
+        "conditions": [],
+        "conditionsOp": "and",
+        "showEmpty": false,
+        "showOffBudget": false,
+        "showHiddenCategories": true,
+        "showUncategorized": true,
+        "trimIntervals": false,
+        "groupBy": "CategoryGroup",
+        "balanceTypeOp": "totalDebts",
+        "sortByOp": "desc",
+        "graphType": "BarGraph",
+        "firstDayOfWeekIdx": "1",
+        "nested": true
+      },
+      "expected": {
+        "data": [
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "totalAssets": 200,
+            "totalDebts": -7700,
+            "netAssets": 0,
+            "netDebts": -7500,
+            "totalTotals": -7500,
+            "totalBudgeted": -7500,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": -1000,
+                "netAssets": 0,
+                "netDebts": -1000,
+                "totalTotals": -1000,
+                "totalBudgeted": -1000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 200,
+                "totalDebts": -6700,
+                "netAssets": 0,
+                "netDebts": -6500,
+                "totalTotals": -6500,
+                "totalBudgeted": -6500,
+                "change": -5500,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          },
+          {
+            "id": "uncategorized",
+            "name": "Uncategorized & Off budget",
+            "uncategorizedId": "all",
+            "totalAssets": 0,
+            "totalDebts": -2300,
+            "netAssets": 0,
+            "netDebts": -2300,
+            "totalTotals": -2300,
+            "totalBudgeted": -2300,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": -2300,
+                "netAssets": 0,
+                "netDebts": -2300,
+                "totalTotals": -2300,
+                "totalBudgeted": -2300,
+                "change": -2300,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          },
+          {
+            "id": "987dfc68-5882-472c-87b6-40a282c4d269",
+            "name": "Hidden group",
+            "totalAssets": 0,
+            "totalDebts": -400,
+            "netAssets": 0,
+            "netDebts": -400,
+            "totalTotals": -400,
+            "totalBudgeted": -400,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": -400,
+                "netAssets": 0,
+                "netDebts": -400,
+                "totalTotals": -400,
+                "totalBudgeted": -400,
+                "change": -400,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          }
+        ],
+        "intervalData": [
+          {
+            "date": "Oct '26",
+            "cdf3e63a-4372-452e-b0ae-893efa976265": 1000,
+            "e29b4019-d83b-48be-98a9-7ace287b2869": 0,
+            "987dfc68-5882-472c-87b6-40a282c4d269": 0,
+            "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00": 0,
+            "uncategorized": 0,
+            "intervalStartDate": "2026-10",
+            "intervalEndDate": "2026-10-31",
+            "totalAssets": 17000,
+            "totalDebts": -1000,
+            "netAssets": 16000,
+            "netDebts": 0,
+            "totalTotals": 16000,
+            "totalBudgeted": 16000
+          },
+          {
+            "date": "Nov '26",
+            "cdf3e63a-4372-452e-b0ae-893efa976265": 6700,
+            "e29b4019-d83b-48be-98a9-7ace287b2869": 0,
+            "987dfc68-5882-472c-87b6-40a282c4d269": 400,
+            "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00": 0,
+            "uncategorized": 2300,
+            "intervalStartDate": "2026-11",
+            "intervalEndDate": "2026-11",
+            "totalAssets": 10200,
+            "totalDebts": -9400,
+            "netAssets": 800,
+            "netDebts": 0,
+            "totalTotals": 800,
+            "totalBudgeted": 800
+          }
+        ],
+        "startDate": "2026-10",
+        "endDate": "2026-11",
+        "totalAssets": 27200,
+        "totalDebts": -10400,
+        "netAssets": 16800,
+        "netDebts": 0,
+        "totalTotals": 16800,
+        "totalBudgeted": 16800,
+        "groupedData": [
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "totalAssets": 200,
+            "totalDebts": -7700,
+            "netAssets": 0,
+            "netDebts": -7500,
+            "totalTotals": -7500,
+            "totalBudgeted": -7500,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": -1000,
+                "netAssets": 0,
+                "netDebts": -1000,
+                "totalTotals": -1000,
+                "totalBudgeted": -1000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 200,
+                "totalDebts": -6700,
+                "netAssets": 0,
+                "netDebts": -6500,
+                "totalTotals": -6500,
+                "totalBudgeted": -6500,
+                "change": -5500,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "18c4cef2-d782-4544-a460-7c04c275a581",
+                "name": "food",
+                "totalAssets": 200,
+                "totalDebts": -6000,
+                "netAssets": 0,
+                "netDebts": -5800,
+                "totalTotals": -5800,
+                "totalBudgeted": -5800,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 0,
+                    "totalDebts": -1000,
+                    "netAssets": 0,
+                    "netDebts": -1000,
+                    "totalTotals": -1000,
+                    "totalBudgeted": -1000,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 200,
+                    "totalDebts": -5000,
+                    "netAssets": 0,
+                    "netDebts": -4800,
+                    "totalTotals": -4800,
+                    "totalBudgeted": -4800,
+                    "change": -3800,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              },
+              {
+                "id": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+                "name": "hidden",
+                "totalAssets": 0,
+                "totalDebts": -1700,
+                "netAssets": 0,
+                "netDebts": -1700,
+                "totalTotals": -1700,
+                "totalBudgeted": -1700,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 0,
+                    "totalDebts": 0,
+                    "netAssets": 0,
+                    "netDebts": 0,
+                    "totalTotals": 0,
+                    "totalBudgeted": 0,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 0,
+                    "totalDebts": -1700,
+                    "netAssets": 0,
+                    "netDebts": -1700,
+                    "totalTotals": -1700,
+                    "totalBudgeted": -1700,
+                    "change": -1700,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "uncategorized",
+            "name": "Uncategorized & Off budget",
+            "uncategorizedId": "all",
+            "totalAssets": 0,
+            "totalDebts": -2300,
+            "netAssets": 0,
+            "netDebts": -2300,
+            "totalTotals": -2300,
+            "totalBudgeted": -2300,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": -2300,
+                "netAssets": 0,
+                "netDebts": -2300,
+                "totalTotals": -2300,
+                "totalBudgeted": -2300,
+                "change": -2300,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "",
+                "name": "Transfers",
+                "uncategorizedId": "transfer",
+                "totalAssets": 0,
+                "totalDebts": -2000,
+                "netAssets": 0,
+                "netDebts": -2000,
+                "totalTotals": -2000,
+                "totalBudgeted": -2000,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 0,
+                    "totalDebts": 0,
+                    "netAssets": 0,
+                    "netDebts": 0,
+                    "totalTotals": 0,
+                    "totalBudgeted": 0,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 0,
+                    "totalDebts": -2000,
+                    "netAssets": 0,
+                    "netDebts": -2000,
+                    "totalTotals": -2000,
+                    "totalBudgeted": -2000,
+                    "change": -2000,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              },
+              {
+                "id": "",
+                "name": "Uncategorized",
+                "uncategorizedId": "other",
+                "totalAssets": 0,
+                "totalDebts": -300,
+                "netAssets": 0,
+                "netDebts": -300,
+                "totalTotals": -300,
+                "totalBudgeted": -300,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 0,
+                    "totalDebts": 0,
+                    "netAssets": 0,
+                    "netDebts": 0,
+                    "totalTotals": 0,
+                    "totalBudgeted": 0,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 0,
+                    "totalDebts": -300,
+                    "netAssets": 0,
+                    "netDebts": -300,
+                    "totalTotals": -300,
+                    "totalBudgeted": -300,
+                    "change": -300,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "987dfc68-5882-472c-87b6-40a282c4d269",
+            "name": "Hidden group",
+            "totalAssets": 0,
+            "totalDebts": -400,
+            "netAssets": 0,
+            "netDebts": -400,
+            "totalTotals": -400,
+            "totalBudgeted": -400,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": -400,
+                "netAssets": 0,
+                "netDebts": -400,
+                "totalTotals": -400,
+                "totalBudgeted": -400,
+                "change": -400,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "42250427-aac5-4179-b77d-247994a381a2",
+                "name": "hiddenGroupCategory",
+                "totalAssets": 0,
+                "totalDebts": -400,
+                "netAssets": 0,
+                "netDebts": -400,
+                "totalTotals": -400,
+                "totalBudgeted": -400,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 0,
+                    "totalDebts": 0,
+                    "netAssets": 0,
+                    "netDebts": 0,
+                    "totalTotals": 0,
+                    "totalBudgeted": 0,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 0,
+                    "totalDebts": -400,
+                    "netAssets": 0,
+                    "netDebts": -400,
+                    "totalTotals": -400,
+                    "totalBudgeted": -400,
+                    "change": -400,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "options": {
+        "startDate": "2026-10",
+        "endDate": "2026-11",
+        "interval": "Monthly",
+        "conditions": [],
+        "conditionsOp": "and",
+        "showEmpty": false,
+        "showOffBudget": true,
+        "showHiddenCategories": false,
+        "showUncategorized": false,
+        "trimIntervals": false,
+        "groupBy": "CategoryGroup",
+        "balanceTypeOp": "totalAssets",
+        "sortByOp": "desc",
+        "graphType": "BarGraph",
+        "firstDayOfWeekIdx": "1",
+        "nested": true
+      },
+      "expected": {
+        "data": [
+          {
+            "id": "uncategorized",
+            "name": "Uncategorized & Off budget",
+            "uncategorizedId": "all",
+            "totalAssets": 102500,
+            "totalDebts": -900,
+            "netAssets": 101600,
+            "netDebts": 0,
+            "totalTotals": 101600,
+            "totalBudgeted": 101600,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 100000,
+                "totalDebts": 0,
+                "netAssets": 100000,
+                "netDebts": 0,
+                "totalTotals": 100000,
+                "totalBudgeted": 100000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 2500,
+                "totalDebts": -900,
+                "netAssets": 1600,
+                "netDebts": 0,
+                "totalTotals": 1600,
+                "totalBudgeted": 1600,
+                "change": -98400,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          },
+          {
+            "id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+            "name": "Income",
+            "totalAssets": 17000,
+            "totalDebts": 0,
+            "netAssets": 17000,
+            "netDebts": 0,
+            "totalTotals": 17000,
+            "totalBudgeted": 17000,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 17000,
+                "totalDebts": 0,
+                "netAssets": 17000,
+                "netDebts": 0,
+                "totalTotals": 17000,
+                "totalBudgeted": 17000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": -17000,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          },
+          {
+            "id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+            "name": "Report income",
+            "totalAssets": 10000,
+            "totalDebts": 0,
+            "netAssets": 10000,
+            "netDebts": 0,
+            "totalTotals": 10000,
+            "totalBudgeted": 10000,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 10000,
+                "totalDebts": 0,
+                "netAssets": 10000,
+                "netDebts": 0,
+                "totalTotals": 10000,
+                "totalBudgeted": 10000,
+                "change": 10000,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          },
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "totalAssets": 200,
+            "totalDebts": -6000,
+            "netAssets": 0,
+            "netDebts": -5800,
+            "totalTotals": -5800,
+            "totalBudgeted": -5800,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": -1000,
+                "netAssets": 0,
+                "netDebts": -1000,
+                "totalTotals": -1000,
+                "totalBudgeted": -1000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 200,
+                "totalDebts": -5000,
+                "netAssets": 0,
+                "netDebts": -4800,
+                "totalTotals": -4800,
+                "totalBudgeted": -4800,
+                "change": -3800,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          }
+        ],
+        "intervalData": [
+          {
+            "date": "Oct '26",
+            "cdf3e63a-4372-452e-b0ae-893efa976265": 0,
+            "e29b4019-d83b-48be-98a9-7ace287b2869": 0,
+            "987dfc68-5882-472c-87b6-40a282c4d269": 0,
+            "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00": 17000,
+            "uncategorized": 100000,
+            "intervalStartDate": "2026-10",
+            "intervalEndDate": "2026-10-31",
+            "totalAssets": 117000,
+            "totalDebts": -1000,
+            "netAssets": 116000,
+            "netDebts": 0,
+            "totalTotals": 116000,
+            "totalBudgeted": 116000
+          },
+          {
+            "date": "Nov '26",
+            "cdf3e63a-4372-452e-b0ae-893efa976265": 200,
+            "e29b4019-d83b-48be-98a9-7ace287b2869": 10000,
+            "987dfc68-5882-472c-87b6-40a282c4d269": 0,
+            "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00": 0,
+            "uncategorized": 2500,
+            "intervalStartDate": "2026-11",
+            "intervalEndDate": "2026-11",
+            "totalAssets": 12700,
+            "totalDebts": -5900,
+            "netAssets": 6800,
+            "netDebts": 0,
+            "totalTotals": 6800,
+            "totalBudgeted": 6800
+          }
+        ],
+        "startDate": "2026-10",
+        "endDate": "2026-11",
+        "totalAssets": 129700,
+        "totalDebts": -6900,
+        "netAssets": 122800,
+        "netDebts": 0,
+        "totalTotals": 122800,
+        "totalBudgeted": 122800,
+        "groupedData": [
+          {
+            "id": "uncategorized",
+            "name": "Uncategorized & Off budget",
+            "uncategorizedId": "all",
+            "totalAssets": 102500,
+            "totalDebts": -900,
+            "netAssets": 101600,
+            "netDebts": 0,
+            "totalTotals": 101600,
+            "totalBudgeted": 101600,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 100000,
+                "totalDebts": 0,
+                "netAssets": 100000,
+                "netDebts": 0,
+                "totalTotals": 100000,
+                "totalBudgeted": 100000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 2500,
+                "totalDebts": -900,
+                "netAssets": 1600,
+                "netDebts": 0,
+                "totalTotals": 1600,
+                "totalBudgeted": 1600,
+                "change": -98400,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "",
+                "name": "Off budget",
+                "uncategorizedId": "off_budget",
+                "totalAssets": 102500,
+                "totalDebts": -900,
+                "netAssets": 101600,
+                "netDebts": 0,
+                "totalTotals": 101600,
+                "totalBudgeted": 101600,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 100000,
+                    "totalDebts": 0,
+                    "netAssets": 100000,
+                    "netDebts": 0,
+                    "totalTotals": 100000,
+                    "totalBudgeted": 100000,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 2500,
+                    "totalDebts": -900,
+                    "netAssets": 1600,
+                    "netDebts": 0,
+                    "totalTotals": 1600,
+                    "totalBudgeted": 1600,
+                    "change": -98400,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+            "name": "Income",
+            "totalAssets": 17000,
+            "totalDebts": 0,
+            "netAssets": 17000,
+            "netDebts": 0,
+            "totalTotals": 17000,
+            "totalBudgeted": 17000,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 17000,
+                "totalDebts": 0,
+                "netAssets": 17000,
+                "netDebts": 0,
+                "totalTotals": 17000,
+                "totalBudgeted": 17000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": -17000,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "name": "Starting Balances",
+                "totalAssets": 17000,
+                "totalDebts": 0,
+                "netAssets": 17000,
+                "netDebts": 0,
+                "totalTotals": 17000,
+                "totalBudgeted": 17000,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 17000,
+                    "totalDebts": 0,
+                    "netAssets": 17000,
+                    "netDebts": 0,
+                    "totalTotals": 17000,
+                    "totalBudgeted": 17000,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 0,
+                    "totalDebts": 0,
+                    "netAssets": 0,
+                    "netDebts": 0,
+                    "totalTotals": 0,
+                    "totalBudgeted": 0,
+                    "change": -17000,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+            "name": "Report income",
+            "totalAssets": 10000,
+            "totalDebts": 0,
+            "netAssets": 10000,
+            "netDebts": 0,
+            "totalTotals": 10000,
+            "totalBudgeted": 10000,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 10000,
+                "totalDebts": 0,
+                "netAssets": 10000,
+                "netDebts": 0,
+                "totalTotals": 10000,
+                "totalBudgeted": 10000,
+                "change": 10000,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "95610153-0d9b-4abd-b817-bdc32291a737",
+                "name": "salary",
+                "totalAssets": 10000,
+                "totalDebts": 0,
+                "netAssets": 10000,
+                "netDebts": 0,
+                "totalTotals": 10000,
+                "totalBudgeted": 10000,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 0,
+                    "totalDebts": 0,
+                    "netAssets": 0,
+                    "netDebts": 0,
+                    "totalTotals": 0,
+                    "totalBudgeted": 0,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 10000,
+                    "totalDebts": 0,
+                    "netAssets": 10000,
+                    "netDebts": 0,
+                    "totalTotals": 10000,
+                    "totalBudgeted": 10000,
+                    "change": 10000,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "totalAssets": 200,
+            "totalDebts": -6000,
+            "netAssets": 0,
+            "netDebts": -5800,
+            "totalTotals": -5800,
+            "totalBudgeted": -5800,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": -1000,
+                "netAssets": 0,
+                "netDebts": -1000,
+                "totalTotals": -1000,
+                "totalBudgeted": -1000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 200,
+                "totalDebts": -5000,
+                "netAssets": 0,
+                "netDebts": -4800,
+                "totalTotals": -4800,
+                "totalBudgeted": -4800,
+                "change": -3800,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "18c4cef2-d782-4544-a460-7c04c275a581",
+                "name": "food",
+                "totalAssets": 200,
+                "totalDebts": -6000,
+                "netAssets": 0,
+                "netDebts": -5800,
+                "totalTotals": -5800,
+                "totalBudgeted": -5800,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 0,
+                    "totalDebts": -1000,
+                    "netAssets": 0,
+                    "netDebts": -1000,
+                    "totalTotals": -1000,
+                    "totalBudgeted": -1000,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 200,
+                    "totalDebts": -5000,
+                    "netAssets": 0,
+                    "netDebts": -4800,
+                    "totalTotals": -4800,
+                    "totalBudgeted": -4800,
+                    "change": -3800,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "options": {
+        "startDate": "2026-10",
+        "endDate": "2026-11",
+        "interval": "Monthly",
+        "conditions": [],
+        "conditionsOp": "and",
+        "showEmpty": false,
+        "showOffBudget": true,
+        "showHiddenCategories": false,
+        "showUncategorized": false,
+        "trimIntervals": false,
+        "groupBy": "CategoryGroup",
+        "balanceTypeOp": "totalDebts",
+        "sortByOp": "desc",
+        "graphType": "BarGraph",
+        "firstDayOfWeekIdx": "1",
+        "nested": true
+      },
+      "expected": {
+        "data": [
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "totalAssets": 200,
+            "totalDebts": -6000,
+            "netAssets": 0,
+            "netDebts": -5800,
+            "totalTotals": -5800,
+            "totalBudgeted": -5800,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": -1000,
+                "netAssets": 0,
+                "netDebts": -1000,
+                "totalTotals": -1000,
+                "totalBudgeted": -1000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 200,
+                "totalDebts": -5000,
+                "netAssets": 0,
+                "netDebts": -4800,
+                "totalTotals": -4800,
+                "totalBudgeted": -4800,
+                "change": -3800,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          },
+          {
+            "id": "uncategorized",
+            "name": "Uncategorized & Off budget",
+            "uncategorizedId": "all",
+            "totalAssets": 102500,
+            "totalDebts": -900,
+            "netAssets": 101600,
+            "netDebts": 0,
+            "totalTotals": 101600,
+            "totalBudgeted": 101600,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 100000,
+                "totalDebts": 0,
+                "netAssets": 100000,
+                "netDebts": 0,
+                "totalTotals": 100000,
+                "totalBudgeted": 100000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 2500,
+                "totalDebts": -900,
+                "netAssets": 1600,
+                "netDebts": 0,
+                "totalTotals": 1600,
+                "totalBudgeted": 1600,
+                "change": -98400,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          }
+        ],
+        "intervalData": [
+          {
+            "date": "Oct '26",
+            "cdf3e63a-4372-452e-b0ae-893efa976265": 1000,
+            "e29b4019-d83b-48be-98a9-7ace287b2869": 0,
+            "987dfc68-5882-472c-87b6-40a282c4d269": 0,
+            "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00": 0,
+            "uncategorized": 0,
+            "intervalStartDate": "2026-10",
+            "intervalEndDate": "2026-10-31",
+            "totalAssets": 117000,
+            "totalDebts": -1000,
+            "netAssets": 116000,
+            "netDebts": 0,
+            "totalTotals": 116000,
+            "totalBudgeted": 116000
+          },
+          {
+            "date": "Nov '26",
+            "cdf3e63a-4372-452e-b0ae-893efa976265": 5000,
+            "e29b4019-d83b-48be-98a9-7ace287b2869": 0,
+            "987dfc68-5882-472c-87b6-40a282c4d269": 0,
+            "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00": 0,
+            "uncategorized": 900,
+            "intervalStartDate": "2026-11",
+            "intervalEndDate": "2026-11",
+            "totalAssets": 12700,
+            "totalDebts": -5900,
+            "netAssets": 6800,
+            "netDebts": 0,
+            "totalTotals": 6800,
+            "totalBudgeted": 6800
+          }
+        ],
+        "startDate": "2026-10",
+        "endDate": "2026-11",
+        "totalAssets": 129700,
+        "totalDebts": -6900,
+        "netAssets": 122800,
+        "netDebts": 0,
+        "totalTotals": 122800,
+        "totalBudgeted": 122800,
+        "groupedData": [
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "totalAssets": 200,
+            "totalDebts": -6000,
+            "netAssets": 0,
+            "netDebts": -5800,
+            "totalTotals": -5800,
+            "totalBudgeted": -5800,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": -1000,
+                "netAssets": 0,
+                "netDebts": -1000,
+                "totalTotals": -1000,
+                "totalBudgeted": -1000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 200,
+                "totalDebts": -5000,
+                "netAssets": 0,
+                "netDebts": -4800,
+                "totalTotals": -4800,
+                "totalBudgeted": -4800,
+                "change": -3800,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "18c4cef2-d782-4544-a460-7c04c275a581",
+                "name": "food",
+                "totalAssets": 200,
+                "totalDebts": -6000,
+                "netAssets": 0,
+                "netDebts": -5800,
+                "totalTotals": -5800,
+                "totalBudgeted": -5800,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 0,
+                    "totalDebts": -1000,
+                    "netAssets": 0,
+                    "netDebts": -1000,
+                    "totalTotals": -1000,
+                    "totalBudgeted": -1000,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 200,
+                    "totalDebts": -5000,
+                    "netAssets": 0,
+                    "netDebts": -4800,
+                    "totalTotals": -4800,
+                    "totalBudgeted": -4800,
+                    "change": -3800,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "uncategorized",
+            "name": "Uncategorized & Off budget",
+            "uncategorizedId": "all",
+            "totalAssets": 102500,
+            "totalDebts": -900,
+            "netAssets": 101600,
+            "netDebts": 0,
+            "totalTotals": 101600,
+            "totalBudgeted": 101600,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 100000,
+                "totalDebts": 0,
+                "netAssets": 100000,
+                "netDebts": 0,
+                "totalTotals": 100000,
+                "totalBudgeted": 100000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 2500,
+                "totalDebts": -900,
+                "netAssets": 1600,
+                "netDebts": 0,
+                "totalTotals": 1600,
+                "totalBudgeted": 1600,
+                "change": -98400,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "",
+                "name": "Off budget",
+                "uncategorizedId": "off_budget",
+                "totalAssets": 102500,
+                "totalDebts": -900,
+                "netAssets": 101600,
+                "netDebts": 0,
+                "totalTotals": 101600,
+                "totalBudgeted": 101600,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 100000,
+                    "totalDebts": 0,
+                    "netAssets": 100000,
+                    "netDebts": 0,
+                    "totalTotals": 100000,
+                    "totalBudgeted": 100000,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 2500,
+                    "totalDebts": -900,
+                    "netAssets": 1600,
+                    "netDebts": 0,
+                    "totalTotals": 1600,
+                    "totalBudgeted": 1600,
+                    "change": -98400,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "options": {
+        "startDate": "2026-10",
+        "endDate": "2026-11",
+        "interval": "Monthly",
+        "conditions": [],
+        "conditionsOp": "and",
+        "showEmpty": false,
+        "showOffBudget": true,
+        "showHiddenCategories": false,
+        "showUncategorized": false,
+        "trimIntervals": false,
+        "groupBy": "CategoryGroup",
+        "balanceTypeOp": "totalTotals",
+        "sortByOp": "desc",
+        "graphType": "BarGraph",
+        "firstDayOfWeekIdx": "1",
+        "nested": true
+      },
+      "expected": {
+        "data": [
+          {
+            "id": "uncategorized",
+            "name": "Uncategorized & Off budget",
+            "uncategorizedId": "all",
+            "totalAssets": 102500,
+            "totalDebts": -900,
+            "netAssets": 101600,
+            "netDebts": 0,
+            "totalTotals": 101600,
+            "totalBudgeted": 101600,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 100000,
+                "totalDebts": 0,
+                "netAssets": 100000,
+                "netDebts": 0,
+                "totalTotals": 100000,
+                "totalBudgeted": 100000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 2500,
+                "totalDebts": -900,
+                "netAssets": 1600,
+                "netDebts": 0,
+                "totalTotals": 1600,
+                "totalBudgeted": 1600,
+                "change": -98400,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          },
+          {
+            "id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+            "name": "Income",
+            "totalAssets": 17000,
+            "totalDebts": 0,
+            "netAssets": 17000,
+            "netDebts": 0,
+            "totalTotals": 17000,
+            "totalBudgeted": 17000,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 17000,
+                "totalDebts": 0,
+                "netAssets": 17000,
+                "netDebts": 0,
+                "totalTotals": 17000,
+                "totalBudgeted": 17000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": -17000,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          },
+          {
+            "id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+            "name": "Report income",
+            "totalAssets": 10000,
+            "totalDebts": 0,
+            "netAssets": 10000,
+            "netDebts": 0,
+            "totalTotals": 10000,
+            "totalBudgeted": 10000,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 10000,
+                "totalDebts": 0,
+                "netAssets": 10000,
+                "netDebts": 0,
+                "totalTotals": 10000,
+                "totalBudgeted": 10000,
+                "change": 10000,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          },
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "totalAssets": 200,
+            "totalDebts": -6000,
+            "netAssets": 0,
+            "netDebts": -5800,
+            "totalTotals": -5800,
+            "totalBudgeted": -5800,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": -1000,
+                "netAssets": 0,
+                "netDebts": -1000,
+                "totalTotals": -1000,
+                "totalBudgeted": -1000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 200,
+                "totalDebts": -5000,
+                "netAssets": 0,
+                "netDebts": -4800,
+                "totalTotals": -4800,
+                "totalBudgeted": -4800,
+                "change": -3800,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          }
+        ],
+        "intervalData": [
+          {
+            "date": "Oct '26",
+            "cdf3e63a-4372-452e-b0ae-893efa976265": -1000,
+            "e29b4019-d83b-48be-98a9-7ace287b2869": 0,
+            "987dfc68-5882-472c-87b6-40a282c4d269": 0,
+            "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00": 17000,
+            "uncategorized": 100000,
+            "intervalStartDate": "2026-10",
+            "intervalEndDate": "2026-10-31",
+            "totalAssets": 117000,
+            "totalDebts": -1000,
+            "netAssets": 116000,
+            "netDebts": 0,
+            "totalTotals": 116000,
+            "totalBudgeted": 116000
+          },
+          {
+            "date": "Nov '26",
+            "cdf3e63a-4372-452e-b0ae-893efa976265": -4800,
+            "e29b4019-d83b-48be-98a9-7ace287b2869": 10000,
+            "987dfc68-5882-472c-87b6-40a282c4d269": 0,
+            "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00": 0,
+            "uncategorized": 1600,
+            "intervalStartDate": "2026-11",
+            "intervalEndDate": "2026-11",
+            "totalAssets": 12700,
+            "totalDebts": -5900,
+            "netAssets": 6800,
+            "netDebts": 0,
+            "totalTotals": 6800,
+            "totalBudgeted": 6800
+          }
+        ],
+        "startDate": "2026-10",
+        "endDate": "2026-11",
+        "totalAssets": 129700,
+        "totalDebts": -6900,
+        "netAssets": 122800,
+        "netDebts": 0,
+        "totalTotals": 122800,
+        "totalBudgeted": 122800,
+        "groupedData": [
+          {
+            "id": "uncategorized",
+            "name": "Uncategorized & Off budget",
+            "uncategorizedId": "all",
+            "totalAssets": 102500,
+            "totalDebts": -900,
+            "netAssets": 101600,
+            "netDebts": 0,
+            "totalTotals": 101600,
+            "totalBudgeted": 101600,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 100000,
+                "totalDebts": 0,
+                "netAssets": 100000,
+                "netDebts": 0,
+                "totalTotals": 100000,
+                "totalBudgeted": 100000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 2500,
+                "totalDebts": -900,
+                "netAssets": 1600,
+                "netDebts": 0,
+                "totalTotals": 1600,
+                "totalBudgeted": 1600,
+                "change": -98400,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "",
+                "name": "Off budget",
+                "uncategorizedId": "off_budget",
+                "totalAssets": 102500,
+                "totalDebts": -900,
+                "netAssets": 101600,
+                "netDebts": 0,
+                "totalTotals": 101600,
+                "totalBudgeted": 101600,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 100000,
+                    "totalDebts": 0,
+                    "netAssets": 100000,
+                    "netDebts": 0,
+                    "totalTotals": 100000,
+                    "totalBudgeted": 100000,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 2500,
+                    "totalDebts": -900,
+                    "netAssets": 1600,
+                    "netDebts": 0,
+                    "totalTotals": 1600,
+                    "totalBudgeted": 1600,
+                    "change": -98400,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+            "name": "Income",
+            "totalAssets": 17000,
+            "totalDebts": 0,
+            "netAssets": 17000,
+            "netDebts": 0,
+            "totalTotals": 17000,
+            "totalBudgeted": 17000,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 17000,
+                "totalDebts": 0,
+                "netAssets": 17000,
+                "netDebts": 0,
+                "totalTotals": 17000,
+                "totalBudgeted": 17000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": -17000,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "name": "Starting Balances",
+                "totalAssets": 17000,
+                "totalDebts": 0,
+                "netAssets": 17000,
+                "netDebts": 0,
+                "totalTotals": 17000,
+                "totalBudgeted": 17000,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 17000,
+                    "totalDebts": 0,
+                    "netAssets": 17000,
+                    "netDebts": 0,
+                    "totalTotals": 17000,
+                    "totalBudgeted": 17000,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 0,
+                    "totalDebts": 0,
+                    "netAssets": 0,
+                    "netDebts": 0,
+                    "totalTotals": 0,
+                    "totalBudgeted": 0,
+                    "change": -17000,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+            "name": "Report income",
+            "totalAssets": 10000,
+            "totalDebts": 0,
+            "netAssets": 10000,
+            "netDebts": 0,
+            "totalTotals": 10000,
+            "totalBudgeted": 10000,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 10000,
+                "totalDebts": 0,
+                "netAssets": 10000,
+                "netDebts": 0,
+                "totalTotals": 10000,
+                "totalBudgeted": 10000,
+                "change": 10000,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "95610153-0d9b-4abd-b817-bdc32291a737",
+                "name": "salary",
+                "totalAssets": 10000,
+                "totalDebts": 0,
+                "netAssets": 10000,
+                "netDebts": 0,
+                "totalTotals": 10000,
+                "totalBudgeted": 10000,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 0,
+                    "totalDebts": 0,
+                    "netAssets": 0,
+                    "netDebts": 0,
+                    "totalTotals": 0,
+                    "totalBudgeted": 0,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 10000,
+                    "totalDebts": 0,
+                    "netAssets": 10000,
+                    "netDebts": 0,
+                    "totalTotals": 10000,
+                    "totalBudgeted": 10000,
+                    "change": 10000,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "totalAssets": 200,
+            "totalDebts": -6000,
+            "netAssets": 0,
+            "netDebts": -5800,
+            "totalTotals": -5800,
+            "totalBudgeted": -5800,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": -1000,
+                "netAssets": 0,
+                "netDebts": -1000,
+                "totalTotals": -1000,
+                "totalBudgeted": -1000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 200,
+                "totalDebts": -5000,
+                "netAssets": 0,
+                "netDebts": -4800,
+                "totalTotals": -4800,
+                "totalBudgeted": -4800,
+                "change": -3800,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "18c4cef2-d782-4544-a460-7c04c275a581",
+                "name": "food",
+                "totalAssets": 200,
+                "totalDebts": -6000,
+                "netAssets": 0,
+                "netDebts": -5800,
+                "totalTotals": -5800,
+                "totalBudgeted": -5800,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 0,
+                    "totalDebts": -1000,
+                    "netAssets": 0,
+                    "netDebts": -1000,
+                    "totalTotals": -1000,
+                    "totalBudgeted": -1000,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 200,
+                    "totalDebts": -5000,
+                    "netAssets": 0,
+                    "netDebts": -4800,
+                    "totalTotals": -4800,
+                    "totalBudgeted": -4800,
+                    "change": -3800,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "options": {
+        "startDate": "2026-10",
+        "endDate": "2026-11",
+        "interval": "Monthly",
+        "conditions": [],
+        "conditionsOp": "and",
+        "showEmpty": false,
+        "showOffBudget": true,
+        "showHiddenCategories": false,
+        "showUncategorized": false,
+        "trimIntervals": false,
+        "groupBy": "CategoryGroup",
+        "balanceTypeOp": "netAssets",
+        "sortByOp": "desc",
+        "graphType": "BarGraph",
+        "firstDayOfWeekIdx": "1",
+        "nested": true
+      },
+      "expected": {
+        "data": [
+          {
+            "id": "uncategorized",
+            "name": "Uncategorized & Off budget",
+            "uncategorizedId": "all",
+            "totalAssets": 102500,
+            "totalDebts": -900,
+            "netAssets": 101600,
+            "netDebts": 0,
+            "totalTotals": 101600,
+            "totalBudgeted": 101600,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 100000,
+                "totalDebts": 0,
+                "netAssets": 100000,
+                "netDebts": 0,
+                "totalTotals": 100000,
+                "totalBudgeted": 100000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 2500,
+                "totalDebts": -900,
+                "netAssets": 1600,
+                "netDebts": 0,
+                "totalTotals": 1600,
+                "totalBudgeted": 1600,
+                "change": -98400,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          },
+          {
+            "id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+            "name": "Income",
+            "totalAssets": 17000,
+            "totalDebts": 0,
+            "netAssets": 17000,
+            "netDebts": 0,
+            "totalTotals": 17000,
+            "totalBudgeted": 17000,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 17000,
+                "totalDebts": 0,
+                "netAssets": 17000,
+                "netDebts": 0,
+                "totalTotals": 17000,
+                "totalBudgeted": 17000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": -17000,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          },
+          {
+            "id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+            "name": "Report income",
+            "totalAssets": 10000,
+            "totalDebts": 0,
+            "netAssets": 10000,
+            "netDebts": 0,
+            "totalTotals": 10000,
+            "totalBudgeted": 10000,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 10000,
+                "totalDebts": 0,
+                "netAssets": 10000,
+                "netDebts": 0,
+                "totalTotals": 10000,
+                "totalBudgeted": 10000,
+                "change": 10000,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          }
+        ],
+        "intervalData": [
+          {
+            "date": "Oct '26",
+            "cdf3e63a-4372-452e-b0ae-893efa976265": 0,
+            "e29b4019-d83b-48be-98a9-7ace287b2869": 0,
+            "987dfc68-5882-472c-87b6-40a282c4d269": 0,
+            "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00": 17000,
+            "uncategorized": 100000,
+            "intervalStartDate": "2026-10",
+            "intervalEndDate": "2026-10-31",
+            "totalAssets": 117000,
+            "totalDebts": -1000,
+            "netAssets": 116000,
+            "netDebts": 0,
+            "totalTotals": 116000,
+            "totalBudgeted": 116000
+          },
+          {
+            "date": "Nov '26",
+            "cdf3e63a-4372-452e-b0ae-893efa976265": 0,
+            "e29b4019-d83b-48be-98a9-7ace287b2869": 10000,
+            "987dfc68-5882-472c-87b6-40a282c4d269": 0,
+            "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00": 0,
+            "uncategorized": 1600,
+            "intervalStartDate": "2026-11",
+            "intervalEndDate": "2026-11",
+            "totalAssets": 12700,
+            "totalDebts": -5900,
+            "netAssets": 6800,
+            "netDebts": 0,
+            "totalTotals": 6800,
+            "totalBudgeted": 6800
+          }
+        ],
+        "startDate": "2026-10",
+        "endDate": "2026-11",
+        "totalAssets": 129700,
+        "totalDebts": -6900,
+        "netAssets": 122800,
+        "netDebts": 0,
+        "totalTotals": 122800,
+        "totalBudgeted": 122800,
+        "groupedData": [
+          {
+            "id": "uncategorized",
+            "name": "Uncategorized & Off budget",
+            "uncategorizedId": "all",
+            "totalAssets": 102500,
+            "totalDebts": -900,
+            "netAssets": 101600,
+            "netDebts": 0,
+            "totalTotals": 101600,
+            "totalBudgeted": 101600,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 100000,
+                "totalDebts": 0,
+                "netAssets": 100000,
+                "netDebts": 0,
+                "totalTotals": 100000,
+                "totalBudgeted": 100000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 2500,
+                "totalDebts": -900,
+                "netAssets": 1600,
+                "netDebts": 0,
+                "totalTotals": 1600,
+                "totalBudgeted": 1600,
+                "change": -98400,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "",
+                "name": "Off budget",
+                "uncategorizedId": "off_budget",
+                "totalAssets": 102500,
+                "totalDebts": -900,
+                "netAssets": 101600,
+                "netDebts": 0,
+                "totalTotals": 101600,
+                "totalBudgeted": 101600,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 100000,
+                    "totalDebts": 0,
+                    "netAssets": 100000,
+                    "netDebts": 0,
+                    "totalTotals": 100000,
+                    "totalBudgeted": 100000,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 2500,
+                    "totalDebts": -900,
+                    "netAssets": 1600,
+                    "netDebts": 0,
+                    "totalTotals": 1600,
+                    "totalBudgeted": 1600,
+                    "change": -98400,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+            "name": "Income",
+            "totalAssets": 17000,
+            "totalDebts": 0,
+            "netAssets": 17000,
+            "netDebts": 0,
+            "totalTotals": 17000,
+            "totalBudgeted": 17000,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 17000,
+                "totalDebts": 0,
+                "netAssets": 17000,
+                "netDebts": 0,
+                "totalTotals": 17000,
+                "totalBudgeted": 17000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": -17000,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "name": "Starting Balances",
+                "totalAssets": 17000,
+                "totalDebts": 0,
+                "netAssets": 17000,
+                "netDebts": 0,
+                "totalTotals": 17000,
+                "totalBudgeted": 17000,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 17000,
+                    "totalDebts": 0,
+                    "netAssets": 17000,
+                    "netDebts": 0,
+                    "totalTotals": 17000,
+                    "totalBudgeted": 17000,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 0,
+                    "totalDebts": 0,
+                    "netAssets": 0,
+                    "netDebts": 0,
+                    "totalTotals": 0,
+                    "totalBudgeted": 0,
+                    "change": -17000,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+            "name": "Report income",
+            "totalAssets": 10000,
+            "totalDebts": 0,
+            "netAssets": 10000,
+            "netDebts": 0,
+            "totalTotals": 10000,
+            "totalBudgeted": 10000,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": 0,
+                "netAssets": 0,
+                "netDebts": 0,
+                "totalTotals": 0,
+                "totalBudgeted": 0,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 10000,
+                "totalDebts": 0,
+                "netAssets": 10000,
+                "netDebts": 0,
+                "totalTotals": 10000,
+                "totalBudgeted": 10000,
+                "change": 10000,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "95610153-0d9b-4abd-b817-bdc32291a737",
+                "name": "salary",
+                "totalAssets": 10000,
+                "totalDebts": 0,
+                "netAssets": 10000,
+                "netDebts": 0,
+                "totalTotals": 10000,
+                "totalBudgeted": 10000,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 0,
+                    "totalDebts": 0,
+                    "netAssets": 0,
+                    "netDebts": 0,
+                    "totalTotals": 0,
+                    "totalBudgeted": 0,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 10000,
+                    "totalDebts": 0,
+                    "netAssets": 10000,
+                    "netDebts": 0,
+                    "totalTotals": 10000,
+                    "totalBudgeted": 10000,
+                    "change": 10000,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "options": {
+        "startDate": "2026-10",
+        "endDate": "2026-11",
+        "interval": "Monthly",
+        "conditions": [],
+        "conditionsOp": "and",
+        "showEmpty": false,
+        "showOffBudget": true,
+        "showHiddenCategories": false,
+        "showUncategorized": false,
+        "trimIntervals": false,
+        "groupBy": "CategoryGroup",
+        "balanceTypeOp": "netDebts",
+        "sortByOp": "desc",
+        "graphType": "BarGraph",
+        "firstDayOfWeekIdx": "1",
+        "nested": true
+      },
+      "expected": {
+        "data": [
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "totalAssets": 200,
+            "totalDebts": -6000,
+            "netAssets": 0,
+            "netDebts": -5800,
+            "totalTotals": -5800,
+            "totalBudgeted": -5800,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": -1000,
+                "netAssets": 0,
+                "netDebts": -1000,
+                "totalTotals": -1000,
+                "totalBudgeted": -1000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 200,
+                "totalDebts": -5000,
+                "netAssets": 0,
+                "netDebts": -4800,
+                "totalTotals": -4800,
+                "totalBudgeted": -4800,
+                "change": -3800,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          }
+        ],
+        "intervalData": [
+          {
+            "date": "Oct '26",
+            "cdf3e63a-4372-452e-b0ae-893efa976265": 1000,
+            "e29b4019-d83b-48be-98a9-7ace287b2869": 0,
+            "987dfc68-5882-472c-87b6-40a282c4d269": 0,
+            "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00": 0,
+            "uncategorized": 0,
+            "intervalStartDate": "2026-10",
+            "intervalEndDate": "2026-10-31",
+            "totalAssets": 117000,
+            "totalDebts": -1000,
+            "netAssets": 116000,
+            "netDebts": 0,
+            "totalTotals": 116000,
+            "totalBudgeted": 116000
+          },
+          {
+            "date": "Nov '26",
+            "cdf3e63a-4372-452e-b0ae-893efa976265": 4800,
+            "e29b4019-d83b-48be-98a9-7ace287b2869": 0,
+            "987dfc68-5882-472c-87b6-40a282c4d269": 0,
+            "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00": 0,
+            "uncategorized": 0,
+            "intervalStartDate": "2026-11",
+            "intervalEndDate": "2026-11",
+            "totalAssets": 12700,
+            "totalDebts": -5900,
+            "netAssets": 6800,
+            "netDebts": 0,
+            "totalTotals": 6800,
+            "totalBudgeted": 6800
+          }
+        ],
+        "startDate": "2026-10",
+        "endDate": "2026-11",
+        "totalAssets": 129700,
+        "totalDebts": -6900,
+        "netAssets": 122800,
+        "netDebts": 0,
+        "totalTotals": 122800,
+        "totalBudgeted": 122800,
+        "groupedData": [
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "totalAssets": 200,
+            "totalDebts": -6000,
+            "netAssets": 0,
+            "netDebts": -5800,
+            "totalTotals": -5800,
+            "totalBudgeted": -5800,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 0,
+                "totalDebts": -1000,
+                "netAssets": 0,
+                "netDebts": -1000,
+                "totalTotals": -1000,
+                "totalBudgeted": -1000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 200,
+                "totalDebts": -5000,
+                "netAssets": 0,
+                "netDebts": -4800,
+                "totalTotals": -4800,
+                "totalBudgeted": -4800,
+                "change": -3800,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "18c4cef2-d782-4544-a460-7c04c275a581",
+                "name": "food",
+                "totalAssets": 200,
+                "totalDebts": -6000,
+                "netAssets": 0,
+                "netDebts": -5800,
+                "totalTotals": -5800,
+                "totalBudgeted": -5800,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 0,
+                    "totalDebts": -1000,
+                    "netAssets": 0,
+                    "netDebts": -1000,
+                    "totalTotals": -1000,
+                    "totalBudgeted": -1000,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 200,
+                    "totalDebts": -5000,
+                    "netAssets": 0,
+                    "netDebts": -4800,
+                    "totalTotals": -4800,
+                    "totalBudgeted": -4800,
+                    "change": -3800,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "options": {
+        "startDate": "2026-10",
+        "endDate": "2026-11",
+        "interval": "Monthly",
+        "conditions": [],
+        "conditionsOp": "and",
+        "showEmpty": false,
+        "showOffBudget": false,
+        "showHiddenCategories": false,
+        "showUncategorized": true,
+        "trimIntervals": false,
+        "groupBy": "CategoryGroup",
+        "balanceTypeOp": "totalBudgeted",
+        "sortByOp": "desc",
+        "graphType": "BarGraph",
+        "firstDayOfWeekIdx": "1",
+        "nested": true
+      },
+      "expected": {
+        "data": [
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "totalAssets": 5000,
+            "totalDebts": 0,
+            "netAssets": 5000,
+            "netDebts": 0,
+            "totalTotals": 5000,
+            "totalBudgeted": 5000,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 2000,
+                "totalDebts": 0,
+                "netAssets": 2000,
+                "netDebts": 0,
+                "totalTotals": 2000,
+                "totalBudgeted": 2000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 3000,
+                "totalDebts": 0,
+                "netAssets": 3000,
+                "netDebts": 0,
+                "totalTotals": 3000,
+                "totalBudgeted": 3000,
+                "change": 1000,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ]
+          }
+        ],
+        "intervalData": [
+          {
+            "date": "Oct '26",
+            "cdf3e63a-4372-452e-b0ae-893efa976265": 2000,
+            "e29b4019-d83b-48be-98a9-7ace287b2869": 0,
+            "987dfc68-5882-472c-87b6-40a282c4d269": 0,
+            "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00": 0,
+            "uncategorized": 0,
+            "intervalStartDate": "2026-10",
+            "intervalEndDate": "2026-10-31",
+            "totalAssets": 2000,
+            "totalDebts": 0,
+            "netAssets": 2000,
+            "netDebts": 0,
+            "totalTotals": 2000,
+            "totalBudgeted": 2000
+          },
+          {
+            "date": "Nov '26",
+            "cdf3e63a-4372-452e-b0ae-893efa976265": 3000,
+            "e29b4019-d83b-48be-98a9-7ace287b2869": 0,
+            "987dfc68-5882-472c-87b6-40a282c4d269": 0,
+            "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00": 0,
+            "uncategorized": 0,
+            "intervalStartDate": "2026-11",
+            "intervalEndDate": "2026-11",
+            "totalAssets": 3000,
+            "totalDebts": 0,
+            "netAssets": 3000,
+            "netDebts": 0,
+            "totalTotals": 3000,
+            "totalBudgeted": 3000
+          }
+        ],
+        "startDate": "2026-10",
+        "endDate": "2026-11",
+        "totalAssets": 5000,
+        "totalDebts": 0,
+        "netAssets": 5000,
+        "netDebts": 0,
+        "totalTotals": 5000,
+        "totalBudgeted": 5000,
+        "groupedData": [
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "totalAssets": 5000,
+            "totalDebts": 0,
+            "netAssets": 5000,
+            "netDebts": 0,
+            "totalTotals": 5000,
+            "totalBudgeted": 5000,
+            "intervalData": [
+              {
+                "date": "2026-10",
+                "totalAssets": 2000,
+                "totalDebts": 0,
+                "netAssets": 2000,
+                "netDebts": 0,
+                "totalTotals": 2000,
+                "totalBudgeted": 2000,
+                "change": 0,
+                "intervalStartDate": "2026-10",
+                "intervalEndDate": "2026-10-31"
+              },
+              {
+                "date": "2026-11",
+                "totalAssets": 3000,
+                "totalDebts": 0,
+                "netAssets": 3000,
+                "netDebts": 0,
+                "totalTotals": 3000,
+                "totalBudgeted": 3000,
+                "change": 1000,
+                "intervalStartDate": "2026-11",
+                "intervalEndDate": "2026-11"
+              }
+            ],
+            "categories": [
+              {
+                "id": "18c4cef2-d782-4544-a460-7c04c275a581",
+                "name": "food",
+                "totalAssets": 5000,
+                "totalDebts": 0,
+                "netAssets": 5000,
+                "netDebts": 0,
+                "totalTotals": 5000,
+                "totalBudgeted": 5000,
+                "intervalData": [
+                  {
+                    "date": "2026-10",
+                    "totalAssets": 2000,
+                    "totalDebts": 0,
+                    "netAssets": 2000,
+                    "netDebts": 0,
+                    "totalTotals": 2000,
+                    "totalBudgeted": 2000,
+                    "change": 0,
+                    "intervalStartDate": "2026-10",
+                    "intervalEndDate": "2026-10-31"
+                  },
+                  {
+                    "date": "2026-11",
+                    "totalAssets": 3000,
+                    "totalDebts": 0,
+                    "netAssets": 3000,
+                    "netDebts": 0,
+                    "totalTotals": 3000,
+                    "totalBudgeted": 3000,
+                    "change": 1000,
+                    "intervalStartDate": "2026-11",
+                    "intervalEndDate": "2026-11"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "options": {
+        "startDate": "2026",
+        "endDate": "2026",
+        "interval": "Yearly",
+        "conditions": [],
+        "conditionsOp": "and",
+        "showEmpty": false,
+        "showOffBudget": false,
+        "showHiddenCategories": false,
+        "showUncategorized": true,
+        "trimIntervals": false,
+        "groupBy": "CategoryGroup",
+        "balanceTypeOp": "totalBudgeted",
+        "sortByOp": "desc",
+        "graphType": "BarGraph",
+        "firstDayOfWeekIdx": "1",
+        "nested": true
+      },
+      "expected": {
+        "data": [],
+        "intervalData": [
+          {
+            "date": "2026",
+            "cdf3e63a-4372-452e-b0ae-893efa976265": 0,
+            "e29b4019-d83b-48be-98a9-7ace287b2869": 0,
+            "987dfc68-5882-472c-87b6-40a282c4d269": 0,
+            "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00": 0,
+            "uncategorized": 0,
+            "intervalStartDate": "2026",
+            "intervalEndDate": "2026",
+            "totalAssets": 0,
+            "totalDebts": 0,
+            "netAssets": 0,
+            "netDebts": 0,
+            "totalTotals": 0,
+            "totalBudgeted": 0
+          }
+        ],
+        "startDate": "2026",
+        "endDate": "2026",
+        "totalAssets": 0,
+        "totalDebts": 0,
+        "netAssets": 0,
+        "netDebts": 0,
+        "totalTotals": 0,
+        "totalBudgeted": 0,
+        "groupedData": []
+      }
+    }
+  ]
+}

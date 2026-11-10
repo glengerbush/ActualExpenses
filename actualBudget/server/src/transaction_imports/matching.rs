@@ -14,14 +14,24 @@ fn spend(work: &mut usize, n: usize) -> Result<(), Error> {
     *work=work.checked_sub(n).ok_or_else(||Error::invalid("Matching exceeds the bounded work limit. Import a narrower date range, or explicitly import without matching."))?;
     Ok(())
 }
+pub(super) struct Mode<'a> {
+    pub options: &'a parse::Options,
+    pub strict_ids: bool,
+    pub bank_remote: Option<&'a str>,
+}
 pub(super) fn apply(
     db: &Connection,
     b: &str,
     account: &str,
     rows: &mut [Value],
-    options: &parse::Options,
+    mode: Mode<'_>,
     work: &mut usize,
 ) -> Result<(), Error> {
+    let Mode {
+        options,
+        strict_ids: strict_id_checking,
+        bank_remote,
+    } = mode;
     if !options.reconcile || rows.is_empty() {
         return Ok(());
     }
@@ -89,7 +99,7 @@ pub(super) fn apply(
         let found = if let Some(found) = primary_cache.get(bank_id) {
             found.clone()
         } else {
-            let found=db.query_row(&format!("SELECT t.id FROM transactions t JOIN transaction_import_metadata m ON m.budget_id=t.budget_id AND m.id=t.id WHERE t.budget_id=?1 AND t.account_id=?2 AND m.imported_id=?3 AND m.tombstone=0 AND (?4=0 OR t.tombstone=0) ORDER BY t.date DESC,t.starting_balance,{} DESC,t.id LIMIT 1",crate::android_upgrade::order::SQL),params![b,account,bank_id,options.reimport_deleted],|r|r.get::<_,String>(0)).optional()?;
+            let found=db.query_row(&format!("SELECT t.id FROM transactions t JOIN transaction_import_metadata m ON m.budget_id=t.budget_id AND m.id=t.id WHERE t.budget_id=?1 AND (t.account_id=?2 OR (?5 IS NOT NULL AND EXISTS(SELECT 1 FROM bank_transaction_origins moved WHERE moved.budget_id=t.budget_id AND moved.id=t.id AND moved.remote_account_id=?5))) AND m.imported_id=?3 AND (m.tombstone=0 OR (?5 IS NOT NULL AND t.tombstone=1)) AND (?4=0 OR t.tombstone=0) AND (?5 IS NULL OR NOT EXISTS(SELECT 1 FROM bank_transaction_origins origin WHERE origin.budget_id=t.budget_id AND origin.id=t.id AND origin.remote_account_id<>?5)) ORDER BY t.date DESC,t.starting_balance,{} DESC,t.id LIMIT 1",crate::android_upgrade::order::SQL),params![b,account,bank_id,options.reimport_deleted,bank_remote],|r|r.get::<_,String>(0)).optional()?;
             primary_cache.insert(bank_id.into(), found.clone());
             found
         };
@@ -106,9 +116,10 @@ pub(super) fn apply(
         {
             for candidate in group {
                 spend(work, 1)?;
-                if row["transaction"]["imported_id"]
-                    .as_str()
-                    .is_some_and(|s| !s.is_empty())
+                if strict_id_checking
+                    && row["transaction"]["imported_id"]
+                        .as_str()
+                        .is_some_and(|s| !s.is_empty())
                     && candidate
                         .imported_id
                         .as_deref()

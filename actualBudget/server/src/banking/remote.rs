@@ -40,19 +40,71 @@ fn captured(
     )
     .map_err(Error::internal)
 }
-pub(super) async fn discover(
+#[derive(Clone)]
+pub(super) struct Request {
+    pub budget: String,
+    pub connection: String,
+    pub key: String,
+    pub payload: String,
+    pub epoch: Option<String>,
+    pub generation: String,
+    pub proposed: Option<String>,
+    pub owner: Option<crate::history::Owner>,
+}
+impl Request {
+    pub fn scope(&self) -> String {
+        format!(
+            "POST /budgets/{}/banking/connections/{}/commands",
+            self.budget, self.connection
+        )
+    }
+    pub fn fingerprint(&self) -> String {
+        sync::receipt_payload(
+            &crate::history::payload(&self.payload, self.owner.as_ref()),
+            self.proposed.as_deref(),
+        )
+    }
+    pub async fn receipt(self, store: Store) -> Result<(StatusCode, Json<Value>), Error> {
+        store
+            .run(move |db| {
+                sync::receipt_owned(
+                    db,
+                    &self.scope(),
+                    &self.key,
+                    &self.payload,
+                    self.proposed.as_deref(),
+                    StatusCode::OK,
+                    self.owner.as_ref(),
+                )
+            })
+            .await
+    }
+    pub async fn cancel(self, store: Store) -> Result<(StatusCode, Json<Value>), Error> {
+        store.run(move|db|sync::write_owned(db,&self.scope(),&self.key,&self.payload,self.proposed.as_deref(),StatusCode::OK,self.owner.as_ref(),|db|{
+    let outcome=sync::canceled(db,&self.budget)?;db.execute("DELETE FROM bank_jobs WHERE budget_id=?1 AND connection_id=?2 AND id=?3",params![self.budget,self.connection,self.key])?;Ok(outcome)
+ })).await
+    }
+}
+
+pub(super) async fn capture(
     store: Store,
-    b: String,
-    id: String,
-    key: String,
-    payload: String,
-    epoch: Option<String>,
-    generation: String,
-) -> Result<(StatusCode, Json<Value>), Error> {
-    let epoch =
-        Some(epoch.ok_or_else(|| {
-            Error::invalid("Provider downloads require the original budget epoch")
-        })?);
+    request: Request,
+    download: transport::Download,
+) -> Result<Option<Result<Value, Error>>, Error> {
+    if request.epoch.is_none() {
+        return Err(Error::invalid(
+            "Provider downloads require the original budget epoch",
+        ));
+    }
+    let Request {
+        budget: b,
+        connection: id,
+        key,
+        epoch,
+        generation,
+        ..
+    } = request.clone();
+    let payload = request.fingerprint();
     let scope = format!("POST /budgets/{b}/banking/connections/{id}/commands");
     let (bb, ii, ss, kk, pp, ee, gg) = (
         b.clone(),
@@ -89,18 +141,14 @@ pub(super) async fn discover(
         Ok(Prepared::Fetch(access,permit))
     }).await?;
     let result = match ready {
-        Prepared::Receipt => {
-            return store
-                .run(move |db| sync::receipt(db, &scope, &key, &payload, None, StatusCode::OK))
-                .await;
-        }
-        Prepared::Captured(value) => value,
+        Prepared::Receipt => return Ok(None),
+        Prepared::Captured(value) => return Ok(Some(value)),
         Prepared::Fetch(access, permit) => {
             let result = match tokio::time::timeout(
                 std::time::Duration::from_secs(30),
                 tokio::task::spawn_blocking(move || {
                     let _permit = permit;
-                    transport::accounts(&access)
+                    transport::accounts(&access, download)
                 }),
             )
             .await
@@ -125,23 +173,55 @@ pub(super) async fn discover(
                 // response can consume private recovery capacity or touch metadata.
                 if crate::store::receipt(&tx,&ss,&kk,&pp)?.is_some(){
                     tx.execute("DELETE FROM bank_jobs WHERE budget_id=?1 AND connection_id=?2 AND id=?3",params![bb,ii,kk])?;
-                    tx.commit()?;return Ok(result);
+                    tx.commit()?;return Ok(None);
                 }
                 crate::lifecycle::require_epoch(&tx,&bb,ee.as_deref())?;
                 if connection(&tx,&bb,&ii)?["generation"]!=gg{return Err(Error::conflict("Credentials changed during provider retrieval"));}
                 let(response,code,message)=match &result{Ok(value)=>(Some(value.to_string()),None,None),Err(e)=>(None,Some(e.code.to_owned()),Some(e.message.clone()))};
                 let existing:i64=tx.query_row("SELECT COALESCE(SUM(length(CAST(response AS BLOB))),0) FROM bank_jobs WHERE budget_id=?1 AND NOT(connection_id=?2 AND id=?3)",params![bb,ii,kk],|r|r.get(0))?;
                 if existing+response.as_ref().map_or(0,|s|s.len()) as i64>64*1024*1024{return Err(Error::conflict("Captured provider data exceeds the 64 MiB recovery limit. Finish existing requests first"));}
-                tx.execute("UPDATE bank_jobs SET phase='captured',response=?4,error_code=?5,error_message=?6 WHERE budget_id=?1 AND connection_id=?2 AND id=?3",params![bb,ii,kk,response,code,message])?;tx.commit()?;Ok(result)
+                tx.execute("UPDATE bank_jobs SET phase='captured',response=?4,error_code=?5,error_message=?6 WHERE budget_id=?1 AND connection_id=?2 AND id=?3",params![bb,ii,kk,response,code,message])?;tx.commit()?;Ok(Some(result))
             }).await?
         }
+    };
+    Ok(result)
+}
+
+pub(super) async fn discover(
+    store: Store,
+    b: String,
+    id: String,
+    key: String,
+    payload: String,
+    epoch: Option<String>,
+    generation: String,
+) -> Result<(StatusCode, Json<Value>), Error> {
+    let request = Request {
+        budget: b.clone(),
+        connection: id.clone(),
+        key: key.clone(),
+        payload: payload.clone(),
+        epoch: epoch.clone(),
+        generation: generation.clone(),
+        proposed: None,
+        owner: None,
+    };
+    let scope = request.scope();
+    let Some(result) = capture(
+        store.clone(),
+        request.clone(),
+        transport::Download::Balances,
+    )
+    .await?
+    else {
+        return request.receipt(store).await;
     };
     store.run(move|db|sync::write(db,&scope,&key,&payload,None,StatusCode::OK,|db|{
         crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;
         let current=connection(db,&b,&id)?;
         if current["generation"]!=generation || current["deleted"]==true{return Err(Error::conflict("Connection changed before captured accounts could be saved"));}
         let (accounts,errors)=match result {
-            Ok(raw)=>match super::records::install_remote(db,&b,&id,&generation,&raw){Ok(value)=>value,Err(e) if e.status==StatusCode::INTERNAL_SERVER_ERROR=>return Err(e),Err(e)=>(vec![],vec![json!({"code":e.code,"message":e.message})])},
+            Ok(raw)=>match super::records::install_remote(db,&b,&id,&generation,&raw,true){Ok(value)=>value,Err(e) if e.status==StatusCode::INTERNAL_SERVER_ERROR=>return Err(e),Err(e)=>(vec![],vec![json!({"code":e.code,"message":e.message})])},
             Err(e)=>{db.execute("UPDATE bank_connections SET error_code=?3,message=?4,state=CASE WHEN ?3='provider_revoked' THEN 'credentials_missing' ELSE state END WHERE budget_id=?1 AND id=?2",params![b,id,e.code,e.message])?;(vec![],vec![json!({"code":e.code,"message":e.message})])}
         };
         db.execute("UPDATE bank_connections SET error_code=?3,message=?4,last_success=CASE WHEN ?3 IS NULL THEN strftime('%Y-%m-%dT%H:%M:%fZ','now') ELSE last_success END,revision=revision+1 WHERE budget_id=?1 AND id=?2",params![b,id,errors.first().and_then(|v|v["code"].as_str()),errors.first().and_then(|v|v["message"].as_str())])?;

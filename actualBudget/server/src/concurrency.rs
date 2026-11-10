@@ -609,7 +609,7 @@ pub fn write(
     let result = store::write(db, scope, key, &payload, operation)?;
     receipt_response(result, legacy_status)
 }
-fn receipt_payload(payload: &str, clock: Option<&str>) -> String {
+pub(crate) fn receipt_payload(payload: &str, clock: Option<&str>) -> String {
     // Keep old headerless payload bytes so pre-upgrade pending receipts still replay.
     clock
         .map(|clock| json!({"payload":payload,"edit_clock":clock}).to_string())
@@ -750,8 +750,10 @@ pub fn read_changes(
                     ledger::get(db, budget, &id)?
                 }
             }
+            "bank_links" => crate::banking::account_link(db, budget, &id)?,
+            "bank_transaction_origins" => crate::banking::origin(db, budget, &id)?,
             "bank_connections" => crate::banking::connection(db, budget, &id)?,
-            "bank_remote_accounts" => crate::banking::remote_account(db,budget,&id)?,
+            "bank_remote_accounts" => crate::banking::remote_account(db, budget, &id)?,
             "accounts" => crate::accounts::get(db, budget, &id)?,
             "account_groups" => crate::accounts::get_group(db, budget, &id)?,
             "preferences" => crate::preferences::get_preferences(db, budget)?,

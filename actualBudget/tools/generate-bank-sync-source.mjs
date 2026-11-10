@@ -38,6 +38,10 @@ assert.equal(
 );
 const directory = await mkdtemp(tmpdir() + "/bank-sync-source-"),
   check = process.argv.includes("--check"),
+  captureLinked = process.argv.includes("--capture-linked"),
+  exportLinked = process.argv.includes("--export-linked") || captureLinked,
+  captureEdges = process.argv.includes("--capture-edges"),
+  checkEdges = process.argv.includes("--check-edges"),
   fixture = new URL(
     "../tests/fixtures/bank-sync-source-26.10.json",
     import.meta.url,
@@ -126,6 +130,40 @@ const cases = [
     balance: 25000,
   },
 ];
+const originalCount = cases.length;
+if (captureEdges || checkEdges)
+  cases.push(
+    {
+      id: "first-sync-imports-disabled",
+      empty: true,
+      preferences: { "sync-import-transactions": "false" },
+      rounds: [[transaction("disabled-but-source-imports", "-6.00")]],
+      balance: 25000,
+    },
+    {
+      id: "first-sync-one-decimal",
+      seed: false,
+      rounds: [[transaction("one-decimal", "-1.2")]],
+    },
+    {
+      id: "first-sync-renamed-starting-reference",
+      empty: true,
+      renamedReference: true,
+      rounds: [[transaction("renamed-reference", "-6.00")]],
+    },
+  );
+const edgeManifest = new URL(
+  "../tests/fixtures/bank-sync-edges-source-26.10.json",
+  import.meta.url,
+);
+let priorEdges;
+if (captureEdges || checkEdges) {
+  try {
+    priorEdges = JSON.parse(await readFile(edgeManifest, "utf8"));
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+}
 let response,
   requests = [];
 const http = createServer(async (req, res) => {
@@ -146,7 +184,8 @@ await new Promise((resolve) => http.listen(0, "127.0.0.1", resolve));
 try {
   const engine = await api.init({ dataDir: directory });
   await mkdir(archives, { recursive: true });
-  const observations = [];
+  const observations = [],
+    linkedRecords = [];
   for (const [index, item] of cases.entries()) {
     await engine.send("set-server-url", { url: null });
     requests = [];
@@ -156,17 +195,29 @@ try {
     await api.runImport(item.id, async () => {
       if (item.seed !== false) {
         ids.account = await api.createAccount({ name: "Source checking" }, 0);
-        ids.manualPayee = await api.createPayee({ name: "Manual cafe" });
-        await api.addTransactions(ids.account, [
-          {
-            id: ids.anchor,
-            date: "2026-11-01",
-            amount: item.manual ? -1234 : -1,
-            payee: ids.manualPayee,
-            notes: "Keep manual note",
-            cleared: false,
-          },
-        ]);
+        if (!item.empty) {
+          ids.manualPayee = await api.createPayee({ name: "Manual cafe" });
+          await api.addTransactions(ids.account, [
+            {
+              id: ids.anchor,
+              date: "2026-11-01",
+              amount: item.manual ? -1234 : -1,
+              payee: ids.manualPayee,
+              notes: "Keep manual note",
+              cleared: false,
+            },
+          ]);
+        }
+      }
+      if (item.renamedReference) {
+        ids.startingPayee = await api.createPayee({ name: "Starting Balance" });
+        await api.updatePayee(ids.startingPayee, { name: "STARTING BALANCE" });
+        ids.startingCategory = (await api.getCategories()).find(
+          (c) => c.is_income && c.name === "Starting Balances",
+        ).id;
+        await api.updateCategory(ids.startingCategory, {
+          name: "starting balances",
+        });
       }
       for (const [key, value] of Object.entries(item.preferences ?? {}))
         await api.setPreference(`${key}-${ids.account}`, value);
@@ -185,10 +236,15 @@ try {
       });
     const before = await snapshot(),
       filename = item.id + "-26.10.zip",
-      archive = check
-        ? await readFile(new URL(filename, archives))
-        : await api.exportBudget();
-    if (!check)
+      createArchive =
+        !check ||
+        (captureEdges &&
+          index >= originalCount &&
+          !priorEdges?.cases.some((c) => c.id === item.id)),
+      archive = createArchive
+        ? await api.exportBudget()
+        : await readFile(new URL(filename, archives));
+    if (createArchive)
       await writeFile(new URL(filename, archives), archive, { flag: "wx" });
     await engine.send("set-server-url", {
       url: `http://127.0.0.1:${http.address().port}`,
@@ -258,7 +314,22 @@ try {
             (t) => t.id === ids.anchor && t.notes === "Keep manual note",
           ),
         );
+      const sourceTotals =
+        index >= originalCount
+          ? {
+              source_ledger_total:
+                (
+                  await api.aqlQuery(
+                    api
+                      .q("transactions")
+                      .filter({ account: ids.account })
+                      .calculate({ $sum: "$amount" }),
+                  )
+                ).data ?? 0,
+            }
+          : {};
       outcomes.push({
+        ...sourceTotals,
         input: plain(input),
         transport_response: plain(response),
         result,
@@ -273,6 +344,22 @@ try {
       "Every link/refresh and repeat reaches the transport seam",
     );
     await engine.send("set-server-url", { url: null });
+    if (exportLinked && item.id === "first-sync-opening") {
+      const linkedFilename = "linked-first-sync-opening-26.10.zip";
+      const linkedBytes = captureLinked
+        ? await api.exportBudget()
+        : await readFile(new URL(linkedFilename, archives));
+      if (captureLinked)
+        await writeFile(new URL(linkedFilename, archives), linkedBytes, {
+          flag: "wx",
+        });
+      linkedRecords.push({
+        id: item.id,
+        input: plain(item),
+        snapshot: await snapshot(),
+        archive: { filename: linkedFilename, sha256: hash(linkedBytes) },
+      });
+    }
     observations.push({
       id: item.id,
       input: item,
@@ -310,7 +397,7 @@ try {
       "Core bank normalization/writer, not raw SimpleFIN adapter/claim/HTTP protocol",
     api_bundle_sha256: hash(await readFile(require.resolve("@actual-app/api"))),
     source_files,
-    cases: observations,
+    cases: observations.slice(0, originalCount),
   };
   function stable(value) {
     const ids = new Map();
@@ -319,6 +406,48 @@ try {
       if (!ids.has(v)) ids.set(v, `generated-${ids.size}`);
       return ids.get(v);
     };
+    function tieRows(rows) {
+      if (
+        !rows.every(
+          (r) =>
+            r &&
+            typeof r === "object" &&
+            typeof r.id === "string" &&
+            typeof r.amount === "number" &&
+            typeof r.date === "string" &&
+            typeof r.sort_order === "number",
+        )
+      )
+        return rows;
+      const result = [...rows],
+        groups = new Map();
+      for (const [index, row] of rows.entries()) {
+        const key = JSON.stringify([
+          row.date,
+          row.sort_order,
+          !!row.starting_balance_flag,
+        ]);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(index);
+      }
+      const signature = (r) =>
+        JSON.stringify([
+          r.imported_id ?? "",
+          r.id.startsWith("28280000-") ? r.id : "",
+          r.amount,
+          r.notes ?? null,
+          r.imported_payee ?? null,
+          !!r.cleared,
+          !!r.reconciled,
+        ]);
+      for (const indexes of groups.values()) {
+        const tied = indexes
+          .map((i) => rows[i])
+          .sort((a, b) => signature(a).localeCompare(signature(b)));
+        for (const [i, index] of indexes.entries()) result[index] = tied[i];
+      }
+      return result;
+    }
     const walk = (v) =>
       typeof v === "string"
         ? v.replace(
@@ -326,7 +455,7 @@ try {
             id,
           )
         : Array.isArray(v)
-          ? v.map(walk)
+          ? tieRows(v).map(walk)
           : v && typeof v === "object"
             ? Object.fromEntries(
                 Object.entries(v).map(([k, x]) => [
@@ -349,6 +478,115 @@ try {
     await writeFile(fixture, JSON.stringify(output, null, 2) + "\n", {
       flag: "wx",
     });
+  if (exportLinked) {
+    const manifest = new URL(
+      "../tests/fixtures/bank-linked-source-26.10.json",
+      import.meta.url,
+    );
+    const linked = {
+      oracle: output.oracle,
+      source_commit: output.source_commit,
+      clock,
+      api_bundle_sha256: output.api_bundle_sha256,
+      source_files,
+      scope:
+        "Fresh genuine linked SimpleFIN export after the unchanged registered handler and repeated source refresh. Official export clears CRDT; values/identities only, no source field-clock claim.",
+      cases: linkedRecords,
+    };
+    if (!captureLinked)
+      assert.deepEqual(
+        stable(linked),
+        stable(JSON.parse(await readFile(manifest, "utf8"))),
+      );
+    else
+      await writeFile(manifest, JSON.stringify(linked, null, 2) + "\n", {
+        flag: "wx",
+      });
+    console.log(
+      "PASS genuine linked SimpleFIN export and retained original identities",
+    );
+  }
+  if (captureEdges || checkEdges) {
+    const manifest = new URL(
+      "../tests/fixtures/bank-sync-edges-source-26.10.json",
+      import.meta.url,
+    );
+    let edgeCases = observations.slice(originalCount);
+    for (const prior of priorEdges?.cases ?? []) {
+      const current = edgeCases.find((c) => c.id === prior.id);
+      assert.deepEqual(
+        stable(current),
+        stable(prior),
+        "Previously captured edge observation must remain unchanged",
+      );
+    }
+    if (captureEdges && priorEdges)
+      edgeCases = edgeCases.map(
+        (c) => priorEdges.cases.find((old) => old.id === c.id) ?? c,
+      );
+    assert.equal(edgeCases[0].outcomes[0].source_ledger_total, 25000);
+    assert.ok(
+      edgeCases[0].outcomes[0].after.transactions.some(
+        (t) => t.imported_id === "disabled-but-source-imports",
+      ),
+      "Source first sync overrides disabled import preference",
+    );
+    assert.equal(
+      edgeCases[1].outcomes[0].source_ledger_total,
+      9892,
+      "Source one-decimal opening differs from its provider balance",
+    );
+    const renamed = edgeCases.find(
+      (c) => c.id === "first-sync-renamed-starting-reference",
+    );
+    assert.equal(
+      renamed.outcomes[0].after.transactions.find(
+        (t) => t.starting_balance_flag,
+      ).payee,
+      renamed.ids.startingPayee,
+      "Source reuses original case-insensitive starting payee identity",
+    );
+    assert.equal(
+      renamed.outcomes[0].after.transactions.find(
+        (t) => t.starting_balance_flag,
+      ).category,
+      renamed.ids.startingCategory,
+      "Source prefers lowercased starting balances category over other income",
+    );
+    const payeePath = "packages/loot-core/src/server/accounts/payees.ts";
+    const edges = {
+      oracle: output.oracle,
+      source_commit: output.source_commit,
+      clock,
+      api_bundle_sha256: output.api_bundle_sha256,
+      source_files: {
+        ...source_files,
+        [payeePath]: hash(
+          await readFile(
+            new URL(
+              "../reference/actual-26.10.0/" + payeePath,
+              import.meta.url,
+            ),
+          ),
+        ),
+      },
+      scope:
+        "Bounded whole-source first-link edge observations; original six observations unchanged. Source divergences and original renamed reference identities are retained.",
+      cases: edgeCases,
+    };
+    if (!captureEdges)
+      assert.deepEqual(
+        stable(edges),
+        stable(JSON.parse(await readFile(manifest, "utf8"))),
+      );
+    else
+      await writeFile(manifest, JSON.stringify(edges, null, 2) + "\n", {
+        flag: priorEdges ? "w" : "wx",
+      });
+    console.log(
+      "PASS three genuine first-link edge observations with source AQL totals and original references",
+    );
+  }
   console.log(
     "PASS six genuine core bank-sync workflows with repeat identities and original input",
   );

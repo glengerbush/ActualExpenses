@@ -166,7 +166,16 @@ pub(super) fn permit() -> Result<tokio::sync::OwnedSemaphorePermit, Error> {
             )
         })
 }
-pub(super) fn accounts(access: &str) -> Result<serde_json::Value, Error> {
+#[derive(Clone)]
+pub(super) enum Download {
+    Balances,
+    Transactions {
+        accounts: Vec<String>,
+        start: i64,
+        end: i64,
+    },
+}
+pub(super) fn accounts(access: &str, download: Download) -> Result<serde_json::Value, Error> {
     let mut current = url(access, true)?;
     let username = percent_encoding::percent_decode_str(current.username())
         .decode_utf8()
@@ -186,10 +195,28 @@ pub(super) fn accounts(access: &str) -> Result<serde_json::Value, Error> {
         "{}/accounts",
         current.path().trim_end_matches('/')
     ));
-    current
-        .query_pairs_mut()
-        .append_pair("balances-only", "1")
-        .append_pair("version", "2");
+    {
+        let mut query = current.query_pairs_mut();
+        query.append_pair("version", "2");
+        match download {
+            Download::Balances => {
+                query.append_pair("balances-only", "1");
+            }
+            Download::Transactions {
+                accounts,
+                start,
+                end,
+            } => {
+                query
+                    .append_pair("pending", "1")
+                    .append_pair("start-date", &start.to_string())
+                    .append_pair("end-date", &end.to_string());
+                for account in accounts {
+                    query.append_pair("account", &account);
+                }
+            }
+        }
+    }
     let mut authorization = Some(format!(
         "Basic {}",
         STANDARD.encode(format!("{username}:{password}"))

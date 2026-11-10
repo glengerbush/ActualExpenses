@@ -14,6 +14,7 @@
     prepareRepair,
     saveRepair,
     completeRepair,
+    cancelRepair,
     sendRepair,
     resetDownloadedData,
     type RecoveryPreview,
@@ -76,7 +77,8 @@
         await saveRepair(operation);
         pending = operation;
       }
-      const result = await sendRepair(pending, cancel);
+      if (cancel) pending = await cancelRepair(pending);
+      const result = await sendRepair(pending);
       await completeRepair(pending);
       pending = null;
       confirmed = result;
@@ -229,12 +231,16 @@
         its original result; safe cancellation prevents an uncommitted delayed
         request from applying. The request identity, preview and epoch cannot be
         changed.
+        {#if pending.cancelRequested}Cancellation is saved on this browser.
+          Retrying sends a cancellation fence with the original request details.{/if}
       </p>
       <div class="actions">
         <button
           onclick={() => apply()}
           disabled={busy || offline || storageBlocked}
-          >Retry saved repair</button
+          >{pending.cancelRequested
+            ? "Retry cancellation"
+            : "Retry saved repair"}</button
         ><button
           onclick={() => apply(true)}
           disabled={busy || offline || storageBlocked}

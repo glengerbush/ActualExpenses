@@ -24,6 +24,18 @@ assertions. `--keep-going` also works with repeated `--browser-test` arguments.
 Container/API setup failures still stop immediately; disposable resources are
 cleaned up in either mode. The default remains fail-fast.
 
+For focused recovery qualification against the supplied container, use
+`--browser-test recovery-smoke-browser.mjs`. That smoke uses only public HTTP/UI
+for a healthy preview, reconnect and downloaded-cache reset, preserving a pending
+purchase across an API outage/restart and delivering it once. It honors
+`ACTUALBUDGET_TEST_URL`.
+
+The separate `recovery-browser.mjs` fault suite starts local disposable servers
+and corrupts only a copied local fixture. It never modifies the supplied
+container's database and does not count as container recovery coverage. The full
+browser command list includes both suites; the local fault suite also needs the
+locally built Rust test server.
+
 The test uses the running public HTTP interface to verify:
 
 - Capability discovery without application credentials.

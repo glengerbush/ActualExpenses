@@ -29,6 +29,7 @@ export interface RepairOperation {
   budgetId: string;
   key: string;
   epoch: string;
+  cancelRequested?: boolean;
   body: { preview_token: string; snapshot: string; confirm_name: string };
 }
 export interface RecoveryResult {
@@ -50,6 +51,8 @@ function validate(
     v.version !== 1 ||
     v.origin !== location.origin ||
     v.budgetId !== budget ||
+    (v.cancelRequested !== undefined &&
+      typeof v.cancelRequested !== "boolean") ||
     !/^[a-f0-9]{32}$/.test(v.epoch) ||
     !/^[a-f0-9-]{36}$/.test(v.key) ||
     !/^[a-f0-9]{64}$/.test(v.body?.preview_token) ||
@@ -100,6 +103,43 @@ export async function saveRepair(operation: RepairOperation) {
     await result(store.put(operation, key));
   });
 }
+function identity(operation: RepairOperation): string {
+  return JSON.stringify({
+    version: operation.version,
+    origin: operation.origin,
+    budgetId: operation.budgetId,
+    key: operation.key,
+    epoch: operation.epoch,
+    body: operation.body,
+  });
+}
+async function currentRepair(
+  operation: RepairOperation,
+): Promise<RepairOperation> {
+  const current = await readRepair(operation.budgetId);
+  if (!current || identity(current) !== identity(operation))
+    throw new OfflineStateError(
+      "Saved repair changed in another tab. Reload before retrying the original request.",
+    );
+  return current;
+}
+export async function cancelRepair(
+  operation: RepairOperation,
+): Promise<RepairOperation> {
+  return transaction(["cache"], "readwrite", async (tx) => {
+    const store = tx.objectStore("cache"),
+      key = repairKey(operation.budgetId),
+      current = await result(store.get(key));
+    validate(current, operation.budgetId);
+    if (identity(current) !== identity(operation))
+      throw new OfflineStateError(
+        "Saved repair changed in another tab. Reload before requesting cancellation.",
+      );
+    const next = { ...current, cancelRequested: true };
+    await result(store.put(next, key));
+    return next;
+  });
+}
 export async function completeRepair(operation: RepairOperation) {
   await transaction(["cache"], "readwrite", async (tx) => {
     const store = tx.objectStore("cache"),
@@ -114,16 +154,18 @@ export async function completeRepair(operation: RepairOperation) {
 }
 export async function sendRepair(
   operation: RepairOperation,
-  cancel = false,
 ): Promise<RecoveryResult> {
   validate(operation, operation.budgetId);
+  // Cancellation is monotonic and durable. A stale tab/retry may never downgrade
+  // a saved cancellation back to financial apply.
+  const current = await currentRepair(operation);
   const { data } = await request<{ data: RecoveryResult }>(
     `/budgets/${operation.budgetId}/recovery`,
     operation.body,
     operation.key,
     "POST",
     undefined,
-    cancel,
+    !!current.cancelRequested,
     operation.epoch,
   );
   return data;

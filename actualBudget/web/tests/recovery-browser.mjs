@@ -101,6 +101,69 @@ try {
   });
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.getByLabel("Confirm budget name").fill("Recovery browser");
+  // Cancellation intent must survive an abort BEFORE either request reaches
+  // the server. Reload/retry may only send the original cancellation fence.
+  const canceledAttempts = [];
+  await page.route(`**/api/v1/budgets/${budget}/recovery`, async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    canceledAttempts.push({
+      body: route.request().postData(),
+      key: route.request().headers()["idempotency-key"],
+      epoch: route.request().headers()["x-actual-budget-epoch"],
+      cancel:
+        route.request().headers()["x-actual-cancel-if-uncommitted"] ?? "false",
+    });
+    if (canceledAttempts.length <= 2) await route.abort();
+    else await route.continue();
+  });
+  await page
+    .getByRole("button", { name: "Apply reviewed repair", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Retry saved repair", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Cancel saved repair safely", exact: true })
+    .click();
+  await expect(page.getByRole("alert")).toContainText(
+    "Cannot reach the server",
+  );
+  await page.reload();
+  await page
+    .getByRole("button", { name: /^Retry (saved repair|cancellation)$/ })
+    .click();
+  await expect.poll(() => canceledAttempts.length).toBe(3);
+  expect(canceledAttempts[2]).toEqual({
+    ...canceledAttempts[0],
+    cancel: "true",
+  });
+  expect(canceledAttempts[1]).toEqual(canceledAttempts[2]);
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "Saved repair was safely canceled" }),
+  ).toBeVisible();
+  await page.unroute(`**/api/v1/budgets/${budget}/recovery`);
+  const delayed = await fetch(
+    server.url.replace("actualbudget.test", "127.0.0.1") +
+      `/api/v1/budgets/${budget}/recovery`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": canceledAttempts[0].key,
+        "X-Actual-Budget-Epoch": canceledAttempts[0].epoch,
+      },
+      body: canceledAttempts[0].body,
+    },
+  );
+  expect(delayed.status).toBe(409);
+  expect((await delayed.json()).error.code).toBe("operation_canceled");
+  await page
+    .getByRole("button", { name: "Inspect budget", exact: true })
+    .click();
+  await expect(page.getByTestId("recovery-account")).toContainText("99.99");
+  await page.getByLabel("Confirm budget name").fill("Recovery browser");
   const writes = [];
   let lose = true;
   await page.route(`**/api/v1/budgets/${budget}/recovery`, async (route) => {
@@ -310,7 +373,10 @@ try {
   await expect(page.getByLabel("Budget name", { exact: true })).toHaveValue(
     "Recovered household",
   );
-  expect(renamed).toHaveLength(2);
+  await expect.poll(() => renamed.length).toBe(2);
+  await expect(
+    page.getByRole("button", { name: "Save budget name", exact: true }),
+  ).toBeEnabled();
   expect(renamed[1]).toEqual(renamed[0]);
   expect(errors).toEqual([]);
   console.log(

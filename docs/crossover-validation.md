@@ -65,4 +65,17 @@ finite graphs and explicit nonfinite refusal), cache/bounds/readonly state PASS
 settings/clocks/epoch and native tracking±MAX boundaries PASS
 `/tmp/bank-crossover-compose-native.log`. Focused companion plain-HTTP consumer
 PASS `/tmp/bank-crossover-compose-native-core.log`:1 test,0 skipped/errors/failures.
-UI and whole38 acceptance remain open; no unchanged broad suite repeated.
+UI and whole38 acceptance were pending at that backend checkpoint; final acceptance follows.
+
+## Final ticket38 acceptance — 2026-11-10
+
+Integrated interrupted UI checkpoint2021506 at da88be8, preserving manual-only capabilities and test commands. Root reviewed standards and specification together under the approved credit-saving plan; no additional agents or unchanged source producers. Ticket38 is complete; whole-product qualification50–53 remains open.
+
+- Saved crossover widgets now render from dashboards and the Crossover Point command/tab. Edit account/category selections (including closed/off-budget accounts and preserved hidden references), static/full/sliding history, withdrawal/return/contribution assumptions, Hampel/median/mean and expense adjustment. Existing reporting persistence preserves source metadata and uses its durable draft/receipt recovery. Empty/no-completed-history and invalid/nonfinite inputs show explicit recovery text.
+- Responsive chart distinguishes historical/projected data, crossover and withdrawal estimates. Optional projection-only view changes display, never calculations or the complete paginated data table. Money uses shared format preferences; calendar labels use locale/date preferences. Privacy removes financial geometry as well as values. Generation, epoch and document revision bind cached results; optional IndexedDB failure leaves fresh results usable.
+- Root found and corrected percentage controls rounding fractional assumptions and blank drafts reverting through JSON null. Browser verification saves/reopens4.125%,110.25%,5.125%; blank withdrawal draft survives reload and remains invalid. Original source settings are then restored and complete reference financial rows match.
+- `/tmp/crossover38-root-browser.log` PASS: source saved controls/rows, methods/growth/empty selection/range clamping, invalid money draft reload, fractional/blank percentages, cache disconnect/quota failure, privacy, command/default creation/removal, German/date invariance, keyboard navigation and responsive desktop390px/large-text layouts. Plain HTTP, disposable genuine source import and duplicate only.
+- `/tmp/crossover38-root-native26.log` PASS: served request/result/error schemas; current native26 backup/duplicate/restore retains settings/clocks and identical calculations; owned epoch invalidation; unchanged companion state; native tracking±MAX_MONEY. Prior independently reviewed10 source outcomes and focused Android consumer above remain applicable; no source algorithm/Android change in this integration.
+- Root production build and Svelte check PASS (`/tmp/crossover38-root-{build,webbuild,check}.log`). All six edited/new Svelte components analyzed: no issues; widget effect advisory is the intentional generation-guarded external request lifecycle, not a derived calculation. Impeccable detector empty; rendered desktop/mobile/German editor/dark200% text inspected in `actualBudget/web/artifacts/crossover-*.png` (local evidence, not release assets). Chart series have distinct dash patterns; exact table remains keyboard scrollable. No physical assistive-technology or whole-system resource qualification claimed. Existing bundle-size warning remains for51.
+
+No push, release or live deployment. Manual Coolify operation remains separate.

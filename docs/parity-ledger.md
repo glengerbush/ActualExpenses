@@ -95,11 +95,11 @@ traceability; explicit exceptions are not implementation-completion claims.
 | 66 | 34 | Reports, dashboards and formulas | [34: saved custom reports, five renderers and exact projections](reports-validation.md); [integrated acceptance](ynab-custom-integration-validation.md) |
 | 67 | 33, 34 | Reports, dashboards and formulas | [33/34: dashboard/custom dates, conditions and account/category inclusion](reports-validation.md); [integrated acceptance](ynab-custom-integration-validation.md) |
 | 68 | 34 | Reports, dashboards and formulas | [34: modes, nested grouping, bounded exact details and saved state](reports-validation.md); [integrated acceptance](ynab-custom-integration-validation.md) |
-| 69 | 38 | Reports, dashboards and formulas | Pending feature acceptance |
+| 69 | 38 | Reports, dashboards and formulas | [38: exact source crossover projections, editable assumptions, saved settings, accessible chart/table and recovery](crossover-validation.md) |
 | 70 | 35, 36, 37 | Reports, dashboards and formulas | Pending feature acceptance |
 | 71 | 39, 40 | Reports, dashboards and formulas | Pending feature acceptance |
 | 72 | 41 | Reports, dashboards and formulas | Pending feature acceptance |
-| 73 | 33, 35, 36, 37, 38, 39, 40, 41 | Reports, dashboards and formulas | [33: recorded-entry labels, average/ratio inspection and explicit calculation/work bounds](reports-validation.md); projection/formula tickets35–41 pending |
+| 73 | 33, 35, 36, 37, 38, 39, 40, 41 | Reports, dashboards and formulas | [33: recorded-entry labels and bounds](reports-validation.md); [35: forecasts](forecast-validation.md); [36: budget analysis](budget-analysis-validation.md); [37: Sankey](sankey-validation.md); [38: crossover assumptions and data view](crossover-validation.md);39–41 pending |
 | 74 | 43, 51 | Settings and accessible workflows | [43: accessible responsive preference controls](../actualBudget/web/docs/preferences-validation.md); whole-app qualification pending 51 |
 | 75 | 43, 51 | Settings and accessible workflows | [43: number/date/currency/decimal/week-start controls](../actualBudget/web/docs/preferences-validation.md); whole-app qualification pending 51 |
 | 76 | 43, 44 | Settings and accessible workflows | [43: built-in appearance](../actualBudget/web/docs/preferences-validation.md); [44: catalog/custom themes, source preservation and recovery](../actualBudget/web/docs/custom-theme-contract.md) |

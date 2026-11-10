@@ -1,0 +1,3057 @@
+{
+  "oracle": "@actual-app/api@26.10.0 actual q/aqlQuery",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00.000Z",
+  "source_files": {
+    "packages/api/app/query.ts": "663f1a8517209e8cd35c6a51080758d6ff2e7dad94e209a751e66bcbd41d6667",
+    "packages/loot-core/src/server/aql/compiler.ts": "2bde167567764d0b5f4ec014e72f028c3cfb407e1a411eb009f115426532f065",
+    "packages/loot-core/src/server/aql/schema/index.ts": "0ca5282bb17655bbb27f876c5883a2af7f2fc2801e27ddae79606db833190366",
+    "packages/loot-core/src/server/aql/schema/executors.ts": "f8869a70b722beec361f1309e7a92f9b982b480314ae63c3b97ae161be93d375"
+  },
+  "archive": {
+    "filename": "transaction-export-base-26.10.zip",
+    "sha256": "21b1b822a1c2676fcabeae288a0156013b9f4ccf89130eac8ede991a00adc2fd"
+  },
+  "provenance": "Uses reviewed genuine transaction-export seed archive; no replacement query/compiler/formulas. All source IDs and source query serialization/results preserved. JSON wire normalizes negative zero. Source failures retain type/message, no process-specific stack.",
+  "before": [
+    {
+      "id": "25300000-0000-4000-8000-000000000001",
+      "is_parent": false,
+      "is_child": false,
+      "parent_id": null,
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+      "amount": -1234,
+      "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+      "notes": "=SUM(A1:A2)",
+      "date": "2026-11-09",
+      "imported_id": null,
+      "error": null,
+      "imported_payee": null,
+      "starting_balance_flag": false,
+      "transfer_id": null,
+      "sort_order": 1794225600000,
+      "cleared": true,
+      "reconciled": false,
+      "tombstone": false,
+      "schedule": null,
+      "raw_synced_data": null
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000002",
+      "is_parent": false,
+      "is_child": false,
+      "parent_id": null,
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+      "amount": 500,
+      "payee": "cf8e8de4-01b2-4b13-8847-bb2003a4505b",
+      "notes": "first line\nsecond \"line\"",
+      "date": "2026-11-08",
+      "imported_id": null,
+      "error": null,
+      "imported_payee": null,
+      "starting_balance_flag": false,
+      "transfer_id": null,
+      "sort_order": 1794225598976,
+      "cleared": true,
+      "reconciled": true,
+      "tombstone": false,
+      "schedule": null,
+      "raw_synced_data": null
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000003",
+      "is_parent": false,
+      "is_child": false,
+      "parent_id": null,
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "category": null,
+      "amount": 0,
+      "payee": null,
+      "notes": "\t=literal",
+      "date": "2026-11-07",
+      "imported_id": null,
+      "error": null,
+      "imported_payee": null,
+      "starting_balance_flag": false,
+      "transfer_id": null,
+      "sort_order": 1794225597952,
+      "cleared": false,
+      "reconciled": false,
+      "tombstone": false,
+      "schedule": null,
+      "raw_synced_data": null
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000004",
+      "is_parent": true,
+      "is_child": false,
+      "parent_id": null,
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "category": null,
+      "amount": -101,
+      "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+      "notes": "Parent, note",
+      "date": "2026-11-06",
+      "imported_id": null,
+      "error": null,
+      "imported_payee": null,
+      "starting_balance_flag": false,
+      "transfer_id": null,
+      "sort_order": 1794225596928,
+      "cleared": true,
+      "reconciled": false,
+      "tombstone": false,
+      "schedule": null,
+      "raw_synced_data": null
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000005",
+      "is_parent": false,
+      "is_child": true,
+      "parent_id": "25300000-0000-4000-8000-000000000004",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+      "amount": -40,
+      "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+      "notes": "first allocation",
+      "date": "2026-11-06",
+      "imported_id": null,
+      "error": null,
+      "imported_payee": null,
+      "starting_balance_flag": false,
+      "transfer_id": null,
+      "sort_order": 0,
+      "cleared": true,
+      "reconciled": false,
+      "tombstone": false,
+      "schedule": null,
+      "raw_synced_data": null
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000006",
+      "is_parent": false,
+      "is_child": true,
+      "parent_id": "25300000-0000-4000-8000-000000000004",
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+      "amount": -61,
+      "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+      "notes": "@second allocation",
+      "date": "2026-11-06",
+      "imported_id": null,
+      "error": null,
+      "imported_payee": null,
+      "starting_balance_flag": false,
+      "transfer_id": null,
+      "sort_order": -1,
+      "cleared": true,
+      "reconciled": false,
+      "tombstone": false,
+      "schedule": null,
+      "raw_synced_data": null
+    },
+    {
+      "id": "25300000-0000-4000-8000-000000000007",
+      "is_parent": false,
+      "is_child": false,
+      "parent_id": null,
+      "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+      "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+      "amount": -200,
+      "payee": "c2ffa73e-8563-4b34-aeaf-341aee8bf2a8",
+      "notes": "\rTransfer note",
+      "date": "2026-11-05",
+      "imported_id": null,
+      "error": null,
+      "imported_payee": null,
+      "starting_balance_flag": false,
+      "transfer_id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+      "sort_order": 1794225600000,
+      "cleared": true,
+      "reconciled": false,
+      "tombstone": false,
+      "schedule": null,
+      "raw_synced_data": null
+    },
+    {
+      "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+      "is_parent": false,
+      "is_child": false,
+      "parent_id": null,
+      "account": "0920450a-b9e3-48a6-9b96-89f9d32717fe",
+      "category": null,
+      "amount": 200,
+      "payee": "860a4868-6b4c-404f-8c0c-770bd733cd72",
+      "notes": "\rTransfer note",
+      "date": "2026-11-05",
+      "imported_id": null,
+      "error": null,
+      "imported_payee": null,
+      "starting_balance_flag": false,
+      "transfer_id": "25300000-0000-4000-8000-000000000007",
+      "sort_order": 1794225600000,
+      "cleared": false,
+      "reconciled": false,
+      "tombstone": false,
+      "schedule": null,
+      "raw_synced_data": null
+    }
+  ],
+  "cases": [
+    {
+      "id": "split-inline",
+      "query": {
+        "tableOptions": {
+          "splits": "inline"
+        },
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          "account",
+          "payee",
+          "category",
+          "date",
+          "amount",
+          "notes",
+          "is_parent",
+          "is_child",
+          "parent_id",
+          "transfer_id",
+          "cleared",
+          "reconciled"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-09",
+          "amount": -1234,
+          "notes": "=SUM(A1:A2)",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "cf8e8de4-01b2-4b13-8847-bb2003a4505b",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-08",
+          "amount": 500,
+          "notes": "first line\nsecond \"line\"",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": true
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": null,
+          "category": null,
+          "date": "2026-11-07",
+          "amount": 0,
+          "notes": "\t=literal",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": false,
+          "reconciled": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-06",
+          "amount": -40,
+          "notes": "first allocation",
+          "is_parent": false,
+          "is_child": true,
+          "parent_id": "25300000-0000-4000-8000-000000000004",
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+          "date": "2026-11-06",
+          "amount": -61,
+          "notes": "@second allocation",
+          "is_parent": false,
+          "is_child": true,
+          "parent_id": "25300000-0000-4000-8000-000000000004",
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "c2ffa73e-8563-4b34-aeaf-341aee8bf2a8",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-05",
+          "amount": -200,
+          "notes": "\rTransfer note",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "account": "0920450a-b9e3-48a6-9b96-89f9d32717fe",
+          "payee": "860a4868-6b4c-404f-8c0c-770bd733cd72",
+          "category": null,
+          "date": "2026-11-05",
+          "amount": 200,
+          "notes": "\rTransfer note",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": "25300000-0000-4000-8000-000000000007",
+          "cleared": false,
+          "reconciled": false
+        }
+      ]
+    },
+    {
+      "id": "sum-inline",
+      "query": {
+        "tableOptions": {
+          "splits": "inline"
+        },
+        "filterExpressions": [],
+        "selectExpressions": [
+          {
+            "result": {
+              "$sum": "$amount"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": true,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": -835
+    },
+    {
+      "id": "count-inline",
+      "query": {
+        "tableOptions": {
+          "splits": "inline"
+        },
+        "filterExpressions": [],
+        "selectExpressions": [
+          {
+            "result": {
+              "$count": "*"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": true,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": 7
+    },
+    {
+      "id": "split-grouped",
+      "query": {
+        "tableOptions": {
+          "splits": "grouped"
+        },
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          "account",
+          "payee",
+          "category",
+          "date",
+          "amount",
+          "notes",
+          "is_parent",
+          "is_child",
+          "parent_id",
+          "transfer_id",
+          "cleared",
+          "reconciled"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-09",
+          "amount": -1234,
+          "notes": "=SUM(A1:A2)",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": false,
+          "subtransactions": []
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "cf8e8de4-01b2-4b13-8847-bb2003a4505b",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-08",
+          "amount": 500,
+          "notes": "first line\nsecond \"line\"",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": true,
+          "subtransactions": []
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": null,
+          "category": null,
+          "date": "2026-11-07",
+          "amount": 0,
+          "notes": "\t=literal",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": false,
+          "reconciled": false,
+          "subtransactions": []
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000004",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "category": null,
+          "date": "2026-11-06",
+          "amount": -101,
+          "notes": "Parent, note",
+          "is_parent": true,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": false,
+          "subtransactions": [
+            {
+              "id": "25300000-0000-4000-8000-000000000005",
+              "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+              "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+              "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+              "date": "2026-11-06",
+              "amount": -40,
+              "notes": "first allocation",
+              "is_parent": false,
+              "is_child": true,
+              "parent_id": "25300000-0000-4000-8000-000000000004",
+              "transfer_id": null,
+              "cleared": true,
+              "reconciled": false
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000006",
+              "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+              "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+              "date": "2026-11-06",
+              "amount": -61,
+              "notes": "@second allocation",
+              "is_parent": false,
+              "is_child": true,
+              "parent_id": "25300000-0000-4000-8000-000000000004",
+              "transfer_id": null,
+              "cleared": true,
+              "reconciled": false
+            }
+          ]
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "c2ffa73e-8563-4b34-aeaf-341aee8bf2a8",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-05",
+          "amount": -200,
+          "notes": "\rTransfer note",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "cleared": true,
+          "reconciled": false,
+          "subtransactions": []
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "account": "0920450a-b9e3-48a6-9b96-89f9d32717fe",
+          "payee": "860a4868-6b4c-404f-8c0c-770bd733cd72",
+          "category": null,
+          "date": "2026-11-05",
+          "amount": 200,
+          "notes": "\rTransfer note",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": "25300000-0000-4000-8000-000000000007",
+          "cleared": false,
+          "reconciled": false,
+          "subtransactions": []
+        }
+      ]
+    },
+    {
+      "id": "sum-grouped",
+      "query": {
+        "tableOptions": {
+          "splits": "grouped"
+        },
+        "filterExpressions": [],
+        "selectExpressions": [
+          {
+            "result": {
+              "$sum": "$amount"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": true,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": -835
+    },
+    {
+      "id": "count-grouped",
+      "query": {
+        "tableOptions": {
+          "splits": "grouped"
+        },
+        "filterExpressions": [],
+        "selectExpressions": [
+          {
+            "result": {
+              "$count": "*"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": true,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": 7
+    },
+    {
+      "id": "split-all",
+      "query": {
+        "tableOptions": {
+          "splits": "all"
+        },
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          "account",
+          "payee",
+          "category",
+          "date",
+          "amount",
+          "notes",
+          "is_parent",
+          "is_child",
+          "parent_id",
+          "transfer_id",
+          "cleared",
+          "reconciled"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-09",
+          "amount": -1234,
+          "notes": "=SUM(A1:A2)",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "cf8e8de4-01b2-4b13-8847-bb2003a4505b",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-08",
+          "amount": 500,
+          "notes": "first line\nsecond \"line\"",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": true
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": null,
+          "category": null,
+          "date": "2026-11-07",
+          "amount": 0,
+          "notes": "\t=literal",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": false,
+          "reconciled": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000004",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "category": null,
+          "date": "2026-11-06",
+          "amount": -101,
+          "notes": "Parent, note",
+          "is_parent": true,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-06",
+          "amount": -40,
+          "notes": "first allocation",
+          "is_parent": false,
+          "is_child": true,
+          "parent_id": "25300000-0000-4000-8000-000000000004",
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+          "date": "2026-11-06",
+          "amount": -61,
+          "notes": "@second allocation",
+          "is_parent": false,
+          "is_child": true,
+          "parent_id": "25300000-0000-4000-8000-000000000004",
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "c2ffa73e-8563-4b34-aeaf-341aee8bf2a8",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-05",
+          "amount": -200,
+          "notes": "\rTransfer note",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "account": "0920450a-b9e3-48a6-9b96-89f9d32717fe",
+          "payee": "860a4868-6b4c-404f-8c0c-770bd733cd72",
+          "category": null,
+          "date": "2026-11-05",
+          "amount": 200,
+          "notes": "\rTransfer note",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": "25300000-0000-4000-8000-000000000007",
+          "cleared": false,
+          "reconciled": false
+        }
+      ]
+    },
+    {
+      "id": "sum-all",
+      "query": {
+        "tableOptions": {
+          "splits": "all"
+        },
+        "filterExpressions": [],
+        "selectExpressions": [
+          {
+            "result": {
+              "$sum": "$amount"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": true,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": -936
+    },
+    {
+      "id": "count-all",
+      "query": {
+        "tableOptions": {
+          "splits": "all"
+        },
+        "filterExpressions": [],
+        "selectExpressions": [
+          {
+            "result": {
+              "$count": "*"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": true,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": 8
+    },
+    {
+      "id": "split-none",
+      "query": {
+        "tableOptions": {
+          "splits": "none"
+        },
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          "account",
+          "payee",
+          "category",
+          "date",
+          "amount",
+          "notes",
+          "is_parent",
+          "is_child",
+          "parent_id",
+          "transfer_id",
+          "cleared",
+          "reconciled"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-09",
+          "amount": -1234,
+          "notes": "=SUM(A1:A2)",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "cf8e8de4-01b2-4b13-8847-bb2003a4505b",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-08",
+          "amount": 500,
+          "notes": "first line\nsecond \"line\"",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": true
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": null,
+          "category": null,
+          "date": "2026-11-07",
+          "amount": 0,
+          "notes": "\t=literal",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": false,
+          "reconciled": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000004",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "category": null,
+          "date": "2026-11-06",
+          "amount": -101,
+          "notes": "Parent, note",
+          "is_parent": true,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "c2ffa73e-8563-4b34-aeaf-341aee8bf2a8",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-05",
+          "amount": -200,
+          "notes": "\rTransfer note",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "account": "0920450a-b9e3-48a6-9b96-89f9d32717fe",
+          "payee": "860a4868-6b4c-404f-8c0c-770bd733cd72",
+          "category": null,
+          "date": "2026-11-05",
+          "amount": 200,
+          "notes": "\rTransfer note",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": "25300000-0000-4000-8000-000000000007",
+          "cleared": false,
+          "reconciled": false
+        }
+      ]
+    },
+    {
+      "id": "sum-none",
+      "query": {
+        "tableOptions": {
+          "splits": "none"
+        },
+        "filterExpressions": [],
+        "selectExpressions": [
+          {
+            "result": {
+              "$sum": "$amount"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": true,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": -835
+    },
+    {
+      "id": "count-none",
+      "query": {
+        "tableOptions": {
+          "splits": "none"
+        },
+        "filterExpressions": [],
+        "selectExpressions": [
+          {
+            "result": {
+              "$count": "*"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": true,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": 6
+    },
+    {
+      "id": "grouped-child-match",
+      "query": {
+        "tableOptions": {
+          "splits": "grouped"
+        },
+        "filterExpressions": [
+          {
+            "category": "6b7e4f01-1f93-4dff-9033-6a9915519035"
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "account",
+          "payee",
+          "category",
+          "date",
+          "amount",
+          "notes",
+          "is_parent",
+          "is_child",
+          "parent_id",
+          "transfer_id",
+          "cleared",
+          "reconciled"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-09",
+          "amount": -1234,
+          "notes": "=SUM(A1:A2)",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": false,
+          "subtransactions": []
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "cf8e8de4-01b2-4b13-8847-bb2003a4505b",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-08",
+          "amount": 500,
+          "notes": "first line\nsecond \"line\"",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": true,
+          "subtransactions": []
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000004",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "category": null,
+          "date": "2026-11-06",
+          "amount": -101,
+          "notes": "Parent, note",
+          "is_parent": true,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": null,
+          "cleared": true,
+          "reconciled": false,
+          "_unmatched": true,
+          "subtransactions": [
+            {
+              "id": "25300000-0000-4000-8000-000000000005",
+              "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+              "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+              "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+              "date": "2026-11-06",
+              "amount": -40,
+              "notes": "first allocation",
+              "is_parent": false,
+              "is_child": true,
+              "parent_id": "25300000-0000-4000-8000-000000000004",
+              "transfer_id": null,
+              "cleared": true,
+              "reconciled": false
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000006",
+              "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+              "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+              "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+              "date": "2026-11-06",
+              "amount": -61,
+              "notes": "@second allocation",
+              "is_parent": false,
+              "is_child": true,
+              "parent_id": "25300000-0000-4000-8000-000000000004",
+              "transfer_id": null,
+              "cleared": true,
+              "reconciled": false,
+              "_unmatched": true
+            }
+          ]
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "payee": "c2ffa73e-8563-4b34-aeaf-341aee8bf2a8",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "date": "2026-11-05",
+          "amount": -200,
+          "notes": "\rTransfer note",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "transfer_id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "cleared": true,
+          "reconciled": false,
+          "subtransactions": []
+        }
+      ]
+    },
+    {
+      "id": "join-three-levels",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          "account.name",
+          "payee.name",
+          "category.name",
+          "category.group.name",
+          "category.is_income"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "account.name": "@Checking, Main",
+          "payee.name": "=Cafe, \"quoted\"",
+          "category.name": "+Food",
+          "category.group.name": "-Expenses",
+          "category.is_income": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "account.name": "@Checking, Main",
+          "payee.name": "+Shop",
+          "category.name": "+Food",
+          "category.group.name": "-Expenses",
+          "category.is_income": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "account.name": "@Checking, Main",
+          "payee.name": null,
+          "category.name": null,
+          "category.group.name": null,
+          "category.is_income": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "account.name": "@Checking, Main",
+          "payee.name": "=Cafe, \"quoted\"",
+          "category.name": "+Food",
+          "category.group.name": "-Expenses",
+          "category.is_income": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "account.name": "@Checking, Main",
+          "payee.name": "=Cafe, \"quoted\"",
+          "category.name": "Other",
+          "category.group.name": "-Expenses",
+          "category.is_income": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "account.name": "@Checking, Main",
+          "payee.name": "Off-budget",
+          "category.name": "+Food",
+          "category.group.name": "-Expenses",
+          "category.is_income": false
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "account.name": "Off-budget",
+          "payee.name": "@Checking, Main",
+          "category.name": null,
+          "category.group.name": null,
+          "category.is_income": false
+        }
+      ]
+    },
+    {
+      "id": "joined-filter",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "category.group.name": "-Expenses"
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "amount",
+          "category.name"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "amount": -1234,
+          "category.name": "+Food"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "amount": 500,
+          "category.name": "+Food"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "amount": -40,
+          "category.name": "+Food"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "amount": -61,
+          "category.name": "Other"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "amount": -200,
+          "category.name": "+Food"
+        }
+      ]
+    },
+    {
+      "id": "sum-by-payee",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "payee.name",
+          {
+            "total": {
+              "$sum": "$amount"
+            }
+          },
+          {
+            "count": {
+              "$count": "*"
+            }
+          }
+        ],
+        "groupExpressions": [
+          "payee.name"
+        ],
+        "orderExpressions": [
+          "payee.name"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "payee.name": null,
+          "total": 0,
+          "count": 1
+        },
+        {
+          "payee.name": "+Shop",
+          "total": 500,
+          "count": 1
+        },
+        {
+          "payee.name": "=Cafe, \"quoted\"",
+          "total": -1335,
+          "count": 3
+        },
+        {
+          "payee.name": "@Checking, Main",
+          "total": 200,
+          "count": 1
+        },
+        {
+          "payee.name": "Off-budget",
+          "total": -200,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "sum-by-month",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          {
+            "month": {
+              "$month": "$date"
+            }
+          },
+          {
+            "total": {
+              "$sum": "$amount"
+            }
+          }
+        ],
+        "groupExpressions": [
+          {
+            "$month": "$date"
+          }
+        ],
+        "orderExpressions": [
+          {
+            "$month": "$date"
+          }
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "month": "2026-11",
+          "total": -835
+        }
+      ]
+    },
+    {
+      "id": "named-sum",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "amount": {
+              "$lt": 0
+            }
+          }
+        ],
+        "selectExpressions": [
+          {
+            "total": {
+              "$sum": "$amount"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "total": -1535
+        }
+      ]
+    },
+    {
+      "id": "empty-sum",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "47000000-0000-4000-8000-000000000999"
+          }
+        ],
+        "selectExpressions": [
+          {
+            "result": {
+              "$sum": "$amount"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": true,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": 0
+    },
+    {
+      "id": "empty-count",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "47000000-0000-4000-8000-000000000999"
+          }
+        ],
+        "selectExpressions": [
+          {
+            "result": {
+              "$count": "*"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": true,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": 0
+    },
+    {
+      "id": "page-all",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          "date",
+          "amount"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          {
+            "amount": "asc"
+          },
+          {
+            "id": "asc"
+          }
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "date": "2026-11-09",
+          "amount": -1234
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "date": "2026-11-05",
+          "amount": -200
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "date": "2026-11-06",
+          "amount": -61
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "date": "2026-11-06",
+          "amount": -40
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "date": "2026-11-07",
+          "amount": 0
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "date": "2026-11-05",
+          "amount": 200
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "date": "2026-11-08",
+          "amount": 500
+        }
+      ]
+    },
+    {
+      "id": "page-first",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          "date",
+          "amount"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          {
+            "amount": "asc"
+          },
+          {
+            "id": "asc"
+          }
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": 2,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "date": "2026-11-09",
+          "amount": -1234
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "date": "2026-11-05",
+          "amount": -200
+        }
+      ]
+    },
+    {
+      "id": "page-second",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          "date",
+          "amount"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          {
+            "amount": "asc"
+          },
+          {
+            "id": "asc"
+          }
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": 2,
+        "offset": 2,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "date": "2026-11-06",
+          "amount": -61
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "date": "2026-11-06",
+          "amount": -40
+        }
+      ]
+    },
+    {
+      "id": "nested-and-or",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "$and": [
+              {
+                "date": [
+                  {
+                    "$gte": "2026-11-01"
+                  },
+                  {
+                    "$lte": "2026-11-30"
+                  }
+                ]
+              },
+              {
+                "$or": [
+                  {
+                    "cleared": true
+                  },
+                  {
+                    "amount": {
+                      "$gt": 0
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "amount",
+          "cleared"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "amount": -1234,
+          "cleared": true
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "amount": 500,
+          "cleared": true
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "amount": -40,
+          "cleared": true
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "amount": -61,
+          "cleared": true
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "amount": -200,
+          "cleared": true
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "amount": 200,
+          "cleared": false
+        }
+      ]
+    },
+    {
+      "id": "null-category",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "category": null
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "category"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "category": null
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "category": null
+        }
+      ]
+    },
+    {
+      "id": "not-category-includes-null",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "category": {
+              "$ne": "6b7e4f01-1f93-4dff-9033-6a9915519035"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "category"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "category": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f"
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "category": null
+        }
+      ]
+    },
+    {
+      "id": "membership",
+      "query": {
+        "tableOptions": {
+          "splits": "all"
+        },
+        "filterExpressions": [
+          {
+            "id": {
+              "$oneof": [
+                "25300000-0000-4000-8000-000000000001",
+                "25300000-0000-4000-8000-000000000004",
+                "25300000-0000-4000-8000-000000000001"
+              ]
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "amount"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "amount": -1234
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000004",
+          "amount": -101
+        }
+      ]
+    },
+    {
+      "id": "empty-membership",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": {
+              "$oneof": []
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "like-notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "notes": {
+              "$notlike": "%line%"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "=SUM(A1:A2)"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "notes": "\t=literal"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "notes": "first allocation"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "notes": "@second allocation"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "notes": "\rTransfer note"
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "notes": "\rTransfer note"
+        }
+      ]
+    },
+    {
+      "id": "regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "notes": {
+              "$regexp": "line|SUM"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "=SUM(A1:A2)"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "notes": "first line\nsecond \"line\""
+        }
+      ]
+    },
+    {
+      "id": "documented-regex-spelling",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "notes": {
+              "$regex": "line"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "error": {
+        "type": "Error",
+        "message": "Unknown operator: $regex\n\nExpression stack:\n  {\"notes\":{\"$regex\":\"line\"}}\n  filter({\"notes\":{\"$regex\":\"line\"}})"
+      }
+    },
+    {
+      "id": "month-transform",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "date": {
+              "$transform": "$month",
+              "$eq": "2026-11"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "date"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "date": "2026-11-09"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "date": "2026-11-08"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "date": "2026-11-07"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "date": "2026-11-06"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "date": "2026-11-06"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "date": "2026-11-05"
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "date": "2026-11-05"
+        }
+      ]
+    },
+    {
+      "id": "scalar-functions",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          {
+            "absolute": {
+              "$abs": "$amount"
+            },
+            "negative": {
+              "$neg": "$amount"
+            },
+            "half": {
+              "$idiv": [
+                "$amount",
+                2
+              ]
+            },
+            "lower": {
+              "$lower": "$notes"
+            },
+            "prefix": {
+              "$substr": [
+                "$notes",
+                1,
+                4
+              ]
+            },
+            "year": {
+              "$year": "$date"
+            },
+            "month": {
+              "$month": "$date"
+            },
+            "day": {
+              "$day": "$date"
+            },
+            "literal": {
+              "$literal": "$amount"
+            },
+            "identity": {
+              "$id": "$id"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "absolute": 1234
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "absolute": 500
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "absolute": 0
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "absolute": 40
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "absolute": 61
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "absolute": 200
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "absolute": 200
+        }
+      ]
+    },
+    {
+      "id": "function-negative",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          {
+            "value": {
+              "$neg": "$amount"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "value": 1234
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "value": -500
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "value": 0
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "value": 40
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "value": 61
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "value": 200
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "value": -200
+        }
+      ]
+    },
+    {
+      "id": "function-half",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          {
+            "value": {
+              "$idiv": [
+                "$amount",
+                2
+              ]
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "value": -617
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "value": 250
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "value": 0
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "value": -20
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "value": -30
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "value": -100
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "value": 100
+        }
+      ]
+    },
+    {
+      "id": "function-lower",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          {
+            "value": {
+              "$lower": "$notes"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "value": "=sum(a1:a2)"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "value": "first line\nsecond \"line\""
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "value": "\t=literal"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "value": "first allocation"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "value": "@second allocation"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "value": "\rtransfer note"
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "value": "\rtransfer note"
+        }
+      ]
+    },
+    {
+      "id": "function-prefix",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          {
+            "value": {
+              "$substr": [
+                "$notes",
+                1,
+                4
+              ]
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "value": "=SUM"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "value": "firs"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "value": "\t=li"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "value": "firs"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "value": "@sec"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "value": "\rTra"
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "value": "\rTra"
+        }
+      ]
+    },
+    {
+      "id": "function-year",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          {
+            "value": {
+              "$year": "$date"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "value": "2026"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "value": "2026"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "value": "2026"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "value": "2026"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "value": "2026"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "value": "2026"
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "value": "2026"
+        }
+      ]
+    },
+    {
+      "id": "function-month",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          {
+            "value": {
+              "$month": "$date"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "value": "2026-11"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "value": "2026-11"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "value": "2026-11"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "value": "2026-11"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "value": "2026-11"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "value": "2026-11"
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "value": "2026-11"
+        }
+      ]
+    },
+    {
+      "id": "function-day",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          {
+            "value": {
+              "$day": "$date"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "value": "2026-11-09"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "value": "2026-11-08"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "value": "2026-11-07"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "value": "2026-11-06"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "value": "2026-11-06"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "value": "2026-11-05"
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "value": "2026-11-05"
+        }
+      ]
+    },
+    {
+      "id": "function-identity",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          {
+            "value": {
+              "$id": "$id"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "value": "25300000-0000-4000-8000-000000000001"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "value": "25300000-0000-4000-8000-000000000002"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "value": "25300000-0000-4000-8000-000000000003"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "value": "25300000-0000-4000-8000-000000000005"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "value": "25300000-0000-4000-8000-000000000006"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "value": "25300000-0000-4000-8000-000000000007"
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "value": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa"
+        }
+      ]
+    },
+    {
+      "id": "function-condition",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          {
+            "value": {
+              "$condition": {
+                "amount": {
+                  "$lt": 0
+                }
+              }
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "value": true
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "value": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "value": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "value": true
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "value": true
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "value": true
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "value": false
+        }
+      ]
+    },
+    {
+      "id": "function-nocase",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          {
+            "value": {
+              "$nocase": "$notes"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "value": "=SUM(A1:A2)"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "value": "first line\nsecond \"line\""
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "value": "\t=literal"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "value": "first allocation"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "value": "@second allocation"
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "value": "\rTransfer note"
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "value": "\rTransfer note"
+        }
+      ]
+    },
+    {
+      "id": "function-literal_number",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          {
+            "value": {
+              "$literal": 123
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "value": 123
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "value": 123
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "value": 123
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "value": 123
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "value": 123
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "value": 123
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "value": 123
+        }
+      ]
+    },
+    {
+      "id": "function-divide_zero",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          {
+            "value": {
+              "$idiv": [
+                "$amount",
+                0
+              ]
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "value": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "value": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "value": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "value": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "value": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "value": null
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "value": null
+        }
+      ]
+    },
+    {
+      "id": "window-sum",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          "amount",
+          {
+            "remaining": {
+              "$sumOver": "$amount"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          {
+            "date": "asc"
+          },
+          {
+            "id": "asc"
+          }
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "amount": -200,
+          "remaining": -835
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "amount": 200,
+          "remaining": -635
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "amount": -40,
+          "remaining": -835
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "amount": -61,
+          "remaining": -795
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "amount": 0,
+          "remaining": -734
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "amount": 500,
+          "remaining": -734
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "amount": -1234,
+          "remaining": -1234
+        }
+      ]
+    },
+    {
+      "id": "conditional-expression",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id",
+          {
+            "expense": {
+              "$condition": {
+                "amount": {
+                  "$lt": 0
+                }
+              }
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "expense": true
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "expense": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "expense": false
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "expense": true
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "expense": true
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "expense": true
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "expense": false
+        }
+      ]
+    },
+    {
+      "id": "literal-unicode",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          {
+            "value": {
+              "$literal": "Café $$ value"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": 1,
+        "offset": null,
+        "table": "transactions"
+      },
+      "error": {
+        "type": "SqliteError",
+        "message": "near \"$$\": syntax error"
+      }
+    },
+    {
+      "id": "invalid-table",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "*"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "operations"
+      },
+      "error": {
+        "type": "Error",
+        "message": "Table \"operations\" does not exist"
+      }
+    },
+    {
+      "id": "invalid-field",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          "password"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "error": {
+        "type": "Error",
+        "message": "Field \"password\" does not exist in table \"transactions\"\n\nExpression stack:\n  $password\n  select(password)"
+      }
+    },
+    {
+      "id": "invalid-function",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [],
+        "selectExpressions": [
+          {
+            "result": {
+              "$evil": "$amount"
+            }
+          }
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": true,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "error": {
+        "type": "Error",
+        "message": "Unknown function: $evil\n\nExpression stack:\n  {\"$evil\":\"$amount\"}\n  select({\"result\":{\"$evil\":\"$amount\"}})"
+      }
+    },
+    {
+      "id": "invalid-split-option",
+      "query": {
+        "tableOptions": {
+          "splits": "bogus"
+        },
+        "filterExpressions": [],
+        "selectExpressions": [
+          "id"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "error": {
+        "type": "Error",
+        "message": "Invalid \"splits\" option for transactions: \"bogus\""
+      }
+    }
+  ]
+}

@@ -950,7 +950,7 @@ pub(crate) fn export_ids(
     if let Some(error) = matcher.error() {
         return Err(error);
     }
-    let ids=ids?;
+    let ids = ids?;
     if ids.len() > 100000 {
         return Err(Error::invalid(
             "Export at most100000 rows. Narrow the account or date filter",

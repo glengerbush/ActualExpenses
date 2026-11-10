@@ -15724,7 +15724,7 @@
     },
     "/api/v1/budgets/{budget}/rules/apply": {
       "post": {
-        "description": "Re-evaluate selected saved rules on1–100 captured ledger rows. One atomic receipt/history group covers all rows, generated peers/payees and splits; one shared work budget. Reconciled graph members require explicit unlock and a fresh preview. Never trains category defaults.",
+        "description": "Re-evaluate selected saved rules on1\u2013100 captured ledger rows. One atomic receipt/history group covers all rows, generated peers/payees and splits; one shared work budget. Reconciled graph members require explicit unlock and a fresh preview. Never trains category defaults.",
         "parameters": [
           {
             "name": "budget",
@@ -16098,7 +16098,7 @@
     },
     "/api/v1/budgets/{budget}/rules/rename-payee": {
       "post": {
-        "description": "Union nonempty raw imported names into an existing pre-stage oneOf→payee setter, or create one. Canonical merged payee IDs are resolved. One original receipt/history action.",
+        "description": "Union nonempty raw imported names into an existing pre-stage oneOf\u2192payee setter, or create one. Canonical merged payee IDs are resolved. One original receipt/history action.",
         "parameters": [
           {
             "name": "budget",
@@ -17345,7 +17345,7 @@
     },
     "/api/v1/budgets/{budget}/schedules/{id}/occurrences": {
       "get": {
-        "description": "Read calendar occurrences and their durable outcomes without posting or advancing. Limit1–1000, optional inclusive from/through dates. Carry the returned snapshot and next_from for a consistent continuation.",
+        "description": "Read calendar occurrences and their durable outcomes without posting or advancing. Limit1\u20131000, optional inclusive from/through dates. Carry the returned snapshot and next_from for a consistent continuation.",
         "parameters": [
           {
             "name": "budget",
@@ -20632,6 +20632,114 @@
           }
         }
       }
+    },
+    "/api/v1/budgets/{budget}/reports/forecast": {
+      "post": {
+        "description": "Experimental opt-in, read-only26.10-compatible balance forecast. No entries, schedules, receipts or clocks change. Bound500 selected accounts,5000 active schedules,10000 active rules,8MiB schedule/rule definitions,100000 selected posted/planned rows,10000 occurrences/20000 transfer legs,20000 account/day points,2m shared recurrence/rule work and scoped regex work;8MiB response. Router cache is keyed by budget snapshot/epoch, request and as_of, limited to8 entries/16MiB including keys. Oversized/unsupported work rejects rather than truncates. Result lowestBalance follows source raw scope; lowest_displayed and scheduled count follow the selected chart window.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Unsupported source/method/range/view/filter, invalid_regex or calculation/work bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "feature_disabled or budget lifecycle conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Calculation failed without financial changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed estimate with explicit input revision and assumptions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ForecastProjection"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForecastRequest"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -20828,7 +20936,7 @@
             "type": "string",
             "format": "date",
             "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
-            "description": "Calendar date YYYY-MM-DD, year 0001–9999."
+            "description": "Calendar date YYYY-MM-DD, year 0001\u20139999."
           }
         },
         "required": [
@@ -24294,7 +24402,7 @@
             }
           }
         ],
-        "description": "Select 1–100 parent or child entries. Split selections are grouped before applying; final allocations must equal the parent. Duplicate parent+children produces one split using the first selected member destination ID. Child account/date/cleared changes require parent selected too. Notes modes apply per selected entry."
+        "description": "Select 1\u2013100 parent or child entries. Split selections are grouped before applying; final allocations must equal the parent. Duplicate parent+children produces one split using the first selected member destination ID. Child account/date/cleared changes require parent selected too. Notes modes apply per selected entry."
       },
       "HistoryNavigate": {
         "type": "object",
@@ -24543,7 +24651,7 @@
       "TransferProtectionToken": {
         "type": "string",
         "pattern": "^[0-9a-f]{64}$",
-        "description": "Captured fixed-size proof of complete connected live split/transfer membership, relationship edges and every member’s own reconciled flag/version, bound to this budget. Capture GET /transactions/{id}/splits; for linking include counterpart_id query parameter. Verify inside the receipt transaction with the original intent clock newer than every captured protection version. Immutable retries never refresh proof."
+        "description": "Captured fixed-size proof of complete connected live split/transfer membership, relationship edges and every member\u2019s own reconciled flag/version, bound to this budget. Capture GET /transactions/{id}/splits; for linking include counterpart_id query parameter. Verify inside the receipt transaction with the original intent clock newer than every captured protection version. Immutable retries never refresh proof."
       },
       "BudgetPlan": {
         "type": "object",
@@ -30298,6 +30406,327 @@
           "has_more",
           "snapshot",
           "cell"
+        ]
+      },
+      "ForecastOptions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "viewStart": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}(-[0-9]{2})?$"
+          },
+          "viewEnd": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}(-[0-9]{2})?$"
+          },
+          "source": {
+            "enum": [
+              "schedules",
+              "tracking-budget"
+            ],
+            "default": "schedules"
+          },
+          "granularity": {
+            "enum": [
+              "Daily",
+              "Monthly"
+            ],
+            "default": "Monthly"
+          },
+          "accountIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "maxItems": 500
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportCondition"
+            },
+            "maxItems": 20
+          },
+          "conditionsOp": {
+            "enum": [
+              "and",
+              "or"
+            ],
+            "default": "and"
+          },
+          "includeAccountlessSchedules": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "startDate",
+          "endDate"
+        ],
+        "description": "Dates are explicit calendar days. Optional view bounds retain source day-shaped chart windows over full-month forecast inputs; Monthly collapses view bounds to months. Tracking budget is monthly only, at most12 months, ignores account/report filters and schedules. Maximum canonical request65536 bytes."
+      },
+      "ForecastRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": 1
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "options": {
+            "$ref": "#/components/schemas/ForecastOptions"
+          }
+        },
+        "required": [
+          "version",
+          "as_of",
+          "options"
+        ]
+      },
+      "ForecastScheduleEntry": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "minimum": -9000000000000000,
+            "maximum": 9000000000000000
+          },
+          "payee": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "scheduleName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "payee",
+          "scheduleId",
+          "scheduleName"
+        ]
+      },
+      "ForecastDataPoint": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "balance": {
+            "type": "integer",
+            "minimum": -9000000000000000,
+            "maximum": 9000000000000000
+          },
+          "accountId": {
+            "type": "string",
+            "description": "Real account UUID, tracking-budget aggregate, or __unassigned_schedule__ virtual account."
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForecastScheduleEntry"
+            }
+          }
+        },
+        "required": [
+          "date",
+          "balance",
+          "accountId",
+          "accountName",
+          "transactions"
+        ]
+      },
+      "ForecastLowest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "balance": {
+            "type": "integer",
+            "minimum": -9000000000000000,
+            "maximum": 9000000000000000
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "accountName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "balance",
+          "accountId",
+          "accountName"
+        ]
+      },
+      "ForecastResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "dataPoints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForecastDataPoint"
+            },
+            "maxItems": 20000
+          },
+          "lowestBalance": {
+            "$ref": "#/components/schemas/ForecastLowest"
+          },
+          "forecastStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "forecastEndDate": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "dataPoints",
+          "lowestBalance",
+          "forecastStartDate",
+          "forecastEndDate"
+        ]
+      },
+      "ForecastChartPoint": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}(-[0-9]{2})?$"
+          },
+          "balance": {
+            "type": "integer",
+            "minimum": -9000000000000000,
+            "maximum": 9000000000000000
+          }
+        },
+        "required": [
+          "date",
+          "balance"
+        ]
+      },
+      "ForecastProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "result": {
+            "$ref": "#/components/schemas/ForecastResult"
+          },
+          "chart": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForecastChartPoint"
+            },
+            "maxItems": 20000
+          },
+          "lowest_displayed": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ForecastChartPoint"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduled_occurrence_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "assumptions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ]
+            }
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "recorded": {
+            "const": false
+          },
+          "cache": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "hit": {
+                "type": "boolean"
+              },
+              "input_revision": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "hit",
+              "input_revision"
+            ]
+          }
+        },
+        "required": [
+          "result",
+          "chart",
+          "lowest_displayed",
+          "scheduled_occurrence_count",
+          "assumptions",
+          "snapshot",
+          "epoch",
+          "as_of",
+          "recorded",
+          "cache"
         ]
       }
     }

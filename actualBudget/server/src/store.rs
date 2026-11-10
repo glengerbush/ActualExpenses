@@ -101,6 +101,7 @@ pub fn create_budget(db: &Connection, input: NewBudget) -> Result<Value, Error> 
     crate::lifecycle::metadata(db, &input.id, false)
 }
 pub fn create_account(db: &Connection, budget: &str, input: NewAccount) -> Result<Value, Error> {
+    crate::notes::guard_domain_id(db, budget, &input.id)?;
     let tx = db;
     require_budget(tx, budget)?;
     if tx.query_row(

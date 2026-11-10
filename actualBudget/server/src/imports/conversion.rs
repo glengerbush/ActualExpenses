@@ -535,26 +535,8 @@ pub(super) fn convert_loaded(
         };
         converted["accounts"].as_array_mut().unwrap().push(json!({"id":id,"name":name,"off_budget":flag(row,"offbudget")?,"closed":flag(row,"closed")?,"notes":notes,"group_id":group,"sort_order":account_order[id],"tombstone":flag(row,"tombstone")?,"last_reconciled":crate::reconciliation::source_timestamp(&row["last_reconciled"])?}));
     }
-    let other_notes = array(&source, "notes")
-        .iter()
-        .filter(|row| {
-            !accounts.contains_key(row["id"].as_str().unwrap_or(""))
-                && !row["id"]
-                    .as_str()
-                    .is_some_and(|id| id.starts_with("budget-"))
-                && !array(&source, "categories")
-                    .iter()
-                    .chain(array(&source, "category_groups"))
-                    .any(|item| item["id"] == row["id"])
-        })
-        .count();
-    requirement(
-        &mut requirements,
-        "notes",
-        other_notes,
-        true,
-        "Budget notes require their feature converter",
-    );
+    converted["notes"] = crate::notes::convert(&source)?;
+    converted["notes_version"] = json!(1);
     let groups = array(&source, "category_groups")
         .iter()
         .map(|row| text(row, "id"))
@@ -1001,6 +983,7 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
         )?;
     }
     crate::reports::import::install(db, budget, &data["reporting"])?;
+    crate::notes::install(db, budget, &data["notes"])?;
     crate::transaction_imports::install(db, budget, &data["transaction_imports"])?;
     crate::budgeting::install_actual(db, budget, &data["budgeting"])?;
     crate::budgeting::templates::install(db, budget, &data["automations"])?;
@@ -1008,6 +991,7 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
     crate::schedules::install_actual(db, budget, &data["schedules"])?;
     for row in array(data, "clocks") {
         crate::reports::import::import_clock(db, budget, row)?;
+        crate::notes::import_clock(db, budget, row)?;
         crate::transaction_imports::import_clock(db, budget, row)?;
         crate::budgeting::import_clock(db, budget, &data["budgeting"], row)?;
         crate::budgeting::templates::clock(db, budget, row)?;

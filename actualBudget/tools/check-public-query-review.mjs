@@ -121,6 +121,26 @@ try {
     assert.match(result.error.message, /output|response|emitted/i);
     console.log("PASS cumulative grouped output refusal");
   }
+  if (!selected || selected === "text-work") {
+    const result = await call(
+      root + "/query",
+      {
+        ...base,
+        select: ["id"],
+        filter: [
+          {
+            $and: Array.from({ length: 50 }, () => ({
+              notes: { $transform: "$lower", $ne: "skip" },
+            })),
+          },
+        ],
+      },
+      400,
+    );
+    assert.equal(result.error.code, "invalid_query");
+    assert.match(result.error.message, /text work/i);
+    console.log("PASS shared scalar text allowance across count and page");
+  }
   assert.deepEqual((await call(root + "/checkpoint")).data, cp);
   assert.deepEqual(
     await call(root + "/transactions?limit=1000"),

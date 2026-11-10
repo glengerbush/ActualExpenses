@@ -116,3 +116,93 @@ Final focused correction PASS /tmp/public-query-review-built-green.log;
 all50 source reads PASS /tmp/public-query-review-source50.log;
 existing bounds PASS /tmp/public-query-review-guards.log;
 binClippy-Dwarnings PASS /tmp/public-query-review-clippy.log.
+
+## Standalone notes — schema24 checkpoint
+
+The published SDK's arbitrary `getNote/updateNote` identity is a genuine import
+gap: original conversion blocked unmatched note rows. Independent source
+`generate-public-notes.mjs` executes arbitrary colon/slash identity, original
+Unicode/multiline prose, update and clear; source financial rows stay exact.
+Original genuine export is retained, hash checked, never rewritten. Missing
+source note is null; cleared existing note is an object with empty text.
+Source generation/check PASS /tmp/public-notes-{source,source-check}.log.
+Official exports have no CRDT clocks; this witness makes no source-clock claim.
+
+Schema24 follows the frozen banking23 foundation5489ac1. Budget-scoped notes
+store only standalone identities. Known account/category/group/month IDs remain
+projections of authoritative domain notes fields. Read-only POST notes/read and
+owned notes/commands preserve literal IDs, original HLC, snapshot/epoch,
+receipt-first recovery, cancellation and field-level history. IDs are bounded to
+512 characters, text10000. Feed records include note clocks; retained tombstones
+support creation undo/redo. Import preserves original source bytes and any
+present source note clocks. Old blocked stages receive a converter while their
+original receipt remains immutable. Native archive/duplication/current history
+registries include notes; older archives enrich only during versioned restore.
+
+True blocked-import RED /tmp/public-notes-http-red.log. Focused public financial,
+known category projection, incremental feed, explicit HLC, update/clear,
+creation/update undo/redo, old-clock refusal, cancellation and native exact
+receipt recovery PASS /tmp/public-notes-focused-final.log. Earlier cancellation
+harness expected200; existing contract correctly returned409 operation_canceled;
+harness aligned without runtime weakening. No idle/background worker added.
+
+Genuine23 fixture generator `generate-public-notes-schema23.py` runs immutable
+865402b executable SHA6012812abb9c6cd9dea026a08128c705f34d6d8a6250f1c7fd5050264b4a0e82.
+This is banking23 foundation +reviewed query read/35, not final28 financial writer.
+SQLite23 integrity/FK/version and native manifest23 checked readonly; no version
+edits. Ordinary money/history/receipts plus blocked original arbitrary-note stage
+retained. Public consumer `check-public-notes-upgrade-http.mjs` verifies unchanged
+old ledger/checkpoint/history/receipts, ready reviewed stage/original bytes and
+activation, then real native23 restore with exact money/receipts and expected
+rotated epoch/history reset. PASS /tmp/public-notes-upgrade-final.log.
+BinClippy PASS /tmp/public-notes-final-clippy.log.
+
+The replacement's explicit-ID create API additionally permits choosing a future
+reference UUID, whereas SDK account/category creation strips supplied IDs.
+Parent-approved replacement identity guarantee: nonempty retained standalone
+notes refuse conflicting account/category/category-group (including inline
+category) creation with note_identity_conflict. Caller chooses a different ID
+or explicitly clears the standalone note first. Genuine public RED
+/tmp/public-notes-identity-red.log showed creation silently shadowed retained
+prose; focused correction checks all3 domain kinds, unchanged checkpoint/lists,
+retained prose and successful explicit-clear resolution. This is explicitly a
+replacement safety guarantee, not mocked source UUID parity. Native validation
+also refuses conflicting live standalone/domain note identities while retaining
+legitimate historical tombstones. Whole47 remains WIP as listed above.
+
+## Notes review corrections and Unicode query witness
+
+Unowned notes originally bound body only; owned history already bound epoch.
+True unowned RED /tmp/public-notes-unowned-epoch-red.log returned200 for a changed
+valid epoch. All notes receipts now bind {request,epoch}. Focused checks prove
+owned/unowned original old-epoch replay after native restore and changed-epoch
+rejection. Earlier UUID-shaped epoch attempt was invalid400 (harness error), not
+that product red. True month RED /tmp/public-notes-month-red.log returned200 with
+null after create→undo→fresh write. Month upsert now revives tombstones, guards
+both note and tombstone generations, preserves buffered, and refuses a clock
+between original creation and newer undo without changing history. PASS
+/tmp/public-notes-epoch-month-final-green.log.
+
+`generate-query-unicode.mjs` executes51 genuine SDK mutations and ActualQL reads,
+recording input hash, compiler/normalization digests and executed SDK entry hash.
+Every mutation is observed publicly before querying: source updateTransaction
+returns before its batch promise settles. The initial unobserved provisional
+fixture/logs were discarded from evidence (/tmp/query-unicode-unsettled-source.json
+retained diagnostically); corrected generation/check PASS
+/tmp/query-unicode-source-{settled,final-check}.log. Extension asserted all42
+existing settled observations unchanged while adding9 empty-text/pattern cases.
+
+Genuine source red /tmp/query-unicode-http-settled-red.log: cafe failed to match
+Café. AQL-only LIKE normalization now lowercases, expands ł/ø/ß/œ, decomposes NFD
+and removes ECMAScript Diacritic property via the existing bundled regex engine.
+Pinned unicode-normalization0.1.25 supplies NFD; no external process or application
+server. Regexp stays literal. Source empty LIKE pattern is false, while percent
+matches empty text; these observed distinctions are retained. All51 exact public
+matches/errors and unchanged per-query ledger/checkpoint PASS
+/tmp/query-unicode-http-final-green.log; original50 source reads PASS
+/tmp/query-unicode-query50.log. One cumulative64MiB input/output scalar-text work
+allowance covers count and page; public composed50-transform query refuses with
+typed400, preserving graph/checkpoint (/tmp/query-unicode-text-budget-green.log).
+BinClippy-Dwarnings PASS /tmp/query-unicode-epoch-clippy.log. No broad domain suite
+repeated. Known-note row-presence markers/registry, atomic batch, caller/contracts
+and maintained integration commands remain47 work, not accepted completion.

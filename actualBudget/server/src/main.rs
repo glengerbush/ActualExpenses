@@ -14,6 +14,7 @@ mod ledger;
 mod lifecycle;
 mod migrations;
 mod models;
+mod notes;
 mod origin;
 mod payee_locations;
 mod payees_tags;

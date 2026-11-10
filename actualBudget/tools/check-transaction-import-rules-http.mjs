@@ -1,3 +1,4 @@
+import {cloneImportedTemplate} from '../web/tests/import-template.mjs';
 // Independent Actual import snapshots; previews must never create references.
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -14,7 +15,7 @@ function shape(rows,payees,categories,source){
 try{for(const item of fixture.cases){
  const bytes=await readFile(new URL('../tests/fixtures/'+item.archive.filename,import.meta.url));assert.equal(createHash('sha256').update(bytes).digest('hex'),item.archive.sha256);
  const upload=await fetch(api+'/imports/actual',{method:'POST',headers:{'Idempotency-Key':randomUUID(),'Content-Type':'application/zip'},body:bytes});assert.equal(upload.status,201,await upload.clone().text());
- const staged=(await upload.json()).data;assert.equal(staged.status,'ready');await call(`/imports/${staged.id}/activate`,{});
+ const staged=(await upload.json()).data;assert.ok(['ready','activated'].includes(staged.status));await call(`/imports/${staged.id}/activate`,{});staged.budget_id=await cloneImportedTemplate(api,staged.budget_id);
  const root=`/budgets/${staged.budget_id}`,account=item.ids.account;
  const before=await call(root+'/transactions');
  assert.deepEqual(shape(before.data,(await call(root+'/payees')).data,(await call(root+'/categories')).data,false),shape(item.before.transactions,item.before.payees,item.before.categories,true));

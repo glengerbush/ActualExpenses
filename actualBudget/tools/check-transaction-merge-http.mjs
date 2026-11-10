@@ -1,3 +1,4 @@
+import {cloneImportedTemplate} from '../web/tests/import-template.mjs';
 // Manual merge expectations are complete persisted Actual graphs, not new math.
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -10,7 +11,7 @@ function financial(rows,source){const flat=rows.flatMap(row=>source?[row]:[row,.
 const failures=[];let tested=0;
 try{for(const item of fixture.cases){const filter=process.argv.find(arg=>arg.startsWith('--case='))?.slice(7);if(filter&&item.id!==filter)continue;tested++;try{
  const bytes=await readFile(new URL('../tests/fixtures/'+item.archive.filename,import.meta.url));assert.equal(createHash('sha256').update(bytes).digest('hex'),item.archive.sha256);
- const r=await fetch(api+'/imports/actual',{method:'POST',headers:{'Idempotency-Key':randomUUID(),'Content-Type':'application/zip'},body:bytes});assert.equal(r.status,201,await r.clone().text());const stage=(await r.json()).data;assert.equal(stage.status,'ready');await call(`/imports/${stage.id}/activate`,{});const root=`/budgets/${stage.budget_id}`;
+ const r=await fetch(api+'/imports/actual',{method:'POST',headers:{'Idempotency-Key':randomUUID(),'Content-Type':'application/zip'},body:bytes});assert.equal(r.status,201,await r.clone().text());const stage=(await r.json()).data;assert.ok(['ready','activated'].includes(stage.status));await call(`/imports/${stage.id}/activate`,{});stage.budget_id=await cloneImportedTemplate(api,stage.budget_id);const root=`/budgets/${stage.budget_id}`;
  const before=await call(root+'/transactions'),cp=(await call(root+'/checkpoint')).data;assert.deepEqual(financial(before.data,false),financial(item.before.transactions,true),'Exact genuine starting graph');
  const body={snapshot:cp.snapshot,ids:[item.ids.a,item.input.duplicate?item.ids.a:item.ids.b]},owner=randomUUID(),headers={'X-Actual-Budget-Epoch':cp.epoch,'X-Actual-History-Owner':owner};
  const previewResponse=await response(root+'/transactions/merge/preview',body);

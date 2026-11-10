@@ -1,8 +1,6 @@
 # Transaction imports — working evidence
 
-Tickets25/26 remain incomplete. Accepted integration base includes main45 (`145a761`); current accepted main will be merged before final qualification. Working branch:
-`codex/imports25-26`; implementation checkpoint `adc8a03`, reviewed source
-evidence `d97f329` / `5ac7751`. No release, push or live deployment.
+Tickets25/26 implementation is ready for consolidated review and integrated qualification; acceptance remains pending. Branch `codex/imports25-26` includes accepted main49 (`7c6a794`) and45. No release, push, version change or live deployment. Reviewed checkpoints include persistence `ce92da3`, shared writer `a7ff6e4`, parsers/options `78610a9`, source choice order `1972c73`, manual merge `3fcffd1`/`dcde5c4`, CSV `836fd2c`, format flows `1ba8a29`, and served contracts `38dfbd5`/`09132f7`.
 
 ## Contract and ownership
 
@@ -34,11 +32,11 @@ expectations.
 | Evidence | Coverage | Current public consumer |
 |---|---|---|
 | `transaction-import-manual.json` + source ZIP | Parser→frontend normalization→manual match→repeat→CSV export | Initial Rust HTTP tracer1 passes |
-| `transaction-parser-source.json` |48 genuine raw parser cases, input bytes/hashes/options;21 CSV/TSV,27 other formats/errors | `check-transaction-parser-http.mjs --csv`:21 pass |
+| `transaction-parser-source.json` |48 genuine raw parser cases, input bytes/hashes/options;21 CSV/TSV,27 other formats/errors | `check-transaction-parser-http.mjs`:48 pass |
 | `transaction-normalization-source.json` |73 unchanged frontend finalization observations (prior71 retained; exact ±1.1250 half-cent cases added) | `check-transaction-normalization-http.mjs`:46 CSV financial/error cases pass; selection/format cases separate |
 | `transaction-matching-source.json` |14 genuine matching/repeat scenarios | `check-transaction-matching-http.mjs`:8 CSV workflows pass; all14 now pass, including bank-ID/deleted/locked scenarios |
-| `transaction-merge-source.json` +14 source ZIPs | Keeper precedence, fields/status, split reparent, transfers, four atomic refusals | Consumer/implementation pending |
-| `transaction-import-rules-source.json` +4 source ZIPs | Lazy payees, no unused payee on manual match, rules before matching, split rule once, repeat identity,19 saved source options | Public source4 workflows pass (rules before matching, split allocations, append once, lazy payees, repeat IDs) |
+| `transaction-merge-source.json` +14 source ZIPs | Keeper precedence, fields/status, split reparent, transfers, four atomic refusals | All14 complete source graphs pass; owned inverse/protection/replay guards pass |
+| `transaction-import-rules-source.json` +5 source ZIPs | Lazy payees, no unused payee on manual match, rules before matching, split rule once, repeat identity,19 saved source options | All5 source workflows pass: rules before matching, split allocations, append once, lazy payees, repeat IDs and two distinct purchases sharing one new payee |
 | `transaction-import-schema20.{sqlite3,zip,json}` | Genuine20 owned expense/edit/history/receipts, balances, two blocked source stages, original bytes and native backup |Public Rust database/native consumers2 pass (working21 joins) |
 
 Logs: `/tmp/transaction-parser-http-csv-green.log` (21),
@@ -64,21 +62,13 @@ schema20/integrity/FKs. No database relabeling or direct financial writes.
 
 ## Remaining acceptance gates
 
-- Complete importer/exporter/manual-merge UI, durable original requests and
-  preview recovery, keyboard/narrow/dark/200% captures and consolidated review.
-- Real committed QIF/CAMT file workflows and additional format-option recovery;
-  raw parser48 and structured preview22 are already green, while OFX/CSV cover
-  the14 financial matcher cases.
-- Served OpenAPI and contract smoke for all new seams; current schemas/reports21,
-  cancellation/receipt probes and source capabilities; meaningful Android feed
-  case and maintained CI/container commands for every public source consumer.
-- Final integrated HTTP/native/container qualification once the complete batch is
-  frozen. Reuse reviewed preservation/writer/merge and unchanged source evidence.
+- Consolidated Standards/Spec/Impeccable review of the completed interface/native/wiring delta and focused corrections, if any.
+- One final integrated HTTP/native/container qualification against the frozen composition. Reports owns schema22; integration must preserve both21/22 tables and archive enums. Reuse unchanged reviewed source and focused evidence.
 
 Do not mark25/26 done until their whole acceptance criteria pass. Further genuine
 source cases should answer concrete gaps, not expand into unrelated tickets.
 
-## Current21 preservation join (in progress)
+## Current21 preservation join
 
 `transaction_import_upgrade.rs`: genuine20 database and native archive consumers2
 PASS `/tmp/transaction-import-upgrade-first-green.log`. Old financial/reference
@@ -267,3 +257,67 @@ returned500 instead of the existing actionable regex-budget400; checking the
 shared matcher failure before propagating SQL errors corrected that boundary.
 No partial CSV or financial/checkpoint mutation escapes. Bin Clippy PASS
 `/tmp/transaction-csv-export-clippy.log`.
+
+## Complete interface and format checkpoint
+
+`TransactionImport.svelte` exposes account/file selection, CSV/TSV mapping,
+encoding/delimiter/header/skipped-line/date/sign/multiplier/inflow/outflow options,
+per-format memo behavior, remembered defaults, bounded source-record ranges,
+match/add/skip review, and CSV standard/detailed downloads. File bytes and upload
+identity are durably saved before network access; the server retains exact
+original bytes. Each captured commit keeps its original JSON, key, HLC, owner
+and epoch. Reload/retry and explicit cancellation never adopt a newer snapshot
+or restored generation. Serialized IndexedDB CAS writes reject another tab's
+replacement; incomplete numeric option text remains recoverable. Navigation
+opens the retained import on restart without an idle delivery loop. A complete
+native backup remains in Manage budget; CSV does not claim to preserve IDs.
+
+Register selection now offers a two-entry merge preview with complete affected
+before/after graphs and explicit reconciled-graph confirmation. Delivery reuses
+the existing durable bulk action store, receipt-first retry/cancel and guarded
+owned history. Amount presentation respects shared privacy formatting.
+
+`transaction-format-flows.json` +4 genuine pre-import archives independently
+execute registered parsers, unchanged frontend normalization and preference-save
+code, real preview/import/repeat and original manual matching. Source generation
+and independent `--check` PASS4. Public consumer PASS4 including original file
+bytes, exact receipts, first-import IDs, per-key defaults clocks and one-action
+undo/redo: `/tmp/transaction-format-flows-http-first.log`.
+
+Focused plain-HTTP Chromium tests:
+
+- `/tmp/transaction-import-browser-numeric-recovery.log`: retained mapping/file
+  across reload, incomplete skipped-line draft, two distinct purchases sharing
+  a new payee, committed200 verified in the ledger before deliberately losing
+  its ACK, exact original retry after reload, once-only money/IDs, stale snapshot
+  pending recovery and safe cancel, CSV download, and register merge review.
+- `/tmp/transaction-formats-browser-final.log`: OFX/QFX/QIF/CAMT preview and two
+  committed imports each compared with exact independent financial/reference
+  source observations, preserving original manual fields and source metadata.
+- `/tmp/transaction-format-shared-fixtures.log`: public format consumer followed
+  by all4 browser flows on one shared server. Mutable consumers duplicate pristine
+  imported templates through the public API; original source IDs/graphs remain
+  intact and reruns do not inherit another test's mutations.
+
+The native focused case (`/tmp/transaction-import-native-feed-second.log`) uses
+real1252 QFX bytes, new bank metadata/settings feed events, queued native expense
+delivery, subsequent genuine expense edit, restarted cache, manual null-category
+protection and unchanged-feed zero-write checks. PASS1; no Android runtime or
+background scheduling change was needed.
+
+Served OpenAPI and maintained smoke PASS `/tmp/import-contract-green.log`:
+all import/upload/raw/preview/commit/settings/original/merge/export seams,
+errors, exact receipt probes/cancel, read-only financial checks, metadata and
+settings feed payloads and schema21 native restore. The later descriptor-only
+contract amendment is embedded by the final ordinary build. All9 independent
+source generators are wired to release CI `--check`; all9 public consumers and
+both new browser groups are in `web/package.json test:browser`, honoring
+`ACTUALBUDGET_TEST_URL` for container qualification.
+
+UI evidence is under `actualBudget/web/test-results/transaction-import/`:
+review desktop/mobile/dark200%, full merge graph, and all4 format reviews.
+Svelte check passes0errors/0warnings; focused builds pass. Captures caught and
+corrected checkbox widths inherited from global full-width inputs; this was a
+rendered layout correction, not a financial behavior change. No generated raster
+is shipped as product UI. Final finish/review and integrated qualification remain
+authoritative before ticket acceptance.

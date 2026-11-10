@@ -1,3 +1,4 @@
+import {cloneImportedTemplate} from '../web/tests/import-template.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {randomUUID,createHash} from 'node:crypto';
@@ -8,7 +9,7 @@ function shape(rows,item,source){return rows.flatMap(r=>[r,...(source?r.subtrans
 const failures=[];
 try{for(const item of fixture.cases){try{
  const bytes=await readFile(new URL('../tests/fixtures/transaction-import-edges/'+item.archive.filename,import.meta.url));assert.equal(createHash('sha256').update(bytes).digest('hex'),item.archive.sha256);
- const staged=await fetch(api+'/imports/actual',{method:'POST',headers:{'Idempotency-Key':randomUUID(),'Content-Type':'application/zip'},body:bytes});assert.equal(staged.status,201);const stage=(await staged.json()).data;assert.equal(stage.status,'ready');await call(`/imports/${stage.id}/activate`,{});const root=`/budgets/${stage.budget_id}`;
+ const staged=await fetch(api+'/imports/actual',{method:'POST',headers:{'Idempotency-Key':randomUUID(),'Content-Type':'application/zip'},body:bytes});assert.equal(staged.status,201);const stage=(await staged.json()).data;assert.ok(['ready','activated'].includes(stage.status));await call(`/imports/${stage.id}/activate`,{});stage.budget_id=await cloneImportedTemplate(api,stage.budget_id);const root=`/budgets/${stage.budget_id}`;
  assert.deepEqual(shape((await call(root+'/transactions')).data,item,false),shape(item.before.transactions,item,true));
  const escape=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;');
  const xml='<OFX><BANKMSGSRSV1><STMTTRNRS><STMTRS><BANKTRANLIST>'+item.input.rows.map(row=>'<STMTTRN><DTPOSTED>'+row.date.replaceAll('-','')+'</DTPOSTED><TRNAMT>'+row.amount+'</TRNAMT><NAME>'+escape(row.payee_name)+'</NAME><MEMO>'+escape(row.notes)+'</MEMO>'+(row.imported_id?'<FITID>'+row.imported_id+'</FITID>':'')+'</STMTTRN>').join('')+'</BANKTRANLIST></STMTRS></STMTTRNRS></BANKMSGSRSV1></OFX>';

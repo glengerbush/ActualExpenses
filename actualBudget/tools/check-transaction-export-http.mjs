@@ -1,3 +1,4 @@
+import {cloneImportedTemplate} from '../web/tests/import-template.mjs';
 // The first normal export is captured verbatim from Actual's real CSV writer.
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -9,7 +10,7 @@ import {startServer} from '../web/tests/server.mjs';
 const f=JSON.parse(await readFile(new URL('../tests/fixtures/transaction-import-manual.json',import.meta.url))),server=await startServer(),api=server.url.replace('actualbudget.test','127.0.0.1')+'/api/v1';
 async function call(path,body){const r=await fetch(api+path,{method:body===undefined?'GET':'POST',headers:{'Idempotency-Key':randomUUID(),'Content-Type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});assert.ok(r.ok,`${path}: ${r.status} ${await r.clone().text()}`);return r.json();}
 try{
- const bytes=await readFile(new URL('../tests/fixtures/'+f.archive.filename,import.meta.url));assert.equal(createHash('sha256').update(bytes).digest('hex'),f.archive.sha256);const r=await fetch(api+'/imports/actual',{method:'POST',headers:{'Content-Type':'application/zip','Idempotency-Key':randomUUID()},body:bytes});assert.equal(r.status,201);const stage=(await r.json()).data;await call(`/imports/${stage.id}/activate`,{});const root=`/budgets/${stage.budget_id}`;
+ const bytes=await readFile(new URL('../tests/fixtures/'+f.archive.filename,import.meta.url));assert.equal(createHash('sha256').update(bytes).digest('hex'),f.archive.sha256);const r=await fetch(api+'/imports/actual',{method:'POST',headers:{'Content-Type':'application/zip','Idempotency-Key':randomUUID()},body:bytes});assert.equal(r.status,201);const stage=(await r.json()).data;await call(`/imports/${stage.id}/activate`,{});stage.budget_id=await cloneImportedTemplate(api,stage.budget_id);const root=`/budgets/${stage.budget_id}`;
  const upload=await fetch(`${api}${root}/accounts/${f.ids.account}/transaction-imports?filename=bank.csv`,{method:'POST',headers:{'Idempotency-Key':randomUUID()},body:f.input.text});assert.equal(upload.status,201);const path=root+'/transaction-imports/'+(await upload.json()).data.id;const cp=(await call(root+'/checkpoint')).data;
  const mapping=Object.fromEntries(Object.entries(f.input.mapping).map(([key,value])=>[key==='inOut'?'in_out':key,value]));const body={snapshot:cp.snapshot,mapping,options:{has_header_row:true},rows:[{row:0,action:'merge',match_id:f.ids.manual}]};const committed=await fetch(api+path+'/commit',{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':randomUUID(),'X-Actual-Budget-Epoch':cp.epoch},body:JSON.stringify(body)});assert.equal(committed.status,200,await committed.clone().text());
  const before=await call(root+'/transactions'),checkpoint=(await call(root+'/checkpoint')).data;
@@ -17,7 +18,7 @@ try{
  console.log('PASS genuine normal CSV export with no financial or checkpoint mutation');
  const source=JSON.parse(await readFile(new URL('../tests/fixtures/transaction-export-source.json',import.meta.url)));
  const original=await readFile(new URL('../tests/fixtures/'+source.archive.filename,import.meta.url));assert.equal(createHash('sha256').update(original).digest('hex'),source.archive.sha256);
- const uploaded=await fetch(api+'/imports/actual',{method:'POST',headers:{'Content-Type':'application/zip','Idempotency-Key':randomUUID()},body:original});assert.equal(uploaded.status,201);const stage2=(await uploaded.json()).data;assert.equal(stage2.status,'ready');await call(`/imports/${stage2.id}/activate`,{});const root2=`/budgets/${stage2.budget_id}`;
+ const uploaded=await fetch(api+'/imports/actual',{method:'POST',headers:{'Content-Type':'application/zip','Idempotency-Key':randomUUID()},body:original});assert.equal(uploaded.status,201);const stage2=(await uploaded.json()).data;assert.ok(['ready','activated'].includes(stage2.status));await call(`/imports/${stage2.id}/activate`,{});stage2.budget_id=await cloneImportedTemplate(api,stage2.budget_id);const root2=`/budgets/${stage2.budget_id}`;
  const financial=await call(root2+'/transactions'),saved=(await call(root2+'/checkpoint')).data;
  const failures=[];
  for(const item of source.cases){

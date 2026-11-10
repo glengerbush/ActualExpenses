@@ -8,6 +8,7 @@ export interface NavigationCommand {
 }
 export const rememberedViews = [
   "planning",
+  "transaction-files",
   "rules",
   "schedules",
   "settings",

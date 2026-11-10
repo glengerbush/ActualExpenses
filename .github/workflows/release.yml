@@ -251,6 +251,15 @@ jobs:
           node actualBudget/tools/generate-import-fixture.mjs --check
           node actualBudget/tools/generate-concurrency.mjs --check
           node actualBudget/tools/generate-account-lifecycle.mjs --check
+          node actualBudget/tools/generate-transaction-import-source.mjs --check
+          node actualBudget/tools/generate-transaction-parser-source.mjs --check
+          node actualBudget/tools/generate-transaction-normalization-source.mjs --check
+          node actualBudget/tools/generate-transaction-matching-source.mjs --check
+          node actualBudget/tools/generate-transaction-import-rules-source.mjs --check
+          node actualBudget/tools/generate-transaction-import-edges.mjs --check
+          node actualBudget/tools/generate-transaction-merge-source.mjs --check
+          node actualBudget/tools/generate-transaction-export-source.mjs --check
+          node actualBudget/tools/generate-transaction-format-flows.mjs --check
           python3 actualBudget/tools/generate-v5-receipts.py --check
           python3 -m venv "$RUNNER_TEMP/contract-check"
           "$RUNNER_TEMP/contract-check/bin/pip" install jsonschema==4.23.0

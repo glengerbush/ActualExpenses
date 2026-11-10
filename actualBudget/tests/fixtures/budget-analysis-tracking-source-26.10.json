@@ -1,0 +1,2135 @@
+{
+  "oracle": "Unchanged26.10 createBudgetAnalysisSpreadsheet +buildBudgetAnalysisCsv; real get-categories/envelope-budget-month DTOs",
+  "clock": "2026-11-09T12:00:00Z",
+  "method": "tracking",
+  "ids": {
+    "checking": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+    "savings": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+    "brokerage": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+    "closed": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+    "expenses": "cdf3e63a-4372-452e-b0ae-893efa976265",
+    "income": "e29b4019-d83b-48be-98a9-7ace287b2869",
+    "hiddenGroup": "987dfc68-5882-472c-87b6-40a282c4d269",
+    "food": "18c4cef2-d782-4544-a460-7c04c275a581",
+    "hidden": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+    "empty": "84afd06e-255f-4246-bd00-89965986f788",
+    "hiddenGroupCategory": "42250427-aac5-4179-b77d-247994a381a2",
+    "salary": "95610153-0d9b-4abd-b817-bdc32291a737",
+    "market": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+    "employer": "aca47852-d5a7-42e9-acf3-76a971bc33e2",
+    "opening_checking": "408303c0-0847-4d57-b20e-f9b28c5dd356",
+    "opening_savings": "2ad76720-caac-4d46-b5bb-c22f6c9c206b",
+    "opening_brokerage": "109a70d2-dc2e-4f20-badb-65679fd50ebe",
+    "opening_closed": "aa395631-b99f-4674-9e8a-16027484b063",
+    "dashboard": "b5132fac-c088-4f69-96cb-362d66f908cc",
+    "report": "a43bb312-a25e-4da9-bd9c-9688d5194cc3",
+    "incomeGroupExpense": "64a6420f-2db8-454c-ada2-8da68aa83342"
+  },
+  "source_files": {
+    "packages/desktop-client/src/components/reports/spreadsheets/budget-analysis-spreadsheet.ts": "5ceea0b1007d774f2d824ffcaa52aa1f3cc6ef4be084f07bf8f57e73b79850be",
+    "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+    "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+    "packages/desktop-client/src/components/reports/spreadsheets/budget-analysis-export.ts": "c6f59dae5c4f1c87a01a67ffee6c926073c7abccfbfe094dc70f9d2436355533",
+    "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+    "packages/loot-core/src/shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419"
+  },
+  "archive_sha256": "1d720d793c446c80f461a2afb989190e4a7eec153a228046511b1e4581390ef6",
+  "base_sha256": "8b54cf9bc377ecd3d608382995efb5c7445c748f849bc971ce70a1610f1ed250",
+  "widgets": [
+    {
+      "id": "354ea619-2a51-4333-8d0b-b2cc8d10b656",
+      "dashboard_page_id": "b5132fac-c088-4f69-96cb-362d66f908cc",
+      "type": "budget-analysis-card",
+      "width": 12,
+      "height": 4,
+      "x": 0,
+      "y": 12,
+      "meta": {
+        "name": "Saved budget analysis",
+        "timeFrame": {
+          "start": "2026-10",
+          "end": "2027-03",
+          "mode": "static"
+        },
+        "interval": "Monthly",
+        "graphType": "Line",
+        "showBalance": false,
+        "balanceOnly": true,
+        "showHiddenCategories": true,
+        "conditions": [
+          {
+            "field": "category_group",
+            "op": "contains",
+            "value": "Expenses"
+          }
+        ],
+        "conditionsOp": "and"
+      },
+      "tombstone": false
+    }
+  ],
+  "dto": {
+    "categories": {
+      "grouped": [
+        {
+          "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+          "name": "Expenses",
+          "is_income": false,
+          "hidden": false,
+          "sort_order": 49152,
+          "tombstone": false,
+          "categories": [
+            {
+              "id": "84afd06e-255f-4246-bd00-89965986f788",
+              "name": "empty",
+              "is_income": false,
+              "hidden": false,
+              "group": "cdf3e63a-4372-452e-b0ae-893efa976265",
+              "goal_def": null,
+              "cleanup_def": null,
+              "template_settings": {
+                "source": "notes"
+              },
+              "sort_order": 4096,
+              "tombstone": false
+            },
+            {
+              "id": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+              "name": "hidden",
+              "is_income": false,
+              "hidden": true,
+              "group": "cdf3e63a-4372-452e-b0ae-893efa976265",
+              "goal_def": null,
+              "cleanup_def": null,
+              "template_settings": {
+                "source": "notes"
+              },
+              "sort_order": 8192,
+              "tombstone": false
+            },
+            {
+              "id": "18c4cef2-d782-4544-a460-7c04c275a581",
+              "name": "Food café ? %",
+              "is_income": false,
+              "hidden": false,
+              "group": "cdf3e63a-4372-452e-b0ae-893efa976265",
+              "goal_def": null,
+              "cleanup_def": null,
+              "template_settings": {
+                "source": "notes"
+              },
+              "sort_order": 16384,
+              "tombstone": false
+            }
+          ]
+        },
+        {
+          "id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+          "name": "Report income",
+          "is_income": false,
+          "hidden": false,
+          "sort_order": 65536,
+          "tombstone": false,
+          "categories": [
+            {
+              "id": "95610153-0d9b-4abd-b817-bdc32291a737",
+              "name": "salary",
+              "is_income": true,
+              "hidden": false,
+              "group": "e29b4019-d83b-48be-98a9-7ace287b2869",
+              "goal_def": null,
+              "cleanup_def": null,
+              "template_settings": {
+                "source": "notes"
+              },
+              "sort_order": 16384,
+              "tombstone": false
+            }
+          ]
+        },
+        {
+          "id": "987dfc68-5882-472c-87b6-40a282c4d269",
+          "name": "Hidden group",
+          "is_income": false,
+          "hidden": true,
+          "sort_order": 81920,
+          "tombstone": false,
+          "categories": [
+            {
+              "id": "42250427-aac5-4179-b77d-247994a381a2",
+              "name": "hiddenGroupCategory",
+              "is_income": false,
+              "hidden": false,
+              "group": "987dfc68-5882-472c-87b6-40a282c4d269",
+              "goal_def": null,
+              "cleanup_def": null,
+              "template_settings": {
+                "source": "notes"
+              },
+              "sort_order": 16384,
+              "tombstone": false
+            }
+          ]
+        },
+        {
+          "id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+          "name": "Income",
+          "is_income": true,
+          "hidden": false,
+          "sort_order": 32768,
+          "tombstone": false,
+          "categories": [
+            {
+              "id": "64a6420f-2db8-454c-ada2-8da68aa83342",
+              "name": "Analysis expense in income group",
+              "is_income": false,
+              "hidden": false,
+              "group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+              "goal_def": null,
+              "cleanup_def": null,
+              "template_settings": {
+                "source": "notes"
+              },
+              "sort_order": 16384,
+              "tombstone": false
+            },
+            {
+              "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+              "name": "Income",
+              "is_income": true,
+              "hidden": false,
+              "group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+              "goal_def": null,
+              "cleanup_def": null,
+              "template_settings": {
+                "source": "notes"
+              },
+              "sort_order": 32768,
+              "tombstone": false
+            },
+            {
+              "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+              "name": "Starting Balances",
+              "is_income": true,
+              "hidden": false,
+              "group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+              "goal_def": null,
+              "cleanup_def": null,
+              "template_settings": {
+                "source": "notes"
+              },
+              "sort_order": 32768,
+              "tombstone": false
+            }
+          ]
+        }
+      ],
+      "list": [
+        {
+          "id": "84afd06e-255f-4246-bd00-89965986f788",
+          "name": "empty",
+          "is_income": false,
+          "hidden": false,
+          "group": "cdf3e63a-4372-452e-b0ae-893efa976265",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 4096,
+          "tombstone": false
+        },
+        {
+          "id": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+          "name": "hidden",
+          "is_income": false,
+          "hidden": true,
+          "group": "cdf3e63a-4372-452e-b0ae-893efa976265",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 8192,
+          "tombstone": false
+        },
+        {
+          "id": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "name": "Food café ? %",
+          "is_income": false,
+          "hidden": false,
+          "group": "cdf3e63a-4372-452e-b0ae-893efa976265",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 16384,
+          "tombstone": false
+        },
+        {
+          "id": "95610153-0d9b-4abd-b817-bdc32291a737",
+          "name": "salary",
+          "is_income": true,
+          "hidden": false,
+          "group": "e29b4019-d83b-48be-98a9-7ace287b2869",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 16384,
+          "tombstone": false
+        },
+        {
+          "id": "42250427-aac5-4179-b77d-247994a381a2",
+          "name": "hiddenGroupCategory",
+          "is_income": false,
+          "hidden": false,
+          "group": "987dfc68-5882-472c-87b6-40a282c4d269",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 16384,
+          "tombstone": false
+        },
+        {
+          "id": "64a6420f-2db8-454c-ada2-8da68aa83342",
+          "name": "Analysis expense in income group",
+          "is_income": false,
+          "hidden": false,
+          "group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 16384,
+          "tombstone": false
+        },
+        {
+          "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+          "name": "Income",
+          "is_income": true,
+          "hidden": false,
+          "group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 32768,
+          "tombstone": false
+        },
+        {
+          "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+          "name": "Starting Balances",
+          "is_income": true,
+          "hidden": false,
+          "group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 32768,
+          "tombstone": false
+        }
+      ]
+    },
+    "months": {
+      "2026-09": [
+        {
+          "value": null,
+          "name": "budget202609!available-funds"
+        },
+        {
+          "value": null,
+          "name": "budget202609!last-month-overspent"
+        },
+        {
+          "value": null,
+          "name": "budget202609!buffered"
+        },
+        {
+          "value": 3000,
+          "name": "budget202609!total-budgeted"
+        },
+        {
+          "value": null,
+          "name": "budget202609!to-budget"
+        },
+        {
+          "value": null,
+          "name": "budget202609!from-last-month"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!total-income"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!total-spent"
+        },
+        {
+          "value": 3000,
+          "name": "budget202609!total-leftover"
+        },
+        {
+          "value": 3000,
+          "name": "budget202609!group-budget-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!group-sum-amount-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 3000,
+          "name": "budget202609!group-leftover-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!budget-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!sum-amount-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!leftover-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": false,
+          "name": "budget202609!carryover-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": null,
+          "name": "budget202609!goal-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": null,
+          "name": "budget202609!long-goal-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!budget-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!sum-amount-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!leftover-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": false,
+          "name": "budget202609!carryover-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": null,
+          "name": "budget202609!goal-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": null,
+          "name": "budget202609!long-goal-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": 3000,
+          "name": "budget202609!budget-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!sum-amount-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 3000,
+          "name": "budget202609!leftover-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": false,
+          "name": "budget202609!carryover-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": null,
+          "name": "budget202609!goal-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": null,
+          "name": "budget202609!long-goal-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!group-budget-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!group-sum-amount-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!group-leftover-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!budget-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!sum-amount-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!leftover-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": false,
+          "name": "budget202609!carryover-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": null,
+          "name": "budget202609!goal-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": null,
+          "name": "budget202609!long-goal-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!group-budget-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!group-sum-amount-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!group-leftover-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!budget-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!sum-amount-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!leftover-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": false,
+          "name": "budget202609!carryover-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": null,
+          "name": "budget202609!goal-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": null,
+          "name": "budget202609!long-goal-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!total-income"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!sum-amount-64a6420f-2db8-454c-ada2-8da68aa83342"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!sum-amount-3c1699a5-522a-435e-86dc-93d900a14f0e"
+        },
+        {
+          "value": 0,
+          "name": "budget202609!sum-amount-506e8d9d-7ed0-4397-84e4-07a9185dc6b2"
+        }
+      ],
+      "2026-10": [
+        {
+          "value": null,
+          "name": "budget202610!available-funds"
+        },
+        {
+          "value": null,
+          "name": "budget202610!last-month-overspent"
+        },
+        {
+          "value": null,
+          "name": "budget202610!buffered"
+        },
+        {
+          "value": 1200,
+          "name": "budget202610!total-budgeted"
+        },
+        {
+          "value": null,
+          "name": "budget202610!to-budget"
+        },
+        {
+          "value": null,
+          "name": "budget202610!from-last-month"
+        },
+        {
+          "value": 17000,
+          "name": "budget202610!total-income"
+        },
+        {
+          "value": -1000,
+          "name": "budget202610!total-spent"
+        },
+        {
+          "value": 200,
+          "name": "budget202610!total-leftover"
+        },
+        {
+          "value": 1200,
+          "name": "budget202610!group-budget-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": -1000,
+          "name": "budget202610!group-sum-amount-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 200,
+          "name": "budget202610!group-leftover-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 1000,
+          "name": "budget202610!budget-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!sum-amount-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 1000,
+          "name": "budget202610!leftover-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": false,
+          "name": "budget202610!carryover-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": null,
+          "name": "budget202610!goal-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": null,
+          "name": "budget202610!long-goal-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!budget-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!sum-amount-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!leftover-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": true,
+          "name": "budget202610!carryover-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": null,
+          "name": "budget202610!goal-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": null,
+          "name": "budget202610!long-goal-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": 200,
+          "name": "budget202610!budget-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": -1000,
+          "name": "budget202610!sum-amount-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": -800,
+          "name": "budget202610!leftover-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": true,
+          "name": "budget202610!carryover-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": null,
+          "name": "budget202610!goal-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": null,
+          "name": "budget202610!long-goal-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!group-budget-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!group-sum-amount-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!group-leftover-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!budget-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!sum-amount-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!leftover-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": false,
+          "name": "budget202610!carryover-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": null,
+          "name": "budget202610!goal-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": null,
+          "name": "budget202610!long-goal-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!group-budget-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!group-sum-amount-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!group-leftover-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!budget-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!sum-amount-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!leftover-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": false,
+          "name": "budget202610!carryover-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": null,
+          "name": "budget202610!goal-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": null,
+          "name": "budget202610!long-goal-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 17000,
+          "name": "budget202610!total-income"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!sum-amount-64a6420f-2db8-454c-ada2-8da68aa83342"
+        },
+        {
+          "value": 0,
+          "name": "budget202610!sum-amount-3c1699a5-522a-435e-86dc-93d900a14f0e"
+        },
+        {
+          "value": 17000,
+          "name": "budget202610!sum-amount-506e8d9d-7ed0-4397-84e4-07a9185dc6b2"
+        }
+      ],
+      "2026-11": [
+        {
+          "value": null,
+          "name": "budget202611!available-funds"
+        },
+        {
+          "value": null,
+          "name": "budget202611!last-month-overspent"
+        },
+        {
+          "value": null,
+          "name": "budget202611!buffered"
+        },
+        {
+          "value": 1200,
+          "name": "budget202611!total-budgeted"
+        },
+        {
+          "value": null,
+          "name": "budget202611!to-budget"
+        },
+        {
+          "value": null,
+          "name": "budget202611!from-last-month"
+        },
+        {
+          "value": -213,
+          "name": "budget202611!total-income"
+        },
+        {
+          "value": 5200,
+          "name": "budget202611!total-spent"
+        },
+        {
+          "value": -14400,
+          "name": "budget202611!total-leftover"
+        },
+        {
+          "value": 1200,
+          "name": "budget202611!group-budget-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": -4800,
+          "name": "budget202611!group-sum-amount-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": -4400,
+          "name": "budget202611!group-leftover-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 200,
+          "name": "budget202611!budget-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202611!sum-amount-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 200,
+          "name": "budget202611!leftover-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": false,
+          "name": "budget202611!carryover-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": null,
+          "name": "budget202611!goal-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": null,
+          "name": "budget202611!long-goal-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 500,
+          "name": "budget202611!budget-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": -1700,
+          "name": "budget202611!sum-amount-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": -1200,
+          "name": "budget202611!leftover-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": true,
+          "name": "budget202611!carryover-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": null,
+          "name": "budget202611!goal-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": null,
+          "name": "budget202611!long-goal-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": 1000,
+          "name": "budget202611!budget-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": -4800,
+          "name": "budget202611!sum-amount-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": -4600,
+          "name": "budget202611!leftover-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": false,
+          "name": "budget202611!carryover-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": null,
+          "name": "budget202611!goal-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": null,
+          "name": "budget202611!long-goal-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 0,
+          "name": "budget202611!group-budget-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 10000,
+          "name": "budget202611!group-sum-amount-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": -10000,
+          "name": "budget202611!group-leftover-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202611!budget-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 10000,
+          "name": "budget202611!sum-amount-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": -10000,
+          "name": "budget202611!leftover-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": false,
+          "name": "budget202611!carryover-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": null,
+          "name": "budget202611!goal-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": null,
+          "name": "budget202611!long-goal-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202611!group-budget-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": -400,
+          "name": "budget202611!group-sum-amount-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": -400,
+          "name": "budget202611!group-leftover-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202611!budget-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": -400,
+          "name": "budget202611!sum-amount-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": -400,
+          "name": "budget202611!leftover-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": false,
+          "name": "budget202611!carryover-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": null,
+          "name": "budget202611!goal-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": null,
+          "name": "budget202611!long-goal-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": -213,
+          "name": "budget202611!total-income"
+        },
+        {
+          "value": -213,
+          "name": "budget202611!sum-amount-64a6420f-2db8-454c-ada2-8da68aa83342"
+        },
+        {
+          "value": 0,
+          "name": "budget202611!sum-amount-3c1699a5-522a-435e-86dc-93d900a14f0e"
+        },
+        {
+          "value": 0,
+          "name": "budget202611!sum-amount-506e8d9d-7ed0-4397-84e4-07a9185dc6b2"
+        }
+      ],
+      "2026-12": [
+        {
+          "value": null,
+          "name": "budget202612!available-funds"
+        },
+        {
+          "value": null,
+          "name": "budget202612!last-month-overspent"
+        },
+        {
+          "value": null,
+          "name": "budget202612!buffered"
+        },
+        {
+          "value": 1200,
+          "name": "budget202612!total-budgeted"
+        },
+        {
+          "value": null,
+          "name": "budget202612!to-budget"
+        },
+        {
+          "value": null,
+          "name": "budget202612!from-last-month"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!total-income"
+        },
+        {
+          "value": -2500,
+          "name": "budget202612!total-spent"
+        },
+        {
+          "value": -1300,
+          "name": "budget202612!total-leftover"
+        },
+        {
+          "value": 1200,
+          "name": "budget202612!group-budget-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": -2500,
+          "name": "budget202612!group-sum-amount-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": -1300,
+          "name": "budget202612!group-leftover-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!budget-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": -2500,
+          "name": "budget202612!sum-amount-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": -2500,
+          "name": "budget202612!leftover-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": false,
+          "name": "budget202612!carryover-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": null,
+          "name": "budget202612!goal-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": null,
+          "name": "budget202612!long-goal-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!budget-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!sum-amount-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": -1200,
+          "name": "budget202612!leftover-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": true,
+          "name": "budget202612!carryover-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": null,
+          "name": "budget202612!goal-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": null,
+          "name": "budget202612!long-goal-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": 1200,
+          "name": "budget202612!budget-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!sum-amount-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 1200,
+          "name": "budget202612!leftover-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": false,
+          "name": "budget202612!carryover-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": null,
+          "name": "budget202612!goal-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": null,
+          "name": "budget202612!long-goal-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!group-budget-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!group-sum-amount-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!group-leftover-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!budget-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!sum-amount-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!leftover-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": false,
+          "name": "budget202612!carryover-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": null,
+          "name": "budget202612!goal-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": null,
+          "name": "budget202612!long-goal-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!group-budget-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!group-sum-amount-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!group-leftover-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!budget-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!sum-amount-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!leftover-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": false,
+          "name": "budget202612!carryover-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": null,
+          "name": "budget202612!goal-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": null,
+          "name": "budget202612!long-goal-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!total-income"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!sum-amount-64a6420f-2db8-454c-ada2-8da68aa83342"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!sum-amount-3c1699a5-522a-435e-86dc-93d900a14f0e"
+        },
+        {
+          "value": 0,
+          "name": "budget202612!sum-amount-506e8d9d-7ed0-4397-84e4-07a9185dc6b2"
+        }
+      ],
+      "2027-01": [
+        {
+          "value": null,
+          "name": "budget202701!available-funds"
+        },
+        {
+          "value": null,
+          "name": "budget202701!last-month-overspent"
+        },
+        {
+          "value": null,
+          "name": "budget202701!buffered"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!total-budgeted"
+        },
+        {
+          "value": null,
+          "name": "budget202701!to-budget"
+        },
+        {
+          "value": null,
+          "name": "budget202701!from-last-month"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!total-income"
+        },
+        {
+          "value": 125,
+          "name": "budget202701!total-spent"
+        },
+        {
+          "value": 125,
+          "name": "budget202701!total-leftover"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!group-budget-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 125,
+          "name": "budget202701!group-sum-amount-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 125,
+          "name": "budget202701!group-leftover-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!budget-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!sum-amount-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!leftover-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": false,
+          "name": "budget202701!carryover-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": null,
+          "name": "budget202701!goal-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": null,
+          "name": "budget202701!long-goal-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!budget-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!sum-amount-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": -1200,
+          "name": "budget202701!leftover-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": true,
+          "name": "budget202701!carryover-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": null,
+          "name": "budget202701!goal-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": null,
+          "name": "budget202701!long-goal-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!budget-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 125,
+          "name": "budget202701!sum-amount-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 125,
+          "name": "budget202701!leftover-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": false,
+          "name": "budget202701!carryover-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": null,
+          "name": "budget202701!goal-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": null,
+          "name": "budget202701!long-goal-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!group-budget-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!group-sum-amount-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!group-leftover-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!budget-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!sum-amount-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!leftover-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": false,
+          "name": "budget202701!carryover-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": null,
+          "name": "budget202701!goal-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": null,
+          "name": "budget202701!long-goal-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!group-budget-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!group-sum-amount-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!group-leftover-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!budget-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!sum-amount-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!leftover-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": false,
+          "name": "budget202701!carryover-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": null,
+          "name": "budget202701!goal-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": null,
+          "name": "budget202701!long-goal-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!total-income"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!sum-amount-64a6420f-2db8-454c-ada2-8da68aa83342"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!sum-amount-3c1699a5-522a-435e-86dc-93d900a14f0e"
+        },
+        {
+          "value": 0,
+          "name": "budget202701!sum-amount-506e8d9d-7ed0-4397-84e4-07a9185dc6b2"
+        }
+      ],
+      "2027-02": [
+        {
+          "value": null,
+          "name": "budget202702!available-funds"
+        },
+        {
+          "value": null,
+          "name": "budget202702!last-month-overspent"
+        },
+        {
+          "value": null,
+          "name": "budget202702!buffered"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!total-budgeted"
+        },
+        {
+          "value": null,
+          "name": "budget202702!to-budget"
+        },
+        {
+          "value": null,
+          "name": "budget202702!from-last-month"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!total-income"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!total-spent"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!total-leftover"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!group-budget-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!group-sum-amount-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!group-leftover-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!budget-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!sum-amount-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!leftover-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": false,
+          "name": "budget202702!carryover-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": null,
+          "name": "budget202702!goal-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": null,
+          "name": "budget202702!long-goal-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!budget-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!sum-amount-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": -1200,
+          "name": "budget202702!leftover-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": true,
+          "name": "budget202702!carryover-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": null,
+          "name": "budget202702!goal-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": null,
+          "name": "budget202702!long-goal-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!budget-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!sum-amount-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!leftover-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": false,
+          "name": "budget202702!carryover-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": null,
+          "name": "budget202702!goal-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": null,
+          "name": "budget202702!long-goal-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!group-budget-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!group-sum-amount-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!group-leftover-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!budget-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!sum-amount-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!leftover-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": false,
+          "name": "budget202702!carryover-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": null,
+          "name": "budget202702!goal-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": null,
+          "name": "budget202702!long-goal-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!group-budget-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!group-sum-amount-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!group-leftover-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!budget-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!sum-amount-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!leftover-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": false,
+          "name": "budget202702!carryover-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": null,
+          "name": "budget202702!goal-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": null,
+          "name": "budget202702!long-goal-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!total-income"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!sum-amount-64a6420f-2db8-454c-ada2-8da68aa83342"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!sum-amount-3c1699a5-522a-435e-86dc-93d900a14f0e"
+        },
+        {
+          "value": 0,
+          "name": "budget202702!sum-amount-506e8d9d-7ed0-4397-84e4-07a9185dc6b2"
+        }
+      ],
+      "2027-03": [
+        {
+          "value": null,
+          "name": "budget202703!available-funds"
+        },
+        {
+          "value": null,
+          "name": "budget202703!last-month-overspent"
+        },
+        {
+          "value": null,
+          "name": "budget202703!buffered"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!total-budgeted"
+        },
+        {
+          "value": null,
+          "name": "budget202703!to-budget"
+        },
+        {
+          "value": null,
+          "name": "budget202703!from-last-month"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!total-income"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!total-spent"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!total-leftover"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!group-budget-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!group-sum-amount-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!group-leftover-cdf3e63a-4372-452e-b0ae-893efa976265"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!budget-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!sum-amount-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!leftover-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": false,
+          "name": "budget202703!carryover-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": null,
+          "name": "budget202703!goal-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": null,
+          "name": "budget202703!long-goal-84afd06e-255f-4246-bd00-89965986f788"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!budget-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!sum-amount-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": -1200,
+          "name": "budget202703!leftover-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": true,
+          "name": "budget202703!carryover-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": null,
+          "name": "budget202703!goal-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": null,
+          "name": "budget202703!long-goal-a7c125cf-236e-4d94-8e4c-8b2cdf69569b"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!budget-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!sum-amount-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!leftover-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": false,
+          "name": "budget202703!carryover-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": null,
+          "name": "budget202703!goal-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": null,
+          "name": "budget202703!long-goal-18c4cef2-d782-4544-a460-7c04c275a581"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!group-budget-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!group-sum-amount-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!group-leftover-e29b4019-d83b-48be-98a9-7ace287b2869"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!budget-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!sum-amount-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!leftover-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": false,
+          "name": "budget202703!carryover-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": null,
+          "name": "budget202703!goal-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": null,
+          "name": "budget202703!long-goal-95610153-0d9b-4abd-b817-bdc32291a737"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!group-budget-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!group-sum-amount-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!group-leftover-987dfc68-5882-472c-87b6-40a282c4d269"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!budget-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!sum-amount-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!leftover-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": false,
+          "name": "budget202703!carryover-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": null,
+          "name": "budget202703!goal-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": null,
+          "name": "budget202703!long-goal-42250427-aac5-4179-b77d-247994a381a2"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!total-income"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!sum-amount-64a6420f-2db8-454c-ada2-8da68aa83342"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!sum-amount-3c1699a5-522a-435e-86dc-93d900a14f0e"
+        },
+        {
+          "value": 0,
+          "name": "budget202703!sum-amount-506e8d9d-7ed0-4397-84e4-07a9185dc6b2"
+        }
+      ]
+    }
+  },
+  "cases": [
+    {
+      "options": {
+        "startDate": "2026-10-01",
+        "endDate": "2027-03-31"
+      },
+      "expected": {
+        "intervalData": [
+          {
+            "date": "2026-10",
+            "budgeted": 1200,
+            "spent": -1000,
+            "balance": 3200,
+            "overspendingAdjustment": 0
+          },
+          {
+            "date": "2026-11",
+            "budgeted": 1200,
+            "spent": -5413,
+            "balance": -4013,
+            "overspendingAdjustment": 0
+          },
+          {
+            "date": "2026-12",
+            "budgeted": 1200,
+            "spent": -2500,
+            "balance": -1100,
+            "overspendingAdjustment": 5000
+          },
+          {
+            "date": "2027-01",
+            "budgeted": 0,
+            "spent": 125,
+            "balance": 1325,
+            "overspendingAdjustment": 2500
+          },
+          {
+            "date": "2027-02",
+            "budgeted": 0,
+            "spent": 0,
+            "balance": 125,
+            "overspendingAdjustment": 0
+          },
+          {
+            "date": "2027-03",
+            "budgeted": 0,
+            "spent": 0,
+            "balance": 125,
+            "overspendingAdjustment": 0
+          }
+        ],
+        "startDate": "2026-10-01",
+        "endDate": "2027-03-31",
+        "totalBudgeted": 3600,
+        "totalSpent": -8788,
+        "totalOverspendingAdjustment": 7500,
+        "finalOverspendingAdjustment": 0
+      },
+      "csv": "Month,Budgeted,Spent,Overspending Adjustment,Balance\n2026-10,12,-10,0,32\n2026-11,12,-54.13,0,-40.13\n2026-12,12,-25,50,-11\n2027-01,0,1.25,25,13.25\n2027-02,0,0,0,1.25\n2027-03,0,0,0,1.25\n"
+    },
+    {
+      "options": {
+        "startDate": "2026-11-01",
+        "endDate": "2026-11-30",
+        "conditions": [
+          {
+            "field": "category",
+            "op": "is",
+            "value": "18c4cef2-d782-4544-a460-7c04c275a581"
+          }
+        ]
+      },
+      "expected": {
+        "intervalData": [
+          {
+            "date": "2026-11",
+            "budgeted": 1000,
+            "spent": -4800,
+            "balance": -4600,
+            "overspendingAdjustment": 0
+          }
+        ],
+        "startDate": "2026-11-01",
+        "endDate": "2026-11-30",
+        "totalBudgeted": 1000,
+        "totalSpent": -4800,
+        "totalOverspendingAdjustment": 0,
+        "finalOverspendingAdjustment": -4600
+      },
+      "csv": "Month,Budgeted,Spent,Overspending Adjustment,Balance\n2026-11,10,-48,0,-46\n"
+    },
+    {
+      "options": {
+        "startDate": "2026-12-01",
+        "endDate": "2027-03-31",
+        "conditions": [
+          {
+            "field": "category",
+            "op": "is",
+            "value": "84afd06e-255f-4246-bd00-89965986f788"
+          }
+        ]
+      },
+      "expected": {
+        "intervalData": [
+          {
+            "date": "2026-12",
+            "budgeted": 0,
+            "spent": -2500,
+            "balance": -2300,
+            "overspendingAdjustment": 0
+          },
+          {
+            "date": "2027-01",
+            "budgeted": 0,
+            "spent": 0,
+            "balance": 0,
+            "overspendingAdjustment": 2500
+          },
+          {
+            "date": "2027-02",
+            "budgeted": 0,
+            "spent": 0,
+            "balance": 0,
+            "overspendingAdjustment": 0
+          },
+          {
+            "date": "2027-03",
+            "budgeted": 0,
+            "spent": 0,
+            "balance": 0,
+            "overspendingAdjustment": 0
+          }
+        ],
+        "startDate": "2026-12-01",
+        "endDate": "2027-03-31",
+        "totalBudgeted": 0,
+        "totalSpent": -2500,
+        "totalOverspendingAdjustment": 2500,
+        "finalOverspendingAdjustment": 0
+      },
+      "csv": "Month,Budgeted,Spent,Overspending Adjustment,Balance\n2026-12,0,-25,0,-23\n2027-01,0,0,25,0\n2027-02,0,0,0,0\n2027-03,0,0,0,0\n"
+    },
+    {
+      "options": {
+        "startDate": "2026-10-01",
+        "endDate": "2027-03-31",
+        "showHiddenCategories": true
+      },
+      "expected": {
+        "intervalData": [
+          {
+            "date": "2026-10",
+            "budgeted": 1200,
+            "spent": -1000,
+            "balance": 3200,
+            "overspendingAdjustment": 0
+          },
+          {
+            "date": "2026-11",
+            "budgeted": 1700,
+            "spent": -7113,
+            "balance": -5213,
+            "overspendingAdjustment": 0
+          },
+          {
+            "date": "2026-12",
+            "budgeted": 1200,
+            "spent": -2500,
+            "balance": -2300,
+            "overspendingAdjustment": 5000
+          },
+          {
+            "date": "2027-01",
+            "budgeted": 0,
+            "spent": 125,
+            "balance": 125,
+            "overspendingAdjustment": 2500
+          },
+          {
+            "date": "2027-02",
+            "budgeted": 0,
+            "spent": 0,
+            "balance": -1075,
+            "overspendingAdjustment": 0
+          },
+          {
+            "date": "2027-03",
+            "budgeted": 0,
+            "spent": 0,
+            "balance": -1200,
+            "overspendingAdjustment": 0
+          }
+        ],
+        "startDate": "2026-10-01",
+        "endDate": "2027-03-31",
+        "totalBudgeted": 4100,
+        "totalSpent": -10488,
+        "totalOverspendingAdjustment": 7500,
+        "finalOverspendingAdjustment": 0
+      },
+      "csv": "Month,Budgeted,Spent,Overspending Adjustment,Balance\n2026-10,12,-10,0,32\n2026-11,17,-71.13,0,-52.13\n2026-12,12,-25,50,-23\n2027-01,0,1.25,25,1.25\n2027-02,0,0,0,-10.75\n2027-03,0,0,0,-12\n"
+    }
+  ],
+  "details": {
+    "month": "2026-11",
+    "query": {
+      "tableOptions": {
+        "splits": "inline"
+      },
+      "filterExpressions": [
+        {
+          "category": {
+            "$oneof": [
+              "84afd06e-255f-4246-bd00-89965986f788",
+              "18c4cef2-d782-4544-a460-7c04c275a581",
+              "42250427-aac5-4179-b77d-247994a381a2",
+              "64a6420f-2db8-454c-ada2-8da68aa83342"
+            ]
+          },
+          "account.offbudget": false,
+          "is_parent": false,
+          "tombstone": false
+        },
+        {
+          "date": {
+            "$gte": "2026-11-01"
+          }
+        },
+        {
+          "date": {
+            "$lte": "2026-11-30"
+          }
+        }
+      ],
+      "selectExpressions": [
+        "id",
+        "date",
+        "amount",
+        "account",
+        "category",
+        "payee",
+        "notes"
+      ],
+      "groupExpressions": [],
+      "orderExpressions": [],
+      "calculation": false,
+      "rawMode": false,
+      "withDead": false,
+      "validateRefs": true,
+      "limit": null,
+      "offset": null,
+      "table": "transactions"
+    },
+    "rows": [
+      {
+        "id": "33340000-0000-4000-8000-000000000003",
+        "date": "2026-11-02",
+        "amount": -1200,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "notes": null
+      },
+      {
+        "id": "33340000-0000-4000-8000-000000000004",
+        "date": "2026-11-03",
+        "amount": 200,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "notes": "Refund"
+      },
+      {
+        "id": "33340000-0000-4000-8000-000000000007",
+        "date": "2026-11-06",
+        "amount": -400,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "42250427-aac5-4179-b77d-247994a381a2",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "notes": null
+      },
+      {
+        "id": "33340000-0000-4000-8000-000000000009",
+        "date": "2026-11-07",
+        "amount": -500,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "notes": null
+      },
+      {
+        "id": "33340000-0000-4000-8000-000000000012",
+        "date": "2026-11-08",
+        "amount": -2500,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "payee": "a8f5803b-f77c-48d5-9e8b-41188ceb6135",
+        "notes": "Boundary transfer"
+      },
+      {
+        "id": "33340000-0000-4000-8000-000000000013",
+        "date": "2026-11-20",
+        "amount": -800,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "notes": "Future dated recorded entry"
+      },
+      {
+        "id": "36360000-0000-4000-8000-000000000003",
+        "date": "2026-11-23",
+        "amount": -213,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "64a6420f-2db8-454c-ada2-8da68aa83342",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "notes": "Supported source expense-category/income-group membership"
+      }
+    ]
+  }
+}

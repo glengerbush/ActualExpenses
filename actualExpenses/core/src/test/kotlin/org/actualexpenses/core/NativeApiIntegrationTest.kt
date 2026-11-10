@@ -2509,4 +2509,37 @@ class NativeApiIntegrationTest {
             )
         }
     }
+    @Test
+    fun `budget analysis preserves source results and companion state over plain HTTP`() {
+        Server().use { server ->
+            val fixture =
+                Path.of("../../actualBudget/tests/fixtures/budget-analysis-tracking-source-26.10")
+            val source =
+                JsonParser.parseString(Files.readString(Path.of("$fixture.json"))).asJsonObject
+            val stage = server.upload(Files.readAllBytes(Path.of("$fixture.zip")))
+            if (stage["status"].asString == "ready")
+                server.post("/imports/${stage["id"].asString}/activate", "{}")
+            val root = "/budgets/${stage["budget_id"].asString}"
+            val case = source.getAsJsonArray("cases")[0].asJsonObject
+            val account = source.getAsJsonObject("ids")["checking"].asString
+            val before = server.get("$root/companion?account_id=$account")
+            val query =
+                JsonObject().apply {
+                    addProperty("version", 1)
+                    addProperty("as_of", "2026-11-09")
+                    add("options", case["options"])
+                }
+            val projection = server.post("$root/reports/budget-analysis", query.toString(), 200)
+            assertFalse(projection["recorded"].asBoolean)
+            assertEquals("tracking", projection["method"].asString)
+            assertEquals(case["expected"], projection["result"])
+            assertEquals(before, server.get("$root/companion?account_id=$account"))
+            assertTrue(
+                server
+                    .post("$root/reports/budget-analysis", query.toString(), 200)
+                    .getAsJsonObject("cache")["hit"]
+                    .asBoolean
+            )
+        }
+    }
 }

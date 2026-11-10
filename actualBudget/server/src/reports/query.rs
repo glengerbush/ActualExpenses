@@ -1,6 +1,9 @@
+mod analysis;
 mod forecast;
+mod revision_cache;
 use super::*;
 mod custom;
+pub(super) use analysis::router as analysis_router;
 use chrono::{Datelike, Duration, NaiveDate};
 pub(super) use forecast::router as forecast_router;
 use rusqlite::{params_from_iter, types::Value as SqlValue};

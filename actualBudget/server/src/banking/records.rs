@@ -86,6 +86,19 @@ pub(super) fn install_remote(
                 "Provider must return at most 500 accounts",
             )
         })?;
+    let mut known=db.prepare("SELECT remote_connection_id,remote_id FROM bank_remote_accounts WHERE budget_id=?1 AND connection_id=?2")?.query_map(params![b,connection],|r|Ok((r.get::<_,String>(0)?,r.get::<_,String>(1)?)))?.collect::<Result<Vec<_>,_>>()?;
+    known.extend(source.iter().filter_map(|a| {
+        a["id"].as_str().map(|id| {
+            (
+                a["conn_id"]
+                    .as_str()
+                    .or_else(|| a["org"]["id"].as_str())
+                    .unwrap_or("legacy")
+                    .to_owned(),
+                id.to_owned(),
+            )
+        })
+    }));
     let mut errors = vec![];
     if let Some(list) = raw.get("errlist") {
         let list = list.as_array().filter(|l| l.len() <= 1000).ok_or_else(|| {
@@ -112,15 +125,17 @@ pub(super) fn install_remote(
                     "SimpleFIN reported a connection or account problem. Review the provider and retry",
                 )
             };
-            // Scope IDs are copied only when they correspond to an actual account;
-            // arbitrary diagnostic text is never copied into public state or receipts.
-            let account = e["account_id"]
-                .as_str()
-                .and_then(|id| source.iter().find(|a| a["id"] == id))
-                .and_then(|a| a["id"].as_str());
+            // A failed account may be omitted from this response. Retained
+            // identities still authenticate its scope; arbitrary diagnostic
+            // IDs/messages never become public state.
+            let account = e["account_id"].as_str().filter(|id| {
+                known.iter().any(|(conn, account)| {
+                    account == id && e["conn_id"].as_str().is_none_or(|c| c == conn)
+                })
+            });
             let conn = e["conn_id"]
                 .as_str()
-                .filter(|id| source.iter().any(|a| a["conn_id"] == *id));
+                .filter(|id| known.iter().any(|(conn, _)| conn == id));
             errors.push(json!({"code":public,"message":message,"remote_id":account,"remote_connection_id":conn}));
         }
     }

@@ -228,23 +228,28 @@ impl Runner {
                 matched.push(rule.id.clone());
                 if expressions.is_none() && rule.actions.iter().any(super::expressions::calculated)
                 {
-                    expressions = Some(super::expressions::Context::new(
-                        db,
-                        b,
-                        input,
-                        stored,
-                        account_override,
-                    )?);
-                    expressions.as_mut().unwrap().prefetch(
-                        db,
-                        b,
-                        self.rules.iter().filter(|rule| {
-                            !self.indexed || super::expressions::candidate(rule, input)
-                        }),
-                    )?;
+                    expressions = Some(self.work.expressions.read(db, || {
+                        let mut context = super::expressions::Context::new(
+                            db,
+                            b,
+                            input,
+                            stored,
+                            account_override,
+                        )?;
+                        context.prefetch(
+                            db,
+                            b,
+                            self.rules.iter().filter(|rule| {
+                                !self.indexed || super::expressions::candidate(rule, input)
+                            }),
+                        )?;
+                        Ok(context)
+                    })?);
                 }
                 if let Some(context) = expressions.as_mut() {
-                    context.begin_rule(db, b, &row, rule)?;
+                    self.work
+                        .expressions
+                        .read(db, || context.begin_rule(db, b, &row, rule))?;
                 }
                 row = super::actions::apply(
                     db,

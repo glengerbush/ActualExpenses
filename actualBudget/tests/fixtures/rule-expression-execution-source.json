@@ -1239,6 +1239,68 @@
       },
       "error": null,
       "payee_name": null
+    },
+    {
+      "name": "nested balance lookup and conditional text",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=CONCATENATE(\"Balance \", balance, IF(BALANCE_OF(\"Checking\")=BALANCE_OF(\"79a2f9e2-41b3-4f2b-a751-8937604f5857\"), \"\", \" mismatch\"))"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000111",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=CONCATENATE(\"Balance \", balance, IF(BALANCE_OF(\"Checking\")=BALANCE_OF(\"79a2f9e2-41b3-4f2b-a751-8937604f5857\"), \"\", \" mismatch\"))"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "Balance 10600 mismatch",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
     }
   ]
 }

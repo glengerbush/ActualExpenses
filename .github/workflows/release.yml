@@ -264,6 +264,12 @@ jobs:
           npm --prefix actualBudget/web run test:ynab-source
           npm --prefix actualBudget/web run test:public-api-source
           npm --prefix actualBudget/web run test:public-api-upgrade
+          npm --prefix actualBudget/web run test:rule-context-source
+          npm --prefix actualBudget/web run test:rule-context-limits
+          npm --prefix actualBudget/web run test:rule-template-limits
+          node actualBudget/tools/generate-rule-expressions-source.mjs --execution --check
+          node actualBudget/tools/check-rule-expressions-http.mjs --execution
+          node actualBudget/tools/check-formula-http.mjs --limits
           python3 actualBudget/tools/generate-v5-receipts.py --check
           python3 -m venv "$RUNNER_TEMP/contract-check"
           "$RUNNER_TEMP/contract-check/bin/pip" install jsonschema==4.23.0

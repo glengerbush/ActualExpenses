@@ -1,0 +1,10 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "count": 60000,
+  "account": "716cc8d4-bd78-4f29-a965-11efdf32d99b",
+  "total": -60000,
+  "archive": {
+    "filename": "rule-context-work-source-26.10.zip",
+    "sha256": "323087cae395986a8d89a92d4ec5f9fdd38940d0cc44b4055f9c0a01af1551b6"
+  }
+}

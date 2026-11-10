@@ -61,7 +61,7 @@ try {
           op: "set",
           field: "notes",
           value: "",
-          options: { formula: '=CONCAT("bounded", " calculation")' },
+          options: { formula: '=CONCATENATE("bounded", " calculation")' },
         })),
       ],
     },

@@ -23,6 +23,8 @@
     "test:rule-expressions-browser": "node tests/rule-expressions-browser.mjs",
     "test:rule-expressions-native": "python3 ../tools/check-rule-expression-recovery.py",
     "test:rule-template-limits": "node ../tools/check-rule-template-limits-http.mjs",
+    "test:rule-context-limits": "node ../tools/check-rule-context-limits-http.mjs",
+    "test:rule-context-source": "node ../tools/generate-rule-context-work-source.mjs --check",
     "test:rule-expression-workflows-source": "node ../tools/generate-transaction-import-rules-source.mjs --expressions --check && node ../tools/generate-forecast-source.mjs --expressions --check && node ../tools/generate-schedule-financial.mjs --expressions --check && node ../tools/generate-budget-template-financial.mjs --expressions --check",
     "test:rule-expression-workflows-api": "node ../tools/check-transaction-import-rules-http.mjs --expressions && node tests/forecast-api.mjs --expressions"
   },

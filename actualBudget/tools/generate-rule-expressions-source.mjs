@@ -554,6 +554,15 @@ try {
         changes: { amount: Number.MAX_SAFE_INTEGER },
         actions: [split(1, "formula", '="0.5"'), split(2, "remainder")],
       },
+      {
+        name: "nested balance lookup and conditional text",
+        actions: [
+          formula(
+            "notes",
+            `=CONCATENATE("Balance ", balance, IF(BALANCE_OF("Checking")=BALANCE_OF("${ids.checking}"), "", " mismatch"))`,
+          ),
+        ],
+      },
     );
   }
   function normalized(value) {

@@ -1,32 +1,80 @@
 //! Source Action conversions run in the bounded trusted engine. Database reads
 //! prepare context from the original transaction, never from a mutated amount.
 use super::*;
+use std::sync::{
+    Arc,
+    atomic::{AtomicUsize, Ordering},
+};
 use std::time::{Duration, Instant};
 
+const SQL_STEPS: usize = 32_000_000;
+struct ResetProgress<'a>(&'a Connection);
+impl Drop for ResetProgress<'_> {
+    fn drop(&mut self) {
+        let _ = self.0.progress_handler(0, None::<fn() -> bool>);
+    }
+}
 pub struct Budget {
     remaining: Duration,
+    sql_steps: Arc<AtomicUsize>,
 }
 impl Default for Budget {
     fn default() -> Self {
         Self {
             remaining: Duration::from_secs(10),
+            sql_steps: Arc::default(),
         }
     }
 }
 impl Budget {
-    fn run(&mut self, input: &Value) -> Result<Value, Error> {
-        if self.remaining.is_zero() || input.to_string().len() > 262144 {
+    fn check(&self) -> Result<(), Error> {
+        if self.sql_steps.load(Ordering::Relaxed) >= SQL_STEPS {
+            return Err(Error::invalid(
+                "Calculated rule database work limit reached; select fewer transactions",
+            ));
+        }
+        if self.remaining.is_zero() {
             return Err(Error::invalid("Calculated rule work limit reached"));
         }
+        Ok(())
+    }
+    fn timed<T>(&mut self, work: impl FnOnce() -> Result<T, Error>) -> Result<T, Error> {
+        self.check()?;
         let start = Instant::now();
-        let result = crate::formulas::rule_actions(input);
-        let elapsed = start.elapsed();
-        let exhausted = elapsed > self.remaining;
-        self.remaining = self.remaining.saturating_sub(elapsed);
-        if exhausted {
-            return Err(Error::invalid("Calculated rule work limit reached"));
-        }
+        let result = work();
+        self.remaining = self.remaining.saturating_sub(start.elapsed());
+        self.check()?;
         result
+    }
+    /// Only scope context reads here. Rule evaluation does not run inside the
+    /// report/public-query progress handlers, and these reads install no hooks.
+    pub(super) fn read<T>(
+        &mut self,
+        db: &Connection,
+        work: impl FnOnce() -> Result<T, Error>,
+    ) -> Result<T, Error> {
+        self.check()?;
+        let steps = self.sql_steps.clone();
+        let deadline = Instant::now() + self.remaining;
+        db.progress_handler(
+            1000,
+            Some(move || {
+                steps.fetch_add(1000, Ordering::Relaxed) + 1000 >= SQL_STEPS
+                    || Instant::now() >= deadline
+            }),
+        )?;
+        let reset = ResetProgress(db);
+        let result = self.timed(work);
+        drop(reset);
+        result
+    }
+    fn run(&mut self, input: &Value) -> Result<Value, Error> {
+        self.timed(|| {
+            if input.to_string().len() > 262144 {
+                return Err(Error::invalid("Calculated rule work limit reached"));
+            }
+            crate::formulas::rule_actions(input)
+        })
     }
 }
 pub fn calculated(a: &Value) -> bool {

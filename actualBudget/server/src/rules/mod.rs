@@ -9,16 +9,16 @@ pub(crate) fn template_actions(
     budget: &mut ExpressionBudget,
 ) -> Result<serde_json::Value, crate::error::Error> {
     engine::validate_with_budget(rule, budget)?;
-    let mut context = rule
-        .actions
-        .iter()
-        .any(expressions::calculated)
-        .then(|| expressions::Context::new(db, b, row, false, None))
-        .transpose()?;
-    if let Some(context) = context.as_mut() {
-        context.prefetch(db, b, std::iter::once(rule))?;
-        context.begin_rule(db, b, row, rule)?;
-    }
+    let mut context = if rule.actions.iter().any(expressions::calculated) {
+        Some(budget.read(db, || {
+            let mut context = expressions::Context::new(db, b, row, false, None)?;
+            context.prefetch(db, b, std::iter::once(rule))?;
+            context.begin_rule(db, b, row, rule)?;
+            Ok(context)
+        })?)
+    } else {
+        None
+    };
     actions::apply(db, b, row, rule, context.as_mut(), budget)
 }
 mod conditions;

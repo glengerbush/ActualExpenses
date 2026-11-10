@@ -35,7 +35,9 @@ fn failure(ctx: &Ctx<'_>, error: rquickjs::Error) -> String {
 fn runtime() -> Result<Runtime, String> {
     let rt = Runtime::new().map_err(|e| e.to_string())?;
     rt.set_memory_limit(HEAP);
-    rt.set_max_stack_size(512 * 1024);
+    // Nested supported spreadsheet calls need more than512KiB in QuickJS.
+    // Keep an explicit stack bound alongside the heap and interrupt limits.
+    rt.set_max_stack_size(1024 * 1024);
     let deadline = Instant::now() + Duration::from_secs(2);
     rt.set_interrupt_handler(Some(Box::new(move || Instant::now() > deadline)));
     Ok(rt)

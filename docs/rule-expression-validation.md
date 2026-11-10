@@ -493,3 +493,54 @@ limits and nonfinite split semantics remain open42 work; this checkpoint does
 not claim a complete request-wide wall-clock or database-work bound.
 Rust formatting, changed-tool formatting and warnings-denied Clippy pass
 (`/tmp/rule-template-limits-clippy.log`).
+
+## Bounded context reads and nested formulas
+
+Calculated context creation, balance prefetch and per-rule preparation now share
+the existing ten-second expression-work allowance. Scoped SQLite progress hooks
+also share a32-million VM-step counter and interrupt at the remaining deadline.
+The guard clears on every exit before later ledger/history queries. Call-site
+review found no enclosing report/public-query progress handler in these paths;
+the rule sandbox cannot invoke report queries. This bounds calculated context
+work, not every unrelated query in an entire API request.
+
+The new genuine Actual26.10 archive contains60000 one-unit expenses, created and
+exported through its public API. Its checksum, row count and−60000 total reproduce
+with `npm run test:rule-context-source`. The HTTP witness imports it, creates100
+zero-amount targets through the public batch API and exercises running balance
+plus named/ID account lookups. Oversized work must refuse within15s, preserve the
+ledger, account balance, checkpoint and undo history, then allow a smaller write
+whose calculated notes and immutable retry are checked.
+
+The initial witness on `6872b51` failed that deadline at58997ms
+(`/tmp/rule-context-limits-baseline-timing.log`). Its formula used unsupported
+`CONCAT`; correcting it to `CONCATENATE` made the recovery assertion expose a real
+stack-limit incompatibility. This is refusal-bound evidence, not a same-formula
+throughput benchmark. The final valid-formula witness passes at10396ms, including
+unchanged state, persisted `Balance -60000` and exact retry
+(`/tmp/rule-context-limits-final3.log`). Either the cumulative time or SQL-step
+limit may fire first; this run reached the time limit.
+
+Pinned Actual independently accepts the nested balance/conditional-text formula.
+Its appended golden case initially failed with a native stack error. Increasing
+the explicit QuickJS stack cap from512KiB to1MiB matches that source case while
+retaining the64MiB heap and two-second runtime interrupt limits. All12 execution
+fixtures reproduce and match the public API; the previous11 are unchanged.
+Evidence: `/tmp/rule-context-nested-source-check.log`,
+`/tmp/rule-context-nested-red.log`, `/tmp/rule-context-nested-green.log`.
+The large matrix memory refusal and subsequent fresh-context recovery still pass
+(`/tmp/rule-context-formula-limits.log`). The template-limit witness also now uses
+the valid function and passes (`/tmp/rule-context-template-limits.log`).
+
+Focused regressions pass for four existing-child writes/retries, both calculated
+budget-template methods and12 forecast scenarios/cache behavior
+(`/tmp/rule-context-children-regression.log`,
+`/tmp/rule-context-template-regression.log`,
+`/tmp/rule-context-forecast-regression.log`). Rust/JS formatting, warnings-denied
+Clippy (`/tmp/rule-context-final-clippy.log`) and workflow YAML parsing pass.
+Release qualification now runs the new source/resource witnesses, execution
+goldens and formula memory check. Root standards/spec review against `6872b51`
+checked guard ownership/cleanup, source parity, atomic refusal and recovery.
+
+42 remains open for nonfinite split projection semantics and final qualification.
+No additional acceptance boxes closed, push, version bump or deployment.

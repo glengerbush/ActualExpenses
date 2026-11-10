@@ -2662,4 +2662,35 @@ class NativeApiIntegrationTest {
             )
         }
     }
+    @Test
+    fun `crossover preserves source estimate and companion state over plain HTTP`() {
+        Server().use { server ->
+            val fixture = Path.of("../../actualBudget/tests/fixtures/crossover-source-26.10")
+            val source =
+                JsonParser.parseString(Files.readString(Path.of("$fixture.json"))).asJsonObject
+            val stage = server.upload(Files.readAllBytes(Path.of("$fixture.zip")))
+            if (stage["status"].asString == "ready")
+                server.post("/imports/${stage["id"].asString}/activate", "{}")
+            val root = "/budgets/${stage["budget_id"].asString}"
+            val case = source.getAsJsonArray("cases")[0].asJsonObject
+            val account = source.getAsJsonObject("ids")["checking"].asString
+            val before = server.get("$root/companion?account_id=$account")
+            val query =
+                JsonObject().apply {
+                    addProperty("version", 1)
+                    addProperty("as_of", "2026-11-09")
+                    add("options", case["options"])
+                }
+            val projection = server.post("$root/reports/crossover", query.toString(), 200)
+            assertFalse(projection["recorded"].asBoolean)
+            assertEquals(case["result"], projection["result"])
+            assertEquals(before, server.get("$root/companion?account_id=$account"))
+            assertTrue(
+                server
+                    .post("$root/reports/crossover", query.toString(), 200)
+                    .getAsJsonObject("cache")["hit"]
+                    .asBoolean
+            )
+        }
+    }
 }

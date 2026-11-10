@@ -38,6 +38,7 @@ pub fn router() -> Router<Store> {
         .merge(query::forecast_router())
         .merge(query::analysis_router())
         .merge(query::sankey_router())
+        .merge(query::crossover_router())
         .route(
             "/api/v1/budgets/{budget}/reports/drilldown",
             post(query::drilldown),

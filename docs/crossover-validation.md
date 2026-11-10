@@ -26,3 +26,13 @@ Source read: `crossover-spreadsheet.ts`, complete card/detail selection/range/sa
 Ten complete handler cases cover saved Hampel, mean, median, explicit growth/contribution/adjustment, default contribution-inclusive historical growth, first-nonzero CAGR denominator, negative growth with the complete600-month no-crossover run, no accounts (no new AQL), no expense categories and selected closed/off-budget accounts. The zero-withdrawal/no-expense case genuinely yields nonfinite `targetNestEgg`; its JSON-null representation is accompanied by explicit `nonfinite_paths`, not claimed as a valid financial target. Native will report this unsupported calculation clearly. Historical/source dates and data remain in the fixture. `/tmp/crossover38-source-check.log` reproduces all10 complete results and10 unique genuine AQL queries. Source default account hook uses the unfiltered accounts list, including closed/off-budget accounts; explicit selection must remain possible.
 
 `/tmp/crossover38-api-red.log`: real source import/activation, public duplicate, imported saved parameters and read-only registry setup succeed; first `/reports/crossover` request returns404 before product implementation. API tracer honors a supplied isolated server and uses packaging-only ZIP isolation. No runtime/UI/native success claimed yet. Projection tolerance above is a predeclared cross-runtime ceiling; actual observed differences remain to be recorded.
+
+## Root source review
+
+2026-11-10:7bbddb5 reviewed. The whole unchanged source handler receives genuine
+AQL and public-created records from the exported/reloaded archive; financial
+callbacks are not replaced. Nonfinite source results remain explicitly marked,
+not silently treated as valid zero/null estimates. Query tracing observes actual
+engine replies. Root independent `/tmp/crossover38-root-source-check.log` PASS
+all10 complete outputs/10 unique AQL queries. No source-provenance finding;
+native calculation, UI and whole38 acceptance remain open.

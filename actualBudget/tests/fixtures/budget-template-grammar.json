@@ -1,0 +1,1103 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "archive": {
+    "filename": "budget-template-grammar-26.10.zip",
+    "sha256": "fddb0b02d98f1c665e725fe6ddea05475378bbd5d0ae08bc1a785bced2fbb024",
+    "ids": {
+      "fixed": "f0988fb2-cb33-4f5b-843e-549cb45d2403",
+      "negative": "aa2cdd6c-43af-4309-b26e-93665de93e61",
+      "zero": "4c1d0caa-de15-46c4-b1af-3985623d398e",
+      "currency": "c4bf8f79-ffa6-4cfb-a729-6dcb64d1fc15",
+      "priority": "1087199a-eb4c-4979-a754-8d8f441c29ef",
+      "priority zero": "eb93ef7a-afb5-40e2-aa3f-7b72aed86978",
+      "monthly cap": "3b49e0af-3c38-48ea-a35d-b9e86b1e8ad6",
+      "cap only": "5082ca99-ae17-4e36-8d39-e1fe2e30512a",
+      "daily cap": "94a0bc1c-c574-4c61-bec0-517acf717ba6",
+      "weekly cap": "f3b0137d-d5f4-49e1-b9da-1b202b229657",
+      "held cap": "b0598ad2-9006-480d-9ed6-88edb178e29b",
+      "held cap only": "13ae76d3-babf-4ad4-ad8e-43b4c917386f",
+      "target": "d4a11fda-a211-4626-aa6d-d4649559c98d",
+      "target monthly repeat": "bc3cb76d-389d-446d-bc3a-bbc50027d954",
+      "target month interval": "7956ddf9-6f5e-4364-9612-37f1a658df42",
+      "target annual repeat": "e079f221-37e7-43f3-b0a0-f0d65020d653",
+      "target year interval": "5b6d9131-946e-4b90-84e3-b96556d62c5b",
+      "spend interval": "18c160ae-42bb-4e87-9152-a77da53eacce",
+      "spend annual": "7f12254e-5605-4b05-acd8-9f06b00eab0a",
+      "period day": "eac2a78f-7e54-4310-a4d7-4ad7c6793fb6",
+      "period days": "f5e15553-d1ff-47ef-8cc4-d87e52518034",
+      "period week": "a9279174-576a-49df-96bc-1b6c3e18dc37",
+      "period weeks": "d91e2fc3-ebda-4178-b360-07cfcd3feb4c",
+      "period months": "0e4d6dd4-aba3-4daa-8533-7cd1a37f8d86",
+      "period year": "5c7c390a-5c78-4eef-a59b-5d36671e89f3",
+      "period years": "6ea3ff72-72cf-4f04-8b8f-aa7ffbc92688",
+      "period capped": "e163007c-76de-4120-9688-a173c76c47c1",
+      "percentage category": "312c687d-26ed-4264-a12a-208b7b887967",
+      "percentage previous": "2bbfc16d-1edc-4a2f-a4a2-06ce006b72bc",
+      "percentage available": "256c6a63-f259-4237-a74b-a8aa459400ec",
+      "percentage all income": "61da336b-9ad8-473b-8049-8664ffd9a25b",
+      "schedule": "9b044616-1e13-4a90-8e7f-d7c914f7a407",
+      "schedule full": "34577dcf-e0af-435c-889c-e3e5598e2819",
+      "schedule percent": "27e6ee1b-e7ff-4bed-a053-ad236b7c76e6",
+      "schedule decrease": "23882d7d-e03d-4085-9037-246ff0679d90",
+      "schedule bracket name": "9818b1c6-83b4-4485-bd9c-fe337bcc1111",
+      "average": "2a07638a-6d2d-4a46-87d9-094cd17209f6",
+      "average short": "50b41ba5-ee01-490f-bb98-b0d816b37748",
+      "average percent": "63d545b1-c517-47b1-9858-60962627bd65",
+      "average fixed": "a12f7520-a672-452a-a41f-a7f1291614fc",
+      "copy": "7ed247d9-0449-4aa0-a443-5c426d7f07bb",
+      "copy capped": "a27d63ea-a13a-4d72-8616-400a5d1c0be7",
+      "remainder": "131e84f9-81fe-4c6c-818e-861d4cc59032",
+      "weighted remainder": "1d37d9aa-3eff-48a7-83a8-acd4a49cd682",
+      "capped remainder": "9d7d7aaf-08ab-473d-9f57-b049ab805f5c",
+      "goal": "370e63a5-bc78-4035-9999-16b83879c394",
+      "goal with template": "68a8f223-3ca9-41a0-9c4c-1b5f0fbcdd27",
+      "multiple descriptions": "6703fa9d-a852-4e2e-8374-992cca502789",
+      "description block": "670539c1-879b-4628-9c82-8da13478590e",
+      "blank ends description": "51a71600-b872-45be-b803-6e2c44735b26",
+      "cleanup ends description": "10d46ff9-a97f-4538-ae94-b059656dad53",
+      "inline prefix": "071daed5-7f65-404d-8aa6-8fd525d7932b",
+      "leading whitespace": "b0c83d6a-8f27-4df0-8b4a-306da05e621d",
+      "case preserved lower prefix": "967e586f-ca6d-4bf4-be9e-37e0dc2c0bd1",
+      "uppercase prefix": "eccf3538-0fb9-4890-972f-2c92c218ac23",
+      "irrelevant notes": "c62f07ec-e97e-41e5-bbc6-94aacc0e43ef",
+      "empty": "eb5f7d5a-433e-4181-b033-b41f19424bb6",
+      "malformed amount": "c8501986-b290-4e04-aa35-80ede3b08cd1",
+      "missing amount": "70f0098e-71ec-46d8-9e71-ff59b81578fe",
+      "negative priority": "4a15c7d5-27ff-4886-8fe5-1a19bfbec5c5",
+      "unknown directive": "8a7c3d59-4121-451d-8604-44727a2f6765",
+      "zero average": "613d8883-5c1c-4558-850c-eff4d1408777",
+      "zero copy": "a08bcdc9-33f0-4aee-ba19-029f39c1e15e",
+      "invalid percent adjustment": "fab40b12-cc4d-4999-bb50-087b66ae2cec",
+      "invalid large adjustment": "9ae60349-44f4-4408-9734-6aa576e700a6",
+      "maximum adjustment": "4c2146f1-4244-45d5-b092-aca4b31ac906",
+      "duplicate goals": "008dc6aa-cb82-4fe5-8aed-44ef48af3d6a",
+      "invalid calendar syntax accepted by grammar": "cd7b9f90-be28-4ba7-a44b-f36d346647f5",
+      "weekly invalid calendar accepted by grammar": "2c2b9a16-acb7-48bb-b1d5-592ad066e1cf",
+      "trailing comment": "572730c9-09b6-4ba7-ab7f-f869ceb6a474"
+    }
+  },
+  "cases": [
+    {
+      "name": "fixed",
+      "notes": "#template 100",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 100,
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "negative",
+      "notes": "#template -103.23",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": -103.23,
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "zero",
+      "notes": "#template 0",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 0,
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "currency",
+      "notes": "#template € 72.99",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 72.99,
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "priority",
+      "notes": "#template-12 50",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 50,
+          "limit": null,
+          "priority": 12,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "priority zero",
+      "notes": "#template-0 25",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 25,
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "monthly cap",
+      "notes": "#template 10 up to 100",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 10,
+          "limit": {
+            "amount": 100,
+            "hold": null,
+            "period": "monthly",
+            "start": null
+          },
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "cap only",
+      "notes": "#template up to 100",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": null,
+          "limit": {
+            "amount": 100,
+            "hold": null,
+            "period": "monthly",
+            "start": null
+          },
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "daily cap",
+      "notes": "#template 10 up to 3 per day",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 10,
+          "limit": {
+            "amount": 3,
+            "hold": null,
+            "period": "daily",
+            "start": null
+          },
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "weekly cap",
+      "notes": "#template 10 up to 25 per week starting 2026-11-02",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 10,
+          "limit": {
+            "amount": 25,
+            "hold": null,
+            "period": "weekly",
+            "start": "2026-11-02"
+          },
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "held cap",
+      "notes": "#template 10 up to 100 hold",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 10,
+          "limit": {
+            "amount": 100,
+            "hold": true,
+            "period": "monthly",
+            "start": null
+          },
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "held cap only",
+      "notes": "#template up to 100 hold",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": null,
+          "limit": {
+            "amount": 100,
+            "hold": true,
+            "period": "monthly",
+            "start": null
+          },
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "target",
+      "notes": "#template 1000 by 2027-04",
+      "templates": [
+        {
+          "type": "by",
+          "amount": 1000,
+          "month": "2027-04",
+          "from": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "target monthly repeat",
+      "notes": "#template 1000 by 2027-04 repeat every month",
+      "templates": [
+        {
+          "type": "by",
+          "amount": 1000,
+          "month": "2027-04",
+          "annual": false,
+          "from": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "target month interval",
+      "notes": "#template 1000 by 2027-04 repeat every 3 months",
+      "templates": [
+        {
+          "type": "by",
+          "amount": 1000,
+          "month": "2027-04",
+          "annual": false,
+          "repeat": 3,
+          "from": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "target annual repeat",
+      "notes": "#template 1000 by 2027-04 repeat every year",
+      "templates": [
+        {
+          "type": "by",
+          "amount": 1000,
+          "month": "2027-04",
+          "annual": true,
+          "from": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "target year interval",
+      "notes": "#template 1000 by 2027-04 repeat every 2 years",
+      "templates": [
+        {
+          "type": "by",
+          "amount": 1000,
+          "month": "2027-04",
+          "annual": true,
+          "repeat": 2,
+          "from": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "spend interval",
+      "notes": "#template 1000 by 2027-04 spend from 2026-12",
+      "templates": [
+        {
+          "type": "spend",
+          "amount": 1000,
+          "month": "2027-04",
+          "from": "2026-12",
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "spend annual",
+      "notes": "#template 1000 by 2027-04 spend from 2026-12 repeat every year",
+      "templates": [
+        {
+          "type": "spend",
+          "amount": 1000,
+          "month": "2027-04",
+          "annual": true,
+          "from": "2026-12",
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "period day",
+      "notes": "#template 5 repeat every day starting 2026-11-01",
+      "templates": [
+        {
+          "type": "periodic",
+          "amount": 5,
+          "period": {
+            "period": "day",
+            "amount": 1
+          },
+          "starting": "2026-11-01",
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "period days",
+      "notes": "#template 5 repeat every 3 days starting 2026-11-01",
+      "templates": [
+        {
+          "type": "periodic",
+          "amount": 5,
+          "period": {
+            "period": "day",
+            "amount": 3
+          },
+          "starting": "2026-11-01",
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "period week",
+      "notes": "#template 5 repeat every week starting 2026-11-01",
+      "templates": [
+        {
+          "type": "periodic",
+          "amount": 5,
+          "period": {
+            "period": "week",
+            "amount": 1
+          },
+          "starting": "2026-11-01",
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "period weeks",
+      "notes": "#template 5 repeat every 2 weeks starting 2026-11-01",
+      "templates": [
+        {
+          "type": "periodic",
+          "amount": 5,
+          "period": {
+            "period": "week",
+            "amount": 2
+          },
+          "starting": "2026-11-01",
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "period months",
+      "notes": "#template 5 repeat every 2 months starting 2026-11-01",
+      "templates": [
+        {
+          "type": "periodic",
+          "amount": 5,
+          "period": {
+            "period": "month",
+            "amount": 2
+          },
+          "starting": "2026-11-01",
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "period year",
+      "notes": "#template 5 repeat every year starting 2026-11-01",
+      "templates": [
+        {
+          "type": "periodic",
+          "amount": 5,
+          "period": {
+            "period": "year",
+            "amount": 1
+          },
+          "starting": "2026-11-01",
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "period years",
+      "notes": "#template 5 repeat every 2 years starting 2026-11-01",
+      "templates": [
+        {
+          "type": "periodic",
+          "amount": 5,
+          "period": {
+            "period": "year",
+            "amount": 2
+          },
+          "starting": "2026-11-01",
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "period capped",
+      "notes": "#template 5 repeat every week starting 2026-11-01 up to 100",
+      "templates": [
+        {
+          "type": "periodic",
+          "amount": 5,
+          "period": {
+            "period": "week",
+            "amount": 1
+          },
+          "starting": "2026-11-01",
+          "limit": {
+            "amount": 100,
+            "hold": null,
+            "period": "monthly",
+            "start": null
+          },
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "percentage category",
+      "notes": "#template 12.5% of Salary",
+      "templates": [
+        {
+          "type": "percentage",
+          "percent": 12.5,
+          "previous": false,
+          "category": "Salary",
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "percentage previous",
+      "notes": "#template 10% of previous Salary",
+      "templates": [
+        {
+          "type": "percentage",
+          "percent": 10,
+          "previous": true,
+          "category": "Salary",
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "percentage available",
+      "notes": "#template 10% of available funds",
+      "templates": [
+        {
+          "type": "percentage",
+          "percent": 10,
+          "previous": false,
+          "category": "available funds",
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "percentage all income",
+      "notes": "#template 10% of all income",
+      "templates": [
+        {
+          "type": "percentage",
+          "percent": 10,
+          "previous": false,
+          "category": "all income",
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "schedule",
+      "notes": "#template schedule Rent",
+      "templates": [
+        {
+          "type": "schedule",
+          "name": "Rent",
+          "priority": 0,
+          "directive": "template",
+          "full": null
+        }
+      ]
+    },
+    {
+      "name": "schedule full",
+      "notes": "#template schedule full Rent",
+      "templates": [
+        {
+          "type": "schedule",
+          "name": "Rent",
+          "priority": 0,
+          "directive": "template",
+          "full": true
+        }
+      ]
+    },
+    {
+      "name": "schedule percent",
+      "notes": "#template schedule Rent [increase 12.5%]",
+      "templates": [
+        {
+          "type": "schedule",
+          "name": "Rent",
+          "priority": 0,
+          "directive": "template",
+          "full": null,
+          "adjustment": 12.5,
+          "adjustmentType": "percent"
+        }
+      ]
+    },
+    {
+      "name": "schedule decrease",
+      "notes": "#template schedule Rent [decrease 25]",
+      "templates": [
+        {
+          "type": "schedule",
+          "name": "Rent",
+          "priority": 0,
+          "directive": "template",
+          "full": null,
+          "adjustment": -25,
+          "adjustmentType": "fixed"
+        }
+      ]
+    },
+    {
+      "name": "schedule bracket name",
+      "notes": "#template schedule Rent [primary] [increase 1]",
+      "templates": [
+        {
+          "type": "schedule",
+          "name": "Rent [primary]",
+          "priority": 0,
+          "directive": "template",
+          "full": null,
+          "adjustment": 1,
+          "adjustmentType": "fixed"
+        }
+      ]
+    },
+    {
+      "name": "average",
+      "notes": "#template average 6 months",
+      "templates": [
+        {
+          "type": "average",
+          "numMonths": 6,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "average short",
+      "notes": "#template average 6",
+      "templates": [
+        {
+          "type": "average",
+          "numMonths": 6,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "average percent",
+      "notes": "#template average 6 months [decrease 10%]",
+      "templates": [
+        {
+          "type": "average",
+          "numMonths": 6,
+          "priority": 0,
+          "directive": "template",
+          "adjustment": -10,
+          "adjustmentType": "percent"
+        }
+      ]
+    },
+    {
+      "name": "average fixed",
+      "notes": "#template average 6 months [increase 5.25]",
+      "templates": [
+        {
+          "type": "average",
+          "numMonths": 6,
+          "priority": 0,
+          "directive": "template",
+          "adjustment": 5.25,
+          "adjustmentType": "fixed"
+        }
+      ]
+    },
+    {
+      "name": "copy",
+      "notes": "#template copy from 2 months ago",
+      "templates": [
+        {
+          "type": "copy",
+          "priority": 0,
+          "directive": "template",
+          "lookBack": 2,
+          "limit": null
+        }
+      ]
+    },
+    {
+      "name": "copy capped",
+      "notes": "#template copy from 2 months ago up to 250",
+      "templates": [
+        {
+          "type": "copy",
+          "priority": 0,
+          "directive": "template",
+          "lookBack": 2,
+          "limit": {
+            "amount": 250,
+            "hold": null,
+            "period": "monthly",
+            "start": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "remainder",
+      "notes": "#template remainder",
+      "templates": [
+        {
+          "type": "remainder",
+          "priority": null,
+          "directive": "template",
+          "weight": 1,
+          "limit": null
+        }
+      ]
+    },
+    {
+      "name": "weighted remainder",
+      "notes": "#template remainder 3",
+      "templates": [
+        {
+          "type": "remainder",
+          "priority": null,
+          "directive": "template",
+          "weight": 3,
+          "limit": null
+        }
+      ]
+    },
+    {
+      "name": "capped remainder",
+      "notes": "#template remainder 2 up to 100",
+      "templates": [
+        {
+          "type": "remainder",
+          "priority": null,
+          "directive": "template",
+          "weight": 2,
+          "limit": {
+            "amount": 100,
+            "hold": null,
+            "period": "monthly",
+            "start": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "goal",
+      "notes": "#goal 1000",
+      "templates": [
+        {
+          "type": "goal",
+          "amount": 1000,
+          "priority": null,
+          "directive": "goal"
+        }
+      ]
+    },
+    {
+      "name": "goal with template",
+      "notes": "#template 100\n#goal 1000",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 100,
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        },
+        {
+          "type": "goal",
+          "amount": 1000,
+          "priority": null,
+          "directive": "goal"
+        }
+      ]
+    },
+    {
+      "name": "multiple descriptions",
+      "notes": "Netflix\n#template 24.99\nDisney Plus\n#template 9.99\nAmazon Prime\n#template 7.99",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 24.99,
+          "limit": null,
+          "priority": 0,
+          "directive": "template",
+          "description": "Netflix"
+        },
+        {
+          "type": "simple",
+          "monthly": 9.99,
+          "limit": null,
+          "priority": 0,
+          "directive": "template",
+          "description": "Disney Plus"
+        },
+        {
+          "type": "simple",
+          "monthly": 7.99,
+          "limit": null,
+          "priority": 0,
+          "directive": "template",
+          "description": "Amazon Prime"
+        }
+      ]
+    },
+    {
+      "name": "description block",
+      "notes": "First line\nSecond line  \n#template 10",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 10,
+          "limit": null,
+          "priority": 0,
+          "directive": "template",
+          "description": "First line\nSecond line"
+        }
+      ]
+    },
+    {
+      "name": "blank ends description",
+      "notes": "Not attached\n\n#template 10",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 10,
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "cleanup ends description",
+      "notes": "Not attached\n#cleanup all\n#template 10",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 10,
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "inline prefix",
+      "notes": "test: #template 12",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 12,
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "leading whitespace",
+      "notes": "  \t#template 12  ",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 12,
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "case preserved lower prefix",
+      "notes": "#template AVERAGE 3 MONTHS",
+      "templates": [
+        {
+          "type": "average",
+          "numMonths": 3,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "uppercase prefix",
+      "notes": "#TEMPLATE 10\n#GOAL 100",
+      "templates": []
+    },
+    {
+      "name": "irrelevant notes",
+      "notes": "Normal note only",
+      "templates": []
+    },
+    {
+      "name": "empty",
+      "notes": "",
+      "templates": []
+    },
+    {
+      "name": "malformed amount",
+      "notes": "#template 1.999",
+      "templates": [
+        {
+          "type": "error",
+          "directive": "error",
+          "line": "#template 1.999",
+          "error": "Expected \"by\", \"repeat\", \"up\", or end of input but \"9\" found."
+        }
+      ]
+    },
+    {
+      "name": "missing amount",
+      "notes": "#template",
+      "templates": [
+        {
+          "type": "error",
+          "directive": "error",
+          "line": "#template",
+          "error": "Expected \"-\", \"average\", \"copy from\", \"remainder\", \"schedule\", \"up\", amount, or percentage but end of input found."
+        }
+      ]
+    },
+    {
+      "name": "negative priority",
+      "notes": "#template--1 10",
+      "templates": [
+        {
+          "type": "error",
+          "directive": "error",
+          "line": "#template--1 10",
+          "error": "Expected number but \"-\" found."
+        }
+      ]
+    },
+    {
+      "name": "unknown directive",
+      "notes": "#template nonsense",
+      "templates": [
+        {
+          "type": "error",
+          "directive": "error",
+          "line": "#template nonsense",
+          "error": "Expected \"average\", \"copy from\", \"remainder\", \"schedule\", \"up\", amount, or percentage but \"n\" found."
+        }
+      ]
+    },
+    {
+      "name": "zero average",
+      "notes": "#template average 0 months",
+      "templates": [
+        {
+          "type": "error",
+          "directive": "error",
+          "line": "#template average 0 months",
+          "error": "Expected [1-9] but \"0\" found."
+        }
+      ]
+    },
+    {
+      "name": "zero copy",
+      "notes": "#template copy from 0 months ago",
+      "templates": [
+        {
+          "type": "error",
+          "directive": "error",
+          "line": "#template copy from 0 months ago",
+          "error": "Expected [1-9] but \"0\" found."
+        }
+      ]
+    },
+    {
+      "name": "invalid percent adjustment",
+      "notes": "#template average 3 months [decrease 100%]",
+      "templates": [
+        {
+          "type": "error",
+          "directive": "error",
+          "line": "#template average 3 months [decrease 100%]",
+          "error": "Invalid adjustment percentage (-100%). Must be between -100% and 1000%"
+        }
+      ]
+    },
+    {
+      "name": "invalid large adjustment",
+      "notes": "#template schedule Rent [increase 1001%]",
+      "templates": [
+        {
+          "type": "error",
+          "directive": "error",
+          "line": "#template schedule Rent [increase 1001%]",
+          "error": "Invalid adjustment percentage (1001%). Must be between -100% and 1000%"
+        }
+      ]
+    },
+    {
+      "name": "maximum adjustment",
+      "notes": "#template schedule Rent [increase 1000%]",
+      "templates": [
+        {
+          "type": "schedule",
+          "name": "Rent",
+          "priority": 0,
+          "directive": "template",
+          "full": null,
+          "adjustment": 1000,
+          "adjustmentType": "percent"
+        }
+      ]
+    },
+    {
+      "name": "duplicate goals",
+      "notes": "#goal 100\n#goal 200",
+      "templates": [
+        {
+          "type": "goal",
+          "amount": 100,
+          "priority": null,
+          "directive": "goal"
+        },
+        {
+          "type": "goal",
+          "amount": 200,
+          "priority": null,
+          "directive": "goal"
+        }
+      ]
+    },
+    {
+      "name": "invalid calendar syntax accepted by grammar",
+      "notes": "#template 100 by 2026-13",
+      "templates": [
+        {
+          "type": "by",
+          "amount": 100,
+          "month": "2026-13",
+          "from": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "weekly invalid calendar accepted by grammar",
+      "notes": "#template 5 repeat every week starting 2026-13-40",
+      "templates": [
+        {
+          "type": "periodic",
+          "amount": 5,
+          "period": {
+            "period": "week",
+            "amount": 1
+          },
+          "starting": "2026-13-40",
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    },
+    {
+      "name": "trailing comment",
+      "notes": "#template 10 trailing text",
+      "templates": [
+        {
+          "type": "error",
+          "directive": "error",
+          "line": "#template 10 trailing text",
+          "error": "Expected \"by\", \"repeat\", or \"up\" but \"t\" found."
+        }
+      ]
+    }
+  ]
+}

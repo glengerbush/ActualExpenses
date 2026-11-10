@@ -78,3 +78,5 @@ backend review finding. UI and whole37 acceptance remain open;51 retains volume
 and exhausted-work-guard qualification. No source fixture was relabeled.
 
 Merged reviewed main08bae64 before the UI freeze, retaining current native25, shared predicate fixes, banking/public API commands and both root/backend and UI evidence. Only capability/test-list/document conflicts required resolution; no source financial calculation was replaced.
+
+Post-merge Svelte0errors/0warnings and production build PASS (`/tmp/sankey37-ui-merge-{check,build}.log`); owned UI/test formatting PASS `/tmp/sankey37-ui-format-check.log`. Final formatting-only change expands one browser-test header object; no behavior changed. The merged Rust build is recorded separately at `/tmp/sankey37-ui-merge-rust.log`.

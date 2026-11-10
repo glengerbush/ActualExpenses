@@ -308,7 +308,7 @@ try {
       epoch: route.request().headers()["x-actual-budget-epoch"],
     };
     const forwarded = new URL(route.request().url());
-    const headers = {...route.request().headers(), host:forwarded.host};
+    const headers = { ...route.request().headers(), host: forwarded.host };
     if (forwarded.hostname === "actualbudget.test")
       forwarded.hostname = "127.0.0.1";
     const delivered = await route.fetch({ url: forwarded.toString(), headers });

@@ -302,6 +302,7 @@ try {
   const before = await ledger(),
     cases = [];
   const contextCases = process.argv.includes("--context");
+  const chainCases = process.argv.includes("--chains");
   if (contextCases) {
     definitions.length = 0;
     const rows = before.filter(
@@ -372,6 +373,104 @@ try {
       },
     );
   }
+  if (chainCases) {
+    definitions.length = 0;
+    const rows = before.filter(
+      (r) => r.account === ids.checking && !r.is_parent && !r.is_child,
+    );
+    for (const [i, row] of rows.entries())
+      definitions.push({
+        name: `stored variables ${i}`,
+        stored: true,
+        changes: row,
+        actions: [
+          formula(
+            "notes",
+            '=CONCATENATE(sort_order,"|",is_parent,"|",is_child,"|",transfer_id)',
+          ),
+        ],
+      });
+    definitions.push(
+      {
+        name: "balance prepared before the first action",
+        changes: { imported_payee: "balance" },
+        actions: [
+          template("notes", "{{lookup this imported_payee}}"),
+          formula("cleared", "=balance>0"),
+        ],
+      },
+      {
+        name: "candidate literal prefetched before dynamic lookup",
+        actions: [formula("notes", "=BALANCE_OF(account_name)")],
+        following: [
+          {
+            conditions: [{ field: "amount", op: "is", value: 999999 }],
+            actions: [formula("notes", '=BALANCE_OF("checking")')],
+          },
+        ],
+      },
+      {
+        name: "noncandidate literal is not prefetched",
+        actions: [formula("notes", "=BALANCE_OF(account_name)")],
+        following: [
+          {
+            conditions: [
+              { field: "imported_payee", op: "is", value: "Z elsewhere" },
+              { field: "payee", op: "is", value: id(9999) },
+            ],
+            actions: [formula("notes", '=BALANCE_OF("checking")')],
+          },
+        ],
+      },
+      {
+        name: "category group refreshed between rules",
+        actions: [{ op: "set", field: "category", value: null }],
+        following: [
+          {
+            actions: [
+              formula(
+                "notes",
+                '=CONCATENATE(category_name,"|",IFERROR(category_group,"none"))',
+              ),
+            ],
+          },
+        ],
+      },
+      {
+        name: "account alias preserved between rules",
+        actions: [{ op: "set", field: "account", value: ids.savings }],
+        following: [
+          {
+            conditions: [{ field: "account", op: "is", value: ids.savings }],
+            actions: [
+              formula("notes", '=CONCATENATE(account_name,"|",balance/100)'),
+            ],
+          },
+        ],
+      },
+      ...[
+        ["wildcard first-character bucket", "is", "* elsewhere"],
+        ["empty string membership is discarded", "oneOf", ["", "Z elsewhere"]],
+        ["normalized Unicode condition index", "is", "İnput"],
+      ].map(([name, op, value]) => ({
+        name,
+        ...(name === "normalized Unicode condition index"
+          ? { changes: { imported_payee: "İnput" } }
+          : {}),
+        actions: [formula("notes", "=BALANCE_OF(account_name)")],
+        following: [
+          {
+            conditions: [
+              { field: "imported_payee", op, value },
+              { field: "payee", op: "is", value: id(9999) },
+              { field: "amount", op: "is", value: 999999 },
+            ],
+            actions: [formula("notes", '=BALANCE_OF("checking")')],
+          },
+        ],
+      })),
+    );
+  }
   function normalized(value) {
     if (Array.isArray(value)) return value.map(normalized);
     if (!value || typeof value !== "object") return value;
@@ -396,12 +495,24 @@ try {
     const transaction = { ...base, ...definition.changes };
     const rule = {
       id: id(100 + i),
-      stage: null,
+      stage: definition.following ? "pre" : null,
       conditionsOp: "and",
       conditions: [{ field: "account", op: "is", value: ids.checking }],
       actions: definition.actions,
     };
     const added = await engine.send("rule-add", rule);
+    const following = [];
+    for (const [j, definitionRule] of (definition.following ?? []).entries()) {
+      const next = {
+        id: id(10000 + i * 100 + j),
+        stage: "post",
+        conditionsOp: "and",
+        conditions: rule.conditions,
+        ...definitionRule,
+      };
+      assert.ok(!(await engine.send("rule-add", next)).error);
+      following.push(next);
+    }
     let output = null,
       error = added.error ?? null,
       payeeName = null;
@@ -422,6 +533,7 @@ try {
       output: normalized(output),
       error,
       payee_name: payeeName,
+      ...(following.length ? { rules: [rule, ...following] } : {}),
     });
   }
   const result = {
@@ -431,9 +543,11 @@ try {
     cases,
   };
   const file = new URL(
-    contextCases
-      ? "rule-expression-context-source.json"
-      : "rule-expressions-source.json",
+    chainCases
+      ? "rule-expression-chain-source.json"
+      : contextCases
+        ? "rule-expression-context-source.json"
+        : "rule-expressions-source.json",
     root,
   );
   if (check) assert.deepEqual(result, JSON.parse(await readFile(file)));

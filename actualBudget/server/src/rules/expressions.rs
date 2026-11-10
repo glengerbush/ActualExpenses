@@ -54,6 +54,7 @@ pub fn validate(rule: &Rule) -> Result<(), Error> {
     Ok(())
 }
 pub struct Context {
+    stored: bool,
     input: Value,
     original: Value,
     helpers: Value,
@@ -100,7 +101,14 @@ impl Context {
         {
             original["sort_order"] = json!(order);
         }
+        if stored && let Some(id) = original["id"].as_str() {
+            let metadata=db.query_row("SELECT imported_id,raw_synced_data FROM transaction_import_metadata WHERE budget_id=?1 AND id=?2 AND tombstone=0",params![b,id],|r|Ok((r.get::<_,Option<String>>(0)?,r.get::<_,Option<String>>(1)?))).optional()?;
+            let (imported, raw) = metadata.unwrap_or_default();
+            helpers["imported_id"] = json!(imported);
+            helpers["raw_synced_data"] = json!(raw);
+        }
         Ok(Self {
+            stored,
             input: input(crate::preferences::stored_preferences(db, b)?),
             original,
             helpers,
@@ -108,7 +116,13 @@ impl Context {
             balance: None,
         })
     }
-    pub fn begin_rule(&mut self, db: &Connection, b: &str, row: &Value) -> Result<(), Error> {
+    pub fn begin_rule(
+        &mut self,
+        db: &Connection,
+        b: &str,
+        row: &Value,
+        rule: &Rule,
+    ) -> Result<(), Error> {
         self.helpers
             .as_object_mut()
             .unwrap()
@@ -124,6 +138,23 @@ impl Context {
                 .flatten()
         {
             self.helpers["category_group"] = json!(group);
+        }
+        for action in &rule.actions {
+            self.prepare_action(db, b, action, true)?;
+        }
+        Ok(())
+    }
+    pub fn prefetch(
+        &mut self,
+        db: &Connection,
+        b: &str,
+        rules: &[Rule],
+        original: &Value,
+    ) -> Result<(), Error> {
+        for rule in rules.iter().filter(|rule| candidate(rule, original)) {
+            for action in &rule.actions {
+                self.prepare_action(db, b, action, false)?;
+            }
         }
         Ok(())
     }
@@ -142,14 +173,12 @@ impl Context {
         }
         super::actions::money(total)
     }
-    pub fn apply(
+    fn prepare_action(
         &mut self,
         db: &Connection,
         b: &str,
-        row: &mut Value,
         a: &Value,
-        parent: Option<&Value>,
-        budget: &mut Budget,
+        current: bool,
     ) -> Result<(), Error> {
         // Exactly the source literal recognizer, including its escaped quotes.
         static LITERALS: std::sync::OnceLock<regress::Regex> = std::sync::OnceLock::new();
@@ -167,7 +196,7 @@ impl Context {
         .into_iter()
         .flatten()
         {
-            if balance.find(text).is_some() && self.balance.is_none() {
+            if current && balance.find(text).is_some() && self.balance.is_none() {
                 self.balance = Some(match self.original["account_id"].as_str() {
                     Some(account) => self.running_balance(db, b, account)?,
                     None => 0,
@@ -192,32 +221,18 @@ impl Context {
                 }
             }
         }
-        let mut transaction = json!({});
-        for field in [
-            "id",
-            "amount",
-            "date",
-            "notes",
-            "cleared",
-            "reconciled",
-            "sort_order",
-            "imported_payee",
-            "is_parent",
-            "is_child",
-            "parent_id",
-            "payee_name",
-        ] {
-            if let Some(value) = row.get(field) {
-                transaction[field] = value.clone();
-            }
-        }
-        for (source, native) in [
-            ("account", "account_id"),
-            ("payee", "payee_id"),
-            ("category", "category_id"),
-            ("schedule", "schedule_id"),
-        ] {
-            transaction[source] = row[native].clone();
+        Ok(())
+    }
+    pub fn apply(
+        &mut self,
+        row: &mut Value,
+        a: &Value,
+        parent: Option<&Value>,
+        budget: &mut Budget,
+    ) -> Result<(), Error> {
+        let mut transaction = source_row(row, self.stored);
+        if self.stored && parent.is_none() {
+            transaction["sort_order"] = self.original["sort_order"].clone();
         }
         if let Some(name) = row.get("_rule_payee_name") {
             transaction["payee_name"] = name.clone();
@@ -281,4 +296,129 @@ impl Context {
         }
         Ok(())
     }
+}
+
+// The source indexers union the imported-payee first-character and payee-ID
+// candidates. They include wildcard buckets even when a condition won't match.
+fn candidate(rule: &Rule, original: &Value) -> bool {
+    fn key(value: &Value, first: bool) -> Option<Vec<u16>> {
+        let value = value.as_str().filter(|s| !s.is_empty())?;
+        if first {
+            let unit = value.encode_utf16().next().unwrap();
+            Some(
+                char::from_u32(u32::from(unit))
+                    .map(|c| {
+                        c.to_lowercase()
+                            .collect::<String>()
+                            .encode_utf16()
+                            .collect()
+                    })
+                    .unwrap_or(vec![unit]),
+            )
+        } else {
+            Some(value.to_lowercase().encode_utf16().collect())
+        }
+    }
+    [
+        ("imported_payee", "imported_payee", true),
+        ("payee", "payee_id", false),
+    ]
+    .iter()
+    .any(|(field, native, first)| {
+        let Some(condition) = rule.conditions.iter().find(|c| c["field"] == *field) else {
+            return true;
+        };
+        if !matches!(
+            condition["op"].as_str(),
+            Some("is" | "isNot" | "oneOf" | "notOneOf")
+        ) {
+            return true;
+        }
+        let matches = |value: &Value| {
+            // String conditions are parsed to lowercase before indexing; the
+            // original transaction is indexed directly. This matters for
+            // Unicode case mappings that expand into multiple code units.
+            let normalized = if *first {
+                value.as_str().map(|s| json!(s.to_lowercase()))
+            } else {
+                None
+            };
+            key(normalized.as_ref().unwrap_or(value), *first).is_none_or(|expected| {
+                expected == [u16::from(b'*')] || Some(expected) == key(&original[*native], *first)
+            })
+        };
+        match condition["value"].as_array() {
+            Some(values) => values
+                .iter()
+                .filter(|value| !first || value.as_str().is_some_and(|s| !s.is_empty()))
+                .any(matches),
+            None => matches(&condition["value"]),
+        }
+    })
+}
+fn source_row(row: &Value, stored: bool) -> Value {
+    let mut value = json!({});
+    for field in [
+        "id",
+        "amount",
+        "date",
+        "notes",
+        "cleared",
+        "reconciled",
+        "sort_order",
+        "imported_payee",
+        "imported_id",
+        "raw_synced_data",
+        "transfer_id",
+        "is_parent",
+        "is_child",
+        "parent_id",
+        "payee_name",
+        "starting_balance_flag",
+        "tombstone",
+        "forceUpcoming",
+        "_unmatched",
+        "_deleted",
+        "error",
+    ] {
+        if let Some(v) = row.get(field) {
+            value[field] = v.clone();
+        }
+    }
+    for (source, native) in [
+        ("account", "account_id"),
+        ("payee", "payee_id"),
+        ("category", "category_id"),
+        ("schedule", "schedule_id"),
+        ("starting_balance_flag", "starting_balance"),
+        ("tombstone", "deleted"),
+    ] {
+        if let Some(v) = row.get(native) {
+            value[source] = v.clone();
+        }
+    }
+    if stored || !row["parent_id"].is_null() {
+        value["is_parent"] = json!(row["is_parent"] == true);
+        value["is_child"] = json!(!row["parent_id"].is_null());
+    }
+    if stored {
+        value["tombstone"] = json!(row["deleted"] == true);
+        value["error"] = row["error"].clone();
+        for field in ["transfer_id", "parent_id", "schedule"] {
+            value
+                .as_object_mut()
+                .unwrap()
+                .entry(field)
+                .or_insert(Value::Null);
+        }
+    }
+    if let Some(children) = row["children"].as_array() {
+        value["subtransactions"] = json!(
+            children
+                .iter()
+                .map(|c| source_row(c, stored))
+                .collect::<Vec<_>>()
+        );
+    }
+    value
 }

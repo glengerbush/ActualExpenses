@@ -1,0 +1,2236 @@
+{
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "seed": {
+    "filename": "reports-source-26.10.zip",
+    "sha256": "8b54cf9bc377ecd3d608382995efb5c7445c748f849bc971ce70a1610f1ed250"
+  },
+  "cases": [
+    {
+      "name": "stored variables 0",
+      "stored": true,
+      "changes": {
+        "id": "33340000-0000-4000-8000-000000000001",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "amount": -1000,
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "notes": "Previous period food",
+        "date": "2026-10-02",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225600000,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000100",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "33340000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-10-02",
+        "amount": -1000,
+        "notes": "Previous period food",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225600000,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "output": {
+        "id": "33340000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-10-02",
+        "amount": -1000,
+        "notes": "1794225600000|FALSE|FALSE|",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225600000,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "stored variables 1",
+      "stored": true,
+      "changes": {
+        "id": "33340000-0000-4000-8000-000000000002",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "95610153-0d9b-4abd-b817-bdc32291a737",
+        "amount": 10000,
+        "payee": "aca47852-d5a7-42e9-acf3-76a971bc33e2",
+        "notes": null,
+        "date": "2026-11-01",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225598976,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000101",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "33340000-0000-4000-8000-000000000002",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "aca47852-d5a7-42e9-acf3-76a971bc33e2",
+        "category": "95610153-0d9b-4abd-b817-bdc32291a737",
+        "date": "2026-11-01",
+        "amount": 10000,
+        "notes": null,
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225598976,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "output": {
+        "id": "33340000-0000-4000-8000-000000000002",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "aca47852-d5a7-42e9-acf3-76a971bc33e2",
+        "category": "95610153-0d9b-4abd-b817-bdc32291a737",
+        "date": "2026-11-01",
+        "amount": 10000,
+        "notes": "1794225598976|FALSE|FALSE|",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225598976,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "stored variables 2",
+      "stored": true,
+      "changes": {
+        "id": "33340000-0000-4000-8000-000000000003",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "amount": -1200,
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "notes": null,
+        "date": "2026-11-02",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225597952,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000102",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "33340000-0000-4000-8000-000000000003",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-02",
+        "amount": -1200,
+        "notes": null,
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225597952,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "output": {
+        "id": "33340000-0000-4000-8000-000000000003",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-02",
+        "amount": -1200,
+        "notes": "1794225597952|FALSE|FALSE|",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225597952,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "stored variables 3",
+      "stored": true,
+      "changes": {
+        "id": "33340000-0000-4000-8000-000000000004",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "amount": 200,
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "notes": "Refund",
+        "date": "2026-11-03",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225596928,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000103",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "33340000-0000-4000-8000-000000000004",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-03",
+        "amount": 200,
+        "notes": "Refund",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225596928,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "output": {
+        "id": "33340000-0000-4000-8000-000000000004",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-03",
+        "amount": 200,
+        "notes": "1794225596928|FALSE|FALSE|",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225596928,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "stored variables 4",
+      "stored": true,
+      "changes": {
+        "id": "33340000-0000-4000-8000-000000000005",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": null,
+        "amount": -300,
+        "payee": null,
+        "notes": "Uncategorized",
+        "date": "2026-11-04",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225595904,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000104",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "33340000-0000-4000-8000-000000000005",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": null,
+        "category": null,
+        "date": "2026-11-04",
+        "amount": -300,
+        "notes": "Uncategorized",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225595904,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "output": {
+        "id": "33340000-0000-4000-8000-000000000005",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": null,
+        "category": null,
+        "date": "2026-11-04",
+        "amount": -300,
+        "notes": "1794225595904|FALSE|FALSE|",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225595904,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "stored variables 5",
+      "stored": true,
+      "changes": {
+        "id": "33340000-0000-4000-8000-000000000006",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+        "amount": -700,
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "notes": null,
+        "date": "2026-11-05",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225594880,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000105",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "33340000-0000-4000-8000-000000000006",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+        "date": "2026-11-05",
+        "amount": -700,
+        "notes": null,
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225594880,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "output": {
+        "id": "33340000-0000-4000-8000-000000000006",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+        "date": "2026-11-05",
+        "amount": -700,
+        "notes": "1794225594880|FALSE|FALSE|",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225594880,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "stored variables 6",
+      "stored": true,
+      "changes": {
+        "id": "33340000-0000-4000-8000-000000000007",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "42250427-aac5-4179-b77d-247994a381a2",
+        "amount": -400,
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "notes": null,
+        "date": "2026-11-06",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225593856,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000106",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "33340000-0000-4000-8000-000000000007",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "42250427-aac5-4179-b77d-247994a381a2",
+        "date": "2026-11-06",
+        "amount": -400,
+        "notes": null,
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225593856,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "output": {
+        "id": "33340000-0000-4000-8000-000000000007",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "42250427-aac5-4179-b77d-247994a381a2",
+        "date": "2026-11-06",
+        "amount": -400,
+        "notes": "1794225593856|FALSE|FALSE|",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225593856,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "stored variables 7",
+      "stored": true,
+      "changes": {
+        "id": "33340000-0000-4000-8000-000000000011",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": null,
+        "amount": -2000,
+        "payee": "e04b9930-9dad-46a9-ab5a-ec1f1a061de1",
+        "notes": "Internal transfer",
+        "date": "2026-11-08",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": "0d23d008-5183-4741-8010-efa622785f56",
+        "sort_order": 1794225589760,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000107",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "33340000-0000-4000-8000-000000000011",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "e04b9930-9dad-46a9-ab5a-ec1f1a061de1",
+        "category": null,
+        "date": "2026-11-08",
+        "amount": -2000,
+        "notes": "Internal transfer",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225589760,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": "0d23d008-5183-4741-8010-efa622785f56",
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "output": {
+        "id": "33340000-0000-4000-8000-000000000011",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "e04b9930-9dad-46a9-ab5a-ec1f1a061de1",
+        "category": null,
+        "date": "2026-11-08",
+        "amount": -2000,
+        "notes": "1794225589760|FALSE|FALSE|0d23d008-5183-4741-8010-efa622785f56",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225589760,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": "0d23d008-5183-4741-8010-efa622785f56",
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "stored variables 8",
+      "stored": true,
+      "changes": {
+        "id": "33340000-0000-4000-8000-000000000012",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "amount": -2500,
+        "payee": "a8f5803b-f77c-48d5-9e8b-41188ceb6135",
+        "notes": "Boundary transfer",
+        "date": "2026-11-08",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": "145a5bb6-ae4b-4291-bd55-2f2b2d2a409c",
+        "sort_order": 1794225588736,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000108",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "33340000-0000-4000-8000-000000000012",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "a8f5803b-f77c-48d5-9e8b-41188ceb6135",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-08",
+        "amount": -2500,
+        "notes": "Boundary transfer",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225588736,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": "145a5bb6-ae4b-4291-bd55-2f2b2d2a409c",
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "output": {
+        "id": "33340000-0000-4000-8000-000000000012",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "a8f5803b-f77c-48d5-9e8b-41188ceb6135",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-08",
+        "amount": -2500,
+        "notes": "1794225588736|FALSE|FALSE|145a5bb6-ae4b-4291-bd55-2f2b2d2a409c",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225588736,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": "145a5bb6-ae4b-4291-bd55-2f2b2d2a409c",
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "stored variables 9",
+      "stored": true,
+      "changes": {
+        "id": "33340000-0000-4000-8000-000000000013",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "amount": -800,
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "notes": "Future dated recorded entry",
+        "date": "2026-11-20",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225587712,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000109",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "33340000-0000-4000-8000-000000000013",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-20",
+        "amount": -800,
+        "notes": "Future dated recorded entry",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225587712,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "output": {
+        "id": "33340000-0000-4000-8000-000000000013",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-20",
+        "amount": -800,
+        "notes": "1794225587712|FALSE|FALSE|",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225587712,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "stored variables 10",
+      "stored": true,
+      "changes": {
+        "id": "408303c0-0847-4d57-b20e-f9b28c5dd356",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+        "amount": 10000,
+        "payee": "c27081d6-38c1-4751-8005-8a77de40c72c",
+        "notes": null,
+        "date": "2026-10-01",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": true,
+        "transfer_id": null,
+        "sort_order": 1794225600000,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000110",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=CONCATENATE(sort_order,\"|\",is_parent,\"|\",is_child,\"|\",transfer_id)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "408303c0-0847-4d57-b20e-f9b28c5dd356",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "c27081d6-38c1-4751-8005-8a77de40c72c",
+        "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+        "date": "2026-10-01",
+        "amount": 10000,
+        "notes": null,
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225600000,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": true,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      "output": {
+        "id": "408303c0-0847-4d57-b20e-f9b28c5dd356",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "c27081d6-38c1-4751-8005-8a77de40c72c",
+        "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+        "date": "2026-10-01",
+        "amount": 10000,
+        "notes": "1794225600000|FALSE|FALSE|",
+        "cleared": true,
+        "imported_payee": null,
+        "sort_order": 1794225600000,
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "imported_id": null,
+        "error": null,
+        "starting_balance_flag": true,
+        "transfer_id": null,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "balance prepared before the first action",
+      "changes": {
+        "imported_payee": "balance"
+      },
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "template": "{{lookup this imported_payee}}"
+          }
+        },
+        {
+          "op": "set",
+          "field": "cleared",
+          "value": false,
+          "options": {
+            "formula": "=balance>0"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000111",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "template": "{{lookup this imported_payee}}"
+            }
+          },
+          {
+            "op": "set",
+            "field": "cleared",
+            "value": false,
+            "options": {
+              "formula": "=balance>0"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "balance",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "10600",
+        "cleared": true,
+        "imported_payee": "balance",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "candidate literal prefetched before dynamic lookup",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=BALANCE_OF(account_name)"
+          }
+        }
+      ],
+      "following": [
+        {
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "is",
+              "value": 999999
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=BALANCE_OF(\"checking\")"
+              }
+            }
+          ]
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000112",
+        "stage": "pre",
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=BALANCE_OF(account_name)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "1060000",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null,
+      "rules": [
+        {
+          "id": "42420000-0000-4000-8000-000000000112",
+          "stage": "pre",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "account",
+              "op": "is",
+              "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=BALANCE_OF(account_name)"
+              }
+            }
+          ]
+        },
+        {
+          "id": "42420000-0000-4000-8000-000000011200",
+          "stage": "post",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "is",
+              "value": 999999
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=BALANCE_OF(\"checking\")"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "noncandidate literal is not prefetched",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=BALANCE_OF(account_name)"
+          }
+        }
+      ],
+      "following": [
+        {
+          "conditions": [
+            {
+              "field": "imported_payee",
+              "op": "is",
+              "value": "Z elsewhere"
+            },
+            {
+              "field": "payee",
+              "op": "is",
+              "value": "42420000-0000-4000-8000-000000009999"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=BALANCE_OF(\"checking\")"
+              }
+            }
+          ]
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000113",
+        "stage": "pre",
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=BALANCE_OF(account_name)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "0",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null,
+      "rules": [
+        {
+          "id": "42420000-0000-4000-8000-000000000113",
+          "stage": "pre",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "account",
+              "op": "is",
+              "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=BALANCE_OF(account_name)"
+              }
+            }
+          ]
+        },
+        {
+          "id": "42420000-0000-4000-8000-000000011300",
+          "stage": "post",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "imported_payee",
+              "op": "is",
+              "value": "Z elsewhere"
+            },
+            {
+              "field": "payee",
+              "op": "is",
+              "value": "42420000-0000-4000-8000-000000009999"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=BALANCE_OF(\"checking\")"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "category group refreshed between rules",
+      "actions": [
+        {
+          "op": "set",
+          "field": "category",
+          "value": null
+        }
+      ],
+      "following": [
+        {
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=CONCATENATE(category_name,\"|\",IFERROR(category_group,\"none\"))"
+              }
+            }
+          ]
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000114",
+        "stage": "pre",
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "category",
+            "value": null
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": null,
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "food|none",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null,
+      "rules": [
+        {
+          "id": "42420000-0000-4000-8000-000000000114",
+          "stage": "pre",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "account",
+              "op": "is",
+              "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "category",
+              "value": null
+            }
+          ]
+        },
+        {
+          "id": "42420000-0000-4000-8000-000000011400",
+          "stage": "post",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "account",
+              "op": "is",
+              "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=CONCATENATE(category_name,\"|\",IFERROR(category_group,\"none\"))"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "account alias preserved between rules",
+      "actions": [
+        {
+          "op": "set",
+          "field": "account",
+          "value": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85"
+        }
+      ],
+      "following": [
+        {
+          "conditions": [
+            {
+              "field": "account",
+              "op": "is",
+              "value": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=CONCATENATE(account_name,\"|\",balance/100)"
+              }
+            }
+          ]
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000115",
+        "stage": "pre",
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "account",
+            "value": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85"
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "checking|106",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null,
+      "rules": [
+        {
+          "id": "42420000-0000-4000-8000-000000000115",
+          "stage": "pre",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "account",
+              "op": "is",
+              "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "account",
+              "value": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85"
+            }
+          ]
+        },
+        {
+          "id": "42420000-0000-4000-8000-000000011500",
+          "stage": "post",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "account",
+              "op": "is",
+              "value": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=CONCATENATE(account_name,\"|\",balance/100)"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wildcard first-character bucket",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=BALANCE_OF(account_name)"
+          }
+        }
+      ],
+      "following": [
+        {
+          "conditions": [
+            {
+              "field": "imported_payee",
+              "op": "is",
+              "value": "* elsewhere"
+            },
+            {
+              "field": "payee",
+              "op": "is",
+              "value": "42420000-0000-4000-8000-000000009999"
+            },
+            {
+              "field": "amount",
+              "op": "is",
+              "value": 999999
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=BALANCE_OF(\"checking\")"
+              }
+            }
+          ]
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000116",
+        "stage": "pre",
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=BALANCE_OF(account_name)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "1060000",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null,
+      "rules": [
+        {
+          "id": "42420000-0000-4000-8000-000000000116",
+          "stage": "pre",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "account",
+              "op": "is",
+              "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=BALANCE_OF(account_name)"
+              }
+            }
+          ]
+        },
+        {
+          "id": "42420000-0000-4000-8000-000000011600",
+          "stage": "post",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "imported_payee",
+              "op": "is",
+              "value": "* elsewhere"
+            },
+            {
+              "field": "payee",
+              "op": "is",
+              "value": "42420000-0000-4000-8000-000000009999"
+            },
+            {
+              "field": "amount",
+              "op": "is",
+              "value": 999999
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=BALANCE_OF(\"checking\")"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "empty string membership is discarded",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=BALANCE_OF(account_name)"
+          }
+        }
+      ],
+      "following": [
+        {
+          "conditions": [
+            {
+              "field": "imported_payee",
+              "op": "oneOf",
+              "value": [
+                "",
+                "Z elsewhere"
+              ]
+            },
+            {
+              "field": "payee",
+              "op": "is",
+              "value": "42420000-0000-4000-8000-000000009999"
+            },
+            {
+              "field": "amount",
+              "op": "is",
+              "value": 999999
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=BALANCE_OF(\"checking\")"
+              }
+            }
+          ]
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000117",
+        "stage": "pre",
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=BALANCE_OF(account_name)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "0",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null,
+      "rules": [
+        {
+          "id": "42420000-0000-4000-8000-000000000117",
+          "stage": "pre",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "account",
+              "op": "is",
+              "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=BALANCE_OF(account_name)"
+              }
+            }
+          ]
+        },
+        {
+          "id": "42420000-0000-4000-8000-000000011700",
+          "stage": "post",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "imported_payee",
+              "op": "oneOf",
+              "value": [
+                "",
+                "Z elsewhere"
+              ]
+            },
+            {
+              "field": "payee",
+              "op": "is",
+              "value": "42420000-0000-4000-8000-000000009999"
+            },
+            {
+              "field": "amount",
+              "op": "is",
+              "value": 999999
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=BALANCE_OF(\"checking\")"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "normalized Unicode condition index",
+      "changes": {
+        "imported_payee": "İnput"
+      },
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=BALANCE_OF(account_name)"
+          }
+        }
+      ],
+      "following": [
+        {
+          "conditions": [
+            {
+              "field": "imported_payee",
+              "op": "is",
+              "value": "İnput"
+            },
+            {
+              "field": "payee",
+              "op": "is",
+              "value": "42420000-0000-4000-8000-000000009999"
+            },
+            {
+              "field": "amount",
+              "op": "is",
+              "value": 999999
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=BALANCE_OF(\"checking\")"
+              }
+            }
+          ]
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000118",
+        "stage": "pre",
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=BALANCE_OF(account_name)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "İnput",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "0",
+        "cleared": false,
+        "imported_payee": "İnput",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null,
+      "rules": [
+        {
+          "id": "42420000-0000-4000-8000-000000000118",
+          "stage": "pre",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "account",
+              "op": "is",
+              "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=BALANCE_OF(account_name)"
+              }
+            }
+          ]
+        },
+        {
+          "id": "42420000-0000-4000-8000-000000011800",
+          "stage": "post",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "imported_payee",
+              "op": "is",
+              "value": "İnput"
+            },
+            {
+              "field": "payee",
+              "op": "is",
+              "value": "42420000-0000-4000-8000-000000009999"
+            },
+            {
+              "field": "amount",
+              "op": "is",
+              "value": 999999
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=BALANCE_OF(\"checking\")"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

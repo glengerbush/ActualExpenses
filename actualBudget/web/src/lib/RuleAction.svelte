@@ -3,6 +3,7 @@
   import type { Reference } from "./register-api";
   import { formatAmountInput, parseAmount, type AmountFormat } from "./money";
   import DateInput from "./DateInput.svelte";
+  import { preferences } from "./preferences.svelte";
   let {
     action,
     index,
@@ -49,6 +50,33 @@
         ? payees
         : categories,
   );
+  let mode: "formula" | "template" | "fixed" = $derived(
+    action.options?.formula !== undefined
+      ? "formula"
+      : action.options?.template !== undefined
+        ? "template"
+        : "fixed",
+  );
+  let expressionField = $derived(
+    !["account", "payee", "category"].includes(action.field ?? ""),
+  );
+  let formulas = $derived(
+    preferences.shared.experimental.formulaMode ||
+      action.options?.formula !== undefined,
+  );
+  let templates = $derived(
+    preferences.shared.experimental.actionTemplating ||
+      action.options?.template !== undefined,
+  );
+  function method(value: string) {
+    const options = { ...action.options };
+    delete options.formula;
+    delete options.template;
+    if (value === "formula") options.formula = "=";
+    if (value === "template")
+      options.template = `{{${action.field ?? "notes"}}}`;
+    onchange({ ...action, options });
+  }
   function field(name: string) {
     onchange({
       ...action,
@@ -87,9 +115,42 @@
     }
   }
   function option(key: string, value: string | number) {
-    onchange({ ...action, options: { ...action.options, [key]: value } });
+    const options = { ...action.options, [key]: value };
+    if (key === "method" && value === "formula") options.formula ??= "=";
+    onchange({ ...action, options });
   }
 </script>
+
+{#snippet expression(kind: "formula" | "template")}
+  <div class="expression">
+    <label for={`rule-${kind}-${index}`}
+      >{kind === "formula" ? "Formula" : "Template"} {index + 1}</label
+    >
+    <textarea
+      id={`rule-${kind}-${index}`}
+      aria-describedby={`rule-expression-help-${index}`}
+      spellcheck="false"
+      rows="3"
+      maxlength="8192"
+      required
+      value={action.options?.[kind] ?? ""}
+      oninput={(e) => option(kind, e.currentTarget.value)}></textarea>
+    <div class="hint" id={`rule-expression-help-${index}`}>
+      {#if kind === "formula"}
+        Start with =. Amount and balance variables use minor units. Numeric
+        results convert to minor units, even for text fields.
+        <span class="example"
+          >{action.op === "set-split-amount"
+            ? "Example: =parent_amount/200 allocates half the parent amount."
+            : "Example: =amount/100+1 adds one currency unit."}</span
+        >
+      {:else}
+        Insert fields with double braces, for example {"{{payee_name}}"} or {"{{notes}}"}.
+        Amounts must produce whole minor units.
+      {/if}
+    </div>
+  </div>
+{/snippet}
 
 <label
   >Action {index + 1}<select
@@ -110,7 +171,26 @@
         >{/each}</select
     ></label
   >
-  {#if ["category", "payee", "account"].includes(action.field ?? "")}
+  {#if (expressionField && (formulas || templates)) || mode !== "fixed"}
+    <label
+      >Value method {index + 1}<select
+        aria-label={`Value method ${index + 1}`}
+        value={mode}
+        onchange={(e) => method(e.currentTarget.value)}
+      >
+        <option value="fixed">Fixed value</option>
+        {#if formulas}<option value="formula">Formula</option>{/if}
+        {#if templates}<option value="template">Template</option>{/if}
+      </select></label
+    >
+  {/if}
+  {#if mode !== "fixed"}
+    {@render expression(mode)}
+    {#if mode === "formula" && !expressionField}<p class="hint">
+        Formulas cannot assign account, payee or category IDs. Choose a fixed
+        value or use a payee name.
+      </p>{/if}
+  {:else if ["category", "payee", "account"].includes(action.field ?? "")}
     <label
       >Set value {index + 1}<select
         value={String(action.value ?? "")}
@@ -190,10 +270,13 @@
       onchange={(e) => option("method", e.currentTarget.value)}
       ><option value="fixed-amount">Fixed amount</option><option
         value="fixed-percent">Percentage</option
-      ><option value="remainder">Remaining amount</option></select
+      ><option value="remainder">Remaining amount</option>{#if formulas}<option
+          value="formula">Formula</option
+        >{/if}</select
     ></label
   >
-  {#if action.options?.method !== "remainder"}<label
+  {#if action.options?.method === "formula"}{@render expression("formula")}
+  {:else if action.options?.method !== "remainder"}<label
       >{action.options?.method === "fixed-percent"
         ? "Percent"
         : "Allocation amount"}
@@ -231,6 +314,16 @@
   >{/if}
 
 <style>
+  .expression {
+    flex: 1 1 100%;
+    min-width: 0;
+    display: grid;
+    gap: 0.3rem;
+  }
+  .example {
+    display: block;
+    margin-top: 0.3rem;
+  }
   label {
     display: grid;
     gap: 0.3rem;

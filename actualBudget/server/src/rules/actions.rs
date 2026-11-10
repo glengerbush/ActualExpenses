@@ -281,7 +281,7 @@ pub fn apply(
             expressions
                 .as_deref_mut()
                 .ok_or_else(|| Error::internal("Missing rule expression context"))?
-                .apply(db, b, &mut row, a, None, work)?;
+                .apply(&mut row, a, None, work)?;
         } else {
             exec(a, &mut row)?;
         }
@@ -332,7 +332,7 @@ pub fn apply(
             expressions
                 .as_deref_mut()
                 .ok_or_else(|| Error::internal("Missing rule expression context"))?
-                .apply(db, b, &mut children[index], a, Some(&parent_context), work)?;
+                .apply(&mut children[index], a, Some(&parent_context), work)?;
         } else {
             exec(a, &mut children[index])?;
         }

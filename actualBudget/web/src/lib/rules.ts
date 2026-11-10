@@ -20,10 +20,15 @@ export type Rule = {
   conditions: Condition[];
   actions: RuleAction[];
 };
+export type RuleProjection = Omit<Transaction, "amount" | "children"> & {
+  amount: number | null;
+  children?: RuleProjection[];
+  rule_errors?: string[];
+};
 export type RulePreview = {
   transactions: {
     before: Transaction;
-    after: Transaction;
+    after: RuleProjection;
     matched_rule_ids: string[];
   }[];
   candidate_count: number;

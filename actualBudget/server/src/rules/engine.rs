@@ -198,9 +198,13 @@ impl Runner {
                 if expressions.is_none() && rule.actions.iter().any(super::expressions::calculated)
                 {
                     expressions = Some(super::expressions::Context::new(db, b, input, stored)?);
+                    expressions
+                        .as_mut()
+                        .unwrap()
+                        .prefetch(db, b, &self.rules, input)?;
                 }
                 if let Some(context) = expressions.as_mut() {
-                    context.begin_rule(db, b, &row)?;
+                    context.begin_rule(db, b, &row, rule)?;
                 }
                 row = super::actions::apply(
                     db,

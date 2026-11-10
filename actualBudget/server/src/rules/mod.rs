@@ -14,7 +14,8 @@ pub(crate) fn template_actions(
         .then(|| expressions::Context::new(db, b, row, false))
         .transpose()?;
     if let Some(context) = context.as_mut() {
-        context.begin_rule(db, b, row)?;
+        context.prefetch(db, b, std::slice::from_ref(rule), row)?;
+        context.begin_rule(db, b, row, rule)?;
     }
     actions::apply(
         db,

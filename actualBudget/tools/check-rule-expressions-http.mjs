@@ -6,9 +6,11 @@ import { startServer } from "../web/tests/server.mjs";
 const fixture = JSON.parse(
   await readFile(
     new URL(
-      process.argv.includes("--context")
-        ? "../tests/fixtures/rule-expression-context-source.json"
-        : "../tests/fixtures/rule-expressions-source.json",
+      process.argv.includes("--chains")
+        ? "../tests/fixtures/rule-expression-chain-source.json"
+        : process.argv.includes("--context")
+          ? "../tests/fixtures/rule-expression-context-source.json"
+          : "../tests/fixtures/rule-expressions-source.json",
       import.meta.url,
     ),
   ),
@@ -93,10 +95,26 @@ try {
   for (const test of fixture.cases.filter(
     (c) => !filter || c.name === filter,
   )) {
+    let stamp = checkpoint;
+    if (test.rules) {
+      for (const rule of test.rules) {
+        stamp = await call(root + "/checkpoint");
+        const created = await call(root + "/rules", {
+          ...rule,
+          snapshot: stamp.data.snapshot,
+        });
+        assert.equal(created.status, 201, JSON.stringify(created));
+      }
+    }
+    stamp = await call(root + "/checkpoint");
     const response = await call(root + "/rules/preview", {
-      snapshot: checkpoint.data.snapshot,
-      transaction: native(test.transaction),
-      rule: test.rule,
+      snapshot: stamp.data.snapshot,
+      ...(test.stored
+        ? { ids: [test.transaction.id] }
+        : { transaction: native(test.transaction) }),
+      ...(test.rules
+        ? { rule_ids: test.rules.map((r) => r.id) }
+        : { rule: test.rule }),
     });
     if (test.error) {
       assert.ok([400, 422].includes(response.status), test.name);
@@ -123,10 +141,21 @@ try {
       );
       if (test.payee_name) assert.equal(actual.payee_name, test.payee_name);
     }
+    assert.deepEqual(
+      await call(root + "/checkpoint"),
+      stamp,
+      test.name + " read-only checkpoint",
+    );
     count++;
   }
-  assert.deepEqual(await call(root + "/transactions"), before);
-  assert.deepEqual(await call(root + "/checkpoint"), checkpoint);
+  const after = await call(root + "/transactions");
+  if (process.argv.includes("--chains")) {
+    const { snapshot: beforeSnapshot, ...beforeRows } = before;
+    const { snapshot: afterSnapshot, ...afterRows } = after;
+    assert.deepEqual(afterRows, beforeRows);
+  } else assert.deepEqual(after, before);
+  if (!process.argv.includes("--chains"))
+    assert.deepEqual(await call(root + "/checkpoint"), checkpoint);
   console.log(
     `PASS ${count} source rule-expression previews and unchanged financial state`,
   );

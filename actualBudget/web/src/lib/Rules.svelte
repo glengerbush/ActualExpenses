@@ -17,6 +17,7 @@
     resetCorrectedClock,
   } from "./edit-clock";
   import { captureAmountFormat, formatAmount } from "./money";
+  import { preferences } from "./preferences.svelte";
   import {
     rulesKey,
     readRulesDraft,
@@ -28,6 +29,7 @@
     type RuleDraft,
     type RulesView,
     type RulePreview,
+    type RuleProjection,
   } from "./rules";
   import RegisterCondition from "./RegisterCondition.svelte";
   import { defaultQuery } from "./register-query";
@@ -406,11 +408,37 @@
     selected = [];
     error = "";
   }
-  function fieldValue(field: string, row: Transaction | undefined): string {
+  function previewAmount(amount: number | null): string {
+    if (preferences.shared.privacy_mode) return "••••";
+    return amount !== null && Number.isSafeInteger(amount)
+      ? formatAmount(amount)
+      : amount === null
+        ? "Invalid amount"
+        : `${amount} minor units`;
+  }
+  function invalidAmounts(row: RuleProjection): boolean {
+    return (
+      !row.deleted &&
+      (!Number.isSafeInteger(row.amount) ||
+        !!row.children?.some(invalidAmounts))
+    );
+  }
+  function diagnostics(row: RuleProjection): string[] {
+    return [
+      ...(row.rule_errors ?? []),
+      ...(row.children ?? []).flatMap((c, i) =>
+        (c.rule_errors ?? []).map((error) => `Allocation ${i + 1}: ${error}`),
+      ),
+    ];
+  }
+  function fieldValue(
+    field: string,
+    row: Transaction | RuleProjection | undefined,
+  ): string {
     if (!row) return "Not present";
     switch (field) {
       case "amount":
-        return formatAmount(row.amount);
+        return previewAmount(row.amount);
       case "account_id":
         return (
           accounts.find((a) => a.id === row.account_id)?.name ??
@@ -443,7 +471,7 @@
   }
   function changes(
     before: Transaction | undefined,
-    after: Transaction | undefined,
+    after: RuleProjection | undefined,
   ) {
     return Object.entries({
       amount: "Amount",
@@ -468,7 +496,7 @@
         after: fieldValue(field, after),
       }));
   }
-  function allocations(before: Transaction, after: Transaction) {
+  function allocations(before: Transaction, after: RuleProjection) {
     const old = before.children ?? [],
       next = after.deleted
         ? []
@@ -984,7 +1012,10 @@
               ><input
                 type="checkbox"
                 checked={selected.includes(entry.before.id)}
-                disabled={locked || !!draft || entry.before.reconciled}
+                disabled={locked ||
+                  !!draft ||
+                  entry.before.reconciled ||
+                  invalidAmounts(entry.after)}
                 onchange={(e) =>
                   choose(entry.before.id, e.currentTarget.checked)}
               /><span
@@ -1000,6 +1031,18 @@
                 >
                 {#if entry.after.deleted}<strong>Delete transaction</strong
                   >{/if}
+                {#if invalidAmounts(entry.after)}<strong
+                    >Cannot save: amounts must be whole minor units.</strong
+                  >{/if}
+                {#if diagnostics(entry.after).length}
+                  <strong
+                    >Some calculated actions failed. Their previous values
+                    remain; later actions may still apply.</strong
+                  >
+                  {#each [...new Set(diagnostics(entry.after))] as message (message)}<small
+                      class="field-change">{message}</small
+                    >{/each}
+                {/if}
                 {#if !!entry.before.is_parent !== !!entry.after.is_parent}<small
                     >Structure: {entry.before.is_parent
                       ? "Split transaction"
@@ -1043,7 +1086,7 @@
                           class="field-change"
                           >{change.label}: {change.before} → {change.after}</small
                         >{/each}{#if allocation.before && allocation.after && !changes(allocation.before, allocation.after).length}<small
-                          >Unchanged · {formatAmount(
+                          >Unchanged · {previewAmount(
                             allocation.after.amount,
                           )}</small
                         >{/if}

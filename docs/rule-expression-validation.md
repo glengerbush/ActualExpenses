@@ -3,8 +3,9 @@
 Reference: Actual26.10.0, source commit
 `2bebdbaae0b701120a8cad9d56aafd64fa04c577`. Ticket41 accepted at `5e9cb42`.
 The initial checkpoint established source behavior and a reproducible action
-asset. The current checkpoint adds native execution and guarded writes;
-UI, broader workflow qualification and whole42 acceptance remain unfinished.
+asset. Subsequent checkpoints add native execution, guarded writes, expression
+editing and source-backed context timing. Broader workflow qualification and
+whole42 acceptance remain unfinished.
 
 ## Running-source witnesses
 
@@ -171,3 +172,61 @@ cross-rule and candidate-wide balance-prefetch timing, fractional split preview
 policy, and resource-limit/performance qualification. These remain42 work, not deferred
 acceptance items for50–53. No full suite, container qualification, push,
 release or production deployment in this checkpoint.
+
+## Expression editing and context checkpoint
+
+The existing action editor now exposes formula/template methods when opted in,
+plus split formulas. Existing expressions remain editable after disabling the
+flags. Draft reload preserves expressions. Preview errors name failed actions;
+fractional preview amounts render without integer-formatting crashes and cannot
+be selected for saving. Privacy mode also masks fractional values. These changes
+use the existing Operate design, Impeccable guidance and Svelte skills.
+
+Nineteen new running-source observations cover stored flags/nulls/original order,
+balance preparation before the first action, candidate-wide literal lookup
+prefetch, category-group refresh and original account aliases across rules.
+Additional cases distinguish wildcard index buckets, discarded empty string
+membership and Unicode condition normalization. The first wildcard case failed
+before correction (`/tmp/rule-chain-index-red.log`). Native context now preserves
+these observed behaviors; `rule-expression-chain-source.json` retains the
+independent expectations. Imported ID/raw metadata and supported source row
+fields are carried into expression context, with wider field coverage still
+requiring workflow qualification.
+
+Focused evidence at this checkpoint:
+
+- `/tmp/rule-chain-source-final.log`: all19 source observations independently
+  reproduce; original financial rows unchanged.
+- `/tmp/rule-chain-index-green.log`: all19 native public previews match;
+  each preview leaves its captured checkpoint unchanged. Rule creation changes
+  the overall snapshot, so the chain checker separately compares all financial
+  payload fields while allowing that metadata cursor to advance.
+- `/tmp/rule-chain-regression.log`: original40 previews,22 context cases and5
+  persisted operations/refusals/retries pass after context preparation changes.
+- `/tmp/rule-chain-rust2.log`:12 existing rules and13 split tests pass.
+- `/tmp/rule-expressions-ui-green4.log`: plain-HTTP browser editing, retained
+  draft, save/preview/apply, disabled-flag retention, formula errors, fractional
+  results, privacy, split formulas, keyboard navigation and200% text at390px.
+- `/tmp/rule-expressions-literal-browser.log`: existing typed-rule editing,
+  selective apply, conflicts, committed-request retry, manual protection and
+  learning controls pass.
+- `/tmp/rule-chain-index-clippy.log`, `/tmp/rule-expression-checkpoint-types.log`
+  and `/tmp/rule-expression-checkpoint-style.log`: warnings-denied Rust check,
+  Svelte type check and changed-file formatting pass. Both changed Svelte
+  components have clean autofixer results. Production frontend build passes.
+
+Rendered desktop,390px mobile, fractional-error and enlarged-text captures in
+`actualBudget/web/test-results/rule-expressions/` were inspected. Controls and
+help remain readable; mobile has no horizontal page overflow. Browser scripts
+now join the normal suite, with focused source/API/browser commands available.
+
+Root standards review against `294d25f`: preference gating retains saved data,
+preview financial validation remains separate from display, expression inputs
+stay data-only, and source expectations remain independently generated. Fixed
+the nullable/fractional formatter and keyed error-list findings. Root spec
+review:42 is still partial, with no acceptance criteria closed. Remaining42
+work includes old native/staged capability refresh and recovery, representative
+Android/import/schedule/manual/forecast execution, remaining field/child context,
+execution candidate filtering versus direct selected-action prefetch semantics,
+fractional split previews, and resource/performance qualification. No push,
+release, container qualification or live deployment at this checkpoint.

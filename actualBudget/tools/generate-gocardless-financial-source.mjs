@@ -275,9 +275,28 @@ try {
   };
   // Same generated-UUID/true-tie normalization as reviewed bank-sync oracle.
   function stable(value) {
+    const originalIds = new Set();
+    const collect = (input) => {
+      if (typeof input === "string") {
+        for (const match of input.matchAll(
+          /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g,
+        ))
+          originalIds.add(match[0]);
+      } else if (Array.isArray(input)) input.forEach(collect);
+      else if (input && typeof input === "object")
+        for (const [key, item] of Object.entries(input)) {
+          collect(key);
+          collect(item);
+        }
+    };
+    collect(source); // Original executed adapter input, never generated financial IDs.
+    for (const item of value.cases) {
+      collect(item.before);
+      collect(item.linked?.snapshot); // This immutable linked export is also a source input.
+    }
     const ids = new Map();
     const id = (v) => {
-      if (v.startsWith("29290000-")) return v;
+      if (originalIds.has(v) || v.startsWith("29290000-")) return v;
       if (!ids.has(v)) ids.set(v, `generated-${ids.size}`);
       return ids.get(v);
     };

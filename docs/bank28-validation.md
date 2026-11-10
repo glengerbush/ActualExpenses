@@ -135,3 +135,57 @@ change: `/tmp/bank28-foundation-green.log`, `/tmp/bank28-foundation-clippy.log`.
 The independent source financial consumer now has a real404 red at public account
 linking (`/tmp/bank28-financial-red.log`); six original source archives/expected
 financial states remain unchanged.
+
+## Financial checkpoint — linking/settings/shared writer (partial)
+
+Public source consumer `check-bank-financial-http.mjs` imports each of the six
+unchanged genuine prelink ZIPs, verifies its original digest, then links and
+refreshes through real local SimpleFIN HTTP responses. Initial public account-link
+red404: `/tmp/bank28-financial-red.log`. Six financial cases now pass in
+`/tmp/bank28-financial-final-http.log`: opening balance, original manual matching,
+pending→booked stable IDs, separate payment/deposit field mappings, excluded
+pending/notes, bank-date updates, and balance-only preference. Comparisons include
+signed money, dates, notes, cleared/reconciled/starting flags, original category and
+manual/payee IDs, exact bank IDs/imported payee, references and multiplicity. Active
+payee counts/names prohibit unused provisional references. Repeat preserves every
+actual first-import ID. Source UUIDs generated during linking are not expected to
+match replacement-generated IDs; original archive identities remain exact.
+
+The public consumer also proves owned undo/redo of opening+bank expenses+origin
+metadata, receipt replay after undo without reapplication, and older-clock preference
+refusal despite a fresh snapshot. A second untouched remote account in discovery
+exposes scoped-response handling: true red `/tmp/bank28-scoped-metadata-red.log`
+was corrected by distinguishing complete discovery from a scoped financial response.
+A scoped refresh never tombstones another provider account. All76 observed request,
+result, settings and change-feed values validate against actually served schemas.
+Shared import metadata/settings now have explicit feed schemas alongside bank types.
+
+Bank rows reuse the existing guarded rule-before-match planner and graph writer;
+file imports retain their prior defaults/title behavior. Bank imports retain source
+payee spelling, use non-strict bank-ID fuzzy matching, preserve existing nonempty
+manual values, and optionally update dates. Per-field preference cells reuse original
+source IDs; same/equal newer field clocks refuse changed values. Financial graphs,
+original provider bindings and the original owned receipt are one SQLite transaction.
+Captured raw downloads stay outside history/portable state; generic receipt identity
+also binds original clock, owner and epoch. Existing five rule-import workflows and
+14 matching outcomes remain green (`/tmp/bank28-existing-import-rules.log`,
+`/tmp/bank28-existing-matching.log`). Bin Clippy passes
+`/tmp/bank28-financial-clippy.log`; exact latest API build
+`/tmp/bank28-financial-final-build.log`. Lifecycle/secret matrix still passes
+`/tmp/bank28-financial-final-lifecycle.log`.
+
+Representative native public test passes (`/tmp/bank28-native-financial.log`,1test,
+zero skips): queued native work delivers once across new bank feed entities, bank
+expense amounts/IDs survive pending→booked, restart/unchanged refresh preserves
+cache without extra writes, and native refresh never contacts the provider. Native
+saved state contains no setup/access secret. No Android product code changed.
+
+Compatibility qualifications: provider balances remain separate from ledger totals;
+known discovery balances stay visible immediately (the source's first-link account
+balance column stays null until a later refresh). Decimal provider balances use
+numeric minor-unit conversion rather than the source adapter's formatting-sensitive
+`parseInt(balance.replace('.', ''))`. No FX conversion is inferred. The six original
+source financial observations/archives are unchanged. Full linked-source conversion,
+genuine22 DB/native upgrade/restore/duplicate, account unlink/relink matrix, parallel
+capture ordering/partial missing-account recovery, final contracts/CI and UI are
+still pending. This checkpoint is not complete28 acceptance.

@@ -1,6 +1,11 @@
 //! Source metadata and independent account preference cells retain provenance.
 use super::*;
 const PREFIXES: &[&str] = &[
+    "custom-sync-mappings-",
+    "sync-import-transactions-",
+    "sync-import-pending-",
+    "sync-import-notes-",
+    "sync-update-dates-",
     "csv-mappings-",
     "csv-delimiter-",
     "csv-encoding-",

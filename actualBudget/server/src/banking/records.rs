@@ -63,6 +63,7 @@ pub(super) fn install_remote(
     connection: &str,
     generation: &str,
     raw: &Value,
+    complete: bool,
 ) -> Result<(Vec<Value>, Vec<Value>), Error> {
     if ["next", "next_cursor", "continuation", "has_more"]
         .iter()
@@ -223,7 +224,7 @@ pub(super) fn install_remote(
     }
     let clock = sync::clock(db, b, None)?;
     let old=db.prepare("SELECT id FROM bank_remote_accounts WHERE budget_id=?1 AND connection_id=?2 AND tombstone=0")?.query_map(params![b,connection],|r|r.get::<_,String>(0))?.collect::<Result<Vec<_>,_>>()?;
-    if errors.is_empty() {
+    if complete && errors.is_empty() {
         for id in old {
             db.execute(
                 "UPDATE bank_remote_accounts SET tombstone=1 WHERE budget_id=?1 AND id=?2",
@@ -319,4 +320,8 @@ pub(super) fn tables() -> Vec<(&'static str, Vec<&'static str>)> {
             ],
         ),
     ]
+}
+
+pub(super) fn origin(db: &Connection, b: &str, id: &str) -> Result<Value, Error> {
+    db.query_row("SELECT connection_id,remote_account_id,tombstone FROM bank_transaction_origins WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":id,"connection_id":r.get::<_,String>(0)?,"remote_account_id":r.get::<_,String>(1)?,"deleted":r.get::<_,bool>(2)?}))).optional()?.ok_or_else(Error::missing)
 }

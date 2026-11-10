@@ -1,7 +1,11 @@
 //! Provider-neutral connection custody and SimpleFIN lifecycle. Only nonsecret
 //! metadata crosses client, receipt, change-feed and portable archive boundaries.
+mod financial;
+mod linking;
+mod normalize;
 mod records;
 mod remote;
+mod settings;
 mod transport;
 use crate::{
     api, concurrency as sync,
@@ -22,6 +26,14 @@ use sha2::{Digest, Sha256};
 
 pub fn router() -> Router<Store> {
     Router::new()
+        .route(
+            "/api/v1/budgets/{budget}/accounts/{account}/banking",
+            get(linking::read),
+        )
+        .route(
+            "/api/v1/budgets/{budget}/accounts/{account}/banking/commands",
+            post(linking::command),
+        )
         .route("/api/v1/budgets/{budget}/banking", get(read))
         .route("/api/v1/budgets/{budget}/banking/connections", post(create))
         .route(
@@ -121,11 +133,16 @@ async fn command(
     State(store): State<Store>,
     Path((b, id)): Path<(String, String)>,
     headers: HeaderMap,
-    input: Result<Json<Command>, JsonRejection>,
+    input: Result<Json<Value>, JsonRejection>,
 ) -> Result<(StatusCode, Json<Value>), Error> {
     models::validate_id(&b)?;
     models::validate_id(&id)?;
-    let Json(body) = input.map_err(api::json_error)?;
+    let Json(value) = input.map_err(api::json_error)?;
+    if value["action"] == "refresh" {
+        return financial::refresh(store, b, id, headers, value).await;
+    }
+    let body: Command = serde_json::from_value(value)
+        .map_err(|_| Error::invalid("Choose a valid connection command"))?;
     if !matches!(
         body.action.as_str(),
         "claim" | "replace" | "remove" | "discover"
@@ -258,4 +275,11 @@ pub(crate) fn remote_account(db: &Connection, b: &str, id: &str) -> Result<Value
 }
 pub(crate) fn archive_tables() -> Vec<(&'static str, Vec<&'static str>)> {
     records::tables()
+}
+
+pub(crate) fn origin(db: &Connection, b: &str, id: &str) -> Result<Value, Error> {
+    records::origin(db, b, id)
+}
+pub(crate) fn account_link(db: &Connection, b: &str, id: &str) -> Result<Value, Error> {
+    linking::link(db, b, id)
 }

@@ -11,6 +11,7 @@ use std::collections::BTreeSet;
 const TABLES: &[&str] = &[
     "transactions",
     "transaction_import_metadata",
+    "bank_transaction_origins",
     "transaction_import_settings",
     "accounts",
     "account_groups",

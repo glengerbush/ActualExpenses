@@ -86,6 +86,19 @@ try {
   await expect(result).toContainText("60.00");
   await page.getByText("Exact values", { exact: true }).click();
   await expect(result.getByRole("row", { name: /food.*60.00/ })).toBeVisible();
+  await page
+    .getByRole("combobox", { name: "Balance mode", exact: true })
+    .selectOption("Net Payment");
+  await page
+    .getByRole("button", { name: "Preview report", exact: true })
+    .click();
+  await expect(result).toContainText("58.00");
+  await expect(result).toContainText(
+    "Payments are shown as positive magnitudes; details retain recorded signs.",
+  );
+  await page
+    .getByRole("button", { name: "Reset to saved", exact: true })
+    .click();
   for (const [format, title] of [
     ["TableGraph", null],
     ["BarGraph", "Bar report"],

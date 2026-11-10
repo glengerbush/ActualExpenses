@@ -246,7 +246,7 @@ fn budget_rows(db: &Connection, b: &str, o: &Value) -> Result<Vec<Row>, Error> {
     )?
     .replace("t.category_id", "c.id");
     let sql = format!(
-        "SELECT cell.id,cell.month,cell.amount,c.id,c.name,c.group_id,(c.hidden OR g.hidden) FROM budget_cells cell JOIN categories c ON c.budget_id=cell.budget_id AND c.id=cell.category_id JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id LEFT JOIN transactions t ON 0 LEFT JOIN accounts a ON 0 LEFT JOIN payees p ON 0 LEFT JOIN accounts y ON 0 WHERE cell.budget_id=?1 AND cell.method=?2 AND cell.month>=?3 AND cell.month<=?4 AND cell.tombstone=0 AND c.tombstone=0 AND c.is_income=0 AND cell.amount<>0 AND ({filter}) ORDER BY cell.month,cell.id LIMIT 100001"
+        "SELECT cell.id,cell.month,cell.amount,c.id,c.name,c.group_id,(c.hidden OR coalesce(g.hidden,0)) FROM budget_cells cell JOIN categories c ON c.budget_id=cell.budget_id AND c.id=cell.category_id LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id LEFT JOIN transactions t ON 0 LEFT JOIN accounts a ON 0 LEFT JOIN payees p ON 0 LEFT JOIN accounts y ON 0 WHERE cell.budget_id=?1 AND cell.method=?2 AND cell.month>=?3 AND cell.month<=?4 AND cell.tombstone=0 AND c.tombstone=0 AND c.is_income=0 AND cell.amount<>0 AND ({filter}) ORDER BY cell.month,cell.id LIMIT 100001"
     );
     let rows = db
         .prepare(&sql)?

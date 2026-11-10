@@ -311,6 +311,123 @@ try {
     saved.data.documents.find((d) => d.id === report.id).config.metadata,
     { kept: ["unknown", "future"] },
   );
+  // Supported inline categories can be ungrouped; their planned money must survive reports.
+  const legacyBudget = randomUUID(),
+    legacyAccount = randomUUID(),
+    legacyCategory = randomUUID(),
+    legacyRoot = `/budgets/${legacyBudget}`;
+  const legacyHeaders = { "Idempotency-Key": randomUUID() };
+  assert.equal(
+    (
+      await api(
+        "/budgets",
+        {
+          id: legacyBudget,
+          name: "Ungrouped report allocations",
+          budget_type: "tracking",
+        },
+        legacyHeaders,
+      )
+    ).status,
+    201,
+  );
+  const legacyEpoch = (await api(legacyRoot + "/reporting")).data.epoch;
+  const legacyWrite = () => ({
+    "Idempotency-Key": randomUUID(),
+    "X-Actual-Budget-Epoch": legacyEpoch,
+  });
+  assert.equal(
+    (
+      await api(
+        legacyRoot + "/accounts",
+        {
+          id: legacyAccount,
+          name: "Legacy cash",
+          opening_balance: 0,
+          opening_date: "2026-11-01",
+        },
+        legacyWrite(),
+      )
+    ).status,
+    201,
+  );
+  assert.equal(
+    (
+      await api(
+        legacyRoot + "/transactions",
+        {
+          id: randomUUID(),
+          account_id: legacyAccount,
+          amount: -100,
+          date: "2026-11-02",
+          new_category: { id: legacyCategory, name: "Legacy expense" },
+        },
+        legacyWrite(),
+      )
+    ).status,
+    201,
+  );
+  const budgetBefore = (await api(legacyRoot + "/budget?month=2026-11")).data;
+  const budgetAfter = await api(
+    legacyRoot + "/budget",
+    {
+      action: "set",
+      month: "2026-11",
+      category: legacyCategory,
+      amount: 5000,
+      snapshot: budgetBefore.snapshot,
+    },
+    legacyWrite(),
+  );
+  assert.equal(budgetAfter.status, 200, JSON.stringify(budgetAfter));
+  assert.equal(budgetAfter.data.months["2026-11"].summary.total_budgeted, 5000);
+  for (const groupBy of ["Category", "CategoryGroup"]) {
+    const legacyQuery = {
+      version: 1,
+      kind: "custom",
+      as_of: "2026-11-09",
+      options: {
+        startDate: "2026-11",
+        endDate: "2026-11",
+        interval: "Monthly",
+        balanceTypeOp: "totalBudgeted",
+        groupBy,
+        nested: groupBy === "CategoryGroup",
+        showHiddenCategories: false,
+      },
+    };
+    const report = await api(legacyRoot + "/reports/query", legacyQuery);
+    assert.equal(report.status, 200, JSON.stringify(report));
+    assert.equal(
+      report.data.result.totalBudgeted,
+      5000,
+      "Ungrouped planned allocation remains visible",
+    );
+    const cell = report.data.cells.find(
+      (c) =>
+        c.group ===
+          (groupBy === "Category"
+            ? legacyCategory
+            : "leaf:" + legacyCategory) &&
+        c.label.endsWith("Legacy expense total"),
+    );
+    assert.ok(cell, JSON.stringify(report.data));
+    const rows = await api(legacyRoot + "/reports/drilldown", {
+      query: legacyQuery,
+      snapshot: report.data.snapshot,
+      cell_id: cell.id,
+      offset: 0,
+      limit: 2,
+    });
+    assert.equal(rows.status, 200);
+    assert.equal(rows.data.total_count, 1);
+    assert.equal(rows.data.total_amount, 5000);
+    assert.equal(rows.data.rows[0].category, "Legacy expense");
+    assert.equal(rows.data.record_kind, "budget_allocations");
+  }
+  console.log(
+    "PASS public inline ungrouped category allocations in category/nested totals and details",
+  );
   console.log(
     "PASS retired category mapping and source report CAS/immutable replay/future metadata preservation",
   );

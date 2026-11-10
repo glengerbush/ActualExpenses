@@ -148,9 +148,11 @@
     )}
   </p>
   <p class="muted">
-    Report total · {String(query.options.balanceTypeOp).startsWith("net")
-      ? "Net values retain their recorded sign."
-      : "Payments are shown as positive chart magnitudes; details retain recorded signs."}
+    Report total · {["totalDebts", "netDebts"].includes(
+      String(query.options.balanceTypeOp),
+    )
+      ? "Payments are shown as positive magnitudes; details retain recorded signs."
+      : "Values retain their signs."}
   </p>
 {:else if query.kind === "summary"}
   <p class="summary-value">{amount(view.rows[0]?.values[0] ?? null)}</p>

@@ -1170,13 +1170,14 @@
   @media (max-width: 700px) {
     .toolbar > .actions {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
       width: 100%;
     }
     .toolbar > .actions button {
       min-width: 0;
       width: 100%;
       white-space: normal;
+      overflow-wrap: anywhere;
     }
   }
   @media (max-width: 900px) {

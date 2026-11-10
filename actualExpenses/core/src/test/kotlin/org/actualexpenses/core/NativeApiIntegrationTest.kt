@@ -73,12 +73,13 @@ class NativeApiIntegrationTest {
             )
         }
 
-        fun post(path: String, body: String, status: Int = 201): JsonObject {
+        fun post(path: String, body: String, status: Int = 201, headers: Map<String, String> = emptyMap()): JsonObject {
             val response =
                 client.send(
                     HttpRequest.newBuilder(URI("$url/api/v1$path"))
                         .header("Content-Type", "application/json")
                         .header("Idempotency-Key", UUID.randomUUID().toString())
+                        .apply { headers.forEach { (key, value) -> header(key, value) } }
                         .POST(HttpRequest.BodyPublishers.ofString(body))
                         .build(),
                     HttpResponse.BodyHandlers.ofString(),
@@ -2715,6 +2716,22 @@ class NativeApiIntegrationTest {
             }
             assertEquals(source["output"], server.post("$root/reports/formula", query.toString(), 200)["output"])
             assertEquals(before, server.get("$root/companion?account_id=$account"))
+            val app = ApiExpenseService(MemoryStore())
+            app.connect(server.url)
+            app.chooseBudget(stage["budget_id"].asString)
+            app.chooseAccount(account)
+            val expenses = app.state().expenses
+            val reporting = server.get("$root/reporting").getAsJsonObject("data")
+            val document = reporting.getAsJsonArray("documents").first {
+                it.asJsonObject["id"] == source.getAsJsonObject("widget")["id"]
+            }.asJsonObject.deepCopy()
+            document.getAsJsonObject("config").getAsJsonObject("meta").addProperty("name", "Updated formula")
+            server.post("$root/reporting/commands", """{"writes":[$document]}""", 200,
+                mapOf("X-Actual-Budget-Epoch" to reporting["epoch"].asString))
+            app.refresh()
+            assertTrue(app.state().online, app.state().error)
+            assertNull(app.state().error)
+            assertEquals(expenses, app.state().expenses)
         }
     }
 }

@@ -1,6 +1,8 @@
 import { request, RequestError } from "./api";
 import { localDay, object, type ReportDocument } from "./reports";
 import { languageState } from "./i18n.svelte";
+import { themes } from "./themes/themes.svelte";
+import sourceNames from "./themes/source-names.json";
 export type FormulaValue = string | number | boolean | null;
 export interface FormulaOutput {
   result: FormulaValue;
@@ -30,30 +32,19 @@ export function localTimestamp() {
 }
 export function themeExpressions(): Record<string, string> {
   const styles = getComputedStyle(document.documentElement);
-  // Current interface tokens; preserved source theme names use the same roles.
-  const roles: Record<string, string> = {
-    reportsNumberPositive: "--accent",
-    reportsNumberNegative: "--error",
-    reportsNumberNeutral: "--muted",
-    errorText: "--error",
-    pageText: "--text",
-    pageBackground: "--page",
-    pageTextSubdued: "--muted",
-    pageTextLink: "--link",
-    tableText: "--table-text",
-    tableBackground: "--table-surface",
-  };
   return Object.fromEntries(
-    Object.entries(roles).map(([name, token]) => [
-      "theme_" + name,
-      styles.getPropertyValue(token).trim(),
-    ]),
+    Object.entries(sourceNames).flatMap(([name, value]) => {
+      const match = value.match(/^var\((--.*)\)$/);
+      const resolved = match ? styles.getPropertyValue(match[1]).trim() : value;
+      return resolved ? [["theme_" + name, resolved]] : [];
+    }),
   );
 }
 export async function calculateFormula(
   budget: string,
   document: ReportDocument,
   epoch: string,
+  preview = false,
 ): Promise<FormulaResult> {
   const meta = object(document.config.meta),
     checkpoint = (
@@ -66,7 +57,10 @@ export async function calculateFormula(
       "The budget version changed. Refresh dashboards before calculating again.",
     );
   const input = {
-    formula: typeof meta.formula === "string" ? meta.formula : "=SUM(1, 2, 3)",
+    formula:
+      typeof meta.formula === "string" && (preview || meta.formula)
+        ? meta.formula
+        : "=SUM(1, 2, 3)",
     queries: meta.queries ?? {},
     snapshot: checkpoint.snapshot,
     as_of: localDay(),
@@ -81,6 +75,7 @@ export async function calculateFormula(
   ).data;
   let color: FormulaOutput | null = null;
   if (typeof meta.colorFormula === "string" && meta.colorFormula) {
+    await themes.prepareFormulaColors();
     color = (
       await request<{ data: Omit<FormulaResult, "color"> }>(
         `/budgets/${budget}/reports/formula`,

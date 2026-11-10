@@ -6,6 +6,7 @@ use axum::{
 };
 use serde::Deserialize;
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 mod conversion;
 mod css;
@@ -135,7 +136,8 @@ pub fn compile(input: Input) -> Result<Value, Error> {
     {
         return Err(Error::invalid("Theme exceeds supported size"));
     }
-    let mut result = json!({"version":1,"id":input.id,"name":input.name,"repo":input.repo,"base_theme":input.base_theme,"source":input.css,"valid":false,"variables":{},"variables_by_base":{"light":{},"dark":{},"midnight":{}},"fonts":[],"warnings":[]});
+    let source_hash = format!("{:x}", Sha256::digest(input.css.as_bytes()));
+    let mut result = json!({"version":2,"source_hash":source_hash,"id":input.id,"name":input.name,"repo":input.repo,"base_theme":input.base_theme,"source":input.css,"valid":false,"variables":{},"variables_by_base":{"light":{},"dark":{},"midnight":{}},"fonts":[],"warnings":[]});
     let parsed = match css::parse(&input.css) {
         Ok(parsed) => parsed,
         Err(reason) => {
@@ -170,6 +172,7 @@ fn map_variables(parsed: &css::Parsed, base_theme: &str) -> (BTreeMap<String, St
             values.insert(key.clone(), value.as_str().unwrap().to_owned());
         }
     }
+    let mut formula_values = values.clone();
     let redesign = parsed
         .variables
         .keys()
@@ -179,11 +182,15 @@ fn map_variables(parsed: &css::Parsed, base_theme: &str) -> (BTreeMap<String, St
             .keys()
             .any(|key| key.starts_with("--color-sidebar"));
     if base_theme == "light" && redesign {
+        for (key, value) in baseline["sidebar-redesign-root-light"].as_object().unwrap() {
+            formula_values.insert(key.clone(), value.as_str().unwrap().to_owned());
+        }
         for (key, value) in baseline["sidebar-redesign-light"].as_object().unwrap() {
             values.insert(key.clone(), value.as_str().unwrap().to_owned());
         }
     }
     values.extend(parsed.variables.clone());
+    formula_values.extend(parsed.variables.clone());
     let mut applied = BTreeMap::new();
     let mut consumed = BTreeSet::new();
     let mut warnings = Vec::new();
@@ -207,6 +214,22 @@ fn map_variables(parsed: &css::Parsed, base_theme: &str) -> (BTreeMap<String, St
                     warnings.push(warning(source, reason));
                 }
             }
+        }
+    }
+    // Preserve every known source theme role for formula named expressions,
+    // including roles without an equivalent native interface token.
+    for source in baseline[base_theme].as_object().unwrap().keys() {
+        if !source.starts_with("--color-") {
+            continue;
+        }
+        let mut dependencies = BTreeSet::new();
+        if let Ok(value) = resolve(source, &formula_values, &mut Vec::new(), &mut dependencies)
+            && dependencies
+                .iter()
+                .any(|key| parsed.variables.contains_key(key))
+        {
+            applied.insert(source.clone(), value);
+            consumed.extend(dependencies);
         }
     }
     for key in parsed.variables.keys() {

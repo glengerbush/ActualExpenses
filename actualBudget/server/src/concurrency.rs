@@ -774,6 +774,7 @@ pub fn read_changes(
                 crate::budgeting::record(db, budget, &entity, &id)?
             }
             "register_settings" => crate::register_settings::read_settings(db, budget)?,
+            "reporting_documents" => crate::reports::record(db, budget, &id)?,
             "categories" | "category_groups" => crate::categories::get(db, budget, &entity, &id)?,
             _ => return Err(Error::internal("Unknown change entity")),
         };

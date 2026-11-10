@@ -29,6 +29,10 @@
     "sidebar-redesign-light": {
       "path": "packages/component-library/src/themes/sidebar-redesign-light.css",
       "sha256": "959be8de94af6c970360f1358af7b4a00cd9157639c7e6cb5c9684343f5951bf"
+    },
+    "theme_names": {
+      "path": "packages/component-library/src/theme.ts",
+      "sha256": "6e8a2b2a1194a39b69a4870e251590f9ea37a985a47322d33771d354b51f6e2d"
     }
   }
 }

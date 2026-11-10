@@ -4,7 +4,8 @@ export interface ThemeWarning {
   reason: string;
 }
 export interface CompiledTheme {
-  version: 1;
+  version: 1 | 2;
+  source_hash?: string;
   id: string;
   name: string;
   repo: string;

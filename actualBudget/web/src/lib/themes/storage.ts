@@ -76,3 +76,26 @@ export async function writeThemeValue(
     );
   }
 }
+/** Best-effort compiler cache upgrade; never overwrite a concurrent user save. */
+export async function upgradeThemeValue(
+  key: string,
+  previous: unknown,
+  value: unknown,
+): Promise<void> {
+  const db = await database();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction("records", "readwrite");
+    const records = tx.objectStore("records");
+    const current = records.get(key);
+    current.onsuccess = () => {
+      try {
+        if (JSON.stringify(current.result) === JSON.stringify(previous))
+          records.put(value, key);
+      } catch {
+        tx.abort();
+      }
+    };
+    tx.oncomplete = () => resolve();
+    tx.onerror = tx.onabort = () => reject(tx.error);
+  });
+}

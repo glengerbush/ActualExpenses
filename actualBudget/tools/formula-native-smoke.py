@@ -26,6 +26,16 @@ with tempfile.TemporaryDirectory(prefix="formula-native-") as directory:
                 assert response.status == status, (path, response.status, value)
                 return value
         contract = call("/openapi.json")
+        css = ":root { --color-warningText: #123456; }"
+        compiled = call("/themes/compile", {"css":css})["data"]
+        theme_schema = contract["components"]["schemas"]["CompiledTheme"]
+        theme_validator = Draft202012Validator({**theme_schema,"components":contract["components"]})
+        theme_validator.validate(compiled)
+        assert compiled["version"] == 2 and compiled["source_hash"] == hashlib.sha256(css.encode()).hexdigest()
+        assert compiled["variables"]["--color-warningText"] == "#123456"
+        legacy = {key:value for key,value in compiled.items() if key != "source_hash"}
+        legacy["version"] = 1
+        theme_validator.validate(legacy)
         route = contract["paths"]["/api/v1/budgets/{budget}/reports/formula"]["post"]
         def validate(value, request=False, status=200):
             schema = route["requestBody"]["content"]["application/json"]["schema"] if request else route["responses"][str(status)]["content"]["application/json"]["schema"]
@@ -71,6 +81,22 @@ with tempfile.TemporaryDirectory(prefix="formula-native-") as directory:
         validate(call(root + "/reports/formula", query, status=409), status=409)
         result = call(root + "/reports/formula", {**query,"snapshot":call(root + "/checkpoint")["data"]["snapshot"]})
         validate(result); assert result["data"]["output"] == source["output"]
+        # Saving a report publishes an ordinary feed record. Exercise live
+        # create/update/delete consumption so a reporting write cannot strand
+        # browser or companion clients behind an unreadable checkpoint.
+        feed_schema = contract["components"]["schemas"]["ChangePage"]
+        cursor = call(root + "/checkpoint")["data"]["snapshot"]
+        extra = {**widget, "id":str(uuid.uuid4()), "revision":0}
+        for revision, tombstone in [(0,False),(1,False),(2,True)]:
+            extra = {**extra, "revision":revision, "tombstone":tombstone}
+            written = call(root + "/reporting/commands", {"writes":[extra]}, {"X-Actual-Budget-Epoch":restored["epoch"]})["data"]
+            page = call(root + "/changes?cursor=" + cursor + "&limit=1")
+            Draft202012Validator({**feed_schema,"components":contract["components"]}, format_checker=FormatChecker()).validate(page)
+            row = next(d for d in written["documents"] if d["id"] == extra["id"])
+            assert page["data"] == [{"entity":"reporting_documents","id":extra["id"],"data":row}]
+            assert page["next_cursor"] > cursor and not page["has_more"]
+            cursor = page["next_cursor"]
+        assert call(root + "/transactions")["data"] == ledger["data"]
         print(f"PASS source formula widget/query/style/opt-in import, exact value/color, served schemas, readonly state and native{version} duplicate/restore with stale snapshot refusal")
     finally:
         process.terminate(); process.wait(timeout=20)

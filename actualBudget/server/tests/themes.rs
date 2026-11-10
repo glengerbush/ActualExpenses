@@ -76,6 +76,17 @@ fn pinned_theme_validation_and_catalog_match_public_contract() {
     }
     let compiled=server.post("/api/v1/themes/compile",json!({"css":":root { --my-accent: #123456; --color-pageText: var(--my-accent); --color-futureWidget: #fff; }","base_theme":"dark"}));
     assert_eq!(compiled["variables"]["--text"], "#123456");
+    assert_eq!(compiled["version"], 2);
+    assert_eq!(compiled["variables"]["--color-pageText"], "#123456");
+    let formula = server.post(
+        "/api/v1/themes/compile",
+        json!({"css":":root { --color-warningText: var(--color-pageBackground); --color-chartQual1: #123456; }"}),
+    );
+    assert_ne!(
+        formula["variables_by_base"]["light"]["--color-warningText"],
+        formula["variables_by_base"]["dark"]["--color-warningText"]
+    );
+    assert_eq!(formula["variables"]["--color-chartQual1"], "#123456");
     assert!(
         compiled["warnings"]
             .as_array()

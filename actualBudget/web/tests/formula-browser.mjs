@@ -74,8 +74,22 @@ try {
       viewport: { width: 1280, height: 900 },
     }),
     page = await context.newPage(),
-    errors = [];
+    errors = [],
+    httpFailures = [];
+  const colorRequests = [];
+  page.on("request", (request) => {
+    if (request.url().endsWith("/reports/formula")) {
+      const input = request.postDataJSON();
+      if (input.named_expressions) colorRequests.push(input);
+    }
+  });
   page.on("pageerror", (e) => errors.push(e.message));
+  page.on("response", (response) => {
+    if (response.status() >= 500)
+      httpFailures.push(
+        `${response.status()} ${new URL(response.url()).pathname}`,
+      );
+  });
   await page.clock.setFixedTime(new Date("2026-11-09T12:00:00Z"));
   await page.goto(server.url);
   await page.getByRole("button", { name: new RegExp(name + ".*Open") }).click();
@@ -263,6 +277,233 @@ try {
   await expect(
     widget.getByRole("button", { name: "Recalculate formula", exact: true }),
   ).toBeEnabled();
+  await page.evaluate(() => {
+    globalThis.formulaOriginalPut = IDBObjectStore.prototype.put;
+    IDBObjectStore.prototype.put = function (value, key) {
+      if (typeof key === "string" && key.startsWith("view:formula:"))
+        throw new DOMException("Formula cache is full", "QuotaExceededError");
+      return globalThis.formulaOriginalPut.call(this, value, key);
+    };
+  });
+  await widget
+    .getByRole("button", { name: "Recalculate formula", exact: true })
+    .click();
+  await expect(widget).toContainText(
+    "Calculated, but this browser could not save a cached copy.",
+  );
+  await expect(value).toHaveText(expected);
+  await page.evaluate(() => {
+    IDBObjectStore.prototype.put = globalThis.formulaOriginalPut;
+    delete globalThis.formulaOriginalPut;
+  });
+  await mkdir(new URL("../test-results/formula/", import.meta.url), {
+    recursive: true,
+  });
+  // Run the unchanged source hook against actual source CSS in an isolated
+  // iframe; only imports/React useMemo are adapted for this browser witness.
+  const reference = new URL(
+    "../../reference/actual-26.10.0/packages/",
+    import.meta.url,
+  );
+  const themeModule = await readFile(
+    new URL("component-library/src/theme.ts", reference),
+    "utf8",
+  );
+  const themeHook = await readFile(
+    new URL("desktop-client/src/hooks/useThemeColors.ts", reference),
+    "utf8",
+  );
+  const sourceCss = {};
+  for (const mode of [
+    "palette",
+    "light",
+    "dark",
+    "midnight",
+    "sidebar-redesign-light",
+  ])
+    sourceCss[mode] = await readFile(
+      new URL(`component-library/src/themes/${mode}.css`, reference),
+      "utf8",
+    );
+  async function sourceColors(mode, override = "") {
+    return page.evaluate(
+      ({ themeModule, themeHook, css }) => {
+        const frame = document.createElement("iframe");
+        frame.hidden = true;
+        document.body.append(frame);
+        try {
+          const doc = frame.contentDocument,
+            win = frame.contentWindow;
+          const style = doc.createElement("style");
+          style.textContent = css;
+          doc.head.append(style);
+          const theme = new Function(
+            themeModule.replace("export const", "const") + "\nreturn theme;",
+          )();
+          const body = themeHook
+            .replace(/import[\s\S]*?;\s*/g, "")
+            .replace(
+              "export function useThemeColors(): Record<string, string>",
+              "function useThemeColors()",
+            )
+            .replace("const colors: Record<string, string>", "const colors")
+            .replace("varString: string): string", "varString)");
+          return new Function(
+            "window",
+            "document",
+            "useMemo",
+            "theme",
+            body + "\nreturn useThemeColors();",
+          )(win, doc, (fn) => fn(), theme);
+        } finally {
+          frame.remove();
+        }
+      },
+      {
+        themeModule,
+        themeHook,
+        css:
+          sourceCss.palette +
+          sourceCss[mode] +
+          (mode === "light" ? sourceCss["sidebar-redesign-light"] : "") +
+          override,
+      },
+    );
+  }
+  async function assertColors(mode, override = "") {
+    const expectedColors = await sourceColors(mode, override);
+    const actual = { ...colorRequests.at(-1).named_expressions };
+    delete actual.RESULT;
+    expect(actual).toEqual(
+      Object.fromEntries(
+        Object.entries(expectedColors).map(([key, color]) => [
+          "theme_" + key,
+          color,
+        ]),
+      ),
+    );
+  }
+  for (const mode of ["light", "dark", "midnight"]) {
+    await page
+      .getByRole("button", { name: "Close reports", exact: true })
+      .click();
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
+    await page.locator("#theme").selectOption(mode);
+    const before = colorRequests.length;
+    await page.getByRole("button", { name: "Done", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Dashboards and reports", exact: true })
+      .click();
+    await expect.poll(() => colorRequests.length).toBeGreaterThan(before);
+    await expect(
+      widget.getByRole("button", { name: "Recalculate formula", exact: true }),
+    ).toBeEnabled();
+    await assertColors(mode);
+    await widget.screenshot({
+      path: new URL(
+        `../test-results/formula/theme-${mode}.png`,
+        import.meta.url,
+      ).pathname,
+    });
+  }
+  await page
+    .getByRole("button", { name: "Close reports", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.locator("#theme").selectOption("light");
+  await page.getByRole("button", { name: "Open theme editor" }).click();
+  await page.getByLabel("Theme slot").selectOption("override");
+  const customCss =
+    ":root { --formula-accent: #123456; --color-warningText: var(--formula-accent); --color-chartQual1: #654321; }";
+  await page.getByLabel("Custom Theme CSS", { exact: true }).fill(customCss);
+  await page.getByRole("button", { name: "Apply custom CSS" }).click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Custom theme saved" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Dashboards and reports", exact: true })
+    .click();
+  await expect(
+    widget.getByRole("button", { name: "Recalculate formula", exact: true }),
+  ).toBeEnabled();
+  await widget
+    .getByRole("button", { name: "Recalculate formula", exact: true })
+    .click();
+  await expect(
+    widget.getByRole("button", { name: "Recalculate formula", exact: true }),
+  ).toBeEnabled();
+  await assertColors("light", customCss);
+  await edit();
+  await editor
+    .getByRole("textbox", { name: "Color formula", exact: true })
+    .fill("=theme_warningText");
+  await editor
+    .getByRole("button", { name: "Save widget", exact: true })
+    .click();
+  await expect(editor).toHaveCount(0);
+  await expect(value).toHaveCSS("color", "rgb(18, 52, 86)");
+  // Simulate the previous compiler cache; keep the actual stored source and
+  // remove only its new compiled bindings. Reopening must upgrade on demand.
+  await page.evaluate(
+    () =>
+      new Promise((resolve, reject) => {
+        const open = indexedDB.open("actualBudget.deviceThemes.v1", 1);
+        open.onsuccess = () => {
+          const db = open.result,
+            tx = db.transaction("records", "readwrite"),
+            records = tx.objectStore("records");
+          const current = records.get("active");
+          current.onsuccess = () => {
+            const record = current.result;
+            for (const slot of ["light", "dark", "override"]) {
+              const theme = record[slot];
+              if (!theme) continue;
+              theme.version = 1;
+              theme.id = "legacy-stable-id";
+              delete theme.source_hash;
+              for (const variables of [
+                theme.variables,
+                ...Object.values(theme.variables_by_base),
+              ])
+                for (const key of Object.keys(variables))
+                  if (key.startsWith("--color-")) delete variables[key];
+            }
+            records.put(record, "active");
+          };
+          tx.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          tx.onerror = () => reject(tx.error);
+        };
+        open.onerror = () => reject(open.error);
+      }),
+  );
+  await page.reload();
+  await expect(value).toHaveCSS("color", "rgb(18, 52, 86)");
+  await assertColors("light", customCss);
+  const recoveredTheme = await page.evaluate(
+    () =>
+      new Promise((resolve, reject) => {
+        const open = indexedDB.open("actualBudget.deviceThemes.v1", 1);
+        open.onsuccess = () => {
+          const db = open.result,
+            request = db
+              .transaction("records", "readonly")
+              .objectStore("records")
+              .get("active");
+          request.onsuccess = () => {
+            db.close();
+            resolve(request.result.override);
+          };
+          request.onerror = () => reject(request.error);
+        };
+      }),
+  );
+  expect(recoveredTheme.id).toBe("legacy-stable-id");
+  expect(recoveredTheme.version).toBe(2);
+  expect(recoveredTheme.source).toBe(customCss);
   await mkdir(new URL("../test-results/formula/", import.meta.url), {
     recursive: true,
   });
@@ -294,10 +535,34 @@ try {
   await expect(
     editor.getByLabel("Calculated value", { exact: true }),
   ).toHaveText(expected);
+  await page.addStyleTag({ content: "html { font-size: 200% !important; }" });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await editor
+    .getByRole("textbox", { name: "Formula", exact: true })
+    .scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: new URL(
+      "../test-results/formula/mobile-large-text.png",
+      import.meta.url,
+    ).pathname,
+  });
   expect(errors).toEqual([]);
+  expect(httpFailures).toEqual([]);
   console.log(
-    "PASS formula opt-in/command, visual query import/export, exact source result/color, durable draft/error recovery, title/font, cache/privacy and responsive keyboard editor",
+    "PASS formula opt-in/command, source result/color and all source theme bindings across light/dark/midnight/custom, legacy theme upgrade, durable drafts, cache/quota/privacy and responsive keyboard/large-text editor",
   );
+} catch (error) {
+  const failedPage = browser?.contexts()[0]?.pages()[0];
+  if (failedPage)
+    console.log(
+      "Browser failure state:",
+      (await failedPage.locator("body").innerText()).slice(-9000),
+    );
+  throw error;
 } finally {
   await browser?.close();
   await server.stop();

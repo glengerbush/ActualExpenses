@@ -46,9 +46,25 @@ pub fn router() -> Router<Store> {
             post(query::drilldown),
         )
 }
+fn document_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Document> {
+    Ok(Document {
+        id: row.get(0)?,
+        kind: row.get(1)?,
+        revision: row.get(2)?,
+        config: serde_json::from_str(&row.get::<_, String>(3)?).unwrap_or(Value::Null),
+        tombstone: row.get(4)?,
+    })
+}
+pub(crate) fn record(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {
+    let document = db.query_row(
+        "SELECT id,kind,revision,config,tombstone FROM reporting_documents WHERE budget_id=?1 AND id=?2",
+        params![budget, id], document_row,
+    )?;
+    serde_json::to_value(document).map_err(Error::internal)
+}
 pub fn documents(db: &Connection, b: &str) -> Result<Value, Error> {
     store::require_budget(db, b)?;
-    let documents=db.prepare("SELECT id,kind,revision,config,tombstone FROM reporting_documents WHERE budget_id=?1 ORDER BY kind,id")?.query_map([b],|r|Ok(Document{id:r.get(0)?,kind:r.get(1)?,revision:r.get(2)?,config:serde_json::from_str(&r.get::<_,String>(3)?).unwrap_or(Value::Null),tombstone:r.get(4)?}))?.collect::<Result<Vec<_>,_>>()?;
+    let documents=db.prepare("SELECT id,kind,revision,config,tombstone FROM reporting_documents WHERE budget_id=?1 ORDER BY kind,id")?.query_map([b],document_row)?.collect::<Result<Vec<_>,_>>()?;
     Ok(
         json!({"documents":documents,"epoch":&sync::cursor(db,b)?[2..34],"snapshot":sync::cursor(db,b)?}),
     )

@@ -24598,6 +24598,26 @@
                     "data"
                   ],
                   "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "entity": {
+                      "const": "reporting_documents"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ReportDocument"
+                    }
+                  }
                 }
               ]
             }
@@ -24650,7 +24670,10 @@
         "additionalProperties": false,
         "properties": {
           "version": {
-            "const": 1
+            "enum": [
+              1,
+              2
+            ]
           },
           "id": {
             "type": "string"
@@ -24720,8 +24743,28 @@
                 }
               }
             }
+          },
+          "source_hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "version": {
+                  "const": 2
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "source_hash"
+              ]
+            }
+          }
+        ]
       },
       "ConvertedThemes": {
         "type": "object",

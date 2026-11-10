@@ -46,6 +46,7 @@
           "category_group",
           "account_name",
           "payee_name",
+          ...(sourceSyntax ? ["imported_payee"] : []),
           "category_name",
           "category_group_name",
           "transfer",

@@ -203,7 +203,9 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
                 if (at >= 0) rows.splice(at, 1);
               } else if (at >= 0) rows[at] = value;
               else rows.push(value);
-            } else if (change.entity !== "transactions")
+            } else if (
+              !["transactions", "reporting_documents"].includes(change.entity)
+            )
               throw new Error(
                 "Unsupported change entity; reload references before advancing checkpoint.",
               );

@@ -2,6 +2,7 @@
   import { onMount, untrack } from "svelte";
   import { t, languageState } from "./i18n.svelte";
   import { preferences } from "./preferences.svelte";
+  import { themes } from "./themes/themes.svelte";
   import { errorMessage, RequestError } from "./api";
   import { captureAmountFormat, formatAmount } from "./money";
   import { readValue, writeValue } from "./offline/storage";
@@ -75,6 +76,7 @@
       preferences.shared.revision,
       languageState.language,
       preferences.device.theme,
+      themes.appearance,
     ]);
   async function load() {
     const current = ++generation,
@@ -90,7 +92,7 @@
         );
       if (disconnected)
         throw Error("Reconnect to calculate the current formula.");
-      const next = await calculateFormula(budgetId, document, epoch);
+      const next = await calculateFormula(budgetId, document, epoch, preview);
       if (!alive || current !== generation) return;
       if (!validFormulaResult(next, epoch))
         throw new RequestError(
@@ -133,6 +135,7 @@
     preferences.shared.revision;
     languageState.language;
     preferences.device.theme;
+    themes.appearance;
     if (!preview) untrack(() => void load());
   });
   onMount(() => () => {
@@ -191,6 +194,7 @@
   section {
     min-width: 0;
     container-type: inline-size;
+    overflow-wrap: anywhere;
   }
   output {
     display: block;

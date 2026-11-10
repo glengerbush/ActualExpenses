@@ -5,8 +5,10 @@ import {
   type CompiledTheme,
   type ThemeRecord,
 } from "./types";
-import { readThemeValue, writeThemeValue } from "./storage";
+import { readThemeValue, writeThemeValue, upgradeThemeValue } from "./storage";
+import sourceVariables from "./source-variables.json";
 const targets = [
+  ...sourceVariables,
   "--page",
   "--text",
   "--muted",
@@ -42,7 +44,10 @@ function validTheme(value: unknown): value is CompiledTheme {
   if (!value || typeof value !== "object") return false;
   const v = value as CompiledTheme;
   return (
-    v.version === 1 &&
+    [1, 2].includes(v.version) &&
+    ((v.version === 1 && v.source_hash === undefined) ||
+      (typeof v.source_hash === "string" &&
+        /^[0-9a-f]{64}$/.test(v.source_hash))) &&
     typeof v.source === "string" &&
     v.source.length <= 16 * 1024 * 1024 &&
     typeof v.name === "string" &&
@@ -117,6 +122,7 @@ class Themes {
   error = $state("");
   loading = $state(false);
   ready = $state(false);
+  appearance = $state("");
   private base: BaseTheme = "light";
   private system = false;
   private systemDark = false;
@@ -155,6 +161,15 @@ class Themes {
       enabled && selected?.valid ? selected.base_theme : this.base;
     document.documentElement.style.colorScheme =
       document.documentElement.dataset.theme === "light" ? "light" : "dark";
+    this.appearance = JSON.stringify([
+      document.documentElement.dataset.theme,
+      enabled && selected?.valid
+        ? (selected.source_hash ?? selected.source)
+        : null,
+      enabled && this.record.override?.valid
+        ? (this.record.override.source_hash ?? this.record.override.source)
+        : null,
+    ]);
     for (const key of targets)
       document.documentElement.style.removeProperty(key);
     this.fontStyle?.remove();
@@ -210,6 +225,32 @@ class Themes {
     this.error = "";
     this.apply();
   }
+  async prepareFormulaColors() {
+    if (!this.ready || !this.record.enabled) return;
+    const prior = this.record;
+    const record = { ...prior };
+    let changed = false;
+    for (const slot of ["light", "dark", "override"] as const) {
+      const theme = prior[slot];
+      if (theme?.valid && theme.version === 1) {
+        record[slot] = await this.compile(
+          theme.source,
+          theme.base_theme,
+          theme.name,
+          theme.repo,
+          theme.id,
+        );
+        changed = true;
+      }
+    }
+    if (!changed || this.record !== prior) return;
+    // Upgrade only when formulas need the additional bindings. Original CSS
+    // remains intact; optional cache failure cannot invalidate live colors.
+    this.record = record;
+    this.raw = record;
+    this.apply();
+    await upgradeThemeValue("active", prior, record).catch(() => {});
+  }
   async install(
     slot: "light" | "dark" | "override",
     theme: CompiledTheme | null,
@@ -262,13 +303,14 @@ class Themes {
     base_theme: BaseTheme,
     name = "Custom theme",
     repo = "",
+    id = repo || "pasted",
   ): Promise<CompiledTheme> {
     const { data } = await request<{ data: CompiledTheme }>("/themes/compile", {
       css,
       base_theme,
       name,
       repo,
-      id: repo || "pasted",
+      id,
     });
     if (!validTheme(data))
       throw new Error("Unsupported theme compiler response.");
@@ -288,6 +330,7 @@ class Themes {
           theme.base_theme,
           theme.name,
           theme.repo,
+          theme.id,
         );
     }
     await this.save(record);

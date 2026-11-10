@@ -305,8 +305,10 @@
 <style>
   .formula-fields {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
     min-width: 0;
+    overflow-wrap: anywhere;
   }
   .grid {
     display: grid;
@@ -346,6 +348,7 @@
     border-block: 1px solid var(--line);
     padding-block: 1rem;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
     min-width: 0;
   }

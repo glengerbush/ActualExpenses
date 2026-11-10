@@ -29,6 +29,10 @@ pub fn router() -> Router<Store> {
             "/api/v1/imports/ynab4",
             post(upload_ynab4).layer(DefaultBodyLimit::max(MAX_ARCHIVE)),
         )
+        .route(
+            "/api/v1/imports/nynab",
+            post(upload_nynab).layer(DefaultBodyLimit::max(MAX_ARCHIVE)),
+        )
         .route("/api/v1/imports/{id}/original", get(original))
         .route(
             "/api/v1/imports/actual",
@@ -354,6 +358,23 @@ async fn upload_ynab4(
     headers: HeaderMap,
     body: Result<Bytes, BytesRejection>,
 ) -> Result<(StatusCode, Json<Value>), Error> {
+    upload_ynab(store, query, headers, body, "ynab4").await
+}
+async fn upload_nynab(
+    State(store): State<Store>,
+    Query(query): Query<SourceFilename>,
+    headers: HeaderMap,
+    body: Result<Bytes, BytesRejection>,
+) -> Result<(StatusCode, Json<Value>), Error> {
+    upload_ynab(store, query, headers, body, "nynab").await
+}
+async fn upload_ynab(
+    store: Store,
+    query: SourceFilename,
+    headers: HeaderMap,
+    body: Result<Bytes, BytesRejection>,
+    kind: &'static str,
+) -> Result<(StatusCode, Json<Value>), Error> {
     crate::models::validate_name(&query.filename)?;
     let key = idempotency_key(&headers)?;
     let bytes = body.map_err(|_| {
@@ -365,9 +386,9 @@ async fn upload_ynab4(
     })?;
     let hash = format!("{:x}", Sha256::digest(&bytes));
     let payload = json!({"filename":query.filename,"sha256":hash}).to_string();
-    let result=store.run(move|db|store::write(db,"POST /imports/ynab4",&key,&payload,|db|{
-  if let Some(id)=db.query_row("SELECT id FROM staged_imports WHERE archive_sha256=?1",[&hash],|r|r.get::<_,String>(0)).optional()?{let existing=read_import(db,&id)?;if existing["report"]["source_format"]!="ynab4"{return Err(Error::conflict("These original bytes were already staged using another source format. Review the existing import."));}return Ok(existing);}
-  let (mut report,converted)=ynab::inspect("ynab4",&query.filename,&bytes)?;report["archive_sha256"]=json!(hash);let status=if report["requirements"].as_array().unwrap().iter().any(|r|r["blocking"]==true){"blocked"}else{"ready"};let id=Uuid::new_v4().to_string();let budget=Uuid::new_v4().to_string();db.execute("INSERT INTO staged_imports(id,archive_sha256,original,budget_id,status,report,conversion) VALUES(?1,?2,?3,?4,?5,?6,?7)",params![id,hash,bytes.as_ref(),budget,status,report.to_string(),converted.to_string()])?;read_import(db,&id)
+    let result=store.run(move|db|store::write(db,&format!("POST /imports/{kind}"),&key,&payload,|db|{
+  if let Some(id)=db.query_row("SELECT id FROM staged_imports WHERE archive_sha256=?1",[&hash],|r|r.get::<_,String>(0)).optional()?{let existing=read_import(db,&id)?;if existing["report"]["source_format"]!=kind{return Err(Error::conflict("These original bytes were already staged using another source format. Review the existing import."));}return Ok(existing);}
+  let (mut report,converted)=ynab::inspect(kind,&query.filename,&bytes)?;report["archive_sha256"]=json!(hash);let status=if report["requirements"].as_array().unwrap().iter().any(|r|r["blocking"]==true){"blocked"}else{"ready"};let id=Uuid::new_v4().to_string();let budget=Uuid::new_v4().to_string();db.execute("INSERT INTO staged_imports(id,archive_sha256,original,budget_id,status,report,conversion) VALUES(?1,?2,?3,?4,?5,?6,?7)",params![id,hash,bytes.as_ref(),budget,status,report.to_string(),converted.to_string()])?;read_import(db,&id)
  })).await?;
     Ok((StatusCode::CREATED, data(result)))
 }

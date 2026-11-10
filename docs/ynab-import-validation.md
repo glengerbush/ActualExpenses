@@ -128,3 +128,42 @@ This checkpoint is ready for bounded YNAB4 financial/source review. nYNAB,
 additional source failure/shape cases, restart/native archive/provenance joins,
 served contracts, shared import UI and companion/browser qualification remain
 active ticket27 work. No ticket acceptance is claimed here.
+
+## nYNAB financial and schedule checkpoint
+
+The new nYNAB JSON adapter uses the same canonical financial validator and staged
+activation as YNAB4. Direct exports and `data` plus `plan`/`budget` wrappers are
+accepted. Source identities remain in the retained mapping; milliunits use the
+pinned divide-by-ten and JavaScript half rounding. Internal/credit-card payment
+categories, starting balances, category hiding/name collisions, historical
+allocations, split/orphan transfer pairing, flags and manual schedules follow
+the source importer. Original JSON stays byte-identical.
+
+`generate-nynab-behavior.mjs` independently imports the unchanged demo through
+Actual26.10 and executes actual `rules-run` and registered schedule upcoming-date
+calculations. It captures 15 definitions/actions (including split indices),
+source default effects and explicit calendar ranges. Current-day initial next
+dates are selected from those observed dates; no replacement date formula or
+runtime clock override is used. Scheduled payments remain manual. Source flags
+retain their names, conflicting-color suffixes and six actual colors.
+
+Evidence:
+
+- `/tmp/nynab-http-third.log`: complete financial graph and historical budgets PASS.
+- `/tmp/nynab-behavior-source{,-check}.log`: independent execution and check PASS.
+- `/tmp/nynab-http-behavior-second.log`: full public financial/default/schedule/tag
+  comparison, staging/repeat/original bytes and read-only probes PASS.
+- `/tmp/nynab-clippy-first.log`: bin Clippy `-D warnings` PASS.
+
+True initial reds exposed a zero remaining recurrence-work budget and a retained
+parent category; both corrected. Consumer corrections resolve system-transfer
+payees through their public account mapping (ordinary `/payees` intentionally
+omits them), rather than treating missing ordinary references as null. Source
+rule `type` annotations and explicit null action fields are representation-only;
+operators, values, order and indexed financial actions remain exact.
+
+This is a reviewed-backend candidate, not ticket completion. Remaining gates:
+malformed/restart/archive/duplication, representative companion, complete UI,
+served contracts and maintained qualification wiring. No source schedule/edit
+history is invented as native undo history; original source-only fields remain
+in the downloadable export.

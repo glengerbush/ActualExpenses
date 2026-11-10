@@ -2,6 +2,7 @@
 use super::*;
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::{Cursor, Read};
+mod nynab;
 mod ynab4;
 fn invalid(message: impl Into<String>) -> Error {
     Error::new(StatusCode::UNPROCESSABLE_ENTITY, "invalid_ynab", message)
@@ -37,6 +38,9 @@ fn money(value: &Value, multiplier: f64) -> Result<i64, Error> {
         .as_f64()
         .ok_or_else(|| invalid("Invalid source amount"))?
         * multiplier;
+    rounded(number)
+}
+fn rounded(number: f64) -> Result<i64, Error> {
     let lower = number.floor();
     let rounded = if number - lower >= 0.5 {
         lower + 1.0
@@ -126,6 +130,7 @@ pub(super) fn inspect(kind: &str, filename: &str, bytes: &[u8]) -> Result<(Value
     let digest = format!("{:x}", Sha256::digest(bytes));
     let (name, source, requirements) = match kind {
         "ynab4" => ynab4::convert(filename, bytes)?,
+        "nynab" => nynab::convert(filename, bytes)?,
         _ => return Err(invalid("Unsupported YNAB source format")),
     };
     let counts = source

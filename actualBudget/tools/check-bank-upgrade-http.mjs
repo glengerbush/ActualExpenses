@@ -15,6 +15,9 @@ const linked = JSON.parse(
     new URL("../tests/fixtures/bank-linked-source-26.10.json", import.meta.url),
   ),
 ).cases[0];
+let holdNext = false,
+  heldRelease,
+  heldStarted;
 const provider = createServer((req, res) => {
   if (req.method === "POST") {
     res.end(
@@ -23,6 +26,12 @@ const provider = createServer((req, res) => {
     return;
   }
   const url = new URL(req.url, "http://fixture.invalid");
+  if (holdNext) {
+    holdNext = false;
+    heldRelease = () => provider.emit("request", req, res);
+    heldStarted();
+    return;
+  }
   const rows = linked.input.rounds[0].map((t) => ({
     id: t.transactionId,
     posted: t.booked ? Date.parse(t.date + "T00:00:00Z") / 1000 : 0,
@@ -302,11 +311,212 @@ try {
               projection(source, true),
               "Explicit legacy relink preserves every source row and prevents duplicate initial opening/import",
             );
+            // Portable copies carry metadata only. Repeated restore of a clone
+            // must not re-create a second source-derived connection identity.
+            const copyId = randomUUID(),
+              copyRoot = `/budgets/${copyId}`;
+            await call(
+              bankRoot + "/duplicate",
+              { id: copyId, name: "Bank portability copy" },
+              { ...headers, "Idempotency-Key": randomUUID() },
+              201,
+            );
+            async function portableState(rootPath) {
+              const bank = (await call(rootPath + "/banking")).data;
+              assert.equal(
+                bank.connections.length,
+                1,
+                "Exactly one retained source connection",
+              );
+              assert.equal(bank.connections[0].state, "credentials_missing");
+              const rows = (await call(rootPath + "/transactions")).data;
+              assert.deepEqual(
+                projection(rows, false),
+                projection(source, true),
+              );
+              return bank;
+            }
+            let copyState = await portableState(copyRoot);
+            await call(
+              copyRoot + `/accounts/${account}/banking/commands`,
+              {
+                action: "unlink",
+                revision: copyState.links[0].revision,
+                snapshot: copyState.snapshot,
+              },
+              {
+                "Idempotency-Key": randomUUID(),
+                "X-Actual-Budget-Epoch": copyState.epoch,
+              },
+            );
+            copyState = await portableState(copyRoot);
+            assert.equal(
+              copyState.links[0].deleted,
+              true,
+              "Intentional unlink tombstone is durable native state",
+            );
+            const point = (
+              await call(
+                copyRoot + "/backups",
+                { label: "Current23 metadata only" },
+                {
+                  "Idempotency-Key": randomUUID(),
+                  "X-Actual-Budget-Epoch": copyState.epoch,
+                },
+                201,
+              )
+            ).data;
+            const bytes = Buffer.from(
+              await (
+                await fetch(api + copyRoot + `/backups/${point.id}/download`)
+              ).arrayBuffer(),
+            );
+            const { spawnSync } = await import("node:child_process");
+            const decoded = spawnSync(
+              "python3",
+              [
+                "-c",
+                "import io,sys,zipfile; z=zipfile.ZipFile(io.BytesIO(sys.stdin.buffer.read())); sys.stdout.buffer.write(b'\\n'.join(z.read(n) for n in z.namelist()))",
+              ],
+              { input: bytes, maxBuffer: 8 * 1024 * 1024 },
+            );
+            assert.equal(decoded.status, 0, decoded.stderr.toString());
+            for (const secret of [
+              "NOT-A-REAL-SECRET",
+              process.env.ACTUALBUDGET_BANK_TEST_ORIGIN,
+              Buffer.from(
+                process.env.ACTUALBUDGET_BANK_TEST_ORIGIN + "/claim",
+              ).toString("base64"),
+            ])
+              assert.ok(
+                !decoded.stdout.includes(secret),
+                "Portable copy excludes source credential and endpoints",
+              );
+            await call(
+              copyRoot + `/backups/${point.id}/restore`,
+              { confirm_name: "Bank portability copy" },
+              {
+                "Idempotency-Key": randomUUID(),
+                "X-Actual-Budget-Epoch": copyState.epoch,
+              },
+            );
+            const restored = await portableState(copyRoot);
+            assert.notEqual(restored.epoch, copyState.epoch);
+            assert.notEqual(
+              restored.connections[0].generation,
+              copyState.connections[0].generation,
+            );
+            assert.deepEqual(
+              restored.links,
+              copyState.links,
+              "Original mapping and tombstones survive clone restore",
+            );
+            assert.deepEqual(
+              restored.accounts,
+              copyState.accounts,
+              "No extra source remotes or revived tombstones",
+            );
+            assert.equal(
+              restored.connections[0].id,
+              copyState.connections[0].id,
+            );
+            const secondId = randomUUID(),
+              secondRoot = `/budgets/${secondId}`;
+            await call(
+              copyRoot + "/duplicate",
+              { id: secondId, name: "Second bank copy" },
+              {
+                "Idempotency-Key": randomUUID(),
+                "X-Actual-Budget-Epoch": restored.epoch,
+              },
+              201,
+            );
+            const second = await portableState(secondRoot);
+            assert.equal(second.connections[0].id, copyState.connections[0].id);
+            assert.deepEqual(second.links, copyState.links);
+            assert.deepEqual(second.accounts, copyState.accounts);
+            const original = (await call(bankRoot + "/banking")).data;
+            const originalPoint = (
+              await call(
+                bankRoot + "/backups",
+                { label: "Before held provider response" },
+                {
+                  "Idempotency-Key": randomUUID(),
+                  "X-Actual-Budget-Epoch": original.epoch,
+                },
+                201,
+              )
+            ).data;
+            holdNext = true;
+            const started = new Promise((resolve) => (heldStarted = resolve));
+            const delayed = fetch(api + commandPath, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                ...headers,
+                "Idempotency-Key": randomUUID(),
+              },
+              body: JSON.stringify({ ...refresh, snapshot: original.snapshot }),
+            });
+            let timer;
+            try {
+              await Promise.race([
+                started,
+                new Promise(
+                  (_, reject) =>
+                    (timer = setTimeout(
+                      () =>
+                        reject(Error("Held provider request did not start")),
+                      5000,
+                    )),
+                ),
+              ]);
+            } finally {
+              clearTimeout(timer);
+            }
+            await call(
+              bankRoot + `/backups/${originalPoint.id}/restore`,
+              { confirm_name: (await call(bankRoot)).data.name },
+              {
+                "Idempotency-Key": randomUUID(),
+                "X-Actual-Budget-Epoch": original.epoch,
+              },
+            );
+            const afterRestore = (await call(bankRoot + "/banking")).data;
+            assert.equal(
+              afterRestore.connections[0].state,
+              "credentials_missing",
+            );
+            assert.notEqual(afterRestore.epoch, original.epoch);
+            heldRelease();
+            heldRelease = undefined;
+            const late = await delayed;
+            assert.equal(late.status, 409, await late.text());
+            assert.deepEqual(
+              (await call(bankRoot + "/banking")).data,
+              afterRestore,
+              "Late old-epoch HTTP response cannot alter restored metadata/cursor",
+            );
+            assert.deepEqual(
+              projection((await call(bankRoot + "/transactions")).data, false),
+              projection(source, true),
+            );
+            assert.deepEqual(
+              await call(commandPath, refresh, refreshHeaders),
+              result,
+              "Original refresh receipt remains exact after restore",
+            );
+
+            // Restoring clears only this budget's private provider custody.
+            assert.equal(
+              (await call(bankRoot + "/banking")).data.connections[0].state,
+              "credentials_missing",
+            );
           }
         }
       }
       console.log(
-        `PASS genuine22 ${mode}: financial/reference clocks, settings, original receipts and bank conversion`,
+        `PASS genuine22 ${mode}: financial/reference clocks, settings, original receipts and bank conversion${mode === "database" ? "; current23 clone/restore/tombstones/secrets/late-response fencing" : ""}`,
       );
     } finally {
       await server.stop();
@@ -314,5 +524,7 @@ try {
     }
   }
 } finally {
+  heldRelease?.();
+  provider.closeAllConnections();
   await new Promise((resolve) => provider.close(resolve));
 }

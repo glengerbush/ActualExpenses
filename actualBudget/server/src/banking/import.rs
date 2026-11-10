@@ -83,7 +83,15 @@ pub(crate) fn convert(source: &Value) -> Result<Value, Error> {
     Ok(json!({"accounts":accounts,"origins":origins}))
 }
 pub(crate) fn install(db: &Connection, b: &str, data: &Value) -> Result<(), Error> {
-    let rows = data["accounts"].as_array().cloned().unwrap_or_default();
+    let mut rows = vec![];
+    for row in data["accounts"].as_array().into_iter().flatten() {
+        // Native mappings, including deliberate unlink tombstones, supersede
+        // retained source bytes. A clone retains IDs from its original budget.
+        let missing:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM accounts WHERE budget_id=?1 AND id=?2) AND NOT EXISTS(SELECT 1 FROM bank_links WHERE budget_id=?1 AND id=?2)",params![b,row["id"].as_str()],|r|r.get(0))?;
+        if missing {
+            rows.push(row.clone());
+        }
+    }
     if rows.is_empty() {
         return Ok(());
     }
@@ -105,7 +113,16 @@ pub(crate) fn install(db: &Connection, b: &str, data: &Value) -> Result<(), Erro
         db.execute("INSERT OR IGNORE INTO bank_remote_accounts(budget_id,id,connection_id,generation,remote_connection_id,remote_id,institution,name,currency,balance,available_balance,balance_date,diagnostics,tombstone) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,'',?9,?10,0,?11,?12)",params![b,remote,connection,generation,row["remote_connection_id"].as_str(),row["remote_id"].as_str(),row["institution"].as_str(),row["name"].as_str(),row["balance"].as_str().unwrap_or(""),row["available_balance"].as_str(),json!([{"code":"imported_metadata","message":"Reconnect and explicitly review this legacy provider mapping. Currency, provider balance date and last successful request window are unknown."}]).to_string(),row["deleted"]==true])?;
         db.execute("INSERT OR IGNORE INTO bank_links(budget_id,id,connection_id,remote_account_id,connection_generation,initial_sync,opening_mode,tombstone) VALUES(?1,?2,?3,?4,?5,0,'none',?6)",params![b,row["id"].as_str(),connection,remote,generation,row["deleted"]==true])?;
     }
-    for origin in data["origins"].as_array().into_iter().flatten() {
+    let installed = rows
+        .iter()
+        .filter_map(|r| r["id"].as_str())
+        .collect::<std::collections::BTreeSet<_>>();
+    for origin in data["origins"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter(|r| r["account"].as_str().is_some_and(|a| installed.contains(a)))
+    {
         let remote:Option<String> = db.query_row("SELECT remote_account_id FROM bank_links WHERE budget_id=?1 AND id=?2 AND connection_id=?3",params![b,origin["account"].as_str(),connection],|r|r.get(0)).optional()?;
         if let Some(remote) = remote {
             db.execute("INSERT OR IGNORE INTO bank_transaction_origins(budget_id,id,connection_id,remote_account_id,tombstone) VALUES(?1,?2,?3,?4,?5)",params![b,origin["id"].as_str(),connection,remote,origin["deleted"]==true])?;

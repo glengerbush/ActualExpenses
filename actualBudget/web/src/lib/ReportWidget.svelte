@@ -13,11 +13,13 @@
     type ReportQuery,
     type Projection,
   } from "./reports";
+  import ForecastWidget from "./ForecastWidget.svelte";
   import MarkdownNotes from "./MarkdownNotes.svelte";
   import ReportResult from "./ReportResult.svelte";
   let {
     budgetId,
     document,
+    epoch,
     disconnected = false,
     onedit,
     onremove,
@@ -26,6 +28,7 @@
   }: {
     budgetId: string;
     document: ReportDocument;
+    epoch: string;
     disconnected?: boolean;
     onedit: () => void;
     onremove: () => void;
@@ -200,6 +203,12 @@
     >
       <MarkdownNotes text={String(meta.content || "")} />
     </div>
+  {:else if type === "balance-forecast-card"}<ForecastWidget
+      {budgetId}
+      {document}
+      {epoch}
+      {disconnected}
+    />
   {:else if !kinds[type]}<p>
       {t(
         "This widget’s settings are preserved. Its report type is not available in this version.",

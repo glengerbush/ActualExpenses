@@ -108,6 +108,7 @@ try {
     ["notes", "contains", "?"],
     ["notes", "contains", "\\%"],
     ["payee", "contains", "?"],
+    ["category", "is", null],
   ]) {
     const options = {
       startDate: "2026-11-09",

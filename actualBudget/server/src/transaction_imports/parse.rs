@@ -212,7 +212,10 @@ pub(super) fn csv(bytes: &[u8], options: &Options) -> Result<Vec<Value>, Error> 
     Ok(rows)
 }
 fn field<'a>(row: &'a Value, mapping: &Option<String>, fallback: &str) -> Option<&'a str> {
-    let key = mapping.as_deref().unwrap_or(fallback);
+    let key = mapping
+        .as_deref()
+        .filter(|s| !s.is_empty())
+        .unwrap_or(fallback);
     if let Some(row) = row.as_array() {
         row.get(key.parse::<usize>().ok()?)?.as_str()
     } else {

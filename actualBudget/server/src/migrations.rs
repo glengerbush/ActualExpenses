@@ -44,6 +44,9 @@ pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     let tx = db.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     for (index, sql) in MIGRATIONS.iter().enumerate().skip(version as usize) {
         tx.execute_batch(sql)?;
+        if index == 20 {
+            crate::transaction_imports::enrich(&tx, None)?;
+        }
         if index == 19 {
             crate::budgeting::templates::enrich(&tx, None)?;
         }

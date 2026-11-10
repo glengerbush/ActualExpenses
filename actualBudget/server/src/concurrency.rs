@@ -762,6 +762,9 @@ pub fn read_changes(
             "rule_settings" => {
                 json!({"id":"learning","enabled":crate::rules::learning::enabled(db,budget)?,"deleted":false})
             }
+            "transaction_import_metadata" | "transaction_import_settings" => {
+                crate::transaction_imports::record(db, budget, &entity, &id)?
+            }
             "budget_automations" | "budget_cleanup_groups" => {
                 crate::budgeting::templates::record(db, budget, &entity, &id)?
             }
@@ -816,6 +819,7 @@ pub(crate) fn decorate_many(
         rows[positions[&id]]["field_versions"][field] = json!(clock);
     }
     crate::android_upgrade::order::decorate(db, budget, rows)?;
+    crate::transaction_imports::decorate_many(db, budget, rows)?;
     Ok(())
 }
 

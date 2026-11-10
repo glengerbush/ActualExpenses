@@ -10,6 +10,8 @@ use serde_json::{Value, json};
 use std::collections::BTreeSet;
 const TABLES: &[&str] = &[
     "transactions",
+    "transaction_import_metadata",
+    "transaction_import_settings",
     "accounts",
     "account_groups",
     "categories",

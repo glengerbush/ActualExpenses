@@ -25,6 +25,9 @@ pub const TABLES: &[&str] = &[
     "tags",
     "categories",
     "transactions",
+    "transaction_import_metadata",
+    "transaction_import_settings",
+    "transaction_import_files",
     "android_upgrade_order",
     "budget_cells",
     "budget_months",
@@ -88,6 +91,7 @@ pub struct Validated {
     pub legacy_rules: bool,
     pub legacy_schedules: bool,
     pub legacy_automations: bool,
+    pub legacy_transaction_imports: bool,
     pub state: BudgetArchive,
     pub blobs: BTreeMap<String, Vec<u8>>,
 }
@@ -160,7 +164,7 @@ pub fn capture(db: &Connection, budget: &str) -> Result<Vec<u8>, Error> {
     let body = serde_json::to_vec(&state).map_err(Error::internal)?;
     let mut entries = BTreeMap::from([("budget.json".to_owned(), body)]);
     entries.extend(blobs);
-    let manifest = json!({"format":"actualBudget","version":1,"schema_version":20,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
+    let manifest = json!({"format":"actualBudget","version":1,"schema_version":21,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
     if entries.len() + 1 > 1000
         || entries.values().map(Vec::len).sum::<usize>() + manifest.to_string().len() > MAX_EXPANDED
     {
@@ -236,7 +240,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || !matches!(manifest["schema_version"].as_u64(), Some(6..=20))
+        || !matches!(manifest["schema_version"].as_u64(), Some(6..=21))
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }
@@ -598,6 +602,17 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             );
         }
     }
+    if manifest["schema_version"].as_u64().is_some_and(|v| v < 21) {
+        for (table, columns) in crate::transaction_imports::archive_tables() {
+            state.tables.insert(
+                table.into(),
+                Table {
+                    columns: columns.into_iter().map(str::to_owned).collect(),
+                    rows: vec![],
+                },
+            );
+        }
+    }
     if manifest["schema_version"].as_u64().is_some_and(|v| v < 20) {
         let settings = state
             .tables
@@ -724,6 +739,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     let mut validated = Validated {
         state,
         blobs,
+        legacy_transaction_imports: manifest["schema_version"].as_u64().is_some_and(|v| v < 21),
         legacy_automations: manifest["schema_version"].as_u64().is_some_and(|v| v < 20),
         legacy_schedules: manifest["schema_version"].as_u64().is_some_and(|v| v < 19),
         legacy_rules: manifest["schema_version"].as_u64().is_some_and(|v| v < 17),
@@ -958,6 +974,9 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
     if archive.legacy_category_metadata {
         crate::categories::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
     }
+    if archive.legacy_transaction_imports {
+        crate::transaction_imports::enrich(db, archive.state.budget["id"].as_str())?;
+    }
     if archive.legacy_automations {
         crate::budgeting::templates::enrich_archive(
             db,
@@ -1010,6 +1029,7 @@ pub fn validate_financial_state(db: &Connection, budget: &str) -> Result<(), Err
             validate_name(&name).map_err(|e| invalid(e.message))?;
         }
     }
+    crate::transaction_imports::validate(db, budget).map_err(|e| invalid(e.message))?;
     crate::payee_locations::validate_archive(db, budget).map_err(|e| invalid(e.message))?;
     crate::payees_tags::validate_archive(db, budget).map_err(|e| invalid(e.message))?;
     let invalid_groups:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM accounts a LEFT JOIN account_groups g ON g.budget_id=a.budget_id AND g.id=a.group_id WHERE a.budget_id=?1 AND a.group_id IS NOT NULL AND (g.id IS NULL OR g.tombstone=1))",[budget],|r|r.get(0))?;

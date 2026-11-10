@@ -40,7 +40,7 @@ expectations.
 | `transaction-matching-source.json` |14 genuine matching/repeat scenarios | `check-transaction-matching-http.mjs`:8 CSV workflows pass; six bank-ID/deleted/locked scenarios pending |
 | `transaction-merge-source.json` +14 source ZIPs | Keeper precedence, fields/status, split reparent, transfers, four atomic refusals | Consumer/implementation pending |
 | `transaction-import-rules-source.json` +4 source ZIPs | Lazy payees, no unused payee on manual match, rules before matching, split rule once, repeat identity,19 saved source options | Consumer/implementation pending |
-| `transaction-import-schema20.{sqlite3,zip,json}` | Genuine20 owned expense/edit/history/receipts, balances, two blocked source stages, original bytes and native backup |21 DB/native restoration consumer pending |
+| `transaction-import-schema20.{sqlite3,zip,json}` | Genuine20 owned expense/edit/history/receipts, balances, two blocked source stages, original bytes and native backup |Public Rust database/native consumers2 pass (working21 joins) |
 
 Logs: `/tmp/transaction-parser-http-csv-green.log` (21),
 `/tmp/transaction-normalization-http-green.log` (44),
@@ -85,3 +85,29 @@ schema20/integrity/FKs. No database relabeling or direct financial writes.
 
 Do not mark25/26 done until their whole acceptance criteria pass. Further genuine
 source cases should answer concrete gaps, not expand into unrelated tickets.
+
+## Current21 preservation join (in progress)
+
+`transaction_import_upgrade.rs`: genuine20 database and native archive consumers2
+PASS `/tmp/transaction-import-upgrade-first-green.log`. Old financial/reference
+views, owned history, checkpoint and exact original expense receipts remain;
+retained blocked stages become explicitly activatable while their old upload
+receipts and original ZIP bytes remain unchanged. Native restore rotates epoch
+and resets history; old receipts still replay exactly. True old-binary control
+refuses the newly supported stage (`/tmp/transaction-import-upgrade-old-red.log`).
+An earlier harness incorrectly expected200 for replayed transaction creation;
+that setup assertion was corrected to201 before capturing the true control red.
+
+New metadata/settings history/feed and schema21 archive registries are joined.
+Ordinary responses gain no empty metadata defaults. Imported bank IDs are opaque
+source values; settings retain independent source preference IDs/value fields.
+Official source ZIPs contain no CRDT clocks; existing clocks are translated only
+when present, never minted during enrichment. Current per-key clock/native
+roundtrip proof remains a required test.
+
+Concrete remaining semantic check: selective input changes must preserve Actual's
+finalization/matching scope (unselected changed rows versus ignored existing rows,
+and explicit force-add). The current full-file preview matcher passes the eight
+source financial scenarios but this selection interaction needs its own executed
+source witness before acceptance. File ordering of multiple new distinct rows
+also needs an observable fixture; do not rewrite existing private order anchors.

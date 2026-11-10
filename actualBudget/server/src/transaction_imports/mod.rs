@@ -1,5 +1,11 @@
 //! Retained bank files, read-only review, and receipt-owned ledger application.
 mod matching;
+mod settings;
+mod storage;
+pub(crate) use storage::{
+    archive_tables, convert, decorate_many, enrich, import_clock, imported_preference, install,
+    record, validate,
+};
 mod parse;
 use crate::{concurrency as sync, error::Error, store::Store};
 use axum::{
@@ -21,8 +27,16 @@ const MAX_FILE: usize = 16 * 1024 * 1024;
 pub fn router() -> Router<Store> {
     Router::new()
         .route(
+            "/api/v1/budgets/{budget}/accounts/{account}/transaction-import-settings",
+            get(settings::read),
+        )
+        .route(
             "/api/v1/budgets/{budget}/accounts/{account}/transaction-imports",
             post(upload).layer(DefaultBodyLimit::max(MAX_FILE)),
+        )
+        .route(
+            "/api/v1/budgets/{budget}/transaction-imports/{id}/original",
+            get(original),
         )
         .route(
             "/api/v1/budgets/{budget}/transaction-imports/{id}",
@@ -77,6 +91,45 @@ async fn read(
     crate::models::validate_id(&id)?;
     store.run(move|db|{let(a,filename,bytes)=file(db,&b,&id)?;Ok(json!({"data":{"id":id,"account_id":a,"filename":filename,"bytes":bytes.len(),"sha256":format!("{:x}",Sha256::digest(&bytes))}}))}).await.map(Json)
 }
+async fn original(
+    State(store): State<Store>,
+    Path((b, id)): Path<(String, String)>,
+) -> Result<impl axum::response::IntoResponse, Error> {
+    crate::models::validate_id(&b)?;
+    crate::models::validate_id(&id)?;
+    let (filename, bytes) = store
+        .run(move |db| {
+            let (_, filename, bytes) = file(db, &b, &id)?;
+            Ok((filename, bytes))
+        })
+        .await?;
+    let encoded = filename
+        .as_bytes()
+        .iter()
+        .map(|byte| {
+            if byte.is_ascii_alphanumeric() {
+                (*byte as char).to_string()
+            } else {
+                format!("%{byte:02X}")
+            }
+        })
+        .collect::<String>();
+    Ok((
+        [
+            (
+                axum::http::header::CONTENT_TYPE,
+                "application/octet-stream".to_owned(),
+            ),
+            (
+                axum::http::header::CONTENT_DISPOSITION,
+                format!("attachment; filename*=UTF-8''{encoded}"),
+            ),
+            (axum::http::header::CACHE_CONTROL, "no-store".to_owned()),
+        ],
+        bytes,
+    ))
+}
+
 async fn parse_file(
     State(store): State<Store>,
     Path((b, id)): Path<(String, String)>,
@@ -257,8 +310,34 @@ fn remember(
             continue;
         }
         guard(db, b, "transaction_import_settings", &id, "value", clock)?;
+        guard(
+            db,
+            b,
+            "transaction_import_settings",
+            &id,
+            "tombstone",
+            clock,
+        )?;
+        if key == "csv-skip-start-lines" {
+            guard(
+                db,
+                b,
+                "transaction_import_settings",
+                &format!("csv-skip-lines-{account}"),
+                "value",
+                clock,
+            )?;
+        }
         db.execute("INSERT INTO transaction_import_settings(budget_id,id,account_id,option_key,value) VALUES(?1,?2,?3,?4,?5) ON CONFLICT(budget_id,id) DO UPDATE SET value=excluded.value,tombstone=0",params![b,id,account,key,value])?;
         sync::seed_field_version(db, b, "transaction_import_settings", &id, "value", clock)?;
+        sync::seed_field_version(
+            db,
+            b,
+            "transaction_import_settings",
+            &id,
+            "tombstone",
+            clock,
+        )?;
         sync::mark(db, b, "transaction_import_settings", &id)?;
     }
     Ok(())

@@ -227,3 +227,20 @@ canonicalizes only those ties by bank ID/fixed-anchor/financial signature before
 UUID aliasing. Raw original rows, fixed IDs, references, multiplicity and values stay
 untouched; no generated-UUID tie-order parity is claimed. The unpublished prelink
 artifact from the interrupted check remains `/tmp/bank28-unpublished-rename-prelink-26.10.zip`.
+
+### Root composition review — financial checkpoint
+
+2026-11-10: Root reviewed `2f014ba` and correction `790779e`, preserving the
+source's documented first-link differences above. Composed with forecast35 and
+query47 read checkpoints. Git's crisscross virtual base contained textual
+OpenAPI conflicts; resolved by semantic three-way JSON merge of the two real
+bases, then both tips. No incompatible JSON edits: all parent operations and
+schema names retained, every local reference resolves (111paths,182schemas).
+
+Combined Rust build PASS `/tmp/bank-financial-compose-build.log`. Three bank
+edge workflows and27 served-contract observations PASS
+`/tmp/bank-financial-compose-edges.log`; all50 established source-query cases
+PASS `/tmp/bank-financial-compose-query.log`. Formatter corrected only spacing
+in new concurrency match arms; staged whitespace check passes. This closes
+the financial checkpoint review, not the outstanding migration/UI/recovery
+work or whole28 acceptance. No push or deployment.

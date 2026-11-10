@@ -364,3 +364,20 @@ linked rows' schedule.name and schedule.rule.stage through the same closed,
 budget-scoped resolver. Source22 check and focused public green:
 /tmp/query-schedule-reference-source-check.log,
 /tmp/query-schedule-reference-green.log. No unrelated financial writer change.
+
+## Root resource/type review
+
+2026-11-10: Reviewed46e56fe closed profiles, budget-scoped references, typed
+predicates/composition, wildcard expansion and bounded output. Root found one
+catalog inconsistency: advertised transaction schedule references returned400
+for schedule.name and schedule.rule.stage. Disposable public proof:
+`/tmp/query-registry-reference-review.log` (scalar schedule200, both dotted
+paths400). Corrective44313f5 adds the closed resolver and an independent source
+case covering seven linked entries. Finding closed.
+
+Combined at `d22496f`; build PASS `/tmp/query-registry-compose-build.log`;
+all22 resource and24 type/calendar source comparisons PASS
+`/tmp/query-registry-compose-{resources,types}.log`, preserving ledger/checkpoint.
+Flat group expansion and structured JSON representations are explicit API
+mappings, with original observations retained. Earlier50 reads/guard/Clippy
+passes reused. Batch/caller/final contracts and whole47 acceptance remain pending.

@@ -48,9 +48,9 @@ pub(super) fn compute(db: &Connection, b: &str, body: &Value) -> Result<Value, E
         && ids
             .iter()
             .any(|id| !categories.iter().any(|c| c["id"] == *id))
-        {
-            return Err(Error::invalid("Choose active template categories"));
-        }
+    {
+        return Err(Error::invalid("Choose active template categories"));
+    }
     for category in categories {
         env.tick()?;
         let id = category["id"].as_str().unwrap();

@@ -739,6 +739,190 @@ fn run_visual_case(name: &str) {
     assert_eq!(assert_source_ledger(&server, &root, case), original);
 }
 
+#[test]
+fn cleanup_new_pool_preview_cancel_undo_and_redo_keep_one_financial_action() {
+    let oracle: Value =
+        serde_json::from_str(include_str!("../../tests/fixtures/budget-cleanup.json")).unwrap();
+    let case = oracle["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|c| c["name"] == "envelope-global-weighted")
+        .unwrap();
+    let server = Server::start(tempfile::tempdir().unwrap());
+    let stage: Value = server
+        .client
+        .post(format!("{}/api/v1/imports/actual", server.url))
+        .header("Content-Type", "application/zip")
+        .header("Idempotency-Key", "pool-source")
+        .body(
+            include_bytes!("../../tests/fixtures/budget-cleanup/envelope-global-weighted.zip")
+                .to_vec(),
+        )
+        .send()
+        .unwrap()
+        .json()
+        .unwrap();
+    let response = server.post(
+        &format!(
+            "/api/v1/imports/{}/activate",
+            stage["data"]["id"].as_str().unwrap()
+        ),
+        "activate-pool",
+        &json!({}),
+        None,
+    );
+    assert_eq!(response.status(), 201);
+    let root = format!(
+        "/api/v1/budgets/{}",
+        stage["data"]["budget_id"].as_str().unwrap()
+    );
+    let epoch = server.get(&format!("{root}/checkpoint"))["data"]["epoch"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    for (category, directive) in [("A", "source"), ("B", "sink1"), ("C", "sink 2")] {
+        let cp = server.get(&format!("{root}/checkpoint"));
+        let response=server.post(&format!("{root}/budget"),&format!("pool-note-{category}"),&json!({"action":"category_notes","month":"2026-11","category":case["ids"][category],"notes":format!("Original {category} description\n#cleanup Reserve {directive}"),"snapshot":cp["data"]["snapshot"]}),Some(&epoch));
+        assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    }
+    let checkpoint = server.get(&format!("{root}/checkpoint"));
+    let original = assert_source_ledger(&server, &root, case);
+    let definitions = server.get(&format!("{root}/budget/templates?month=2026-11"));
+    assert_eq!(definitions["data"]["pools"], json!([]));
+    let body =
+        json!({"action":"cleanup","month":"2026-11","snapshot":checkpoint["data"]["snapshot"]});
+    let preview = || {
+        let response = server.post(
+            &format!("{root}/budget/templates/preview"),
+            "new-pool-preview",
+            &body,
+            None,
+        );
+        assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+        response.json::<Value>().unwrap()
+    };
+    let first = preview();
+    assert_eq!(
+        preview(),
+        first,
+        "pool identities are deterministic during preview"
+    );
+    assert_eq!(first["data"]["pools"].as_array().unwrap().len(), 1);
+    let pool = first["data"]["pools"][0]["id"].clone();
+    assert_eq!(server.get(&format!("{root}/checkpoint")), checkpoint);
+    assert_eq!(
+        server.get(&format!("{root}/budget/templates?month=2026-11")),
+        definitions
+    );
+    let canceled = server
+        .client
+        .post(format!("{}{root}/budget/templates/commands", server.url))
+        .header("Idempotency-Key", "cancel-new-pool")
+        .header(
+            "X-Actual-History-Owner",
+            "23240000-0000-4000-8000-000000000998",
+        )
+        .header("X-Actual-Budget-Epoch", &epoch)
+        .header("X-Actual-Cancel-If-Uncommitted", "true")
+        .json(&body)
+        .send()
+        .unwrap();
+    assert_eq!(canceled.status(), 409);
+    assert_eq!(
+        canceled.json::<Value>().unwrap()["error"]["code"],
+        "operation_canceled"
+    );
+    let blocked = server.post(
+        &format!("{root}/budget/templates/commands"),
+        "cancel-new-pool",
+        &body,
+        Some(&epoch),
+    );
+    assert_eq!(blocked.status(), 409);
+    assert_eq!(server.get(&format!("{root}/checkpoint")), checkpoint);
+    let applied = server.post(
+        &format!("{root}/budget/templates/commands"),
+        "apply-new-pool",
+        &body,
+        Some(&epoch),
+    );
+    assert_eq!(applied.status(), 200, "{}", applied.text().unwrap());
+    let receipt: Value = applied.json().unwrap();
+    let definitions = server.get(&format!("{root}/budget/templates?month=2026-11"));
+    assert_eq!(definitions["data"]["pools"][0]["id"], pool);
+    assert_eq!(definitions["data"]["pools"][0]["name"], "Reserve");
+    let committed = server.get(&format!("{root}/budget?month=2026-11"));
+    for (category, amount) in [("A", 4000), ("B", 2000), ("C", 4000)] {
+        let row = committed["data"]["months"]["2026-11"]["categories"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["id"] == case["ids"][category])
+            .unwrap();
+        assert_eq!(row["budgeted"], amount);
+        assert_eq!(row["goal"], Value::Null);
+    }
+    let history = || {
+        server
+            .client
+            .get(format!("{}{root}/history", server.url))
+            .header(
+                "X-Actual-History-Owner",
+                "23240000-0000-4000-8000-000000000998",
+            )
+            .send()
+            .unwrap()
+            .json::<Value>()
+            .unwrap()
+    };
+    let undone = server.post(
+        &format!("{root}/history/undo"),
+        "undo-pool",
+        &json!({"action_id":history()["data"]["undo"]["id"]}),
+        Some(&epoch),
+    );
+    assert_eq!(undone.status(), 200, "{}", undone.text().unwrap());
+    assert_eq!(
+        server.get(&format!("{root}/budget/templates?month=2026-11"))["data"]["pools"],
+        json!([])
+    );
+    let before = server.get(&format!("{root}/budget?month=2026-11"));
+    for (category, amount) in [("A", 10000), ("B", 0), ("C", 0)] {
+        let row = before["data"]["months"]["2026-11"]["categories"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["id"] == case["ids"][category])
+            .unwrap();
+        assert_eq!(row["budgeted"], amount);
+    }
+    let redo = server.post(
+        &format!("{root}/history/redo"),
+        "redo-pool",
+        &json!({"action_id":history()["data"]["redo"]["id"]}),
+        Some(&epoch),
+    );
+    assert_eq!(redo.status(), 200, "{}", redo.text().unwrap());
+    let after = server.get(&format!("{root}/budget?month=2026-11"));
+    assert_eq!(after["data"]["months"], committed["data"]["months"]);
+    assert_eq!(
+        server.get(&format!("{root}/budget/templates?month=2026-11"))["data"]["pools"][0]["id"],
+        pool
+    );
+    assert_eq!(assert_source_ledger(&server, &root, case), original);
+    let checkpoint = server.get(&format!("{root}/checkpoint"));
+    let replay = server.post(
+        &format!("{root}/budget/templates/commands"),
+        "apply-new-pool",
+        &body,
+        Some(&epoch),
+    );
+    assert_eq!(replay.status(), 200);
+    assert_eq!(replay.json::<Value>().unwrap(), receipt);
+    assert_eq!(server.get(&format!("{root}/checkpoint")), checkpoint);
+}
+
 macro_rules! cases { ($($test:ident => $name:literal),* $(,)?) => { $(#[test] fn $test(){run_case($name);})* }; }
 
 cases! {

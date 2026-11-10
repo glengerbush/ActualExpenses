@@ -660,6 +660,16 @@ def main():
             check(template_path + "/commands", template_contract + "/commands", "POST",
                   {"action": "apply", "month": "2026-11", "snapshot": current["snapshot"]},
                   {"Idempotency-Key": "template-apply"})
+            current = check(template_path + "?month=2026-11", template_contract)["data"]
+            check(template_path + "/commands", template_contract + "/commands", "POST",
+                  {"action": "configure", "snapshot": current["snapshot"], "category_id": template_category,
+                   "source": "ui", "templates": parsed["templates"], "cleanup": [{"role": "source", "groupId": None}]},
+                  {"Idempotency-Key": "cleanup-configure"})
+            current = check(template_path + "?month=2026-11", template_contract)["data"]
+            cleanup = {"action": "cleanup", "month": "2026-11", "snapshot": current["snapshot"]}
+            check(template_path + "/preview", template_contract + "/preview", "POST", cleanup)
+            check(template_path + "/commands", template_contract + "/commands", "POST", cleanup,
+                  {"Idempotency-Key": "cleanup-apply"})
             check(template_root + "/changes?cursor=" + template_cursor, budgets + "/{budget}/changes")
             print("PASS: served OpenAPI schemas validate real success, validation, conflict, origin and missing-resource responses")
         finally:

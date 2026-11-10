@@ -1,4 +1,5 @@
 mod calculators;
+mod cleanup;
 mod configuration;
 mod context;
 mod currency_lineage;
@@ -45,6 +46,7 @@ pub(super) struct Preview {
     snapshot: String,
     category_ids: Option<Vec<String>>,
     force: Option<bool>,
+    action: Option<String>,
 }
 pub(super) async fn preview(
     State(store): State<Store>,
@@ -58,6 +60,14 @@ pub(super) async fn preview(
             let tx = db.transaction()?;
             crate::store::require_budget(&tx, &b)?;
             crate::concurrency::check_snapshot(&tx, &b, Some(&body.snapshot))?;
+            if let Some(action) = body.action {
+                if action != "cleanup" || body.category_ids.is_some() || body.force.is_some() {
+                    return Err(Error::invalid(
+                        "Cleanup previews use only action, month and snapshot",
+                    ));
+                }
+                return Ok(json!({"data":cleanup::compute(&tx,&b,&body.month)?}));
+            }
             let mut input = json!({"month":body.month,"force":body.force.unwrap_or(false)});
             if let Some(ids) = body.category_ids {
                 input["category_ids"] = json!(ids);
@@ -87,19 +97,22 @@ pub(super) async fn mutate(
     store.run(move|db|{let scope=format!("POST /budgets/{b}/budget/templates/commands");if lookup{return sync::receipt_owned(db,&scope,&key,&payload,proposed.as_deref(),StatusCode::OK,owner.as_ref());}
  sync::write_owned(db,&scope,&key,&payload,proposed.as_deref(),StatusCode::OK,owner.as_ref(),|db|{
   if cancel{return sync::canceled(db,&b);}crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;sync::check_snapshot(db,&b,Some(body["snapshot"].as_str().ok_or_else(||Error::invalid("A current snapshot is required"))?))?;
-  let fields:&[&str]=if body["action"]=="configure"{&["action","snapshot","category_id","source","templates","cleanup"]}else{&["action","month","snapshot","category_ids"]};
+  let fields:&[&str]=if body["action"]=="configure"{&["action","snapshot","category_id","source","templates","cleanup"]}else if body["action"]=="cleanup"{&["action","month","snapshot"]}else{&["action","month","snapshot","category_ids"]};
   if body.as_object().is_none_or(|o|o.keys().any(|k|!fields.contains(&k.as_str()))){return Err(Error::invalid("Unknown template command field"));}
   if body["action"]=="configure"{let clock=sync::clock(db,&b,proposed.as_deref())?;let data=configuration::configure(db,&b,&body,&clock)?;return Ok(json!({"response_status":200,"response_body":{"data":data,"edit_clock":clock,"cursor":sync::cursor(db,&b)?}}));}
-  if !matches!(body["action"].as_str(),Some("apply"|"overwrite")){return Err(Error::invalid("Unknown template action"));}
-  let plan=engine::compute(db,&b,&body)?;if !plan["errors"].as_array().unwrap().is_empty(){return Err(Error::invalid(format!("Template validation failed: {}",plan["errors"])));}
+  if !matches!(body["action"].as_str(),Some("apply"|"overwrite"|"cleanup")){return Err(Error::invalid("Unknown template action"));}
+  let is_cleanup=body["action"]=="cleanup";
+  let plan=if is_cleanup{cleanup::compute(db,&b,body["month"].as_str().ok_or_else(||Error::invalid("month is required"))?)?}else{engine::compute(db,&b,&body)?};if !plan["errors"].as_array().unwrap().is_empty(){return Err(Error::invalid(format!("Template validation failed: {}",plan["errors"])));}
   let clock=sync::clock(db,&b,proposed.as_deref())?;let month=plan["month"].as_str().unwrap();let method=plan["method"].as_str().unwrap();
-  for row in plan["categories"].as_array().unwrap(){let id=row["id"].as_str().unwrap();storage::save_definition(db,&b,id,&row["templates"],&clock)?;if row["applies"]==true||row["clear_goal"]==true{
+  if is_cleanup{cleanup::persist_definitions(db,&b,&plan,&clock)?;}
+  for row in plan["categories"].as_array().unwrap(){let id=row["id"].as_str().unwrap();if !is_cleanup{storage::save_definition(db,&b,id,&row["templates"],&clock)?;}
+  if row["applies"]==true||row["clear_goal"]==true{
    if row["budgeted"]!=row["before_budgeted"]{super::actions::put(db,&b,method,month,id,row["budgeted"].as_i64().unwrap() as i128,&clock)?;}
    let cell=format!("{method}:{month}:{id}");for field in ["goal","long_goal"]{super::actions::guard_field(db,&b,"budget_cells",&cell,field,&clock)?;}super::actions::ensure_cell(db,&b,method,month,id)?;
    db.execute("UPDATE budget_cells SET goal=?3,long_goal=?4 WHERE budget_id=?1 AND id=?2",rusqlite::params![b,cell,if row["goal"].is_null(){None}else{Some(row["goal"].to_string())},if row["long_goal"].is_null(){None}else{Some(row["long_goal"].to_string())}])?;
    for field in ["goal","long_goal"]{sync::seed_field_version(db,&b,"budget_cells",&cell,field,&clock)?;}sync::mark(db,&b,"budget_cells",&cell)?;
   }}
-  Ok(json!({"response_status":200,"response_body":{"data":super::view(db,&b,month,1)?,"edit_clock":clock,"cursor":sync::cursor(db,&b)?}}))
+  let mut response=json!({"data":super::view(db,&b,month,1)?,"edit_clock":clock,"cursor":sync::cursor(db,&b)?});if is_cleanup{response["notification"]=plan["notification"].clone();}Ok(json!({"response_status":200,"response_body":response}))
  })}).await
 }
 

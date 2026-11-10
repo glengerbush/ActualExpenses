@@ -18179,7 +18179,7 @@
     },
     "/api/v1/budgets/{budget}/budget/templates/preview": {
       "post": {
-        "description": "Read-only exact-snapshot full application preview. Explicit category IDs force selection; default apply skips nonzero allocations. Errors prevent all command writes.",
+        "description": "Read-only exact-snapshot full application preview. Explicit category IDs force selection; default apply skips nonzero allocations. Errors prevent all command writes. With action=cleanup, preview all source-defined cleanup pools and exact warnings without writing definitions, allocating pool IDs randomly or changing the ledger.",
         "parameters": [
           {
             "name": "budget",
@@ -18333,9 +18333,42 @@
                   },
                   "force": {
                     "type": "boolean"
+                  },
+                  "action": {
+                    "const": "cleanup"
                   }
                 },
-                "additionalProperties": false
+                "additionalProperties": false,
+                "allOf": [
+                  {
+                    "if": {
+                      "required": [
+                        "action"
+                      ],
+                      "properties": {
+                        "action": {
+                          "const": "cleanup"
+                        }
+                      }
+                    },
+                    "then": {
+                      "not": {
+                        "anyOf": [
+                          {
+                            "required": [
+                              "force"
+                            ]
+                          },
+                          {
+                            "required": [
+                              "category_ids"
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
               }
             }
           }
@@ -18511,7 +18544,7 @@
     },
     "/api/v1/budgets/{budget}/budget/templates/commands": {
       "post": {
-        "description": "Atomic owned command. Apply/overwrite exact plans; configure switches effective notes/UI definitions while retaining original notes. Capture snapshot, epoch, original edit clock, owner, key and body before send. Exact receipts replay before current preconditions; cancellation fences unknown operations, and receipt-only lookup never executes. Financial and configuration effects join one undo group; validation or stale state refuses all writes.",
+        "description": "Atomic owned command. Apply/overwrite exact plans; configure switches effective notes/UI definitions while retaining original notes. Capture snapshot, epoch, original edit clock, owner, key and body before send. Exact receipts replay before current preconditions; cancellation fences unknown operations, and receipt-only lookup never executes. Financial and configuration effects join one undo group; validation or stale state refuses all writes. Cleanup atomically persists note-derived pool definitions and month allocations, preserving source ordering, rounding and warnings. It does not change transactions.",
         "parameters": [
           {
             "name": "budget",
@@ -18718,6 +18751,9 @@
                     },
                     "cursor": {
                       "type": "string"
+                    },
+                    "notification": {
+                      "$ref": "#/components/schemas/BudgetCleanupNotification"
                     }
                   }
                 }
@@ -25292,6 +25328,9 @@
           },
           "epoch": {
             "type": "string"
+          },
+          "notification": {
+            "$ref": "#/components/schemas/BudgetCleanupNotification"
           }
         }
       },
@@ -25449,6 +25488,27 @@
                 }
               }
             ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "month",
+              "snapshot"
+            ],
+            "properties": {
+              "action": {
+                "const": "cleanup"
+              },
+              "month": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+              },
+              "snapshot": {
+                "type": "string"
+              }
+            }
           }
         ]
       },
@@ -25509,6 +25569,36 @@
           },
           "deleted": {
             "type": "boolean"
+          }
+        }
+      },
+      "BudgetCleanupNotification": {
+        "type": "object",
+        "required": [
+          "type",
+          "message"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "message",
+              "warning",
+              "error"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "pre": {
+            "type": "string"
+          },
+          "sourceCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sinkCount": {
+            "type": "integer",
+            "minimum": 0
           }
         }
       }

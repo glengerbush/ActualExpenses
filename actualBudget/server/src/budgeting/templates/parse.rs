@@ -59,9 +59,10 @@ fn limit(input: &str) -> Option<Value> {
 }
 fn split_limit(input: &str) -> (&str, Option<Value>) {
     if let Some(c) = captures(r"^(.*?)(up[ \t]*to.*)$", input)
-        && let Some(l) = limit(c[1].as_deref().unwrap().trim()) {
-            return (input[..c[0].as_ref().unwrap().len()].trim_end(), Some(l));
-        }
+        && let Some(l) = limit(c[1].as_deref().unwrap().trim())
+    {
+        return (input[..c[0].as_ref().unwrap().len()].trim_end(), Some(l));
+    }
     (input, None)
 }
 pub(super) fn line(input: &str) -> Result<Value, String> {

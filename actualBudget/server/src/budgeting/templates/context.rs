@@ -379,14 +379,15 @@ impl Context {
         let original = amount;
         let mut scale = 1.0;
         if let Some(limit) = self.limit
-            && amount + self.amount + self.from >= limit {
-                amount = limit - self.amount - self.from;
-                self.met = true;
-                rest += original - amount;
-                if original > 0.0 {
-                    scale *= amount / original;
-                }
+            && amount + self.amount + self.from >= limit
+        {
+            amount = limit - self.amount - self.from;
+            self.met = true;
+            rest += original - amount;
+            if original > 0.0 {
+                scale *= amount / original;
             }
+        }
         if env.hide {
             let before = amount;
             amount = env.fraction(amount)?;
@@ -450,10 +451,11 @@ impl Context {
             amount = available;
         }
         if let Some(limit) = self.limit
-            && amount + self.amount + self.from >= limit {
-                amount = limit - self.amount - self.from;
-                self.met = true;
-            }
+            && amount + self.amount + self.from >= limit
+        {
+            amount = limit - self.amount - self.from;
+            self.met = true;
+        }
         let indices = self
             .templates
             .iter()

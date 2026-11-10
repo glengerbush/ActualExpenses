@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import type { BankPreferences, BankMapping } from "./banking";
   let {
     value,
@@ -43,7 +44,7 @@
           type="checkbox"
           checked={value[key]}
           onchange={(e) => flag(key, e.currentTarget.checked)}
-        />{label}</label
+        />{t(label)}</label
       >
     {/each}
   </div>
@@ -61,12 +62,12 @@
     </p>
     {#each ["payment", "deposit"] as kind (kind)}
       <fieldset>
-        <legend>{kind === "payment" ? "Payments" : "Deposits"}</legend>
+        <legend>{t(kind === "payment" ? "Payments" : "Deposits")}</legend>
         <div class="mapping">
           {#each fields as field (field)}
             <label
-              >{kind === "payment" ? "Payment" : "Deposit"}
-              {field} field
+              >{t(kind === "payment" ? "Payment" : "Deposit")}
+              {t(field)} field
               <input
                 value={value.mappings[kind as "payment" | "deposit"][field]}
                 maxlength="120"

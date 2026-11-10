@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { t } from "./i18n.svelte";
   import {
     request,
     RequestError,
@@ -77,6 +78,13 @@
       (a) => a.connection_id === fields.connectionId && !a.deleted,
     ) ?? [],
   );
+  const displayReady = $derived(
+    !!view &&
+      preferences.hasUsableShared &&
+      preferences.budgetId === budgetId &&
+      preferences.budgetEpoch === view.epoch,
+  );
+  const masked = $derived(!displayReady || preferences.shared.privacy_mode);
   const liveLocalIds = $derived(
     new Set(accounts.filter((a) => !a.deleted).map((a) => a.id)),
   );
@@ -84,7 +92,7 @@
     new Map((view?.accounts ?? []).map((a) => [a.id, a])),
   );
   const unavailableLinks = $derived(
-    view?.links.filter(
+    (displayReady ? view?.links : [])?.filter(
       (l) =>
         !l.deleted &&
         l.connection_id === fields.connectionId &&
@@ -101,7 +109,9 @@
   const staleDraft = $derived(
     !!saved?.epoch && !!view && saved.epoch !== view.epoch,
   );
-  const editable = $derived(!busy && !loading && !pending && !broken);
+  const editable = $derived(
+    displayReady && !busy && !loading && !pending && !broken,
+  );
   const writable = $derived(
     editable &&
       live &&
@@ -117,8 +127,7 @@
     credentials_missing: "Credentials missing",
   };
   const cacheKey = $derived(`view:banking:${budgetId}`);
-  const privateText = (value: string) =>
-    preferences.shared.privacy_mode ? "Hidden" : value;
+  const privateText = (value: string) => (masked ? "Hidden" : value);
   function providerDate(seconds: number) {
     const date = new Date(seconds * 1000);
     return seconds && Number.isFinite(date.getTime())
@@ -191,12 +200,12 @@
   async function loadSettings() {
     const generation = ++settingsGeneration;
     accountView = null;
-    if (!fields.accountId || !live) return;
+    if (!fields.accountId || !live || !displayReady) return;
     try {
       const response = await request<{ data: BankAccountView }>(
         `${root}/accounts/${fields.accountId}/banking`,
       );
-      if (generation !== settingsGeneration) return;
+      if (generation !== settingsGeneration || !displayReady) return;
       accountView = response.data;
       if (fields.settingsAccount !== fields.accountId) {
         fields.settings = clone(
@@ -257,6 +266,7 @@
       notice =
         "Connection details loaded; this device could not cache them for offline review.";
     });
+    await preferences.loadBudget(budgetId);
     await loadSettings();
   }
   async function refreshDetails() {
@@ -265,7 +275,7 @@
     error = "";
     try {
       await load();
-      await onchanged();
+      if (displayReady) await onchanged();
     } catch (e) {
       live = false;
       error = errorMessage(e);
@@ -302,6 +312,7 @@
     }
     try {
       await load();
+      if (displayReady) await onchanged();
     } catch (e) {
       live = false;
       error = errorMessage(e);
@@ -362,7 +373,7 @@
       notice =
         "Original bank request confirmed. Current connection details are shown below.";
     await load();
-    await onchanged();
+    if (displayReady) await onchanged();
   }
   async function send(p: BankPending, body = p.body, receiptOnly = false) {
     return request(
@@ -394,6 +405,10 @@
     notice = "";
     try {
       await tail;
+      if (!displayReady || staleDraft || !live)
+        throw Error(
+          "Refresh matching display preferences and connection details before a new request.",
+        );
       if (draftProblem)
         throw Error(
           "Save the current draft again before sending a bank request.",
@@ -657,15 +672,15 @@
     }}
   >
     <h3>{selected ? "Replace credentials" : "Add a SimpleFIN connection"}</h3>
-    {#if !selected}<label for="bank-name">Connection name</label><input
+    {#if !selected}<label for="bank-name">{t("Connection name")}</label><input
         id="bank-name"
-        value={fields.name}
+        value={displayReady ? fields.name : ""}
         oninput={(e) => edit("name", e.currentTarget.value)}
         maxlength="120"
         required
         disabled={!editable}
       />{/if}
-    <label for="bank-token">SimpleFIN setup token</label><input
+    <label for="bank-token">{t("SimpleFIN setup token")}</label><input
       id="bank-token"
       type="password"
       autocomplete="off"
@@ -690,7 +705,7 @@
       >{#if rawToken}<button
           type="button"
           onclick={() => (rawToken = "")}
-          disabled={busy}>Clear unsent token</button
+          disabled={busy}>{t("Clear unsent token")}</button
         >{/if}
     </div>
   </form>
@@ -700,25 +715,30 @@
 <section class="banking" aria-labelledby="banking-title">
   <header>
     <div>
-      <h1 id="banking-title">Bank connections</h1>
+      <h1 id="banking-title">{t("Bank connections")}</h1>
       <p>
         SimpleFIN credentials stay on this server. Refresh runs only when you
         request it.
       </p>
     </div>
     <button onclick={close} disabled={busy || saving}
-      >Close bank connections</button
+      >{t("Close bank connections")}</button
     >
   </header>
   {#if error || draftProblem}<div role="alert">
       <p>{error}</p>
       {#if draftProblem}<p>{draftProblem}</p>
         <button onclick={saveAgain} disabled={busy || saving || broken}
-          >Save draft again</button
+          >{t("Save draft again")}</button
         >{/if}
     </div>{/if}
+  {#if view && !displayReady}<p role="status">
+      Display preferences are unconfirmed for this budget version. Names and
+      amounts are hidden; new changes are blocked. Refresh connection details to
+      try again. Original saved requests can still be checked or canceled.
+    </p>{/if}
   {#if notice}<p role="status">{notice}</p>{/if}
-  {#if loading}<p role="status">Loading bank connections…</p>{/if}
+  {#if loading}<p role="status">{t("Loading bank connections\u2026")}</p>{/if}
   {#if busy && !loading}<p role="status">
       {pending
         ? "Processing saved bank request…"
@@ -736,16 +756,16 @@
     </p>{/if}
   <div class="actions">
     <button onclick={refreshDetails} disabled={busy || loading}
-      >Refresh connection details</button
+      >{t("Refresh connection details")}</button
     >{#if !pending}<button
         onclick={discard}
         disabled={busy || saving || loading || broken}
-        >Discard unsent draft</button
+        >{t("Discard unsent draft")}</button
       >{/if}
   </div>
   {#if pending}
     <section class="recovery" aria-labelledby="banking-pending-title">
-      <h2 id="banking-pending-title">Saved bank request</h2>
+      <h2 id="banking-pending-title">{t("Saved bank request")}</h2>
       <p>
         {pending.label}. {pending.cancel
           ? "Cancellation is saved; continue it without submitting the original action."
@@ -757,10 +777,10 @@
         </p>{/if}
       <div class="actions">
         <button onclick={() => recover("check")} disabled={busy}
-          >Check original result</button
+          >{t("Check original result")}</button
         >{#if !pending.credential && !pending.cancel}<button
             onclick={() => recover("retry")}
-            disabled={busy}>Retry original request</button
+            disabled={busy}>{t("Retry original request")}</button
           >{/if}<button onclick={() => recover("cancel")} disabled={busy}
           >{pending.cancel
             ? "Continue cancellation"
@@ -770,35 +790,37 @@
     </section>
   {/if}
   {#if staleDraft && !pending}<section class="recovery">
-      <h2>Budget changed since this draft</h2>
+      <h2>{t("Budget changed since this draft")}</h2>
       <p>
         Review the current connection details. This budget was restored after
         the draft was started. Explicitly review it before using this draft with
         the restored budget.
       </p>
       <button onclick={reviewEpoch} disabled={busy || !live}
-        >Use current budget for this draft</button
+        >{t("Use current budget for this draft")}</button
       >
     </section>{/if}
   {#if view}
     <section aria-labelledby="connections-title">
-      <h2 id="connections-title">Connections</h2>
+      <h2 id="connections-title">{t("Connections")}</h2>
       {#if !view.connections.length}<p>
           No connections yet. Get a one-use setup token from <a
             href="https://beta-bridge.simplefin.org/"
             target="_blank"
-            rel="noopener noreferrer">SimpleFIN Bridge</a
+            rel="noopener noreferrer">{t("SimpleFIN Bridge")}</a
           >, then stage it below.
         </p>{/if}
-      <label for="bank-connection">Connection</label><select
+      <label for="bank-connection">{t("Connection")}</label><select
         id="bank-connection"
         value={fields.connectionId}
         onchange={(e) => chooseConnection(e.currentTarget.value)}
         disabled={!editable}
-        ><option value="">New connection</option
+        ><option value="">{t("New connection")}</option
         >{#each view.connections as connection (connection.id)}<option
             value={connection.id}
-            >{privateText(connection.name)} — {labels[connection.state]}</option
+            >{privateText(connection.name)} — {t(
+              labels[connection.state],
+            )}</option
           >{/each}</select
       >
       {#if selected}<div class="connection-status">
@@ -823,7 +845,7 @@
                     { action: "claim", generation: selected.generation },
                     "Claim SimpleFIN setup token",
                   )}
-                disabled={!writable}>Claim setup token</button
+                disabled={!writable}>{t("Claim setup token")}</button
               >{/if}<button
               onclick={() =>
                 begin(
@@ -832,7 +854,7 @@
                   "Discover provider accounts",
                 )}
               disabled={!writable || selected.state !== "connected"}
-              >Discover provider accounts</button
+              >{t("Discover provider accounts")}</button
             ><button
               onclick={() =>
                 begin(
@@ -840,7 +862,7 @@
                   { action: "remove", generation: selected.generation },
                   "Remove SimpleFIN connection",
                 )}
-              disabled={!writable}>Remove connection</button
+              disabled={!writable}>{t("Remove connection")}</button
             >
           </div>
           <p>
@@ -854,11 +876,14 @@
             selected.state === "claim_failed" ||
             selected.state === "claim_inflight"}
         >
-          <summary>Replace credentials</summary>{@render credentialForm()}
+          <summary>{t("Replace credentials")}</summary
+          >{@render credentialForm()}
         </details>{:else}{@render credentialForm()}{/if}
     </section>
     {#if selected}<section aria-labelledby="bank-accounts-title">
-        <h2 id="bank-accounts-title">Provider accounts and local mapping</h2>
+        <h2 id="bank-accounts-title">
+          {t("Provider accounts and local mapping")}
+        </h2>
         <p>
           Provider balances are separate from ledger balances. Currency is
           supplied by the provider; no exchange-rate conversion is applied.
@@ -870,7 +895,9 @@
         {#if unavailableLinks.length}<section
             aria-labelledby="bank-unavailable-title"
           >
-            <h3 id="bank-unavailable-title">Unavailable local accounts</h3>
+            <h3 id="bank-unavailable-title">
+              {t("Unavailable local accounts")}
+            </h3>
             <p>
               A linked local account was deleted or is no longer available.
               Explicitly unlink its mapping before assigning that provider
@@ -896,18 +923,18 @@
                       undefined,
                       true,
                     )}
-                  disabled={!writable}>Unlink unavailable account</button
+                  disabled={!writable}>{t("Unlink unavailable account")}</button
                 >
               </div>{/each}
           </section>{/if}
         <div class="mapping-grid">
           <div>
-            <label for="bank-local">Local account</label><select
+            <label for="bank-local">{t("Local account")}</label><select
               id="bank-local"
               value={fields.accountId}
               onchange={(e) => chooseAccount(e.currentTarget.value)}
               disabled={!editable}
-              ><option value="">Choose a local account</option
+              ><option value="">{t("Choose a local account")}</option
               >{#each accounts.filter((a) => !a.deleted) as account (account.id)}<option
                   value={account.id}
                   >{privateText(account.name)}{account.closed
@@ -917,12 +944,12 @@
             >
           </div>
           <div>
-            <label for="bank-remote">Provider account</label><select
+            <label for="bank-remote">{t("Provider account")}</label><select
               id="bank-remote"
               value={fields.remoteId}
               onchange={(e) => edit("remoteId", e.currentTarget.value)}
               disabled={!editable}
-              ><option value="">Choose a provider account</option
+              ><option value="">{t("Choose a provider account")}</option
               >{#each remotes as remote (remote.id)}<option value={remote.id}
                   >{privateText(remote.institution)} — {privateText(
                     remote.name,
@@ -946,28 +973,28 @@
             </p>
             <dl class="balances">
               <div>
-                <dt>Provider balance</dt>
+                <dt>{t("Provider balance")}</dt>
                 <dd>
-                  {preferences.shared.privacy_mode
+                  {masked
                     ? "••••"
                     : `${remote.balance || "Not retained"}${remote.currency ? ` ${remote.currency}` : " (currency not retained)"}`}
                 </dd>
               </div>
               <div>
-                <dt>Available balance</dt>
+                <dt>{t("Available balance")}</dt>
                 <dd>
-                  {preferences.shared.privacy_mode
+                  {masked
                     ? "••••"
                     : (remote.available_balance ?? "Not provided")}
                 </dd>
               </div>
               <div>
-                <dt>Provider balance date</dt>
+                <dt>{t("Provider balance date")}</dt>
                 <dd>{providerDate(remote.balance_date)}</dd>
               </div>
               {#if local}<div>
-                  <dt>Current ledger balance</dt>
-                  <dd>{formatAmount(local.balance)}</dd>
+                  <dt>{t("Current ledger balance")}</dt>
+                  <dd>{masked ? "••••" : formatAmount(local.balance)}</dd>
                 </div>{/if}
             </dl>
             {#each diagnostics(remote.diagnostics) as diagnostic (JSON.stringify(diagnostic))}<p
@@ -979,7 +1006,8 @@
               ? `This local account has a saved mapping${link.connection_generation !== selected.generation ? " that needs review after credential replacement" : ""}.`
               : "This local account has no active provider mapping."}
           </p>
-          <label for="bank-opening-mode">Initial opening balance</label><select
+          <label for="bank-opening-mode">{t("Initial opening balance")}</label
+          ><select
             id="bank-opening-mode"
             value={fields.openingMode}
             onchange={(e) =>
@@ -988,9 +1016,9 @@
                 e.currentTarget.value as BankFields["openingMode"],
               )}
             disabled={!editable}
-            ><option value="auto">Automatic for an empty account</option><option
-              value="none">No opening entry</option
-            ><option value="custom">Custom amount for an empty account</option
+            ><option value="auto">{t("Automatic for an empty account")}</option
+            ><option value="none">{t("No opening entry")}</option><option
+              value="custom">{t("Custom amount for an empty account")}</option
             ></select
           >
           <p>
@@ -1007,9 +1035,9 @@
             </p>
             <div class="mapping-grid">
               <label
-                >Opening amount<input
+                >{t("Opening amount")}<input
                   inputmode="decimal"
-                  value={fields.openingAmount}
+                  value={displayReady ? fields.openingAmount : ""}
                   oninput={(e) => edit("openingAmount", e.currentTarget.value)}
                   disabled={!editable}
                 /></label
@@ -1032,7 +1060,7 @@
                 !fields.remoteId ||
                 selected.state !== "connected" ||
                 chosenRemote?.generation !== selected.generation}
-              >Save account mapping</button
+              >{t("Save account mapping")}</button
             >{#if link}<button
                 onclick={() =>
                   begin(
@@ -1046,7 +1074,8 @@
                     undefined,
                     true,
                   )}
-                disabled={!writable || !accountView}>Unlink account</button
+                disabled={!writable || !accountView}
+                >{t("Unlink account")}</button
               >{/if}
           </div>
           {#if accountView}<BankSettings
@@ -1057,10 +1086,12 @@
                 {accountView.preferences.error} Review the proposed values before
                 explicitly saving replacements. Supported saved choices were retained.
               </p>{/if}<button onclick={saveSettings} disabled={!writable}
-              >Save refresh preferences</button
-            >{:else}<p>Loading this account's refresh preferences…</p>{/if}
+              >{t("Save refresh preferences")}</button
+            >{:else}<p>
+              {t("Loading this account's refresh preferences\u2026")}
+            </p>{/if}
           <section aria-labelledby="bank-refresh-title">
-            <h3 id="bank-refresh-title">Refresh linked account</h3>
+            <h3 id="bank-refresh-title">{t("Refresh linked account")}</h3>
             <p>
               Choose 1–90 days. The start is included; the end is excluded.
               Overlap is safe: saved bank IDs prevent duplicate imports. Each
@@ -1088,7 +1119,7 @@
               disabled={!writable ||
                 !mappingCurrent ||
                 selected.state !== "connected" ||
-                !accountView}>Refresh linked account</button
+                !accountView}>{t("Refresh linked account")}</button
             >
           </section>
         {/if}

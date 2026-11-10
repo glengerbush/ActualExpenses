@@ -334,21 +334,106 @@ try {
   expect(new Set(firstIds).size).toBe(3);
   expect(wires[0].clock).toMatch(/Z-/);
   expect(wires[0].owner).toBeTruthy();
+  // Public cache reset keeps bank work but removes display preferences.
+  // Recovery remains available while names/amounts fail closed.
+  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await page
+    .getByRole("button", { name: "Close bank connections", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.locator("#language").selectOption("de");
+  await expect(page.locator("html")).toHaveAttribute("lang", "de");
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Recovery tools", exact: true })
+    .click();
+  let blockedPreferences = 0;
+  const preferencesRoute = (url) =>
+    url.pathname === `/api/v1/budgets/${budget}/preferences`;
+  await page.route(preferencesRoute, (route) => {
+    blockedPreferences++;
+    return route.abort("failed");
+  });
+  await page
+    .getByRole("button", { name: "Reset downloaded data", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Confirm cache reset", exact: true })
+    .click();
   await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Saved bank request", exact: true }),
+  ).toBeVisible();
+  await expect.poll(() => blockedPreferences).toBeGreaterThan(0);
+  await expect(page.locator(".balances")).not.toContainText("100 USD");
+  await expect(
+    page.getByRole("heading", { name: "Source checking", exact: true }),
+  ).toHaveCount(0);
+  await page.screenshot({
+    path: new URL("privacy-preferences-blocked.png", directory).pathname,
+    fullPage: true,
+  });
   await page
     .getByRole("button", { name: "Retry original request", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "Saved bank request", exact: true }),
   ).toHaveCount(0);
+  await expect(page.locator(".balances")).not.toContainText("100 USD");
+  await expect(page.locator(".sidebar")).not.toContainText("100.00");
+  await expect(
+    page.getByRole("button", {
+      name: "Discover provider accounts",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await page.unroute(preferencesRoute);
+  await page
+    .getByRole("button", { name: "Refresh connection details", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Transaktionen importieren", { exact: true }),
+  ).toBeChecked();
+  await page
+    .locator("summary")
+    .filter({ hasText: /^Custom bank fields$/ })
+    .click();
+  await expect(page.getByText("Auszahlungen", { exact: true })).toBeVisible();
+  await expect(page.getByText("Einzahlungen", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Refresh confirmed:" }),
+  ).toContainText("Refresh confirmed: 3 added, 0 updated, 0 ignored.");
+  await page
+    .getByRole("button", { name: "Close bank connections", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Einstellungen", exact: true })
+    .click();
+  await page.locator("#language").selectOption("en");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Bank connections", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveAttribute("aria-pressed", "false");
+  await page
+    .getByRole("button", { name: "Refresh connection details", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Refresh linked account", exact: true }),
+  ).toBeEnabled();
   expect(wires).toHaveLength(2);
   expect(wires[1]).toEqual(wires[0]);
   expect(
     (await call(root + "/transactions")).data.map((t) => t.id).sort(),
   ).toEqual(firstIds);
-  await expect(
-    page.getByRole("status").filter({ hasText: "Refresh confirmed:" }),
-  ).toContainText("Refresh confirmed: 3 added, 0 updated, 0 ignored.");
+
   const actualPayees = (await call(root + "/payees")).data,
     actualCategories = (await call(root + "/categories")).data;
   function project(rows, payees, categories, original) {

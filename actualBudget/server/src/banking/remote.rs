@@ -10,16 +10,22 @@ fn now() -> Result<i64, Error> {
 }
 enum Prepared {
     Receipt,
-    Captured(Result<Value, Error>),
-    Fetch(String, tokio::sync::OwnedSemaphorePermit),
+    Captured(Capture),
+    Fetch(String, tokio::sync::OwnedSemaphorePermit, i64),
+}
+pub(super) struct Capture {
+    pub result: Result<Value, Error>,
+    pub revision: i64,
 }
 fn captured(
     response: Option<String>,
     code: Option<String>,
     message: Option<String>,
-) -> Result<Value, Error> {
-    if let Some(code) = code {
-        return Err(Error::new(
+) -> Result<Capture, Error> {
+    let envelope:Value=serde_json::from_str(response.as_deref().ok_or_else(||Error::conflict("Captured provider data lacks its ordering witness. Cancel this original request before refreshing again"))?).map_err(Error::internal)?;
+    let revision=envelope["revision"].as_i64().filter(|_|envelope["bank_capture_version"]==1).ok_or_else(||Error::conflict("Captured provider data lacks its ordering witness. Cancel this original request before refreshing again"))?;
+    let result = if let Some(code) = code {
+        Err(Error::new(
             StatusCode::BAD_GATEWAY,
             match code.as_str() {
                 "provider_revoked" => "provider_revoked",
@@ -33,12 +39,11 @@ fn captured(
                 _ => "provider_unavailable",
             },
             message.unwrap_or_else(|| "Provider retrieval failed".into()),
-        ));
-    }
-    serde_json::from_str(
-        &response.ok_or_else(|| Error::internal("Missing captured provider response"))?,
-    )
-    .map_err(Error::internal)
+        ))
+    } else {
+        Ok(envelope["data"].clone())
+    };
+    Ok(Capture { result, revision })
 }
 #[derive(Clone)]
 pub(super) struct Request {
@@ -90,7 +95,7 @@ pub(super) async fn capture(
     store: Store,
     request: Request,
     download: transport::Download,
-) -> Result<Option<Result<Value, Error>>, Error> {
+) -> Result<Option<Capture>, Error> {
     if request.epoch.is_none() {
         return Err(Error::invalid(
             "Provider downloads require the original budget epoch",
@@ -125,7 +130,7 @@ pub(super) async fn capture(
         let job=tx.query_row("SELECT generation,epoch,fingerprint,phase,response,error_code,error_message,started_at FROM bank_jobs WHERE budget_id=?1 AND connection_id=?2 AND id=?3",params![bb,ii,kk],|r|Ok((r.get::<_,String>(0)?,r.get::<_,String>(1)?,r.get::<_,String>(2)?,r.get::<_,String>(3)?,r.get::<_,Option<String>>(4)?,r.get::<_,Option<String>>(5)?,r.get::<_,Option<String>>(6)?,r.get::<_,i64>(7)?))).optional()?;
         if let Some((g,e,p,phase,response,code,message,started))=job{
             if g!=gg || Some(e.as_str())!=ee.as_deref() || p!=pp{return Err(Error::conflict("The captured provider request has another identity or generation"));}
-            if phase=="captured" {return Ok(Prepared::Captured(captured(response,code,message)));}
+            if phase=="captured" {return Ok(Prepared::Captured(captured(response,code,message)?));}
             if timestamp-started<35{return Err(Error::conflict("This provider request is still finishing. Retry its original identity shortly"));}
         }
         tx.execute("DELETE FROM bank_request_log WHERE started_at<?1",[timestamp-86400])?;
@@ -138,12 +143,12 @@ pub(super) async fn capture(
         tx.execute("INSERT INTO bank_jobs(budget_id,connection_id,id,generation,epoch,fingerprint,phase,started_at) VALUES(?1,?2,?3,?4,?5,?6,'fetching',?7) ON CONFLICT(budget_id,connection_id,id) DO UPDATE SET started_at=excluded.started_at",params![bb,ii,kk,gg,ee,pp,timestamp])?;
         tx.execute("INSERT INTO bank_request_log(budget_id,connection_id,started_at) VALUES(?1,?2,?3)",params![bb,ii,timestamp])?;
         tx.commit()?;
-        Ok(Prepared::Fetch(access,permit))
+        Ok(Prepared::Fetch(access,permit,current["revision"].as_i64().unwrap()))
     }).await?;
     let result = match ready {
         Prepared::Receipt => return Ok(None),
         Prepared::Captured(value) => return Ok(Some(value)),
-        Prepared::Fetch(access, permit) => {
+        Prepared::Fetch(access, permit, revision) => {
             let result = match tokio::time::timeout(
                 std::time::Duration::from_secs(30),
                 tokio::task::spawn_blocking(move || {
@@ -177,10 +182,11 @@ pub(super) async fn capture(
                 }
                 crate::lifecycle::require_epoch(&tx,&bb,ee.as_deref())?;
                 if connection(&tx,&bb,&ii)?["generation"]!=gg{return Err(Error::conflict("Credentials changed during provider retrieval"));}
-                let(response,code,message)=match &result{Ok(value)=>(Some(value.to_string()),None,None),Err(e)=>(None,Some(e.code.to_owned()),Some(e.message.clone()))};
+                let(response,code,message)=match &result{Ok(value)=>(value.clone(),None,None),Err(e)=>(Value::Null,Some(e.code.to_owned()),Some(e.message.clone()))};
+                let response=Some(json!({"bank_capture_version":1,"revision":revision,"data":response}).to_string());
                 let existing:i64=tx.query_row("SELECT COALESCE(SUM(length(CAST(response AS BLOB))),0) FROM bank_jobs WHERE budget_id=?1 AND NOT(connection_id=?2 AND id=?3)",params![bb,ii,kk],|r|r.get(0))?;
                 if existing+response.as_ref().map_or(0,|s|s.len()) as i64>64*1024*1024{return Err(Error::conflict("Captured provider data exceeds the 64 MiB recovery limit. Finish existing requests first"));}
-                tx.execute("UPDATE bank_jobs SET phase='captured',response=?4,error_code=?5,error_message=?6 WHERE budget_id=?1 AND connection_id=?2 AND id=?3",params![bb,ii,kk,response,code,message])?;tx.commit()?;Ok(Some(result))
+                tx.execute("UPDATE bank_jobs SET phase='captured',response=?4,error_code=?5,error_message=?6 WHERE budget_id=?1 AND connection_id=?2 AND id=?3",params![bb,ii,kk,response,code,message])?;tx.commit()?;Ok(Some(Capture{result,revision}))
             }).await?
         }
     };
@@ -207,7 +213,7 @@ pub(super) async fn discover(
         owner: None,
     };
     let scope = request.scope();
-    let Some(result) = capture(
+    let Some(capture) = capture(
         store.clone(),
         request.clone(),
         transport::Download::Balances,
@@ -220,7 +226,8 @@ pub(super) async fn discover(
         crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;
         let current=connection(db,&b,&id)?;
         if current["generation"]!=generation || current["deleted"]==true{return Err(Error::conflict("Connection changed before captured accounts could be saved"));}
-        let (accounts,errors)=match result {
+        if current["revision"]!=capture.revision{return Err(Error::new(StatusCode::CONFLICT,"provider_capture_stale","Newer provider metadata was saved. Cancel this captured request and refresh again"));}
+        let (accounts,errors)=match capture.result {
             Ok(raw)=>match super::records::install_remote(db,&b,&id,&generation,&raw,true){Ok(value)=>value,Err(e) if e.status==StatusCode::INTERNAL_SERVER_ERROR=>return Err(e),Err(e)=>(vec![],vec![json!({"code":e.code,"message":e.message})])},
             Err(e)=>{db.execute("UPDATE bank_connections SET error_code=?3,message=?4,state=CASE WHEN ?3='provider_revoked' THEN 'credentials_missing' ELSE state END WHERE budget_id=?1 AND id=?2",params![b,id,e.code,e.message])?;(vec![],vec![json!({"code":e.code,"message":e.message})])}
         };

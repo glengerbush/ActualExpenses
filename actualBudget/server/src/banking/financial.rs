@@ -247,7 +247,7 @@ pub(super) async fn refresh(
   let selected=links(db,&b,&id,&body)?;
   if current["revision"]!=download.revision{return Err(Error::new(StatusCode::CONFLICT,"provider_capture_stale","Newer provider metadata was saved. Cancel this captured request and refresh again"));}
   let raw=match download.result{Ok(v)=>v,Err(e)=>{
-   db.execute("UPDATE bank_connections SET error_code=?3,message=?4,state=CASE WHEN ?3='provider_revoked' THEN 'credentials_missing' ELSE state END,revision=revision+1 WHERE budget_id=?1 AND id=?2",params![b,id,e.code,e.message])?;sync::mark(db,&b,"bank_connections",&id)?;
+   db.execute("UPDATE bank_connections SET error_code=?3,message=?4,state=CASE WHEN ?3 IN('provider_revoked','provider_credentials_invalid') THEN 'credentials_missing' WHEN ?3 IN('provider_consent_expired','provider_consent_suspended') THEN 'claim_failed' ELSE state END,revision=revision+1 WHERE budget_id=?1 AND id=?2",params![b,id,e.code,e.message])?;sync::mark(db,&b,"bank_connections",&id)?;
    db.execute("DELETE FROM bank_jobs WHERE budget_id=?1 AND connection_id=?2 AND id=?3",params![b,id,request.key])?;
    return Ok(json!({"response_status":200,"response_body":{"data":{"status":"failed","accounts":[],"errors":[{"code":e.code,"message":e.message}]},"cursor":sync::cursor(db,&b)?}}));
   }};
@@ -256,15 +256,17 @@ pub(super) async fn refresh(
   let mut results=vec![];let mut work=crate::rules::Work::default();let mut total=0usize;
   for(link,prior,prefs)in selected{
    let account=link["id"].as_str().unwrap();let remote_id=link["remote_account_id"].as_str().unwrap();
-   let Some(remote)=remotes.iter().find(|r|r["id"]==remote_id)else{results.push(json!({"account_id":account,"status":"failed","code":"provider_account_missing","message":"This provider account was not returned. Retry or review its link"}));continue;};
+   let Some(remote)=remotes.iter().find(|r|r["id"]==remote_id)else{
+    let failure=if current["provider"]=="gocardless"{errors.iter().find(|e|e["remote_id"]==prior["remote_id"])}else{None};
+    results.push(json!({"account_id":account,"status":"failed","code":failure.and_then(|e|e["code"].as_str()).unwrap_or("provider_account_missing"),"message":failure.and_then(|e|e["message"].as_str()).unwrap_or("This provider account was not returned. Retry or review its link")}));continue;};
    if remote["diagnostics"].as_array().is_some_and(|e|!e.is_empty()){results.push(json!({"account_id":account,"status":"failed","diagnostics":remote["diagnostics"]}));continue;}
    if !prefs.import_transactions{results.push(json!({"account_id":account,"status":"balance_only","added":[],"updated":[],"ignored":[]}));continue;}
    let source=raw["accounts"].as_array().unwrap().iter().find(|a|a["id"]==prior["remote_id"]&&a["conn_id"].as_str().or_else(||a["org"]["id"].as_str()).unwrap_or("legacy")==prior["remote_connection_id"].as_str().unwrap()).ok_or_else(||Error::invalid("Provider account identity changed during normalization"))?;
-   let core=normalize::core(source,&body.start_date,&body.end_date,&prefs)?;total=total.checked_add(core.len()).filter(|n|*n<=10000).ok_or_else(||Error::invalid("Select fewer accounts or a narrower range: at most10000 transactions per refresh"))?;
+   let core=if current["provider"]=="gocardless"{gocardless::core(source,&body.start_date,&body.end_date,&prefs)?}else{normalize::core(source,&body.start_date,&body.end_date,&prefs)?};total=total.checked_add(core.len()).filter(|n|*n<=10000).ok_or_else(||Error::invalid("Select fewer accounts or a narrower range: at most10000 transactions per refresh"))?;
    let mut opening_id=None;
    let occupied:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM transactions WHERE budget_id=?1 AND account_id=?2 AND tombstone=0)",params![b,account],|r|r.get(0))?;
    if link["initial_sync"]==true&&!occupied&&link["opening_mode"]!="none"{
-    let amount=if link["opening_mode"]=="custom"{link["opening_amount"].as_i64().ok_or_else(||Error::invalid("Custom opening balance is missing"))?}else{
+    let amount=if link["opening_mode"]=="custom"{link["opening_amount"].as_i64().ok_or_else(||Error::invalid("Custom opening balance is missing"))?}else if current["provider"]=="gocardless"{source["_gocardless_opening"].as_i64().filter(|n|n.unsigned_abs()<=models::MAX_MONEY as u64).ok_or_else(||Error::invalid("GoCardless opening balance is invalid"))?}else{
      let mut amount=normalize::minor(source["balance"].as_str().ok_or_else(||Error::invalid("Missing provider balance"))?)? as i128;
      for t in &core{amount-=normalize::minor(t["transactionAmount"]["amount"].as_str().unwrap())? as i128;}
      if amount.abs()>models::MAX_MONEY as i128{return Err(Error::invalid("Calculated opening balance exceeds the exact money range"));}amount as i64
@@ -282,7 +284,7 @@ pub(super) async fn refresh(
   }
   let failed=results.iter().filter(|a|a["status"]=="failed").count();
   let status=if failed==results.len(){"failed"}else if failed>0{"partial"}else{"complete"};
-  db.execute("UPDATE bank_connections SET error_code=?3,message=?4,last_success=CASE WHEN ?3 IS NULL THEN strftime('%Y-%m-%dT%H:%M:%fZ','now') ELSE last_success END,revision=revision+1 WHERE budget_id=?1 AND id=?2",params![b,id,errors.first().and_then(|e|e["code"].as_str()),errors.first().and_then(|e|e["message"].as_str())])?;sync::mark(db,&b,"bank_connections",&id)?;
+  db.execute("UPDATE bank_connections SET error_code=?3,message=?4,state=CASE WHEN ?3 IN('provider_credentials_invalid') THEN 'credentials_missing' WHEN ?3 IN('provider_consent_expired','provider_consent_suspended') THEN 'claim_failed' ELSE state END,last_success=CASE WHEN ?3 IS NULL THEN strftime('%Y-%m-%dT%H:%M:%fZ','now') ELSE last_success END,revision=revision+1 WHERE budget_id=?1 AND id=?2",params![b,id,errors.first().and_then(|e|e["code"].as_str()),errors.first().and_then(|e|e["message"].as_str())])?;sync::mark(db,&b,"bank_connections",&id)?;
   db.execute("DELETE FROM bank_jobs WHERE budget_id=?1 AND connection_id=?2 AND id=?3",params![b,id,request.key])?;
   Ok(json!({"response_status":200,"response_body":{"data":{"status":status,"accounts":results,"errors":errors},"edit_clock":clock,"cursor":sync::cursor(db,&b)?}}))
  })).await

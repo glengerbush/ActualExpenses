@@ -270,6 +270,7 @@ pub(in crate::banking) async fn command(
             "Authorization was interrupted. Review or cancel the original consent request",
         )
     })?;
+    observe_quota(store.clone(), &tokens).await?;
     store.run(move|db|sync::write(db,&scope,&key,&payload,None,StatusCode::OK,|db| {
         guard_pending(db,&b,&id,&key,&payload)?;
         crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;

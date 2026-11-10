@@ -99,6 +99,33 @@ pub(super) fn install_remote(
             )
         })
     }));
+    let gocardless = super::connection(db, b, connection)?["provider"] == "gocardless";
+    if gocardless
+        && let Some(ids) = raw["_gocardless_authorized"]
+            .as_array()
+            .filter(|r| r.len() <= 1000)
+    {
+        let requisition = raw["_gocardless_requisition"].as_str().ok_or_else(|| {
+            transport::failure(
+                "provider_invalid_response",
+                "Missing authorized consent scope",
+            )
+        })?;
+        for id in ids {
+            known.push((
+                requisition.to_owned(),
+                id.as_str()
+                    .filter(|v| !v.is_empty() && v.len() <= 200)
+                    .ok_or_else(|| {
+                        transport::failure(
+                            "provider_invalid_response",
+                            "Invalid authorized account identity",
+                        )
+                    })?
+                    .to_owned(),
+            ));
+        }
+    }
     let mut errors = vec![];
     if let Some(list) = raw.get("errlist") {
         let list = list.as_array().filter(|l| l.len() <= 1000).ok_or_else(|| {
@@ -109,7 +136,42 @@ pub(super) fn install_remote(
         })?;
         for e in list {
             let code = e["code"].as_str().unwrap_or("gen.");
-            let (public, message) = if code == "gen.auth" || code == "con.auth" {
+            let (public, message) = if gocardless {
+                match e["provider_code"].as_str().unwrap_or("provider_incomplete") {
+                    "provider_rate_limited" => (
+                        "provider_rate_limited",
+                        "The institution request limit was reached. Wait for its reset before retrying",
+                    ),
+                    "provider_consent_expired" | "provider_consent_suspended" => (
+                        "provider_consent_expired",
+                        "Bank consent expired or was suspended. Authorize this connection again",
+                    ),
+                    "provider_credentials_invalid" => (
+                        "provider_credentials_invalid",
+                        "GoCardless credentials are invalid. Review user secrets",
+                    ),
+                    "provider_bank_unsupported" => (
+                        "provider_bank_unsupported",
+                        "This institution's bank-specific normalization is not available. No financial data was applied",
+                    ),
+                    "provider_response_limit" => (
+                        "provider_response_limit",
+                        "Provider data exceeds the supported bounds. Select fewer accounts or a narrower date range",
+                    ),
+                    "provider_unavailable" => (
+                        "provider_unavailable",
+                        "GoCardless or the institution is unavailable. Retry later",
+                    ),
+                    "provider_incomplete" => (
+                        "provider_incomplete",
+                        "This account was not authorized or its data is incomplete. Review consent and retry",
+                    ),
+                    _ => (
+                        "provider_invalid_response",
+                        "The provider returned invalid account data. No financial changes were applied for this account",
+                    ),
+                }
+            } else if code == "gen.auth" || code == "con.auth" {
                 (
                     "provider_attention",
                     "Reauthorize this connection at SimpleFIN",

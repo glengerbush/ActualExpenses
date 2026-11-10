@@ -100,3 +100,11 @@ CREATE TABLE bank_gocardless_credentials (
 -- Interrupted pre25 claims remain conservative and require replacement.
 ALTER TABLE bank_credentials ADD COLUMN intent_id TEXT;
 ALTER TABLE bank_credentials ADD COLUMN intent_fingerprint TEXT;
+
+-- Provider reset windows are shared across connections using the same secret
+-- fingerprint. No raw credential or budget data is stored here or exported.
+CREATE TABLE bank_gocardless_limits (
+ credential_digest TEXT NOT NULL,endpoint TEXT NOT NULL,reset_at INTEGER NOT NULL,
+ PRIMARY KEY(credential_digest,endpoint)
+);
+CREATE INDEX bank_gocardless_limits_expiry ON bank_gocardless_limits(reset_at);

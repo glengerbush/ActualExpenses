@@ -5,10 +5,16 @@ use std::io::Read;
 
 pub(super) struct Client {
     pub tokens: Credentials,
+    deadline: std::time::Instant,
+    remaining_bytes: usize,
 }
 impl Client {
     pub fn new(tokens: Credentials) -> Self {
-        Self { tokens }
+        Self {
+            tokens,
+            deadline: std::time::Instant::now() + std::time::Duration::from_secs(28),
+            remaining_bytes: 16 * 1024 * 1024,
+        }
     }
     fn base() -> Result<Url, Error> {
         let origin = std::env::var("ACTUALBUDGET_GOCARDLESS_TEST_ORIGIN").ok();
@@ -39,7 +45,7 @@ impl Client {
         Ok(url)
     }
     pub(super) fn request(
-        &self,
+        &mut self,
         method: Method,
         path: &str,
         body: Option<Value>,
@@ -51,7 +57,39 @@ impl Client {
         let url = Self::base()?
             .join(path)
             .map_err(|_| Error::internal("Invalid provider endpoint"))?;
-        let mut request = transport::client(&url)?.request(method, url);
+        let now = chrono::DateTime::<chrono::Utc>::from(std::time::SystemTime::now()).timestamp();
+        self.tokens.quota.retain(|_, end| *end > now);
+        let scope = url.path().to_owned();
+        let reset = self
+            .tokens
+            .quota
+            .get("global")
+            .copied()
+            .unwrap_or(0)
+            .max(self.tokens.quota.get(&scope).copied().unwrap_or(0));
+        if reset > now {
+            return Err(Error::new(
+                StatusCode::TOO_MANY_REQUESTS,
+                "provider_rate_limited",
+                format!(
+                    "The provider request window is exhausted. Wait {} seconds before retrying",
+                    reset - now
+                ),
+            ));
+        }
+        let remaining = self
+            .deadline
+            .checked_duration_since(std::time::Instant::now())
+            .filter(|d| !d.is_zero())
+            .ok_or_else(|| {
+                transport::failure(
+                    "provider_unavailable",
+                    "The bounded provider request timed out. Retry a smaller account selection",
+                )
+            })?;
+        let mut request = transport::client(&url)?
+            .request(method, url)
+            .timeout(remaining.min(std::time::Duration::from_secs(20)));
         request = request.header(reqwest::header::ACCEPT, "application/json");
         if authenticated {
             request = request.bearer_auth(
@@ -71,6 +109,42 @@ impl Client {
             )
         })?;
         let status = response.status().as_u16();
+        let seconds = |name: &str| {
+            response
+                .headers()
+                .get(name)
+                .and_then(|v| v.to_str().ok())
+                .and_then(|v| v.parse::<i64>().ok())
+                .filter(|v| *v >= 0 && *v <= 31 * 86400)
+        };
+        let hint = |part: &str| {
+            seconds(&format!("x-ratelimit-{part}"))
+                .or_else(|| seconds(&format!("http_x_ratelimit_{}", part.replace('-', "_"))))
+        };
+        let global = hint("remaining") == Some(0);
+        let account = hint("account-success-remaining") == Some(0);
+        if global && let Some(wait) = hint("reset").filter(|v| *v > 0) {
+            self.tokens.quota.insert("global".to_owned(), now + wait);
+        }
+        if account && let Some(wait) = hint("account-success-reset").filter(|v| *v > 0) {
+            self.tokens.quota.insert(scope.clone(), now + wait);
+        }
+        if status == 429 {
+            let wait = hint("account-success-reset")
+                .or_else(|| hint("reset"))
+                .or_else(|| seconds("retry-after"))
+                .unwrap_or(60)
+                .max(1);
+            self.tokens
+                .quota
+                .insert(if global { "global".to_owned() } else { scope }, now + wait);
+        }
+        if self.tokens.quota.len() > 4096 {
+            return Err(transport::failure(
+                "provider_response_limit",
+                "Too many provider quota windows. Wait before requesting more accounts",
+            ));
+        }
         if (300..400).contains(&status) {
             return Err(transport::failure(
                 "provider_redirect_refused",
@@ -79,7 +153,7 @@ impl Client {
         }
         let mut bytes = Vec::new();
         response
-            .take(16 * 1024 * 1024 + 1)
+            .take(self.remaining_bytes as u64 + 1)
             .read_to_end(&mut bytes)
             .map_err(|_| {
                 transport::failure(
@@ -87,12 +161,13 @@ impl Client {
                     "The GoCardless response was interrupted",
                 )
             })?;
-        if bytes.len() > 16 * 1024 * 1024 {
+        if bytes.len() > self.remaining_bytes {
             return Err(transport::failure(
                 "provider_response_limit",
                 "The provider response exceeds16MiB. No data was applied",
             ));
         }
+        self.remaining_bytes -= bytes.len();
         let data: Value = serde_json::from_slice(&bytes).map_err(|_| {
             transport::failure(
                 "provider_invalid_response",

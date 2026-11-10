@@ -57,6 +57,7 @@ pub const TABLES: &[&str] = &[
 const AUXILIARY: &[&str] = &[
     "bank_credentials",
     "bank_gocardless_credentials",
+    "bank_gocardless_limits",
     "bank_jobs",
     "bank_request_log",
     "history_lineage",

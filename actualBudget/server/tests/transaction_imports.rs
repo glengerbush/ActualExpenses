@@ -664,6 +664,7 @@ fn manual_merge_recovery(newer_peer_note: bool) {
         .get(&format!("{root}/checkpoint"))
         .json::<Value>()
         .unwrap();
+    let protected_history = history();
     let refused = s
         .client
         .post(format!("{}{root}/history/undo", s.url))
@@ -686,6 +687,7 @@ fn manual_merge_recovery(newer_peer_note: bool) {
             .unwrap(),
         protected_cp
     );
+    assert_eq!(history(), protected_history);
     assert_eq!(
         send(&s, "merge", &body, &[("X-Actual-Receipt-Only", "true")])
             .json::<Value>()

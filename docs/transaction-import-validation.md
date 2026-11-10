@@ -233,3 +233,7 @@ invalid split totals/status or nonreciprocal transfers refuse atomically with a
 review message; they are never flattened or silently normalized. Existing
 source IDs, ranks and original financial clocks remain untouched unless that
 specific field is changed by the captured merge.
+
+Reviewer proof delta: the newer-lock inverse refusal now also preserves the exact
+post-lock history state. Affected test1 PASS
+`/tmp/transaction-manual-merge-lock-history.log`; no runtime change or broad rerun.

@@ -32,6 +32,7 @@ mod schedules;
 mod splits;
 mod store;
 mod themes;
+mod transaction_batch;
 mod transaction_imports;
 mod transfers;
 use std::path::PathBuf;

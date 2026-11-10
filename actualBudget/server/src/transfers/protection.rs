@@ -147,3 +147,84 @@ pub fn protect_group(
     let protected: bool = db.query_row("SELECT EXISTS(SELECT 1 FROM transactions WHERE budget_id=?1 AND tombstone=0 AND reconciled=1 AND (id=?2 OR parent_id=?2))",params![b,parent],|r|r.get(0))?;
     protect(&json!({"id":parent,"reconciled":protected}), None)
 }
+
+/// Resource-limited callers must bound discovery itself, not truncate a fully
+/// materialized recursive proof. Ordinary confirmation uses members() unchanged.
+/// Indexed child cursors stop on the first member over the allowance; no large
+/// fanout is first enqueued/expanded by a recursive CTE.
+pub fn members_bounded(
+    db: &Connection,
+    b: &str,
+    ids: &[&str],
+    limit: usize,
+) -> Result<Vec<Value>, Error> {
+    use std::collections::VecDeque;
+    fn read(db: &Connection, b: &str, id: &str) -> Result<Option<Value>, Error> {
+        Ok(db.prepare_cached("SELECT t.id,t.parent_id,t.transfer_id,t.reconciled,v.clock FROM transactions t LEFT JOIN field_versions v ON v.budget_id=t.budget_id AND v.entity='transactions' AND v.entity_id=t.id AND v.field='reconciled' WHERE t.budget_id=?1 AND t.id=?2 AND t.tombstone=0")?.query_row(params![b,id],|r|Ok(json!({"id":r.get::<_,String>(0)?,"parent_id":r.get::<_,Option<String>>(1)?,"transfer_id":r.get::<_,Option<String>>(2)?,"reconciled":r.get::<_,bool>(3)?,"field_versions":{"reconciled":r.get::<_,Option<String>>(4)?.unwrap_or_else(||order::ZERO.into())}}))).optional()?)
+    }
+    fn add(
+        row: Option<Value>,
+        rows: &mut BTreeMap<String, Value>,
+        queue: &mut VecDeque<String>,
+        limit: usize,
+    ) -> Result<(), Error> {
+        if let Some(row) = row {
+            let id = row["id"].as_str().unwrap();
+            if !rows.contains_key(id) {
+                if rows.len() >= limit {
+                    return Err(Error::new(
+                        StatusCode::BAD_REQUEST,
+                        "graph_limit",
+                        "Financial graph exceeds the requested member allowance; use smaller independent commands or explicitly review a larger allowance.",
+                    ));
+                }
+                queue.push_back(id.to_owned());
+                rows.insert(id.to_owned(), row);
+            }
+        }
+        Ok(())
+    }
+    if limit == 0 || limit > 100000 {
+        return Err(Error::new(
+            StatusCode::BAD_REQUEST,
+            "graph_limit",
+            "Financial graph exceeds the requested member allowance; use smaller independent commands or explicitly review a larger allowance.",
+        ));
+    }
+    let mut rows = BTreeMap::new();
+    let mut queue = VecDeque::new();
+    for id in ids {
+        validate_id(id)?;
+        add(read(db, b, id)?, &mut rows, &mut queue, limit)?;
+    }
+    while let Some(id) = queue.pop_front() {
+        let row = rows[&id].clone();
+        if let Some(parent) = row["parent_id"].as_str()
+            && !rows.contains_key(parent)
+        {
+            add(read(db, b, parent)?, &mut rows, &mut queue, limit)?;
+        }
+        if let Some(peer) = row["transfer_id"].as_str()
+            && !rows.contains_key(peer)
+        {
+            let peer = read(db, b, peer)?;
+            if peer.as_ref().is_some_and(|r| r["transfer_id"] == id) {
+                add(peer, &mut rows, &mut queue, limit)?;
+            }
+        }
+        // This uses transactions_register's (budget,tombstone,parent) prefix;
+        // no ORDER BY/sort or get_many expansion before the allowance check.
+        let mut children=db.prepare_cached("SELECT id FROM transactions WHERE budget_id=?1 AND tombstone=0 AND parent_id=?2 LIMIT ?3")?;
+        let mut cursor = children.query(params![b, id, (limit + 1) as i64])?;
+        while let Some(child) = cursor.next()? {
+            let child: String = child.get(0)?;
+            if !rows.contains_key(&child) {
+                add(read(db, b, &child)?, &mut rows, &mut queue, limit)?;
+            }
+        }
+    }
+    if rows.is_empty() {
+        return Err(Error::missing());
+    }
+    Ok(rows.into_values().collect())
+}

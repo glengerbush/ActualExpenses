@@ -647,7 +647,7 @@
                 disabled={busy || !!draft}
                 aria-label={`Set ${row.name} savings target`}
                 >Set savings target</button
-              >{:else}<p>
+              >{:else if row.source === "ui"}<p>
                 Visual definitions remain authoritative; retained note edits do
                 not change this plan.
               </p>{/if}

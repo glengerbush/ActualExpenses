@@ -260,6 +260,17 @@ try {
     .getByRole("button", { name: "Refresh template definitions", exact: true })
     .click();
   await expect(page.locator(".budget-templates [role=alert]")).toHaveCount(0);
+  const salaryDefinition = page
+    .locator(".definitions>li")
+    .filter({
+      has: page.getByRole("checkbox", { name: "Select Salary", exact: true }),
+    });
+  await expect(salaryDefinition).toContainText(
+    "Income targets apply in Tracking budgets",
+  );
+  await expect(salaryDefinition).not.toContainText(
+    "Visual definitions remain authoritative",
+  );
   for (const [name, dark, large] of [
     ["mobile", false, false],
     ["large-text", false, true],

@@ -48,7 +48,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 23 | 14 | Transactions, payees and categories | [14: exact splits, recombination, sparse1001-child workflows and guarded history](splits-validation.md); [integrated acceptance](1314151646-validation.md) |
 | 24 | 15 | Transactions, payees and categories | [15: reciprocal transfer edits/deletion and imports](transfers-validation.md) |
 | 25 | 15 | Transactions, payees and categories | [15: account closure, duplicate/link handling and history](transfers-validation.md) |
-| 26 | 25 | Transactions, payees and categories | Pending feature acceptance |
+| 26 | 25 | Transactions, payees and categories | [25: source-backed matching and manual merge graphs, protection and one-action undo](transaction-import-validation.md) |
 | 27 | 03, 11 | Transactions, payees and categories | [11: payee management, aliases, retained references and Android choices](payees-tags-validation.md) |
 | 28 | 11, 19 | Transactions, payees and categories | [11: payee management and metadata](payees-tags-validation.md); [19: associated-rule navigation and learning controls](rules-validation.md) |
 | 29 | 46 | Transactions, payees and categories | [46: explicit locations, baseline proximity, migration and HTTP fallback](payee-locations-validation.md) |
@@ -76,40 +76,40 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 51 | 21 | Rules and schedules | [21: manual/automatic posting, skip/completion, bounded catch-up and foreground-only recovery](schedules-validation.md) |
 | 52 | 22 | Rules and schedules | [22: source discovery, existing-history creation and atomic future conversion](schedules-validation.md) |
 | 53 | 21, 22 | Rules and schedules | [21/22: horizon settings/warnings, ordered account previews and coherent linked rules](schedules-validation.md) |
-| 54 | 25, 26 | File imports and bank providers | Pending feature acceptance |
-| 55 | 25 | File imports and bank providers | Pending feature acceptance |
-| 56 | 25, 26 | File imports and bank providers | Pending feature acceptance |
-| 57 | 08, 25 | File imports and bank providers | [08: native budget export](budget-lifecycle-validation.md); CSV export pending25 |
+| 54 | 25, 26 | File imports and bank providers | [25/26: CSV/TSV, OFX/QFX, QIF and CAMT parsers plus committed public/browser flows](transaction-import-validation.md) |
+| 55 | 25 | File imports and bank providers | [25: retained mapping/options, exact rounding, preview and durable failure recovery](transaction-import-validation.md) |
+| 56 | 25, 26 | File imports and bank providers | [25/26: IDs, source-ordered matching, status/deleted choices, rules once and repeat imports](transaction-import-validation.md) |
+| 57 | 08, 25 | File imports and bank providers | [08: native budget export](budget-lifecycle-validation.md); [25: source-backed CSV bytes/cells and canonical filtered export](transaction-import-validation.md) |
 | 58 | 28, 29, 30 | File imports and bank providers | Pending feature acceptance |
 | 59 | 31, 32 | File imports and bank providers | Pending feature acceptance |
 | 60 | 28, 29, 30, 31, 32 | File imports and bank providers | Pending feature acceptance |
 | 61 | 28, 29, 30, 31, 32 | File imports and bank providers | Pending feature acceptance |
 | 62 | 28, 29, 30, 31, 32 | File imports and bank providers | Pending feature acceptance |
-| 63 | 33 | Reports, dashboards and formulas | Pending feature acceptance |
-| 64 | 33 | Reports, dashboards and formulas | Pending feature acceptance |
-| 65 | 33 | Reports, dashboards and formulas | Pending feature acceptance |
+| 63 | 33 | Reports, dashboards and formulas | [33: named dashboards, persistent layout/settings, source clocks and native round trips](reports-validation.md) |
+| 64 | 33 | Reports, dashboards and formulas | [33: source-backed cash flow/net worth/spending, bounded aggregates and snapshot drilldowns](reports-validation.md) |
+| 65 | 33 | Reports, dashboards and formulas | [33: text, summary/calendar widgets and accessible exact-value tables](reports-validation.md) |
 | 66 | 34 | Reports, dashboards and formulas | Pending feature acceptance |
-| 67 | 33, 34 | Reports, dashboards and formulas | Pending feature acceptance |
+| 67 | 33, 34 | Reports, dashboards and formulas | [33: dashboard dates, conditions and account/category inclusion](reports-validation.md); custom-report34 acceptance pending |
 | 68 | 34 | Reports, dashboards and formulas | Pending feature acceptance |
 | 69 | 38 | Reports, dashboards and formulas | Pending feature acceptance |
 | 70 | 35, 36, 37 | Reports, dashboards and formulas | Pending feature acceptance |
 | 71 | 39, 40 | Reports, dashboards and formulas | Pending feature acceptance |
 | 72 | 41 | Reports, dashboards and formulas | Pending feature acceptance |
-| 73 | 33, 35, 36, 37, 38, 39, 40, 41 | Reports, dashboards and formulas | Pending feature acceptance |
+| 73 | 33, 35, 36, 37, 38, 39, 40, 41 | Reports, dashboards and formulas | [33: recorded-entry labels, average/ratio inspection and explicit calculation/work bounds](reports-validation.md); projection/formula tickets35–41 pending |
 | 74 | 43, 51 | Settings and accessible workflows | [43: accessible responsive preference controls](../actualBudget/web/docs/preferences-validation.md); whole-app qualification pending 51 |
 | 75 | 43, 51 | Settings and accessible workflows | [43: number/date/currency/decimal/week-start controls](../actualBudget/web/docs/preferences-validation.md); whole-app qualification pending 51 |
 | 76 | 43, 44 | Settings and accessible workflows | [43: built-in appearance](../actualBudget/web/docs/preferences-validation.md); [44: catalog/custom themes, source preservation and recovery](../actualBudget/web/docs/custom-theme-contract.md) |
 | 77 | 43 | Settings and accessible workflows | [43: released language catalogs, device scope and retry](../actualBudget/web/docs/preferences-validation.md) |
-| 78 | 12, 45 | Settings and accessible workflows | [12: accepted remembered register views](register-query-validation.md); privacy/navigation/help45 acceptance pending |
-| 79 | 45 | Settings and accessible workflows | Pending feature acceptance |
+| 78 | 12, 45 | Settings and accessible workflows | [12: accepted remembered register views](register-query-validation.md); [45: privacy, navigation, command search, shortcuts and help](navigation-validation.md) |
+| 79 | 45 | Settings and accessible workflows | [45: optional fork-local notices, dismissal and opt-out without idle network checks](navigation-validation.md) |
 | 80 | 31, 32, 35, 36, 37, 39, 41, 42, 43 | Settings and accessible workflows | [43: preserved opt-in flags and currency gating](../actualBudget/web/docs/preferences-validation.md); remaining experimental features pending assigned tickets |
-| 81 | 49 | Settings and accessible workflows | Pending feature acceptance |
-| 82 | 03, 43, 49, 51 | Settings and accessible workflows | [03: retained forms and durable retry](register-validation.md); [43: settings/storage/connection recovery](../actualBudget/web/docs/preferences-validation.md); repair and whole-app qualification pending 49/51 |
+| 81 | 49 | Settings and accessible workflows | [49: copied-data repair preview, guarded backup/apply and safe cache/connection recovery](recovery-validation.md) |
+| 82 | 03, 43, 49, 51 | Settings and accessible workflows | [03: retained forms and durable retry](register-validation.md); [43: settings/storage/connection recovery](../actualBudget/web/docs/preferences-validation.md); [49: retained recovery intent/cancellation](recovery-validation.md); whole-app qualification pending51 |
 | 83 | 07, 20 | Android and offline expense capture | [07: dated cache before network and unchanged-checkpoint efficiency](offline-web-validation.md); [20: bounded native cache and no legacy reread after atomic handoff](android-upgrade-validation.md) |
 | 84 | 07, 20 | Android and offline expense capture | [07: durable ordinary offline capture using cached references](offline-web-validation.md); [20: migrated/native offline capture with original references](android-upgrade-validation.md) |
 | 85 | 07, 20 | Android and offline expense capture | [07: unsent editing/deletion, editor reload and replacement races](offline-web-validation.md); [20: offline correction and deletion restrictions](android-upgrade-validation.md) |
 | 86 | 07, 20 | Android and offline expense capture | [07: interrupted online edits retained](offline-web-validation.md); [20: interrupted native edits and immutable delivery](android-upgrade-validation.md) |
-| 87 | 05, 07, 20, 49 | Android and offline expense capture | [05: exact receipts](concurrency-validation.md); [07: durable browser outbox](offline-web-validation.md); [20: original message identities, atomic handoff, lost ACK and reinstall](android-upgrade-validation.md); cache repair49 pending |
+| 87 | 05, 07, 20, 49 | Android and offline expense capture | [05: exact receipts](concurrency-validation.md); [07: durable browser outbox](offline-web-validation.md); [20: original message identities, atomic handoff, lost ACK and reinstall](android-upgrade-validation.md); [49: cache repair retains pending mutations and cancellation phase](recovery-validation.md) |
 | 88 | 05, 07, 20 | Android and offline expense capture | [05: per-field HLC](concurrency-validation.md); [07: offline merge](offline-web-validation.md); [20: original field clocks and visible newer-edit feedback](android-upgrade-validation.md) |
 | 89 | 05, 07, 20 | Android and offline expense capture | [05: deletion ordering](concurrency-validation.md); [07: queued deletion recovery](offline-web-validation.md); [20: newer-edit deletion cancellation and published tombstones](android-upgrade-validation.md) |
 | 90 | 06 | Android and offline expense capture | [06: no-login server/budget/account selection](android-api-validation.md) |

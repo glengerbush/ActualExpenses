@@ -868,6 +868,114 @@ fn list_inner(
     )
 }
 
+/// One predicate evaluation for a bounded CSV export. No page-by-page rescan or
+/// reset of regex work; financial aggregates are not needed for serialization.
+pub(crate) fn export_ids(
+    db: &Connection,
+    budget: &str,
+    account: Option<&str>,
+    query: &Query,
+    selected: Option<&[String]>,
+    grouped: bool,
+) -> Result<Vec<String>, Error> {
+    store::require_budget(db, budget)?;
+    if let Some(account) = account {
+        ledger::account_exists(db, budget, account)?;
+    }
+    let matcher = install_functions(db)?;
+    let mut values = vec![SqlValue::Text(budget.into())];
+    let mut base="t.budget_id=?1 AND t.tombstone=0 AND a.tombstone=0 AND (t.parent_id IS NULL OR EXISTS(SELECT 1 FROM transactions parent WHERE parent.budget_id=t.budget_id AND parent.id=t.parent_id AND parent.tombstone=0))".to_string();
+    if let Some(ids) = selected {
+        if ids.is_empty()
+            || ids.len() > 10000
+            || ids.iter().collect::<std::collections::BTreeSet<_>>().len() != ids.len()
+        {
+            return Err(Error::invalid("Select1–10000 distinct entries to export"));
+        }
+        for id in ids {
+            crate::models::validate_id(id)?;
+        }
+        let mut found = std::collections::BTreeMap::new();
+        for batch in ids.chunks(500) {
+            let mut params = vec![budget.to_owned()];
+            params.extend(batch.iter().cloned());
+            let marks = (2..=params.len())
+                .map(|n| format!("?{n}"))
+                .collect::<Vec<_>>()
+                .join(",");
+            let mut q=db.prepare(&format!("SELECT id,COALESCE(parent_id,id) FROM transactions WHERE budget_id=?1 AND tombstone=0 AND id IN ({marks})"))?;
+            for row in q.query_map(params_from_iter(params.iter()), |r| {
+                Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
+            })? {
+                let (id, parent) = row?;
+                found.insert(id, parent);
+            }
+        }
+        if found.len() != ids.len() {
+            return Err(Error::conflict(
+                "A selected entry is no longer available. Refresh before exporting",
+            ));
+        }
+        let selection = if grouped {
+            found
+                .values()
+                .cloned()
+                .collect::<std::collections::BTreeSet<_>>()
+        } else {
+            ids.iter().cloned().collect()
+        };
+        let marks = selection
+            .into_iter()
+            .map(|id| bind(&mut values, SqlValue::Text(id)))
+            .collect::<Vec<_>>()
+            .join(",");
+        base += &if grouped {
+            format!(" AND t.id IN ({marks})")
+        } else {
+            format!(" AND (t.id IN ({marks}) OR t.parent_id IN ({marks}))")
+        };
+    }
+    if let Some(account) = account {
+        base += &format!(
+            " AND t.account_id={}",
+            bind(&mut values, SqlValue::Text(account.into()))
+        );
+    }
+    let query = canonical_query(db, budget, query)?;
+    let preferences = crate::preferences::get_preferences(db, budget)?;
+    let mut filter = query.sql(&mut values, Some(&preferences))?;
+    if grouped {
+        base += " AND t.parent_id IS NULL";
+        let child_filter = filter
+            .replace("y.", "child_destination.")
+            .replace("t.", "child.")
+            .replace("p.", "child_payee.")
+            .replace("c.", "child_category.")
+            .replace("g.", "child_group.");
+        filter = format!(
+            "(({filter}) OR (t.is_parent=1 AND EXISTS(SELECT 1 FROM transactions child LEFT JOIN payees child_payee ON child_payee.budget_id=child.budget_id AND child_payee.id=child.payee_id AND child_payee.tombstone=0 LEFT JOIN accounts child_destination ON child_destination.budget_id=child.budget_id AND child_destination.id=child_payee.transfer_account_id LEFT JOIN categories child_category ON child_category.budget_id=child.budget_id AND child_category.id=child.category_id LEFT JOIN category_groups child_group ON child_group.budget_id=child_category.budget_id AND child_group.id=child_category.group_id WHERE child.budget_id=t.budget_id AND child.parent_id=t.id AND child.tombstone=0 AND ({child_filter}))))"
+        );
+    }
+    let joins = "FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id AND p.tombstone=0 LEFT JOIN accounts y ON y.budget_id=t.budget_id AND y.id=p.transfer_account_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id";
+    let mut statement = db.prepare(&format!(
+        "SELECT t.id {joins} WHERE {base} AND ({filter}) ORDER BY {} LIMIT 100001",
+        query.order()
+    ))?;
+    let ids = statement
+        .query_map(params_from_iter(values.iter()), |r| r.get::<_, String>(0))
+        .and_then(|rows| rows.collect::<Result<Vec<_>, _>>());
+    if let Some(error) = matcher.error() {
+        return Err(error);
+    }
+    let ids=ids?;
+    if ids.len() > 100000 {
+        return Err(Error::invalid(
+            "Export at most100000 rows. Narrow the account or date filter",
+        ));
+    }
+    Ok(ids)
+}
+
 /// Reports share the validated register predicate language, while deliberately
 /// owning their own account/split/period inclusion rules.
 pub(crate) fn report_predicate(

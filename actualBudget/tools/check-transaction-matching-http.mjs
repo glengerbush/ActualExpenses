@@ -1,3 +1,4 @@
+import {cloneImportedTemplate} from '../web/tests/import-template.mjs';
 // Full import/preview/retry outcomes against independently executed Actual.
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -37,7 +38,7 @@ try{
     try{
       const archive=await readFile(new URL('../tests/fixtures/transaction-matching/'+seed.filename,import.meta.url));assert.equal(createHash('sha256').update(archive).digest('hex'),seed.sha256);
       const uploadedSeed=await fetch(api+'/imports/actual',{method:'POST',headers:{'Idempotency-Key':randomUUID(),'Content-Type':'application/zip'},body:archive});assert.equal(uploadedSeed.status,201,await uploadedSeed.clone().text());
-      const stageSeed=(await uploadedSeed.json()).data;assert.equal(stageSeed.status,'ready');await call(`/imports/${stageSeed.id}/activate`,{});
+      const stageSeed=(await uploadedSeed.json()).data;assert.ok(['ready','activated'].includes(stageSeed.status));await call(`/imports/${stageSeed.id}/activate`,{});stageSeed.budget_id=await cloneImportedTemplate(api,stageSeed.budget_id);
       const account=item.ids.account,root=`/budgets/${stageSeed.budget_id}`,manualIds=new Set(item.input.existing.map(row=>item.ids[row.label]));
       assert.deepEqual(financial((await call(root+'/transactions')).data,manualIds,false),financial(item.before.transactions,manualIds,true),'Genuine source starting ledger reproduced');
       const csv=['Date,Payee,Amount,Memo',...item.input.incoming.map(row=>[row.date,row.payee_name,decimal(row.amount),row.notes].map(quote).join(','))].join('\n')+'\n';

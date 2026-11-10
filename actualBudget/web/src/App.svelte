@@ -34,6 +34,8 @@
   import AccountNavigation from "./lib/AccountNavigation.svelte";
   import { readAccountDraft, sortedAccounts } from "./lib/account-actions";
   import BudgetPlan from "./lib/BudgetPlan.svelte";
+  import { readImport } from "./lib/transaction-import-storage";
+  import TransactionImport from "./lib/TransactionImport.svelte";
   import Rules from "./lib/Rules.svelte";
   import Schedules from "./lib/Schedules.svelte";
   import { schedulesKey } from "./lib/schedules";
@@ -86,6 +88,7 @@
     | "budget"
     | "account"
     | "planning"
+    | "transaction-files"
     | "rules"
     | "schedules"
     | "reports"
@@ -183,6 +186,7 @@
       ["planning", "Budget", false],
       ["categories", "Categories", disconnected],
       ["references", "Payees and tags", disconnected],
+      ["transaction-files", "Transaction files", false],
       ["rules", "Rules", false],
       ["schedules", "Schedules", false],
       ["reports", "Dashboards and reports", false],
@@ -333,6 +337,11 @@
           loading = false;
           return;
         }
+        if (await readImport(value.id)) {
+          form = "transaction-files";
+          loading = false;
+          return;
+        }
         if (await readRepair(value.id)) {
           form = "recovery";
           loading = false;
@@ -444,6 +453,7 @@
       | "budget"
       | "account"
       | "planning"
+      | "transaction-files"
       | "rules"
       | "schedules"
       | "reports"
@@ -574,6 +584,10 @@
         onclick={() => showForm("references")}
         disabled={!!form || loading || disconnected || !compatible}
         >{t("Payees and tags")}</button
+      >
+      <button
+        onclick={() => showForm("transaction-files")}
+        disabled={!!form || loading || !compatible}>Transaction files</button
       >
       <button
         onclick={() => {
@@ -718,6 +732,17 @@
             await refreshAccounts();
           }}
         />{/key}
+    {:else if form === "transaction-files" && budget}<TransactionImport
+        budgetId={budget.id}
+        {accounts}
+        onclose={() => showForm(null)}
+        onchanged={async () => {
+          accounts = sortedAccounts(
+            await list<Account>(`/budgets/${budget!.id}/accounts`),
+          );
+          account = accounts.find((a) => a.id === account?.id) ?? null;
+        }}
+      />
     {:else if form === "rules" && budget}{#key budget.id}<Rules
           budgetId={budget.id}
           {disconnected}

@@ -28,6 +28,7 @@ function validate(
       !validClock(value.pending.edit_clock) ||
       ![
         `/budgets/${budgetId}/transactions/bulk`,
+        `/budgets/${budgetId}/transactions/merge`,
         `/budgets/${budgetId}/history/undo`,
         `/budgets/${budgetId}/history/redo`,
       ].includes(value.pending.path))

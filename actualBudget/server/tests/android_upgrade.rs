@@ -521,7 +521,7 @@ fn genuine_schema17_upgrade_and_portable_archive_keep_ranks_history_epochs_and_o
     assert_eq!(
         db.pragma_query_value(None, "user_version", |r| r.get::<_, i64>(0))
             .unwrap(),
-        20
+        22
     );
     assert_eq!(
         db.query_row(

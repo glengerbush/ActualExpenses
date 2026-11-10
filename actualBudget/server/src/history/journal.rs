@@ -674,7 +674,11 @@ pub(super) fn normalize(
 }
 
 fn label_for(scope: &str) -> &'static str {
-    if scope.contains("/transactions/") && scope.ends_with("/bulk") {
+    if scope.ends_with("/transactions/merge") {
+        "Merge transactions"
+    } else if scope.contains("/transaction-imports/") && scope.ends_with("/commit") {
+        "Import transactions"
+    } else if scope.contains("/transactions/") && scope.ends_with("/bulk") {
         "Bulk transaction change"
     } else if scope.contains("/schedules/") {
         "Edit schedules"

@@ -1,0 +1,2424 @@
+{
+  "paths": {
+    "/api/v1/budgets/{budget}/accounts/{account}/transaction-imports": {
+      "post": {
+        "summary": "Retain immutable original bank file (16 MiB); no ledger import yet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "account",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filename",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful response or exact retained receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/TransactionImportFile"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request; no financial mutation. Missing or malformed filename query extraction may return plain text; domain validation returns the JSON error envelope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Failed to deserialize query string: missing field `filename`"
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource or receipt not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, protection or identity conflict; may be operation_canceled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary",
+                "minLength": 1,
+                "maxLength": 16777216
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/transaction-imports/{id}": {
+      "get": {
+        "summary": "Read retained file identity and digest",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response or exact retained receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/TransactionImportFile"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request; no financial mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource or receipt not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, protection or identity conflict; may be operation_canceled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/transaction-imports/{id}/original": {
+      "get": {
+        "summary": "Download exact original bytes",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response or exact retained receipt",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary",
+                  "maxLength": 16777216
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request; no financial mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource or receipt not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, protection or identity conflict; may be operation_canceled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/transaction-imports/{id}/parse": {
+      "post": {
+        "summary": "Read-only raw parser; successful format and parser errors are distinct shapes",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response or exact retained receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/TransactionImportParsed"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request; no financial mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource or receipt not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, protection or identity conflict; may be operation_canceled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionImportParse"
+              }
+            }
+          }
+        },
+        "description": "Read-only source parser. When omitted, options.has_header_row and options.import_notes default to false on this raw parse route; review/preview/commit options instead default both to true. Raw parser errors are returned as a successful JSON envelope with empty transactions and errors, without format."
+      }
+    },
+    "/api/v1/budgets/{budget}/transaction-imports/{id}/preview": {
+      "post": {
+        "summary": "Read-only rules-before-match preview of the selected source scope",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response or exact retained receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/TransactionImportPreview"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request; no financial mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource or receipt not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, protection or identity conflict; may be operation_canceled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionImportReview"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/transaction-imports/{id}/commit": {
+      "post": {
+        "summary": "Atomically apply selected source rows; immutable key/body/clock/epoch/owner replay",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Budget-Epoch",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Edit-Clock",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-History-Owner",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "required": false,
+            "schema": {
+              "const": "true"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Receipt-Only",
+            "required": false,
+            "schema": {
+              "const": "true"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response or exact retained receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/TransactionImportResult"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "cursor": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "edit_clock",
+                    "cursor"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request; no financial mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource or receipt not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, protection or identity conflict; may be operation_canceled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionImportCommit"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/transactions/merge": {
+      "post": {
+        "summary": "Atomically merge a protected connected financial graph",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Budget-Epoch",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Edit-Clock",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-History-Owner",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "required": false,
+            "schema": {
+              "const": "true"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Receipt-Only",
+            "required": false,
+            "schema": {
+              "const": "true"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response or exact retained receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/TransactionMergeResult"
+                    },
+                    "edit_clock": {
+                      "$ref": "#/components/schemas/EditClock"
+                    },
+                    "cursor": {
+                      "$ref": "#/components/schemas/ChangeCursor"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "edit_clock",
+                    "cursor"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request; no financial mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource or receipt not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, protection or identity conflict; may be operation_canceled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionMergeRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/accounts/{account}/transaction-import-settings": {
+      "get": {
+        "summary": "Per-account/per-format defaults and exact retained preference ordering",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "account",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "required": false,
+            "schema": {
+              "enum": [
+                "csv",
+                "tsv",
+                "ofx",
+                "qfx",
+                "qif",
+                "xml"
+              ],
+              "default": "csv"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response or exact retained receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/TransactionImportSettings"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request; no financial mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource or receipt not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, protection or identity conflict; may be operation_canceled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/transactions/merge/preview": {
+      "post": {
+        "summary": "Read-only complete merge graph and captured reconciliation proof",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response or exact retained receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/TransactionMergePreview"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request; no financial mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource or receipt not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, protection or identity conflict; may be operation_canceled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionMergeRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/transactions/export": {
+      "post": {
+        "summary": "Read-only selected/filtered CSV, at most100000 rows and64 MiB; empty CSV valid",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response or exact retained receipt",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary",
+                  "maxLength": 67108864
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request; no financial mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource or receipt not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Snapshot, epoch, protection or identity conflict; may be operation_canceled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionExportRequest"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TransactionImportOptions": {
+        "type": "object",
+        "properties": {
+          "has_header_row": {
+            "type": "boolean"
+          },
+          "split_mode": {
+            "type": "boolean"
+          },
+          "in_out_mode": {
+            "type": "boolean"
+          },
+          "flip_amount": {
+            "type": "boolean"
+          },
+          "import_notes": {
+            "type": "boolean"
+          },
+          "clear_on_import": {
+            "type": "boolean"
+          },
+          "reconcile": {
+            "type": "boolean"
+          },
+          "reimport_deleted": {
+            "type": "boolean"
+          },
+          "fallback_missing_payee_to_memo": {
+            "type": "boolean"
+          },
+          "swap_payee_and_memo": {
+            "type": "boolean"
+          },
+          "delimiter": {
+            "type": "string"
+          },
+          "encoding": {
+            "type": "string"
+          },
+          "date_format": {
+            "type": "string"
+          },
+          "out_value": {
+            "type": "string"
+          },
+          "multiplier": {
+            "type": "string"
+          },
+          "skip_start_lines": {
+            "type": "integer"
+          },
+          "skip_end_lines": {
+            "type": "integer"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "TransactionImportMapping": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "payee": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "inflow": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "outflow": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "in_out": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "TransactionImportChoice": {
+        "type": "object",
+        "properties": {
+          "row": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "action": {
+            "enum": [
+              "auto",
+              "merge",
+              "add",
+              "skip"
+            ]
+          },
+          "match_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "row",
+          "action"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionImportReview": {
+        "type": "object",
+        "properties": {
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "mapping": {
+            "$ref": "#/components/schemas/TransactionImportMapping"
+          },
+          "options": {
+            "$ref": "#/components/schemas/TransactionImportOptions"
+          },
+          "rows": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TransactionImportChoice"
+                },
+                "maxItems": 10000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "remember": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "snapshot"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionImportCommit": {
+        "type": "object",
+        "properties": {
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "mapping": {
+            "$ref": "#/components/schemas/TransactionImportMapping"
+          },
+          "options": {
+            "$ref": "#/components/schemas/TransactionImportOptions"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransactionImportChoice"
+            },
+            "minItems": 1,
+            "maxItems": 10000
+          },
+          "remember": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "snapshot",
+          "rows"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionImportFile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 16777216
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "id",
+          "account_id",
+          "filename",
+          "bytes",
+          "sha256"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionImportRawRow": {
+        "anyOf": [
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": true
+          }
+        ]
+      },
+      "TransactionImportParse": {
+        "type": "object",
+        "properties": {
+          "options": {
+            "$ref": "#/components/schemas/TransactionImportOptions"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "TransactionImportParsed": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "transactions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TransactionImportRawRow"
+                }
+              },
+              "errors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 0
+              },
+              "format": {
+                "enum": [
+                  "csv",
+                  "tsv",
+                  "ofx",
+                  "qfx",
+                  "qif",
+                  "xml"
+                ]
+              }
+            },
+            "required": [
+              "transactions",
+              "errors",
+              "format"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "transactions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TransactionImportRawRow"
+                },
+                "maxItems": 0
+              },
+              "errors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "transactions",
+              "errors"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "TransactionImportPlanned": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "cleared": {
+            "type": "boolean"
+          },
+          "payee_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "payee_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "imported_payee": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "is_parent": {
+            "type": "boolean"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "imported_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "raw_synced_data": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pending": {
+            "type": "boolean"
+          },
+          "new_payee": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "account_id",
+          "amount",
+          "date",
+          "notes",
+          "cleared",
+          "payee_id",
+          "category_id",
+          "imported_payee",
+          "is_parent",
+          "parent_id"
+        ],
+        "additionalProperties": true
+      },
+      "TransactionImportExisting": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "account_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "cleared": {
+            "type": "boolean"
+          },
+          "reconciled": {
+            "type": "boolean"
+          },
+          "starting_balance": {
+            "type": "boolean"
+          },
+          "payee_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "payee_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_is_income": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "account_name": {
+            "type": "string"
+          },
+          "running_balance": {
+            "type": "integer",
+            "description": "Chronological balance across this register scope; null if the intermediate amount exceeds exact JSON monetary range."
+          },
+          "field_versions": {
+            "$ref": "#/components/schemas/FieldVersions"
+          },
+          "deleted": {
+            "const": true,
+            "description": "Only mutation responses for already published tombstones; fields may merge without restoring visibility."
+          },
+          "sort_order": {
+            "type": "integer",
+            "description": "Stable display ordering on fresh reads and new mutation outcomes. Historical exact receipt replays may omit it."
+          },
+          "imported_payee": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retained_payee_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Retained identity for history, including removed payees. payee_id is null after removal; imported_payee never changes during payee management."
+          },
+          "transfer_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "is_parent": {
+            "type": "boolean"
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            },
+            "description": "Active child allocations in stable split order. Parent totals count once in registers; reports use children instead of the parent."
+          },
+          "transfer_account_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Account of the linked counterpart, when linked."
+          },
+          "category_group_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "running_balance_error": {
+            "type": "string",
+            "enum": [
+              "exact_money_range"
+            ],
+            "description": "Present only when an intermediate running balance cannot be represented as an exact safe JSON integer; page and final totals remain available."
+          },
+          "order_key": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{16,4096}$",
+            "description": "Optional opaque display ordering key for recovered legacy positions. Sort lexically within transaction date, falling back to signed native sort_order encoded as a 16-digit lowercase hexadecimal value with sign bit flipped. Private integer ranks and original field HLCs remain unchanged."
+          },
+          "schedule_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "child_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "imported_id": {
+            "type": "string"
+          },
+          "raw_synced_data": {
+            "type": "string"
+          },
+          "import_type": {
+            "type": "string"
+          },
+          "pending": {
+            "const": true
+          }
+        },
+        "required": [
+          "id",
+          "account_id",
+          "amount",
+          "date",
+          "cleared",
+          "reconciled",
+          "starting_balance",
+          "payee_id",
+          "payee_name",
+          "category_id",
+          "category_name",
+          "category_is_income",
+          "notes",
+          "account_name"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionImportPreviewRow": {
+        "type": "object",
+        "properties": {
+          "row": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "source": {
+            "$ref": "#/components/schemas/TransactionImportRawRow"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/TransactionImportPlanned"
+          },
+          "matched_rule_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "match_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "action": {
+            "enum": [
+              "add",
+              "merge",
+              "skip"
+            ]
+          },
+          "ignored": {
+            "type": "boolean"
+          },
+          "existing": {
+            "$ref": "#/components/schemas/TransactionImportExisting"
+          }
+        },
+        "required": [
+          "row",
+          "source",
+          "transaction",
+          "matched_rule_ids",
+          "match_id",
+          "action",
+          "ignored"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionImportPreview": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransactionImportPreviewRow"
+            }
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "row": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "row",
+                "message"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          }
+        },
+        "required": [
+          "id",
+          "filename",
+          "account_id",
+          "rows",
+          "errors",
+          "snapshot",
+          "epoch"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionImportResult": {
+        "type": "object",
+        "properties": {
+          "added": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "updated": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "ignored": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "added",
+          "updated",
+          "ignored"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionImportSettings": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "enum": [
+              "csv",
+              "tsv",
+              "ofx",
+              "qfx",
+              "qif",
+              "xml"
+            ]
+          },
+          "options": {
+            "$ref": "#/components/schemas/TransactionImportOptions"
+          },
+          "mapping": {
+            "$ref": "#/components/schemas/TransactionImportMapping"
+          },
+          "raw_preferences": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "field_versions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FieldVersions"
+            }
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          }
+        },
+        "required": [
+          "format",
+          "options",
+          "mapping",
+          "raw_preferences",
+          "field_versions",
+          "errors",
+          "snapshot",
+          "epoch"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionMergeRequest": {
+        "type": "object",
+        "properties": {
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "uniqueItems": true
+          },
+          "protection_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "snapshot",
+          "ids"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionMergeRow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "account_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Signed integer minor currency units, safe for JavaScript. No floating point."
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "cleared": {
+            "type": "boolean"
+          },
+          "reconciled": {
+            "type": "boolean"
+          },
+          "starting_balance": {
+            "type": "boolean"
+          },
+          "payee_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "payee_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category_is_income": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "account_name": {
+            "type": "string"
+          },
+          "running_balance": {
+            "type": "integer",
+            "description": "Chronological balance across this register scope; null if the intermediate amount exceeds exact JSON monetary range."
+          },
+          "field_versions": {
+            "$ref": "#/components/schemas/FieldVersions"
+          },
+          "deleted": {
+            "const": false
+          },
+          "sort_order": {
+            "type": "integer",
+            "description": "Stable display ordering on fresh reads and new mutation outcomes. Historical exact receipt replays may omit it."
+          },
+          "imported_payee": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retained_payee_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Retained identity for history, including removed payees. payee_id is null after removal; imported_payee never changes during payee management."
+          },
+          "transfer_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "is_parent": {
+            "type": "boolean"
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            },
+            "description": "Active child allocations in stable split order. Parent totals count once in registers; reports use children instead of the parent."
+          },
+          "transfer_account_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Account of the linked counterpart, when linked."
+          },
+          "category_group_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "running_balance_error": {
+            "type": "string",
+            "enum": [
+              "exact_money_range"
+            ],
+            "description": "Present only when an intermediate running balance cannot be represented as an exact safe JSON integer; page and final totals remain available."
+          },
+          "order_key": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{16,4096}$",
+            "description": "Optional opaque display ordering key for recovered legacy positions. Sort lexically within transaction date, falling back to signed native sort_order encoded as a 16-digit lowercase hexadecimal value with sign bit flipped. Private integer ranks and original field HLCs remain unchanged."
+          },
+          "schedule_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "imported_id": {
+            "type": "string"
+          },
+          "raw_synced_data": {
+            "type": "string"
+          },
+          "import_type": {
+            "type": "string"
+          },
+          "pending": {
+            "const": true
+          }
+        },
+        "required": [
+          "id",
+          "account_id",
+          "amount",
+          "date",
+          "cleared",
+          "reconciled",
+          "starting_balance",
+          "payee_id",
+          "payee_name",
+          "category_id",
+          "category_name",
+          "category_is_income",
+          "notes",
+          "account_name",
+          "deleted"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionMergePreview": {
+        "type": "object",
+        "properties": {
+          "keeper_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "before": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransactionMergeRow"
+            }
+          },
+          "after": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransactionMergeRow"
+            }
+          },
+          "deleted_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "affected_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "protected_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "protection_token": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          }
+        },
+        "required": [
+          "keeper_id",
+          "before",
+          "after",
+          "deleted_ids",
+          "affected_ids",
+          "protected_count",
+          "protection_token",
+          "snapshot",
+          "epoch"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionMergeResult": {
+        "type": "object",
+        "properties": {
+          "keeper_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "affected_count": {
+            "type": "integer",
+            "minimum": 2
+          },
+          "transaction_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "deleted_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "keeper_id",
+          "affected_count",
+          "transaction_ids",
+          "deleted_ids"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionExportRequest": {
+        "type": "object",
+        "properties": {
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "account_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "query": {
+            "$ref": "#/components/schemas/RegisterQuery"
+          },
+          "ids": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "minItems": 1,
+                "maxItems": 10000,
+                "uniqueItems": true
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "layout": {
+            "enum": [
+              "standard",
+              "detailed"
+            ],
+            "default": "detailed"
+          }
+        },
+        "required": [
+          "snapshot"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

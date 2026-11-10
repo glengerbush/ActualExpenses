@@ -816,6 +816,132 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun `file import metadata and remembered options preserve native incremental expenses and pending delivery`() {
+        Server().use { server ->
+            val root = "/budgets/${server.budget}"
+            val store = MemoryStore()
+            val real = BudgetHttpTransport()
+            val entities = mutableSetOf<String>()
+            val transport = HttpTransport { url, method, headers, body ->
+                val response = real.request(url, method, headers, body)
+                if (url.contains("/changes?") && response.status == 200) {
+                    JsonParser.parseString(response.body.toString(Charsets.UTF_8))
+                        .asJsonObject
+                        .getAsJsonArray("data")
+                        .forEach { entities += it.asJsonObject["entity"].asString }
+                }
+                response
+            }
+            val app = ApiExpenseService(store, transport = transport)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            val first = app.saveExpense(ExpenseDraft("4.56", notes = "Native manual"))
+            app.refresh()
+            val checkpoint = JsonParser.parseString(store.raw).asJsonObject["checkpoint"].asString
+            app.markOffline()
+            val pending = app.saveExpense(ExpenseDraft("1.23", notes = "Queued native"))
+            val client = HttpClient.newHttpClient()
+            val fixture =
+                JsonParser.parseString(
+                        Files.readString(
+                            Path.of(
+                                "../../actualBudget/tests/fixtures/transaction-format-flows.json"
+                            )
+                        )
+                    )
+                    .asJsonObject
+                    .getAsJsonArray("cases")
+                    .first { it.asJsonObject["id"].asString == "qfx" }
+                    .asJsonObject
+            val bytes = java.util.Base64.getDecoder().decode(fixture["bytes_base64"].asString)
+            val uploaded =
+                client.send(
+                    HttpRequest.newBuilder(
+                            URI(
+                                "${server.url}/api/v1$root/accounts/${server.account}/transaction-imports?filename=bank.qfx"
+                            )
+                        )
+                        .header("Idempotency-Key", UUID.randomUUID().toString())
+                        .POST(HttpRequest.BodyPublishers.ofByteArray(bytes))
+                        .build(),
+                    HttpResponse.BodyHandlers.ofString(),
+                )
+            assertEquals(201, uploaded.statusCode(), uploaded.body())
+            val stage =
+                JsonParser.parseString(uploaded.body())
+                    .asJsonObject
+                    .getAsJsonObject("data")["id"]
+                    .asString
+            val cursor = server.get("$root/checkpoint").getAsJsonObject("data")["snapshot"].asString
+            val result =
+                server.post(
+                    "$root/transaction-imports/$stage/commit",
+                    """{"snapshot":"$cursor","options":{"date_format":"yyyy mm dd"},"remember":true,"rows":[{"row":0,"action":"auto"}]}""",
+                    200,
+                )
+            val imported = result.getAsJsonArray("added").single().asString
+            app.refresh()
+            assertNull(app.state().error)
+            assertFalse(app.state().syncBlocked)
+            assertEquals(0, app.state().pendingCount)
+            assertEquals(
+                setOf(first, pending, imported),
+                app.state().expenses.map { it.id }.toSet(),
+            )
+            assertEquals(2000L, app.state().expenses.single { it.id == imported }.amountMinor)
+            assertNull(
+                app.state().expenses.single { it.id == first }.categoryId,
+                "File rules must not rewrite a manual native category",
+            )
+            assertTrue(
+                entities.containsAll(
+                    setOf(
+                        "transaction_import_settings",
+                        "transaction_import_metadata",
+                        "transactions",
+                    )
+                ),
+                entities.toString(),
+            )
+            assertNotEquals(
+                checkpoint,
+                JsonParser.parseString(store.raw).asJsonObject["checkpoint"].asString,
+            )
+            val clock =
+                DateTimeFormatterBuilder()
+                    .appendInstant(3)
+                    .toFormatter()
+                    .format(Instant.now().plusMillis(1)) + "-0000-0000000000000001"
+            server.patch(
+                "$root/transactions/$first",
+                """{"notes":"Real edit after file events"}""",
+                clock,
+            )
+            app.refresh()
+            assertNull(app.state().error)
+            assertEquals(
+                "Real edit after file events",
+                app.state().expenses.single { it.id == first }.notes,
+            )
+            val writes = store.writes
+            app.refresh()
+            assertEquals(
+                writes,
+                store.writes,
+                "An unchanged import feed must not rewrite the native cache",
+            )
+            val restarted = ApiExpenseService(store, transport = transport)
+            restarted.refresh()
+            assertNull(restarted.state().error)
+            assertEquals(
+                setOf(first, pending, imported),
+                restarted.state().expenses.map { it.id }.toSet(),
+            )
+        }
+    }
+
+    @Test
     fun `automation events preserve expenses and pending delivery without idle cache writes`() {
         Server().use { server ->
             val root = "/budgets/${server.budget}"

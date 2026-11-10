@@ -17,6 +17,7 @@
   import { captureAmountFormat, parseAmount, today } from "./money";
   import { parseDateInput } from "./dates";
   import { preferences } from "./preferences.svelte";
+  import TransactionGraph from "./TransactionGraph.svelte";
   import DateInput from "./DateInput.svelte";
   import type { Transaction, Reference } from "./register-api";
   let {
@@ -48,6 +49,45 @@
     epoch: string;
     edit_clock: string;
   }
+  interface MergeReview {
+    keeper_id: string;
+    before: Record<string, unknown>[];
+    after: Record<string, unknown>[];
+    deleted_ids: string[];
+    protected_count: number;
+    protection_token: string;
+    snapshot: string;
+    epoch: string;
+    ids: string[];
+  }
+  let mergeReview = $state.raw<MergeReview | null>(null),
+    confirmProtected = $state(false);
+  async function previewMerge() {
+    if (!ready || selected.length !== 2) return;
+    busy = true;
+    error = "";
+    syncActive();
+    try {
+      const ids = selected.map((r) => r.id),
+        capturedSnapshot = snapshot,
+        capturedEpoch = preferences.budgetEpoch;
+      const result = await request<{ data: Omit<MergeReview, "ids"> }>(
+        `/budgets/${budgetId}/transactions/merge/preview`,
+        { snapshot: capturedSnapshot, ids },
+      );
+      if (result.data.epoch !== capturedEpoch)
+        throw new Error(
+          "The budget was restored. Refresh and select the entries again.",
+        );
+      mergeReview = { ...result.data, ids };
+      confirmProtected = false;
+    } catch (e) {
+      error = errorMessage(e);
+    } finally {
+      busy = false;
+      syncActive();
+    }
+  }
   let history = $state.raw<History | null>(null);
   let saved = $state.raw<BulkIntent | null>(null);
   let busy = $state(false),
@@ -65,10 +105,16 @@
   let format = captureAmountFormat();
   let dateFormat = $state(preferences.shared.date_format);
   let ready = $derived(
-    !disabled && !busy && !loading && !saved && !editing && !deleting,
+    !disabled &&
+      !busy &&
+      !loading &&
+      !saved &&
+      !editing &&
+      !deleting &&
+      !mergeReview,
   );
   function syncActive() {
-    active = busy || !!saved || editing || deleting;
+    active = busy || !!saved || editing || deleting || !!mergeReview;
   }
   export async function refresh() {
     if (disabled) return;
@@ -116,7 +162,7 @@
     value = field === "cleared" ? "true" : "";
   }
   async function prepare(
-    action: "update" | "duplicate" | "delete" | "undo" | "redo",
+    action: "update" | "duplicate" | "delete" | "merge" | "undo" | "redo",
   ) {
     if (disabled || busy || saved) return;
     const rows = selected,
@@ -128,6 +174,11 @@
     error = "";
     notice = "";
     try {
+      if (
+        action === "merge" &&
+        (!mergeReview || (mergeReview.protected_count > 0 && !confirmProtected))
+      )
+        throw new Error("Review and confirm the protected graph first.");
       const historyAction = action === "undo" || action === "redo";
       if (!historyAction && (!rows.length || rows.length > 100))
         throw new Error("Select 1–100 visible entries.");
@@ -160,45 +211,60 @@
         revision: uuid(),
         description: historyAction
           ? `${action === "undo" ? "Undo" : "Redo"}: ${target!.label}`
-          : `${action === "update" ? "Update" : action === "duplicate" ? "Duplicate" : "Delete"} ${rows.length} selected ${rows.length === 1 ? "entry" : "entries"}`,
+          : action === "merge"
+            ? "Merge duplicate entries"
+            : `${action === "update" ? "Update" : action === "duplicate" ? "Duplicate" : "Delete"} ${rows.length} selected ${rows.length === 1 ? "entry" : "entries"}`,
         format,
         dateFormat,
         pending: {
-          path: `/budgets/${budgetId}/${historyAction ? `history/${action}` : "transactions/bulk"}`,
+          path: `/budgets/${budgetId}/${historyAction ? `history/${action}` : action === "merge" ? "transactions/merge" : "transactions/bulk"}`,
           method: "POST",
           key: uuid(),
           historyOwner: await historyOwner(),
           edit_clock: nextEditClock(),
-          budgetEpoch: historyAction ? capturedHistory!.epoch : capturedEpoch,
+          budgetEpoch: historyAction
+            ? capturedHistory!.epoch
+            : action === "merge"
+              ? mergeReview!.epoch
+              : capturedEpoch,
           body: historyAction
             ? { action_id: target!.id }
-            : {
-                snapshot: capturedSnapshot,
-                action,
-                ids: rows.map((row) => row.id),
-                ...(action === "update"
-                  ? {
-                      fields,
-                      ...(field === "notes"
-                        ? {
-                            notes: {
-                              mode: notesMode,
-                              find,
-                              use_regex: useRegex,
-                            },
-                          }
-                        : {}),
-                    }
-                  : {}),
-                ...(action === "duplicate"
-                  ? { duplicate_ids: rows.map(() => uuid()) }
-                  : {}),
-              },
+            : action === "merge"
+              ? {
+                  snapshot: mergeReview!.snapshot,
+                  ids: mergeReview!.ids,
+                  ...(mergeReview!.protected_count > 0
+                    ? { protection_token: mergeReview!.protection_token }
+                    : {}),
+                }
+              : {
+                  snapshot: capturedSnapshot,
+                  action,
+                  ids: rows.map((row) => row.id),
+                  ...(action === "update"
+                    ? {
+                        fields,
+                        ...(field === "notes"
+                          ? {
+                              notes: {
+                                mode: notesMode,
+                                find,
+                                use_regex: useRegex,
+                              },
+                            }
+                          : {}),
+                      }
+                    : {}),
+                  ...(action === "duplicate"
+                    ? { duplicate_ids: rows.map(() => uuid()) }
+                    : {}),
+                },
         },
       };
       saved = await writeBulk(budgetId, null, intent);
       editing = false;
       deleting = false;
+      mergeReview = null;
     } catch (e) {
       error = errorMessage(e);
     } finally {
@@ -307,6 +373,9 @@
         >{selected.length} selected</strong
       >
       <button onclick={edit} disabled={!ready}>Edit selected</button>
+      <button onclick={previewMerge} disabled={!ready || selected.length !== 2}
+        >Review duplicate merge</button
+      >
       <button onclick={() => prepare("duplicate")} disabled={!ready}
         >Duplicate selected</button
       >
@@ -319,7 +388,7 @@
       >
       <button
         onclick={onclear}
-        disabled={busy || !!saved || editing || deleting}
+        disabled={busy || !!saved || editing || deleting || !!mergeReview}
         >Clear selection</button
       >
     {/if}
@@ -328,6 +397,51 @@
       Split entries are selected individually. Duplicating any child copies its
       whole split once. Change account, date or status by selecting the parent.
     </p>{/if}
+  {#if mergeReview}
+    <section aria-label="Duplicate merge review">
+      <h2>Merge two duplicate purchases</h2>
+      <p>
+        Keep entry {mergeReview.keeper_id}. Remove {mergeReview.deleted_ids
+          .length} duplicate entries from the live ledger. Review the complete affected
+        split and transfer graph below.
+      </p>
+      <details open>
+        <summary>Before merge</summary><TransactionGraph
+          rows={mergeReview.before}
+          {accounts}
+          {payees}
+          {categories}
+        />
+      </details>
+      <details open>
+        <summary>After merge</summary><TransactionGraph
+          rows={mergeReview.after}
+          {accounts}
+          {payees}
+          {categories}
+        />
+      </details>
+      {#if mergeReview.protected_count > 0}<label
+          ><input type="checkbox" bind:checked={confirmProtected} />I reviewed
+          the {mergeReview.protected_count} reconciled entries and confirm this exact
+          protected merge.</label
+        >{/if}
+      <div class="controls">
+        <button
+          onclick={() => prepare("merge")}
+          disabled={busy ||
+            (mergeReview.protected_count > 0 && !confirmProtected)}
+          >Merge reviewed duplicates</button
+        ><button
+          onclick={() => {
+            mergeReview = null;
+            syncActive();
+          }}
+          disabled={busy}>Keep both purchases</button
+        >
+      </div>
+    </section>
+  {/if}
   {#if editing}
     <form
       onsubmit={(event) => {

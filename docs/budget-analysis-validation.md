@@ -41,3 +41,22 @@ Root identified an unused scoped budget-summary overflow and the distinction bet
 - `/tmp/analysis36-large-green.log` PASS ordinary budget200, exact final-period analysis and unchanged companion. Existing14 projections/details/cache/errors PASS `/tmp/analysis36-review-api.log`;10 affected budgeting tests PASS `/tmp/analysis36-review-budget.log`; Clippy warnings denied PASS `/tmp/analysis36-review-clippy.log`.
 - Both analysis reads now scope a32m SQLite VM-step progress guard, using the public-query evaluator’s existing pattern with guaranteed hook reset, and return typed `analysis_work_limit` refusal. This complements row/carry/regex/output limits; row counts alone do not establish bounded SQL work. Guard exhaustion is not claimed exercised here; final51 volume measurements remain separate. Drilldown uses explicit inclusive ISO date bounds rather than `substr(date)`.
 - Read-only EXPLAIN diagnostic on a disposable native22 budget imported through the public API (`/tmp/analysis36-explain.log`) observed `transactions_category_history` category/tombstone/date range seeks for scoped history and spent details; details additionally use a temporary ordering B-tree. This is a plan observation for that fixture, not a financial test seam or performance guarantee. No DB writes, schema/index change or broad performance suite.
+
+## Root composed backend review
+
+2026-11-10: Reviewed878cc96 and corrective678c7f7 against the source contract,
+including scoped carry arithmetic, category selection, cache invalidation,
+drilldown basis and SQLite progress-hook cleanup. Both reported backend findings
+are closed. Integrated at `baef1cb` with reviewed bank/query schema24 changes.
+Semantic OpenAPI merge retains both parents' operations/schemas and resolves all
+local references:113paths/192schemas. Existing forecast safe-money limits remain.
+
+Combined build PASS `/tmp/analysis36-compose-build.log`; all14 independent source
+projections and detail/cache/error checks PASS `/tmp/analysis36-compose-api.log`;
+funded-history overflow regression PASS `/tmp/analysis36-compose-large.log`.
+Served request/response/error schemas and both methods' current-native24
+duplicate/restore, settings/clocks and epoch-cache checks PASS
+`/tmp/analysis36-compose-native.log`. The consumer observes the produced schema
+version; original Actual26.10 archives remain unchanged. Prior source reproduction,
+native companion and budgeting-regression evidence reused. UI and whole36
+acceptance remain pending; no broad suite or guard-exhaustion claim.

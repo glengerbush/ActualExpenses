@@ -187,6 +187,63 @@ fn scoped_view(
     scope: Option<&std::collections::BTreeSet<String>>,
     summary_report: bool,
 ) -> Result<Value, Error> {
+    scoped_view_inner(
+        db,
+        b,
+        start,
+        count,
+        scope,
+        ViewOptions {
+            summary_report,
+            include_goals: false,
+            work: None,
+        },
+    )
+}
+pub(crate) fn formula_cells(
+    db: &Connection,
+    b: &str,
+    start: &str,
+    count: usize,
+    categories: &std::collections::BTreeSet<String>,
+    work: &mut usize,
+) -> Result<Value, Error> {
+    if count.saturating_mul(categories.len().max(1)) > 20000 {
+        return Err(Error::invalid(
+            "Formula budget queries exceed20000 category/month cells",
+        ));
+    }
+    scoped_view_inner(
+        db,
+        b,
+        start,
+        count,
+        Some(categories),
+        ViewOptions {
+            summary_report: false,
+            include_goals: true,
+            work: Some(work),
+        },
+    )
+}
+struct ViewOptions<'a> {
+    summary_report: bool,
+    include_goals: bool,
+    work: Option<&'a mut usize>,
+}
+fn scoped_view_inner(
+    db: &Connection,
+    b: &str,
+    start: &str,
+    count: usize,
+    scope: Option<&std::collections::BTreeSet<String>>,
+    options: ViewOptions<'_>,
+) -> Result<Value, Error> {
+    let ViewOptions {
+        summary_report,
+        include_goals,
+        work,
+    } = options;
     crate::store::require_budget(db, b)?;
     let start = month(start)?;
     let reporting = scope.is_some() || summary_report;
@@ -298,7 +355,7 @@ fn scoped_view(
         }
     }
     let mut cells = BTreeMap::new();
-    let goal_columns = if reporting {
+    let goal_columns = if reporting && !include_goals {
         "NULL,NULL"
     } else {
         "goal,long_goal"
@@ -402,6 +459,10 @@ fn scoped_view(
         return Err(Error::invalid(
             "Budget range exceeds calculation work limit",
         ));
+    }
+    if let Some(remaining) = work {
+        let used = (end - earliest + 1) as usize * categories.len().max(1);
+        *remaining=remaining.checked_sub(used).ok_or_else(||Error::invalid("Formula cumulative budget work limit reached; select fewer categories or shorter history"))?;
     }
     let mut previous = BTreeMap::<String, Previous>::new();
     let mut prior_to = 0i128;

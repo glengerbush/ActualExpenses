@@ -1,0 +1,176 @@
+{
+  "oracle": "@actual-app/api26.10 getNote/updateNote and actual AQL notes table",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "input": {
+    "filename": "transaction-export-base-26.10.zip",
+    "sha256": "21b1b822a1c2676fcabeae288a0156013b9f4ccf89130eac8ede991a00adc2fd"
+  },
+  "archive": {
+    "filename": "note-identities-prefix-cleared-26.10.zip",
+    "sha256": "22651aadd7d5a14609a3a34c11c7fdd624e598171bd2b9e21d6b72489809d2ab"
+  },
+  "identities": [
+    [
+      "nonmonth-prefix",
+      "budget-2026-13"
+    ],
+    [
+      "arbitrary-prefix",
+      "budget-automation"
+    ]
+  ],
+  "cases": [
+    {
+      "id": "initial",
+      "state": {
+        "reads": [
+          {
+            "kind": "nonmonth-prefix",
+            "id": "budget-2026-13",
+            "value": null
+          },
+          {
+            "kind": "arbitrary-prefix",
+            "id": "budget-automation",
+            "value": null
+          }
+        ],
+        "rows": []
+      }
+    },
+    {
+      "id": "write-nonmonth-prefix",
+      "change": {
+        "id": "budget-2026-13",
+        "note": "Original nonmonth-prefix prose"
+      },
+      "state": {
+        "reads": [
+          {
+            "kind": "nonmonth-prefix",
+            "id": "budget-2026-13",
+            "value": {
+              "id": "budget-2026-13",
+              "note": "Original nonmonth-prefix prose"
+            }
+          },
+          {
+            "kind": "arbitrary-prefix",
+            "id": "budget-automation",
+            "value": null
+          }
+        ],
+        "rows": [
+          {
+            "id": "budget-2026-13",
+            "note": "Original nonmonth-prefix prose"
+          }
+        ]
+      }
+    },
+    {
+      "id": "clear-nonmonth-prefix",
+      "change": {
+        "id": "budget-2026-13",
+        "note": ""
+      },
+      "state": {
+        "reads": [
+          {
+            "kind": "nonmonth-prefix",
+            "id": "budget-2026-13",
+            "value": {
+              "id": "budget-2026-13",
+              "note": ""
+            }
+          },
+          {
+            "kind": "arbitrary-prefix",
+            "id": "budget-automation",
+            "value": null
+          }
+        ],
+        "rows": [
+          {
+            "id": "budget-2026-13",
+            "note": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "write-arbitrary-prefix",
+      "change": {
+        "id": "budget-automation",
+        "note": "Original arbitrary-prefix prose"
+      },
+      "state": {
+        "reads": [
+          {
+            "kind": "nonmonth-prefix",
+            "id": "budget-2026-13",
+            "value": {
+              "id": "budget-2026-13",
+              "note": ""
+            }
+          },
+          {
+            "kind": "arbitrary-prefix",
+            "id": "budget-automation",
+            "value": {
+              "id": "budget-automation",
+              "note": "Original arbitrary-prefix prose"
+            }
+          }
+        ],
+        "rows": [
+          {
+            "id": "budget-2026-13",
+            "note": ""
+          },
+          {
+            "id": "budget-automation",
+            "note": "Original arbitrary-prefix prose"
+          }
+        ]
+      }
+    },
+    {
+      "id": "clear-arbitrary-prefix",
+      "change": {
+        "id": "budget-automation",
+        "note": ""
+      },
+      "state": {
+        "reads": [
+          {
+            "kind": "nonmonth-prefix",
+            "id": "budget-2026-13",
+            "value": {
+              "id": "budget-2026-13",
+              "note": ""
+            }
+          },
+          {
+            "kind": "arbitrary-prefix",
+            "id": "budget-automation",
+            "value": {
+              "id": "budget-automation",
+              "note": ""
+            }
+          }
+        ],
+        "rows": [
+          {
+            "id": "budget-2026-13",
+            "note": ""
+          },
+          {
+            "id": "budget-automation",
+            "note": ""
+          }
+        ]
+      }
+    }
+  ]
+}

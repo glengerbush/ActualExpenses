@@ -128,8 +128,8 @@ source note is null; cleared existing note is an object with empty text.
 Source generation/check PASS /tmp/public-notes-{source,source-check}.log.
 Official exports have no CRDT clocks; this witness makes no source-clock claim.
 
-Schema24 follows the frozen banking23 foundation5489ac1. Budget-scoped notes
-store only standalone identities. Known account/category/group/month IDs remain
+Schema24 follows the frozen banking23 foundation5489ac1. Budget-scoped notes initially
+stored standalone identities; the extension below adds known-ID presence markers. Known account/category/group/month IDs remain
 projections of authoritative domain notes fields. Read-only POST notes/read and
 owned notes/commands preserve literal IDs, original HLC, snapshot/epoch,
 receipt-first recovery, cancellation and field-level history. IDs are bounded to
@@ -206,3 +206,63 @@ typed400, preserving graph/checkpoint (/tmp/query-unicode-text-budget-green.log)
 BinClippy-Dwarnings PASS /tmp/query-unicode-epoch-clippy.log. No broad domain suite
 repeated. Known-note row-presence markers/registry, atomic batch, caller/contracts
 and maintained integration commands remain47 work, not accepted completion.
+
+
+## Known-note identities, shared clocks and guarded binding
+
+`generate-note-identities.mjs` captures11 genuine SDK/AQL states: initially missing,
+then written/cleared account, category, group, month and standalone notes. Empty
+source note rows remain present after clearing. Original post-clear ZIP retained;
+independent check PASS /tmp/note-identities-source-final-check.log. A separate
+--prefix witness retains5 states and genuine ZIP for arbitrary IDs budget-2026-13
+and budget-automation; SDK accepts these as literal note IDs. Native source import
+previously400 rejected them as months (/tmp/note-identities-prefix-http-red.log).
+Only canonical valid month IDs now enter the budget-month converter/clock map;
+other IDs remain standalone with their literal identity.
+
+Known IDs now have empty identity markers; their authoritative text stays in
+existing domain fields. Absent versus explicitly empty is no longer inferred
+from default domain text. Read-only notes query exposes only id/note and excludes
+private history tombstones. Identity-only domain SQL triggers preserve presence
+on real annotation edits, without duplicating prose. Eight IF NOT EXISTS trigger
+checks at startup perform no source/ledger scan; domain backfill runs only during
+versioned migration or explicit restore. Native table order installs identities
+before domains, avoiding trigger-created duplicate insertions. No new migration
+slot/column beyond24 or original fixture version changes.
+
+Public consumers compare exact source reads/query rows, original bytes and both
+cleared-source import/native roundtrips. Owned initially absent known notes,
+including empty text, undergo write→undo(query absence)→redo(presence)→undo and
+then sequential category-creation undo; triggers do not resurrect markers.
+PASS /tmp/note-identities-history-final-green.log and
+/tmp/note-identities-prefix-final-green.log. Original notes/genuine23 upgrade
+regressions remain green; binClippy PASS /tmp/note-identities-freeze-clippy.log.
+
+The approved explicit-ID clear→reference recovery exposed actual stale-clock
+bugs: notes commands and account metadata accepted an older annotation after
+binding; the category budget-note alias also bypassed its retained newer clear.
+True reds /tmp/note-identity-{clock,metadata-clock,budget-clock}-red.log. Shared
+logical note clocks now guard these aliases, metadata responses expose their
+max original HLC, and metadata stamps mirror their existing clock into captured
+note history (no minted/rebased clock). An old standalone history action also
+could run after binding, hiding restored prose; true red
+/tmp/note-identity-binding-history-red.log. Notes history captures its binding
+and conservatively refuses an inverse across a new reference identity, with
+unchanged data/checkpoint/history. Retained physical identities keep that guard
+after reference deletion; use a fresh reviewed note change, not a forced old
+inverse. This is a replacement explicit-ID safety guarantee, not SDK UUID parity.
+
+Fresh notes/metadata intents after erasing a standalone note must clear retained
+inactive marker payloads; otherwise portable restore422 rejected the resulting
+state (/tmp/note-identity-revive-red.log). Both routes now preserve fresh text,
+native restore and the exact original old-epoch erased-note receipt. Finally,
+financial month revival exposed raw undone text despite an absent logical note
+(/tmp/note-month-revival-red.log). Budget view/feed mask deleted annotations;
+reset-hold→undo→reset-hold preserves absence and buffered values without deleting
+retained raw prose. Financial fields/calculation semantics unchanged.
+
+Focused greens: /tmp/note-identity-{clock-final,metadata-clock-final,binding-history-final,budget-clock}-green.log;
+/tmp/note-identity-revive-green.log; /tmp/note-month-revival-green.log;
+/tmp/note-identities-owned-final.log. Final binClippy-Dwarnings PASS
+/tmp/note-alias-projection-clippy.log. Core resource query registry, batch/caller,
+served contracts and maintained qualification wiring remain47 work.

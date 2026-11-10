@@ -103,7 +103,7 @@ pub fn router() -> Router<Store> {
 }
 async fn capabilities() -> Json<Value> {
     Json(
-        json!({"data":{"version":1,"tables":["transactions"],"splits":["inline","grouped","all","none"],"max_rows":100000,"max_page":1000,"max_depth":8,"max_nodes":256}}),
+        json!({"data":{"version":1,"tables":["transactions","notes"],"splits":["inline","grouped","all","none"],"max_rows":100000,"max_page":1000,"max_depth":8,"max_nodes":256}}),
     )
 }
 async fn query(
@@ -195,6 +195,14 @@ impl Compiler<'_> {
         Ok(format!("?{}", self.values.len()))
     }
     fn field(&self, name: &str) -> Result<Expr, Error> {
+        if self.q.table == "notes" {
+            return match name {
+                "id" => Ok(Expr::new("t.id", Kind::Id)),
+                "note" => Ok(Expr::new("t.note", Kind::Text)),
+                _ => Err(invalid(format!("Unknown notes field: {name}"))),
+            };
+        }
+
         let (sql, kind) = match name {
             "id" => ("t.id", Kind::Id),
             "account" => ("t.account_id", Kind::Id),
@@ -548,6 +556,9 @@ impl Compiler<'_> {
             }
             terms.push(format!("{} {direction}", expr.sql));
         }
+        if terms.is_empty() && self.q.table == "notes" {
+            return Ok("t.id ASC".into());
+        }
         if terms.is_empty() {
             terms = vec![
                 "t.date DESC".into(),
@@ -633,7 +644,7 @@ fn run(
 ) -> Result<Value, Error> {
     crate::store::require_budget(db, b)?;
     crate::concurrency::check_snapshot(db, b, q.snapshot.as_deref())?;
-    if q.version != 1 || q.table != "transactions" {
+    if q.version != 1 || !["transactions", "notes"].contains(&q.table.as_str()) {
         return Err(invalid("Unsupported query version/table"));
     }
     if q.limit == 0
@@ -647,6 +658,11 @@ fn run(
             "Narrow query fields/groups/order or page1..1000/offset0..100000",
         ));
     }
+    let joins = if q.table == "notes" {
+        crate::notes::QUERY_FROM
+    } else {
+        JOINS
+    };
     let mut c = Compiler {
         q,
         values: vec![SqlValue::Text(b.into())],
@@ -692,14 +708,14 @@ fn run(
     } else {
         filters.join(" AND ")
     };
-    let live = if q.include_deleted {
+    let live = if q.include_deleted && q.table != "notes" {
         "1"
     } else {
         "t.tombstone=0"
     };
-    let group = q.splits == Split::Grouped && !aggregate;
+    let group = q.table == "transactions" && q.splits == Split::Grouped && !aggregate;
     let base = format!("t.budget_id=?1 AND {live}");
-    let matched = format!("SELECT t.id,t.parent_id {JOINS} WHERE {base} AND ({filter})");
+    let matched = format!("SELECT t.id,t.parent_id {joins} WHERE {base} AND ({filter})");
     let where_sql = if group {
         format!(
             "{base} AND t.parent_id IS NULL AND (t.id IN (SELECT id FROM matched) OR t.id IN (SELECT parent_id FROM matched))"
@@ -707,10 +723,14 @@ fn run(
     } else {
         format!(
             "{base} AND ({filter}) AND {}",
-            match q.splits {
-                Split::Inline | Split::Grouped => "t.is_parent=0",
-                Split::None => "t.parent_id IS NULL",
-                Split::All => "1",
+            if q.table == "notes" {
+                "1"
+            } else {
+                match q.splits {
+                    Split::Inline | Split::Grouped => "t.is_parent=0",
+                    Split::None => "t.parent_id IS NULL",
+                    Split::All => "1",
+                }
             }
         )
     };
@@ -749,7 +769,7 @@ fn run(
     };
     let bound_count = c.values.len();
     let count_sql = format!(
-        "{cte}SELECT COUNT(*) FROM(SELECT t.id {JOINS} WHERE {where_sql} AND (?{bound_count} IS ?{bound_count}){group_sql} LIMIT 100001)"
+        "{cte}SELECT COUNT(*) FROM(SELECT t.id {joins} WHERE {where_sql} AND (?{bound_count} IS ?{bound_count}){group_sql} LIMIT 100001)"
     );
     let count: i64 = db
         .query_row(&count_sql, params_from_iter(c.values.iter()), |r| r.get(0))
@@ -770,7 +790,7 @@ fn run(
         ""
     };
     let sql = format!(
-        "{cte}SELECT {select},t.id AS __query_id{match_column} {JOINS} WHERE {where_sql}{group_sql} ORDER BY {} LIMIT {} OFFSET {}",
+        "{cte}SELECT {select},t.id AS __query_id{match_column} {joins} WHERE {where_sql}{group_sql} ORDER BY {} LIMIT {} OFFSET {}",
         c.orders, q.limit, q.offset
     );
     let mut statement = db.prepare(&sql)?;
@@ -790,7 +810,7 @@ fn run(
             }
             let id: String = row.get(projected.len())?;
             let child_sql = format!(
-                "{cte}SELECT {select},EXISTS(SELECT 1 FROM matched m WHERE m.id=t.id) AS __query_matched {JOINS} WHERE t.budget_id=?1 AND t.parent_id=?{} AND {live} ORDER BY {} LIMIT 100001",
+                "{cte}SELECT {select},EXISTS(SELECT 1 FROM matched m WHERE m.id=t.id) AS __query_matched {joins} WHERE t.budget_id=?1 AND t.parent_id=?{} AND {live} ORDER BY {} LIMIT 100001",
                 c.values.len() + 1,
                 c.orders
             );

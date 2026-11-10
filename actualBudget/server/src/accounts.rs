@@ -48,11 +48,12 @@ fn versions(db: &Connection, budget: &str, entity: &str, id: &str) -> Result<Val
     let mut q = db.prepare(
         "SELECT field,clock FROM field_versions WHERE budget_id=?1 AND entity=?2 AND entity_id=?3",
     )?;
-    let values = q
+    let mut values = q
         .query_map(params![budget, entity, id], |r| {
             Ok((r.get::<_, String>(0)?, json!(r.get::<_, String>(1)?)))
         })?
         .collect::<Result<serde_json::Map<_, _>, _>>()?;
+    if entity=="accounts" {crate::notes::decorate_versions(db,budget,id,&mut values)?;}
     Ok(Value::Object(values))
 }
 pub fn get(db: &Connection, budget: &str, id: &str) -> Result<Value, Error> {

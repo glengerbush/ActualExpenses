@@ -89,6 +89,7 @@ pub fn get(db: &Connection, budget: &str, table: &str, id: &str) -> Result<Value
         let (k, v) = v?;
         versions.insert(k, json!(v));
     }
+    crate::notes::decorate_versions(db,budget,id,&mut versions)?;
     row["field_versions"] = json!(versions);
     if table == "categories" {
         row["group_hidden"] = json!(

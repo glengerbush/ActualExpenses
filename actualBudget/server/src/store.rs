@@ -27,6 +27,7 @@ impl Store {
             "PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;",
         )?;
         crate::migrations::apply(&mut db, directory)?;
+        crate::notes::configure(&db)?;
         crate::lifecycle::automatic::configure(&db)?;
         crate::history::configure(&db)?;
         let store = Self {

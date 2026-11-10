@@ -1,6 +1,20 @@
 use super::*;
 use rusqlite::params;
+fn pools(db: &Connection, b: &str) -> Result<Vec<Value>, Error> {
+    let mut q = db.prepare(
+        "SELECT id,name,tombstone FROM budget_cleanup_groups WHERE budget_id=?1 ORDER BY rowid",
+    )?;
+    q.query_map([b], |r| Ok(json!({"id":r.get::<_,String>(0)?,"name":r.get::<_,String>(1)?,"deleted":r.get::<_,bool>(2)?})))?.collect::<Result<Vec<_>,_>>().map_err(Error::from)
+}
 pub(super) fn category(db: &Connection, b: &str, id: &str) -> Result<Value, Error> {
+    category_using(db, b, id, &mut pools(db, b)?)
+}
+fn category_using(
+    db: &Connection,
+    b: &str,
+    id: &str,
+    pools: &mut Vec<Value>,
+) -> Result<Value, Error> {
     let row = crate::categories::get(db, b, "categories", id)?;
     if row["deleted"] == true {
         return Err(Error::missing());
@@ -9,8 +23,16 @@ pub(super) fn category(db: &Connection, b: &str, id: &str) -> Result<Value, Erro
     let notes = row["notes"].as_str().unwrap_or("");
     let parsed = parse::notes(notes)?;
     let ui = config["template_settings"]["source"] == "ui";
+    let cleanup = if ui {
+        config["cleanup_def"]
+            .as_array()
+            .cloned()
+            .unwrap_or_default()
+    } else {
+        cleanup::notes(b, notes, pools)?
+    };
     Ok(
-        json!({"id":id,"name":row["name"],"notes":notes,"source":if ui{"ui"}else{"notes"},"templates":if ui{config["goal_def"].as_array().cloned().unwrap_or_default()}else{parsed["templates"].as_array().unwrap().clone()},"cleanup":config["cleanup_def"].as_array().cloned().unwrap_or_default(),"notes_templates":parsed["templates"],"parse_errors":parsed["errors"],"template_settings":config["template_settings"],"field_versions":crate::payees_tags::versions(db,b,"budget_automations",id)?}),
+        json!({"id":id,"name":row["name"],"notes":notes,"source":if ui{"ui"}else{"notes"},"templates":if ui{config["goal_def"].as_array().cloned().unwrap_or_default()}else{parsed["templates"].as_array().unwrap().clone()},"cleanup":cleanup,"notes_templates":parsed["templates"],"parse_errors":parsed["errors"],"template_settings":config["template_settings"],"field_versions":crate::payees_tags::versions(db,b,"budget_automations",id)?}),
     )
 }
 #[derive(Deserialize)]
@@ -26,8 +48,8 @@ pub(crate) async fn read(
     let axum::extract::Query(query) = input.map_err(|e| Error::invalid(e.body_text()))?;
     crate::models::validate_id(&b)?;
     super::super::month(&query.month)?;
-    store.run(move|db|{let tx=db.transaction()?;let view=super::super::view(&tx,&b,&query.month,1)?;let mut categories=vec![];for row in view["months"][&query.month]["categories"].as_array().unwrap(){let mut def=category(&tx,&b,row["id"].as_str().unwrap())?;for field in ["is_income","hidden","group_hidden","group_id","group_name"]{def[field]=row[field].clone();}categories.push(def);}
- let mut q=tx.prepare("SELECT id,name FROM budget_cleanup_groups WHERE budget_id=?1 AND tombstone=0 ORDER BY name,id")?;let pools=q.query_map([&b],|r|Ok(json!({"id":r.get::<_,String>(0)?,"name":r.get::<_,String>(1)?})))?.collect::<Result<Vec<_>,_>>()?;
+    store.run(move|db|{let tx=db.transaction()?;let view=super::super::view(&tx,&b,&query.month,1)?;let mut categories=vec![];let mut pools=pools(&tx,&b)?;for row in view["months"][&query.month]["categories"].as_array().unwrap(){let mut def=category_using(&tx,&b,row["id"].as_str().unwrap(),&mut pools)?;for field in ["is_income","hidden","group_hidden","group_id","group_name"]{def[field]=row[field].clone();}categories.push(def);}
+ let pools=pools.into_iter().filter(|p|p["deleted"]!=true).map(|p|json!({"id":p["id"],"name":p["name"]})).collect::<Vec<_>>();
  Ok(json!({"data":{"month":query.month,"method":view["method"],"categories":categories,"pools":pools,"snapshot":view["snapshot"],"epoch":view["epoch"],"experimental":crate::preferences::get_preferences(&tx,&b)?["experimental"]}}))}).await.map(Json)
 }
 pub(super) fn configure(

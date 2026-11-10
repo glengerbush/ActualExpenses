@@ -8,7 +8,7 @@ use crate::{concurrency as sync, error::Error, models::MAX_MONEY, store::Store};
 use axum::{
     Json, Router,
     extract::{Path, Query, State},
-    routing::get,
+    routing::{get, post},
 };
 pub use import::{
     clock as import_clock, convert as convert_actual, enrich as enrich_legacy_imports,
@@ -40,6 +40,10 @@ pub fn router() -> Router<Store> {
         .route(
             "/api/v1/budgets/{budget}/budget/templates/projection",
             axum::routing::post(templates::projection),
+        )
+        .route(
+            "/api/v1/budgets/{budget}/budget/templates/migration-preview",
+            post(templates::migration_preview),
         )
         .route(
             "/api/v1/budgets/{budget}/budget/templates/commands",

@@ -4,6 +4,9 @@ mod configuration;
 mod context;
 mod currency_lineage;
 mod engine;
+mod migration;
+mod render;
+pub(super) use migration::preview as migration_preview;
 mod parse;
 mod storage;
 mod validation;
@@ -97,9 +100,10 @@ pub(super) async fn mutate(
     store.run(move|db|{let scope=format!("POST /budgets/{b}/budget/templates/commands");if lookup{return sync::receipt_owned(db,&scope,&key,&payload,proposed.as_deref(),StatusCode::OK,owner.as_ref());}
  sync::write_owned(db,&scope,&key,&payload,proposed.as_deref(),StatusCode::OK,owner.as_ref(),|db|{
   if cancel{return sync::canceled(db,&b);}crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;sync::check_snapshot(db,&b,Some(body["snapshot"].as_str().ok_or_else(||Error::invalid("A current snapshot is required"))?))?;
-  let fields:&[&str]=if body["action"]=="configure"{&["action","snapshot","category_id","source","templates","cleanup"]}else if body["action"]=="cleanup"{&["action","month","snapshot"]}else{&["action","month","snapshot","category_ids"]};
+  let fields:&[&str]=if body["action"]=="configure"{&["action","snapshot","category_id","source","templates","cleanup"]}else if body["action"]=="migrate"{&["action","month","snapshot","category_id","target_source","notes"]}else if body["action"]=="cleanup"{&["action","month","snapshot"]}else{&["action","month","snapshot","category_ids"]};
   if body.as_object().is_none_or(|o|o.keys().any(|k|!fields.contains(&k.as_str()))){return Err(Error::invalid("Unknown template command field"));}
   if body["action"]=="configure"{let clock=sync::clock(db,&b,proposed.as_deref())?;let data=configuration::configure(db,&b,&body,&clock)?;return Ok(json!({"response_status":200,"response_body":{"data":data,"edit_clock":clock,"cursor":sync::cursor(db,&b)?}}));}
+  if body["action"]=="migrate"{let clock=sync::clock(db,&b,proposed.as_deref())?;let data=migration::apply(db,&b,&body,&clock)?;return Ok(json!({"response_status":200,"response_body":{"data":data,"edit_clock":clock,"cursor":sync::cursor(db,&b)?}}));}
   if !matches!(body["action"].as_str(),Some("apply"|"overwrite"|"cleanup")){return Err(Error::invalid("Unknown template action"));}
   let is_cleanup=body["action"]=="cleanup";
   let plan=if is_cleanup{cleanup::compute(db,&b,body["month"].as_str().ok_or_else(||Error::invalid("month is required"))?)?}else{engine::compute(db,&b,&body)?};if !plan["errors"].as_array().unwrap().is_empty(){return Err(Error::invalid(format!("Template validation failed: {}",plan["errors"])));}

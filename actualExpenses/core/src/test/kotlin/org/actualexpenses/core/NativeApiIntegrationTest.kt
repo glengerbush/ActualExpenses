@@ -816,6 +816,70 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun `automation events preserve expenses and pending delivery without idle cache writes`() {
+        Server().use { server ->
+            val root = "/budgets/${server.budget}"
+            val category = UUID.randomUUID().toString()
+            val reserve = UUID.randomUUID().toString()
+            server.post("$root/categories", """{"id":"$category","name":"Food","is_income":false}""")
+            server.post("$root/categories", """{"id":"$reserve","name":"Reserve","is_income":false,"notes":"#cleanup Reserve source\n#cleanup Reserve sink"}""")
+            val store = MemoryStore()
+            val real = BudgetHttpTransport()
+            val entities = mutableSetOf<String>()
+            val requests = mutableListOf<Pair<String, String>>()
+            val transport = HttpTransport { url, method, headers, body ->
+                requests += method to url
+                val response = real.request(url, method, headers, body)
+                if (url.contains("/changes?") && response.status == 200) {
+                    JsonParser.parseString(response.body.toString(Charsets.UTF_8)).asJsonObject
+                        .getAsJsonArray("data").forEach { entities += it.asJsonObject["entity"].asString }
+                }
+                response
+            }
+            val app = ApiExpenseService(store, transport = transport)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            val first = app.saveExpense(ExpenseDraft("4.56", categoryId = category, notes = "Existing expense"))
+            app.refresh()
+            val cursor = JsonParser.parseString(store.raw).asJsonObject["checkpoint"].asString
+            app.markOffline()
+            val pending = app.saveExpense(ExpenseDraft("1.23", categoryId = category, notes = "Offline expense"))
+            assertEquals(1, app.state().pendingCount)
+            fun snapshot() = server.get("$root/checkpoint").getAsJsonObject("data")["snapshot"].asString
+            server.post("$root/budget/templates/commands", """{"action":"configure","snapshot":"${snapshot()}","category_id":"$category","source":"ui","templates":[{"type":"simple","directive":"template","priority":0,"monthly":25}]}""", 200)
+            server.post("$root/budget/templates/commands", """{"action":"cleanup","month":"2026-11","snapshot":"${snapshot()}"}""", 200)
+            server.post("$root/budget/templates/commands", """{"action":"overwrite","month":"2026-11","snapshot":"${snapshot()}"}""", 200)
+            server.patch("$root/preferences", """{"currency_code":"USD","experimental":{"currency":true}}""", "2026-01-01T00:00:00.000Z-0000-0000000000000001")
+            val before = server.get("$root/transactions").getAsJsonArray("data")
+            assertEquals(1, before.size(), "Planning must not create a transaction")
+            assertEquals(first, before.single().asJsonObject["id"].asString)
+            assertEquals(-456L, before.single().asJsonObject["amount"].asLong)
+            app.refresh()
+            assertNull(app.state().error)
+            assertFalse(app.state().syncBlocked)
+            assertEquals(0, app.state().pendingCount)
+            assertEquals(setOf(first, pending), app.state().expenses.map { it.id }.toSet())
+            assertEquals(setOf(456L, 123L), app.state().expenses.map { it.amountMinor }.toSet())
+            assertTrue(app.state().categories.any { it.id == category })
+            assertTrue(entities.containsAll(setOf("budget_automations", "budget_cleanup_groups", "budget_settings", "transactions")), entities.toString())
+            assertFalse(requests.any { it.second.contains("/budget/templates") }, "The expense companion never executes budget automations")
+            val savedCursor = JsonParser.parseString(store.raw).asJsonObject["checkpoint"].asString
+            assertNotEquals(cursor, savedCursor)
+            assertEquals(snapshot(), savedCursor)
+            val writes = store.writes
+            app.refresh()
+            assertEquals(writes, store.writes, "An unchanged automation feed must not rewrite the cache")
+            val restarted = ApiExpenseService(store, transport = transport)
+            restarted.refresh()
+            assertNull(restarted.state().error)
+            assertEquals(setOf(first, pending), restarted.state().expenses.map { it.id }.toSet())
+            assertEquals(0, restarted.state().pendingCount)
+            assertEquals(2, server.get("$root/transactions").getAsJsonArray("data").size())
+        }
+    }
+
+    @Test
     fun `location-only changes preserve native expense projection and pending offline edits`() {
         Server().use { server ->
             val base = "/budgets/${server.budget}"

@@ -6,11 +6,13 @@ import { startServer } from "../web/tests/server.mjs";
 const fixture = JSON.parse(
   await readFile(
     new URL(
-      process.argv.includes("--chains")
-        ? "../tests/fixtures/rule-expression-chain-source.json"
-        : process.argv.includes("--context")
-          ? "../tests/fixtures/rule-expression-context-source.json"
-          : "../tests/fixtures/rule-expressions-source.json",
+      process.argv.includes("--execution")
+        ? "../tests/fixtures/rule-expression-execution-source.json"
+        : process.argv.includes("--chains")
+          ? "../tests/fixtures/rule-expression-chain-source.json"
+          : process.argv.includes("--context")
+            ? "../tests/fixtures/rule-expression-context-source.json"
+            : "../tests/fixtures/rule-expressions-source.json",
       import.meta.url,
     ),
   ),
@@ -61,6 +63,8 @@ function projection(row, source = false, payeeName = null) {
   );
   if (payeeName) value.payee_id = "generated-payee";
   value.rule_errors = (source ? row._ruleErrors : row.rule_errors) ?? [];
+  value.split_error =
+    row.error?.type === "SplitTransactionError" ? row.error : null;
   value.children =
     (source ? row.subtransactions : row.children)?.map((c) =>
       projection(c, source),
@@ -148,13 +152,50 @@ try {
     );
     count++;
   }
+  if (process.argv.includes("--execution") && !filter) {
+    const subject = before.data.find(
+      (row) =>
+        row.amount < -1 &&
+        !row.is_parent &&
+        !row.parent_id &&
+        !row.starting_balance,
+    );
+    assert.ok(subject);
+    const rule = {
+      ...fixture.cases.find((c) => c.name === "unbalanced calculated split")
+        .rule,
+      id: randomUUID(),
+      conditions: [{ field: "account", op: "is", value: subject.account_id }],
+    };
+    const stamp = await call(root + "/checkpoint");
+    assert.equal(
+      (await call(root + "/rules", { ...rule, snapshot: stamp.data.snapshot }))
+        .status,
+      201,
+    );
+    const ready = await call(root + "/checkpoint");
+    const refused = await call(root + "/rules/apply", {
+      snapshot: ready.data.snapshot,
+      ids: [subject.id],
+      rule_ids: [rule.id],
+    });
+    assert.equal(refused.status, 400);
+    assert.match(refused.error.message, /split allocations do not equal/);
+    assert.deepEqual(await call(root + "/checkpoint"), ready);
+  }
   const after = await call(root + "/transactions");
-  if (process.argv.includes("--chains")) {
+  if (
+    process.argv.includes("--chains") ||
+    process.argv.includes("--execution")
+  ) {
     const { snapshot: beforeSnapshot, ...beforeRows } = before;
     const { snapshot: afterSnapshot, ...afterRows } = after;
     assert.deepEqual(afterRows, beforeRows);
   } else assert.deepEqual(after, before);
-  if (!process.argv.includes("--chains"))
+  if (
+    !process.argv.includes("--chains") &&
+    !process.argv.includes("--execution")
+  )
     assert.deepEqual(await call(root + "/checkpoint"), checkpoint);
   console.log(
     `PASS ${count} source rule-expression previews and unchanged financial state`,

@@ -303,6 +303,7 @@ try {
     cases = [];
   const contextCases = process.argv.includes("--context");
   const chainCases = process.argv.includes("--chains");
+  const executionCases = process.argv.includes("--execution");
   if (contextCases) {
     definitions.length = 0;
     const rows = before.filter(
@@ -471,6 +472,90 @@ try {
       })),
     );
   }
+  if (executionCases) {
+    definitions.length = 0;
+    const excluded = [
+      { field: "imported_payee", op: "isNot", value: "Z elsewhere" },
+      { field: "payee", op: "isNot", value: ids.employer },
+    ];
+    definitions.push(
+      {
+        name: "live negative conditions excluded by both indexes",
+        conditions: excluded,
+        actions: [formula("notes", '="must not run"')],
+      },
+      {
+        name: "live index union retains wildcard candidate",
+        conditions: [excluded[0]],
+        actions: [formula("notes", '="does run"')],
+      },
+      {
+        name: "live candidates fixed before payee mutation",
+        actions: [{ op: "set", field: "payee", value: ids.employer }],
+        following: [
+          {
+            conditions: [
+              excluded[0],
+              { field: "payee", op: "is", value: ids.employer },
+            ],
+            actions: [formula("notes", '="must not run"')],
+          },
+        ],
+      },
+    );
+    const split = (index, method, formula, value = null) => ({
+      op: "set-split-amount",
+      value,
+      options: { splitIndex: index, method, ...(formula ? { formula } : {}) },
+    });
+    for (const text of ["-12.5 pounds", "-2000.5 pounds", "0.125"])
+      definitions.push({
+        name: `fractional split ${text}`,
+        actions: [
+          split(1, "formula", `=${JSON.stringify(text)}`),
+          split(2, "remainder"),
+        ],
+      });
+    definitions.push(
+      {
+        name: "fractional split with percentage and remainder",
+        actions: [
+          split(1, "formula", '="-12.5 pounds"'),
+          split(2, "fixed-percent", null, 50),
+          split(3, "remainder"),
+        ],
+      },
+      {
+        name: "fractional parent with split formula",
+        actions: [
+          template("amount", "-1234.5"),
+          split(1, "formula", "=parent_amount/200"),
+          split(2, "remainder"),
+        ],
+      },
+      {
+        name: "generated child variables",
+        actions: [
+          split(1, "formula", "=parent_amount/200"),
+          set("notes", {
+            splitIndex: 1,
+            formula:
+              '=CONCATENATE(sort_order,"|",IFERROR(is_parent,"unset"),"|",is_child,"|",reconciled,"|",starting_balance_flag,"|",IFERROR(notes,"unset"))',
+          }),
+          split(2, "remainder"),
+        ],
+      },
+      {
+        name: "unbalanced calculated split",
+        actions: [split(1, "formula", "=parent_amount/200")],
+      },
+      {
+        name: "large fractional split rounding",
+        changes: { amount: Number.MAX_SAFE_INTEGER },
+        actions: [split(1, "formula", '="0.5"'), split(2, "remainder")],
+      },
+    );
+  }
   function normalized(value) {
     if (Array.isArray(value)) return value.map(normalized);
     if (!value || typeof value !== "object") return value;
@@ -497,7 +582,9 @@ try {
       id: id(100 + i),
       stage: definition.following ? "pre" : null,
       conditionsOp: "and",
-      conditions: [{ field: "account", op: "is", value: ids.checking }],
+      conditions: definition.conditions ?? [
+        { field: "account", op: "is", value: ids.checking },
+      ],
       actions: definition.actions,
     };
     const added = await engine.send("rule-add", rule);
@@ -543,11 +630,13 @@ try {
     cases,
   };
   const file = new URL(
-    chainCases
-      ? "rule-expression-chain-source.json"
-      : contextCases
-        ? "rule-expression-context-source.json"
-        : "rule-expressions-source.json",
+    executionCases
+      ? "rule-expression-execution-source.json"
+      : chainCases
+        ? "rule-expression-chain-source.json"
+        : contextCases
+          ? "rule-expression-context-source.json"
+          : "rule-expressions-source.json",
     root,
   );
   if (check) assert.deepEqual(result, JSON.parse(await readFile(file)));

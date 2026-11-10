@@ -25127,7 +25127,8 @@
                   23,
                   24,
                   25,
-                  26
+                  26,
+                  27
                 ]
               },
               "domains": {
@@ -35901,6 +35902,33 @@
             "items": {
               "$ref": "#/components/schemas/RuleProjection"
             }
+          },
+          "error": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Source split-total diagnostic. Unbalanced projections are reviewable; writes require balanced exact allocations.",
+            "properties": {
+              "type": {
+                "const": "SplitTransactionError"
+              },
+              "version": {
+                "const": 1
+              },
+              "difference": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "type",
+              "version",
+              "difference"
+            ],
+            "additionalProperties": false
           }
         }
       }

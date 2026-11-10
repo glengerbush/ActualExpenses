@@ -79,6 +79,7 @@ impl Default for Work {
 pub struct Runner {
     rules: Vec<Rule>,
     work: Work,
+    indexed: bool,
 }
 impl Runner {
     pub fn for_apply(mut rules: Vec<Rule>) -> Self {
@@ -94,10 +95,18 @@ impl Runner {
                 }
             }
         }
-        Self::new(rules)
+        Self {
+            rules,
+            work: Work::default(),
+            indexed: false,
+        }
     }
     pub fn with_work(rules: Vec<Rule>, work: Work) -> Self {
-        Self { rules, work }
+        Self {
+            rules,
+            work,
+            indexed: true,
+        }
     }
     pub fn into_work(self) -> Work {
         self.work
@@ -106,6 +115,7 @@ impl Runner {
         Self {
             rules,
             work: Work::default(),
+            indexed: true,
         }
     }
     pub fn evaluate(
@@ -174,6 +184,9 @@ impl Runner {
             .query_map([b], |r| Ok((r.get::<_, String>(0)?, r.get::<_, bool>(1)?)))?
             .collect::<Result<std::collections::BTreeMap<_, _>, _>>()?;
         for rule in &self.rules {
+            if self.indexed && !super::expressions::candidate(rule, input) {
+                continue;
+            }
             let forced = attached.as_deref() == Some(rule.id.as_str());
             if linked
                 .get(&rule.id)
@@ -198,10 +211,13 @@ impl Runner {
                 if expressions.is_none() && rule.actions.iter().any(super::expressions::calculated)
                 {
                     expressions = Some(super::expressions::Context::new(db, b, input, stored)?);
-                    expressions
-                        .as_mut()
-                        .unwrap()
-                        .prefetch(db, b, &self.rules, input)?;
+                    expressions.as_mut().unwrap().prefetch(
+                        db,
+                        b,
+                        self.rules.iter().filter(|rule| {
+                            !self.indexed || super::expressions::candidate(rule, input)
+                        }),
+                    )?;
                 }
                 if let Some(context) = expressions.as_mut() {
                     context.begin_rule(db, b, &row, rule)?;

@@ -1015,6 +1015,7 @@
                 disabled={locked ||
                   !!draft ||
                   entry.before.reconciled ||
+                  !!entry.after.error ||
                   invalidAmounts(entry.after)}
                 onchange={(e) =>
                   choose(entry.before.id, e.currentTarget.checked)}
@@ -1033,6 +1034,10 @@
                   >{/if}
                 {#if invalidAmounts(entry.after)}<strong
                     >Cannot save: amounts must be whole minor units.</strong
+                  >{/if}
+                {#if entry.after.error?.type === "SplitTransactionError"}<strong
+                    >Cannot save: split allocations must equal the parent
+                    amount.</strong
                   >{/if}
                 {#if diagnostics(entry.after).length}
                   <strong

@@ -207,6 +207,18 @@ try {
   await splitFormula.fill("=parent_amount/200");
   await splitFormula.press("Tab");
   await expect(page.getByLabel(/^Split target 1/)).toBeFocused();
+  await page
+    .getByRole("button", { name: "Preview draft rule", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "Cannot save: split allocations must equal the parent amount.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await page.locator(".preview-list").screenshot({
+    path: "test-results/rule-expressions/unbalanced-split-mobile.png",
+  });
   await page.getByRole("button", { name: "Add action", exact: true }).click();
   await page.getByLabel(/^Action 2/).selectOption("set-split-amount");
   await page.getByLabel(/^Allocation method 2/).selectOption("remainder");
@@ -216,6 +228,21 @@ try {
     .getByRole("button", { name: "Preview draft rule", exact: true })
     .click();
   await expect(page.locator(".preview-list")).toContainText("-5.67");
+  await splitFormula.fill('="-12.5 pounds"');
+  await page
+    .getByRole("button", { name: "Preview draft rule", exact: true })
+    .click();
+  await expect(
+    page.getByText("Cannot save: amounts must be whole minor units.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(page.locator(".preview-list")).toContainText(
+    "-12.5 minor units",
+  );
+  await page.locator(".preview-list").screenshot({
+    path: "test-results/rule-expressions/fractional-split-mobile.png",
+  });
   await page.addStyleTag({ content: "html { font-size: 200%; }" });
   await splitFormula.scrollIntoViewIfNeeded();
   expect(

@@ -6,7 +6,9 @@ import { startServer } from "../web/tests/server.mjs";
 const fixture = JSON.parse(
   await readFile(
     new URL(
-      "../tests/fixtures/rule-expression-commits-source.json",
+      process.argv.includes("--splits")
+        ? "../tests/fixtures/rule-expression-split-commits-source.json"
+        : "../tests/fixtures/rule-expression-commits-source.json",
       import.meta.url,
     ),
   ),
@@ -84,7 +86,20 @@ for (const test of fixture.cases) {
       id,
       stage: null,
       conditionsOp: "and",
-      conditions: fixture.rules[0].conditions,
+      // Explicit selected actions are not constrained by live RuleIndexer buckets.
+      // The oracle operation receives actions alone; these conditions still match
+      // the selected row while excluding it from both live index buckets.
+      conditions:
+        test.name === "formula amount units"
+          ? [
+              { field: "imported_payee", op: "isNot", value: "Z elsewhere" },
+              {
+                field: "payee",
+                op: "isNot",
+                value: "42420000-0000-4000-8000-000000009999",
+              },
+            ]
+          : fixture.rules[0].conditions,
       actions: test.actions,
     };
     const created = await call(root + "/rules", {

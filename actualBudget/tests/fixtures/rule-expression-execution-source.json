@@ -1,0 +1,1244 @@
+{
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "seed": {
+    "filename": "reports-source-26.10.zip",
+    "sha256": "8b54cf9bc377ecd3d608382995efb5c7445c748f849bc971ce70a1610f1ed250"
+  },
+  "cases": [
+    {
+      "name": "live negative conditions excluded by both indexes",
+      "conditions": [
+        {
+          "field": "imported_payee",
+          "op": "isNot",
+          "value": "Z elsewhere"
+        },
+        {
+          "field": "payee",
+          "op": "isNot",
+          "value": "aca47852-d5a7-42e9-acf3-76a971bc33e2"
+        }
+      ],
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=\"must not run\""
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000100",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "imported_payee",
+            "op": "isNot",
+            "value": "Z elsewhere"
+          },
+          {
+            "field": "payee",
+            "op": "isNot",
+            "value": "aca47852-d5a7-42e9-acf3-76a971bc33e2"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=\"must not run\""
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "live index union retains wildcard candidate",
+      "conditions": [
+        {
+          "field": "imported_payee",
+          "op": "isNot",
+          "value": "Z elsewhere"
+        }
+      ],
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=\"does run\""
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000101",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "imported_payee",
+            "op": "isNot",
+            "value": "Z elsewhere"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=\"does run\""
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "does run",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "live candidates fixed before payee mutation",
+      "actions": [
+        {
+          "op": "set",
+          "field": "payee",
+          "value": "aca47852-d5a7-42e9-acf3-76a971bc33e2"
+        }
+      ],
+      "following": [
+        {
+          "conditions": [
+            {
+              "field": "imported_payee",
+              "op": "isNot",
+              "value": "Z elsewhere"
+            },
+            {
+              "field": "payee",
+              "op": "is",
+              "value": "aca47852-d5a7-42e9-acf3-76a971bc33e2"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=\"must not run\""
+              }
+            }
+          ]
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000102",
+        "stage": "pre",
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "payee",
+            "value": "aca47852-d5a7-42e9-acf3-76a971bc33e2"
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "aca47852-d5a7-42e9-acf3-76a971bc33e2",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "error": null,
+      "payee_name": null,
+      "rules": [
+        {
+          "id": "42420000-0000-4000-8000-000000000102",
+          "stage": "pre",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "account",
+              "op": "is",
+              "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "payee",
+              "value": "aca47852-d5a7-42e9-acf3-76a971bc33e2"
+            }
+          ]
+        },
+        {
+          "id": "42420000-0000-4000-8000-000000010200",
+          "stage": "post",
+          "conditionsOp": "and",
+          "conditions": [
+            {
+              "field": "imported_payee",
+              "op": "isNot",
+              "value": "Z elsewhere"
+            },
+            {
+              "field": "payee",
+              "op": "is",
+              "value": "aca47852-d5a7-42e9-acf3-76a971bc33e2"
+            }
+          ],
+          "actions": [
+            {
+              "op": "set",
+              "field": "notes",
+              "value": "",
+              "options": {
+                "formula": "=\"must not run\""
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "fractional split -12.5 pounds",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=\"-12.5 pounds\""
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000103",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 1,
+              "method": "formula",
+              "formula": "=\"-12.5 pounds\""
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 2,
+              "method": "remainder"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": null,
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "is_parent": true,
+        "subtransactions": [
+          {
+            "amount": -12.5,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -2,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-0",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null,
+            "_ruleErrors": []
+          },
+          {
+            "amount": -1221.5,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -3,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-1",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null
+          }
+        ],
+        "error": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "fractional split -2000.5 pounds",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=\"-2000.5 pounds\""
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000104",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 1,
+              "method": "formula",
+              "formula": "=\"-2000.5 pounds\""
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 2,
+              "method": "remainder"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": null,
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "is_parent": true,
+        "subtransactions": [
+          {
+            "amount": -2000.5,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -2,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-0",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null,
+            "_ruleErrors": []
+          },
+          {
+            "amount": 766.5,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -3,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-1",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null
+          }
+        ],
+        "error": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "fractional split 0.125",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=\"0.125\""
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000105",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 1,
+              "method": "formula",
+              "formula": "=\"0.125\""
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 2,
+              "method": "remainder"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": null,
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "is_parent": true,
+        "subtransactions": [
+          {
+            "amount": 0.125,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -2,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-0",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null,
+            "_ruleErrors": []
+          },
+          {
+            "amount": -1234.125,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -3,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-1",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null
+          }
+        ],
+        "error": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "fractional split with percentage and remainder",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=\"-12.5 pounds\""
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": 50,
+          "options": {
+            "splitIndex": 2,
+            "method": "fixed-percent"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 3,
+            "method": "remainder"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000106",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 1,
+              "method": "formula",
+              "formula": "=\"-12.5 pounds\""
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "value": 50,
+            "options": {
+              "splitIndex": 2,
+              "method": "fixed-percent"
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 3,
+              "method": "remainder"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": null,
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "is_parent": true,
+        "subtransactions": [
+          {
+            "amount": -12.5,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -2,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-0",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null,
+            "_ruleErrors": []
+          },
+          {
+            "amount": -611,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -3,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-1",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null
+          },
+          {
+            "amount": -610.5,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -4,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-2",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null
+          }
+        ],
+        "error": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "fractional parent with split formula",
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": 0,
+          "options": {
+            "template": "-1234.5"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=parent_amount/200"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000107",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "amount",
+            "value": 0,
+            "options": {
+              "template": "-1234.5"
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 1,
+              "method": "formula",
+              "formula": "=parent_amount/200"
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 2,
+              "method": "remainder"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": null,
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234.5,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "is_parent": true,
+        "subtransactions": [
+          {
+            "amount": -617,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -2,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-0",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null,
+            "_ruleErrors": []
+          },
+          {
+            "amount": -617.5,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -3,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-1",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null
+          }
+        ],
+        "error": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "generated child variables",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=parent_amount/200"
+          }
+        },
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "splitIndex": 1,
+            "formula": "=CONCATENATE(sort_order,\"|\",IFERROR(is_parent,\"unset\"),\"|\",is_child,\"|\",reconciled,\"|\",starting_balance_flag,\"|\",IFERROR(notes,\"unset\"))"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000108",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 1,
+              "method": "formula",
+              "formula": "=parent_amount/200"
+            }
+          },
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "splitIndex": 1,
+              "formula": "=CONCATENATE(sort_order,\"|\",IFERROR(is_parent,\"unset\"),\"|\",is_child,\"|\",reconciled,\"|\",starting_balance_flag,\"|\",IFERROR(notes,\"unset\"))"
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 2,
+              "method": "remainder"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": null,
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "is_parent": true,
+        "subtransactions": [
+          {
+            "amount": -617,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -2,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-0",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null,
+            "_ruleErrors": [],
+            "notes": "-2|unset|TRUE|||unset"
+          },
+          {
+            "amount": -617,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -3,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-1",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null
+          }
+        ],
+        "error": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "unbalanced calculated split",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=parent_amount/200"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000109",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 1,
+              "method": "formula",
+              "formula": "=parent_amount/200"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": null,
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "is_parent": true,
+        "subtransactions": [
+          {
+            "amount": -617,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -2,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-0",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null,
+            "_ruleErrors": []
+          }
+        ],
+        "error": {
+          "type": "SplitTransactionError",
+          "version": 1,
+          "difference": -617
+        }
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "large fractional split rounding",
+      "changes": {
+        "amount": 9007199254740991
+      },
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=\"0.5\""
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000110",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 1,
+              "method": "formula",
+              "formula": "=\"0.5\""
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 2,
+              "method": "remainder"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": 9007199254740991,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": null,
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": 9007199254740991,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "is_parent": true,
+        "subtransactions": [
+          {
+            "amount": 0.5,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -2,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-0",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null,
+            "_ruleErrors": []
+          },
+          {
+            "amount": 9007199254740991,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -3,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-1",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null
+          }
+        ],
+        "error": {
+          "type": "SplitTransactionError",
+          "version": 1,
+          "difference": -1
+        }
+      },
+      "error": null,
+      "payee_name": null
+    }
+  ]
+}

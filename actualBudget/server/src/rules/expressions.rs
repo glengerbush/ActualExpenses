@@ -116,6 +116,9 @@ impl Context {
             balance: None,
         })
     }
+    pub fn original_order(&self) -> Option<f64> {
+        self.original["sort_order"].as_f64()
+    }
     pub fn begin_rule(
         &mut self,
         db: &Connection,
@@ -144,14 +147,13 @@ impl Context {
         }
         Ok(())
     }
-    pub fn prefetch(
+    pub fn prefetch<'a>(
         &mut self,
         db: &Connection,
         b: &str,
-        rules: &[Rule],
-        original: &Value,
+        rules: impl IntoIterator<Item = &'a Rule>,
     ) -> Result<(), Error> {
-        for rule in rules.iter().filter(|rule| candidate(rule, original)) {
+        for rule in rules {
             for action in &rule.actions {
                 self.prepare_action(db, b, action, false)?;
             }
@@ -230,7 +232,7 @@ impl Context {
         parent: Option<&Value>,
         budget: &mut Budget,
     ) -> Result<(), Error> {
-        let mut transaction = source_row(row, self.stored);
+        let mut transaction = source_row(row, self.stored && parent.is_none());
         if self.stored && parent.is_none() {
             transaction["sort_order"] = self.original["sort_order"].clone();
         }
@@ -290,8 +292,10 @@ impl Context {
                 v => v,
             };
             // Failed payee-name formulas leave payee unchanged in source.
-            if field != "payee_name" || result["payee"] == "new" {
-                row[target] = result[field].clone();
+            if (field != "payee_name" || result["payee"] == "new")
+                && let Some(value) = result.get(field)
+            {
+                row[target] = value.clone();
             }
         }
         Ok(())
@@ -300,7 +304,7 @@ impl Context {
 
 // The source indexers union the imported-payee first-character and payee-ID
 // candidates. They include wildcard buckets even when a condition won't match.
-fn candidate(rule: &Rule, original: &Value) -> bool {
+pub(super) fn candidate(rule: &Rule, original: &Value) -> bool {
     fn key(value: &Value, first: bool) -> Option<Vec<u16>> {
         let value = value.as_str().filter(|s| !s.is_empty())?;
         if first {
@@ -397,8 +401,10 @@ fn source_row(row: &Value, stored: bool) -> Value {
             value[source] = v.clone();
         }
     }
-    if stored || !row["parent_id"].is_null() {
+    if stored {
         value["is_parent"] = json!(row["is_parent"] == true);
+    }
+    if stored || !row["parent_id"].is_null() {
         value["is_child"] = json!(!row["parent_id"].is_null());
     }
     if stored {

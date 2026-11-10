@@ -258,8 +258,8 @@ fn resolve_name(db: &Connection, b: &str, row: &mut Value) -> Result<(), Error> 
     }
     Ok(())
 }
-fn child(parent: &Value, payee: &Value, id: String) -> Value {
-    json!({"id":id,"amount":0,"category_id":parent["category_id"],"payee_id":payee,"notes":"","account_id":parent["account_id"],"date":parent["date"],"cleared":parent["cleared"],"parent_id":parent["id"]})
+fn child(parent: &Value, payee: &Value, id: String, order: f64) -> Value {
+    json!({"id":id,"amount":0,"category_id":parent["category_id"],"payee_id":payee,"account_id":parent["account_id"],"date":parent["date"],"cleared":parent["cleared"],"parent_id":parent["id"],"is_child":true,"sort_order":order,"reconciled":parent["reconciled"],"starting_balance_flag":parent.get("starting_balance_flag").unwrap_or(&parent["starting_balance"]),"error":null})
 }
 pub fn apply(
     db: &Connection,
@@ -300,10 +300,17 @@ pub fn apply(
         .and_then(|children| children.first())
         .cloned();
     let mut children = row["children"].as_array().cloned().unwrap_or_else(|| {
+        let order = expressions
+            .as_deref()
+            .map(|context| context.original_order())
+            .unwrap_or_else(|| row["sort_order"].as_f64())
+            .filter(|value| *value != 0.0)
+            .unwrap_or(-1.0);
         vec![child(
             &row,
             &row["payee_id"],
             identity(&[b, row["id"].as_str().unwrap_or("preview"), "reserved"]),
+            order,
         )]
     });
     let original_payee = row["payee_id"].clone();
@@ -324,7 +331,12 @@ pub fn apply(
                 &rule.id,
                 &children.len().to_string(),
             ]);
-            children.push(child(&row, payee, id));
+            let order = children
+                .last()
+                .and_then(|c| c["sort_order"].as_f64())
+                .unwrap_or(0.0)
+                - 1.0;
+            children.push(child(&row, payee, id, order));
         }
         if super::expressions::calculated(a)
             && matches!(a["op"].as_str(), Some("set" | "set-split-amount"))
@@ -338,46 +350,52 @@ pub fn apply(
         }
         resolve_name(db, b, &mut children[index])?;
     }
-    let remainder = |children: &[Value]| -> Result<i128, Error> {
-        Ok(row["amount"]
-            .as_i64()
-            .ok_or_else(|| Error::invalid("Split parent requires an exact amount"))?
-            as i128
-            - children
-                .iter()
-                .map(|c| {
-                    c["amount"].as_i64().map(i128::from).ok_or_else(|| {
-                        Error::invalid("Split allocation requires exact minor units")
+    let fractional =
+        row["amount"].as_i64().is_none() || children.iter().any(|c| c["amount"].as_i64().is_none());
+    if fractional {
+        super::split_preview::allocate(&row, &mut children, &child_actions)?;
+    } else {
+        let remainder = |children: &[Value]| -> Result<i128, Error> {
+            Ok(row["amount"]
+                .as_i64()
+                .ok_or_else(|| Error::invalid("Split parent requires an exact amount"))?
+                as i128
+                - children
+                    .iter()
+                    .map(|c| {
+                        c["amount"].as_i64().map(i128::from).ok_or_else(|| {
+                            Error::invalid("Split allocation requires exact minor units")
+                        })
                     })
-                })
-                .collect::<Result<Vec<_>, _>>()?
-                .iter()
-                .sum::<i128>())
-    };
-    let remaining = remainder(&children)?;
-    for a in child_actions
-        .iter()
-        .filter(|a| a["op"] == "set-split-amount" && a["options"]["method"] == "fixed-percent")
-    {
-        let index = a["options"]["splitIndex"].as_u64().unwrap() as usize;
-        let (n, d) = percent(&a["value"])?;
-        children[index]["amount"] = json!(rounded(remaining * n, d * 100)?);
-    }
-    let rest = child_actions
-        .iter()
-        .filter(|a| a["op"] == "set-split-amount" && a["options"]["method"] == "remainder")
-        .collect::<Vec<_>>();
-    if !rest.is_empty() {
-        let amount = rounded(remainder(&children)?, rest.len() as i128)?;
-        let mut last = 0;
-        for a in rest {
+                    .collect::<Result<Vec<_>, _>>()?
+                    .iter()
+                    .sum::<i128>())
+        };
+        let remaining = remainder(&children)?;
+        for a in child_actions
+            .iter()
+            .filter(|a| a["op"] == "set-split-amount" && a["options"]["method"] == "fixed-percent")
+        {
             let index = a["options"]["splitIndex"].as_u64().unwrap() as usize;
-            children[index]["amount"] = json!(amount);
-            last = last.max(index);
+            let (n, d) = percent(&a["value"])?;
+            children[index]["amount"] = json!(rounded(remaining * n, d * 100)?);
         }
-        children[last]["amount"] = json!(money(
-            children[last]["amount"].as_i64().unwrap() as i128 + remainder(&children)?
-        )?);
+        let rest = child_actions
+            .iter()
+            .filter(|a| a["op"] == "set-split-amount" && a["options"]["method"] == "remainder")
+            .collect::<Vec<_>>();
+        if !rest.is_empty() {
+            let amount = rounded(remainder(&children)?, rest.len() as i128)?;
+            let mut last = 0;
+            for a in rest {
+                let index = a["options"]["splitIndex"].as_u64().unwrap() as usize;
+                children[index]["amount"] = json!(amount);
+                last = last.max(index);
+            }
+            children[last]["amount"] = json!(money(
+                children[last]["amount"].as_i64().unwrap() as i128 + remainder(&children)?
+            )?);
+        }
     }
     children.remove(0);
     // Actual's batch updater writes the returned children without deleting the
@@ -394,15 +412,21 @@ pub fn apply(
             }
         }
     }
-    let total = children
-        .iter()
-        .map(|c| c["amount"].as_i64().unwrap_or(0) as i128)
-        .sum::<i128>();
-    if total != row["amount"].as_i64().unwrap() as i128 {
-        return Err(Error::invalid(
-            "Rule split allocations do not equal the parent amount",
-        ));
-    }
+    let balanced = if fractional {
+        Some(super::split_preview::total(&children)?) == row["amount"].as_f64()
+    } else {
+        let total = children
+            .iter()
+            .map(|c| c["amount"].as_i64().unwrap_or(0) as i128)
+            .sum::<i128>();
+        total == row["amount"].as_i64().unwrap() as i128
+    };
+    row["error"] = if balanced {
+        Value::Null
+    } else {
+        json!({"type":"SplitTransactionError","version":1,
+            "difference":row["amount"].as_f64().unwrap() - super::split_preview::total(&children)?})
+    };
     row["children"] = json!(children);
     row["is_parent"] = json!(true);
     row["category_id"] = Value::Null;

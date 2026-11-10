@@ -79,12 +79,19 @@ fn validate_draft(row: &Value) -> Result<(), Error> {
             .as_array()
             .filter(|v| v.len() <= 100_000)
             .ok_or_else(|| Error::invalid("Invalid preview allocations"))?;
+        let mut total = 0i128;
         for child in children {
             let mut child = child.clone();
             for key in ["account_id", "date", "cleared"] {
                 child[key] = row[key].clone();
             }
             validate_draft(&child)?;
+            total += i128::from(child["amount"].as_i64().unwrap());
+        }
+        if total != i128::from(row["amount"].as_i64().unwrap()) {
+            return Err(Error::invalid(
+                "Rule split allocations do not equal the parent amount",
+            ));
         }
     }
     Ok(())
@@ -221,6 +228,17 @@ pub fn evaluate(
         };
         if body["manual_entry"] == true {
             after = super::entry::protect(input, &after);
+        }
+        // Source-generated children have no notes variable until an action sets
+        // it. Expose the persisted empty-text shape only after all rules finish.
+        if let Some(children) = after.get_mut("children").and_then(Value::as_array_mut) {
+            for child in children {
+                child
+                    .as_object_mut()
+                    .unwrap()
+                    .entry("notes")
+                    .or_insert(json!(""));
+            }
         }
 
         if direct || selected.is_some() || !matched.is_empty() {

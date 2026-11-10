@@ -14,7 +14,7 @@ pub(crate) fn template_actions(
         .then(|| expressions::Context::new(db, b, row, false))
         .transpose()?;
     if let Some(context) = context.as_mut() {
-        context.prefetch(db, b, std::slice::from_ref(rule), row)?;
+        context.prefetch(db, b, std::iter::once(rule))?;
         context.begin_rule(db, b, row, rule)?;
     }
     actions::apply(
@@ -33,6 +33,7 @@ mod expressions;
 mod import;
 pub mod learning;
 mod plan;
+mod split_preview;
 use crate::{concurrency as sync, error::Error, store::Store};
 use axum::{
     Json, Router,

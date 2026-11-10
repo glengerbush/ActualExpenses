@@ -1,0 +1,430 @@
+{
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "archive": {
+    "filename": "rule-expressions-saved-26.10.zip",
+    "sha256": "35ead5dd57edda3bd04b1b44a2d3c112db3635e868a3ff2fec564897239f63d6"
+  },
+  "subject": "42420000-0000-4000-8000-000000000099",
+  "rules": [
+    {
+      "id": "42420000-0000-4000-8000-000000000101",
+      "stage": null,
+      "conditionsOp": "and",
+      "conditions": [
+        {
+          "op": "is",
+          "field": "account",
+          "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "type": "id"
+        }
+      ],
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "type": "string",
+          "options": {
+            "template": "{{notes}} / {{{imported_payee}}}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "42420000-0000-4000-8000-000000000113",
+      "stage": null,
+      "conditionsOp": "and",
+      "conditions": [
+        {
+          "op": "is",
+          "field": "account",
+          "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "type": "id"
+        }
+      ],
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": 0,
+          "type": "number",
+          "options": {
+            "formula": "=amount/100+1"
+          }
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "fractional split -12.5 pounds",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=\"-12.5 pounds\""
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "before": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "after": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "error": "Can't convert to integer: -12.5"
+    },
+    {
+      "name": "fractional split -2000.5 pounds",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=\"-2000.5 pounds\""
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "before": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "after": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "error": "Can't convert to integer: -2000.5"
+    },
+    {
+      "name": "fractional split 0.125",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=\"0.125\""
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "before": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "after": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "error": "Can't convert to integer: 0.125"
+    },
+    {
+      "name": "fractional split with percentage and remainder",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=\"-12.5 pounds\""
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": 50,
+          "options": {
+            "splitIndex": 2,
+            "method": "fixed-percent"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 3,
+            "method": "remainder"
+          }
+        }
+      ],
+      "before": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "after": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "error": "Can't convert to integer: -12.5"
+    },
+    {
+      "name": "fractional parent with split formula",
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": 0,
+          "options": {
+            "template": "-1234.5"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=parent_amount/200"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "before": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "after": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "error": "Can't convert to integer: -1234.5"
+    },
+    {
+      "name": "generated child variables",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=parent_amount/200"
+          }
+        },
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "splitIndex": 1,
+            "formula": "=CONCATENATE(sort_order,\"|\",IFERROR(is_parent,\"unset\"),\"|\",is_child,\"|\",reconciled,\"|\",starting_balance_flag,\"|\",IFERROR(notes,\"unset\"))"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "before": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "after": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": null,
+          "payee": null,
+          "cleared": false,
+          "is_parent": true,
+          "is_child": false
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -617,
+          "notes": "",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": true
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -617,
+          "notes": "1794225599999|unset|TRUE|FALSE|FALSE|unset",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": true
+        }
+      ],
+      "error": null
+    }
+  ]
+}

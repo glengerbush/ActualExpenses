@@ -24,6 +24,11 @@ export type RuleProjection = Omit<Transaction, "amount" | "children"> & {
   amount: number | null;
   children?: RuleProjection[];
   rule_errors?: string[];
+  error?: {
+    type: "SplitTransactionError";
+    version: 1;
+    difference: number | null;
+  } | null;
 };
 export type RulePreview = {
   transactions: {

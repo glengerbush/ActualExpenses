@@ -281,3 +281,47 @@ Ticket42's expression-import/diagnostic/original-recovery criterion is now
 verified. Whole42 remains open for execution-candidate/direct-action semantics,
 remaining child/field contexts, fractional split previews, broader transaction
 workflows and evaluation-limit/performance qualification. No push or deployment.
+
+## Live selection and calculated split checkpoint
+
+Eleven additional pinned-source engine observations verify live index selection,
+candidate capture before payee mutation, fractional parent/child allocation,
+percentage/remainder rounding, generated-child variables and unbalanced split
+diagnostics. Six independently persisted source operations verify five fractional
+write refusals and generated-child context using the original imported order.
+The source generators reproduce both new fixtures with `--check`; existing
+fixtures are unchanged. Explicit selected-action application bypasses live index
+buckets, while automatic execution uses the source candidate union.
+
+Fractional previews now retain source number arithmetic without admitting floats
+to the financial writer. Unbalanced previews expose `SplitTransactionError` in
+the served contract and interface. Saving requires balanced, exact minor units;
+the public API verifies rejection leaves ledger and checkpoint unchanged. Missing
+generated-child variables remain absent during evaluation, then notes acquire
+their persisted empty-text representation. Review caught a mutable JSON lookup
+that inserted null children on ordinary rows; corrected before verification.
+
+Checks pass:
+
+- `/tmp/rule-execution-source-final.log`:11 independent previews and6 persisted
+  source observations reproduce.
+- `/tmp/rule-execution-api-suite.log`:40+22+19+11 source previews and5+6 persisted
+  operations/refusals/retries. Unbalanced application also leaves no partial write.
+- `/tmp/rule-execution-import-regression.log`:5 existing import-rule workflows.
+- `/tmp/rule-execution-rust.log`:12 rule and13 split tests.
+- `/tmp/rule-execution-browser.log` and `/tmp/rule-execution-literal-browser.log`:
+  calculated and literal rule browser workflows. Fractional/unbalanced390px
+  captures inspected; diagnostics fit, selection is disabled, no page overflow.
+- `/tmp/rule-execution-contract2.log`:real responses validate against served
+  schemas, including split diagnostics and native restore schema27. This check
+  caught and corrected the previously stale restore-version enum.
+- Rust warnings-denied check, Svelte types/autofixer, frontend build and changed
+  file formatting pass.
+
+Root standards/spec review against `91a3736`: source expectations remain
+independent, preview arithmetic is isolated from exact writes, and generated
+variables follow observable source behavior.42 remains open for existing-child
+metadata/context, broader calculated transaction workflows and cumulative
+evaluation/resource/performance qualification. Nonfinite split projections
+explicitly fail instead of returning a source NaN graph; this remains part of42
+qualification. No additional acceptance boxes closed; no push or deployment.

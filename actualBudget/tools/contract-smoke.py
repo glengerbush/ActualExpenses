@@ -410,6 +410,10 @@ def main():
             calculation = check(rr+"/rules/preview",rt+"/preview","POST",{
                 "snapshot":snapshot,"transaction":transaction,"rule":calculated})["data"]["transactions"][0]["after"]
             assert calculation["amount"] == -12.5 and len(calculation["rule_errors"]) == 1
+            split_projection = check(rr+"/rules/preview",rt+"/preview","POST",{
+                "snapshot":snapshot,"transaction":transaction,"rule":{**rule,"actions":[
+                    {"op":"set-split-amount","value":None,"options":{"method":"formula","splitIndex":1,"formula":"=parent_amount/200"}}]}})["data"]["transactions"][0]["after"]
+            assert split_projection["error"] == {"type":"SplitTransactionError","version":1,"difference":-50}
             check(rr+"/rules/transactions",rt+"/transactions","POST",{**transaction,"snapshot":snapshot},{"Idempotency-Key":"automatic-entry"},201)
             snapshot=check(rr+"/rules",rt)["snapshot"]
             check(rr+"/rules/preview",rt+"/preview","POST",{"snapshot":snapshot,"ids":[re]})

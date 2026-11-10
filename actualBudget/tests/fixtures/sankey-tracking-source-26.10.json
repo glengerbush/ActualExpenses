@@ -1,0 +1,2081 @@
+{
+  "oracle": "Whole unchanged pinned26.10 Sankey base and final graph over real engine/AQL/budget DTOs",
+  "clock": "2026-11-09T12:00:00Z",
+  "archive_sha256": "1f13007a4fa0caf3fa37c7730e1b609b6e6f6277fb5cc2e00ee23af9ac584e01",
+  "ids": {
+    "checking": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+    "savings": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+    "brokerage": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+    "closed": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+    "expenses": "cdf3e63a-4372-452e-b0ae-893efa976265",
+    "income": "e29b4019-d83b-48be-98a9-7ace287b2869",
+    "hiddenGroup": "987dfc68-5882-472c-87b6-40a282c4d269",
+    "food": "18c4cef2-d782-4544-a460-7c04c275a581",
+    "hidden": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+    "empty": "84afd06e-255f-4246-bd00-89965986f788",
+    "hiddenGroupCategory": "42250427-aac5-4179-b77d-247994a381a2",
+    "salary": "95610153-0d9b-4abd-b817-bdc32291a737",
+    "market": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+    "employer": "aca47852-d5a7-42e9-acf3-76a971bc33e2",
+    "opening_checking": "408303c0-0847-4d57-b20e-f9b28c5dd356",
+    "opening_savings": "2ad76720-caac-4d46-b5bb-c22f6c9c206b",
+    "opening_brokerage": "109a70d2-dc2e-4f20-badb-65679fd50ebe",
+    "opening_closed": "aa395631-b99f-4674-9e8a-16027484b063",
+    "dashboard": "b5132fac-c088-4f69-96cb-362d66f908cc",
+    "report": "a43bb312-a25e-4da9-bd9c-9688d5194cc3",
+    "incomeGroupExpense": "64a6420f-2db8-454c-ada2-8da68aa83342",
+    "third": "9d2c87e0-0f38-49f1-a730-6e748130265a",
+    "sankeyIncome": "df8135a2-e0de-44e8-944b-b59c2ad1c933"
+  },
+  "categories": [
+    {
+      "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+      "name": "Expenses",
+      "is_income": false,
+      "hidden": false,
+      "sort_order": 49152,
+      "tombstone": false,
+      "categories": [
+        {
+          "id": "84afd06e-255f-4246-bd00-89965986f788",
+          "name": "empty",
+          "is_income": false,
+          "hidden": false,
+          "group": "cdf3e63a-4372-452e-b0ae-893efa976265",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 4096,
+          "tombstone": false
+        },
+        {
+          "id": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+          "name": "hidden",
+          "is_income": false,
+          "hidden": true,
+          "group": "cdf3e63a-4372-452e-b0ae-893efa976265",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 8192,
+          "tombstone": false
+        },
+        {
+          "id": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "name": "Food café ? %",
+          "is_income": false,
+          "hidden": false,
+          "group": "cdf3e63a-4372-452e-b0ae-893efa976265",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 16384,
+          "tombstone": false
+        }
+      ]
+    },
+    {
+      "id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+      "name": "Report income",
+      "is_income": false,
+      "hidden": false,
+      "sort_order": 65536,
+      "tombstone": false,
+      "categories": [
+        {
+          "id": "95610153-0d9b-4abd-b817-bdc32291a737",
+          "name": "salary",
+          "is_income": true,
+          "hidden": false,
+          "group": "e29b4019-d83b-48be-98a9-7ace287b2869",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 16384,
+          "tombstone": false
+        }
+      ]
+    },
+    {
+      "id": "987dfc68-5882-472c-87b6-40a282c4d269",
+      "name": "Hidden group",
+      "is_income": false,
+      "hidden": true,
+      "sort_order": 81920,
+      "tombstone": false,
+      "categories": [
+        {
+          "id": "42250427-aac5-4179-b77d-247994a381a2",
+          "name": "hiddenGroupCategory",
+          "is_income": false,
+          "hidden": false,
+          "group": "987dfc68-5882-472c-87b6-40a282c4d269",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 16384,
+          "tombstone": false
+        }
+      ]
+    },
+    {
+      "id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+      "name": "Income",
+      "is_income": true,
+      "hidden": false,
+      "sort_order": 32768,
+      "tombstone": false,
+      "categories": [
+        {
+          "id": "df8135a2-e0de-44e8-944b-b59c2ad1c933",
+          "name": "Sankey income",
+          "is_income": true,
+          "hidden": false,
+          "group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 8192,
+          "tombstone": false
+        },
+        {
+          "id": "64a6420f-2db8-454c-ada2-8da68aa83342",
+          "name": "Analysis expense in income group",
+          "is_income": false,
+          "hidden": false,
+          "group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 16384,
+          "tombstone": false
+        },
+        {
+          "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+          "name": "Income",
+          "is_income": true,
+          "hidden": false,
+          "group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 32768,
+          "tombstone": false
+        },
+        {
+          "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+          "name": "Starting Balances",
+          "is_income": true,
+          "hidden": false,
+          "group": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+          "goal_def": null,
+          "cleanup_def": null,
+          "template_settings": {
+            "source": "notes"
+          },
+          "sort_order": 32768,
+          "tombstone": false
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "id": "a01b891c-6b91-4277-b3c2-face2916c1f1",
+      "dashboard_page_id": "b5132fac-c088-4f69-96cb-362d66f908cc",
+      "type": "sankey-card",
+      "width": 12,
+      "height": 6,
+      "x": 0,
+      "y": 16,
+      "meta": {
+        "name": "Saved money flow",
+        "timeFrame": {
+          "start": "2026-10",
+          "end": "2026-12",
+          "mode": "static"
+        },
+        "mode": "spent",
+        "topNcategories": 15,
+        "categorySort": "per-group",
+        "showPercentages": true,
+        "groupAccounts": false,
+        "showTransfers": true,
+        "layerFrom": "payee",
+        "layerTo": "category",
+        "conditions": [],
+        "conditionsOp": "and"
+      },
+      "tombstone": false
+    }
+  ],
+  "source_files": {
+    "packages/desktop-client/src/components/reports/spreadsheets/sankey-spreadsheet.ts": "74e7ec600438b29054d58dda5eed44e39a912755716541135af5d1865991519a",
+    "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+    "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+    "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685"
+  },
+  "cases": [
+    {
+      "name": "budgeted",
+      "options": {
+        "startDate": "2026-11-01",
+        "endDate": "2026-11-30",
+        "mode": "budgeted",
+        "conditions": [],
+        "conditionsOp": "and",
+        "groupAccounts": false,
+        "showTransfers": false,
+        "topNcategories": 15,
+        "categorySort": "per-group",
+        "layerFrom": "income_category",
+        "layerTo": "category"
+      },
+      "baseGraph": [
+        {
+          "key": "budgeted",
+          "to": [
+            [
+              "cdf3e63a-4372-452e-b0ae-893efa976265",
+              1500
+            ]
+          ],
+          "type": "budget",
+          "name": "Budgeted"
+        },
+        {
+          "key": "available_income",
+          "to": [
+            [
+              "budgeted",
+              1300
+            ],
+            [
+              "for_next_month",
+              0
+            ],
+            [
+              "last_month_overspent",
+              0
+            ]
+          ],
+          "type": "account",
+          "name": "Available funds"
+        },
+        {
+          "key": "84afd06e-255f-4246-bd00-89965986f788",
+          "to": [
+            [
+              "budgeted",
+              200
+            ]
+          ],
+          "type": "account",
+          "labelKey": "From {{category}}",
+          "labelParams": {
+            "category": "empty"
+          },
+          "isNegative": true
+        },
+        {
+          "key": "cdf3e63a-4372-452e-b0ae-893efa976265",
+          "to": [
+            [
+              "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+              500
+            ],
+            [
+              "18c4cef2-d782-4544-a460-7c04c275a581",
+              1000
+            ]
+          ],
+          "type": "category_group",
+          "name": "Expenses"
+        },
+        {
+          "key": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+          "to": [],
+          "type": "category",
+          "name": "hidden"
+        },
+        {
+          "key": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "to": [],
+          "type": "category",
+          "name": "Food café ? %"
+        },
+        {
+          "key": "df8135a2-e0de-44e8-944b-b59c2ad1c933",
+          "to": [
+            [
+              "available_income",
+              3000
+            ]
+          ],
+          "type": "income_category",
+          "name": "Sankey income"
+        },
+        {
+          "key": "64a6420f-2db8-454c-ada2-8da68aa83342",
+          "to": [
+            [
+              "available_income",
+              -213
+            ]
+          ],
+          "type": "income_category",
+          "name": "Analysis expense in income group"
+        },
+        {
+          "key": "to_budget",
+          "to": [
+            [
+              "budgeted",
+              0
+            ]
+          ],
+          "type": "account",
+          "labelKey": "Overbudgeted",
+          "isNegative": true
+        },
+        {
+          "key": "from_previous_month",
+          "to": [
+            [
+              "available_income",
+              0
+            ]
+          ],
+          "type": "income_category",
+          "labelKey": "From {{month}}",
+          "labelParams": {
+            "month": "2026-10"
+          }
+        },
+        {
+          "key": "for_next_month",
+          "to": [],
+          "type": "budget",
+          "labelKey": "For {{month}}",
+          "labelParams": {
+            "month": "2026-12"
+          }
+        },
+        {
+          "key": "last_month_overspent",
+          "to": [],
+          "type": "budget",
+          "name": "Overspent"
+        }
+      ],
+      "result": {
+        "nodes": [
+          {
+            "key": "84afd06e-255f-4246-bd00-89965986f788",
+            "name": "From empty",
+            "percentageLabel": "0.0%",
+            "color": "negative"
+          },
+          {
+            "key": "df8135a2-e0de-44e8-944b-b59c2ad1c933",
+            "name": "Sankey income",
+            "percentageLabel": "107.6%",
+            "color": "palette0"
+          },
+          {
+            "key": "available_income",
+            "name": "Available funds",
+            "percentageLabel": "100.0%",
+            "color": "flow"
+          },
+          {
+            "key": "budgeted",
+            "name": "Budgeted",
+            "percentageLabel": "100.0%",
+            "color": "flow"
+          },
+          {
+            "key": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "percentageLabel": "100.0%",
+            "color": "palette1"
+          },
+          {
+            "key": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "name": "Food café ? %",
+            "percentageLabel": "66.7%",
+            "color": "palette0"
+          },
+          {
+            "key": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+            "name": "hidden",
+            "percentageLabel": "33.3%",
+            "color": "palette2"
+          },
+          {
+            "key": "64a6420f-2db8-454c-ada2-8da68aa83342",
+            "name": "Analysis expense in income group",
+            "percentageLabel": "-7.6%",
+            "color": "palette2"
+          },
+          {
+            "key": "84afd06e-255f-4246-bd00-89965986f788_income_category__HIDDEN",
+            "name": "",
+            "percentageLabel": "",
+            "color": "palette1"
+          }
+        ],
+        "links": [
+          {
+            "source": 0,
+            "target": 3,
+            "value": 200,
+            "tooltipInfo": [],
+            "color": "negative"
+          },
+          {
+            "source": 1,
+            "target": 2,
+            "value": 3000,
+            "tooltipInfo": [],
+            "color": "palette0"
+          },
+          {
+            "source": 2,
+            "target": 3,
+            "value": 1300,
+            "tooltipInfo": [],
+            "color": "flow"
+          },
+          {
+            "source": 3,
+            "target": 4,
+            "value": 1500,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 4,
+            "target": 6,
+            "value": 500,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 4,
+            "target": 5,
+            "value": 1000,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 7,
+            "target": 2,
+            "value": -213,
+            "tooltipInfo": [],
+            "color": "palette2"
+          },
+          {
+            "source": 8,
+            "target": 0,
+            "value": -1,
+            "tooltipInfo": [],
+            "color": "palette1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "budgeted-multi",
+      "options": {
+        "startDate": "2026-10-01",
+        "endDate": "2026-12-31",
+        "mode": "budgeted",
+        "conditions": [],
+        "conditionsOp": "and",
+        "groupAccounts": false,
+        "showTransfers": false,
+        "topNcategories": 15,
+        "categorySort": "per-group",
+        "layerFrom": "income_category",
+        "layerTo": "category"
+      },
+      "baseGraph": [
+        {
+          "key": "budgeted",
+          "to": [
+            [
+              "cdf3e63a-4372-452e-b0ae-893efa976265",
+              3700
+            ]
+          ],
+          "type": "budget",
+          "name": "Budgeted"
+        },
+        {
+          "key": "available_income",
+          "to": [
+            [
+              "budgeted",
+              3700
+            ],
+            [
+              "for_next_month",
+              0
+            ],
+            [
+              "last_month_overspent",
+              0
+            ]
+          ],
+          "type": "account",
+          "name": "Available funds"
+        },
+        {
+          "key": "cdf3e63a-4372-452e-b0ae-893efa976265",
+          "to": [
+            [
+              "84afd06e-255f-4246-bd00-89965986f788",
+              800
+            ],
+            [
+              "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+              500
+            ],
+            [
+              "18c4cef2-d782-4544-a460-7c04c275a581",
+              2400
+            ]
+          ],
+          "type": "category_group",
+          "name": "Expenses"
+        },
+        {
+          "key": "84afd06e-255f-4246-bd00-89965986f788",
+          "to": [],
+          "type": "category",
+          "name": "empty"
+        },
+        {
+          "key": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+          "to": [],
+          "type": "category",
+          "name": "hidden"
+        },
+        {
+          "key": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "to": [],
+          "type": "category",
+          "name": "Food café ? %"
+        },
+        {
+          "key": "df8135a2-e0de-44e8-944b-b59c2ad1c933",
+          "to": [
+            [
+              "available_income",
+              3000
+            ]
+          ],
+          "type": "income_category",
+          "name": "Sankey income"
+        },
+        {
+          "key": "64a6420f-2db8-454c-ada2-8da68aa83342",
+          "to": [
+            [
+              "available_income",
+              -213
+            ]
+          ],
+          "type": "income_category",
+          "name": "Analysis expense in income group"
+        },
+        {
+          "key": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+          "to": [
+            [
+              "available_income",
+              17000
+            ]
+          ],
+          "type": "income_category",
+          "name": "Starting Balances"
+        },
+        {
+          "key": "to_budget",
+          "to": [
+            [
+              "budgeted",
+              0
+            ]
+          ],
+          "type": "account",
+          "labelKey": "Overbudgeted",
+          "isNegative": true
+        },
+        {
+          "key": "from_previous_month",
+          "to": [
+            [
+              "available_income",
+              0
+            ]
+          ],
+          "type": "income_category",
+          "labelKey": "From {{month}}",
+          "labelParams": {
+            "month": "2026-09"
+          }
+        },
+        {
+          "key": "for_next_month",
+          "to": [],
+          "type": "budget",
+          "labelKey": "For {{month}}",
+          "labelParams": {
+            "month": "2027-01"
+          }
+        },
+        {
+          "key": "last_month_overspent",
+          "to": [],
+          "type": "budget",
+          "name": "Overspent"
+        }
+      ],
+      "result": {
+        "nodes": [
+          {
+            "key": "available_income",
+            "name": "Available funds",
+            "percentageLabel": "100.0%",
+            "color": "flow"
+          },
+          {
+            "key": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "percentageLabel": "85.9%",
+            "color": "palette2"
+          },
+          {
+            "key": "budgeted",
+            "name": "Budgeted",
+            "percentageLabel": "100.0%",
+            "color": "flow"
+          },
+          {
+            "key": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "percentageLabel": "100.0%",
+            "color": "palette1"
+          },
+          {
+            "key": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "name": "Food café ? %",
+            "percentageLabel": "64.9%",
+            "color": "palette0"
+          },
+          {
+            "key": "84afd06e-255f-4246-bd00-89965986f788",
+            "name": "empty",
+            "percentageLabel": "21.6%",
+            "color": "palette1"
+          },
+          {
+            "key": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+            "name": "hidden",
+            "percentageLabel": "13.5%",
+            "color": "palette2"
+          },
+          {
+            "key": "df8135a2-e0de-44e8-944b-b59c2ad1c933",
+            "name": "Sankey income",
+            "percentageLabel": "15.2%",
+            "color": "palette0"
+          },
+          {
+            "key": "64a6420f-2db8-454c-ada2-8da68aa83342",
+            "name": "Analysis expense in income group",
+            "percentageLabel": "-1.1%",
+            "color": "palette2"
+          }
+        ],
+        "links": [
+          {
+            "source": 0,
+            "target": 2,
+            "value": 3700,
+            "tooltipInfo": [],
+            "color": "flow"
+          },
+          {
+            "source": 1,
+            "target": 0,
+            "value": 17000,
+            "tooltipInfo": [],
+            "color": "palette2"
+          },
+          {
+            "source": 2,
+            "target": 3,
+            "value": 3700,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 3,
+            "target": 5,
+            "value": 800,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 3,
+            "target": 6,
+            "value": 500,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 3,
+            "target": 4,
+            "value": 2400,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 7,
+            "target": 0,
+            "value": 3000,
+            "tooltipInfo": [],
+            "color": "palette0"
+          },
+          {
+            "source": 8,
+            "target": 0,
+            "value": -213,
+            "tooltipInfo": [],
+            "color": "palette2"
+          }
+        ]
+      }
+    },
+    {
+      "name": "budgeted-category",
+      "options": {
+        "startDate": "2026-11-01",
+        "endDate": "2026-11-30",
+        "mode": "budgeted",
+        "conditions": [
+          {
+            "field": "category",
+            "op": "is",
+            "value": "18c4cef2-d782-4544-a460-7c04c275a581"
+          }
+        ],
+        "conditionsOp": "and",
+        "groupAccounts": false,
+        "showTransfers": false,
+        "topNcategories": 15,
+        "categorySort": "per-group",
+        "layerFrom": "income_category",
+        "layerTo": "category"
+      },
+      "baseGraph": [
+        {
+          "key": "budgeted",
+          "to": [
+            [
+              "cdf3e63a-4372-452e-b0ae-893efa976265",
+              1000
+            ]
+          ],
+          "type": "budget",
+          "name": "Budgeted"
+        },
+        {
+          "key": "available_income",
+          "to": [
+            [
+              "budgeted",
+              1000
+            ],
+            [
+              "for_next_month",
+              0
+            ],
+            [
+              "last_month_overspent",
+              0
+            ]
+          ],
+          "type": "account",
+          "name": "Available funds"
+        },
+        {
+          "key": "cdf3e63a-4372-452e-b0ae-893efa976265",
+          "to": [
+            [
+              "18c4cef2-d782-4544-a460-7c04c275a581",
+              1000
+            ]
+          ],
+          "type": "category_group",
+          "name": "Expenses"
+        },
+        {
+          "key": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "to": [],
+          "type": "category",
+          "name": "Food café ? %"
+        },
+        {
+          "key": "to_budget",
+          "to": [
+            [
+              "budgeted",
+              0
+            ]
+          ],
+          "type": "account",
+          "labelKey": "Overbudgeted",
+          "isNegative": true
+        },
+        {
+          "key": "from_previous_month",
+          "to": [
+            [
+              "available_income",
+              0
+            ]
+          ],
+          "type": "income_category",
+          "labelKey": "From {{month}}",
+          "labelParams": {
+            "month": "2026-10"
+          }
+        },
+        {
+          "key": "for_next_month",
+          "to": [],
+          "type": "budget",
+          "labelKey": "For {{month}}",
+          "labelParams": {
+            "month": "2026-12"
+          }
+        },
+        {
+          "key": "last_month_overspent",
+          "to": [],
+          "type": "budget",
+          "name": "Overspent"
+        }
+      ],
+      "result": {
+        "nodes": [
+          {
+            "key": "budgeted",
+            "name": "Budgeted",
+            "percentageLabel": "100.0%",
+            "color": "flow"
+          },
+          {
+            "key": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "percentageLabel": "100.0%",
+            "color": "palette1"
+          },
+          {
+            "key": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "name": "Food café ? %",
+            "percentageLabel": "100.0%",
+            "color": "palette0"
+          },
+          {
+            "key": "available_income",
+            "name": "Available funds",
+            "percentageLabel": "100.0%",
+            "color": "flow"
+          }
+        ],
+        "links": [
+          {
+            "source": 0,
+            "target": 1,
+            "value": 1000,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 1,
+            "target": 2,
+            "value": 1000,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 3,
+            "target": 0,
+            "value": 1000,
+            "tooltipInfo": [],
+            "color": "flow"
+          }
+        ]
+      }
+    },
+    {
+      "name": "budgeted-named-applies",
+      "options": {
+        "startDate": "2026-11-01",
+        "endDate": "2026-11-30",
+        "mode": "budgeted",
+        "conditions": [
+          {
+            "field": "category",
+            "op": "is",
+            "value": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "customName": "Source named category filter"
+          }
+        ],
+        "conditionsOp": "and",
+        "groupAccounts": false,
+        "showTransfers": false,
+        "topNcategories": 15,
+        "categorySort": "per-group",
+        "layerFrom": "income_category",
+        "layerTo": "category"
+      },
+      "baseGraph": [
+        {
+          "key": "budgeted",
+          "to": [
+            [
+              "cdf3e63a-4372-452e-b0ae-893efa976265",
+              1000
+            ]
+          ],
+          "type": "budget",
+          "name": "Budgeted"
+        },
+        {
+          "key": "available_income",
+          "to": [
+            [
+              "budgeted",
+              1000
+            ],
+            [
+              "for_next_month",
+              0
+            ],
+            [
+              "last_month_overspent",
+              0
+            ]
+          ],
+          "type": "account",
+          "name": "Available funds"
+        },
+        {
+          "key": "cdf3e63a-4372-452e-b0ae-893efa976265",
+          "to": [
+            [
+              "18c4cef2-d782-4544-a460-7c04c275a581",
+              1000
+            ]
+          ],
+          "type": "category_group",
+          "name": "Expenses"
+        },
+        {
+          "key": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "to": [],
+          "type": "category",
+          "name": "Food café ? %"
+        },
+        {
+          "key": "to_budget",
+          "to": [
+            [
+              "budgeted",
+              0
+            ]
+          ],
+          "type": "account",
+          "labelKey": "Overbudgeted",
+          "isNegative": true
+        },
+        {
+          "key": "from_previous_month",
+          "to": [
+            [
+              "available_income",
+              0
+            ]
+          ],
+          "type": "income_category",
+          "labelKey": "From {{month}}",
+          "labelParams": {
+            "month": "2026-10"
+          }
+        },
+        {
+          "key": "for_next_month",
+          "to": [],
+          "type": "budget",
+          "labelKey": "For {{month}}",
+          "labelParams": {
+            "month": "2026-12"
+          }
+        },
+        {
+          "key": "last_month_overspent",
+          "to": [],
+          "type": "budget",
+          "name": "Overspent"
+        }
+      ],
+      "result": {
+        "nodes": [
+          {
+            "key": "budgeted",
+            "name": "Budgeted",
+            "percentageLabel": "100.0%",
+            "color": "flow"
+          },
+          {
+            "key": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "percentageLabel": "100.0%",
+            "color": "palette1"
+          },
+          {
+            "key": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "name": "Food café ? %",
+            "percentageLabel": "100.0%",
+            "color": "palette0"
+          },
+          {
+            "key": "available_income",
+            "name": "Available funds",
+            "percentageLabel": "100.0%",
+            "color": "flow"
+          }
+        ],
+        "links": [
+          {
+            "source": 0,
+            "target": 1,
+            "value": 1000,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 1,
+            "target": 2,
+            "value": 1000,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 3,
+            "target": 0,
+            "value": 1000,
+            "tooltipInfo": [],
+            "color": "flow"
+          }
+        ]
+      }
+    },
+    {
+      "name": "budgeted-small-layer",
+      "options": {
+        "startDate": "2026-11-01",
+        "endDate": "2026-11-30",
+        "mode": "budgeted",
+        "conditions": [],
+        "conditionsOp": "and",
+        "groupAccounts": false,
+        "showTransfers": false,
+        "topNcategories": 1,
+        "categorySort": "global",
+        "layerFrom": "account",
+        "layerTo": "category"
+      },
+      "baseGraph": [
+        {
+          "key": "budgeted",
+          "to": [
+            [
+              "cdf3e63a-4372-452e-b0ae-893efa976265",
+              1500
+            ]
+          ],
+          "type": "budget",
+          "name": "Budgeted"
+        },
+        {
+          "key": "available_income",
+          "to": [
+            [
+              "budgeted",
+              1300
+            ],
+            [
+              "for_next_month",
+              0
+            ],
+            [
+              "last_month_overspent",
+              0
+            ]
+          ],
+          "type": "account",
+          "name": "Available funds"
+        },
+        {
+          "key": "84afd06e-255f-4246-bd00-89965986f788",
+          "to": [
+            [
+              "budgeted",
+              200
+            ]
+          ],
+          "type": "account",
+          "labelKey": "From {{category}}",
+          "labelParams": {
+            "category": "empty"
+          },
+          "isNegative": true
+        },
+        {
+          "key": "cdf3e63a-4372-452e-b0ae-893efa976265",
+          "to": [
+            [
+              "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+              500
+            ],
+            [
+              "18c4cef2-d782-4544-a460-7c04c275a581",
+              1000
+            ]
+          ],
+          "type": "category_group",
+          "name": "Expenses"
+        },
+        {
+          "key": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+          "to": [],
+          "type": "category",
+          "name": "hidden"
+        },
+        {
+          "key": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "to": [],
+          "type": "category",
+          "name": "Food café ? %"
+        },
+        {
+          "key": "df8135a2-e0de-44e8-944b-b59c2ad1c933",
+          "to": [
+            [
+              "available_income",
+              3000
+            ]
+          ],
+          "type": "income_category",
+          "name": "Sankey income"
+        },
+        {
+          "key": "64a6420f-2db8-454c-ada2-8da68aa83342",
+          "to": [
+            [
+              "available_income",
+              -213
+            ]
+          ],
+          "type": "income_category",
+          "name": "Analysis expense in income group"
+        },
+        {
+          "key": "to_budget",
+          "to": [
+            [
+              "budgeted",
+              0
+            ]
+          ],
+          "type": "account",
+          "labelKey": "Overbudgeted",
+          "isNegative": true
+        },
+        {
+          "key": "from_previous_month",
+          "to": [
+            [
+              "available_income",
+              0
+            ]
+          ],
+          "type": "income_category",
+          "labelKey": "From {{month}}",
+          "labelParams": {
+            "month": "2026-10"
+          }
+        },
+        {
+          "key": "for_next_month",
+          "to": [],
+          "type": "budget",
+          "labelKey": "For {{month}}",
+          "labelParams": {
+            "month": "2026-12"
+          }
+        },
+        {
+          "key": "last_month_overspent",
+          "to": [],
+          "type": "budget",
+          "name": "Overspent"
+        }
+      ],
+      "result": {
+        "nodes": [
+          {
+            "key": "84afd06e-255f-4246-bd00-89965986f788",
+            "name": "From empty",
+            "percentageLabel": "0.0%",
+            "color": "negative"
+          },
+          {
+            "key": "available_income",
+            "name": "Available funds",
+            "percentageLabel": "100.0%",
+            "color": "flow"
+          },
+          {
+            "key": "budgeted",
+            "name": "Budgeted",
+            "percentageLabel": "100.0%",
+            "color": "flow"
+          },
+          {
+            "key": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "percentageLabel": "100.0%",
+            "color": "palette1"
+          },
+          {
+            "key": "category__OTHER_BUCKET",
+            "name": "Other",
+            "percentageLabel": "100.0%",
+            "color": "palette0"
+          }
+        ],
+        "links": [
+          {
+            "source": 0,
+            "target": 2,
+            "value": 200,
+            "tooltipInfo": [],
+            "color": "negative"
+          },
+          {
+            "source": 1,
+            "target": 2,
+            "value": 1300,
+            "tooltipInfo": [],
+            "color": "flow"
+          },
+          {
+            "source": 2,
+            "target": 3,
+            "value": 1500,
+            "tooltipInfo": [],
+            "color": "palette1"
+          },
+          {
+            "source": 3,
+            "target": 4,
+            "value": 1500,
+            "tooltipInfo": [
+              {
+                "name": "Food café ? %",
+                "value": 1000
+              },
+              {
+                "name": "hidden",
+                "value": 500
+              }
+            ],
+            "color": "palette1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "budgeted-invalid-regex",
+      "options": {
+        "startDate": "2026-11-01",
+        "endDate": "2026-11-30",
+        "mode": "budgeted",
+        "conditions": [
+          {
+            "field": "category",
+            "op": "matches",
+            "value": "["
+          }
+        ],
+        "conditionsOp": "and",
+        "groupAccounts": false,
+        "showTransfers": false,
+        "topNcategories": 15,
+        "categorySort": "per-group",
+        "layerFrom": "income_category",
+        "layerTo": "category"
+      },
+      "baseGraph": [
+        {
+          "key": "budgeted",
+          "to": [],
+          "type": "budget",
+          "name": "Budgeted"
+        },
+        {
+          "key": "available_income",
+          "to": [
+            [
+              "budgeted",
+              0
+            ],
+            [
+              "for_next_month",
+              0
+            ],
+            [
+              "last_month_overspent",
+              0
+            ]
+          ],
+          "type": "account",
+          "name": "Available funds"
+        },
+        {
+          "key": "to_budget",
+          "to": [
+            [
+              "budgeted",
+              0
+            ]
+          ],
+          "type": "account",
+          "labelKey": "Overbudgeted",
+          "isNegative": true
+        },
+        {
+          "key": "from_previous_month",
+          "to": [
+            [
+              "available_income",
+              0
+            ]
+          ],
+          "type": "income_category",
+          "labelKey": "From {{month}}",
+          "labelParams": {
+            "month": "2026-10"
+          }
+        },
+        {
+          "key": "for_next_month",
+          "to": [],
+          "type": "budget",
+          "labelKey": "For {{month}}",
+          "labelParams": {
+            "month": "2026-12"
+          }
+        },
+        {
+          "key": "last_month_overspent",
+          "to": [],
+          "type": "budget",
+          "name": "Overspent"
+        }
+      ],
+      "result": {
+        "nodes": [],
+        "links": []
+      }
+    }
+  ],
+  "traces": [
+    {
+      "command": "api/budget-month",
+      "args": {
+        "month": "2026-11"
+      },
+      "data": {
+        "month": "2026-11",
+        "incomeAvailable": null,
+        "lastMonthOverspent": null,
+        "forNextMonth": null,
+        "totalBudgeted": 800,
+        "toBudget": null,
+        "fromLastMonth": null,
+        "totalIncome": 2787,
+        "totalSpent": 5900,
+        "totalBalance": -13100,
+        "categoryGroups": [
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "84afd06e-255f-4246-bd00-89965986f788",
+                "name": "empty",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+                "budgeted": -200,
+                "spent": 0,
+                "balance": -200,
+                "carryover": false
+              },
+              {
+                "id": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+                "name": "hidden",
+                "is_income": false,
+                "hidden": true,
+                "group_id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+                "budgeted": 500,
+                "spent": -1950,
+                "balance": -1450,
+                "carryover": true
+              },
+              {
+                "id": "18c4cef2-d782-4544-a460-7c04c275a581",
+                "name": "Food café ? %",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+                "budgeted": 1000,
+                "spent": -3600,
+                "balance": -3400,
+                "carryover": false
+              }
+            ],
+            "budgeted": 800,
+            "spent": -3600,
+            "balance": -3600
+          },
+          {
+            "id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+            "name": "Report income",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "95610153-0d9b-4abd-b817-bdc32291a737",
+                "name": "salary",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+                "budgeted": 0,
+                "spent": 9500,
+                "balance": -9500,
+                "carryover": false
+              }
+            ],
+            "budgeted": 0,
+            "spent": 9500,
+            "balance": -9500
+          },
+          {
+            "id": "987dfc68-5882-472c-87b6-40a282c4d269",
+            "name": "Hidden group",
+            "is_income": false,
+            "hidden": true,
+            "categories": [
+              {
+                "id": "42250427-aac5-4179-b77d-247994a381a2",
+                "name": "hiddenGroupCategory",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "987dfc68-5882-472c-87b6-40a282c4d269",
+                "budgeted": 0,
+                "spent": -400,
+                "balance": -400,
+                "carryover": false
+              }
+            ],
+            "budgeted": 0,
+            "spent": -400,
+            "balance": -400
+          },
+          {
+            "id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "df8135a2-e0de-44e8-944b-b59c2ad1c933",
+                "name": "Sankey income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 0,
+                "received": 3000,
+                "balance": -3000,
+                "carryover": false
+              },
+              {
+                "id": "64a6420f-2db8-454c-ada2-8da68aa83342",
+                "name": "Analysis expense in income group",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 743,
+                "received": -213,
+                "balance": 530,
+                "carryover": false
+              },
+              {
+                "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+                "name": "Income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 0,
+                "received": 0,
+                "balance": 0,
+                "carryover": false
+              },
+              {
+                "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "name": "Starting Balances",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 0,
+                "received": 0,
+                "balance": 0,
+                "carryover": false
+              }
+            ],
+            "budgeted": 743,
+            "received": 2787,
+            "balance": -2470
+          }
+        ]
+      }
+    },
+    {
+      "command": "api/budget-month",
+      "args": {
+        "month": "2026-12"
+      },
+      "data": {
+        "month": "2026-12",
+        "incomeAvailable": null,
+        "lastMonthOverspent": null,
+        "forNextMonth": null,
+        "totalBudgeted": 1200,
+        "toBudget": null,
+        "fromLastMonth": null,
+        "totalIncome": 0,
+        "totalSpent": -2500,
+        "totalBalance": -1300,
+        "categoryGroups": [
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "84afd06e-255f-4246-bd00-89965986f788",
+                "name": "empty",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+                "budgeted": 0,
+                "spent": -2500,
+                "balance": -2500,
+                "carryover": false
+              },
+              {
+                "id": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+                "name": "hidden",
+                "is_income": false,
+                "hidden": true,
+                "group_id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+                "budgeted": 0,
+                "spent": 0,
+                "balance": -1450,
+                "carryover": true
+              },
+              {
+                "id": "18c4cef2-d782-4544-a460-7c04c275a581",
+                "name": "Food café ? %",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+                "budgeted": 1200,
+                "spent": 0,
+                "balance": 1200,
+                "carryover": false
+              }
+            ],
+            "budgeted": 1200,
+            "spent": -2500,
+            "balance": -1300
+          },
+          {
+            "id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+            "name": "Report income",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "95610153-0d9b-4abd-b817-bdc32291a737",
+                "name": "salary",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+                "budgeted": 0,
+                "spent": 0,
+                "balance": 0,
+                "carryover": false
+              }
+            ],
+            "budgeted": 0,
+            "spent": 0,
+            "balance": 0
+          },
+          {
+            "id": "987dfc68-5882-472c-87b6-40a282c4d269",
+            "name": "Hidden group",
+            "is_income": false,
+            "hidden": true,
+            "categories": [
+              {
+                "id": "42250427-aac5-4179-b77d-247994a381a2",
+                "name": "hiddenGroupCategory",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "987dfc68-5882-472c-87b6-40a282c4d269",
+                "budgeted": 0,
+                "spent": 0,
+                "balance": 0,
+                "carryover": false
+              }
+            ],
+            "budgeted": 0,
+            "spent": 0,
+            "balance": 0
+          },
+          {
+            "id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "df8135a2-e0de-44e8-944b-b59c2ad1c933",
+                "name": "Sankey income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 0,
+                "received": 0,
+                "balance": 0,
+                "carryover": false
+              },
+              {
+                "id": "64a6420f-2db8-454c-ada2-8da68aa83342",
+                "name": "Analysis expense in income group",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 0,
+                "received": 0,
+                "balance": 0,
+                "carryover": false
+              },
+              {
+                "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+                "name": "Income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 0,
+                "received": 0,
+                "balance": 0,
+                "carryover": false
+              },
+              {
+                "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "name": "Starting Balances",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 0,
+                "received": 0,
+                "balance": 0,
+                "carryover": false
+              }
+            ],
+            "budgeted": 0,
+            "received": 0,
+            "balance": 0
+          }
+        ]
+      }
+    },
+    {
+      "command": "api/budget-month",
+      "args": {
+        "month": "2026-10"
+      },
+      "data": {
+        "month": "2026-10",
+        "incomeAvailable": null,
+        "lastMonthOverspent": null,
+        "forNextMonth": null,
+        "totalBudgeted": 1200,
+        "toBudget": null,
+        "fromLastMonth": null,
+        "totalIncome": 17000,
+        "totalSpent": -1000,
+        "totalBalance": 200,
+        "categoryGroups": [
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "84afd06e-255f-4246-bd00-89965986f788",
+                "name": "empty",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+                "budgeted": 1000,
+                "spent": 0,
+                "balance": 1000,
+                "carryover": false
+              },
+              {
+                "id": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+                "name": "hidden",
+                "is_income": false,
+                "hidden": true,
+                "group_id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+                "budgeted": 0,
+                "spent": 0,
+                "balance": 0,
+                "carryover": true
+              },
+              {
+                "id": "18c4cef2-d782-4544-a460-7c04c275a581",
+                "name": "Food café ? %",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+                "budgeted": 200,
+                "spent": -1000,
+                "balance": -800,
+                "carryover": true
+              }
+            ],
+            "budgeted": 1200,
+            "spent": -1000,
+            "balance": 200
+          },
+          {
+            "id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+            "name": "Report income",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "95610153-0d9b-4abd-b817-bdc32291a737",
+                "name": "salary",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+                "budgeted": 0,
+                "spent": 0,
+                "balance": 0,
+                "carryover": false
+              }
+            ],
+            "budgeted": 0,
+            "spent": 0,
+            "balance": 0
+          },
+          {
+            "id": "987dfc68-5882-472c-87b6-40a282c4d269",
+            "name": "Hidden group",
+            "is_income": false,
+            "hidden": true,
+            "categories": [
+              {
+                "id": "42250427-aac5-4179-b77d-247994a381a2",
+                "name": "hiddenGroupCategory",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "987dfc68-5882-472c-87b6-40a282c4d269",
+                "budgeted": 0,
+                "spent": 0,
+                "balance": 0,
+                "carryover": false
+              }
+            ],
+            "budgeted": 0,
+            "spent": 0,
+            "balance": 0
+          },
+          {
+            "id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "df8135a2-e0de-44e8-944b-b59c2ad1c933",
+                "name": "Sankey income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 0,
+                "received": 0,
+                "balance": 0,
+                "carryover": false
+              },
+              {
+                "id": "64a6420f-2db8-454c-ada2-8da68aa83342",
+                "name": "Analysis expense in income group",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 0,
+                "received": 0,
+                "balance": 0,
+                "carryover": false
+              },
+              {
+                "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+                "name": "Income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 0,
+                "received": 0,
+                "balance": 0,
+                "carryover": false
+              },
+              {
+                "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "name": "Starting Balances",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 0,
+                "received": 17000,
+                "balance": -17000,
+                "carryover": false
+              }
+            ],
+            "budgeted": 0,
+            "received": 17000,
+            "balance": -17000
+          }
+        ]
+      }
+    },
+    {
+      "command": "api/budget-month",
+      "args": {
+        "month": "2027-01"
+      },
+      "data": {
+        "month": "2027-01",
+        "incomeAvailable": null,
+        "lastMonthOverspent": null,
+        "forNextMonth": null,
+        "totalBudgeted": 0,
+        "toBudget": null,
+        "fromLastMonth": null,
+        "totalIncome": 0,
+        "totalSpent": 125,
+        "totalBalance": 125,
+        "categoryGroups": [
+          {
+            "id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+            "name": "Expenses",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "84afd06e-255f-4246-bd00-89965986f788",
+                "name": "empty",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+                "budgeted": 0,
+                "spent": 0,
+                "balance": 0,
+                "carryover": false
+              },
+              {
+                "id": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+                "name": "hidden",
+                "is_income": false,
+                "hidden": true,
+                "group_id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+                "budgeted": 0,
+                "spent": 0,
+                "balance": -1450,
+                "carryover": true
+              },
+              {
+                "id": "18c4cef2-d782-4544-a460-7c04c275a581",
+                "name": "Food café ? %",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "cdf3e63a-4372-452e-b0ae-893efa976265",
+                "budgeted": 0,
+                "spent": 125,
+                "balance": 125,
+                "carryover": false
+              }
+            ],
+            "budgeted": 0,
+            "spent": 125,
+            "balance": 125
+          },
+          {
+            "id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+            "name": "Report income",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "95610153-0d9b-4abd-b817-bdc32291a737",
+                "name": "salary",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "e29b4019-d83b-48be-98a9-7ace287b2869",
+                "budgeted": 0,
+                "spent": 0,
+                "balance": 0,
+                "carryover": false
+              }
+            ],
+            "budgeted": 0,
+            "spent": 0,
+            "balance": 0
+          },
+          {
+            "id": "987dfc68-5882-472c-87b6-40a282c4d269",
+            "name": "Hidden group",
+            "is_income": false,
+            "hidden": true,
+            "categories": [
+              {
+                "id": "42250427-aac5-4179-b77d-247994a381a2",
+                "name": "hiddenGroupCategory",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "987dfc68-5882-472c-87b6-40a282c4d269",
+                "budgeted": 0,
+                "spent": 0,
+                "balance": 0,
+                "carryover": false
+              }
+            ],
+            "budgeted": 0,
+            "spent": 0,
+            "balance": 0
+          },
+          {
+            "id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "df8135a2-e0de-44e8-944b-b59c2ad1c933",
+                "name": "Sankey income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 0,
+                "received": 0,
+                "balance": 0,
+                "carryover": false
+              },
+              {
+                "id": "64a6420f-2db8-454c-ada2-8da68aa83342",
+                "name": "Analysis expense in income group",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 0,
+                "received": 0,
+                "balance": 0,
+                "carryover": false
+              },
+              {
+                "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+                "name": "Income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 0,
+                "received": 0,
+                "balance": 0,
+                "carryover": false
+              },
+              {
+                "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "name": "Starting Balances",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                "budgeted": 0,
+                "received": 0,
+                "balance": 0,
+                "carryover": false
+              }
+            ],
+            "budgeted": 0,
+            "received": 0,
+            "balance": 0
+          }
+        ]
+      }
+    }
+  ]
+}

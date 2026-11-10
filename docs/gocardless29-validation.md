@@ -30,6 +30,23 @@ A common pending-fingerprint check now runs inside the atomic command transactio
 
 `gocardless-cancel-identity-green.log` passes65 served-schema observations, altered-body/epoch refusal, exact original receipt absence before completion, correct original cancellation and no late resurrection. `bank-capture-identity-green.log` and `bank-claim-identity-green.log` pass the shared held-provider cases; the capture case explicitly exercises the owned financial cancel route with another body/owner/clock. All use public HTTP and actual held provider requests, without private SQL inspection. Build/bin Clippy and targeted JS formatting are in `gocardless-identity-{build,clippy,format}.log`. No broad suite rerun.
 
+## Root custody checkpoint review
+
+2026-11-10:27cddf9/c0e093a reviewed independently. Private token/consent storage,
+fixed-origin bounded transport, no-store handoff, generation/epoch fences,
+portable exclusions and transactional25 banking-family reconstruction inspected.
+Root found the altered-key-payload cancellation gap; the common guard and private
+claim identities above close it, including same-scope replacement/removal and
+owned download clocks. Original23 migration remains unchanged. No remaining
+custody finding; genuine nonempty24→25 proof and complete29 acceptance remain open.
+
+Composed atb68379d with the accepted reporting/query work: build PASS
+`/tmp/gocardless-root-build.log`;65 served-contract/custody observations PASS
+`/tmp/gocardless-root-custody.log`; held SimpleFIN capture/claim identity checks
+PASS `/tmp/gocardless-root-{capture,claim}-identity.log`; existing digest-only
+original receipt/cancel recovery PASS `/tmp/gocardless-root-secret-recovery.log`.
+No real provider call or broad suite rerun.
+
 ## Genuine24 preservation fixture
 
 `generate-gocardless-schema24.py` requires the immutable accepted24 binary SHA from the plan. It imports the unchanged genuine pinned linked-source ZIP, uses public controlled-provider claim/discovery/link/refresh, adds an owned expense/edit and arbitrary notes24 identity, then holds a real second GET while a note edit makes its snapshot stale. The actual24 server retains that captured request. Every banking table is nonempty before migration, including private credentials, request log/capture and financial origins. Native backup is taken through the public API; the server stops before a read-only integrity/FK/schema24 inspection and SQLite copy. No SQLite/version/expected result is rewritten; outputs refuse overwrite.
@@ -37,6 +54,13 @@ A common pending-fingerprint check now runs inside the atomic command transactio
 `/tmp/gocardless-schema24-source.log` passes. `gocardless-schema24.{json,sqlite3,zip}` retain exact public financial/reference/metadata/history/receipt snapshots, original controlled request, source/binary/artifact hashes and notes24. Only synthetic credentials/provider are used. The first setup attempt used an incorrect link property (`opening_mode` instead of the documented `opening_balance_mode`) and published no fixtures; corrected before capture. This fixture is provenance, not a replacement-derived financial oracle or a claim of completed25 upgrade acceptance.
 
 The public genuine24 consumer now passes both database and native archive routes (`/tmp/gocardless-upgrade-green.log`). Database migration preserves complete financial/reference/account rows and field HLCs, all bank metadata/cursor/clock, notes24 and owned history exactly. An altered-owner cancellation of the old captured request refuses without a terminal receipt, proving its original full fingerprint survived migration; original cancellation/replay remains exact. Native restore changes only its documented operational cursor/epoch and credential generation/state, retaining all financial rows/HLCs, remote IDs, link/settings/window metadata and notes. Original committed receipts replay exactly in both modes; new GoCardless staging leaves old connections/money unchanged. Initial native harness used the wrong activation route/status, corrected to the existing budget-scoped confirm-name contract; only the documented archive envelope snapshot is excluded from financial-row comparison. Original fixture bytes/expectations remain unchanged.
+
+Root reviewed0c725c1/031d440 provenance and consumer, independently verified
+original artifact hashes/bytes, actual24 SQLite/native versions, integrity/FKs
+and nonempty seven banking tables plus notes. Composed at6ce2042; both public
+database/native modes PASS `/tmp/gocardless-upgrade-root-http.log`, reusing the
+unchanged b68379d runtime build. Genuine24 preservation gate closed. Provider
+financial/conversion/UI/native feature gates remain open; no29 acceptance claim.
 
 ## Whole-source financial witnesses
 

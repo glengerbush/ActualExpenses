@@ -27,11 +27,13 @@ const require = createRequire(
 const directory = await mkdtemp(tmpdir() + "/custom-reports-oracle-"),
   check = process.argv.includes("--check"),
   path = new URL(
-    process.argv.includes("--grouped")
-      ? "../tests/fixtures/custom-report-groups-source-26.10.json"
-      : process.argv.includes("--dates")
-        ? "../tests/fixtures/custom-report-dates-source-26.10.json"
-        : "../tests/fixtures/custom-reports-source-26.10.json",
+    process.argv.includes("--named")
+      ? "../tests/fixtures/custom-report-named-source-26.10.json"
+      : process.argv.includes("--grouped")
+        ? "../tests/fixtures/custom-report-groups-source-26.10.json"
+        : process.argv.includes("--dates")
+          ? "../tests/fixtures/custom-report-dates-source-26.10.json"
+          : "../tests/fixtures/custom-reports-source-26.10.json",
     import.meta.url,
   );
 try {
@@ -126,6 +128,32 @@ try {
     const selected = inputs.filter((o) => o.groupBy === "CategoryGroup");
     inputs.length = 0;
     inputs.push(...selected.map((o) => ({ ...o, nested: true })));
+  }
+  if (process.argv.includes("--named")) {
+    inputs.length = 0;
+    for (const customName of [
+      "",
+      null,
+      false,
+      0,
+      "Saved category",
+      1,
+      [],
+      {},
+    ]) {
+      inputs.push({
+        ...base,
+        conditions: [
+          {
+            field: "category",
+            op: "is",
+            type: "id",
+            value: original.ids.food,
+            customName,
+          },
+        ],
+      });
+    }
   }
   const cases = [];
   for (const options of inputs) {

@@ -1,8 +1,85 @@
-# Public query/API automation — in progress
+# Public query/API automation — accepted locally
 
-Ticket47 on codex/query47. Initial base0a284f2; root owns final review/qualification.
-No live data, deployment, release or version changes. Plan /tmp/actualbudget47-handoff.md;
-public seams and source scope will move into the caller guide as implementation lands.
+Ticket47, branch codex/query47. Initial base0a284f2; accepted28/35/36 integration
+836918a joined before final interface work. Root owns consolidated review,
+composition with later schema versions and final qualification. No live data,
+deployment, release or version changes. Runtime read/notes/batch checkpoints are
+reviewed; final interface/workflow review and composed checks passed2026-11-10.
+
+## Root final review and acceptance
+
+Final348e6e0/9648d78 reviewed against ticket47 and existing API/data standards,
+reusing the preceding source, notes, query and atomic-batch reviews. Both caller
+findings are closed: observe server HLC before preparing an immutable intent;
+allow the largest permitted upload and recorded responses to reload from its
+durable outbox. Atomic checkpoint clock exposure is opt-in, leaving established
+response shapes unchanged. No remaining standards or scope finding. Feature-owned
+operations still belong to their feature tickets; the SDK map does not itself
+claim unfinished provider/formula functionality.
+
+Composedfe5388a build PASS without warnings. Real subprocess caller reads,
+updates, imports, loses a committed acknowledgement, replays exactly, refuses
+redirects and preserves original cancellation identity:
+`/tmp/public-api-compose-caller.log` PASS. All67 SDK methods/18 resources mapped
+to served operations and profiles: `/tmp/public-api-compose-map.log` PASS.
+Served schema/financial/error/receipt contracts:
+`/tmp/public-api-compose-contract.log` PASS. Existing register observes the
+external caller on desktop/mobile/private large-text views:
+`/tmp/public-api-compose-browser.log` PASS. Root inspected the three rendered
+views; amounts are masked in privacy mode, mobile actions remain readable, and
+desktop source amounts/rows are visible. No new product UI in this ticket.
+
+Combined companion run `/tmp/sankey-public-api-compose-native-core.log` PASS:
+2 tests,0 skipped/failures/errors (external automation and Sankey). Reused genuine
+schema23 upgrade, source query/notes/resource/type/batch and earlier financial
+recovery evidence above; no unchanged broad suite repeated. All47 criteria are
+met locally. Whole-system qualification50–53 remains open; no publication or
+production deployment.
+
+## Final scope and maintained proof
+
+[Caller guide](PUBLIC-API.md) and [complete SDK/resource map](public-api-sdk-map.json)
+cover all67 baseline SDK methods and18 declared query resources. Ten closed native
+query profiles plus existing typed feature routes provide validated remote reads;
+notes24 preserve arbitrary identities/domain aliases; atomic mixed transaction
+commands reuse existing financial writers and durable replay/history protections.
+No local engine, unrestricted SQL/JS executor, query GUI or periodic polling.
+
+| Criterion | Maintained evidence |
+| --- | --- |
+| Independent source query/Unicode/retired identity/notes/profile/types/batch | npm run test:public-api-source; original fixtures/hashes and every source quirk retained. |
+| Public financial/output/resource/protection/history/receipt/cancel guards | npm run test:public-api-http; constituent commands also join test:browser for production keep-going qualification. |
+| Genuine schema23 DB/native upgrade | npm run test:public-api-upgrade, isolated local server; source versions unchanged, current version not hardcoded. |
+| Real external caller reads/imports/updates | check-public-caller-http.mjs spawns stdlib-only Python, proves ACK lost after verified200 commit, immutable request across processes, genuine source graph/sums and original-byte manual-match import. |
+| Every SDK operation/resource mapped to served interface | check-public-api-map.mjs checks pinned source inventory/hash, every mapped method/path and discovered profile. |
+| Served schemas | contract-smoke.py validates catalog/query/notes/batch success/errors/replay/cancel plus existing contracts. Fragment/core equality and2020-12 schemas checked. |
+| Companion observes external work | NativeApiIntegrationTest.externalAutomationPreservesCompanionProjection: mixed batch+notes feed, IDs/money/manual category, cursor, no automation write or idle cache rewrite; restart. Native production unchanged. |
+| Existing web register observes caller | public-api-browser.mjs: real Python batch, source graph/balance, desktop/mobile/private display, no JS/global API error; maintained browser command. No Svelte product changes. |
+
+Focused final interface logs: /tmp/public-api-contract-smoke-first.log,
+/tmp/public-api-map-served-corrected.log, /tmp/public-caller-composed-http.log,
+/tmp/public-api-native-focused.log (1 passed,0 skipped),
+/tmp/public-api-browser-final.log. Web check0errors/0warnings and buildPASS
+/tmp/public-api-web-{check,build}.log. Existing default chunk warning retained;
+no new latency/energy claim. Initial native invocation's wrong working directory
+produced no matching test (setup failure, not a product red); corrected focused
+case passes. Initial browser privacy locator assumed an Amount column, while
+source settings show Payment/Deposit; corrected locator retains exact masking
+assertion. Source CSV camel/null mapping keys were explicitly translated to the
+native mapping schema; original source observations were not changed.
+
+Rendered evidence: actualBudget/web/test-results/public-api/{desktop,mobile,
+mobile-register-viewport,dark-large-private,dark-large-private-viewport}.png.
+Incumbent Operate system preserved. Manual PRODUCT/DESIGN read corrected an
+Impeccable context command launched from the wrong directory. Register autofixer
+reported no issues and one pre-existing mutable-Set suggestion outside this
+read-only workflow scope. Desktop/mobile/dark200% inspected; no new layout/copy
+or design artifacts required. Chromium emulated viewports, not physical phones.
+Parent performs final rendered/consolidated review.
+
+Remaining sections retain chronological checkpoint/red→green provenance. Their
+historical WIP statements describe those earlier checkpoints, not current feature
+omissions. Parent full qualification remains pending after final freeze.
 
 ## First independent query witness
 
@@ -35,7 +112,7 @@ native validation/literal behavior needs separate public assertions.
 only a missing ZIP Content-Type in the harness, corrected before route red.
 Read-only transaction query checkpoint implemented; whole47 remains incomplete.
 
-## Planned joins
+## Initial plan (historical)
 
 Closed query registry/validated typed expressions and fixed budget-scoped joins,
 exact money aggregates, split/ordering semantics, read-only POST snapshots/pages,
@@ -44,7 +121,7 @@ financial writers and original epoch/HLC/receipt/history/cancellation contracts.
 Real external Python caller reads/imports/updates budget without a local engine;
 caller guide maps existing feature routes and provider capability errors.
 
-Generic arbitrary-ID notes currently remain blocked/preserved in original Actual
+At the initial checkpoint, generic arbitrary-ID notes remained blocked/preserved in original Actual
 imports (conversion.rs explicitly reports unmatched notes). Root reserved schema24
 after banking23; standalone genuine source/public witness precedes implementation.
 No placeholder23, relabeled migration, or bank-secret projection permitted.
@@ -442,3 +519,59 @@ ordinary unlimited protection is untouched. Composed at278e51f: build PASS
 atomic refusal, graph bounds, undo/redo, original clock/receipt, portable restore,
 restart and cancellation consumer PASS `/tmp/bank-batch-compose-batch.log`.
 Final47 caller/contracts and representative workflows remain open.
+
+## Shared report named-condition correction
+
+Ticket37's genuine empty-name witness exposed inherited shared report behavior:
+query::predicate skipped any customName property, so empty/null/false/zero names
+silently removed actual filters. Actual forecast-filters.ts:52 also uses JS
+truthiness. The existing analysis truthiness helper is now shared by predicate,
+analysis and forecast preprocessing; genuine truthy names remain skipped. Raw
+ActualQL does not use report annotations and remains strict/unchanged.
+
+Eight new genuine custom spreadsheet observations use the existing reviewed
+report archive and unchanged pinned helper/AQL. Producer mode
+`generate-custom-reports-source.mjs --named [--check]` writes a separate fixture;
+all original report fixtures remain untouched. Public red
+/tmp/report-named-http-red.log reproduced four falsy failures; all eight full
+source outputs now pass /tmp/report-named-http-green.log with unchanged financial
+rows/checkpoint. Independent source check /tmp/custom-report-named-source-check.log
+and binClippy /tmp/report-named-clippy.log PASS. This is the bounded shared
+compatibility correction requested during47, not a fresh whole report audit.
+### Root shared-report correction review
+
+2026-11-10:7582a7f reviewed and composed as4844c74. The existing analysis
+JavaScript-truthiness helper now also governs ordinary report predicates and
+forecast normalization; raw ActualQL remains strict. Original source fixtures
+are unchanged; the eight supplemental marker cases use the unchanged custom
+spreadsheet oracle. No remaining finding in this correction.
+
+Combined build PASS `/tmp/report-named-root-build.log`; all eight exact public
+outputs and unchanged ledger/checkpoint PASS `/tmp/report-named-root-http.log`;
+extended source forecast/cache/opt-in/companion/bounds consumer PASS
+`/tmp/report-named-root-forecast.log`. Whole47 acceptance remains pending final
+caller/contracts/workflow evidence.
+
+
+Final proof/wiring notes: public resource normalization now changes only top-level
+condition/action field aliases; nested values/options/metadata field/type keys
+remain exact. Structured source JSON text decoding is limited to documented
+columns. Public22+24 remain green /tmp/public-api-{resource,types}-proof-final.log.
+Caller redirects are refused without changing captured method/origin/body; the
+real subprocess witness proves zero redirect follow-up, retained attempted state,
+explicit cancel/fence and no added purchase (/tmp/public-caller-final.log).
+Known committed/canceled states are not downgraded by another attempted delivery.
+
+Maintained commands resolve all paths; source and isolated-upgrade tasks join
+release CI, HTTP consumers and register workflow join production test:browser.
+Shared-source note tests accept ready/already-activated stages while still
+cloning before mutation and comparing original bytes/financial state; two runs
+against one disposable server PASS /tmp/public-api-note-template-reuse.log.
+Isolated genuine23→current task PASS /tmp/public-api-upgrade-maintained.log.
+Final formatter/py_compile checks PASS /tmp/public-api-final-format.log; no
+worker-wide Rust/native/container repetition. Later schema25 composition is root
+owned; current-version assertions are not hardcoded24 and genuine fixtures stay23.
+
+### Caller review corrections
+
+The future-clock public regression failed before correction (`/tmp/public-caller-clock-red.log`): an existing edit one minute ahead defeated a fresh caller intent. Checkpoint now optionally returns global `edit_clock` atomically with snapshot/epoch; default response stays unchanged. Caller preparation observes it once, checks five-minute skew/counter bounds, and retains that exact clock through delivery/replay. The focused real caller consumer passes (`/tmp/public-caller-clock-green.log`), including the future-clock update and immutable replay. It also round-trips a maximum-upload saved state with both response records beyond the former 24MiB reload limit; derived saved-state capacity preserves unchanged upload/network limits. No source fixtures changed.

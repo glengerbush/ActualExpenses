@@ -759,6 +759,69 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun externalAutomationPreservesCompanionProjection() {
+        Server().use { server ->
+            val root = "/budgets/${server.budget}"
+            val category = UUID.randomUUID().toString()
+            server.post("$root/categories", """{"id":"$category","name":"Manual category","is_income":false}""")
+            val store = MemoryStore()
+            val real = BudgetHttpTransport()
+            val entities = mutableSetOf<String>()
+            val requests = mutableListOf<Pair<String, String>>()
+            val transport = HttpTransport { url, method, headers, body ->
+                requests += method to url
+                val response = real.request(url, method, headers, body)
+                if (url.contains("/changes?") && response.status == 200) {
+                    JsonParser.parseString(response.body.toString(Charsets.UTF_8)).asJsonObject
+                        .getAsJsonArray("data").forEach { entities += it.asJsonObject["entity"].asString }
+                }
+                response
+            }
+            val app = ApiExpenseService(store, transport = transport)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            val original = app.saveExpense(ExpenseDraft("12.34", categoryId = category, notes = "Manual entry"))
+            val removed = app.saveExpense(ExpenseDraft("1.00", notes = "Removed externally"))
+            app.refresh()
+            val cursor = JsonParser.parseString(store.raw).asJsonObject["checkpoint"].asString
+            fun snapshot() = server.get("$root/checkpoint").getAsJsonObject("data")["snapshot"].asString
+            server.post("$root/notes/commands", """{"id":"remote:annotation","note":"External API note","snapshot":"${snapshot()}"}""", 200)
+            val added = UUID.randomUUID().toString()
+            val result = server.post("$root/transactions/batch", """{"snapshot":"${snapshot()}","max_graph_members":2,"operations":[{"action":"create","transaction":{"id":"$added","account_id":"${server.account}","amount":-333,"date":"2026-11-09","notes":"External purchase","cleared":true}},{"action":"update","id":"$original","fields":{"amount":-1300,"notes":"External correction"}},{"action":"delete","id":"$removed"}]}""", 200)
+            assertEquals(3, result["operation_count"].asInt)
+            requests.clear()
+            app.refresh()
+            assertNull(app.state().error)
+            assertTrue(app.state().online)
+            assertFalse(app.state().syncBlocked)
+            assertEquals(0, app.state().pendingCount)
+            assertEquals(setOf(original, added), app.state().expenses.map { it.id }.toSet())
+            val corrected = app.state().expenses.single { it.id == original }
+            assertEquals(1300L, corrected.amountMinor)
+            assertEquals("External correction", corrected.notes)
+            assertEquals(category, corrected.categoryId, "Unedited manual category survives external updates")
+            val incoming = app.state().expenses.single { it.id == added }
+            assertEquals(333L, incoming.amountMinor)
+            assertEquals("External purchase", incoming.notes)
+            assertNull(incoming.categoryId, "Plain API batches never infer native categories")
+            assertTrue(entities.containsAll(setOf("notes", "transactions")), entities.toString())
+            assertTrue(requests.all { it.first == "GET" }, "Refresh observes external work without automation writes")
+            val next = JsonParser.parseString(store.raw).asJsonObject["checkpoint"].asString
+            assertNotEquals(cursor, next)
+            assertEquals(snapshot(), next)
+            val writes = store.writes
+            app.refresh()
+            assertEquals(writes, store.writes, "Unchanged foreign events do not rewrite the cache")
+            val restarted = ApiExpenseService(store, transport = transport)
+            restarted.refresh()
+            assertNull(restarted.state().error)
+            assertEquals(setOf(original, added), restarted.state().expenses.map { it.id }.toSet())
+            assertEquals(2, server.get("$root/transactions").getAsJsonArray("data").size())
+        }
+    }
+
+    @Test
     fun `planning changes advance native checkpoint without losing expenses`() {
         Server().use { server ->
             val base = "/budgets/${server.budget}"
@@ -2537,6 +2600,63 @@ class NativeApiIntegrationTest {
             assertTrue(
                 server
                     .post("$root/reports/budget-analysis", query.toString(), 200)
+                    .getAsJsonObject("cache")["hit"]
+                    .asBoolean
+            )
+        }
+    }
+
+    @Test
+    fun `sankey preserves source flows and companion state over plain HTTP`() {
+        Server().use { server ->
+            val fixture = Path.of("../../actualBudget/tests/fixtures/sankey-envelope-source-26.10")
+            val source =
+                JsonParser.parseString(Files.readString(Path.of("$fixture.json"))).asJsonObject
+            val stage = server.upload(Files.readAllBytes(Path.of("$fixture.zip")))
+            if (stage["status"].asString == "ready")
+                server.post("/imports/${stage["id"].asString}/activate", "{}")
+            val root = "/budgets/${stage["budget_id"].asString}"
+            val case = source.getAsJsonArray("cases")[0].asJsonObject
+            val ids = source.getAsJsonObject("ids")
+            val account = ids["checking"].asString
+            val before = server.get("$root/companion?account_id=$account")
+            val query =
+                JsonObject().apply {
+                    addProperty("version", 1)
+                    addProperty("as_of", "2026-11-09")
+                    add("options", case["options"])
+                }
+            val projection = server.post("$root/reports/sankey", query.toString(), 200)
+            assertTrue(projection["recorded"].asBoolean)
+            assertEquals("envelope", projection["method"].asString)
+            assertEquals(case["result"], projection["result"])
+            assertEquals(case["baseGraph"], projection["base_graph"])
+            val link =
+                JsonObject().apply {
+                    add("source", ids["expenses"])
+                    add("target", ids["food"])
+                }
+            val body =
+                JsonObject().apply {
+                    add("query", query)
+                    add("snapshot", projection["snapshot"])
+                    add("link", link)
+                    addProperty("limit", 2)
+                }
+            val detail = server.post("$root/reports/sankey/drilldown", body.toString(), 200)
+            val group =
+                case
+                    .getAsJsonArray("baseGraph")
+                    .first { it.asJsonObject["key"] == ids["expenses"] }
+                    .asJsonObject
+            val expected =
+                group.getAsJsonArray("to").first { it.asJsonArray[0] == ids["food"] }.asJsonArray[1]
+            assertEquals(expected, detail["total_amount"])
+            assertTrue(detail["has_more"].asBoolean)
+            assertEquals(before, server.get("$root/companion?account_id=$account"))
+            assertTrue(
+                server
+                    .post("$root/reports/sankey", query.toString(), 200)
                     .getAsJsonObject("cache")["hit"]
                     .asBoolean
             )

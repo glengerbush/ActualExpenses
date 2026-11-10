@@ -95,3 +95,9 @@ Other six components' recorded checks and shared report/forecast regressions
 reused. No screen-reader/device/full conformance claim;51 owns those final
 checks and volume/resource qualification, including existing build chunk warning.
 Feature review closed; main acceptance and whole-system qualification pending.
+
+### Local acceptance
+
+Ticket36 accepted on local main836918a after the documented source14+large-history,
+widget/CSV, public API, browser, native24 and root UI review. No remaining feature
+findings; final whole-system qualification50–53 remains open. No push or deployment.

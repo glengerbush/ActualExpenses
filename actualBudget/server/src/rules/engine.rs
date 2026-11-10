@@ -153,6 +153,11 @@ impl Runner {
         stored: bool,
     ) -> Result<(Value, Vec<String>), Error> {
         let mut row = input.clone();
+        if let Some(id) = input["payee_id"].as_str()
+            && let Some(name) = super::expressions::payee_name(db, b, id)?
+        {
+            row["payee_name"] = json!(name);
+        }
         let mut expressions = None;
         let mut matched = vec![];
         let account_off = if let Some(id) = input["account_id"].as_str() {

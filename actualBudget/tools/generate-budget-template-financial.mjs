@@ -37,8 +37,11 @@ const matrix=[
  {name:'kwd-minor-units',notes:{A:'#template 72.99',B:'#template 12.50'},currency:'KWD'},
  {name:'tracking-income-category',methods:['tracking'],notes:{Salary:'#template 2000',A:'#template-1 100'}},
 ];
+const expressions=process.argv.includes('--expressions');
+if(expressions)matrix.splice(0,matrix.length,...matrix.filter(c=>c.schedule));
 const directory=await mkdtemp(tmpdir()+'/budget-template-financial-'),check=process.argv.includes('--check');
-const root=new URL('../tests/fixtures/budget-template-financial/',import.meta.url);
+const stem=expressions?'budget-template-expressions':'budget-template-financial';
+const root=new URL('../tests/fixtures/'+stem+'/',import.meta.url);
 const output={oracle:'@actual-app/api@26.10.0',source_commit:'2bebdbaae0b701120a8cad9d56aafd64fa04c577',clock:'2026-11-09T12:00:00Z',cases:[]};
 const archives=[];
 try{
@@ -71,6 +74,16 @@ try{
    for(const [key,note] of Object.entries(cfg.notes))await send('notes-save',{id:ids[key],note});
    for(const key of cfg.hidden??[])await api.updateCategory(ids[key],{name:key,hidden:true});
   });
+  if(expressions){
+   const schedule=(await api.aqlQuery(api.q('schedules').filter({id:ids.Rent}).select('*'))).data[0];
+   const rule=await send('rule-get',{id:schedule.rule});
+   const saved=await send('rule-update',{...rule,actions:[...rule.actions,
+    {op:'set-split-amount',value:null,options:{method:'formula',splitIndex:1,formula:'=parent_amount/200'}},
+    {op:'set',field:'category',value:ids.A,options:{splitIndex:1}},
+    {op:'set-split-amount',value:null,options:{method:'remainder',splitIndex:2}},
+    {op:'set',field:'category',value:ids.B,options:{splitIndex:2}}
+   ]});assert.ok(!saved?.error,JSON.stringify(saved));
+  }
   await send('budget/store-note-templates');
   const label=id=>Object.entries(ids).find(([,value])=>value===id)?.[0]??id;
   const normalized=value=>Array.isArray(value)?value.map(normalized):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).map(([k,v])=>[label(k),normalized(v)])):typeof value==='string'?label(value):value;
@@ -113,7 +126,7 @@ try{
   }
   output.cases.push({name,method,month,configuration:cfg,ids,category_order,templates,seed,ledger:sourceLedger,projections,steps,archive:{filename,sha256:createHash('sha256').update(bytes).digest('hex')}});
  }
- const file=new URL('../tests/fixtures/budget-template-financial.json',import.meta.url);
+ const file=new URL('../tests/fixtures/'+stem+'.json',import.meta.url);
  if(check){const original=JSON.parse(await readFile(file,'utf8'));const stable=v=>({...v,cases:v.cases.map(({ids,...record})=>record)});assert.deepEqual(stable(output),stable(original));}
  else{await mkdir(root,{recursive:true});for(const [path,bytes] of archives)await writeFile(path,bytes,{flag:'wx'});await writeFile(file,JSON.stringify(output,null,2)+'\n',{flag:'wx'});}
  console.log(`PASS ${output.cases.length} independent budget-template financial cases; original ledgers and notes retained`);

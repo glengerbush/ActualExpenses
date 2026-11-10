@@ -1107,6 +1107,13 @@ fn automatic_entry_protection_matches_the_executed_desktop_helper() {
 }
 #[test]
 fn automatic_entry_is_one_atomic_owned_action_with_manual_values_and_exact_replay() {
+    check_automatic_entry(false);
+}
+#[test]
+fn calculated_entry_preserves_manual_values_exact_receipt_and_history() {
+    check_automatic_entry(true);
+}
+fn check_automatic_entry(calculated: bool) {
     let (s, root) = setup();
     for (id, name) in [(E, "Food"), (F, "Travel")] {
         assert_eq!(
@@ -1119,7 +1126,17 @@ fn automatic_entry_is_one_atomic_owned_action_with_manual_values_and_exact_repla
             201
         );
     }
-    let rule = json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"amount","op":"lt","value":0}],"actions":[{"op":"set","field":"category","value":E},{"op":"set","field":"amount","value":-777},{"op":"set","field":"date","value":"2025-01-01"},{"op":"set","field":"cleared","value":true},{"op":"append-notes","value":" X"}],"snapshot":cursor(&s,&root)});
+    let mut rule = json!({"id":R,"stage":null,"conditionsOp":"and","conditions":[{"field":"amount","op":"lt","value":0}],"actions":[{"op":"set","field":"category","value":E},{"op":"set","field":"amount","value":-777},{"op":"set","field":"date","value":"2025-01-01"},{"op":"set","field":"cleared","value":true},{"op":"append-notes","value":" X"}],"snapshot":cursor(&s,&root)});
+    if calculated {
+        rule["actions"][1] =
+            json!({"op":"set","field":"amount","value":null,"options":{"formula":"=-7.77"}});
+        rule["actions"][2] =
+            json!({"op":"set","field":"date","value":null,"options":{"template":"2025-01-01"}});
+        rule["actions"][3] =
+            json!({"op":"set","field":"cleared","value":null,"options":{"formula":"=TRUE()"}});
+        rule["actions"][4] =
+            json!({"op":"set","field":"notes","value":null,"options":{"template":"{{notes}} X"}});
+    }
     assert_eq!(s.post(&format!("{root}/rules"), "rule", rule).status(), 201);
     let transaction = json!({"id":E,"account_id":A,"amount":-100,"date":"2026-01-01","notes":"Manual","category_id":F});
     let mut body = transaction;

@@ -205,9 +205,20 @@ fn assert_source_ledger(server: &Server, root: &str, case: &Value) -> Value {
     ledger
 }
 fn run_case(name: &str) {
-    let oracle: Value = serde_json::from_str(include_str!(
-        "../../tests/fixtures/budget-template-financial.json"
-    ))
+    run_fixture_case(name, false);
+}
+#[test]
+fn calculated_schedule_templates_preserve_envelope_and_tracking_finances() {
+    for method in ["envelope", "tracking"] {
+        run_fixture_case(&format!("{method}-schedule-demand-adjustments"), true);
+    }
+}
+fn run_fixture_case(name: &str, expressions: bool) {
+    let oracle: Value = serde_json::from_str(if expressions {
+        include_str!("../../tests/fixtures/budget-template-expressions.json")
+    } else {
+        include_str!("../../tests/fixtures/budget-template-financial.json")
+    })
     .unwrap();
     let case = oracle["cases"]
         .as_array()
@@ -220,7 +231,11 @@ fn run_case(name: &str) {
         "financial fixture requires source order"
     );
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../tests/fixtures/budget-template-financial")
+        .join(if expressions {
+            "../tests/fixtures/budget-template-expressions"
+        } else {
+            "../tests/fixtures/budget-template-financial"
+        })
         .join(case["archive"]["filename"].as_str().unwrap());
     let bytes = std::fs::read(path).unwrap();
     assert_eq!(

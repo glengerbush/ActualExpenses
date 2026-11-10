@@ -1,0 +1,437 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "cases": [
+    {
+      "name": "envelope-schedule-demand-adjustments",
+      "method": "envelope",
+      "month": "2026-11",
+      "configuration": {
+        "name": "schedule-demand-adjustments",
+        "notes": {
+          "A": "#template schedule Rent",
+          "B": "#template schedule full Rent [increase 10%]",
+          "C": "#template schedule Rent [decrease 5.25]"
+        },
+        "schedule": true
+      },
+      "ids": {
+        "Checking": "5479496f-baf4-489e-a1b7-39ffbe8fb773",
+        "Plans": "39d3b556-f09a-4430-ac91-1093e2aa3100",
+        "A": "49300b22-3738-437e-8dfa-70527877019d",
+        "B": "f4526dce-bc5f-4a5e-9164-ad3f5c3d0728",
+        "C": "926633a0-2760-494a-b573-58d1e38157b2",
+        "Salary": "d69a3cad-b778-4eed-914d-4abc93d3f299",
+        "Rent": "23240000-0000-4000-8000-000000000999"
+      },
+      "category_order": [
+        "C",
+        "B",
+        "A",
+        "Salary",
+        "3c1699a5-522a-435e-86dc-93d900a14f0e",
+        "506e8d9d-7ed0-4397-84e4-07a9185dc6b2"
+      ],
+      "templates": {
+        "A": [
+          {
+            "type": "schedule",
+            "name": "Rent",
+            "priority": 0,
+            "directive": "template",
+            "full": null
+          }
+        ],
+        "B": [
+          {
+            "type": "schedule",
+            "name": "Rent",
+            "priority": 0,
+            "directive": "template",
+            "full": true,
+            "adjustment": 10,
+            "adjustmentType": "percent"
+          }
+        ],
+        "C": [
+          {
+            "type": "schedule",
+            "name": "Rent",
+            "priority": 0,
+            "directive": "template",
+            "full": null,
+            "adjustment": -5.25,
+            "adjustmentType": "fixed"
+          }
+        ],
+        "Salary": []
+      },
+      "seed": {
+        "categories": {
+          "A": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 5500
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 1000
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": null,
+            "goal": null,
+            "long-goal": null,
+            "leftover": null
+          }
+        },
+        "available": 183001
+      },
+      "ledger": [
+        {
+          "id": "23240000-0000-4000-8000-000000000001",
+          "date": "2026-11-01",
+          "amount": 100001,
+          "category": "Salary",
+          "notes": "Seed 0",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000002",
+          "date": "2026-09-03",
+          "amount": -2000,
+          "category": "A",
+          "notes": "Seed 1",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000003",
+          "date": "2026-10-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 2",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000004",
+          "date": "2026-10-03",
+          "amount": -6000,
+          "category": "A",
+          "notes": "Seed 3",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000005",
+          "date": "2026-11-03",
+          "amount": -1500,
+          "category": "A",
+          "notes": "Seed 4",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000006",
+          "date": "2026-10-04",
+          "amount": -1000,
+          "category": "B",
+          "notes": "Seed 5",
+          "cleared": true,
+          "reconciled": false
+        }
+      ],
+      "projections": {
+        "A": {
+          "budgeted": 6172,
+          "perTemplate": [
+            6172
+          ]
+        },
+        "B": {
+          "budgeted": 5790,
+          "perTemplate": [
+            5790
+          ]
+        },
+        "C": {
+          "budgeted": 11820,
+          "perTemplate": [
+            11820
+          ]
+        }
+      },
+      "steps": [
+        {
+          "action": {
+            "action": "overwrite"
+          },
+          "notification": {
+            "type": "message",
+            "message": "templates-applied",
+            "count": 3
+          },
+          "result": {
+            "categories": {
+              "A": {
+                "budget": 6172,
+                "goal": 6172,
+                "long-goal": null,
+                "leftover": 11672
+              },
+              "B": {
+                "budget": 5790,
+                "goal": 5790,
+                "long-goal": null,
+                "leftover": 6790
+              },
+              "C": {
+                "budget": 11820,
+                "goal": 11820,
+                "long-goal": null,
+                "leftover": 11820
+              },
+              "Salary": {
+                "budget": null,
+                "goal": null,
+                "long-goal": null,
+                "leftover": null
+              }
+            },
+            "available": 159219
+          }
+        }
+      ],
+      "archive": {
+        "filename": "envelope-schedule-demand-adjustments.zip",
+        "sha256": "913355c2e5ab90df55a1908ba99e208768475604e0c5e3786ad4138f1e2bc8a6"
+      }
+    },
+    {
+      "name": "tracking-schedule-demand-adjustments",
+      "method": "tracking",
+      "month": "2026-11",
+      "configuration": {
+        "name": "schedule-demand-adjustments",
+        "notes": {
+          "A": "#template schedule Rent",
+          "B": "#template schedule full Rent [increase 10%]",
+          "C": "#template schedule Rent [decrease 5.25]"
+        },
+        "schedule": true
+      },
+      "ids": {
+        "Checking": "19b01557-46a2-4be1-a22a-f125123911f4",
+        "Plans": "bea66a5b-7d2d-4018-ab9e-b3b0fd7e8d95",
+        "A": "46bd9bb8-c158-4a81-bd8a-a4b24fc0f1cc",
+        "B": "1b7a88bc-a11a-4af3-a61f-5273c79b5b5d",
+        "C": "4f0cd5c3-e1f7-42ce-890e-ed1a33333840",
+        "Salary": "82242f67-be13-4dbb-9b1e-05ce5835201e",
+        "Rent": "23240000-0000-4000-8000-000000000999"
+      },
+      "category_order": [
+        "C",
+        "B",
+        "A",
+        "Salary",
+        "3c1699a5-522a-435e-86dc-93d900a14f0e",
+        "506e8d9d-7ed0-4397-84e4-07a9185dc6b2"
+      ],
+      "templates": {
+        "A": [
+          {
+            "type": "schedule",
+            "name": "Rent",
+            "priority": 0,
+            "directive": "template",
+            "full": null
+          }
+        ],
+        "B": [
+          {
+            "type": "schedule",
+            "name": "Rent",
+            "priority": 0,
+            "directive": "template",
+            "full": true,
+            "adjustment": 10,
+            "adjustmentType": "percent"
+          }
+        ],
+        "C": [
+          {
+            "type": "schedule",
+            "name": "Rent",
+            "priority": 0,
+            "directive": "template",
+            "full": null,
+            "adjustment": -5.25,
+            "adjustmentType": "fixed"
+          }
+        ],
+        "Salary": []
+      },
+      "seed": {
+        "categories": {
+          "A": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 2500
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": -100001
+          }
+        },
+        "available": 0
+      },
+      "ledger": [
+        {
+          "id": "23240000-0000-4000-8000-000000000001",
+          "date": "2026-11-01",
+          "amount": 100001,
+          "category": "Salary",
+          "notes": "Seed 0",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000002",
+          "date": "2026-09-03",
+          "amount": -2000,
+          "category": "A",
+          "notes": "Seed 1",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000003",
+          "date": "2026-10-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 2",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000004",
+          "date": "2026-10-03",
+          "amount": -6000,
+          "category": "A",
+          "notes": "Seed 3",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000005",
+          "date": "2026-11-03",
+          "amount": -1500,
+          "category": "A",
+          "notes": "Seed 4",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "23240000-0000-4000-8000-000000000006",
+          "date": "2026-10-04",
+          "amount": -1000,
+          "category": "B",
+          "notes": "Seed 5",
+          "cleared": true,
+          "reconciled": false
+        }
+      ],
+      "projections": {
+        "A": {
+          "budgeted": 2172,
+          "perTemplate": [
+            2172
+          ]
+        },
+        "B": {
+          "budgeted": 6790,
+          "perTemplate": [
+            6790
+          ]
+        },
+        "C": {
+          "budgeted": 11820,
+          "perTemplate": [
+            11820
+          ]
+        }
+      },
+      "steps": [
+        {
+          "action": {
+            "action": "overwrite"
+          },
+          "notification": {
+            "type": "message",
+            "message": "templates-applied",
+            "count": 3
+          },
+          "result": {
+            "categories": {
+              "A": {
+                "budget": 2172,
+                "goal": 2172,
+                "long-goal": null,
+                "leftover": 4672
+              },
+              "B": {
+                "budget": 6790,
+                "goal": 6790,
+                "long-goal": null,
+                "leftover": 6790
+              },
+              "C": {
+                "budget": 11820,
+                "goal": 11820,
+                "long-goal": null,
+                "leftover": 11820
+              },
+              "Salary": {
+                "budget": 0,
+                "goal": null,
+                "long-goal": null,
+                "leftover": -100001
+              }
+            },
+            "available": -20782
+          }
+        }
+      ],
+      "archive": {
+        "filename": "tracking-schedule-demand-adjustments.zip",
+        "sha256": "fcc1c31c74d06cd6b13f005ce2806f1155ec6ff1716099415e9af0af6fbe4042"
+      }
+    }
+  ]
+}

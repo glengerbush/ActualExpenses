@@ -348,16 +348,6 @@ fn plan_input(
         // the rule transaction. Only already-persisted payees enrich rule
         // context; a lazy payee is not visible to templates until saved.
         let display_payee = transaction.as_object_mut().unwrap().remove("payee_name");
-        if let Some(payee) = transaction["payee_id"].as_str()
-            && existing_payees.contains(payee)
-        {
-            let name: String = db.query_row(
-                "SELECT name FROM payees WHERE budget_id=?1 AND id=?2",
-                params![b, payee],
-                |r| r.get(0),
-            )?;
-            transaction["payee_name"] = json!(name);
-        }
         let (mut transaction, matched) = runner.evaluate(db, b, &transaction)?;
         if let Some(name) = display_payee {
             transaction

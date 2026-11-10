@@ -27,6 +27,7 @@ for(const today of ['2026-11-09','2026-02-15','2028-02-15','2026-12-31'])for(con
 for(const value of [-101,101,{num1:-100,num2:-101},{num1:100,num2:101},{num1:9007199254740990,num2:9007199254740991},{num1:-9007199254740990,num2:-9007199254740991}]){const amount=helpers.getScheduledAmount(value);assert.ok(Number.isSafeInteger(amount));result.amounts.push({value,amount});}
 try{
  const engine=await api.init({dataDir:root});
+ const expressions=process.argv.includes('--expressions');
  const scenarios=[
   {name:'linked category and staged notes',amount:-1234,actions:[{op:'set',field:'category',value:'CATEGORY'},{op:'set',field:'notes',value:'Bill'}],ordinary:true},
   {name:'income approximate amount',amount:2345,amountOp:'isapprox',actions:[]},
@@ -37,6 +38,14 @@ try{
   {name:'post today bypasses own future condition',amount:-90,date:'2027-01-05',today:true,actions:[{op:'set',field:'notes',value:'Approved early'}]},
   {name:'rule suppresses scheduled transaction',amount:-55,actions:[{op:'delete-transaction',value:null}]},
  ];
+ if(expressions)for(const c of scenarios){
+  c.actions=c.actions.map(action=>action.op==='set-split-amount'&&action.options.method==='fixed-amount'
+   ?{...action,value:null,options:{...action.options,method:'formula',formula:'=parent_amount/100*0.4'}}
+   :action.op==='set'&&action.field==='notes'
+    ?{...action,value:null,options:{template:'{{payee_name}} · {{amount}}'}}:action);
+  if(!c.actions.length)c.actions.push({op:'set',field:'amount',value:null,options:{formula:'=amount/100+1'}});
+  if(c.ordinary)c.ordinary_actions=[{op:'set',field:'notes',value:null,options:{template:'{{notes}} / checked'}}];
+ }
  for(const[index,c]of scenarios.entries()){
   const ids={};await api.runImport('Schedule financial '+index,async()=>{ids.ACCOUNT=await api.createAccount({name:'Cash'},0);ids.PEER=await api.createAccount({name:'Savings'},0);ids.PAYEE=await api.createPayee({name:'Bill'});const group=await api.createCategoryGroup({name:'Expenses',is_income:false});ids.CATEGORY=await api.createCategory({name:'Utilities',group_id:group});});ids.TRANSFER=(await api.getPayees()).find(p=>p.transfer_acct===ids.PEER).id;ids.BACK_TRANSFER=(await api.getPayees()).find(p=>p.transfer_acct===ids.ACCOUNT).id;
   const resolve=value=>JSON.parse(JSON.stringify(value,(key,v)=>typeof v==='string'&&ids[v]?ids[v]:v));
@@ -46,7 +55,7 @@ try{
   const row=(await api.aqlQuery(api.q('schedules').filter({id:schedule}).select('*'))).data[0];assert.ok(row.rule);
   const rule=await engine.send('rule-get',{id:row.rule});assert.ok(rule);
   const saved=await engine.send('rule-update',{...rule,actions:[...rule.actions,...resolve(c.actions)]});assert.ok(!saved?.error,JSON.stringify(saved));
-  if(c.ordinary){const saved=await engine.send('rule-add',{stage:'post',conditionsOp:'and',conditions:[{field:'category',op:'is',value:ids.CATEGORY}],actions:[{op:'append-notes',value:' / checked'}]});assert.ok(!saved.error);}
+  if(c.ordinary){const saved=await engine.send('rule-add',{stage:'post',conditionsOp:'and',conditions:[{field:'category',op:'is',value:ids.CATEGORY}],actions:c.ordinary_actions??[{op:'append-notes',value:' / checked'}]});assert.ok(!saved.error);}
   await engine.send('schedule/post-transaction',{id:schedule,today:c.today??false});
   let lists;for(let attempt=0;attempt<40;attempt++){lists=await Promise.all([api.getTransactions(ids.ACCOUNT),api.getTransactions(ids.PEER)]);if(c.name.startsWith('rule suppresses')||lists[0].length&&(c.transfer||c.name.includes('split transfer')?lists[1].length:true))break;await new Promise(r=>setTimeout(r,25));}
   for(const list of lists)list.sort((a,b)=>a.date.localeCompare(b.date)||a.amount-b.amount||String(a.notes??'').localeCompare(String(b.notes??'')));
@@ -58,6 +67,6 @@ try{
   const ledger=flat.map(({key,row,parent})=>({key,parent,amount:row.amount,date:row.date,notes:row.notes??'',cleared:!!row.cleared,payee:row.payee==null?null:assertReference(row.payee),category:row.category==null?null:assertReference(row.category),schedule:row.schedule??null,peer:row.transfer_id?labels.get(row.transfer_id)??'MISSING':null}));
   result.cases.push({...c,schedule,conditions:conditions.map(cond=>({...cond,value:name(cond.value)??cond.value})),ledger,balances:await Promise.all([api.getAccountBalance(ids.ACCOUNT),api.getAccountBalance(ids.PEER)])});
  }
- const file=new URL('../tests/fixtures/schedule-financial.json',import.meta.url);if(process.argv.includes('--check'))assert.deepEqual(result,JSON.parse(await readFile(file,'utf8')));else await writeFile(file,JSON.stringify(result,null,2)+'\n');
+ const file=new URL('../tests/fixtures/'+(expressions?'schedule-expressions-financial.json':'schedule-financial.json'),import.meta.url);if(process.argv.includes('--check'))assert.deepEqual(result,JSON.parse(await readFile(file,'utf8')));else await writeFile(file,JSON.stringify(result,null,2)+'\n',{flag:'wx'});
  console.log(`PASS ${result.horizons.length} horizon +${result.amounts.length} amount source helpers and ${result.cases.length} persisted financial cases`);
 }finally{await api.shutdown();await rm(root,{recursive:true,force:true});globalThis.Date=NativeDate;}

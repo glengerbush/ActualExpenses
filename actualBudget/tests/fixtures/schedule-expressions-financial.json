@@ -1,0 +1,795 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "horizons": [
+    {
+      "today": "2026-11-09",
+      "value": "1",
+      "days": 1
+    },
+    {
+      "today": "2026-11-09",
+      "value": "7",
+      "days": 7
+    },
+    {
+      "today": "2026-11-09",
+      "value": "14",
+      "days": 14
+    },
+    {
+      "today": "2026-11-09",
+      "value": "oneMonth",
+      "days": 30
+    },
+    {
+      "today": "2026-11-09",
+      "value": "currentMonth",
+      "days": 21
+    },
+    {
+      "today": "2026-11-09",
+      "value": "2-day",
+      "days": 2
+    },
+    {
+      "today": "2026-11-09",
+      "value": "5-week",
+      "days": 35
+    },
+    {
+      "today": "2026-11-09",
+      "value": "3-month",
+      "days": 93
+    },
+    {
+      "today": "2026-11-09",
+      "value": "1-year",
+      "days": 366
+    },
+    {
+      "today": "2026-02-15",
+      "value": "1",
+      "days": 1
+    },
+    {
+      "today": "2026-02-15",
+      "value": "7",
+      "days": 7
+    },
+    {
+      "today": "2026-02-15",
+      "value": "14",
+      "days": 14
+    },
+    {
+      "today": "2026-02-15",
+      "value": "oneMonth",
+      "days": 28
+    },
+    {
+      "today": "2026-02-15",
+      "value": "currentMonth",
+      "days": 13
+    },
+    {
+      "today": "2026-02-15",
+      "value": "2-day",
+      "days": 2
+    },
+    {
+      "today": "2026-02-15",
+      "value": "5-week",
+      "days": 35
+    },
+    {
+      "today": "2026-02-15",
+      "value": "3-month",
+      "days": 90
+    },
+    {
+      "today": "2026-02-15",
+      "value": "1-year",
+      "days": 366
+    },
+    {
+      "today": "2028-02-15",
+      "value": "1",
+      "days": 1
+    },
+    {
+      "today": "2028-02-15",
+      "value": "7",
+      "days": 7
+    },
+    {
+      "today": "2028-02-15",
+      "value": "14",
+      "days": 14
+    },
+    {
+      "today": "2028-02-15",
+      "value": "oneMonth",
+      "days": 29
+    },
+    {
+      "today": "2028-02-15",
+      "value": "currentMonth",
+      "days": 14
+    },
+    {
+      "today": "2028-02-15",
+      "value": "2-day",
+      "days": 2
+    },
+    {
+      "today": "2028-02-15",
+      "value": "5-week",
+      "days": 35
+    },
+    {
+      "today": "2028-02-15",
+      "value": "3-month",
+      "days": 91
+    },
+    {
+      "today": "2028-02-15",
+      "value": "1-year",
+      "days": 367
+    },
+    {
+      "today": "2026-12-31",
+      "value": "1",
+      "days": 1
+    },
+    {
+      "today": "2026-12-31",
+      "value": "7",
+      "days": 7
+    },
+    {
+      "today": "2026-12-31",
+      "value": "14",
+      "days": 14
+    },
+    {
+      "today": "2026-12-31",
+      "value": "oneMonth",
+      "days": 31
+    },
+    {
+      "today": "2026-12-31",
+      "value": "currentMonth",
+      "days": 0
+    },
+    {
+      "today": "2026-12-31",
+      "value": "2-day",
+      "days": 2
+    },
+    {
+      "today": "2026-12-31",
+      "value": "5-week",
+      "days": 35
+    },
+    {
+      "today": "2026-12-31",
+      "value": "3-month",
+      "days": 91
+    },
+    {
+      "today": "2026-12-31",
+      "value": "1-year",
+      "days": 366
+    }
+  ],
+  "amounts": [
+    {
+      "value": -101,
+      "amount": -101
+    },
+    {
+      "value": 101,
+      "amount": 101
+    },
+    {
+      "value": {
+        "num1": -100,
+        "num2": -101
+      },
+      "amount": -100
+    },
+    {
+      "value": {
+        "num1": 100,
+        "num2": 101
+      },
+      "amount": 101
+    },
+    {
+      "value": {
+        "num1": 9007199254740990,
+        "num2": 9007199254740991
+      },
+      "amount": 9007199254740990
+    },
+    {
+      "value": {
+        "num1": -9007199254740990,
+        "num2": -9007199254740991
+      },
+      "amount": -9007199254740990
+    }
+  ],
+  "cases": [
+    {
+      "name": "linked category and staged notes",
+      "amount": -1234,
+      "actions": [
+        {
+          "op": "set",
+          "field": "category",
+          "value": "CATEGORY"
+        },
+        {
+          "op": "set",
+          "field": "notes",
+          "value": null,
+          "options": {
+            "template": "{{payee_name}} · {{amount}}"
+          }
+        }
+      ],
+      "ordinary": true,
+      "ordinary_actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": null,
+          "options": {
+            "template": "{{notes}} / checked"
+          }
+        }
+      ],
+      "schedule": "21220000-0000-4000-8001-000000000001",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "PAYEE"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": -1234
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "ledger": [
+        {
+          "key": "ACCOUNT/0",
+          "parent": null,
+          "amount": -1234,
+          "date": "2026-11-09",
+          "notes": "Bill · -1234 / checked",
+          "cleared": false,
+          "payee": "PAYEE",
+          "category": "CATEGORY",
+          "schedule": "21220000-0000-4000-8001-000000000001",
+          "peer": null
+        }
+      ],
+      "balances": [
+        -1234,
+        0
+      ]
+    },
+    {
+      "name": "income approximate amount",
+      "amount": 2345,
+      "amountOp": "isapprox",
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": null,
+          "options": {
+            "formula": "=amount/100+1"
+          }
+        }
+      ],
+      "schedule": "21220000-0000-4000-8001-000000000002",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "PAYEE"
+        },
+        {
+          "field": "amount",
+          "op": "isapprox",
+          "value": 2345
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "ledger": [
+        {
+          "key": "ACCOUNT/0",
+          "parent": null,
+          "amount": 2445,
+          "date": "2026-11-09",
+          "notes": "",
+          "cleared": false,
+          "payee": "PAYEE",
+          "category": null,
+          "schedule": "21220000-0000-4000-8001-000000000002",
+          "peer": null
+        }
+      ],
+      "balances": [
+        2445,
+        0
+      ]
+    },
+    {
+      "name": "range midpoint negative tie",
+      "amount": {
+        "num1": -100,
+        "num2": -101
+      },
+      "amountOp": "isbetween",
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": null,
+          "options": {
+            "formula": "=amount/100+1"
+          }
+        }
+      ],
+      "schedule": "21220000-0000-4000-8001-000000000003",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "PAYEE"
+        },
+        {
+          "field": "amount",
+          "op": "isbetween",
+          "value": {
+            "num1": -100,
+            "num2": -101
+          }
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "ledger": [
+        {
+          "key": "ACCOUNT/0",
+          "parent": null,
+          "amount": 0,
+          "date": "2026-11-09",
+          "notes": "",
+          "cleared": false,
+          "payee": "PAYEE",
+          "category": null,
+          "schedule": "21220000-0000-4000-8001-000000000003",
+          "peer": null
+        }
+      ],
+      "balances": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "transfer retains reciprocal schedule",
+      "amount": -876,
+      "transfer": true,
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": null,
+          "options": {
+            "template": "{{payee_name}} · {{amount}}"
+          }
+        }
+      ],
+      "schedule": "21220000-0000-4000-8001-000000000004",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "TRANSFER"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": -876
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "ledger": [
+        {
+          "key": "ACCOUNT/0",
+          "parent": null,
+          "amount": -876,
+          "date": "2026-11-09",
+          "notes": " · -876",
+          "cleared": false,
+          "payee": "TRANSFER",
+          "category": null,
+          "schedule": "21220000-0000-4000-8001-000000000004",
+          "peer": "PEER/0"
+        },
+        {
+          "key": "PEER/0",
+          "parent": null,
+          "amount": 876,
+          "date": "2026-11-09",
+          "notes": " · 876",
+          "cleared": false,
+          "payee": "BACK_TRANSFER",
+          "category": null,
+          "schedule": "21220000-0000-4000-8001-000000000004",
+          "peer": "ACCOUNT/0"
+        }
+      ],
+      "balances": [
+        -876,
+        876
+      ]
+    },
+    {
+      "name": "split linked rule",
+      "amount": -101,
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=parent_amount/100*0.4"
+          }
+        },
+        {
+          "op": "set",
+          "field": "category",
+          "value": "CATEGORY",
+          "options": {
+            "splitIndex": 1
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "schedule": "21220000-0000-4000-8001-000000000005",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "PAYEE"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": -101
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "ledger": [
+        {
+          "key": "ACCOUNT/0",
+          "parent": null,
+          "amount": -101,
+          "date": "2026-11-09",
+          "notes": "",
+          "cleared": false,
+          "payee": null,
+          "category": null,
+          "schedule": "21220000-0000-4000-8001-000000000005",
+          "peer": null
+        },
+        {
+          "key": "ACCOUNT/0/0",
+          "parent": "ACCOUNT/0",
+          "amount": -40,
+          "date": "2026-11-09",
+          "notes": "",
+          "cleared": false,
+          "payee": "PAYEE",
+          "category": "CATEGORY",
+          "schedule": null,
+          "peer": null
+        },
+        {
+          "key": "ACCOUNT/0/1",
+          "parent": "ACCOUNT/0",
+          "amount": -61,
+          "date": "2026-11-09",
+          "notes": "",
+          "cleared": false,
+          "payee": "PAYEE",
+          "category": null,
+          "schedule": null,
+          "peer": null
+        }
+      ],
+      "balances": [
+        -101,
+        0
+      ]
+    },
+    {
+      "name": "split transfer linked rule",
+      "amount": -101,
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=parent_amount/100*0.4"
+          }
+        },
+        {
+          "op": "set",
+          "field": "payee",
+          "value": "TRANSFER",
+          "options": {
+            "splitIndex": 1
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "schedule": "21220000-0000-4000-8001-000000000006",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "PAYEE"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": -101
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "ledger": [
+        {
+          "key": "ACCOUNT/0",
+          "parent": null,
+          "amount": -101,
+          "date": "2026-11-09",
+          "notes": "",
+          "cleared": false,
+          "payee": null,
+          "category": null,
+          "schedule": "21220000-0000-4000-8001-000000000006",
+          "peer": null
+        },
+        {
+          "key": "ACCOUNT/0/0",
+          "parent": "ACCOUNT/0",
+          "amount": -40,
+          "date": "2026-11-09",
+          "notes": "",
+          "cleared": false,
+          "payee": "TRANSFER",
+          "category": null,
+          "schedule": null,
+          "peer": "PEER/0"
+        },
+        {
+          "key": "ACCOUNT/0/1",
+          "parent": "ACCOUNT/0",
+          "amount": -61,
+          "date": "2026-11-09",
+          "notes": "",
+          "cleared": false,
+          "payee": "TRANSFER",
+          "category": null,
+          "schedule": null,
+          "peer": "PEER/1"
+        },
+        {
+          "key": "PEER/0",
+          "parent": null,
+          "amount": 40,
+          "date": "2026-11-09",
+          "notes": "",
+          "cleared": false,
+          "payee": "BACK_TRANSFER",
+          "category": null,
+          "schedule": null,
+          "peer": "ACCOUNT/0/0"
+        },
+        {
+          "key": "PEER/1",
+          "parent": null,
+          "amount": 61,
+          "date": "2026-11-09",
+          "notes": "",
+          "cleared": false,
+          "payee": "BACK_TRANSFER",
+          "category": null,
+          "schedule": null,
+          "peer": "ACCOUNT/0/1"
+        }
+      ],
+      "balances": [
+        -101,
+        101
+      ]
+    },
+    {
+      "name": "post today bypasses own future condition",
+      "amount": -90,
+      "date": "2027-01-05",
+      "today": true,
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": null,
+          "options": {
+            "template": "{{payee_name}} · {{amount}}"
+          }
+        }
+      ],
+      "schedule": "21220000-0000-4000-8001-000000000007",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "PAYEE"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": -90
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2027-01-05"
+        }
+      ],
+      "ledger": [
+        {
+          "key": "ACCOUNT/0",
+          "parent": null,
+          "amount": -90,
+          "date": "2026-11-09",
+          "notes": "Bill · -90",
+          "cleared": false,
+          "payee": "PAYEE",
+          "category": null,
+          "schedule": "21220000-0000-4000-8001-000000000007",
+          "peer": null
+        }
+      ],
+      "balances": [
+        -90,
+        0
+      ]
+    },
+    {
+      "name": "rule suppresses scheduled transaction",
+      "amount": -55,
+      "actions": [
+        {
+          "op": "delete-transaction",
+          "value": null
+        }
+      ],
+      "schedule": "21220000-0000-4000-8001-000000000008",
+      "conditions": [
+        {
+          "field": "account",
+          "op": "is",
+          "value": "ACCOUNT"
+        },
+        {
+          "field": "payee",
+          "op": "is",
+          "value": "PAYEE"
+        },
+        {
+          "field": "amount",
+          "op": "is",
+          "value": -55
+        },
+        {
+          "field": "date",
+          "op": "is",
+          "value": "2026-11-09"
+        }
+      ],
+      "ledger": [],
+      "balances": [
+        0,
+        0
+      ]
+    }
+  ]
+}

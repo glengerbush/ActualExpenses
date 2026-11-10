@@ -760,6 +760,47 @@ class NativeApiIntegrationTest {
     }
 
     @Test
+    fun calculatedRulesRespectManualCompanionWritesAndRefresh() {
+        Server().use { server ->
+            val root = "/budgets/${server.budget}"
+            val rule = UUID.randomUUID().toString()
+            val snapshot = server.get("$root/checkpoint").getAsJsonObject("data")["snapshot"].asString
+            server.post("$root/rules", """{"id":"$rule","stage":null,"conditionsOp":"and","conditions":[{"field":"account","op":"is","value":"${server.account}"}],"actions":[{"op":"set","field":"amount","value":null,"options":{"formula":"=amount/100-1"}},{"op":"set","field":"notes","value":null,"options":{"template":"{{notes}} / rule"}}],"snapshot":"$snapshot"}""")
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            app.chooseAccount(server.account)
+            assertTrue(app.state().payeeCategoryAssociations.isEmpty())
+            app.markOffline()
+            val expense = app.saveExpense(ExpenseDraft("4.56", notes = "Manual"))
+            val restarted = ApiExpenseService(store)
+            restarted.refresh()
+            assertTrue(restarted.state().online, restarted.state().error)
+            assertEquals(0, restarted.state().pendingCount)
+            val first = server.get("$root/transactions/$expense").getAsJsonObject("data")
+            assertEquals(-456, first["amount"].asInt)
+            assertEquals("Manual", first["notes"].asString)
+            assertTrue(first["cleared"].asBoolean)
+            val edit = restarted.beginEdit(expense)
+            restarted.saveExpense(edit.original!!.copy(notes = "Edited"), edit)
+            restarted.refresh()
+            val edited = server.get("$root/transactions/$expense").getAsJsonObject("data")
+            assertEquals(-456, edited["amount"].asInt)
+            assertEquals("Edited", edited["notes"].asString)
+            val current = server.get("$root/checkpoint").getAsJsonObject("data")["snapshot"].asString
+            server.post("$root/rules/apply", """{"snapshot":"$current","ids":["$expense"],"rule_ids":["$rule"]}""", 200)
+            restarted.refresh()
+            assertTrue(restarted.state().online, restarted.state().error)
+            val view = restarted.state().expenses.single { it.id == expense }
+            assertEquals(-556, server.get("$root/transactions/$expense").getAsJsonObject("data")["amount"].asInt)
+            assertEquals(556L, view.amountMinor)
+            assertEquals("Edited / rule", view.notes)
+            assertEquals(0, restarted.state().pendingCount)
+        }
+    }
+
+    @Test
     fun externalAutomationPreservesCompanionProjection() {
         Server().use { server ->
             val root = "/budgets/${server.budget}"

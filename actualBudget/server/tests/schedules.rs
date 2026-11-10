@@ -564,6 +564,17 @@ fn mapped(value: &Value, ids: &std::collections::BTreeMap<String, String>) -> Va
 fn linked_schedule_financial_pipeline_matches_independent_settled_source_ledger() {
     let oracle: Value =
         serde_json::from_str(include_str!("../../tests/fixtures/schedule-financial.json")).unwrap();
+    check_financial_pipeline(oracle);
+}
+#[test]
+fn calculated_schedule_actions_match_independent_settled_source_ledger() {
+    let oracle: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/schedule-expressions-financial.json"
+    ))
+    .unwrap();
+    check_financial_pipeline(oracle);
+}
+fn check_financial_pipeline(oracle: Value) {
     for case in oracle["cases"].as_array().unwrap() {
         let s = Server::start();
         setup(&s);
@@ -647,7 +658,11 @@ fn linked_schedule_financial_pipeline_matches_independent_settled_source_ledger(
             response.text().unwrap()
         );
         if case["ordinary"] == true {
-            let response=s.post(&format!("{root}/rules"),"ordinary-rule",json!({"id":"21220000-0000-4000-8000-000000000230","stage":"post","conditionsOp":"and","conditions":[{"field":"category","op":"is","value":CATEGORY}],"actions":[{"op":"append-notes","value":" / checked"}],"snapshot":checkpoint(&s)["snapshot"]}));
+            let actions = case
+                .get("ordinary_actions")
+                .cloned()
+                .unwrap_or(json!([{"op":"append-notes","value":" / checked"}]));
+            let response=s.post(&format!("{root}/rules"),"ordinary-rule",json!({"id":"21220000-0000-4000-8000-000000000230","stage":"post","conditionsOp":"and","conditions":[{"field":"category","op":"is","value":CATEGORY}],"actions":actions,"snapshot":checkpoint(&s)["snapshot"]}));
             assert_eq!(response.status(), 201);
         }
         let response = command(

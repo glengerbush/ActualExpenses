@@ -373,3 +373,55 @@ restricted to the simulation caller.42 still needs calculated Android/manual
 entry, schedule posting and schedule-template workflows, existing-child context,
 nonfinite split behavior and cumulative resource/performance qualification.
 No additional acceptance boxes closed, push or deployment.
+
+## Scheduled, manual and Android execution checkpoint
+
+Eight additional persisted schedule scenarios come from the pinned engine's
+`schedule/post-transaction` operation: calculated amount conversions, linked and
+ordinary rule stages, template notes, splits, split transfers, reciprocal schedule
+links, early posting and suppression. Source expectations reproduce with
+`generate-schedule-financial.mjs --expressions --check`; prior literal fixtures
+are unchanged. The running public schedule API compares every persisted amount,
+reference, child, reciprocal peer and account total. The first comparison exposed
+transfer display names leaking into rule variables. Actual stores empty names on
+transfer payees; account names are display values. Rule preparation now supplies
+the raw source name before evaluating conditions/actions. Shared expression
+context uses the same lookup; import normalization no longer duplicates it.
+Failure: `/tmp/rule-expression-schedule-api.log`; all eight pass in
+`/tmp/rule-expression-schedule-api2.log`.
+
+Two further source archives/observations verify schedule-based budget templates
+with calculated split amounts, category allocations and adjustment options in
+envelope and tracking budgets. Source dry runs and applications preserve original
+ledger rows and notes. Source checks pass in
+`/tmp/rule-expression-template-source-check.log`; the public API comparison passes
+in `/tmp/rule-expression-template-api.log`. These generators join
+`npm run test:rule-expression-workflows-source`.
+
+The calculated manual-entry public test reuses the existing source-confirmed
+manual-protection expectations with formula/template actions. Explicit amount,
+date and category remain unchanged; clearing and appended notes apply. The saved
+receipt survives a later rule edit and the action can be undone atomically.
+All13 rule tests pass in `/tmp/rule-expression-manual-regression.log`.
+
+Android's `ApiExpenseService` is exercised against a disposable real server:
+offline manual expense creation survives restart, delivery and editing preserve
+entered values, calculated rules do not become cached simple associations, and
+an explicit server rule application appears after refresh with the exact ledger
+amount and expense-display amount. This preserves the spec's separate Android
+suggestion behavior. The test passes in `/tmp/rule-expression-android3.log` with
+JDK17. Earlier harness attempts corrected expected HTTP200 for apply and the
+positive expense-display convention; no Android production code changed.
+
+The earlier40+22+19+11 preview and5+6 write/refusal fixtures still pass in
+`/tmp/rule-expression-entry-regression.log`; calculated import/forecast workflow
+regressions pass in `/tmp/rule-expression-entry-workflows.log`. Root review against
+`e598e63` also rechecks the five import cases after removing the duplicate lookup
+(`/tmp/rule-expression-entry-import-final.log`), the eight literal schedule cases
+(`/tmp/rule-expression-entry-schedule-regression.log`), warnings-denied Rust and
+formatting. Root standards/spec review against
+`e598e63`: one source-name lookup owns preparation semantics; source captures are
+independent; manual/Android protection remains distinct from explicit application.
+42 remains open for existing-child metadata/context, nonfinite split diagnostics
+and cumulative evaluation/resource/performance qualification. No push/deployment
+or additional acceptance claim.

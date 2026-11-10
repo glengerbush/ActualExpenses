@@ -61,6 +61,14 @@ pub struct Context {
     balances: std::collections::BTreeMap<String, i64>,
     balance: Option<i64>,
 }
+pub(super) fn payee_name(db: &Connection, b: &str, id: &str) -> Result<Option<String>, Error> {
+    // Actual's raw transfer payee name is empty. Account names are a display
+    // projection and must not become formula/template variables.
+    Ok(db.query_row(
+        "SELECT CASE WHEN transfer_account_id IS NULL THEN name ELSE '' END FROM payees WHERE budget_id=?1 AND id=?2",
+        params![b,id], |r|r.get(0),
+    ).optional()?)
+}
 impl Context {
     pub fn new(
         db: &Connection,
@@ -89,13 +97,7 @@ impl Context {
             helpers["_category_name"] = category["name"].clone();
         }
         if let Some(id) = original["payee_id"].as_str()
-            && let Some(name) = db
-                .query_row(
-                    "SELECT name FROM payees WHERE budget_id=?1 AND id=?2",
-                    params![b, id],
-                    |r| r.get::<_, String>(0),
-                )
-                .optional()?
+            && let Some(name) = payee_name(db, b, id)?
         {
             helpers["payee_name"] = json!(name);
         }

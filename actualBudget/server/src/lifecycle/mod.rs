@@ -474,6 +474,7 @@ async fn download(
     ))
 }
 fn remove_active_data(db: &Connection, budget: &str) -> Result<(), Error> {
+    db.execute("DELETE FROM bank_connections WHERE budget_id=?1", [budget])?;
     for table in [
         "budget_provenance",
         "imported_field_clocks",

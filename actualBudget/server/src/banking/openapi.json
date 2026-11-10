@@ -1,0 +1,390 @@
+{
+  "paths": {
+    "/api/v1/budgets/{budget}/banking": {
+      "get": {
+        "summary": "Read sanitized bank connections; never contacts provider",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sanitized durable outcome",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BankState"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget not found"
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/banking/connections": {
+      "post": {
+        "summary": "Stage one-use setup token in server-only custody",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "required": true
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Budget-Epoch",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "required": false
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "schema": {
+              "const": "true"
+            },
+            "required": false
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Receipt-Only",
+            "schema": {
+              "const": "true"
+            },
+            "required": false
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankConnectionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sanitized durable outcome",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BankConnection"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or unsafe provider URL"
+          },
+          "404": {
+            "description": "Missing connection or unknown receipt"
+          },
+          "409": {
+            "description": "Changed generation, canceled operation or different payload under same key"
+          },
+          "503": {
+            "description": "Bounded provider workers busy"
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/banking/connections/{id}/commands": {
+      "post": {
+        "summary": "Claim once; ambiguous claims require replacement, exact committed retries never repeat transport",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "required": true
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Budget-Epoch",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "required": false
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "schema": {
+              "const": "true"
+            },
+            "required": false
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Receipt-Only",
+            "schema": {
+              "const": "true"
+            },
+            "required": false
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankConnectionCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sanitized durable outcome",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BankConnection"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or unsafe provider URL"
+          },
+          "404": {
+            "description": "Missing connection or unknown receipt"
+          },
+          "409": {
+            "description": "Changed generation, canceled operation or different payload under same key"
+          },
+          "503": {
+            "description": "Bounded provider workers busy"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BankConnection": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "provider": {
+            "const": "simplefin"
+          },
+          "name": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "claim_pending",
+              "claim_inflight",
+              "connected",
+              "claim_failed",
+              "credentials_missing"
+            ]
+          },
+          "generation": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "error_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_success": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deleted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "provider",
+          "name",
+          "state",
+          "generation",
+          "revision",
+          "error_code",
+          "message",
+          "last_success",
+          "deleted"
+        ],
+        "additionalProperties": false
+      },
+      "BankConnectionCreate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "provider": {
+            "const": "simplefin"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "setup_token": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8192,
+            "writeOnly": true,
+            "description": "Base64 one-use HTTPS claim URL. Stored only in the private server credential store; generic receipts retain a SHA-256 fingerprint."
+          }
+        },
+        "required": [
+          "id",
+          "provider",
+          "name",
+          "setup_token"
+        ],
+        "additionalProperties": false
+      },
+      "BankConnectionCommand": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "const": "claim"
+          },
+          "generation": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "action",
+          "generation"
+        ],
+        "additionalProperties": false
+      },
+      "BankState": {
+        "type": "object",
+        "properties": {
+          "connections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankConnection"
+            }
+          },
+          "links": {
+            "type": "array",
+            "maxItems": 0
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "snapshot": {
+            "type": "string",
+            "minLength": 50,
+            "maxLength": 50
+          }
+        },
+        "required": [
+          "connections",
+          "links",
+          "epoch",
+          "snapshot"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

@@ -17,6 +17,7 @@ use zip::{ZipArchive, ZipWriter, write::SimpleFileOptions};
 pub const MAX_ARCHIVE: usize = 64 * 1024 * 1024;
 const MAX_EXPANDED: usize = 256 * 1024 * 1024;
 pub const TABLES: &[&str] = &[
+    "bank_connections",
     "account_groups",
     "accounts",
     "payees",
@@ -50,6 +51,7 @@ pub const TABLES: &[&str] = &[
     "budget_provenance",
 ];
 const AUXILIARY: &[&str] = &[
+    "bank_credentials",
     "history_lineage",
     "history_actions", // Engine-owned history intentionally excluded; restore rotates epoch.
     "budgets",
@@ -165,7 +167,7 @@ pub fn capture(db: &Connection, budget: &str) -> Result<Vec<u8>, Error> {
     let body = serde_json::to_vec(&state).map_err(Error::internal)?;
     let mut entries = BTreeMap::from([("budget.json".to_owned(), body)]);
     entries.extend(blobs);
-    let manifest = json!({"format":"actualBudget","version":1,"schema_version":22,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
+    let manifest = json!({"format":"actualBudget","version":1,"schema_version":23,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
     if entries.len() + 1 > 1000
         || entries.values().map(Vec::len).sum::<usize>() + manifest.to_string().len() > MAX_EXPANDED
     {
@@ -241,7 +243,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || !matches!(manifest["schema_version"].as_u64(), Some(6..=22))
+        || !matches!(manifest["schema_version"].as_u64(), Some(6..=23))
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }
@@ -602,6 +604,29 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
                 },
             );
         }
+    }
+    if manifest["schema_version"].as_u64().is_some_and(|v| v < 23) {
+        state.tables.insert(
+            "bank_connections".into(),
+            Table {
+                columns: [
+                    "budget_id",
+                    "id",
+                    "provider",
+                    "name",
+                    "state",
+                    "generation",
+                    "revision",
+                    "error_code",
+                    "message",
+                    "last_success",
+                    "tombstone",
+                ]
+                .map(str::to_owned)
+                .to_vec(),
+                rows: vec![],
+            },
+        );
     }
     if manifest["schema_version"].as_u64().is_some_and(|v| v < 22) {
         state.tables.insert(
@@ -982,6 +1007,7 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
     {
         crate::android_upgrade::order::enrich(db, archive.state.budget["id"].as_str())?;
     }
+    db.execute("UPDATE bank_connections SET state='credentials_missing',generation=?2,error_code=NULL,message=NULL WHERE budget_id=?1 AND tombstone=0",params![archive.state.budget["id"].as_str(),uuid::Uuid::new_v4().to_string()])?;
     crate::register_settings::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
     crate::reports::import::enrich(db, archive.state.budget["id"].as_str())?;
     if archive.legacy_category_metadata {

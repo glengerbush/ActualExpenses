@@ -48,6 +48,7 @@ pub fn router(store: Store) -> Router {
         .merge(crate::splits::router())
         .merge(crate::history::router())
         .merge(crate::accounts::router())
+        .merge(crate::banking::router())
         .merge(crate::reconciliation::router())
         .merge(crate::budgeting::router())
         .merge(crate::rules::router())
@@ -116,6 +117,8 @@ async fn cancellation_scope(
                     | "/api/v1/budgets/{budget}/transactions/bulk"
                     | "/api/v1/budgets/{budget}/transactions/merge"
                     | "/api/v1/budgets/{budget}/transaction-imports/{id}/commit"
+                    | "/api/v1/budgets/{budget}/banking/connections"
+                    | "/api/v1/budgets/{budget}/banking/connections/{id}/commands"
                     | "/api/v1/budgets/{budget}/history/{direction}"
                     | "/api/v1/budgets/{budget}/transfers"
                     | "/api/v1/budgets/{budget}/transfers/link"
@@ -160,6 +163,8 @@ async fn cancellation_scope(
                     | "/api/v1/budgets/{budget}/transactions/bulk"
                     | "/api/v1/budgets/{budget}/transactions/merge"
                     | "/api/v1/budgets/{budget}/transaction-imports/{id}/commit"
+                    | "/api/v1/budgets/{budget}/banking/connections"
+                    | "/api/v1/budgets/{budget}/banking/connections/{id}/commands"
                     | "/api/v1/budgets/{budget}/history/{direction}"
                     | "/api/v1/budgets/{budget}/transfers"
                     | "/api/v1/budgets/{budget}/transfers/link"

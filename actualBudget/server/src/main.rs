@@ -1,6 +1,7 @@
 mod accounts;
 mod android_upgrade;
 mod api;
+mod banking;
 mod budgeting;
 mod calculator;
 mod categories;

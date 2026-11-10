@@ -128,3 +128,14 @@ privacy/mobile behavior. `reports-api.mjs` also honors the supplied server and
 imports only its committed disposable source ZIP. The separate
 `reporting-native-smoke.py` is an explicitly local copied-genuine21 fixture
 qualification, not a claim of container upgrade coverage.
+
+
+Forecast35 qualification: `--browser-test forecast-api.mjs` checks its source
+fixture; the maintained browser suite additionally invokes it with `--extended`
+for tracking/rule/filter/view cases, then `forecast-browser.mjs` for imported
+widgets, durable settings/cancellation/cache reset, opt-in, cached estimates,
+privacy and responsive/localized results. All honor `ACTUALBUDGET_TEST_URL`;
+imports use copied disposable budgets. `forecast-native-smoke.py` is local
+native22 backup/restore qualification, not a container migration claim. Shared
+null-category source-filter composition remains explicitly pending47 in
+[forecast evidence](../../docs/forecast-validation.md).

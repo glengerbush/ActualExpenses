@@ -1,6 +1,8 @@
+mod forecast;
 use super::*;
 mod custom;
 use chrono::{Datelike, Duration, NaiveDate};
+pub(super) use forecast::router as forecast_router;
 use rusqlite::{params_from_iter, types::Value as SqlValue};
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]

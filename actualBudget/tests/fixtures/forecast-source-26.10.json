@@ -1,0 +1,112 @@
+{
+  "oracle": "Whole @actual-app/api@26.10.0 forecast/generate",
+  "clock": "2026-11-09T12:00:00Z",
+  "source_files": {
+    "server/forecast/app.ts": "080ebd2eb03fb0fa8ffa6880809b3f369cbf952897ddf90336d95a4f19861a4c",
+    "server/forecast/forecast-accounts.ts": "0aea906aa85194d506ecc72a1b9b2becaf8ee48bddcad9318de66f799f4da679",
+    "server/forecast/forecast-filters.ts": "06c00066f43815d82c457d7968f1a45a3d3e667ae5c890c936abd4bbb68206ed",
+    "server/forecast/forecast-schedules.ts": "fc5f0b7572a9596c5510d9c2f3b29c6c501084051c69921baf270e903a50d994",
+    "server/forecast/forecast-projection.ts": "f038e5de9d3acb2d15ff5b678eeae6a600da7b93223a1ded58315ee391713787",
+    "server/forecast/forecast-tracking-budget.ts": "67a6f4a14b561c84b7625c9a0b92551d0d4cdf3a33d82cdde3f1c6147ced2826"
+  },
+  "archive_sha256": "61032e8e6efbc6e3789855a566ffb74b47f815197c3291e2b8c47472488169af",
+  "base_sha256": "8b54cf9bc377ecd3d608382995efb5c7445c748f849bc971ce70a1610f1ed250",
+  "widgets": [
+    {
+      "id": "a1a41315-2814-421d-9a0c-1b0339eee35a",
+      "dashboard_page_id": "b5132fac-c088-4f69-96cb-362d66f908cc",
+      "type": "balance-forecast-card",
+      "width": 12,
+      "height": 4,
+      "x": 0,
+      "y": 8,
+      "meta": {
+        "name": "Saved balance forecast",
+        "timeFrame": {
+          "start": "2026-11",
+          "end": "2026-11",
+          "mode": "static"
+        },
+        "granularity": "Daily",
+        "accounts": [
+          "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+        ],
+        "source": "schedules",
+        "conditions": [],
+        "conditionsOp": "and"
+      },
+      "tombstone": false
+    }
+  ],
+  "forecast_enabled": true,
+  "schedule": "35350000-0000-4000-8000-000000000001",
+  "cases": [
+    {
+      "options": {
+        "startDate": "2026-11-09",
+        "endDate": "2026-11-11",
+        "accountIds": [
+          "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+        ],
+        "source": "schedules",
+        "conditions": [],
+        "conditionsOp": "and",
+        "includeAccountlessSchedules": false
+      },
+      "expected": {
+        "dataPoints": [
+          {
+            "date": "2026-11-09",
+            "balance": 10500,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "checking",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 10400,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "checking",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 10300,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "checking",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          }
+        ],
+        "lowestBalance": {
+          "date": "2026-11-11",
+          "balance": 10300,
+          "accountId": "",
+          "accountName": ""
+        },
+        "forecastStartDate": "2026-11-09",
+        "forecastEndDate": "2026-11-11"
+      }
+    }
+  ]
+}

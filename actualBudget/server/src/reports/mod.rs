@@ -35,6 +35,7 @@ pub fn router() -> Router<Store> {
         .route("/api/v1/budgets/{budget}/reporting", get(read))
         .route("/api/v1/budgets/{budget}/reporting/commands", post(command))
         .route("/api/v1/budgets/{budget}/reports/query", post(query::read))
+        .merge(query::forecast_router())
         .route(
             "/api/v1/budgets/{budget}/reports/drilldown",
             post(query::drilldown),

@@ -196,6 +196,21 @@
         showForm("reports");
       },
     });
+    if (
+      preferences.budgetId === budget!.id &&
+      preferences.hasUsableShared &&
+      preferences.shared.experimental.balanceForecastReport
+    )
+      result.push({
+        id: "balance-forecast",
+        label: "Balance forecast",
+        disabled: locked || !compatible,
+        run: async () => {
+          await writeValue(`view:reporting-tab:${budget!.id}`, "forecast");
+          reportEntryKey++;
+          showForm("reports");
+        },
+      });
     const views = [
       ["planning", "Budget", false],
       ["categories", "Categories", disconnected],

@@ -461,9 +461,21 @@
     }
   }
   async function discard() {
-    if (!draft || locked) return;
+    if (!draft || locked || saving) return;
     try {
       draft = await writeImport(budgetId, draft, null);
+      saveFailed = false;
+      error = "";
+      options = { ...defaults };
+      mapping = {};
+      firstRow = 1;
+      lastRow = 10000;
+      numberDrafts = {
+        skip_start_lines: "0",
+        skip_end_lines: "0",
+        firstRow: "1",
+        lastRow: "10000",
+      };
       parsed = [];
       review = null;
       files = null;
@@ -602,7 +614,7 @@
       <div class="actions">
         <button onclick={upload} disabled={busy}
           >{draft.stageId ? "Read retained file" : "Retry file upload"}</button
-        ><button onclick={discard} disabled={busy}
+        ><button onclick={discard} disabled={busy || saving > 0}
           >Discard unsubmitted draft</button
         >
       </div>

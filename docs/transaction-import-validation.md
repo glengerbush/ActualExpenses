@@ -335,3 +335,12 @@ saved options cannot silently authorize an import after a failed checkpoint.
 Focused browser PASS `/tmp/transaction-import-review-browser-second.log`, UI
 build/check PASS, Svelte autofixer reports no issues or suggestions. Financial
 API/native code is unchanged; earlier source and native evidence is reused.
+
+The follow-up quota→discard recovery edge is also closed: successful CAS deletion
+resets the discarded draft's failure flag and numeric/options state; a refused
+or failed deletion clears nothing. Discard is unavailable during queued local
+writes. A true old-UI red (`/tmp/transaction-import-discard-quota-red.log`) is
+followed by the same complete focused browser PASS
+(`/tmp/transaction-import-discard-quota-green.log`), proving a new file can be
+read immediately after discard without reload. Svelte check0errors/0warnings,
+build and autofixer pass; no backend/native or financial behavior changed.

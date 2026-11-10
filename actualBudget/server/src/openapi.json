@@ -19358,7 +19358,7 @@
     },
     "/api/v1/budgets/{budget}/reports/query": {
       "post": {
-        "description": "Read-only recorded-entry aggregates. Explicit as_of. No estimates of future transactions; future-dated recorded entries follow pinned26.10 report semantics. Max3660 days,500 accounts/groups,20000 inspectable cells,100000 matching projected entries/exact safe money flow; oversized queries reject without truncated totals. Unknown report types reject.",
+        "description": "Read-only recorded-entry aggregates with explicit as_of and pinned26.10 financial semantics, including recorded future dates. Bound actual requested work/output:3660 daily or1200 coarser intervals,500 selected accounts/groups,20000 financial/inspection cells,100000 matching projected rows and50000000 row/bucket evaluations. Sparse long histories remain available for monthly/yearly and all-time modes; no blanket elapsed-year cutoff. Oversized queries reject without truncated totals. Fresh request-scoped text/tag/ECMAScript matching reports typed invalid_regex, regex_complexity_limit or regex_work_limit errors; failed requests do not poison subsequent matching.",
         "parameters": [
           {
             "name": "budget",

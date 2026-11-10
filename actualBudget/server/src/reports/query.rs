@@ -171,15 +171,50 @@ fn rows(db: &Connection, b: &str, o: &Value, parent: bool) -> Result<Vec<Row>, E
     }
     Ok(data)
 }
+fn work_bound(rows: usize, buckets: usize) -> Result<(), Error> {
+    if rows.saturating_mul(buckets) > 50_000_000 {
+        return Err(Error::invalid(
+            "Report row/bucket work exceeds50000000; narrow conditions or reduce output intervals",
+        ));
+    }
+    Ok(())
+}
+fn interval_bound(
+    start: NaiveDate,
+    end: NaiveDate,
+    interval: &str,
+    rows: usize,
+) -> Result<(), Error> {
+    if start > end {
+        return Err(Error::invalid("Report start must not follow its end"));
+    }
+    let count = match interval {
+        "Daily" => (end - start).num_days() + 1,
+        "Weekly" => (end - start).num_days() / 7 + 1,
+        "Yearly" => (end.year() - start.year() + 1) as i64,
+        _ => {
+            ((end.year() - start.year()) * 12 + end.month() as i32 - start.month() as i32 + 1)
+                as i64
+        }
+    };
+    let maximum = if interval == "Daily" { 3660 } else { 1200 };
+    if count > maximum {
+        return Err(Error::invalid(format!(
+            "Report exceeds{maximum} output intervals; choose a coarser interval or shorten dates"
+        )));
+    }
+    work_bound(rows, count as usize)
+}
 fn cash_flow(data: &[Row], o: &Value, today: NaiveDate) -> Result<Value, Error> {
     let start = first(text(o, "start", ""))?;
     let end = month_end(first(text(o, "end", ""))?).min(today);
-    if start > end || (end - start).num_days() > 3660 {
-        return Err(Error::invalid(
-            "Report date range exceeds3660 days or is reversed",
-        ));
-    }
     let concise = o["isConcise"] == true;
+    interval_bound(
+        start,
+        end,
+        if concise { "Monthly" } else { "Daily" },
+        data.len(),
+    )?;
     // Actual26.10 filters the query by transformed month, then plots only through
     // as-of. Consequently concise monthly buckets include later recorded entries.
     let selected: Vec<_> = data.iter().filter(|r| !r.off).collect();
@@ -240,7 +275,7 @@ pub async fn read(
         return Err(Error::invalid("Unsupported report query version/config"));
     }
     let today = day(&q.as_of)?;
-    let value=store.run(move|db|{let tx=db.transaction()?;store::require_budget(&tx,&b)?;let(result,cells,_)=evaluate(&tx,&b,&q,today)?;Ok(json!({"result":result,"cells":cells,"snapshot":sync::cursor(&tx,&b)?,"recorded":true,"as_of":q.as_of}))}).await?;
+    let value=store.run(move|db|{let tx=db.transaction()?;crate::register::with_report_predicates(&tx, || {store::require_budget(&tx,&b)?;let(result,cells,_)=evaluate(&tx,&b,&q,today)?;Ok(json!({"result":result,"cells":cells,"snapshot":sync::cursor(&tx,&b)?,"recorded":true,"as_of":q.as_of}))})}).await?;
     Ok(Json(json!({"data":value})))
 }
 
@@ -307,9 +342,7 @@ fn net_worth(
             range
         };
     }
-    if start > end || (end - start).num_days() > 3660 {
-        return Err(Error::invalid("Invalid net worth range; maximum3660 days"));
-    }
+    interval_bound(start, end, interval, data.len())?;
     let ids: Vec<String> = if let Some(ids) = o["accounts"].as_array() {
         if ids.len() > 500 {
             return Err(Error::invalid("Maximum500 accounts"));
@@ -426,8 +459,8 @@ fn summary(
     if end.month() == today.month() {
         end = today;
     }
-    if start > end || (end - start).num_days() > 3660 {
-        return Err(Error::invalid("Invalid summary range; maximum3660 days"));
+    if start > end {
+        return Err(Error::invalid("Summary start must not follow its end"));
     }
     let selected: Vec<_> = data
         .iter()
@@ -486,9 +519,7 @@ fn summary(
 fn calendar(data: &[Row], o: &Value) -> Result<Value, Error> {
     let start = first(text(o, "start", ""))?;
     let end = month_end(first(text(o, "end", ""))?);
-    if start > end || (end - start).num_days() > 3660 {
-        return Err(Error::invalid("Invalid calendar range; maximum3660 days"));
-    }
+    interval_bound(start, end, "Daily", data.len())?;
     let first_day = text(o, "first_day_of_week", "0")
         .parse::<u32>()
         .ok()
@@ -576,9 +607,17 @@ fn spending(
     let start = start.filter(|s| *s <= last);
     let mut averages = vec![];
     let mut cursor = start.unwrap_or(compare);
-    if (compare - cursor).num_days() > 3660 {
-        return Err(Error::invalid("Spending average exceeds3660 days"));
+    let months_count = ((compare.year() - cursor.year()) * 12 + compare.month() as i32
+        - cursor.month() as i32
+        + 1)
+    .max(1) as usize
+        + usize::from(to < cursor || to > compare);
+    if months_count.saturating_mul(28 * 2) > 20000 {
+        return Err(Error::invalid(
+            "Spending average exceeds20000 financial month/day cells; narrow average period",
+        ));
     }
+    work_bound(data.len(), months_count * 31)?;
     while cursor < compare {
         averages.push(cursor);
         cursor = next(cursor, "Monthly");
@@ -979,7 +1018,7 @@ pub async fn drilldown(
         ));
     }
     let today = day(&input.query.as_of)?;
-    let value=store.run(move|db|{let tx=db.transaction()?;sync::check_snapshot(&tx,&b,Some(&input.snapshot))?;let(result,cells,mut data)=evaluate(&tx,&b,&input.query,today)?;let cell=cells.iter().find(|c|c.id==input.cell_id).ok_or_else(||Error::invalid("Unknown report cell"))?;let start=day(&cell.start)?;let end=day(&cell.end)?;let kind=input.query.kind.as_str();let ids=input.query.options["accounts"].as_array();
+    let value=store.run(move|db|{let tx=db.transaction()?;crate::register::with_report_predicates(&tx, || {sync::check_snapshot(&tx,&b,Some(&input.snapshot))?;let(result,cells,mut data)=evaluate(&tx,&b,&input.query,today)?;let cell=cells.iter().find(|c|c.id==input.cell_id).ok_or_else(||Error::invalid("Unknown report cell"))?;let start=day(&cell.start)?;let end=day(&cell.end)?;let kind=input.query.kind.as_str();let ids=input.query.options["accounts"].as_array();
  if kind=="net-worth"{for row in &mut data{if row.peer_account.as_ref().is_some_and(|id|ids.is_none_or(|ids|ids.contains(&json!(id))))&&let Some(peer)=row.peer_date&&peer>row.date{row.date=peer;}}}
  let selected=data.iter().filter(|r|{
   if r.date<start||r.date>end||cell.account.as_ref().is_some_and(|id|id!=&r.account){return false;}
@@ -990,7 +1029,7 @@ pub async fn drilldown(
   if cell.metric=="spending"&&(r.off||r.income){return false;}true
  }).collect::<Vec<_>>();
  let amount:i64=selected.iter().map(|r|r.amount).sum();let count=selected.len();let rows=selected.into_iter().skip(input.offset).take(input.limit).map(|r|json!({"id":r.id,"date":r.date.to_string(),"amount":r.amount,"account_id":r.account,"account":r.account_name,"payee":r.payee_name,"category":r.category_name,"notes":r.notes})).collect::<Vec<_>>();
- let _=result;Ok(json!({"rows":rows,"total_count":count,"total_amount":amount,"offset":input.offset,"limit":input.limit,"has_more":input.offset+rows.len()<count,"snapshot":input.snapshot,"cell":cell}))}).await?;
+ let _=result;Ok(json!({"rows":rows,"total_count":count,"total_amount":amount,"offset":input.offset,"limit":input.limit,"has_more":input.offset+rows.len()<count,"snapshot":input.snapshot,"cell":cell}))})}).await?;
     Ok(Json(json!({"data":value})))
 }
 fn widget_range(db: &Connection, b: &str, o: &Value, today: NaiveDate) -> Result<Value, Error> {
@@ -1026,9 +1065,6 @@ fn widget_range(db: &Connection, b: &str, o: &Value, today: NaiveDate) -> Result
         "sliding-window" => {
             if start.len() == 10 && end.len() == 10 {
                 let offset = (day(end)? - day(start)?).num_days().max(0);
-                if offset > 3660 {
-                    return Err(Error::invalid("Widget range exceeds3660 days"));
-                }
                 json!([
                     (today - Duration::days(offset)).to_string(),
                     today.to_string(),
@@ -1038,9 +1074,6 @@ fn widget_range(db: &Connection, b: &str, o: &Value, today: NaiveDate) -> Result
                 let s = first(start)?;
                 let e = first(end)?;
                 let offset = (e.year() - s.year()) * 12 + e.month() as i32 - s.month() as i32;
-                if offset.abs() > 1200 {
-                    return Err(Error::invalid("Widget range exceeds1200 months"));
-                }
                 let (a, z) = if offset >= 0 {
                     (
                         current

@@ -134,6 +134,146 @@ try {
     (await api(path + "/commands", invalidBody, invalidHeaders)).status,
     409,
   );
+  // Fresh server connection: no register read has installed SQLite predicates.
+  const textAccount = randomUUID();
+  assert.equal(
+    (
+      await api(
+        `/budgets/${budget}/accounts`,
+        {
+          id: textAccount,
+          name: "Text filters",
+          opening_balance: 0,
+          opening_date: "2026-11-01",
+        },
+        { "Idempotency-Key": randomUUID() },
+      )
+    ).status,
+    201,
+  );
+  assert.equal(
+    (
+      await api(
+        `/budgets/${budget}/transactions`,
+        {
+          id: randomUUID(),
+          account_id: textAccount,
+          amount: -100,
+          date: "2026-11-02",
+          notes: "Case-fold café",
+        },
+        { "Idempotency-Key": randomUUID() },
+      )
+    ).status,
+    201,
+  );
+  const textQuery = {
+    version: 1,
+    kind: "summary",
+    as_of: "2026-11-09",
+    options: {
+      start: "2026-11",
+      end: "2026-11",
+      summary: { type: "sum" },
+      conditions: [{ field: "notes", op: "contains", value: "CAFÉ" }],
+    },
+  };
+  let textResult = await api(`/budgets/${budget}/reports/query`, textQuery);
+  assert.equal(textResult.status, 200, JSON.stringify(textResult));
+  assert.equal(textResult.data.result.total, -100);
+  const regexQuery = {
+    ...textQuery,
+    options: {
+      ...textQuery.options,
+      conditions: [{ field: "notes", op: "matches", value: "^Case.*café$" }],
+    },
+  };
+  textResult = await api(`/budgets/${budget}/reports/query`, regexQuery);
+  assert.equal(textResult.status, 200, JSON.stringify(textResult));
+  assert.equal(textResult.data.result.total, -100);
+  const regexRows = await api(`/budgets/${budget}/reports/drilldown`, {
+    query: regexQuery,
+    snapshot: textResult.data.snapshot,
+    cell_id: textResult.data.cells[0].id,
+    offset: 0,
+    limit: 1,
+  });
+  assert.equal(regexRows.status, 200, JSON.stringify(regexRows));
+  assert.equal(regexRows.data.total_amount, -100);
+  const invalidRegex = await api(`/budgets/${budget}/reports/query`, {
+    ...regexQuery,
+    options: {
+      ...regexQuery.options,
+      conditions: [{ field: "notes", op: "matches", value: "(" }],
+    },
+  });
+  assert.equal(invalidRegex.status, 400);
+  assert.equal(invalidRegex.error.code, "invalid_regex");
+  assert.equal(
+    (await api(`/budgets/${budget}/reports/query`, regexQuery)).data.result
+      .total,
+    -100,
+  );
+  assert.equal(
+    (
+      await api(
+        `/budgets/${budget}/transactions`,
+        {
+          id: randomUUID(),
+          account_id: textAccount,
+          amount: -1,
+          date: "2026-11-03",
+          notes: "a".repeat(64) + "!",
+        },
+        { "Idempotency-Key": randomUUID() },
+      )
+    ).status,
+    201,
+  );
+  const hardRegex = {
+      ...regexQuery,
+      options: {
+        ...regexQuery.options,
+        conditions: [{ field: "notes", op: "matches", value: "^(a+)+$" }],
+      },
+    },
+    easyRegex = {
+      ...regexQuery,
+      options: {
+        ...regexQuery.options,
+        conditions: [{ field: "notes", op: "matches", value: "^a" }],
+      },
+    };
+  const exhausted = await api(`/budgets/${budget}/reports/query`, hardRegex);
+  assert.equal(exhausted.status, 400);
+  assert.equal(exhausted.error.code, "regex_work_limit");
+  const recovered = await api(`/budgets/${budget}/reports/query`, easyRegex);
+  assert.equal(recovered.status, 200);
+  assert.equal(recovered.data.result.total, -1);
+  const inspectHard = await api(`/budgets/${budget}/reports/drilldown`, {
+    query: hardRegex,
+    snapshot: recovered.data.snapshot,
+    cell_id: "0",
+    offset: 0,
+    limit: 1,
+  });
+  assert.equal(inspectHard.status, 400);
+  assert.equal(inspectHard.error.code, "regex_work_limit");
+  assert.equal(
+    (
+      await api(`/budgets/${budget}/reports/drilldown`, {
+        query: easyRegex,
+        snapshot: recovered.data.snapshot,
+        cell_id: "0",
+        offset: 0,
+        limit: 1,
+      })
+    ).data.total_amount,
+    -1,
+  );
+  console.log(
+    "PASS fresh scoped reporting text/regex predicates, typed regex failure and subsequent reset",
+  );
   const fixture = JSON.parse(
     await readFile(
       new URL(
@@ -327,6 +467,83 @@ try {
     409,
   );
   console.log("PASS live ranges +bounded split drilldown +snapshot fence");
+  const horizon = JSON.parse(
+      await readFile(
+        new URL(
+          "../../tests/fixtures/reports-horizon-source-26.10.json",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ),
+    horizonBytes = (
+      await readFile(
+        new URL(
+          "../../tests/fixtures/reports-horizon-source-26.10.zip",
+          import.meta.url,
+        ),
+      )
+    ).toString("base64");
+  const horizonStage = await page.evaluate(
+    async ({ bytes, key }) => {
+      const r = await fetch("/api/v1/imports/actual", {
+        method: "POST",
+        headers: { "Content-Type": "application/zip", "Idempotency-Key": key },
+        body: Uint8Array.from(atob(bytes), (x) => x.charCodeAt(0)),
+      });
+      return { status: r.status, ...(await r.json()) };
+    },
+    { bytes: horizonBytes, key: randomUUID() },
+  );
+  assert.equal(horizonStage.status, 201);
+  assert.equal(horizonStage.data.status, "ready");
+  assert.equal(
+    (
+      await api(
+        `/imports/${horizonStage.data.id}/activate`,
+        {},
+        { "Idempotency-Key": randomUUID() },
+      )
+    ).status,
+    201,
+  );
+  for (const oracle of horizon.cases) {
+    const response = await api(
+      `/budgets/${horizonStage.data.budget_id}/reports/query`,
+      {
+        version: 1,
+        kind: oracle.kind,
+        as_of: "2026-11-09",
+        options: oracle.options,
+      },
+    );
+    assert.equal(response.status, 200, JSON.stringify(response));
+    const actual = response.data.result;
+    if (oracle.kind === "spending")
+      actual.intervalData = actual.intervalData.map(({ months, ...day }) => ({
+        ...day,
+        month_count: Object.keys(months).length,
+      }));
+    assert.deepEqual(actual, oracle.expected);
+  }
+  const tooManyDays = await api(
+    `/budgets/${horizonStage.data.budget_id}/reports/query`,
+    {
+      version: 1,
+      kind: "net-worth",
+      as_of: "2026-11-09",
+      options: {
+        start: "2011-01",
+        end: "2026-11",
+        interval: "Daily",
+        accounts: [horizon.account],
+      },
+    },
+  );
+  assert.equal(tooManyDays.status, 400);
+  console.log(
+    "PASS sparse15-year monthly/yearly net worth, full monthly cash flow/yearly summary/all-time average, bounded daily rejection",
+  );
 } finally {
   await browser?.close();
   await server.stop();

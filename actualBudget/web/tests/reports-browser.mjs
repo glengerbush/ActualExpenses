@@ -201,8 +201,78 @@ try {
   await expect(
     page.getByTestId("report-widget").filter({ hasText: "Recorded total" }),
   ).toContainText("••••");
+  await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Close reports", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page
+    .getByRole("combobox", { name: "Theme", exact: true })
+    .selectOption("dark");
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Dashboards and reports", exact: true })
+    .click();
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  const exact = page
+    .getByTestId("report-widget")
+    .filter({ hasText: "Recorded total" })
+    .getByText("Exact values", { exact: true });
+  await exact.focus();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Tab");
+  await expect(
+    page
+      .getByTestId("report-widget")
+      .filter({ hasText: "Recorded total" })
+      .getByRole("region", { name: "Historical report values", exact: true }),
+  ).toBeFocused();
+  await page.screenshot({
+    path: new URL("../artifacts/reports-dark.png", import.meta.url).pathname,
+    fullPage: true,
+  });
+  // Honest200% layout-zoom equivalent: half the CSS viewport and doubled DPR
+  // retains the1280×900 physical viewport. This does not set browser chrome zoom.
+  const zoomContext = await browser.newContext({
+      viewport: { width: 640, height: 450 },
+      deviceScaleFactor: 2,
+      storageState: await context.storageState(),
+    }),
+    zoomPage = await zoomContext.newPage();
+  await zoomPage.clock.setFixedTime(new Date("2026-11-09T12:00:00Z"));
+  await zoomPage.goto(server.url);
+  await expect(
+    zoomPage.getByRole("heading", {
+      name: "Dashboards and reports",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(zoomPage.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect(
+    await zoomPage.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await zoomPage
+    .getByRole("button", { name: "Add widget", exact: true })
+    .focus();
+  await zoomPage.keyboard.press("Tab");
+  await expect(
+    zoomPage
+      .getByTestId("report-widget")
+      .first()
+      .getByRole("button", { name: "Edit Text", exact: true }),
+  ).toBeFocused();
+  await zoomPage.screenshot({
+    path: new URL(
+      "../artifacts/reports-dark-200-equivalent.png",
+      import.meta.url,
+    ).pathname,
+  });
+  await zoomContext.close();
   console.log(
-    "PASS dashboard browser: creation, text/summary, persisted layout, remembered destination, lost cancellation/reload/cache reset, mobile",
+    "PASS dashboard browser: creation, text/summary, persisted layout, remembered destination, lost cancellation/reload/cache reset, mobile/dark/200% layout equivalent/keyboard",
   );
 } finally {
   await browser?.close();

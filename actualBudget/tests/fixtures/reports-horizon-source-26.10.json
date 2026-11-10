@@ -1,0 +1,6072 @@
+{
+  "oracle": "Unchanged Actual26.10 spreadsheets +real AQL",
+  "clock": "2026-11-09T12:00:00Z",
+  "source_files": {
+    "packages/desktop-client/src/components/reports/spreadsheets/net-worth-spreadsheet.ts": "712fe9b49e1b5a85b0ba2c45a474c5285f5da050d7e58a0348272bd50b86c4dd",
+    "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+    "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+    "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+    "packages/desktop-client/src/components/reports/ReportOptions.ts": "f62377d8d1b90da65f7dab33e9a3ecbd4a5fba62f1003c84aa403b627635a056",
+    "packages/desktop-client/src/components/reports/spreadsheets/cash-flow-spreadsheet.tsx": "4313ade40e83d7e1412a291b741cc2de57d8bb699afc5c271741894d3e4d8fcd",
+    "packages/desktop-client/src/components/reports/util.ts": "59f23625214c71acbfa7dfaa4cec46f591feb23e3f76c8882e9aa8410e95eedb",
+    "packages/desktop-client/src/components/reports/spreadsheets/summary-spreadsheet.ts": "71ff9800f14f5814576a3d9b304bd0460fd2c5f2605eb66204f26ec89a36bc93",
+    "packages/desktop-client/src/components/reports/spreadsheets/spending-spreadsheet.ts": "08143c55caa61249f170314e2a673c56320952820e833ccabb6bb352aa207b59",
+    "packages/desktop-client/src/components/reports/spendingAverageRange.ts": "fc9e8e153d144895298fc25aa42ec959f9646da6dd1b2aae6747a92e8b79c467",
+    "packages/desktop-client/src/components/reports/spreadsheets/budgetDataQuery.ts": "2a8a2557717a7558a316f69f2bca15c2b9828a2e37c4a6fbb822468ca54c50f2",
+    "packages/desktop-client/src/components/reports/spreadsheets/makeQuery.ts": "150571e8eba514ff7cf7e37cecb437c41db1f02c525ddd435932cf5421f37a64"
+  },
+  "account": "f1059f90-974a-4731-9a3e-e972dcfe4644",
+  "transaction_count": 3,
+  "cases": [
+    {
+      "kind": "net-worth",
+      "options": {
+        "start": "2011-01",
+        "end": "2026-11",
+        "interval": "Monthly",
+        "accounts": [
+          "f1059f90-974a-4731-9a3e-e972dcfe4644"
+        ]
+      },
+      "expected": {
+        "graphData": {
+          "data": [
+            {
+              "x": "Jan '11",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "10000",
+              "networth": "10000",
+              "date": "January 2011",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Feb '11",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "February 2011",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Mar '11",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "March 2011",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Apr '11",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "April 2011",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "May '11",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "May 2011",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jun '11",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "June 2011",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jul '11",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "July 2011",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Aug '11",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "August 2011",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Sep '11",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "September 2011",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Oct '11",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "October 2011",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Nov '11",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "November 2011",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Dec '11",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "December 2011",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jan '12",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "January 2012",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Feb '12",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "February 2012",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Mar '12",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "March 2012",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Apr '12",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "April 2012",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "May '12",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "May 2012",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jun '12",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "June 2012",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jul '12",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "July 2012",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Aug '12",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "August 2012",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Sep '12",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "September 2012",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Oct '12",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "October 2012",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Nov '12",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "November 2012",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Dec '12",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "December 2012",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jan '13",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "January 2013",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Feb '13",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "February 2013",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Mar '13",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "March 2013",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Apr '13",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "April 2013",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "May '13",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "May 2013",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jun '13",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "June 2013",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jul '13",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "July 2013",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Aug '13",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "August 2013",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Sep '13",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "September 2013",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Oct '13",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "October 2013",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Nov '13",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "November 2013",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Dec '13",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "December 2013",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jan '14",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "January 2014",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Feb '14",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "February 2014",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Mar '14",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "March 2014",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Apr '14",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "April 2014",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "May '14",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "May 2014",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jun '14",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "June 2014",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jul '14",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "July 2014",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Aug '14",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "August 2014",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Sep '14",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "September 2014",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Oct '14",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "October 2014",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Nov '14",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "November 2014",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Dec '14",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "December 2014",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jan '15",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "January 2015",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Feb '15",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "February 2015",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Mar '15",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "March 2015",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Apr '15",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "April 2015",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "May '15",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "May 2015",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jun '15",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "June 2015",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jul '15",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "July 2015",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Aug '15",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "August 2015",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Sep '15",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "September 2015",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Oct '15",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "October 2015",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Nov '15",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "November 2015",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Dec '15",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "December 2015",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jan '16",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "January 2016",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Feb '16",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "February 2016",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Mar '16",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "March 2016",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Apr '16",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "April 2016",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "May '16",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "May 2016",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jun '16",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "June 2016",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jul '16",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "July 2016",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Aug '16",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "August 2016",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Sep '16",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "September 2016",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Oct '16",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "October 2016",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Nov '16",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "November 2016",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Dec '16",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "December 2016",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jan '17",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "January 2017",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Feb '17",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "February 2017",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Mar '17",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "March 2017",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Apr '17",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "April 2017",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "May '17",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "May 2017",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jun '17",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "June 2017",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jul '17",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "July 2017",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Aug '17",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "August 2017",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Sep '17",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "September 2017",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Oct '17",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "October 2017",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Nov '17",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "November 2017",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Dec '17",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "December 2017",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jan '18",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "January 2018",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Feb '18",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "February 2018",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Mar '18",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "March 2018",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Apr '18",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "April 2018",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "May '18",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "May 2018",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "Jun '18",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "-1000",
+              "networth": "9000",
+              "date": "June 2018",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jul '18",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "July 2018",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Aug '18",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "August 2018",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Sep '18",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "September 2018",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Oct '18",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "October 2018",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Nov '18",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "November 2018",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Dec '18",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "December 2018",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jan '19",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "January 2019",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Feb '19",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "February 2019",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Mar '19",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "March 2019",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Apr '19",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "April 2019",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "May '19",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "May 2019",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jun '19",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "June 2019",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jul '19",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "July 2019",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Aug '19",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "August 2019",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Sep '19",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "September 2019",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Oct '19",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "October 2019",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Nov '19",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "November 2019",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Dec '19",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "December 2019",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jan '20",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "January 2020",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Feb '20",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "February 2020",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Mar '20",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "March 2020",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Apr '20",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "April 2020",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "May '20",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "May 2020",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jun '20",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "June 2020",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jul '20",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "July 2020",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Aug '20",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "August 2020",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Sep '20",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "September 2020",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Oct '20",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "October 2020",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Nov '20",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "November 2020",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Dec '20",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "December 2020",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jan '21",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "January 2021",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Feb '21",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "February 2021",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Mar '21",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "March 2021",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Apr '21",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "April 2021",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "May '21",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "May 2021",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jun '21",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "June 2021",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jul '21",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "July 2021",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Aug '21",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "August 2021",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Sep '21",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "September 2021",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Oct '21",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "October 2021",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Nov '21",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "November 2021",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Dec '21",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "December 2021",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jan '22",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "January 2022",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Feb '22",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "February 2022",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Mar '22",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "March 2022",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Apr '22",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "April 2022",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "May '22",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "May 2022",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jun '22",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "June 2022",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jul '22",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "July 2022",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Aug '22",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "August 2022",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Sep '22",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "September 2022",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Oct '22",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "October 2022",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Nov '22",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "November 2022",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Dec '22",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "December 2022",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jan '23",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "January 2023",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Feb '23",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "February 2023",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Mar '23",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "March 2023",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Apr '23",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "April 2023",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "May '23",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "May 2023",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jun '23",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "June 2023",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jul '23",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "July 2023",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Aug '23",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "August 2023",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Sep '23",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "September 2023",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Oct '23",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "October 2023",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Nov '23",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "November 2023",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Dec '23",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "December 2023",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jan '24",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "January 2024",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Feb '24",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "February 2024",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Mar '24",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "March 2024",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Apr '24",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "April 2024",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "May '24",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "May 2024",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jun '24",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "June 2024",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jul '24",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "July 2024",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Aug '24",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "August 2024",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Sep '24",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "September 2024",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Oct '24",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "October 2024",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Nov '24",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "November 2024",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Dec '24",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "December 2024",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jan '25",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "January 2025",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Feb '25",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "February 2025",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Mar '25",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "March 2025",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Apr '25",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "April 2025",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "May '25",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "May 2025",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jun '25",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "June 2025",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jul '25",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "July 2025",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Aug '25",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "August 2025",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Sep '25",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "September 2025",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Oct '25",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "October 2025",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Nov '25",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "November 2025",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Dec '25",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "December 2025",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jan '26",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "January 2026",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Feb '26",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "February 2026",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Mar '26",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "March 2026",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Apr '26",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "April 2026",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "May '26",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "May 2026",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jun '26",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "June 2026",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Jul '26",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "July 2026",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Aug '26",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "August 2026",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Sep '26",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "September 2026",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Oct '26",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "October 2026",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "Nov '26",
+              "y": 8800,
+              "assets": "8800",
+              "debt": "-0",
+              "change": "-200",
+              "networth": "8800",
+              "date": "November 2026",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 8800
+            }
+          ],
+          "hasNegative": false,
+          "start": "2011-01-01",
+          "end": "2026-11-30"
+        },
+        "netWorth": 8800,
+        "totalChange": -1200,
+        "lowestNetWorth": 8800,
+        "highestNetWorth": 10000,
+        "accounts": [
+          {
+            "id": "f1059f90-974a-4731-9a3e-e972dcfe4644",
+            "name": "Long history"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "net-worth",
+      "options": {
+        "start": "2011-01",
+        "end": "2026-11",
+        "interval": "Yearly",
+        "accounts": [
+          "f1059f90-974a-4731-9a3e-e972dcfe4644"
+        ]
+      },
+      "expected": {
+        "graphData": {
+          "data": [
+            {
+              "x": "2011",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "10000",
+              "networth": "10000",
+              "date": "2011",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "2012",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "2012",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "2013",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "2013",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "2014",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "2014",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "2015",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "2015",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "2016",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "2016",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "2017",
+              "y": 10000,
+              "assets": "10000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "10000",
+              "date": "2017",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 10000
+            },
+            {
+              "x": "2018",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "-1000",
+              "networth": "9000",
+              "date": "2018",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "2019",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "2019",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "2020",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "2020",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "2021",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "2021",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "2022",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "2022",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "2023",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "2023",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "2024",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "2024",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "2025",
+              "y": 9000,
+              "assets": "9000",
+              "debt": "-0",
+              "change": "0",
+              "networth": "9000",
+              "date": "2025",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 9000
+            },
+            {
+              "x": "2026",
+              "y": 8800,
+              "assets": "8800",
+              "debt": "-0",
+              "change": "-200",
+              "networth": "8800",
+              "date": "2026",
+              "f1059f90-974a-4731-9a3e-e972dcfe4644": 8800
+            }
+          ],
+          "hasNegative": false,
+          "start": "2011-01-01",
+          "end": "2026-11-30"
+        },
+        "netWorth": 8800,
+        "totalChange": -1200,
+        "lowestNetWorth": 8800,
+        "highestNetWorth": 10000,
+        "accounts": [
+          {
+            "id": "f1059f90-974a-4731-9a3e-e972dcfe4644",
+            "name": "Long history"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "cash-flow",
+      "options": {
+        "start": "2011-01",
+        "end": "2026-11",
+        "isConcise": true
+      },
+      "expected": {
+        "graphData": {
+          "expenses": [
+            {
+              "x": "2011-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-06-01T00:00:00.000Z",
+              "y": -1000
+            },
+            {
+              "x": "2018-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-11-01T00:00:00.000Z",
+              "y": -200
+            }
+          ],
+          "income": [
+            {
+              "x": "2011-01-01T00:00:00.000Z",
+              "y": 10000
+            },
+            {
+              "x": "2011-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-11-01T00:00:00.000Z",
+              "y": 0
+            }
+          ],
+          "transfers": [
+            {
+              "x": "2011-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2011-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2012-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2013-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2014-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2015-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2016-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2017-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2018-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2019-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2020-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2021-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2022-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2023-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2024-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-11-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2025-12-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-01-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-02-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-03-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-04-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-05-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-06-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-07-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-08-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-09-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-10-01T00:00:00.000Z",
+              "y": 0
+            },
+            {
+              "x": "2026-11-01T00:00:00.000Z",
+              "y": 0
+            }
+          ],
+          "balances": [
+            {
+              "x": "2011-01-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2011-02-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2011-03-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2011-04-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2011-05-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2011-06-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2011-07-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2011-08-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2011-09-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2011-10-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2011-11-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2011-12-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2012-01-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2012-02-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2012-03-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2012-04-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2012-05-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2012-06-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2012-07-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2012-08-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2012-09-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2012-10-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2012-11-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2012-12-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2013-01-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2013-02-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2013-03-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2013-04-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2013-05-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2013-06-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2013-07-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2013-08-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2013-09-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2013-10-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2013-11-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2013-12-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2014-01-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2014-02-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2014-03-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2014-04-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2014-05-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2014-06-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2014-07-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2014-08-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2014-09-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2014-10-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2014-11-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2014-12-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2015-01-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2015-02-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2015-03-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2015-04-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2015-05-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2015-06-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2015-07-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2015-08-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2015-09-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2015-10-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2015-11-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2015-12-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2016-01-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2016-02-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2016-03-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2016-04-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2016-05-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2016-06-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2016-07-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2016-08-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2016-09-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2016-10-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2016-11-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2016-12-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2017-01-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2017-02-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2017-03-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2017-04-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2017-05-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2017-06-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2017-07-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2017-08-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2017-09-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2017-10-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2017-11-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2017-12-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2018-01-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2018-02-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2018-03-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2018-04-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2018-05-01T00:00:00.000Z",
+              "y": 10000,
+              "premadeLabel": null,
+              "amount": 10000
+            },
+            {
+              "x": "2018-06-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2018-07-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2018-08-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2018-09-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2018-10-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2018-11-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2018-12-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2019-01-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2019-02-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2019-03-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2019-04-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2019-05-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2019-06-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2019-07-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2019-08-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2019-09-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2019-10-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2019-11-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2019-12-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2020-01-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2020-02-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2020-03-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2020-04-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2020-05-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2020-06-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2020-07-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2020-08-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2020-09-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2020-10-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2020-11-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2020-12-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2021-01-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2021-02-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2021-03-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2021-04-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2021-05-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2021-06-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2021-07-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2021-08-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2021-09-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2021-10-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2021-11-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2021-12-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2022-01-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2022-02-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2022-03-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2022-04-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2022-05-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2022-06-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2022-07-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2022-08-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2022-09-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2022-10-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2022-11-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2022-12-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2023-01-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2023-02-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2023-03-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2023-04-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2023-05-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2023-06-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2023-07-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2023-08-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2023-09-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2023-10-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2023-11-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2023-12-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2024-01-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2024-02-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2024-03-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2024-04-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2024-05-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2024-06-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2024-07-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2024-08-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2024-09-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2024-10-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2024-11-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2024-12-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2025-01-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2025-02-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2025-03-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2025-04-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2025-05-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2025-06-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2025-07-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2025-08-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2025-09-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2025-10-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2025-11-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2025-12-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2026-01-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2026-02-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2026-03-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2026-04-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2026-05-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2026-06-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2026-07-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2026-08-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2026-09-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2026-10-01T00:00:00.000Z",
+              "y": 9000,
+              "premadeLabel": null,
+              "amount": 9000
+            },
+            {
+              "x": "2026-11-01T00:00:00.000Z",
+              "y": 8800,
+              "premadeLabel": null,
+              "amount": 8800
+            }
+          ]
+        },
+        "balance": 8800,
+        "totalExpenses": -1200,
+        "totalIncome": 10000,
+        "totalTransfers": 0,
+        "totalChange": -1200
+      }
+    },
+    {
+      "kind": "summary",
+      "options": {
+        "start": "2011-01",
+        "end": "2026-11",
+        "summary": {
+          "type": "avgPerYear"
+        }
+      },
+      "expected": {
+        "fromRange": "Jan 11",
+        "toRange": "Nov 26",
+        "total": 554.9378453038674,
+        "dividend": 8800,
+        "divisor": 15.85763175906913
+      }
+    },
+    {
+      "kind": "spending",
+      "options": {
+        "compare": "2026-11",
+        "compareTo": "2026-10",
+        "averageRange": {
+          "mode": "all-time"
+        }
+      },
+      "expected": {
+        "intervalData": [
+          {
+            "day": "01",
+            "average": 0,
+            "compare": 0,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "02",
+            "average": 0,
+            "compare": -200,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "03",
+            "average": 0,
+            "compare": -200,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "04",
+            "average": 0,
+            "compare": -200,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "05",
+            "average": 0,
+            "compare": -200,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "06",
+            "average": 0,
+            "compare": -200,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "07",
+            "average": 0,
+            "compare": -200,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "08",
+            "average": 0,
+            "compare": -200,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "09",
+            "average": 0,
+            "compare": -200,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "10",
+            "average": 0,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "11",
+            "average": 0,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "12",
+            "average": 0,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "13",
+            "average": 0,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "14",
+            "average": 0,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "15",
+            "average": -5,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "16",
+            "average": -5,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "17",
+            "average": -5,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "18",
+            "average": -5,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "19",
+            "average": -5,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "20",
+            "average": -5,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "21",
+            "average": -5,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "22",
+            "average": -5,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "23",
+            "average": -5,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "24",
+            "average": -5,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "25",
+            "average": -5,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "26",
+            "average": -5,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "27",
+            "average": -5,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          },
+          {
+            "day": "28",
+            "average": -5,
+            "compare": null,
+            "compareTo": 0,
+            "budget": 0,
+            "month_count": 191
+          }
+        ],
+        "averageRange": {
+          "startMonth": "2011-01",
+          "endMonth": "2026-10",
+          "months": [
+            "2011-01",
+            "2011-02",
+            "2011-03",
+            "2011-04",
+            "2011-05",
+            "2011-06",
+            "2011-07",
+            "2011-08",
+            "2011-09",
+            "2011-10",
+            "2011-11",
+            "2011-12",
+            "2012-01",
+            "2012-02",
+            "2012-03",
+            "2012-04",
+            "2012-05",
+            "2012-06",
+            "2012-07",
+            "2012-08",
+            "2012-09",
+            "2012-10",
+            "2012-11",
+            "2012-12",
+            "2013-01",
+            "2013-02",
+            "2013-03",
+            "2013-04",
+            "2013-05",
+            "2013-06",
+            "2013-07",
+            "2013-08",
+            "2013-09",
+            "2013-10",
+            "2013-11",
+            "2013-12",
+            "2014-01",
+            "2014-02",
+            "2014-03",
+            "2014-04",
+            "2014-05",
+            "2014-06",
+            "2014-07",
+            "2014-08",
+            "2014-09",
+            "2014-10",
+            "2014-11",
+            "2014-12",
+            "2015-01",
+            "2015-02",
+            "2015-03",
+            "2015-04",
+            "2015-05",
+            "2015-06",
+            "2015-07",
+            "2015-08",
+            "2015-09",
+            "2015-10",
+            "2015-11",
+            "2015-12",
+            "2016-01",
+            "2016-02",
+            "2016-03",
+            "2016-04",
+            "2016-05",
+            "2016-06",
+            "2016-07",
+            "2016-08",
+            "2016-09",
+            "2016-10",
+            "2016-11",
+            "2016-12",
+            "2017-01",
+            "2017-02",
+            "2017-03",
+            "2017-04",
+            "2017-05",
+            "2017-06",
+            "2017-07",
+            "2017-08",
+            "2017-09",
+            "2017-10",
+            "2017-11",
+            "2017-12",
+            "2018-01",
+            "2018-02",
+            "2018-03",
+            "2018-04",
+            "2018-05",
+            "2018-06",
+            "2018-07",
+            "2018-08",
+            "2018-09",
+            "2018-10",
+            "2018-11",
+            "2018-12",
+            "2019-01",
+            "2019-02",
+            "2019-03",
+            "2019-04",
+            "2019-05",
+            "2019-06",
+            "2019-07",
+            "2019-08",
+            "2019-09",
+            "2019-10",
+            "2019-11",
+            "2019-12",
+            "2020-01",
+            "2020-02",
+            "2020-03",
+            "2020-04",
+            "2020-05",
+            "2020-06",
+            "2020-07",
+            "2020-08",
+            "2020-09",
+            "2020-10",
+            "2020-11",
+            "2020-12",
+            "2021-01",
+            "2021-02",
+            "2021-03",
+            "2021-04",
+            "2021-05",
+            "2021-06",
+            "2021-07",
+            "2021-08",
+            "2021-09",
+            "2021-10",
+            "2021-11",
+            "2021-12",
+            "2022-01",
+            "2022-02",
+            "2022-03",
+            "2022-04",
+            "2022-05",
+            "2022-06",
+            "2022-07",
+            "2022-08",
+            "2022-09",
+            "2022-10",
+            "2022-11",
+            "2022-12",
+            "2023-01",
+            "2023-02",
+            "2023-03",
+            "2023-04",
+            "2023-05",
+            "2023-06",
+            "2023-07",
+            "2023-08",
+            "2023-09",
+            "2023-10",
+            "2023-11",
+            "2023-12",
+            "2024-01",
+            "2024-02",
+            "2024-03",
+            "2024-04",
+            "2024-05",
+            "2024-06",
+            "2024-07",
+            "2024-08",
+            "2024-09",
+            "2024-10",
+            "2024-11",
+            "2024-12",
+            "2025-01",
+            "2025-02",
+            "2025-03",
+            "2025-04",
+            "2025-05",
+            "2025-06",
+            "2025-07",
+            "2025-08",
+            "2025-09",
+            "2025-10",
+            "2025-11",
+            "2025-12",
+            "2026-01",
+            "2026-02",
+            "2026-03",
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08",
+            "2026-09",
+            "2026-10"
+          ]
+        },
+        "startDate": "2011-01-01",
+        "endDate": "2026-11-30",
+        "totalDebts": -1200,
+        "totalAssets": 0,
+        "totalTotals": -1200
+      }
+    }
+  ],
+  "archive_sha256": "3efcce9e25ed64273cb76e83b53fee1e50dad2ff5c4b0fc40f7b9341fe0924a8"
+}

@@ -44,3 +44,23 @@ Not complete: web surface/draft navigation cleanup, native representative manual
 import/feed check, maintained command/CI/documentation cleanup, fresh Actual
 source-import retirement disclosure and portable manual-only export proof.
 No broad suite, container qualification, real provider or deployment run.
+
+## Root backend review/composition
+
+Reviewed0669f79 against the revised manual-only spec: migration drops only
+provider custody/domains and their change/field metadata; financial import
+identifiers, ledger state and owned history survive. Budget cursor high-water
+state remains separate from deleted provider change entries. Native conversion
+discloses retired configuration and leaves original recovery bytes unchanged.
+Manual matching removes provider-only branches without changing file paths.
+No backend review finding remains; outstanding surfaces above remain open.
+
+Composed450b3b3 with formula/crossover work. Git's clean textual merge placed
+formula dependencies below the new dev-dependency heading; root corrected
+rquickjs/ICU to production dependencies while retaining reqwest/base64 test-only.
+Locked binary build passes `/tmp/retirement-formula-compose-build.log`; normal
+dependency tree excludes reqwest (`/tmp/retirement-production-dependencies.log`).
+Independent genuine24 DB/archive financial preservation, retired-route absence
+and old undo/redo pass `/tmp/retirement-root-upgrade.log`. A focused source SUM
+plus read-only/validation checks confirms the composed formula runtime works
+(`/tmp/retirement-root-formula.log`). No source artifacts were regenerated.

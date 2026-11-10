@@ -1,5 +1,5 @@
 //! Current ledger/budget aggregates; graph presentation never reads full history.
-use super::super::{JOINS, predicate};
+use super::super::{JOINS, predicate, truthy};
 use super::{Options, graph::*};
 use crate::error::Error;
 use rusqlite::{
@@ -9,7 +9,7 @@ use rusqlite::{
     types::Value as SqlValue,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::json;
 use std::collections::BTreeMap;
 #[derive(Clone, Serialize, Deserialize)]
 pub(super) struct Category {
@@ -106,15 +106,6 @@ fn groups(db: &Connection, b: &str) -> Result<Vec<Group>, Error> {
     }
     Ok(output)
 }
-fn truthy(value: &Value) -> bool {
-    match value {
-        Value::Null => false,
-        Value::Bool(value) => *value,
-        Value::String(value) => !value.is_empty(),
-        Value::Number(value) => value.as_f64().is_some_and(|v| v != 0.0),
-        _ => true,
-    }
-}
 pub(super) fn clauses(
     db: &Connection,
     b: &str,
@@ -126,8 +117,7 @@ pub(super) fn clauses(
         SqlValue::Text(options.end_date[..7].to_owned() + "-31"),
     ];
     // The source removes truthy named conditions, then calls its SQL translator.
-    // Strip only the nonfunctional name marker from falsy-name conditions so
-    // the shared report adapter cannot mistake mere presence for a named filter.
+    // Remaining nonfunctional name markers do not affect SQL translation.
     let conditions = options
         .conditions
         .iter()
@@ -435,9 +425,18 @@ fn budgeted(
         let rows = view["categories"]
             .as_array()
             .ok_or_else(|| Error::internal("Missing Sankey category cells"))?;
+        let by_id = rows
+            .iter()
+            .map(|row| {
+                row["id"]
+                    .as_str()
+                    .map(|id| (id, row))
+                    .ok_or_else(|| Error::internal("Missing Sankey category identity"))
+            })
+            .collect::<Result<BTreeMap<_, _>, Error>>()?;
         for group in &selected {
             for category in &group.categories {
-                if let Some(row) = rows.iter().find(|row| row["id"] == category.id) {
+                if let Some(row) = by_id.get(category.id.as_str()) {
                     *sums.entry(category.id.clone()).or_default() +=
                         row[if group.income { "actual" } else { "budgeted" }]
                             .as_i64()

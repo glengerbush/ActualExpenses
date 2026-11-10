@@ -148,24 +148,57 @@ named-pool history/restart case pass in `/tmp/budget-pool-index-guard.log` and
 Typed visual configuration and its browser acceptance remain open. No timing or
 whole-system resource conclusion is inferred from these checks.
 
-## Integrated backend qualification in progress
+## Integrated backend qualification
 
 All-target Clippy passes (`/tmp/budget-automation-clippy-all.log`), the complete43
 native Android API cases pass with zero skips (`/tmp/budget-automation-native-full.log`),
 and the final served-schema contract passes (`/tmp/budget-automation-contract-final.log`).
 The initial full HTTP run passes10 account cases, then catches old expected schema19
 assertions in the schema17 upgrade consumer. Current-result assertions were updated
-to20; original fixture versions and contents remain unchanged. The remaining
-integration binaries are running without fail-fast; completed account evidence is reused.
+to20; original fixture versions and contents remain unchanged. The remaining31
+integration binaries pass431 cases with zero failures/ignored in
+`/tmp/budget-automation-http-remaining.log`. With the10 completed account cases,
+this qualifies441 distinct HTTP cases across the two recorded runs. This is not
+represented as one uninterrupted green run. Runtime behavior needed no correction.
 
 Public test consumers received independent review. Cleanup's44 cases check exact
 warnings/counts, goal null/zero distinctions, two executions and restart receipts.
 The visual consumer also passed independent review.
 
+## Reviewed browser behavior
+
+UI checkpoints `27184e6`, `99d3d52` and `4643aa3` pass consolidated
+Standards/Spec/Impeccable review. Typed rules, references, cleanup roles and pool
+creation share the existing captured-operation recovery model. Unfinished numeric
+text survives reload; validation blocks sending and retains the entered text.
+Migration displays full proposed definitions and refuses source-changing conversions.
+
+`/tmp/budget-automations-browser-final.log` passes typed monthly configuration,
+confirmed200-before-abort delivery and identical retry identity after reload,
+scoped cleanup5000→1200/3800, migration roundtrip/refusal, unchanged complete
+transaction envelope and balances, and390px dark200% layout. Invalid-draft
+checks wait for loading to settle. Desktop/editor/cleanup-warning captures are
+under `actualBudget/web/test-results/budget-automations/`.
+
+Review corrected two real presentation issues: cleanup notification keys/details
+were hidden or technical, and no-change cleanup used unrelated template copy.
+The warning regression is recorded red in `/tmp/budget-automations-warning-red.log`;
+the final run verifies actionable pool details in both preview and labelled
+confirmed outcome. Scoped cleanup can return the source's `cleanup-up-to-date`
+key despite changed allocations, so the UI uses neutral status text. A narrow
+selected-rule caption keeps long option names readable at200% text.
+
+The original23 browser test had compared undefined properties after unwrapping a
+transaction array. Its corrected complete-envelope assertions pass in
+`/tmp/budget-templates-browser-final-visual.log`. Initial24 harness selector and
+textarea corrections are retained in the earlier logs; no false-green ledger
+claim is used. Svelte checks report zero errors/warnings; relevant autofixers and
+builds pass. The browser command list includes both23/24 flows.
+
 ## Remaining acceptance
 
-Complete reviewed visual UI and migration behavior, resolve consolidated review,
-then run one integrated batch qualification. Reuse valid unchanged source and
+Run the production-container browser batch, then integrate and accept23/24.
+Reuse valid unchanged source and
 test evidence; rerun affected checks after corrections. No version bump, push,
 release, live deployment or live-volume mutation is authorized for this rewrite.
 Whole-system resource measurements remain ticket51 work.

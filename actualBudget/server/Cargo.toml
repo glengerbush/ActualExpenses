@@ -21,6 +21,7 @@ uuid = { version = "=1.23.1", features = ["v4", "serde"] }
 sha2 = "=0.10.9"
 zip = { version = "=6.0.0", default-features = false, features = ["deflate"] }
 tempfile = "=3.27.0"
+roxmltree = "=0.21.2"
 
 [dev-dependencies]
 base64 = "=0.22.1"

@@ -227,3 +227,189 @@ fn csv_preview_matches_a_manual_expense_and_repeated_commit_does_not_duplicate_i
         checkpoint
     );
 }
+
+#[test]
+fn remembered_options_keep_individual_original_clocks_files_and_receipts_across_native_restore() {
+    let s = Server::start();
+    let b = "25260000-0000-4000-8000-000000000101";
+    let a = "25260000-0000-4000-8000-000000000102";
+    let root = format!("/api/v1/budgets/{b}");
+    assert_eq!(
+        s.post(
+            "/api/v1/budgets",
+            "budget",
+            json!({"id":b,"name":"Remembered import"})
+        )
+        .status(),
+        201
+    );
+    assert_eq!(
+        s.post(
+            &format!("{root}/accounts"),
+            "account",
+            json!({"id":a,"name":"Checking","opening_balance":0,"opening_date":"2026-01-01"})
+        )
+        .status(),
+        201
+    );
+    let bytes = "Date,Payee,Amount,Memo\n2026-11-09,Cafe,-12.34,Bank memo\n";
+    let upload = s
+        .client
+        .post(format!(
+            "{}{root}/accounts/{a}/transaction-imports?filename=bank.csv",
+            s.url
+        ))
+        .header("Idempotency-Key", "file")
+        .body(bytes)
+        .send()
+        .unwrap();
+    assert_eq!(upload.status(), 201);
+    let file = upload.json::<Value>().unwrap()["data"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let path = format!("{root}/transaction-imports/{file}/commit");
+    let settings_path = format!("{root}/accounts/{a}/transaction-import-settings?format=csv");
+    let cp = s
+        .get(&format!("{root}/checkpoint"))
+        .json::<Value>()
+        .unwrap();
+    let mut command = json!({"snapshot":cp["data"]["snapshot"],"mapping":{"date":"Date","payee":"Payee","amount":"Amount","notes":"Memo","in_out":"Direction"},"options":{"has_header_row":true,"encoding":"windows-1252","import_notes":false},"rows":[{"row":0,"action":"skip"}],"remember":true});
+    let original = command.clone();
+    let epoch = cp["data"]["epoch"].as_str().unwrap().to_owned();
+    let c1 = "2026-01-01T00:00:00.000Z-0001-2526000000000001";
+    let c2 = "2026-01-01T00:00:00.000Z-0002-2526000000000001";
+    let c3 = "2026-01-01T00:00:00.000Z-0003-2526000000000001";
+    let send = |key: &str, clock: &str, body: &Value| {
+        s.client
+            .post(format!("{}{path}", s.url))
+            .header("Idempotency-Key", key)
+            .header("X-Actual-Budget-Epoch", &epoch)
+            .header("X-Actual-Edit-Clock", clock)
+            .json(body)
+            .send()
+            .unwrap()
+    };
+    let response = send("remember", c1, &command);
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let receipt = response.json::<Value>().unwrap();
+    command["snapshot"] = s
+        .get(&format!("{root}/checkpoint"))
+        .json::<Value>()
+        .unwrap()["data"]["snapshot"]
+        .clone();
+    command["options"]["encoding"] = json!("utf-8");
+    let response = send("encoding", c3, &command);
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    command["snapshot"] = s
+        .get(&format!("{root}/checkpoint"))
+        .json::<Value>()
+        .unwrap()["data"]["snapshot"]
+        .clone();
+    command["options"]["import_notes"] = json!(true);
+    let response = send("notes", c2, &command);
+    assert_eq!(
+        response.status(),
+        200,
+        "Independent older field may win: {}",
+        response.text().unwrap()
+    );
+    let settings = s.get(&settings_path).json::<Value>().unwrap();
+    assert_eq!(settings["data"]["options"]["encoding"], "utf-8");
+    assert_eq!(settings["data"]["options"]["import_notes"], true);
+    assert_eq!(
+        settings["data"]["field_versions"][format!("csv-encoding-{a}")]["value"],
+        c3
+    );
+    assert_eq!(
+        settings["data"]["field_versions"][format!("import-notes-{a}-csv")]["value"],
+        c2
+    );
+    assert_eq!(
+        settings["data"]["field_versions"][format!("csv-mappings-{a}")]["value"],
+        c1
+    );
+    assert_eq!(settings["data"]["mapping"]["in_out"], "Direction");
+    let final_cp = s
+        .get(&format!("{root}/checkpoint"))
+        .json::<Value>()
+        .unwrap();
+    command["snapshot"] = final_cp["data"]["snapshot"].clone();
+    command["options"]["encoding"] = json!("windows-1252");
+    assert_eq!(send("older", c2, &command).status(), 409);
+    command["options"]["encoding"] = json!("utf-8");
+    command["options"]["import_notes"] = json!(false);
+    assert_eq!(send("equal", c2, &command).status(), 409);
+    assert_eq!(s.get(&settings_path).json::<Value>().unwrap(), settings);
+    assert_eq!(
+        s.get(&format!("{root}/checkpoint"))
+            .json::<Value>()
+            .unwrap(),
+        final_cp
+    );
+    let backup = s.post(
+        &format!("{root}/backups"),
+        "backup",
+        json!({"label":"Import settings"}),
+    );
+    assert_eq!(backup.status(), 201);
+    let backup = backup.json::<Value>().unwrap();
+    let archive = s
+        .get(&format!(
+            "{root}/backups/{}/download",
+            backup["data"]["id"].as_str().unwrap()
+        ))
+        .bytes()
+        .unwrap();
+    let target = Server::start();
+    let stage = target
+        .client
+        .post(format!("{}/api/v1/restores", target.url))
+        .header("Idempotency-Key", "native")
+        .header("Content-Type", "application/zip")
+        .body(archive)
+        .send()
+        .unwrap();
+    assert_eq!(stage.status(), 201);
+    let stage = stage.json::<Value>().unwrap();
+    assert_eq!(stage["data"]["report"]["schema_version"], 21);
+    let activate = target.post(
+        &format!(
+            "{root}/restores/{}/activate",
+            stage["data"]["id"].as_str().unwrap()
+        ),
+        "activate",
+        json!({"confirm_name":"Remembered import"}),
+    );
+    assert_eq!(activate.status(), 200, "{}", activate.text().unwrap());
+    let restored = target.get(&settings_path).json::<Value>().unwrap();
+    for field in ["options", "mapping", "raw_preferences", "field_versions"] {
+        assert_eq!(restored["data"][field], settings["data"][field], "{field}");
+    }
+    assert_ne!(restored["data"]["epoch"], settings["data"]["epoch"]);
+    assert_eq!(
+        target
+            .get(&format!("{root}/transaction-imports/{file}/original"))
+            .text()
+            .unwrap(),
+        bytes
+    );
+    let replay = target
+        .client
+        .post(format!("{}{path}", target.url))
+        .header("Idempotency-Key", "remember")
+        .header("X-Actual-Budget-Epoch", epoch)
+        .header("X-Actual-Edit-Clock", c1)
+        .json(&original)
+        .send()
+        .unwrap();
+    assert_eq!(replay.status(), 200);
+    assert_eq!(replay.json::<Value>().unwrap(), receipt);
+    assert_eq!(
+        target
+            .get(&format!("{root}/transactions"))
+            .json::<Value>()
+            .unwrap()["data"],
+        json!([])
+    );
+}

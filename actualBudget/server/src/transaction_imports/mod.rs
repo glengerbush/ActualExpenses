@@ -1,4 +1,5 @@
 //! Retained bank files, read-only review, and receipt-owned ledger application.
+mod formats;
 mod matching;
 mod settings;
 mod storage;
@@ -78,7 +79,7 @@ async fn upload(
     let key = crate::api::idempotency_key(&headers)?;
     let hash = format!("{:x}", Sha256::digest(&bytes));
     let payload = json!({"filename":query.filename,"sha256":hash}).to_string();
-    store.run(move|db|{sync::write(db,&format!("POST /budgets/{b}/accounts/{a}/transaction-imports"),&key,&payload,None,StatusCode::CREATED,|db|{crate::ledger::account_exists(db,&b,&a)?;if !query.filename.to_ascii_lowercase().ends_with(".csv")&&!query.filename.to_ascii_lowercase().ends_with(".tsv"){return Err(Error::invalid("Choose a CSV or TSV file"));}let id=uuid::Uuid::new_v4().to_string();db.execute("INSERT INTO transaction_import_files(budget_id,id,account_id,filename,sha256,original) VALUES(?1,?2,?3,?4,?5,?6)",params![b,id,a,query.filename,hash,bytes.as_ref()])?;Ok(json!({"id":id,"account_id":a,"filename":query.filename,"sha256":hash,"bytes":bytes.len()}))})}).await
+    store.run(move|db|{sync::write(db,&format!("POST /budgets/{b}/accounts/{a}/transaction-imports"),&key,&payload,None,StatusCode::CREATED,|db|{crate::ledger::account_exists(db,&b,&a)?;if !matches!(parse::format(&query.filename.to_ascii_lowercase()),"csv"|"tsv"|"ofx"|"qfx"|"qif"|"xml"){return Err(Error::invalid("Choose a CSV, TSV, OFX, QFX, QIF or CAMT XML file"));}let id=uuid::Uuid::new_v4().to_string();db.execute("INSERT INTO transaction_import_files(budget_id,id,account_id,filename,sha256,original) VALUES(?1,?2,?3,?4,?5,?6)",params![b,id,a,query.filename,hash,bytes.as_ref()])?;Ok(json!({"id":id,"account_id":a,"filename":query.filename,"sha256":hash,"bytes":bytes.len()}))})}).await
 }
 fn file(db: &Connection, b: &str, id: &str) -> Result<(String, String, Vec<u8>), Error> {
     crate::store::require_budget(db, b)?;
@@ -158,7 +159,7 @@ async fn parse_file(
     if raw.get("import_notes").is_none() {
         options.import_notes = false;
     }
-    store.run(move|db|{let(_,filename,bytes)=file(db,&b,&id)?;let result=parse::csv(&bytes,&options);Ok(json!({"data":match result{Ok(rows)=>json!({"transactions":rows,"errors":[],"format":if filename.to_lowercase().ends_with(".tsv"){"tsv"}else{"csv"}}),Err(e)=>json!({"transactions":[],"errors":[{"message":e.message}]})}}))}).await.map(Json)
+    store.run(move|db|{let(_,filename,bytes)=file(db,&b,&id)?;let result=parse::file(&filename,&bytes,&options);Ok(json!({"data":match result{Ok(rows)=>json!({"transactions":rows,"errors":[],"format":parse::format(&filename.to_ascii_lowercase())}),Err(e)=>json!({"transactions":[],"errors":[{"message":e.message}]})}}))}).await.map(Json)
 }
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -201,7 +202,12 @@ fn plan(
     sync::check_snapshot(db, b, Some(&body.snapshot))?;
     let (account, filename, bytes) = file(db, b, id)?;
     crate::ledger::account_exists(db, b, &account)?;
-    let parsed = parse::csv(&bytes, &body.options)?;
+    let kind = filename
+        .rsplit('.')
+        .next()
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    let parsed = parse::file(&filename, &bytes, &body.options)?;
     let mut rows = vec![];
     let mut errors = vec![];
 
@@ -228,7 +234,11 @@ fn plan(
         .collect::<BTreeSet<_>>();
     let mut runner = crate::rules::import_runner(db, b, crate::rules::Work::default())?;
     for (index, source) in parsed.into_iter().enumerate() {
-        let mut transaction = match parse::mapped(&source, &body.mapping, &body.options) {
+        let mut transaction = match if matches!(kind.as_str(), "csv" | "tsv") {
+            parse::mapped(&source, &body.mapping, &body.options)
+        } else {
+            parse::structured(&source, &kind, &body.options)
+        } {
             Ok(t) => t,
             Err(e) => {
                 errors.push(json!({"row":index,"message":e.message}));
@@ -281,6 +291,11 @@ fn plan(
         let (mut transaction, matched) = runner.evaluate(db, b, &transaction)?;
         if transaction["new_payee"].is_object()
             && transaction["payee_id"] != transaction["new_payee"]["id"]
+            && !transaction["children"].as_array().is_some_and(|children| {
+                children
+                    .iter()
+                    .any(|child| child["payee_id"] == transaction["new_payee"]["id"])
+            })
         {
             transaction.as_object_mut().unwrap().remove("new_payee");
         }
@@ -336,31 +351,80 @@ fn remember(
     db: &Connection,
     b: &str,
     account: &str,
+    filename: &str,
     body: &Review,
     clock: &str,
 ) -> Result<(), Error> {
-    let pairs = [
-        (
-            "csv-mappings",
-            json!(serde_json::to_string(&body.mapping).map_err(Error::internal)?),
-        ),
-        ("csv-delimiter", json!(body.options.delimiter)),
-        ("csv-encoding", json!(body.options.encoding)),
-        (
-            "csv-has-header",
-            json!(body.options.has_header_row.to_string()),
-        ),
-        (
-            "csv-skip-start-lines",
-            json!(body.options.skip_start_lines.to_string()),
-        ),
-        (
-            "csv-skip-end-lines",
-            json!(body.options.skip_end_lines.to_string()),
-        ),
-    ];
-    for (key, value) in pairs {
-        let id = format!("{key}-{account}");
+    let extension = filename
+        .rsplit('.')
+        .next()
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    let kind = if extension == "tsv" {
+        "csv"
+    } else {
+        &extension
+    };
+    let mut pairs = vec![(
+        format!("import-reimport-deleted-{account}"),
+        json!(body.options.reimport_deleted.to_string()),
+    )];
+    if matches!(kind, "csv" | "qif") {
+        for (prefix, value) in [
+            ("parse-date", body.options.date_format.clone()),
+            ("flip-amount", body.options.flip_amount.to_string()),
+            ("import-notes", body.options.import_notes.to_string()),
+        ] {
+            pairs.push((format!("{prefix}-{account}-{kind}"), json!(value)));
+        }
+    }
+    if kind == "csv" {
+        let mut mapping = serde_json::to_value(&body.mapping).map_err(Error::internal)?;
+        let map = mapping.as_object_mut().unwrap();
+        if let Some(value) = map.remove("in_out") {
+            map.insert("inOut".into(), value);
+        }
+        for (key, value) in [
+            (
+                "csv-mappings",
+                serde_json::to_string(&mapping).map_err(Error::internal)?,
+            ),
+            ("csv-delimiter", body.options.delimiter.clone()),
+            ("csv-encoding", body.options.encoding.clone()),
+            ("csv-has-header", body.options.has_header_row.to_string()),
+            (
+                "csv-skip-start-lines",
+                body.options.skip_start_lines.to_string(),
+            ),
+            (
+                "csv-skip-end-lines",
+                body.options.skip_end_lines.to_string(),
+            ),
+            ("csv-in-out-mode", body.options.in_out_mode.to_string()),
+            ("csv-out-value", body.options.out_value.clone()),
+        ] {
+            pairs.push((format!("{key}-{account}"), json!(value)));
+        }
+    }
+    if matches!(kind, "ofx" | "qfx") {
+        pairs.push((
+            format!("ofx-fallback-missing-payee-{account}"),
+            json!(body.options.fallback_missing_payee_to_memo.to_string()),
+        ));
+    }
+    let swap = match kind {
+        "ofx" | "qfx" => Some("ofx-swap-payee-memo"),
+        "qif" => Some("qif-swap-payee-memo"),
+        "xml" => Some("camt-swap-payee-memo"),
+        _ => None,
+    };
+    if let Some(prefix) = swap {
+        pairs.push((
+            format!("{prefix}-{account}"),
+            json!(body.options.swap_payee_and_memo.to_string()),
+        ));
+    }
+    for (id, value) in pairs {
         let value = value.to_string();
         let old:Option<String>=db.query_row("SELECT value FROM transaction_import_settings WHERE budget_id=?1 AND id=?2 AND tombstone=0",params![b,id],|r|r.get(0)).optional()?;
         if old.as_deref() == Some(&value) {
@@ -375,7 +439,7 @@ fn remember(
             "tombstone",
             clock,
         )?;
-        if key == "csv-skip-start-lines" {
+        if id == format!("csv-skip-start-lines-{account}") {
             guard(
                 db,
                 b,
@@ -385,16 +449,12 @@ fn remember(
                 clock,
             )?;
         }
+        let (_, key) = storage::preference_parts(&id)
+            .ok_or_else(|| Error::internal("Unsupported saved import preference"))?;
         db.execute("INSERT INTO transaction_import_settings(budget_id,id,account_id,option_key,value) VALUES(?1,?2,?3,?4,?5) ON CONFLICT(budget_id,id) DO UPDATE SET value=excluded.value,tombstone=0",params![b,id,account,key,value])?;
-        sync::seed_field_version(db, b, "transaction_import_settings", &id, "value", clock)?;
-        sync::seed_field_version(
-            db,
-            b,
-            "transaction_import_settings",
-            &id,
-            "tombstone",
-            clock,
-        )?;
+        for field in ["value", "tombstone"] {
+            sync::seed_field_version(db, b, "transaction_import_settings", &id, field, clock)?;
+        }
         sync::mark(db, b, "transaction_import_settings", &id)?;
     }
     Ok(())
@@ -438,6 +498,7 @@ if choices.is_empty()||choices.len()>10000{return Err(Error::invalid("Select1–
 let mut selected=BTreeSet::new();
 let clock=sync::clock(db,&b,proposed.as_deref())?;
 let mut updated=vec![];
+let mut updated_ids=BTreeSet::new();
 let mut added=vec![];
 let mut ignored=vec![];
 let mut created_payees=BTreeSet::new();
@@ -450,7 +511,7 @@ if choice.action=="skip"||transaction["deleted"]==true{continue;
 }
 if choice.action=="merge"{let target=choice.match_id.as_deref().ok_or_else(||Error::invalid("A merge requires its reviewed match"))?;
 if row["match_id"]!=target{return Err(Error::conflict("The selected match differs from the captured preview"));
-}let before=crate::ledger::get(db,&b,target)?;
+}let before=crate::ledger::get_any(db,&b,target)?;
 if before["reconciled"]==true{ignored.push(target.to_owned());
 continue;
 }let mut patch=serde_json::Map::new();
@@ -465,14 +526,16 @@ for field in patch.keys().filter(|field|field.as_str()!="new_payee"){guard(db,&b
 let creating_payee=patch.get("new_payee").and_then(|p|p["id"].as_str()).map(str::to_owned);
 if !patch.is_empty(){let response=sync::execute(db,&b,Some(&clock),false,epoch.as_deref(),sync::Mutation::Patch(target.into(),Value::Object(patch)))?;
 if response["response_status"].as_u64().unwrap_or(500)>=400{return Err(Error::conflict("The matched transaction requires review before import"));
-}if let Some(id)=creating_payee{created_payees.insert(id);}
-updated.push(target.to_owned());
+}
+if let Some(id)=creating_payee{created_payees.insert(id);}
+if updated_ids.insert(target.to_owned()){updated.push(target.to_owned());}
 }
 if before["imported_payee"]!=transaction["imported_payee"]{guard(db,&b,"transactions",target,"imported_payee",&clock)?;
 db.execute("UPDATE transactions SET imported_payee=?3 WHERE budget_id=?1 AND id=?2",params![b,target,transaction["imported_payee"].as_str()])?;
 sync::seed_field_version(db,&b,"transactions",target,"imported_payee",&clock)?;
 sync::mark(db,&b,"transactions",target)?;
 }
+ if storage::save(db,&b,target,&transaction,&clock)? && updated_ids.insert(target.to_owned()){updated.push(target.to_owned());}
  }else if choice.action=="add"{
 let new_id=transaction["id"].as_str().unwrap().to_owned();
 let matched=serde_json::from_value(row["matched_rule_ids"].clone()).map_err(Error::internal)?;
@@ -482,11 +545,12 @@ work=result.0;
 if result.1{
 if let Some(id)=transaction["new_payee"]["id"].as_str(){created_payees.insert(id.to_owned());}
 if !transaction["imported_payee"].is_null(){db.execute("UPDATE transactions SET imported_payee=?3 WHERE budget_id=?1 AND id=?2",params![b,new_id,transaction["imported_payee"].as_str()])?;sync::seed_field_version(db,&b,"transactions",&new_id,"imported_payee",&clock)?;}
+storage::save(db,&b,&new_id,&transaction,&clock)?;
 added.push(new_id);
 }
 }else{return Err(Error::invalid("Choose add, merge or skip"));
 }}
- if body.remember{remember(db,&b,plan["account_id"].as_str().unwrap(),&body,&clock)?;
+ if body.remember{remember(db,&b,plan["account_id"].as_str().unwrap(),plan["filename"].as_str().unwrap(),&body,&clock)?;
 }
  Ok(json!({"response_status":200,"response_body":{"data":{"added":added,"updated":updated,"ignored":ignored},"edit_clock":clock,"cursor":sync::cursor(db,&b)?}}))})}).await
 }

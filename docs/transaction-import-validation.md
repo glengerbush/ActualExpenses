@@ -37,7 +37,7 @@ expectations.
 | `transaction-import-manual.json` + source ZIP | Parser→frontend normalization→manual match→repeat→CSV export | Initial Rust HTTP tracer1 passes |
 | `transaction-parser-source.json` |48 genuine raw parser cases, input bytes/hashes/options;21 CSV/TSV,27 other formats/errors | `check-transaction-parser-http.mjs --csv`:21 pass |
 | `transaction-normalization-source.json` |73 unchanged frontend finalization observations (prior71 retained; exact ±1.1250 half-cent cases added) | `check-transaction-normalization-http.mjs`:46 CSV financial/error cases pass; selection/format cases separate |
-| `transaction-matching-source.json` |14 genuine matching/repeat scenarios | `check-transaction-matching-http.mjs`:8 CSV workflows pass; six bank-ID/deleted/locked scenarios pending |
+| `transaction-matching-source.json` |14 genuine matching/repeat scenarios | `check-transaction-matching-http.mjs`:8 CSV workflows pass; all14 now pass, including bank-ID/deleted/locked scenarios |
 | `transaction-merge-source.json` +14 source ZIPs | Keeper precedence, fields/status, split reparent, transfers, four atomic refusals | Consumer/implementation pending |
 | `transaction-import-rules-source.json` +4 source ZIPs | Lazy payees, no unused payee on manual match, rules before matching, split rule once, repeat identity,19 saved source options | Public source4 workflows pass (rules before matching, split allocations, append once, lazy payees, repeat IDs) |
 | `transaction-import-schema20.{sqlite3,zip,json}` | Genuine20 owned expense/edit/history/receipts, balances, two blocked source stages, original bytes and native backup |Public Rust database/native consumers2 pass (working21 joins) |
@@ -73,7 +73,7 @@ schema20/integrity/FKs. No database relabeling or direct financial writes.
   roundtrip; original staged-upload receipts/bytes remain immutable.
 - Full manual merge graph preview/commit and CSV export (including filter/split,
   exact dates/amounts, quoting/formula handling), with source comparisons.
--26: OFX/QFX/QIF/CAMT parsing and options through same reviewed workflow;
+-26: complete committed workflows and UI for OFX/QFX/QIF/CAMT; raw parsing and structured normalization now pass through the shared workflow;
   format-specific IDs/memo/date behavior, malformed inputs, saved settings,
   duplicate/deleted choices. Bank providers remain28–32.
 - Complete Impeccable/Svelte UI: upload/map/review/select/merge/import/export,
@@ -130,3 +130,38 @@ Existing automatic-entry2 and linked-schedule1 regressions PASS
 `/tmp/transaction-import-rules-clippy.log`. Exact-half source generator/check73
 and public normalization46 PASS. Preservation checkpoint `ce92da3` independently
 reviewed Standards/Spec PASS; current per-key clock/native roundtrip remains open.
+
+## Structured formats, bank IDs and saved clocks
+
+Raw source parser48 PASS `/tmp/transaction-parser-formats-green.log`; structured
+frontend normalization22 PASS `/tmp/transaction-structured-second.log`. New
+`formats.rs` handles source QIF records, OFX/QFX XML and optional SGML leaf
+closures, declared encodings, CAMT entry/detail amounts and memo/payee options.
+XML uses pinned `roxmltree0.21.2`, with500000-node cap and no external DTD
+resolution ([primary API](https://docs.rs/roxmltree/0.21.2/roxmltree/struct.ParsingOptions.html)).
+All raw fields, row order and success/error decisions match the independent
+corpus. Unknown file formats reject before storing; supported malformed files
+retain their original bytes and visible parse errors.
+
+Financial matcher14 PASS `/tmp/transaction-bank-matching-first.log`. Genuine
+pre-import archives in `fixtures/transaction-matching/` expose bank IDs, hidden
+tombstones and reconciliation without direct database setup. Manifest IDs map
+only newly generated source reference IDs; existing transaction IDs remain
+exact. Every archive digest and initial financial projection is checked. Source
+generator `--check --export-seeds` re-executed the original14 outcomes. Frozen
+date/rank ties in force-add may differ only by random UUID; its check now
+canonicalizes those semantic ties while preserving meaningful date/rank order.
+Original source JSON remains unchanged.
+
+Current21 saved-option public/native test PASS
+`/tmp/transaction-import-options-clock-native.log`: independently newer encoding
+and older notes intent both survive, stale/equal same-field intents refuse
+without mutation, mappings preserve source inOut semantics, complete native
+backup retains exact per-key clocks and staged bytes, restored epoch rotates,
+and the original old-epoch receipt still replays exactly. No source ZIP clocks
+are fabricated. Source preference writes remain per-format independent cells.
+
+Still open: selected-scope rematching/ignored rows, source file order for new
+distinct purchases, duplicate same-bank-ID rows within one command; graph-aware
+manual merge, CSV export, format commit/browser/native paths and complete UI
+contracts/qualification. These remain incomplete acceptance gates.

@@ -1,0 +1,175 @@
+{
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "archives": [
+    {
+      "id": "global-payee-before-fallback",
+      "ids": {
+        "account": "a0311a4e-67a0-4878-8cca-0ad67bb8fc65",
+        "Cafe": "052654f2-cf54-4077-a04f-f6e7dd17542c",
+        "Shop": "7056f9dc-a421-415f-8f6e-a79fa63aaf09",
+        "Unknown": "7779b950-59c3-4f82-906a-771d30f4a091",
+        "cafe": "25260000-0000-4000-8000-000000000001",
+        "shop": "25260000-0000-4000-8000-000000000002"
+      },
+      "filename": "global-payee-before-fallback-26.10.zip",
+      "sha256": "8cc9447488256d75c23a8687aa29363724bb457312595e2969c6e111b0bd61d0"
+    },
+    {
+      "id": "global-id-before-fuzzy",
+      "ids": {
+        "account": "8d3c85ee-8119-4fee-9cd0-a4b41ff51aed",
+        "Cafe": "c9bb9d15-1ab1-475d-98e5-9288e0703b51",
+        "Shop": "53b6b135-eec5-414e-94b0-cff977771857",
+        "Unknown": "c07e3fb6-3ef8-4980-9b1d-df1c982edfd5",
+        "bank": "25260000-0000-4000-8000-000000000101",
+        "manual": "25260000-0000-4000-8000-000000000102"
+      },
+      "filename": "global-id-before-fuzzy-26.10.zip",
+      "sha256": "33d5fdb4bef00d680490271a47469990a307d7cb8c188054ed9871e1b83e1349"
+    },
+    {
+      "id": "duplicate-real-purchases",
+      "ids": {
+        "account": "69c606ba-0f10-4862-a91e-652550918174",
+        "Cafe": "b4c7d189-7fce-4027-bdfb-ad160b97afc0",
+        "Shop": "2c0689fa-4bb7-4d52-b5da-cf34ff2700a3",
+        "Unknown": "6285b250-4523-42cf-a11b-f4fcb451bd1f"
+      },
+      "filename": "duplicate-real-purchases-26.10.zip",
+      "sha256": "c2a2837882abd3e7adb9f23bb9e6400ea293e44a185e525553c33423542cd573"
+    },
+    {
+      "id": "one-manual-two-purchases",
+      "ids": {
+        "account": "6a64cd79-135d-4f01-bd49-3fbfdcedbf0c",
+        "Cafe": "fbc28941-1bdc-4602-8903-f49fbd9cea28",
+        "Shop": "cc8be6a1-fb01-4a4e-a254-5583fe001723",
+        "Unknown": "c48d0e1f-b6e2-4498-a5ef-e7e4076784be",
+        "manual": "25260000-0000-4000-8000-000000000301"
+      },
+      "filename": "one-manual-two-purchases-26.10.zip",
+      "sha256": "c2d17d2355b5f8f65e216c95cdab7e47ad93f305a3aa86bd000c5f8157081477"
+    },
+    {
+      "id": "equal-distance-tie",
+      "ids": {
+        "account": "da3cf9a0-fc37-4261-b846-f25029128f93",
+        "Cafe": "408088ba-97f4-4625-bba4-1ad5b85b3aea",
+        "Shop": "b541f1a4-d248-4283-b532-d168938321dc",
+        "Unknown": "2aee5689-1788-4cdc-876d-60da58432e8e",
+        "earlier": "25260000-0000-4000-8000-000000000401",
+        "later": "25260000-0000-4000-8000-000000000402"
+      },
+      "filename": "equal-distance-tie-26.10.zip",
+      "sha256": "7f48c73b6f9b129bc6452e44e7cfce0568852b9434753221d757a5a55c2cb3d4"
+    },
+    {
+      "id": "inclusive-minus-seven",
+      "ids": {
+        "account": "b6eac714-7a9b-4a40-b181-2a361552b21b",
+        "Cafe": "b1bf6ecc-5200-4734-b957-825b6beeeade",
+        "Shop": "0091b6d0-4b37-40c4-b078-89d63874aab6",
+        "Unknown": "275518fc-7684-44e3-8320-03f002a85c96",
+        "manual": "25260000-0000-4000-8000-000000000501"
+      },
+      "filename": "inclusive-minus-seven-26.10.zip",
+      "sha256": "724684f92e8ceec01a277a6242bac3b4b56f9e08558222b4eb993a15d6c0e393"
+    },
+    {
+      "id": "inclusive-plus-seven",
+      "ids": {
+        "account": "45d657eb-9a3f-42df-9756-8fdcd05c3c63",
+        "Cafe": "2d6e8e1a-77f9-4e8d-8814-23a43c63314f",
+        "Shop": "a26d9dfa-a63d-4bb2-846f-4c5cbb57c31f",
+        "Unknown": "9624bba9-63db-435b-baa5-ac01d8c7146b",
+        "manual": "25260000-0000-4000-8000-000000000601"
+      },
+      "filename": "inclusive-plus-seven-26.10.zip",
+      "sha256": "214cde7c84d54445071c817ed94375415f908901321c8cd705d3d81a64c03ffc"
+    },
+    {
+      "id": "outside-eight-days",
+      "ids": {
+        "account": "9952d3c8-2692-44a1-8c2b-98272607cbe8",
+        "Cafe": "d5040adf-34ae-4b6d-bfd9-37ff959e703f",
+        "Shop": "3a0291ab-bbad-4dcb-b3fa-a37cf346386c",
+        "Unknown": "62844cf3-0036-4515-a344-c7b8c531dd64",
+        "manual": "25260000-0000-4000-8000-000000000701"
+      },
+      "filename": "outside-eight-days-26.10.zip",
+      "sha256": "293002edeb0dafcd1d9426202651d614a4102091136f2546e100b8a5e1ab145f"
+    },
+    {
+      "id": "same-id-date-amount-differ",
+      "ids": {
+        "account": "a2390ff5-2177-4f80-9bd8-e94c5b7dada0",
+        "Cafe": "ee1b7501-b3dd-46d3-819d-e3412e13fac0",
+        "Shop": "3d393f8b-4840-4857-9e1a-1985f6bdf8a8",
+        "Unknown": "b2fa8bc2-ccfe-4b6a-909b-fb1972a3a5d6",
+        "bank": "25260000-0000-4000-8000-000000000801"
+      },
+      "filename": "same-id-date-amount-differ-26.10.zip",
+      "sha256": "1b24938e7eaa733e3dd5a6ab53fe5ebe18e521e27987de8c85cc7d2196c35737"
+    },
+    {
+      "id": "different-nonempty-ids",
+      "ids": {
+        "account": "014212dd-b18f-41fb-ab35-39316049c29f",
+        "Cafe": "a91db270-2b94-46a3-8d16-21cd2bb524e1",
+        "Shop": "79343c50-3ae1-4689-90a8-61ffba4026bf",
+        "Unknown": "e98e6b8f-212f-4a55-a9cf-5c775bb9ecbf",
+        "bank": "25260000-0000-4000-8000-000000000901"
+      },
+      "filename": "different-nonempty-ids-26.10.zip",
+      "sha256": "b200ffb2eda64e10198c0b43cab38a02167cba2750e43bf3835b45d855b3780d"
+    },
+    {
+      "id": "deleted-id-suppressed",
+      "ids": {
+        "account": "5852aa06-6156-477d-bd6a-949eadcb5376",
+        "Cafe": "991ddac7-174f-4b8e-b19e-5ec7fba54ff5",
+        "Shop": "d8852b64-0005-4cf4-9729-a699f3df5ccf",
+        "Unknown": "156a244d-49d8-47a5-b566-913ba8c75bba",
+        "deleted": "25260000-0000-4000-8000-000000001001"
+      },
+      "filename": "deleted-id-suppressed-26.10.zip",
+      "sha256": "db4ae8893adc00ea6c44c361a7ef2791ddb5cf40f544ca1c77b7d3a84798e1c9"
+    },
+    {
+      "id": "deleted-id-reimported",
+      "ids": {
+        "account": "02465e95-dc1e-47b5-9f87-6d3367ec41d1",
+        "Cafe": "4f5e7866-3852-4703-aea5-bd3c87fc63a9",
+        "Shop": "a54b249a-3a28-416d-822a-a38669a6bb36",
+        "Unknown": "5511c759-329a-4361-8cd2-b73a62b7a712",
+        "deleted": "25260000-0000-4000-8000-000000001101"
+      },
+      "filename": "deleted-id-reimported-26.10.zip",
+      "sha256": "a4c815ce51d889ac89c2f5574752c13cba8ee09c0730208964416dad71503917"
+    },
+    {
+      "id": "reconciled-match-unchanged",
+      "ids": {
+        "account": "78babf3f-465c-45ee-87de-cf4c5c5eddbe",
+        "Cafe": "ec3b7665-f1f3-47af-a642-f6ebd06b05cf",
+        "Shop": "808142b2-507c-4965-b5cd-65d03c827882",
+        "Unknown": "510f1520-32a8-4f21-ac6a-53c4e5ffe4b9",
+        "locked": "25260000-0000-4000-8000-000000001201"
+      },
+      "filename": "reconciled-match-unchanged-26.10.zip",
+      "sha256": "323f702b5397c18d1bde94fee74e15e52a99e6725c4ed8a94ee8e071e8b1b53b"
+    },
+    {
+      "id": "force-add-selected",
+      "ids": {
+        "account": "81b78116-ac53-4013-bc9e-3aed999d18ed",
+        "Cafe": "966947c1-c579-4fd2-b5b1-9812593a0696",
+        "Shop": "3ff06203-ea28-4a84-b105-31171ccf3689",
+        "Unknown": "c8ae1fc8-f67d-4a80-b322-37b8b52db246",
+        "manual": "25260000-0000-4000-8000-000000001301"
+      },
+      "filename": "force-add-selected-26.10.zip",
+      "sha256": "b2e6f3ad3c5c1859a19690fc9ee8aee12c9486768cac32bd9d5629e3e4a2e8e4"
+    }
+  ]
+}

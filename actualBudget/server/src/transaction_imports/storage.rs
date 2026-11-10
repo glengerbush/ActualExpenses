@@ -19,7 +19,7 @@ const PREFIXES: &[&str] = &[
     "qif-swap-payee-memo-",
     "camt-swap-payee-memo-",
 ];
-fn preference_parts(key: &str) -> Option<(&str, String)> {
+pub(super) fn preference_parts(key: &str) -> Option<(&str, String)> {
     for prefix in PREFIXES {
         let Some(rest) = key.strip_prefix(prefix) else {
             continue;
@@ -330,4 +330,55 @@ pub(crate) fn validate(db: &Connection, b: &str) -> Result<(), Error> {
         }
     }
     Ok(())
+}
+
+/// File reconciliation replaces the bank ID, while retaining an already saved
+/// raw bank payload. Financial visibility/tombstones remain ledger-owned.
+pub(super) fn save(
+    db: &Connection,
+    b: &str,
+    id: &str,
+    input: &Value,
+    clock: &str,
+) -> Result<bool, Error> {
+    let old=db.query_row("SELECT imported_id,raw_synced_data,pending,import_type,tombstone FROM transaction_import_metadata WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"imported_id":r.get::<_,Option<String>>(0)?,"raw_synced_data":r.get::<_,Option<String>>(1)?,"pending":r.get::<_,bool>(2)?,"import_type":r.get::<_,Option<String>>(3)?,"tombstone":r.get::<_,bool>(4)?}))).optional()?;
+    let before=old.clone().unwrap_or(json!({"imported_id":null,"raw_synced_data":null,"pending":false,"import_type":null,"tombstone":false}));
+    let mut after = before.clone();
+    after["imported_id"] = input["imported_id"]
+        .as_str()
+        .filter(|s| !s.is_empty())
+        .map(|s| json!(s))
+        .unwrap_or(Value::Null);
+    if after["raw_synced_data"].is_null() {
+        after["raw_synced_data"] = input["raw_synced_data"].clone();
+    }
+    after["tombstone"] = json!(false);
+    let fields = [
+        "imported_id",
+        "raw_synced_data",
+        "pending",
+        "import_type",
+        "tombstone",
+    ];
+    let changed = fields
+        .into_iter()
+        .filter(|f| before[*f] != after[*f])
+        .collect::<Vec<_>>();
+    if changed.is_empty() {
+        return Ok(false);
+    }
+    for field in &changed {
+        guard(db, b, "transaction_import_metadata", id, field, clock)?;
+    }
+    for field in ["imported_id", "raw_synced_data", "import_type"] {
+        if !after[field].is_null() && after[field].as_str().is_none_or(|s| s.len() > MAX_FILE) {
+            return Err(Error::invalid("Invalid retained bank metadata"));
+        }
+    }
+    db.execute("INSERT INTO transaction_import_metadata(budget_id,id,imported_id,raw_synced_data,pending,import_type) VALUES(?1,?2,?3,?4,?5,?6) ON CONFLICT(budget_id,id) DO UPDATE SET imported_id=excluded.imported_id,raw_synced_data=excluded.raw_synced_data,pending=excluded.pending,import_type=excluded.import_type,tombstone=0",params![b,id,after["imported_id"].as_str(),after["raw_synced_data"].as_str(),after["pending"]==true,after["import_type"].as_str()])?;
+    for field in changed {
+        sync::seed_field_version(db, b, "transaction_import_metadata", id, field, clock)?;
+    }
+    sync::mark(db, b, "transaction_import_metadata", id)?;
+    Ok(true)
 }

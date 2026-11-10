@@ -223,7 +223,7 @@ fn field<'a>(row: &'a Value, mapping: &Option<String>, fallback: &str) -> Option
     }
 }
 /// JavaScript parseFloat accepts a valid prefix, unlike Rust's full-string parse.
-fn float_prefix(raw: &str) -> Option<f64> {
+pub(super) fn float_prefix(raw: &str) -> Option<f64> {
     let raw = raw.trim_matches(crate::payees_tags::js_whitespace);
     let bytes = raw.as_bytes();
     let mut i = usize::from(matches!(bytes.first(), Some(b'+' | b'-')));
@@ -259,7 +259,7 @@ fn float_prefix(raw: &str) -> Option<f64> {
     raw[..end].parse().ok()
 }
 
-fn loose(raw: Option<&str>) -> f64 {
+pub(super) fn loose(raw: Option<&str>) -> f64 {
     let Some(raw) = raw else {
         return 0.0;
     };
@@ -401,4 +401,61 @@ pub(super) fn mapped(row: &Value, map: &Mapping, options: &Options) -> Result<Va
     Ok(
         json!({"date":date(field(row,&map.date,"date").unwrap_or(""),&options.date_format)?,"amount":rounded as i64,"payee_name":field(row,&map.payee,"payee_name"),"category_name":field(row,&map.category,"category"),"notes":if options.import_notes{field(row,&map.notes,"notes").unwrap_or("")}else{""},"cleared":options.clear_on_import}),
     )
+}
+
+pub(super) fn format(filename: &str) -> &str {
+    filename.rsplit('.').next().unwrap_or("")
+}
+pub(super) fn file(filename: &str, bytes: &[u8], options: &Options) -> Result<Vec<Value>, Error> {
+    match format(&filename.to_ascii_lowercase()) {
+        "csv" | "tsv" => csv(bytes, options),
+        "qif" => super::formats::qif(bytes, options),
+        "ofx" | "qfx" => super::formats::ofx(bytes, options),
+        "xml" => super::formats::camt(bytes, options),
+        _ => Err(Error::invalid("Invalid file type")),
+    }
+}
+pub(super) fn structured(row: &Value, kind: &str, options: &Options) -> Result<Value, Error> {
+    let mut result = mapped(
+        &json!({"date":if kind=="qif"{row["date"].clone()}else{json!(row["date"].as_str().unwrap_or(""))},"payee_name":row["payee_name"],"amount":"0","notes":row["notes"],"category":row["category"]}),
+        &Mapping::default(),
+        &Options {
+            date_format: if kind == "qif" {
+                options.date_format.clone()
+            } else {
+                "yyyy mm dd".into()
+            },
+            split_mode: false,
+            in_out_mode: false,
+            ..options.clone()
+        },
+    )?;
+    let mut amount = row["amount"]
+        .as_f64()
+        .ok_or_else(|| Error::invalid("Invalid financial file amount"))?;
+    if options.flip_amount {
+        amount = -amount;
+    }
+    let multiplier = float_prefix(&options.multiplier)
+        .filter(|n| *n != 0.0)
+        .unwrap_or(1.0);
+    let scaled = amount * multiplier * 100.0;
+    let floor = scaled.floor();
+    let rounded = if scaled - floor >= 0.5 {
+        floor + 1.0
+    } else {
+        floor
+    };
+    if !rounded.is_finite() || rounded.abs() > crate::models::MAX_MONEY as f64 {
+        return Err(Error::invalid(
+            "Imported amount exceeds the exact integer range",
+        ));
+    }
+    result["amount"] = json!(rounded as i64);
+    for field in ["imported_id", "raw_synced_data", "pending"] {
+        if let Some(value) = row.get(field) {
+            result[field] = value.clone();
+        }
+    }
+    Ok(result)
 }

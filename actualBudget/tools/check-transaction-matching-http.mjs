@@ -1,11 +1,12 @@
 // Full import/preview/retry outcomes against independently executed Actual.
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHash} from 'node:crypto';
 import {startServer} from '../web/tests/server.mjs';
 const fixture=JSON.parse(await readFile(new URL('../tests/fixtures/transaction-matching-source.json',import.meta.url),'utf8'));
 const server=await startServer(),api=server.url.replace('actualbudget.test','127.0.0.1')+'/api/v1';
 const failures=[];
+const manifest=JSON.parse(await readFile(new URL('../tests/fixtures/transaction-matching/manifest.json',import.meta.url)));
 let tested=0;
 async function call(path,body,headers={}){
   const response=await fetch(api+path,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json','Idempotency-Key':randomUUID(),...headers},...(body===undefined?{}:{body:JSON.stringify(body)})});
@@ -26,32 +27,30 @@ function financial(rows,manualIds,source){
   return output.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
 }
 try{
-  for(const item of fixture.cases){
-    // Bank-ID, tombstone and locked-state setup use financial-format and
-    // reconciliation workflows, tested separately once those seams are ready.
-    if(item.input.existing.some(row=>row.imported_id||row.deleted||row.reconciled)||item.input.incoming.some(row=>row.imported_id))continue;
+  for(const sourceItem of fixture.cases){
+    const seed=manifest.archives.find(seed=>seed.id===sourceItem.id);assert.ok(seed);
+    const replacements=new Map(Object.entries(sourceItem.ids).map(([key,value])=>[value,seed.ids[key]]));
+    const item=JSON.parse(JSON.stringify(sourceItem),(_,value)=>typeof value==='string'&&replacements.has(value)?replacements.get(value):value);
     const selected=process.argv.find(arg=>arg.startsWith('--case='))?.slice(7);
     if(selected&&item.id!==selected)continue;
     tested++;
     try{
-      const budget=randomUUID(),account=item.ids.account,root=`/budgets/${budget}`;
-      await call('/budgets',{id:budget,name:item.id});
-      await call(root+'/accounts',{id:account,name:'Checking',opening_balance:0,opening_date:'2026-01-01'});
-      for(const name of ['Cafe','Shop','Unknown'])await call(root+'/payees',{id:item.ids[name],name});
-      const manualIds=new Set();
-      for(const row of item.input.existing){
-        const id=item.ids[row.label];manualIds.add(id);
-        await call(root+'/transactions',{id,account_id:account,date:row.date,amount:row.amount,payee_id:item.ids[row.payee],notes:row.notes,cleared:row.cleared});
-      }
+      const archive=await readFile(new URL('../tests/fixtures/transaction-matching/'+seed.filename,import.meta.url));assert.equal(createHash('sha256').update(archive).digest('hex'),seed.sha256);
+      const uploadedSeed=await fetch(api+'/imports/actual',{method:'POST',headers:{'Idempotency-Key':randomUUID(),'Content-Type':'application/zip'},body:archive});assert.equal(uploadedSeed.status,201,await uploadedSeed.clone().text());
+      const stageSeed=(await uploadedSeed.json()).data;assert.equal(stageSeed.status,'ready');await call(`/imports/${stageSeed.id}/activate`,{});
+      const account=item.ids.account,root=`/budgets/${stageSeed.budget_id}`,manualIds=new Set(item.input.existing.map(row=>item.ids[row.label]));
       assert.deepEqual(financial((await call(root+'/transactions')).data,manualIds,false),financial(item.before.transactions,manualIds,true),'Genuine source starting ledger reproduced');
       const csv=['Date,Payee,Amount,Memo',...item.input.incoming.map(row=>[row.date,row.payee_name,decimal(row.amount),row.notes].map(quote).join(','))].join('\n')+'\n';
-      const upload=await fetch(`${api}${root}/accounts/${account}/transaction-imports?filename=bank.csv`,{method:'POST',headers:{'Idempotency-Key':randomUUID(),'Content-Type':'text/csv'},body:csv});
+      const bankFormat=item.input.incoming.some(row=>row.imported_id);
+      const escape=text=>String(text??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+      const ofx='<OFX><BANKMSGSRSV1><STMTTRNRS><STMTRS><BANKTRANLIST>'+item.input.incoming.map(row=>'<STMTTRN><DTPOSTED>'+row.date.replaceAll('-','')+'</DTPOSTED><TRNAMT>'+decimal(row.amount)+'</TRNAMT><NAME>'+escape(row.payee_name)+'</NAME><MEMO>'+escape(row.notes)+'</MEMO>'+(row.imported_id?'<FITID>'+escape(row.imported_id)+'</FITID>':'')+'</STMTTRN>').join('')+'</BANKTRANLIST></STMTRS></STMTTRNRS></BANKMSGSRSV1></OFX>';
+      const upload=await fetch(`${api}${root}/accounts/${account}/transaction-imports?filename=bank.${bankFormat?'ofx':'csv'}`,{method:'POST',headers:{'Idempotency-Key':randomUUID(),'Content-Type':'application/octet-stream'},body:bankFormat?ofx:csv});
       assert.equal(upload.status,201,await upload.clone().text());
       const stage=(await upload.json()).data.id,path=`${root}/transaction-imports/${stage}`;
       let firstImportIds;
       for(const [round,expected] of [item.after,item.repeated].entries()){
         const checkpoint=(await call(root+'/checkpoint')).data,before=await call(root+'/transactions');
-        const body={snapshot:checkpoint.snapshot,mapping:{date:'Date',payee:'Payee',amount:'Amount',notes:'Memo'},options:{has_header_row:true,date_format:'yyyy mm dd'}};
+        const body={snapshot:checkpoint.snapshot,mapping:{date:'Date',payee:'Payee',amount:'Amount',notes:'Memo'},options:{has_header_row:true,date_format:'yyyy mm dd',reimport_deleted:item.input.opts?.reimportDeleted??false}};
         const preview=(await call(path+'/preview',body)).data;
         assert.deepEqual(preview.errors,[]);
         assert.deepEqual(await call(root+'/transactions'),before,'Preview leaves ledger unchanged');
@@ -59,7 +58,8 @@ try{
         if(round===0){
           // Source force-add is an explicit review choice in this public API,
           // applied below; an offered candidate is not an accepted merge.
-          const matches=preview.rows.filter(row=>row.match_id&&!item.input.incoming[row.row].forceAddTransaction).map(row=>row.match_id);
+          const locked=new Set(item.input.existing.filter(row=>row.reconciled).map(row=>item.ids[row.label]));
+          const matches=preview.rows.filter(row=>row.match_id&&!locked.has(row.match_id)&&!item.input.incoming[row.row].forceAddTransaction).map(row=>row.match_id);
           assert.deepEqual(matches,item.preview.updated,'Same source matching allocation/order');
         }
         const rows=preview.rows.map(row=>({row:row.row,action:item.input.incoming[row.row].forceAddTransaction?'add':row.match_id?'merge':'add',...(row.match_id?{match_id:row.match_id}:{})}));

@@ -1,7 +1,7 @@
 // Observe matching and repeated imports using the genuine pinned engine.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
-import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
+import {mkdtemp,readFile,writeFile,rm,mkdir} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 
@@ -34,7 +34,9 @@ const fixture=new URL('../tests/fixtures/transaction-matching-source.json',impor
 const plain=value=>JSON.parse(JSON.stringify(value));
 try{
   const engine=await api.init({dataDir:directory});
-  const observations=[];
+  const observations=[],archives=[];
+  const exportDirectory=new URL('../tests/fixtures/transaction-matching/',import.meta.url);
+  if(process.argv.includes('--export-seeds'))await mkdir(exportDirectory,{recursive:true});
   for(const [caseIndex,item] of cases.entries()){
     const ids={};
     await api.runImport(item.id,async()=>{
@@ -53,6 +55,7 @@ try{
     for(const row of item.existing)if(row.deleted)await engine.send('transaction-delete',{id:ids[row.label]});
     const snapshot=async()=>plain({transactions:await api.getTransactions(ids.account,'2026-01-01','2026-12-31'),payees:await api.getPayees()});
     const before=await snapshot();
+    if(process.argv.includes('--export-seeds')){const bytes=await api.exportBudget();const filename=item.id+'-26.10.zip';await writeFile(new URL(filename,exportDirectory),bytes,{flag:'wx'});archives.push({id:item.id,ids,filename,sha256:createHash('sha256').update(bytes).digest('hex')});}
     const request={accountId:ids.account,transactions:item.incoming,opts:{reimportDeleted:false,...item.opts}};
     const preview=plain(await engine.send('transactions-import',{...request,isPreview:true}));
     assert.deepEqual(await snapshot(),before,`${item.id}: preview is read-only`);
@@ -75,7 +78,16 @@ try{
         if(!ids.has(v))ids.set(v,`generated-id-${ids.size}`);
         return ids.get(v);
       }
-      if(Array.isArray(v))return v.map(walk);
+      if(Array.isArray(v)){
+        const rows=v.map(walk);
+        // Frozen-clock creates may share date/rank; source UUID ties are random.
+        // Normalize only those ties, preserving meaningful date/rank ordering.
+        if(rows.length&&rows.every(row=>row&&typeof row==='object'&&!Array.isArray(row)&&'sort_order'in row&&'date'in row)){
+          const semantic=row=>JSON.stringify(Object.fromEntries(Object.entries(row).filter(([key])=>key!=='id')));
+          return rows.sort((a,b)=>b.date.localeCompare(a.date)||b.sort_order-a.sort_order||semantic(a).localeCompare(semantic(b)));
+        }
+        return rows;
+      }
       if(v&&typeof v==='object')return Object.fromEntries(Object.entries(v).map(([k,item])=>[k,walk(item)]));
       return v;
     }
@@ -83,5 +95,6 @@ try{
   }
   if(process.argv.includes('--check'))assert.deepEqual(stable(output),stable(JSON.parse(await readFile(fixture,'utf8'))));
   else await writeFile(fixture,JSON.stringify(output,null,2)+'\n',{flag:'wx'});
+  if(process.argv.includes('--export-seeds'))await writeFile(new URL('manifest.json',exportDirectory),JSON.stringify({source_commit:output.source_commit,archives},null,2)+'\n',{flag:'wx'});
   console.log(`PASS ${observations.length} genuine matching/preview/repeated-import observations`);
 }finally{await api.shutdown();await rm(directory,{recursive:true,force:true});globalThis.Date=NativeDate;}

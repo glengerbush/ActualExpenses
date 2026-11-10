@@ -12,8 +12,8 @@ with tempfile.TemporaryDirectory(prefix='forecast-native-') as directory:
  process=subprocess.Popen([str(project/'server/target/debug/actualbudget-server')],env=env,stdout=subprocess.PIPE,text=True)
  try:
   line=process.stdout.readline().strip();assert line.startswith('LISTENING '),line;url='http://'+line.removeprefix('LISTENING ')
-  def call(path,body=None,headers=None,expected=200):
-   raw=body if isinstance(body,bytes) else None if body is None else json.dumps(body).encode();request=urllib.request.Request(url+'/api/v1'+path,data=raw,headers={'Content-Type':'application/zip' if isinstance(body,bytes) else 'application/json','Idempotency-Key':str(uuid.uuid4()),**(headers or {})})
+  def call(path,body=None,headers=None,expected=200,method=None):
+   raw=body if isinstance(body,bytes) else None if body is None else json.dumps(body).encode();request=urllib.request.Request(url+'/api/v1'+path,data=raw,method=method,headers={'Content-Type':'application/zip' if isinstance(body,bytes) else 'application/json','Idempotency-Key':str(uuid.uuid4()),**(headers or {})})
    try:response=urllib.request.urlopen(request,timeout=15)
    except urllib.error.HTTPError as error:response=error
    with response:
@@ -34,5 +34,14 @@ with tempfile.TemporaryDirectory(prefix='forecast-native-') as directory:
   duplicate=str(uuid.uuid4());call(root+'/duplicate',{'id':duplicate,'name':'Forecast native duplicate'},headers,201);assert call('/budgets/'+duplicate+'/reporting')['data']['documents']==state['documents'];check(call('/budgets/'+duplicate+'/reports/forecast',query))
   call(root+'/backups/'+backup['data']['id']+'/restore',{'confirm_name':original['budget']['name']},headers);restored=call(root+'/reporting')['data'];assert restored['epoch']!=state['epoch'];assert restored['documents']==state['documents'];after=call(root+'/reports/forecast',query);check(after);assert after['data']['cache']['hit']==False;assert after['data']['epoch']==restored['epoch'];assert after['data']['result']==before['data']['result']
   current_headers={'X-Actual-Budget-Epoch':restored['epoch']};second=call(root+'/backups',{'label':'After forecast restore'},current_headers,201);current=portable(call(root+'/backups/'+second['data']['id']+'/download'));assert report_clocks(current)==report_clocks(original)
-  print('PASS forecast served schemas, source opt-in/config, native24 duplicate/restore, retained reporting clocks and epoch-bound cache invalidation')
+  for amount in [-9007199254740991,9007199254740991]:
+   boundary='/budgets/'+str(uuid.uuid4());call('/budgets',{'id':boundary.split('/')[-1],'name':'Forecast monetary boundary'},expected=201)
+   boundary_headers={'X-Actual-Budget-Epoch':call(boundary)['data']['epoch']}
+   call(boundary+'/accounts',{'id':str(uuid.uuid4()),'name':'Boundary','opening_balance':amount,'opening_date':'2026-11-01'},boundary_headers,201)
+   call(boundary+'/preferences',{'experimental':{'balanceForecastReport':True}},boundary_headers,method='PATCH')
+   result=call(boundary+'/reports/forecast',{'version':1,'as_of':'2026-11-02','options':{'startDate':'2026-11-02','endDate':'2026-11-03','source':'schedules','granularity':'Daily'}})
+   assert result['data']['result']['lowestBalance']['balance']==amount
+   assert all(point['balance']==amount for point in result['data']['result']['dataPoints'])
+   check(result)
+  print('PASS forecast served schemas including both safe-money boundaries, source opt-in/config, native24 duplicate/restore, retained reporting clocks and epoch-bound cache invalidation')
  finally:process.terminate();process.wait(timeout=15)

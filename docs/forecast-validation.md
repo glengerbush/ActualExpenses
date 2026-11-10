@@ -75,3 +75,16 @@ No remaining35 review findings; final main composition is pending other slices.
 ### Narrow UI review correction
 
 Root found blank forecast names falling back to the internal card identifier, and optional downloaded-cache write failure erasing a successful calculation. Added translated default title and isolated cache-write warning; current online results survive while cached fallback remains reserved for failed calculation. `forecast-cache-browser.mjs` injects quota failure only for downloaded forecast entries on disposable browser data, verifies fresh104.00/table plus visible cache warning (not stale-cache label), then saves a blank name and verifies the default Balance forecast heading and current values. `/tmp/forecast35-review-ui-red.log` missing-table RED → `/tmp/forecast35-review-ui-green.log` PASS. Svelte0/0 and build PASS `/tmp/forecast35-review-ui-{check,build}.log`; two autofixers no issues (same documented async-read advisories); focused formatting/diff checks. Other unchanged source/native/layout proofs reused; shared23rd null-category gate is being composed by root, not silently skipped here.
+
+### Monetary contract boundary correction
+
+During36 schema work, the report worker identified35's four money schemas using
+±9000000000000000 instead of the runtime/public ±9007199254740991 range. Root
+extended the maintained native consumer with two publicly created budgets at
+the actual positive/negative safe-money limits. True RED
+`/tmp/forecast-money-schema-red.log`: runtime200 returned the exact negative
+boundary, rejected by the served chart schema. All four forecast amount/balance
+schema limits now match the existing runtime invariant. No financial algorithm
+or source fixture changed. Combined build and both boundary responses/schema
+validation plus the existing forecast native24 round trip PASS
+`/tmp/forecast-money-schema-{build,green}.log`. Review finding closed.

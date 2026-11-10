@@ -31430,8 +31430,8 @@
         "properties": {
           "amount": {
             "type": "integer",
-            "minimum": -9000000000000000,
-            "maximum": 9000000000000000
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
           },
           "payee": {
             "type": [
@@ -31464,8 +31464,8 @@
           },
           "balance": {
             "type": "integer",
-            "minimum": -9000000000000000,
-            "maximum": 9000000000000000
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
           },
           "accountId": {
             "type": "string",
@@ -31499,8 +31499,8 @@
           },
           "balance": {
             "type": "integer",
-            "minimum": -9000000000000000,
-            "maximum": 9000000000000000
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
           },
           "accountId": {
             "type": "string"
@@ -31556,8 +31556,8 @@
           },
           "balance": {
             "type": "integer",
-            "minimum": -9000000000000000,
-            "maximum": 9000000000000000
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
           }
         },
         "required": [

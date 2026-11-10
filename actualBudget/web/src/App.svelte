@@ -43,6 +43,7 @@
   } from "./lib/schedule-foreground";
   import { rulesKey } from "./lib/rules";
   import { planningKey } from "./lib/planning";
+  import { automationKey } from "./lib/budget-automations";
   import Register from "./lib/Register.svelte";
   import Categories from "./lib/Categories.svelte";
   import Settings from "./lib/Settings.svelte";
@@ -187,7 +188,10 @@
       if (localStorage.getItem(schedulesKey(value.id)) !== null)
         form = "schedules";
       if (localStorage.getItem(rulesKey(value.id)) !== null) form = "rules";
-      if (localStorage.getItem(planningKey(value.id)) !== null)
+      if (
+        localStorage.getItem(planningKey(value.id)) !== null ||
+        localStorage.getItem(automationKey(value.id)) !== null
+      )
         form = "planning";
       try {
         if (readReferenceDraft(value.id)) {

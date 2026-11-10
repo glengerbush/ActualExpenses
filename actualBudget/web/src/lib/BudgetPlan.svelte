@@ -1,5 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import BudgetTemplates from "./BudgetTemplates.svelte";
+  import GoalProgress from "./GoalProgress.svelte";
+  import { readAutomationDraft } from "./budget-automations";
   import { SvelteDate } from "svelte/reactivity";
   import { request, uuid, errorMessage } from "./api";
   import {
@@ -53,6 +56,7 @@
     notice = $state(""),
     storageBroken = $state(false),
     showHidden = $state(false);
+  let showTemplates = $state(false);
   let history = $state<{
     undo: { id: string; label: string } | null;
     redo: { id: string; label: string } | null;
@@ -156,6 +160,11 @@
       draft = readPlanningDraft(budgetId);
       checkpoint = localStorage.getItem(planningKey(budgetId));
       if (draft) month = draft.month;
+      const templates = readAutomationDraft(budgetId);
+      if (!draft && templates) {
+        month = templates.month;
+        showTemplates = true;
+      }
     } catch (e) {
       storageBroken = true;
       error = errorMessage(e);
@@ -362,28 +371,52 @@
     </div>
     <button onclick={onclose} disabled={busy}>Close budget view</button>
   </div>
+  <div class="toolbar">
+    <button
+      onclick={() => {
+        showTemplates = true;
+        notice = "";
+        error = "";
+      }}
+      disabled={busy || loading || !!draft || showTemplates}
+      >Goal templates</button
+    >
+  </div>
+  {#if showTemplates}<BudgetTemplates
+      {budgetId}
+      {month}
+      {disconnected}
+      onclose={() => (showTemplates = false)}
+      onchanged={async () => {
+        await refresh();
+        if (view) await onchanged(view.method);
+      }}
+    />{/if}
   <div class="month-controls">
-    <button onclick={() => shift(-1)} disabled={busy || loading}
-      >Previous month</button
+    <button
+      onclick={() => shift(-1)}
+      disabled={busy || loading || showTemplates}>Previous month</button
     ><label
       >Budget month<input
         type="month"
         bind:value={month}
         onchange={() => void refresh()}
-        disabled={busy || loading}
+        disabled={busy || loading || showTemplates}
       /></label
-    ><button onclick={() => shift(1)} disabled={busy || loading}
-      >Next month</button
+    ><button
+      onclick={() => shift(1)}
+      disabled={busy || loading || showTemplates}>Next month</button
     ><label
       >Months displayed<select
         bind:value={count}
         onchange={() => void refresh()}
-        disabled={busy || loading}
+        disabled={busy || loading || showTemplates}
         >{#each [1, 2, 3, 6, 12] as n (n)}<option value={n}>{n}</option
           >{/each}</select
       ></label
-    ><button onclick={() => void refresh()} disabled={busy || loading}
-      >Refresh budget</button
+    ><button
+      onclick={() => void refresh()}
+      disabled={busy || loading || showTemplates}>Refresh budget</button
     >
   </div>
   {#if disconnected}<p role="status">
@@ -405,15 +438,23 @@
     <div class="plan-tools">
       <button
         onclick={() => historyAction("undo")}
-        disabled={!history.undo || !!draft || busy || disconnected}
+        disabled={!history.undo ||
+          !!draft ||
+          busy ||
+          disconnected ||
+          showTemplates}
         >Undo{history.undo ? ` ${history.undo.label}` : ""}</button
       ><button
         onclick={() => historyAction("redo")}
-        disabled={!history.redo || !!draft || busy || disconnected}
+        disabled={!history.redo ||
+          !!draft ||
+          busy ||
+          disconnected ||
+          showTemplates}
         >Redo{history.redo ? ` ${history.redo.label}` : ""}</button
       ><button
         onclick={() => open("method", current)}
-        disabled={!!draft || busy || disconnected}
+        disabled={!!draft || busy || disconnected || showTemplates}
         >Change budgeting method</button
       ><label class="check"
         ><input type="checkbox" bind:checked={showHidden} />Show hidden
@@ -588,33 +629,35 @@
           <div class="month-actions">
             <button
               onclick={() => open("copy_previous", m)}
-              disabled={!!draft || busy || disconnected}
+              disabled={!!draft || busy || disconnected || showTemplates}
               >Copy previous month</button
             ><button
               onclick={() => open("zero", m)}
-              disabled={!!draft || busy || disconnected}
+              disabled={!!draft || busy || disconnected || showTemplates}
               >Clear allocations</button
             >{#if view.method === "envelope"}<button
                 onclick={() => open("move", m)}
-                disabled={!!draft || busy || disconnected}>Move money</button
+                disabled={!!draft || busy || disconnected || showTemplates}
+                >Move money</button
               ><button
                 onclick={() => open("cover", m)}
-                disabled={!!draft || busy || disconnected}
+                disabled={!!draft || busy || disconnected || showTemplates}
                 >Cover overspending</button
               ><button
                 onclick={() => open("cover_overbudgeted", m)}
-                disabled={!!draft || busy || disconnected}
+                disabled={!!draft || busy || disconnected || showTemplates}
                 >Cover overbudgeting</button
               ><button
                 onclick={() => open("hold", m)}
-                disabled={!!draft || busy || disconnected}>Hold income</button
+                disabled={!!draft || busy || disconnected || showTemplates}
+                >Hold income</button
               ><button
                 onclick={() => open("reset_hold", m)}
-                disabled={!!draft || busy || disconnected}
+                disabled={!!draft || busy || disconnected || showTemplates}
                 >Release manual hold</button
               >{/if}<button
               onclick={() => open("notes", m)}
-              disabled={!!draft || busy || disconnected}
+              disabled={!!draft || busy || disconnected || showTemplates}
               >Edit month notes</button
             >
           </div>
@@ -661,34 +704,53 @@
                     ><td class="amount"
                       >{view.method === "envelope" && c.is_income
                         ? "—"
-                        : formatAmount(c.balance)}</td
+                        : formatAmount(
+                            c.balance,
+                          )}{#if preferences.shared.experimental.goalTemplatesEnabled && !(view.method === "envelope" && c.is_income)}<GoalProgress
+                          category={c}
+                        />{/if}</td
                     ><td
                       ><div class="row-actions">
                         {#if view.method === "tracking" || !c.is_income}<button
                             onclick={() => open("set", m, c)}
-                            disabled={!!draft || busy || disconnected}
+                            disabled={!!draft ||
+                              busy ||
+                              disconnected ||
+                              showTemplates}
                             aria-label={`Edit ${c.name} allocation for ${title(m.month)}`}
                             >Edit</button
                           ><button
                             onclick={() => open("copy_year", m, c)}
-                            disabled={!!draft || busy || disconnected}
+                            disabled={!!draft ||
+                              busy ||
+                              disconnected ||
+                              showTemplates}
                             aria-label={`Copy ${c.name} through year end from ${title(m.month)}`}
                             >Copy year</button
                           ><button
                             onclick={() => open("copy_previous", m, c)}
-                            disabled={!!draft || busy || disconnected}
+                            disabled={!!draft ||
+                              busy ||
+                              disconnected ||
+                              showTemplates}
                             aria-label={`Copy previous ${c.name} allocation into ${title(m.month)}`}
                             >Copy previous</button
                           >{/if}<button
                           onclick={() => open("carryover", m, c)}
-                          disabled={!!draft || busy || disconnected}
+                          disabled={!!draft ||
+                            busy ||
+                            disconnected ||
+                            showTemplates}
                           aria-label={`Change ${c.name} carryover from ${title(m.month)}`}
                           >{c.carryover
                             ? "Carryover on"
                             : "Carryover off"}</button
                         ><button
                           onclick={() => open("category_notes", m, c)}
-                          disabled={!!draft || busy || disconnected}
+                          disabled={!!draft ||
+                            busy ||
+                            disconnected ||
+                            showTemplates}
                           aria-label={`Edit ${c.name} notes`}>Notes</button
                         >
                       </div></td

@@ -14,6 +14,8 @@ export interface PlanCategory {
   actual: number;
   balance: number;
   carryover: boolean;
+  goal?: string | null;
+  long_goal?: string | null;
 }
 export interface PlanMonth {
   month: string;

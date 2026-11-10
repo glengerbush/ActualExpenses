@@ -413,3 +413,292 @@ fn remembered_options_keep_individual_original_clocks_files_and_receipts_across_
         json!([])
     );
 }
+
+fn manual_merge_recovery(newer_peer_note: bool) {
+    let fixture: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/transaction-merge-source.json"
+    ))
+    .unwrap();
+    let f = fixture["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|c| c["id"] == "transfer-and-manual-onbudget")
+        .unwrap();
+    let s = Server::start();
+    let uploaded = s
+        .client
+        .post(format!("{}/api/v1/imports/actual", s.url))
+        .header("Content-Type", "application/zip")
+        .header("Idempotency-Key", "source")
+        .body(
+            include_bytes!(
+                "../../tests/fixtures/transaction-merge-transfer-and-manual-onbudget-26.10.zip"
+            )
+            .to_vec(),
+        )
+        .send()
+        .unwrap();
+    assert_eq!(uploaded.status(), 201);
+    let stage = uploaded.json::<Value>().unwrap();
+    assert_eq!(stage["data"]["status"], "ready");
+    let imported = s.post(
+        &format!(
+            "/api/v1/imports/{}/activate",
+            stage["data"]["id"].as_str().unwrap()
+        ),
+        "activate",
+        json!({}),
+    );
+    assert_eq!(imported.status(), 201);
+    let root = format!(
+        "/api/v1/budgets/{}",
+        stage["data"]["budget_id"].as_str().unwrap()
+    );
+    if !newer_peer_note {
+        for row in f["before"]["transactions"].as_array().unwrap() {
+            let id = row["id"].as_str().unwrap();
+            let cleared = s
+                .client
+                .patch(format!("{}{root}/transactions/{id}", s.url))
+                .header("Idempotency-Key", format!("clear-{id}"))
+                .json(&json!({"cleared":true}))
+                .send()
+                .unwrap();
+            assert_eq!(cleared.status(), 200);
+        }
+    }
+    let cp = s
+        .get(&format!("{root}/checkpoint"))
+        .json::<Value>()
+        .unwrap();
+    let epoch = cp["data"]["epoch"].as_str().unwrap();
+    let owner = "25260000-0000-4000-8000-000000000111";
+    let path = format!("{root}/transactions/merge");
+    let body = json!({"snapshot":cp["data"]["snapshot"],"ids":[f["ids"]["a"],f["ids"]["b"]]});
+    let send = |server: &Server, key: &str, body: &Value, extra: &[(&str, &str)]| {
+        let mut r = server
+            .client
+            .post(format!("{}{path}", server.url))
+            .header("Idempotency-Key", key)
+            .header("X-Actual-Budget-Epoch", epoch)
+            .header("X-Actual-History-Owner", owner);
+        for (name, value) in extra {
+            r = r.header(*name, *value);
+        }
+        r.json(body).send().unwrap()
+    };
+    let before = s
+        .get(&format!("{root}/transactions"))
+        .json::<Value>()
+        .unwrap();
+    assert_eq!(
+        send(
+            &s,
+            "cancel-merge",
+            &body,
+            &[("X-Actual-Receipt-Only", "true")]
+        )
+        .status(),
+        404
+    );
+    let canceled = send(
+        &s,
+        "cancel-merge",
+        &body,
+        &[("X-Actual-Cancel-If-Uncommitted", "true")],
+    );
+    assert_eq!(canceled.status(), 409, "{}", canceled.text().unwrap());
+    let canceled = canceled.json::<Value>().unwrap();
+    assert_eq!(canceled["error"]["code"], "operation_canceled");
+    assert_eq!(
+        send(&s, "cancel-merge", &body, &[])
+            .json::<Value>()
+            .unwrap(),
+        canceled
+    );
+    assert_eq!(
+        s.get(&format!("{root}/transactions"))
+            .json::<Value>()
+            .unwrap(),
+        before
+    );
+    assert_eq!(
+        s.get(&format!("{root}/checkpoint"))
+            .json::<Value>()
+            .unwrap(),
+        cp
+    );
+    let response = send(&s, "merge", &body, &[]);
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let receipt = response.json::<Value>().unwrap();
+    let keeper = f["kept"].as_str().unwrap();
+    assert_eq!(receipt["data"]["keeper_id"], keeper);
+    assert_eq!(
+        send(&s, "merge", &body, &[("X-Actual-Receipt-Only", "true")])
+            .json::<Value>()
+            .unwrap(),
+        receipt
+    );
+    let s = s.restart();
+    assert_eq!(
+        send(&s, "merge", &body, &[]).json::<Value>().unwrap(),
+        receipt
+    );
+    let peer = f["after"]["transactions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["id"] != keeper)
+        .unwrap();
+    let peer_id = peer["id"].as_str().unwrap();
+    let history = || {
+        s.client
+            .get(format!("{}{root}/history", s.url))
+            .header("X-Actual-History-Owner", owner)
+            .header("X-Actual-Budget-Epoch", epoch)
+            .send()
+            .unwrap()
+            .json::<Value>()
+            .unwrap()
+    };
+    let action = history()["data"]["undo"]["id"].as_str().unwrap().to_owned();
+    if newer_peer_note {
+        let remote = s
+            .client
+            .patch(format!("{}{root}/transactions/{peer_id}", s.url))
+            .header("Idempotency-Key", "remote-note")
+            .header("X-Actual-Budget-Epoch", epoch)
+            .json(&json!({"notes":"Remote peer note"}))
+            .send()
+            .unwrap();
+        assert_eq!(remote.status(), 200, "{}", remote.text().unwrap());
+        let current = s
+            .get(&format!("{root}/transactions"))
+            .json::<Value>()
+            .unwrap();
+        let cp = s
+            .get(&format!("{root}/checkpoint"))
+            .json::<Value>()
+            .unwrap();
+        let original_history = history();
+        let refused = s
+            .client
+            .post(format!("{}{root}/history/undo", s.url))
+            .header("Idempotency-Key", "inverse-after-peer-edit")
+            .header("X-Actual-History-Owner", owner)
+            .header("X-Actual-Budget-Epoch", epoch)
+            .json(&json!({"action_id":action}))
+            .send()
+            .unwrap();
+        assert_eq!(refused.status(), 409);
+        assert_eq!(
+            s.get(&format!("{root}/transactions"))
+                .json::<Value>()
+                .unwrap(),
+            current
+        );
+        assert_eq!(
+            s.get(&format!("{root}/checkpoint"))
+                .json::<Value>()
+                .unwrap(),
+            cp
+        );
+        assert_eq!(history(), original_history);
+        assert_eq!(
+            send(&s, "merge", &body, &[("X-Actual-Receipt-Only", "true")])
+                .json::<Value>()
+                .unwrap(),
+            receipt
+        );
+        return;
+    }
+    for direction in ["undo", "redo"] {
+        let response = s
+            .client
+            .post(format!("{}{root}/history/{direction}", s.url))
+            .header("Idempotency-Key", format!("merge-{direction}"))
+            .header("X-Actual-History-Owner", owner)
+            .header("X-Actual-Budget-Epoch", epoch)
+            .json(&json!({"action_id":action}))
+            .send()
+            .unwrap();
+        assert_eq!(
+            response.status(),
+            200,
+            "{direction}: {}",
+            response.text().unwrap()
+        );
+        let rows = s
+            .get(&format!("{root}/transactions"))
+            .json::<Value>()
+            .unwrap();
+        for id in [keeper, peer_id] {
+            assert_eq!(
+                rows["data"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .find(|row| row["id"] == id)
+                    .unwrap()["notes"],
+                f["before"]["transactions"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .find(|row| row["id"] == id)
+                    .unwrap()["notes"]
+            );
+        }
+    }
+    let current = s
+        .get(&format!("{root}/checkpoint"))
+        .json::<Value>()
+        .unwrap();
+    let locked=s.post(&format!("{root}/accounts/{}/reconciliation",peer["account"].as_str().unwrap()),"lock-peer",json!({"action":"lock","snapshot":current["data"]["snapshot"],"statement_balance":peer["amount"],"date":"2026-11-09"}));
+    assert_eq!(locked.status(), 200, "{}", locked.text().unwrap());
+    let protected = s
+        .get(&format!("{root}/transactions"))
+        .json::<Value>()
+        .unwrap();
+    let protected_cp = s
+        .get(&format!("{root}/checkpoint"))
+        .json::<Value>()
+        .unwrap();
+    let refused = s
+        .client
+        .post(format!("{}{root}/history/undo", s.url))
+        .header("Idempotency-Key", "old-merge-inverse")
+        .header("X-Actual-History-Owner", owner)
+        .header("X-Actual-Budget-Epoch", epoch)
+        .json(&json!({"action_id":action}))
+        .send()
+        .unwrap();
+    assert_eq!(refused.status(), 409);
+    assert_eq!(
+        s.get(&format!("{root}/transactions"))
+            .json::<Value>()
+            .unwrap(),
+        protected
+    );
+    assert_eq!(
+        s.get(&format!("{root}/checkpoint"))
+            .json::<Value>()
+            .unwrap(),
+        protected_cp
+    );
+    assert_eq!(
+        send(&s, "merge", &body, &[("X-Actual-Receipt-Only", "true")])
+            .json::<Value>()
+            .unwrap(),
+        receipt
+    );
+}
+
+#[test]
+fn manual_merge_cancel_restart_preserves_newer_peer_edit_and_original_receipt() {
+    manual_merge_recovery(true);
+}
+#[test]
+fn manual_merge_inverse_refuses_new_reconciliation_generation() {
+    manual_merge_recovery(false);
+}

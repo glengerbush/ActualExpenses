@@ -2,6 +2,7 @@
 mod apply;
 mod formats;
 mod matching;
+mod merge;
 mod settings;
 mod storage;
 mod title;
@@ -29,6 +30,14 @@ use std::collections::{BTreeMap, BTreeSet};
 const MAX_FILE: usize = 16 * 1024 * 1024;
 pub fn router() -> Router<Store> {
     Router::new()
+        .route(
+            "/api/v1/budgets/{budget}/transactions/merge/preview",
+            post(merge::preview),
+        )
+        .route(
+            "/api/v1/budgets/{budget}/transactions/merge",
+            post(merge::commit),
+        )
         .route(
             "/api/v1/budgets/{budget}/accounts/{account}/transaction-import-settings",
             get(settings::read),

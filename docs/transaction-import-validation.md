@@ -202,3 +202,34 @@ original captured payload. Reversed equivalent choices produced both source-orde
 and duplicate-bank-ID true reds (`/tmp/transaction-choice-order-red.log`); five
 edge workflows and bin Clippy now PASS (`/tmp/transaction-choice-order-green.log`,
 `/tmp/transaction-choice-order-clippy.log`).
+
+## Manual merge checkpoint
+
+`check-transaction-merge-http.mjs` consumes all14 genuine pre-merge archives and
+complete persisted source graphs. Initial route404 red is retained in
+`/tmp/transaction-manual-merge-red.log`; first ordinary tracer and all14 financial
+workflows PASS (`/tmp/transaction-manual-merge-tracer.log`,
+`/tmp/transaction-manual-merge-first.log`). Every original keeper, child and peer
+ID, field, status, opaque bank ID and graph relationship is compared; generated
+identities are not substituted during this mutation. Preview writes nothing;
+protected members require a captured complete-graph token; one owned action
+undoes/redoes the whole merge and original receipts remain exact.
+
+Two focused Rust guards PASS `/tmp/transaction-manual-merge-recovery-green.log`:
+cancel fencing and receipt lookup precede stale snapshot checks, restart keeps
+the original receipt, newer paired-peer edits refuse inverse without changing
+financial rows/history/checkpoint/receipt, and a separately isolated new lock
+generation refuses inverse. The missing receipt/cancel middleware scope produced
+a real400 red before the allowlists were joined. An initial test assumed paired
+undo must accept a newer peer note; the established conservative graph policy
+was reaffirmed, not weakened. An intermediate statement-balance setup forgot the
+peer's independent cleared flag; clearing every original row before the action
+isolates the actual later lock generation. Neither was a claimed product defect.
+
+An ordinary unaffected-note inverse remains allowed and is independently covered
+by `/tmp/transaction-manual-merge-independent-note.log`. Bin Clippy PASS
+`/tmp/transaction-manual-merge-clippy.log`. Complex source graphs that would leave
+invalid split totals/status or nonreciprocal transfers refuse atomically with a
+review message; they are never flattened or silently normalized. Existing
+source IDs, ranks and original financial clocks remain untouched unless that
+specific field is changed by the captured merge.

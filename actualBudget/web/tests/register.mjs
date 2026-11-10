@@ -113,20 +113,17 @@ try {
   await page.getByLabel("Date", { exact: true }).fill("01/03/2026");
   await page.getByLabel("Notes", { exact: true }).fill("Refund");
   let dropped = false;
-  await page.route(
-    transactionCreatePattern(budget),
-    async (route) => {
-      if (!dropped && route.request().method() === "POST") {
-        dropped = true;
-        const target = new URL(route.request().url());
-        const headers = { ...route.request().headers(), host: target.host };
-        target.hostname = "127.0.0.1";
-        const response = await route.fetch({ url: target.href, headers });
-        expect(response.ok()).toBe(true);
-        await route.abort("failed");
-      } else await route.continue();
-    },
-  );
+  await page.route(transactionCreatePattern(budget), async (route) => {
+    if (!dropped && route.request().method() === "POST") {
+      dropped = true;
+      const target = new URL(route.request().url());
+      const headers = { ...route.request().headers(), host: target.host };
+      target.hostname = "127.0.0.1";
+      const response = await route.fetch({ url: target.href, headers });
+      expect(response.ok()).toBe(true);
+      await route.abort("failed");
+    } else await route.continue();
+  });
   await page
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();

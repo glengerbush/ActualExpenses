@@ -138,28 +138,25 @@ try {
   const attempts = [];
   const onlineCreate = transactionCreatePattern(budget);
   let lost = false;
-  await context.route(
-    onlineCreate,
-    async (route) => {
-      if (route.request().method() !== "POST") return route.continue();
-      attempts.push({
-        body: route.request().postData(),
-        key: route.request().headers()["idempotency-key"],
-        clock: route.request().headers()["x-actual-edit-clock"],
-        epoch: route.request().headers()["x-actual-budget-epoch"],
-      });
-      if (!lost) {
-        lost = true;
-        const target = new URL(route.request().url());
-        const headers = { ...route.request().headers(), host: target.host };
-        target.hostname = "127.0.0.1";
-        const response = await route.fetch({ url: target.href, headers });
-        expect(response.ok()).toBe(true);
-        return route.abort();
-      }
-      return route.continue();
-    },
-  );
+  await context.route(onlineCreate, async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    attempts.push({
+      body: route.request().postData(),
+      key: route.request().headers()["idempotency-key"],
+      clock: route.request().headers()["x-actual-edit-clock"],
+      epoch: route.request().headers()["x-actual-budget-epoch"],
+    });
+    if (!lost) {
+      lost = true;
+      const target = new URL(route.request().url());
+      const headers = { ...route.request().headers(), host: target.host };
+      target.hostname = "127.0.0.1";
+      const response = await route.fetch({ url: target.href, headers });
+      expect(response.ok()).toBe(true);
+      return route.abort();
+    }
+    return route.continue();
+  });
   await page
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
@@ -199,10 +196,7 @@ try {
 
   let writes = 0;
   const countWrites = (request) => {
-    if (
-      request.method() === "POST" &&
-      onlineCreate.test(request.url())
-    )
+    if (request.method() === "POST" && onlineCreate.test(request.url()))
       writes++;
   };
   page.on("request", countWrites);

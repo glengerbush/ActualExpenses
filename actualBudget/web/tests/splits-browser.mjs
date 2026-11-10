@@ -249,7 +249,9 @@ try {
   await mkdir("../../.scratch/ticket14-visuals", { recursive: true });
   await page.getByLabel("Split 1 amount", { exact: true }).focus();
   await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Split 1 transfer to", { exact: true })).toBeFocused();
+  await expect(
+    page.getByLabel("Split 1 transfer to", { exact: true }),
+  ).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByLabel("Split 1 payee", { exact: true })).toBeFocused();
   await page.screenshot({

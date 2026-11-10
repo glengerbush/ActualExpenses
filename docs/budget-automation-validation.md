@@ -1,8 +1,9 @@
-# Budget templates and automations — verification in progress
+# Budget templates and automations — acceptance
 
-Tickets23/24 remain open. Backend and browser checkpoint23 and cleanup execution
-have focused verification; visual configuration and migration remain in progress. This record
-does not claim integrated acceptance, release readiness or production deployment.
+Tickets23/24 are complete and reviewed, qualified through product checkpoint
+`4643aa3` and public/browser evidence at `32f27ab`, with the existing offline
+harness corrected in `6815c30`. This is local feature acceptance, not release
+readiness or production deployment.
 
 ## Independent source evidence
 
@@ -145,8 +146,8 @@ and44 cleanup cases pass again in `/tmp/budget-migration-index-green.log` and
 `/tmp/budget-cleanup-index-green.log`. The600-pool stable read/migration guard and
 named-pool history/restart case pass in `/tmp/budget-pool-index-guard.log` and
 `/tmp/budget-named-pool-index-green.log`. Review confirms the finding is closed.
-Typed visual configuration and its browser acceptance remain open. No timing or
-whole-system resource conclusion is inferred from these checks.
+Typed visual configuration subsequently passed the browser acceptance below. No
+timing or whole-system resource conclusion is inferred from these checks.
 
 ## Integrated backend qualification
 
@@ -195,10 +196,34 @@ textarea corrections are retained in the earlier logs; no false-green ledger
 claim is used. Svelte checks report zero errors/warnings; relevant autofixers and
 builds pass. The browser command list includes both23/24 flows.
 
-## Remaining acceptance
+## Production container and final review
 
-Run the production-container browser batch, then integrate and accept23/24.
-Reuse valid unchanged source and
-test evidence; rerun affected checks after corrections. No version bump, push,
-release, live deployment or live-volume mutation is authorized for this rewrite.
-Whole-system resource measurements remain ticket51 work.
+`/tmp/budget-automation-container-full.log` records46/47 commands passing against
+one production image:42 browser groups and five independent fixture checks in
+total. The older basic-browser harness used one-shot outages after cached headings
+rendered; a prior navigation could consume the failure before the reload under
+test. `6815c30` retains the outage until the asserted failure, proves interception,
+and restores connectivity before retry. Review passed; product behavior was unchanged.
+
+`/tmp/budget-automation-container-recovery.log` passes that corrected group against
+the exact same image, plus plain HTTP/no login, bundled assets, exact opening
+balance and receipt/persistence checks after container replacement. Thus all47
+commands are qualified across the recorded full and focused runs, not an
+uninterrupted47/47 run. No image rebuild was needed for the harness correction.
+
+Image `sha256:7fb5f9c576d9fccc0c98d52b3baa2dc116e0e5dec3c927971bce9cb8ca62dea7`,
+136312456 bytes, runs as `10001:10001`. Both disposable runs removed their
+containers/volumes. The extra image tag retained for the focused check was removed;
+no live volume or deployment was used.
+
+Full web formatting exposed three pre-existing test-format differences. Only
+formatting changed in those files; `/tmp/budget-automation-web-format-green.log`
+passes. Android runtime/UI sources are unchanged;43 native API cases are fresh,
+while the prior accepted APK/lint/device evidence remains applicable.
+
+Independent Standards/Spec/provenance/harness/Impeccable reviews have no remaining
+findings. The genuine next-upgrade executable is
+`.scratch/actualbudget-schema20-32f27ab-server`, SHA256
+`fabd86650e86bbdab91e2796040d3e455ffef67e713721740f046694b80f6eed`.
+No version bump, push, release or live deployment occurred. Whole-system resource
+measurements remain ticket51 work; remaining feature tickets stay open.

@@ -190,8 +190,8 @@ async fn rename(
         .await?;
     Ok(Json(json!({"data":result})))
 }
-mod archive;
-mod cancellation;
+pub(crate) mod archive;
+pub(crate) mod cancellation;
 fn receipt_budget(
     db: &Connection,
     scope: &str,
@@ -359,7 +359,12 @@ fn confirm_name(db: &Connection, budget: &str, input: &Value) -> Result<Value, E
 fn point(db: &Connection, id: &str) -> Result<Value, Error> {
     db.query_row("SELECT id,budget_id,label,kind,created_at,archive_sha256,source_sequence,length(archive) FROM budget_backups WHERE id=?1",[id],|r|Ok(json!({"id":r.get::<_,String>(0)?,"budget_id":r.get::<_,String>(1)?,"label":r.get::<_,String>(2)?,"kind":r.get::<_,String>(3)?,"created_at":r.get::<_,String>(4)?,"archive_sha256":r.get::<_,String>(5)?,"source_sequence":r.get::<_,i64>(6)?,"bytes":r.get::<_,i64>(7)?}))).optional()?.ok_or_else(Error::missing)
 }
-fn make_point(db: &Connection, budget: &str, kind: &str, label: &str) -> Result<Value, Error> {
+pub(crate) fn make_point(
+    db: &Connection,
+    budget: &str,
+    kind: &str,
+    label: &str,
+) -> Result<Value, Error> {
     let bytes = archive::capture(db, budget)?;
     let id = uuid::Uuid::new_v4().to_string();
     let sequence: i64 = db.query_row(

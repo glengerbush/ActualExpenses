@@ -181,7 +181,11 @@ fn budget_balances(db: &Connection, budget: &str) -> Result<Balances, Error> {
         uncleared: checked(values[2])?,
     })
 }
-pub fn refresh_account(db: &Connection, budget: &str, account: &str) -> Result<(), Error> {
+pub fn calculated_balances(
+    db: &Connection,
+    budget: &str,
+    account: &str,
+) -> Result<Balances, Error> {
     let mut balances = Balances::default();
     let mut query=db.prepare(&format!("SELECT amount,cleared FROM transactions t WHERE budget_id=?1 AND account_id=?2 AND tombstone=0 AND parent_id IS NULL ORDER BY date ASC,starting_balance DESC,{} ASC,id DESC",crate::android_upgrade::order::SQL))?;
     for row in query.query_map(params![budget, account], |r| {
@@ -190,7 +194,15 @@ pub fn refresh_account(db: &Connection, budget: &str, account: &str) -> Result<(
         let (amount, cleared) = row?;
         balances.add(amount, cleared)?;
     }
-    store_balances(db, budget, account, &balances)
+    Ok(balances)
+}
+pub fn refresh_account(db: &Connection, budget: &str, account: &str) -> Result<(), Error> {
+    store_balances(
+        db,
+        budget,
+        account,
+        &calculated_balances(db, budget, account)?,
+    )
 }
 pub fn validate_budget_total(db: &Connection, budget: &str) -> Result<(), Error> {
     budget_balances(db, budget)?;

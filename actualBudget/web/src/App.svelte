@@ -47,6 +47,8 @@
   import Register from "./lib/Register.svelte";
   import Categories from "./lib/Categories.svelte";
   import Settings from "./lib/Settings.svelte";
+  import RecoveryTools from "./lib/RecoveryTools.svelte";
+  import { readRepair } from "./lib/recovery";
   import NavigationTools from "./lib/NavigationTools.svelte";
   import {
     readView,
@@ -88,6 +90,7 @@
     | "import"
     | "manage"
     | "restore"
+    | "recovery"
     | "pending"
     | null
   >(null);
@@ -101,6 +104,13 @@
   let commands = $derived.by((): NavigationCommand[] => {
     const locked = !!form || loading;
     const result: NavigationCommand[] = [
+      {
+        id: "recovery",
+        label: "Recovery tools",
+        keywords: "repair recalculate reconnect cache reset",
+        disabled: locked,
+        run: () => showForm("recovery"),
+      },
       {
         id: "budgets",
         label: "All budgets",
@@ -308,6 +318,11 @@
           loading = false;
           return;
         }
+        if (await readRepair(value.id)) {
+          form = "recovery";
+          loading = false;
+          return;
+        }
       } catch (e) {
         recoveryError = errorMessage(e);
       }
@@ -370,6 +385,17 @@
       if (generation === navigation) error = errorMessage(e);
     }
   }
+  async function rebuildDownloadedViews() {
+    navigation++;
+    budget = null;
+    account = null;
+    accounts = [];
+    accountGroups = [];
+    budgets = [];
+    form = null;
+    preferences.clearBudget();
+    await initialize();
+  }
   async function showBudgets() {
     navigation++;
     recoveryError = "";
@@ -410,6 +436,7 @@
       | "import"
       | "manage"
       | "restore"
+      | "recovery"
       | "pending"
       | null,
   ) {
@@ -558,6 +585,9 @@
     {:else}<p class="muted sidebar-description">
         {t("Your accounts, together.")}
       </p>{/if}
+    <button onclick={() => showForm("recovery")} disabled={!!form || loading}
+      >Recovery tools</button
+    >
     <button onclick={() => showForm("pending")} disabled={!!form || loading}
       >{t("Review pending expenses")}</button
     >
@@ -629,6 +659,12 @@
         <p class="error" role="alert">{error}</p>
         <button class="primary" onclick={retry}>{t("Retry")}</button>
       </section>
+    {:else if form === "recovery"}<RecoveryTools
+        {budget}
+        onclose={() => showForm(null)}
+        onreset={rebuildDownloadedViews}
+        onchanged={refreshAccounts}
+      />
     {:else if form === "pending"}<PendingRecovery onclose={showBudgets} />
     {:else if form === "manage" && managedBudget}{#key managedBudget.id}<BudgetManagement
           budget={managedBudget}

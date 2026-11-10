@@ -18,6 +18,7 @@ mod payee_locations;
 mod payees_tags;
 mod preferences;
 mod reconciliation;
+mod recovery;
 mod register;
 mod register_recurrence;
 mod register_regex;

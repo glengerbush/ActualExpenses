@@ -1,0 +1,457 @@
+{
+  "paths": {
+    "/api/v1/budgets/{budget}/recovery": {
+      "get": {
+        "summary": "Inspect derived totals and supported financial invariants without writes",
+        "description": "Complete untruncated plan. Missing references, ambiguous split/transfer graphs and reconciled protected graphs are preserved for review. Strict native archive validation gates automatic apply; no unsafe permissive restore. A token binds source state, HLC, epoch and complete plan.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Complete read-only preview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/RecoveryPreview"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request; no repair",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Preview, epoch or confirmation changed; original purchases retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Backup or transactional apply failed; retry exact saved request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Apply the exact reviewed repair after a durable pre-repair backup",
+        "description": "Receipt identity includes request and budget epoch. Exact retries/restart/restore replay original result. Server owns maintenance HLC; Edit-Clock and History-Owner headers rejected. Original valid native backup commits before the atomic repair/receipt transaction. Cancellation fences an uncommitted original request, or recovers its already committed result; no ambiguous purchase or valid record is deleted.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Budget-Epoch",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "required": false,
+            "schema": {
+              "const": "true"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryApply"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Original receipt or confirmed transactional repair",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/RecoveryResult"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request; no repair",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Preview, epoch or confirmation changed; original purchases retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Backup or transactional apply failed; retry exact saved request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RecoveryAccount": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "before",
+          "after"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "before": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "total",
+              "cleared",
+              "uncleared"
+            ],
+            "properties": {
+              "total": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "cleared": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "uncleared": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            }
+          },
+          "after": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "total",
+              "cleared",
+              "uncleared"
+            ],
+            "properties": {
+              "total": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "cleared": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "uncleared": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            }
+          }
+        }
+      },
+      "RecoveryIssue": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "domain",
+          "id",
+          "message",
+          "blocking"
+        ],
+        "properties": {
+          "domain": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "blocking": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RecoveryRepair": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "field",
+          "before",
+          "after",
+          "reason"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "field": {
+            "enum": [
+              "payee_id",
+              "category_id"
+            ]
+          },
+          "before": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "after": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "RecoveryPreview": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "epoch",
+          "snapshot",
+          "preview_token",
+          "name",
+          "accounts",
+          "repairs",
+          "issues",
+          "can_apply",
+          "backup_restorable"
+        ],
+        "properties": {
+          "epoch": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "snapshot": {
+            "type": "string",
+            "pattern": "^c1[a-f0-9]{48}$"
+          },
+          "preview_token": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecoveryAccount"
+            }
+          },
+          "repairs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecoveryRepair"
+            }
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecoveryIssue"
+            }
+          },
+          "can_apply": {
+            "type": "boolean"
+          },
+          "backup_restorable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RecoveryApply": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "preview_token",
+          "snapshot",
+          "confirm_name"
+        ],
+        "properties": {
+          "preview_token": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "snapshot": {
+            "type": "string",
+            "pattern": "^c1[a-f0-9]{48}$"
+          },
+          "confirm_name": {
+            "type": "string",
+            "maxLength": 120
+          }
+        }
+      },
+      "RecoveryResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "backup",
+          "repaired_fields",
+          "recalculated_accounts",
+          "epoch",
+          "snapshot",
+          "edit_clock"
+        ],
+        "properties": {
+          "backup": {
+            "$ref": "#/components/schemas/BackupPoint"
+          },
+          "repaired_fields": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "recalculated_accounts": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "snapshot": {
+            "type": "string",
+            "pattern": "^c1[a-f0-9]{48}$"
+          },
+          "edit_clock": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

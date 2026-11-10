@@ -12,6 +12,8 @@
     conditions = [],
     conditionsOp = "and",
     sourceCategoryFilters = false,
+    sourceSyntax = false,
+    namedConditionsIgnored = true,
     onchange,
   }: {
     budgetId: string;
@@ -19,6 +21,8 @@
     conditions?: unknown;
     conditionsOp?: unknown;
     sourceCategoryFilters?: boolean;
+    sourceSyntax?: boolean;
+    namedConditionsIgnored?: boolean;
     onchange: (conditions: unknown[], op: string) => void;
   } = $props();
   let payees = $state.raw<Reference[]>([]),
@@ -141,7 +145,7 @@
     };
   }
   function update(index: number, value: Condition) {
-    if (sourceCategoryFilters) {
+    if (sourceCategoryFilters || sourceSyntax) {
       const map: Record<string, string> = {
         eq: "is",
         ne: "isNot",
@@ -214,7 +218,7 @@
     ></label
   >
   {#each rows as raw, index (raw)}{@const condition = canonical(raw)}
-    {#if sourceCategoryFilters && raw.customName}<p>
+    {#if sourceCategoryFilters && raw.customName && namedConditionsIgnored}<p>
         {t(
           "Named saved conditions are retained and ignored by budget analysis.",
         )}

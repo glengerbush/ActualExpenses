@@ -26,6 +26,7 @@ cases = [
     ("reset", [{"currency_code": "JPY", "experimental": {"currency": True}},
                {"experimental": None}], 7299),
     ("reset_only", [{"experimental": None}], 7299),
+    ("ambiguous", [], 7299),
 ]
 only = next((arg.removeprefix("--only=") for arg in sys.argv[2:] if arg.startswith("--only=")), None)
 if only:
@@ -45,11 +46,11 @@ for name, edits, expected in cases:
             assert line.startswith("LISTENING "), line
             url = "http://" + line.removeprefix("LISTENING ") + "/api/v1"
 
-            def call(path, body=None, key="read", method=None):
+            def call(path, body=None, key="read", method=None, headers=None):
                 raw = body if isinstance(body, bytes) else None if body is None else json.dumps(body).encode()
                 request = urllib.request.Request(url + path, data=raw, method=method,
                     headers={"Idempotency-Key": key, "Content-Type": "application/zip"
-                             if isinstance(body, bytes) else "application/json"})
+                             if isinstance(body, bytes) else "application/json", **(headers or {})})
                 with urllib.request.urlopen(request, timeout=15) as response:
                     return json.load(response) if response.headers.get("Content-Type", "").startswith("application/json") else response.read()
 
@@ -58,6 +59,20 @@ for name, edits, expected in cases:
             call(f"/imports/{stage['data']['id']}/activate", {}, "activate")
             root = "/budgets/" + stage["data"]["budget_id"]
             receipts = []
+            if name == "ambiguous":
+                # Genuine divergent receipt history: restore revision0, then
+                # make a different revision1 edit with the same resulting state.
+                baseline = call(root + "/backups", {"label": "Before currency branch"}, "branch-backup")
+                edit = {"experimental": {"currency": False}}
+                receipts.append({"body": edit, "key": "branch-currency",
+                                 "result": call(root + "/preferences", edit, "branch-currency", "PATCH")})
+                call(root + "/backups/" + baseline["data"]["id"] + "/restore",
+                     {"confirm_name": call(root)["data"]["name"]}, "restore-branch")
+                epoch = call(root)["data"]["epoch"]
+                edit = {"date_format": "MM/dd/yyyy"}
+                receipts.append({"body": edit, "key": "branch-date",
+                                 "result": call(root + "/preferences", edit, "branch-date", "PATCH",
+                                                {"X-Actual-Budget-Epoch": epoch})})
             for index, edit in enumerate(edits):
                 key = "currency-" + str(index)
                 receipts.append({"body": edit, "key": key,
@@ -68,7 +83,8 @@ for name, edits, expected in cases:
             category = source_metadata["ids"]["Fixed"]
             row = next(c for c in plan["data"]["months"]["2026-11"]["categories"] if c["id"] == category)
             assert row["budgeted"] == 73 and json.loads(row["goal"]) == 1000
-            backup = call(root + "/backups", {"label": "Currency provenance"}, "backup")
+            backup = call(root + "/backups", {"label": "Currency provenance"}, "backup",
+                          headers={"X-Actual-Budget-Epoch": call(root)["data"]["epoch"]})
             archive = call(root + "/backups/" + backup["data"]["id"] + "/download")
             with zipfile.ZipFile(io.BytesIO(archive)) as contents:
                 assert json.loads(contents.read("manifest.json"))["schema_version"] == 19

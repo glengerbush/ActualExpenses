@@ -318,6 +318,30 @@ fn currency_upgrade_case(name: &str, native: bool) {
         assert_eq!(server.get(&format!("{root}/checkpoint")), f["checkpoint"]);
     }
     let register = server.get(&format!("{root}/transactions"));
+    if name == "ambiguous" {
+        let before = server.get(&format!("{root}/checkpoint"));
+        let response = server
+            .client
+            .post(format!("{}{root}/budget/templates/preview", server.url))
+            .json(&json!({"month":"2026-11","snapshot":before["data"]["snapshot"],"force":true}))
+            .send()
+            .unwrap();
+        assert_eq!(response.status(), 400);
+        let error = response.text().unwrap();
+        assert!(error.contains("currency needs review"), "{error}");
+        assert!(error.contains("Settings"), "{error}");
+        assert_eq!(server.get(&format!("{root}/checkpoint")), before);
+        assert_eq!(server.get(&format!("{root}/transactions")), register);
+        let response = server
+            .client
+            .patch(format!("{}{root}/preferences", server.url))
+            .header("Idempotency-Key", "resolve-ambiguous-currency")
+            .header("X-Actual-Budget-Epoch", before["data"]["epoch"].as_str().unwrap())
+            .json(&json!({"experimental":null}))
+            .send()
+            .unwrap();
+        assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    }
     let checkpoint = server.get(&format!("{root}/checkpoint"));
     let body =
         json!({"action":"overwrite","month":"2026-11","snapshot":checkpoint["data"]["snapshot"]});
@@ -411,6 +435,16 @@ fn schema19_reset_only_overrides_original_jpy() {
 #[test]
 fn native19_reset_only_overrides_original_jpy() {
     currency_upgrade_case("reset_only", true)
+}
+
+#[test]
+fn schema19_ambiguous_currency_requires_explicit_review() {
+    currency_upgrade_case("ambiguous", false)
+}
+
+#[test]
+fn native19_ambiguous_currency_requires_explicit_review() {
+    currency_upgrade_case("ambiguous", true)
 }
 
 #[test]

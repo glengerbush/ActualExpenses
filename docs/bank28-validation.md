@@ -118,3 +118,20 @@ quota. Original receipt/key/body/epoch and cancellation semantics stay intact.
 Focused bin Clippy passes `/tmp/bank28-capture-cancel-clippy.log`. Persisted known
 provider error codes are also retained on capture recovery; interrupted error
 capture/restart is not claimed as a separately executed public witness yet.
+
+### Frozen schema23 foundation (financial behavior still pending)
+
+Schema23 now includes connection custody; institution-scoped remote account labels,
+original balance strings/currency/date; per-account links with explicit initial
+opening choice and successful-window marker; per-transaction provider-origin bindings;
+and private request/capture quota state. Bank preference cells reuse existing
+`transaction_import_settings` so their source IDs and individual clocks can survive.
+No further23 DDL is planned. Empty financial/link/origin columns are a foundation,
+not a claim that the financial writer/converter is complete. Portable table registry
+and pre23 archive defaults include the complete nonsecret shape.
+
+Fresh lifecycle/discovery/secret-boundary matrix and bin lint pass after the DDL
+change: `/tmp/bank28-foundation-green.log`, `/tmp/bank28-foundation-clippy.log`.
+The independent source financial consumer now has a real404 red at public account
+linking (`/tmp/bank28-financial-red.log`); six original source archives/expected
+financial states remain unchanged.

@@ -18,14 +18,18 @@ CREATE TABLE bank_credentials (
 CREATE TABLE bank_remote_accounts (
  budget_id TEXT NOT NULL,id TEXT NOT NULL,connection_id TEXT NOT NULL,
  generation TEXT NOT NULL,remote_connection_id TEXT NOT NULL,remote_id TEXT NOT NULL,
- name TEXT NOT NULL,currency TEXT NOT NULL,balance TEXT NOT NULL,available_balance TEXT,
+ institution TEXT NOT NULL,name TEXT NOT NULL,currency TEXT NOT NULL,balance TEXT NOT NULL,available_balance TEXT,
  balance_date INTEGER NOT NULL,diagnostics TEXT NOT NULL DEFAULT '[]',tombstone INTEGER NOT NULL DEFAULT 0 CHECK(tombstone IN(0,1)),
  PRIMARY KEY(budget_id,id),FOREIGN KEY(budget_id,connection_id) REFERENCES bank_connections(budget_id,id) ON DELETE CASCADE
 );
 CREATE UNIQUE INDEX bank_remote_identity ON bank_remote_accounts(budget_id,connection_id,remote_connection_id,remote_id);
 CREATE TABLE bank_links (
  budget_id TEXT NOT NULL,id TEXT NOT NULL,connection_id TEXT NOT NULL,remote_account_id TEXT NOT NULL,
- connection_generation TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 1,tombstone INTEGER NOT NULL DEFAULT 0 CHECK(tombstone IN(0,1)),
+ connection_generation TEXT NOT NULL,revision INTEGER NOT NULL DEFAULT 1,
+ initial_sync INTEGER NOT NULL DEFAULT 1 CHECK(initial_sync IN(0,1)),
+ opening_mode TEXT NOT NULL DEFAULT 'auto' CHECK(opening_mode IN('auto','none','custom')),
+ opening_amount INTEGER,opening_date TEXT,last_sync_end TEXT,
+ tombstone INTEGER NOT NULL DEFAULT 0 CHECK(tombstone IN(0,1)),
  PRIMARY KEY(budget_id,id),FOREIGN KEY(budget_id,id) REFERENCES accounts(budget_id,id),
  FOREIGN KEY(budget_id,connection_id) REFERENCES bank_connections(budget_id,id) ON DELETE CASCADE,
  FOREIGN KEY(budget_id,remote_account_id) REFERENCES bank_remote_accounts(budget_id,id)
@@ -42,3 +46,11 @@ CREATE TABLE bank_request_log (
  FOREIGN KEY(budget_id,connection_id) REFERENCES bank_connections(budget_id,id) ON DELETE CASCADE
 );
 CREATE INDEX bank_request_window ON bank_request_log(budget_id,connection_id,started_at);
+
+CREATE TABLE bank_transaction_origins (
+ budget_id TEXT NOT NULL,id TEXT NOT NULL,connection_id TEXT NOT NULL,remote_account_id TEXT NOT NULL,
+ tombstone INTEGER NOT NULL DEFAULT 0 CHECK(tombstone IN(0,1)),
+ PRIMARY KEY(budget_id,id),FOREIGN KEY(budget_id,id) REFERENCES transactions(budget_id,id),
+ FOREIGN KEY(budget_id,connection_id) REFERENCES bank_connections(budget_id,id) ON DELETE CASCADE,
+ FOREIGN KEY(budget_id,remote_account_id) REFERENCES bank_remote_accounts(budget_id,id)
+);

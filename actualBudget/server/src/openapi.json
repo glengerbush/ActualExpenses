@@ -30824,6 +30824,9 @@
           },
           "deleted": {
             "type": "boolean"
+          },
+          "institution": {
+            "type": "string"
           }
         },
         "required": [
@@ -30838,7 +30841,8 @@
           "available_balance",
           "balance_date",
           "diagnostics",
-          "deleted"
+          "deleted",
+          "institution"
         ],
         "additionalProperties": false
       },
@@ -30867,6 +30871,34 @@
           },
           "deleted": {
             "type": "boolean"
+          },
+          "initial_sync": {
+            "type": "boolean"
+          },
+          "opening_mode": {
+            "enum": [
+              "auto",
+              "none",
+              "custom"
+            ]
+          },
+          "opening_amount": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "opening_date": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_sync_end": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -30875,7 +30907,12 @@
           "remote_account_id",
           "connection_generation",
           "revision",
-          "deleted"
+          "deleted",
+          "initial_sync",
+          "opening_mode",
+          "opening_amount",
+          "opening_date",
+          "last_sync_end"
         ],
         "additionalProperties": false
       },

@@ -28,6 +28,7 @@ pub const TABLES: &[&str] = &[
     "tags",
     "categories",
     "transactions",
+    "bank_transaction_origins",
     "transaction_import_metadata",
     "transaction_import_settings",
     "transaction_import_files",

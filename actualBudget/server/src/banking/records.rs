@@ -45,10 +45,10 @@ fn identity(connection: &str, remote_connection: &str, remote: &str) -> String {
     uuid::Uuid::from_bytes(bytes).to_string()
 }
 pub(super) fn remote(db: &Connection, b: &str, id: &str) -> Result<Value, Error> {
-    db.query_row("SELECT id,connection_id,generation,remote_connection_id,remote_id,name,currency,balance,available_balance,balance_date,diagnostics,tombstone FROM bank_remote_accounts WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":r.get::<_,String>(0)?,"connection_id":r.get::<_,String>(1)?,"generation":r.get::<_,String>(2)?,"remote_connection_id":r.get::<_,String>(3)?,"remote_id":r.get::<_,String>(4)?,"name":r.get::<_,String>(5)?,"currency":r.get::<_,String>(6)?,"balance":r.get::<_,String>(7)?,"available_balance":r.get::<_,Option<String>>(8)?,"balance_date":r.get::<_,i64>(9)?,"diagnostics":serde_json::from_str::<Value>(&r.get::<_,String>(10)?).map_err(|e|rusqlite::Error::FromSqlConversionFailure(10,rusqlite::types::Type::Text,Box::new(e)))?,"deleted":r.get::<_,bool>(11)?}))).optional()?.ok_or_else(Error::missing)
+    db.query_row("SELECT id,connection_id,generation,remote_connection_id,remote_id,institution,name,currency,balance,available_balance,balance_date,diagnostics,tombstone FROM bank_remote_accounts WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":r.get::<_,String>(0)?,"connection_id":r.get::<_,String>(1)?,"generation":r.get::<_,String>(2)?,"remote_connection_id":r.get::<_,String>(3)?,"remote_id":r.get::<_,String>(4)?,"institution":r.get::<_,String>(5)?,"name":r.get::<_,String>(6)?,"currency":r.get::<_,String>(7)?,"balance":r.get::<_,String>(8)?,"available_balance":r.get::<_,Option<String>>(9)?,"balance_date":r.get::<_,i64>(10)?,"diagnostics":serde_json::from_str::<Value>(&r.get::<_,String>(11)?).map_err(|e|rusqlite::Error::FromSqlConversionFailure(11,rusqlite::types::Type::Text,Box::new(e)))?,"deleted":r.get::<_,bool>(12)?}))).optional()?.ok_or_else(Error::missing)
 }
 pub(super) fn links(db: &Connection, b: &str) -> Result<Vec<Value>, Error> {
-    db.prepare("SELECT id,connection_id,remote_account_id,connection_generation,revision,tombstone FROM bank_links WHERE budget_id=?1 ORDER BY id")?.query_map([b],|r|Ok(json!({"id":r.get::<_,String>(0)?,"connection_id":r.get::<_,String>(1)?,"remote_account_id":r.get::<_,String>(2)?,"connection_generation":r.get::<_,String>(3)?,"revision":r.get::<_,i64>(4)?,"deleted":r.get::<_,bool>(5)?})))?.collect::<Result<Vec<_>,_>>().map_err(Error::from)
+    db.prepare("SELECT id,connection_id,remote_account_id,connection_generation,revision,initial_sync,opening_mode,opening_amount,opening_date,last_sync_end,tombstone FROM bank_links WHERE budget_id=?1 ORDER BY id")?.query_map([b],|r|Ok(json!({"id":r.get::<_,String>(0)?,"connection_id":r.get::<_,String>(1)?,"remote_account_id":r.get::<_,String>(2)?,"connection_generation":r.get::<_,String>(3)?,"revision":r.get::<_,i64>(4)?,"initial_sync":r.get::<_,bool>(5)?,"opening_mode":r.get::<_,String>(6)?,"opening_amount":r.get::<_,Option<i64>>(7)?,"opening_date":r.get::<_,Option<String>>(8)?,"last_sync_end":r.get::<_,Option<String>>(9)?,"deleted":r.get::<_,bool>(10)?})))?.collect::<Result<Vec<_>,_>>().map_err(Error::from)
 }
 pub(super) fn accounts(db: &Connection, b: &str) -> Result<Vec<Value>, Error> {
     let ids = db
@@ -155,6 +155,23 @@ pub(super) fn install_remote(
                 "Provider account identities must be distinct within each institution",
             ));
         }
+        let institution = account["conn_name"]
+            .as_str()
+            .or_else(|| {
+                raw["connections"]
+                    .as_array()
+                    .and_then(|rows| rows.iter().find(|r| r["conn_id"] == remote_connection))
+                    .and_then(|r| r["name"].as_str())
+            })
+            .or_else(|| account["org"]["name"].as_str())
+            .unwrap_or("SimpleFIN");
+        if institution.len() > 512 || institution.chars().any(char::is_control) {
+            return Err(transport::failure(
+                "provider_invalid_response",
+                "Provider institution name is invalid",
+            ));
+        }
+        let institution = institution.to_owned();
         let name = label(account, "name", 512)?;
         let currency = label(account, "currency", 512)?;
         let balance = decimal(account, "balance", true)?.unwrap();
@@ -172,6 +189,7 @@ pub(super) fn install_remote(
             identity(connection, &remote_connection, &remote_id),
             remote_connection,
             remote_id,
+            institution,
             name,
             currency,
             balance,
@@ -215,7 +233,7 @@ pub(super) fn install_remote(
         }
     }
     let mut accounts = vec![];
-    for (id, conn, remote_id, name, currency, balance, available, date) in prepared {
+    for (id, conn, remote_id, institution, name, currency, balance, available, date) in prepared {
         let mut diagnostics = errors
             .iter()
             .filter(|e| {
@@ -229,7 +247,7 @@ pub(super) fn install_remote(
             diagnostics.truncate(7);
             diagnostics.push(json!({"code":"provider_additional_errors","message":"Additional provider diagnostics are omitted; this account remains blocked","count":extra}));
         }
-        db.execute("INSERT INTO bank_remote_accounts(budget_id,id,connection_id,generation,remote_connection_id,remote_id,name,currency,balance,available_balance,balance_date,diagnostics) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12) ON CONFLICT(budget_id,id) DO UPDATE SET generation=excluded.generation,name=excluded.name,currency=excluded.currency,balance=excluded.balance,available_balance=excluded.available_balance,balance_date=excluded.balance_date,diagnostics=excluded.diagnostics,tombstone=0",params![b,id,connection,generation,conn,remote_id,name,currency,balance,available,date,serde_json::to_string(&diagnostics).map_err(Error::internal)?])?;
+        db.execute("INSERT INTO bank_remote_accounts(budget_id,id,connection_id,generation,remote_connection_id,remote_id,institution,name,currency,balance,available_balance,balance_date,diagnostics) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13) ON CONFLICT(budget_id,id) DO UPDATE SET generation=excluded.generation,institution=excluded.institution,name=excluded.name,currency=excluded.currency,balance=excluded.balance,available_balance=excluded.available_balance,balance_date=excluded.balance_date,diagnostics=excluded.diagnostics,tombstone=0",params![b,id,connection,generation,conn,remote_id,institution,name,currency,balance,available,date,serde_json::to_string(&diagnostics).map_err(Error::internal)?])?;
         sync::seed_field_version(db, b, "bank_remote_accounts", &id, "metadata", &clock)?;
         sync::mark(db, b, "bank_remote_accounts", &id)?;
         accounts.push(remote(db, b, &id)?);
@@ -263,6 +281,7 @@ pub(super) fn tables() -> Vec<(&'static str, Vec<&'static str>)> {
                 "generation",
                 "remote_connection_id",
                 "remote_id",
+                "institution",
                 "name",
                 "currency",
                 "balance",
@@ -281,6 +300,21 @@ pub(super) fn tables() -> Vec<(&'static str, Vec<&'static str>)> {
                 "remote_account_id",
                 "connection_generation",
                 "revision",
+                "initial_sync",
+                "opening_mode",
+                "opening_amount",
+                "opening_date",
+                "last_sync_end",
+                "tombstone",
+            ],
+        ),
+        (
+            "bank_transaction_origins",
+            vec![
+                "budget_id",
+                "id",
+                "connection_id",
+                "remote_account_id",
                 "tombstone",
             ],
         ),

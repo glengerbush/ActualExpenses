@@ -292,3 +292,23 @@ Focused greens: /tmp/note-identity-{clock-final,metadata-clock-final,binding-his
 /tmp/note-identities-owned-final.log. Final binClippy-Dwarnings PASS
 /tmp/note-alias-projection-clippy.log. Core resource query registry, batch/caller,
 served contracts and maintained qualification wiring remain47 work.
+
+## Root identity/clock composition review
+
+2026-11-10: Reviewed `e9c623a`: known-note markers, literal invalid-month IDs,
+logical HLC aliases, inverse binding guards, trigger/install ordering and masked
+undone month text. No remaining finding in this slice. Integrated at `166cc77`
+with36 scoped budget reads and28 migration/recovery. Resolved conflicts preserve
+scoped reads, visible month annotations, bank23 enrichment and note24 backfill;
+formatter-only changes normalize the new shared hooks.
+
+Combined build PASS `/tmp/note-identities-compose-build.log`. Public source11
+identity/history states, five literal-prefix states, fresh note/metadata revival,
+portable/exact-receipt recovery and financial month revival PASS
+`/tmp/notes-compose-{identities,prefix,revive,month}.log`. Shared archive/migration
+checks PASS `/tmp/notes-compose-bank-upgrade.log` (genuine22 database/archive,
+current24 clone/restore/tombstones/late-response fencing) and
+`/tmp/notes-compose-notes-upgrade.log` (genuine23 database/native archive,
+blocked stages/history/exact receipts). Input fixtures unchanged. Existing alias
+clock red/green and source reproduction evidence reused; no full-suite rerun or
+whole47 acceptance claimed.

@@ -17,7 +17,7 @@
   import {
     captureAmountFormat,
     formatAmount,
-    formatAmountInput,
+    formatSavedAmount,
     parseAmount,
     type AmountFormat,
   } from "./money";
@@ -61,7 +61,7 @@
   let schedules = $state.raw<{ id: string; name: string }[]>([]),
     nextScheduleOffset = $state<number | null>(0);
   function money(amount: number, format?: AmountFormat) {
-    return format ? formatAmountInput(amount, format) : formatAmount(amount);
+    return format ? formatSavedAmount(amount, format) : formatAmount(amount);
   }
   let checkpoint: string | null = null;
   const enabled = $derived(data?.experimental.goalTemplatesEnabled === true);

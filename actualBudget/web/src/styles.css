@@ -663,3 +663,18 @@ th {
 tbody tr:hover {
   background: var(--table-hover);
 }
+
+/* Pinned Actual26.10 FinancialInput affordance, shared by all amount-entry fields.
+   Redact glyphs only; the exact input value, selection and parser stay unchanged. */
+@font-face {
+  font-family: "Redacted Script";
+  src: url("/fonts/redacted-script-latin-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+@media (min-width: 701px) {
+  .privacy-mode input[inputmode="decimal"]:not(:focus):not(:hover) {
+    font-family: "Redacted Script", sans-serif;
+  }
+}

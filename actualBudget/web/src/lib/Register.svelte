@@ -39,7 +39,7 @@
   import {
     formatAmount,
     formatDate,
-    formatAmountInput,
+    formatSavedAmount,
     captureAmountFormat,
     today,
   } from "./money";
@@ -986,7 +986,7 @@
       <h3>{t("Pending expenses")}</h3>
       {#each queue as item (item.key)}<div class="pending-expense">
           <p>
-            {formatAmountInput(item.row.amount, item.format)} · {formatDate(
+            {formatSavedAmount(item.row.amount, item.format)} · {formatDate(
               item.row.date,
             )} · {item.row.notes || item.row.payee_name || t("No payee")}
           </p>

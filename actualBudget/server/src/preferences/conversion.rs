@@ -35,6 +35,7 @@ pub fn convert_actual(input: &Value) -> Result<Value, Error> {
             "numberFormat" => Some("number_format"),
             "dateFormat" => Some("date_format"),
             "hideFraction" => Some("hide_fraction"),
+            "isPrivacyEnabled" => Some("privacy_mode"),
             "firstDayOfWeekIdx" => Some("first_day_of_week"),
             "defaultCurrencyCode" => Some("currency_code"),
             "currencySymbolPosition" => Some("currency_symbol_position"),
@@ -43,11 +44,13 @@ pub fn convert_actual(input: &Value) -> Result<Value, Error> {
         };
         if let Some(mapped) = mapped {
             let converted = match mapped {
-                "sync_transfer_date" | "hide_fraction" | "currency_space" => match value {
-                    Value::Bool(_) => Some(value.clone()),
-                    Value::String(v) if v == "true" || v == "false" => Some(json!(v == "true")),
-                    _ => None,
-                },
+                "sync_transfer_date" | "hide_fraction" | "currency_space" | "privacy_mode" => {
+                    match value {
+                        Value::Bool(_) => Some(value.clone()),
+                        Value::String(v) if v == "true" || v == "false" => Some(json!(v == "true")),
+                        _ => None,
+                    }
+                }
                 "first_day_of_week" => value
                     .as_str()
                     .and_then(|s| s.parse::<u64>().ok())
@@ -98,6 +101,22 @@ pub fn convert_actual(input: &Value) -> Result<Value, Error> {
             continue;
         }
         match key.as_str() {
+            "showNewsFeed" | "notifyWhenUpdateIsAvailable" => {
+                if let Some(enabled) = value.as_bool().or_else(|| match value.as_str() {
+                    Some("true") => Some(true),
+                    Some("false") => Some(false),
+                    _ => None,
+                }) {
+                    let current = device
+                        .get("show_release_notices")
+                        .and_then(Value::as_bool)
+                        .unwrap_or(true);
+                    device["show_release_notices"] = json!(current && enabled);
+                } else {
+                    unmapped_global.insert(key.clone(), value.clone());
+                    warnings.push(json!({"key":key,"reason":"Invalid notification preference; retained for review"}));
+                }
+            }
             "theme" => {
                 if let Some(v) = value
                     .as_str()

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { errorMessage } from "../api";
-  import { formatAmountInput } from "../money";
+  import { formatSavedAmount } from "../money";
   import { t } from "../i18n.svelte";
   import { readCatalog } from "./cache";
   import { entries, receipts, retryEntry, type OutboxEntry } from "./outbox";
@@ -100,7 +100,7 @@
             <span class="budget-id">{item.budgetId}</span>
           </p>
           <p class="amount">
-            {formatAmountInput(item.row.amount, item.format)} ·
+            {formatSavedAmount(item.row.amount, item.format)} ·
             <time datetime={item.row.date}>{item.row.date}</time>
           </p>
           {#if item.row.notes}<p class="notes">{item.row.notes}</p>{/if}

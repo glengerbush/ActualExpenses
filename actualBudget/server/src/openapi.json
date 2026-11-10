@@ -20040,6 +20040,10 @@
             "type": "boolean",
             "default": false,
             "description": "Link transfer dates on edit. Historical preference records omit this field, meaning false."
+          },
+          "privacy_mode": {
+            "type": "boolean",
+            "description": "Mask displayed amounts. Additive optional field; defaults false. Does not change arithmetic or protect server access."
           }
         },
         "required": [
@@ -20261,6 +20265,17 @@
             "type": "boolean",
             "default": false,
             "description": "Link transfer dates on edit. Historical preference records omit this field, meaning false."
+          },
+          "privacy_mode": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mask displayed amounts. Additive optional field; defaults false. Does not change arithmetic or protect server access."
           }
         }
       },
@@ -20436,6 +20451,10 @@
                   "mobileCalculator",
                   "monteCarloReport"
                 ]
+              },
+              "privacy_mode": {
+                "type": "boolean",
+                "description": "Mask displayed amounts. Additive optional field; defaults false. Does not change arithmetic or protect server access."
               }
             },
             "required": [
@@ -20474,6 +20493,10 @@
               },
               "language": {
                 "type": "string"
+              },
+              "show_release_notices": {
+                "type": "boolean",
+                "description": "Optional device opt-in for fork-local announcements; upstream seen dates are not fork dismissal receipts."
               }
             }
           },

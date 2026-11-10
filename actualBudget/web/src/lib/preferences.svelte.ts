@@ -16,6 +16,10 @@ function validDevice(value: unknown): value is DevicePreferences {
   if (!value || typeof value !== "object") return false;
   const v = value as DevicePreferences;
   return (
+    (v.show_release_notices === undefined ||
+      typeof v.show_release_notices === "boolean") &&
+    (v.seen_release === undefined ||
+      (typeof v.seen_release === "string" && v.seen_release.length <= 128)) &&
     ["light", "dark", "midnight", "system"].includes(v.theme) &&
     ["dark", "midnight"].includes(v.preferred_dark_theme) &&
     (v.language === "" || (languages as readonly string[]).includes(v.language))
@@ -133,6 +137,15 @@ class Preferences {
   ) {
     if (!validShared(values))
       throw new Error("Saved display preferences are invalid.");
+    // Registers open from saved snapshots before HTTP refresh. An older snapshot
+    // in this epoch must not undo confirmed privacy/formatting preferences.
+    if (
+      this.hasUsableShared &&
+      this.budgetId === budgetId &&
+      this.budgetEpoch === epoch &&
+      this.shared.revision > values.revision
+    )
+      return;
     this.generation++;
     this.budgetId = budgetId;
     this.shared = values;
@@ -144,16 +157,21 @@ class Preferences {
   }
   async loadBudget(budgetId: string): Promise<void> {
     const generation = ++this.generation;
+    const keepCurrent = this.budgetId === budgetId && this.hasUsableShared;
     this.budgetId = budgetId;
-    this.hasUsableShared = false;
     this.loading = true;
     this.error = "";
-    this.cachedAt = null;
-    this.shared = defaultShared();
+    // A same-budget refresh keeps confirmed values until the HTTP read completes.
+    // Resetting to defaults or an older cache can briefly expose masked amounts.
+    if (!keepCurrent) {
+      this.hasUsableShared = false;
+      this.cachedAt = null;
+      this.shared = defaultShared();
+    }
     try {
       const offline = await readBudget(budgetId);
       if (generation !== this.generation) return;
-      if (offline) {
+      if (offline && !keepCurrent) {
         this.shared = offline.preferences;
         this.hasUsableShared = true;
         this.cachedAt = offline.savedAt;

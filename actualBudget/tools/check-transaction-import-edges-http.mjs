@@ -19,10 +19,11 @@ try{for(const item of fixture.cases){try{
   const base={snapshot:cp.snapshot,options:{import_notes:true,reimport_deleted:false}};
   const full=(await call(path+'/preview',base)).data;assert.deepEqual(full.errors,[]);
   const choices=item.input.rows.map((row,i)=>({row:i,action:!row.selected&&!row.ignored?'skip':full.rows[i].match_id?'merge':'add',...(full.rows[i].match_id?{match_id:full.rows[i].match_id}:{})}));
+  if(round===0&&['file-order','same-bank-id-twice'].includes(item.id))choices.reverse();
   const body={...base,rows:choices};
   const preview=(await call(path+'/preview',body)).data;
   const expectedIncluded=item.input.rows.map((row,i)=>row.selected||row.ignored?i:null).filter(i=>i!==null);assert.deepEqual(preview.rows.map(row=>row.row),expectedIncluded,'Preview matches only the finalized selection; ignored rows remain included');
-  for(const row of preview.rows){const choice=choices[row.row];choice.action=round===0?(row.match_id?'merge':'add'):'auto';if(row.match_id)choice.match_id=row.match_id;else delete choice.match_id;}
+  for(const row of preview.rows){const choice=choices.find(choice=>choice.row===row.row);choice.action=round===0?(row.match_id?'merge':'add'):'auto';if(row.match_id)choice.match_id=row.match_id;else delete choice.match_id;}
   assert.deepEqual(await call(root+'/transactions'),before);assert.deepEqual((await call(root+'/checkpoint')).data,cp);
   const headers={'Idempotency-Key':randomUUID(),'X-Actual-Budget-Epoch':cp.epoch};const result=await call(path+'/commit',body,headers);const rows=(await call(root+'/transactions')).data;
   assert.deepEqual(shape(rows,item,false),shape(expected.transactions,item,true),'Complete independent financial state');

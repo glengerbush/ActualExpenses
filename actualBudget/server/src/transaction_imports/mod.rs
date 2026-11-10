@@ -546,9 +546,10 @@ let (plan,mut work)=plan(db,&b,&id,&body)?;
 if !plan["errors"].as_array().unwrap().is_empty(){return Err(Error::invalid("Repair invalid import rows before committing"));
 }let choices=body.rows.as_ref().ok_or_else(||Error::invalid("Select the reviewed rows to import"))?;
 if choices.is_empty()||choices.len()>10000{return Err(Error::invalid("Select1–10000 rows per atomic import"));
-}let reviewed=plan["rows"].as_array().unwrap().iter().map(|r|(r["row"].as_u64().unwrap() as usize,r)).collect::<BTreeMap<_,_>>();
+}let mut choices=choices.iter().collect::<Vec<_>>();choices.sort_by_key(|choice|choice.row);
+let reviewed=plan["rows"].as_array().unwrap().iter().map(|r|(r["row"].as_u64().unwrap() as usize,r)).collect::<BTreeMap<_,_>>();
 let mut last_merge=BTreeMap::new();
-for choice in choices{if choice.action=="skip"{continue;}let row=reviewed.get(&choice.row).copied().ok_or_else(||Error::invalid("Unknown selected source row"))?;let action=if choice.action=="auto"{row["action"].as_str().unwrap()}else{choice.action.as_str()};if action=="merge"{if choice.action=="merge"&&choice.match_id.is_none(){return Err(Error::invalid("A merge requires its captured match ID"));}let target=row["match_id"].as_str().ok_or_else(||Error::conflict("Review the selected match again"))?;if choice.match_id.as_deref().is_some_and(|id|id!=target){return Err(Error::conflict("The selected match differs from the captured preview"));}
+for choice in &choices{if choice.action=="skip"{continue;}let row=reviewed.get(&choice.row).copied().ok_or_else(||Error::invalid("Unknown selected source row"))?;let action=if choice.action=="auto"{row["action"].as_str().unwrap()}else{choice.action.as_str()};if action=="merge"{if choice.action=="merge"&&choice.match_id.is_none(){return Err(Error::invalid("A merge requires its captured match ID"));}let target=row["match_id"].as_str().ok_or_else(||Error::conflict("Review the selected match again"))?;if choice.match_id.as_deref().is_some_and(|id|id!=target){return Err(Error::conflict("The selected match differs from the captured preview"));}
 if row["ignored"]!=true{last_merge.insert(target.to_owned(),choice.row);}}}
 let order_base:i64=db.query_row("SELECT COALESCE(MAX(sort_order),0) FROM transactions WHERE budget_id=?1",[&b],|r|r.get(0))?;
 let clock=sync::clock(db,&b,proposed.as_deref())?;
@@ -558,7 +559,7 @@ let mut added=vec![];
 let mut ignored=vec![];
 let mut created_payees=BTreeSet::new();
 
- for choice in choices{if choice.action=="skip"{continue;}let row=reviewed.get(&choice.row).copied().ok_or_else(||Error::invalid("Unknown source row"))?;
+ for choice in &choices{if choice.action=="skip"{continue;}let row=reviewed.get(&choice.row).copied().ok_or_else(||Error::invalid("Unknown source row"))?;
 let mut transaction=row["transaction"].clone();
 if transaction["new_payee"]["id"].as_str().is_some_and(|id|created_payees.contains(id)){transaction.as_object_mut().unwrap().remove("new_payee");}
 let action=if choice.action=="auto"{row["action"].as_str().unwrap()}else{choice.action.as_str()};

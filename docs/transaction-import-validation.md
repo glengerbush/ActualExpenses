@@ -194,3 +194,11 @@ receipt replay remains exact and never repeats that update. Existing split
 status updates use the guarded aggregate writer, preserving allocations and
 paired protections. New file ordering touches only the graph inserted by that
 command, with its original HLC; existing private native/Android anchors remain.
+
+Reviewer correction: choices are an unordered selection, never a reorder feature.
+The writer now sorts validated row references by original source index before
+coalescing proposals and assigning new-row order; receipt hashing retains the
+original captured payload. Reversed equivalent choices produced both source-order
+and duplicate-bank-ID true reds (`/tmp/transaction-choice-order-red.log`); five
+edge workflows and bin Clippy now PASS (`/tmp/transaction-choice-order-green.log`,
+`/tmp/transaction-choice-order-clippy.log`).

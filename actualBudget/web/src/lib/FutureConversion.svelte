@@ -14,7 +14,7 @@
     observeVersions,
     resetCorrectedClock,
   } from "./edit-clock";
-  import { formatAmountInput } from "./money";
+  import { formatSavedAmount } from "./money";
   import { displayDate } from "./dates";
   import {
     conversionKey,
@@ -130,7 +130,7 @@
   }
   function amount(value: unknown) {
     return typeof value === "number" && intent
-      ? formatAmountInput(value, intent.format)
+      ? formatSavedAmount(value, intent.format)
       : "Unknown amount";
   }
   async function finish() {

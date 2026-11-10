@@ -276,3 +276,58 @@ fn currency_requires_explicit_opt_in_and_disabling_clears_the_code() {
         );
     }
 }
+
+#[test]
+fn navigation_preferences_convert_and_privacy_survives_restart() {
+    let mut server = Server::start();
+    let contract: Value = server.get("/api/v1/openapi.json").json().unwrap();
+    assert_eq!(
+        contract["components"]["schemas"]["BudgetPreferences"]["properties"]["privacy_mode"]["type"],
+        "boolean"
+    );
+    assert_eq!(
+        contract["components"]["schemas"]["BudgetPreferences"]["properties"]["sync_transfer_date"]
+            ["type"],
+        "boolean"
+    );
+    let response = server.client.post(format!("{}/api/v1/preferences/convert-actual", server.url))
+        .json(&json!({"synced":{"isPrivacyEnabled":"true"},"global":{"showNewsFeed":false,"notifyWhenUpdateIsAvailable":true,"lastSeenNewsDate":"2026-10-01"}})).send().unwrap();
+    assert_eq!(response.status(), 200);
+    let converted: Value = response.json().unwrap();
+    assert_eq!(converted["data"]["shared"]["privacy_mode"], true);
+    assert_eq!(converted["data"]["device"]["show_release_notices"], false);
+    assert_eq!(
+        converted["data"]["unmapped"]["global"]["lastSeenNewsDate"],
+        "2026-10-01"
+    );
+    let id = "00000000-0000-4000-8000-000000000045";
+    server.budget(id);
+    let path = format!("/api/v1/budgets/{id}/preferences");
+    assert_eq!(
+        server
+            .patch(&path, "navigation45", json!({"privacy_mode":true}))
+            .status(),
+        200
+    );
+    server.restart();
+    let values: Value = server.get(&path).json().unwrap();
+    assert_eq!(values["data"]["privacy_mode"], true);
+    assert_eq!(
+        server
+            .patch(
+                &path,
+                "navigation45-invalid",
+                json!({"privacy_mode":"true"})
+            )
+            .status(),
+        400
+    );
+    assert_eq!(
+        server
+            .patch(&path, "navigation45-reset", json!({"privacy_mode":null}))
+            .status(),
+        200
+    );
+    let values: Value = server.get(&path).json().unwrap();
+    assert_eq!(values["data"]["privacy_mode"], false);
+}

@@ -36,7 +36,12 @@
     type Account,
   } from "./api";
   import { t } from "./i18n.svelte";
-  import { today, formatAmountInput, captureAmountFormat } from "./money";
+  import {
+    today,
+    formatAmountInput,
+    formatSavedAmount,
+    captureAmountFormat,
+  } from "./money";
   import { calculateAmount } from "./calculator";
   import {
     mutate,
@@ -1015,7 +1020,7 @@
         <h2>Rule split allocations</h2>
         <ul>
           {#each draft.ruleChildren as child (child.id)}<li>
-              {formatAmountInput(child.amount, draft.format)} · {categories.find(
+              {formatSavedAmount(child.amount, draft.format)} · {categories.find(
                 (c) => c.id === child.category_id,
               )?.name ?? "Uncategorized"} · {child.notes}
             </li>{/each}

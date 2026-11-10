@@ -47,6 +47,12 @@
   import Register from "./lib/Register.svelte";
   import Categories from "./lib/Categories.svelte";
   import Settings from "./lib/Settings.svelte";
+  import NavigationTools from "./lib/NavigationTools.svelte";
+  import {
+    readView,
+    rememberView,
+    type NavigationCommand,
+  } from "./lib/navigation";
   import ThemeRecovery from "./lib/themes/ThemeRecovery.svelte";
   import PendingRecovery from "./lib/offline/PendingRecovery.svelte";
   import ImportBudget from "./lib/ImportBudget.svelte";
@@ -91,6 +97,99 @@
   let deletedLoaded = $state(false);
   let main: HTMLElement | undefined;
   let retry = $state<() => Promise<void>>(initialize);
+  // Register only delivered destinations. Availability shares the sidebar's edit guards.
+  let commands = $derived.by((): NavigationCommand[] => {
+    const locked = !!form || loading;
+    const result: NavigationCommand[] = [
+      {
+        id: "budgets",
+        label: "All budgets",
+        disabled: locked,
+        run: showBudgets,
+      },
+      {
+        id: "pending",
+        label: "Review pending expenses",
+        disabled: locked,
+        run: () => showForm("pending"),
+      },
+    ];
+    if (!budget) {
+      for (const value of budgets)
+        result.push({
+          id: `budget:${value.id}`,
+          label: `Open budget: ${value.name}`,
+          disabled: locked,
+          run: () => openBudget(value),
+        });
+      for (const [id, label] of [
+        ["budget", "New budget"],
+        ["import", "Import Actual budget"],
+        ["restore", "Restore backup"],
+      ] as const)
+        result.push({
+          id,
+          label,
+          disabled: locked || disconnected || !compatible,
+          run: () => showForm(id),
+        });
+      return result;
+    }
+    result.push(
+      {
+        id: "organize",
+        label: "Organize accounts",
+        disabled: locked || disconnected || !compatible,
+        run: () => showForm("organize"),
+      },
+      {
+        id: "account",
+        label: "Add account",
+        disabled: locked || disconnected || !compatible,
+        run: () => showForm("account"),
+      },
+      {
+        id: "manage",
+        label: "Manage budget",
+        disabled: locked || disconnected || !compatible,
+        run: () => manage(budget!),
+      },
+    );
+    const views = [
+      ["planning", "Budget", false],
+      ["categories", "Categories", disconnected],
+      ["references", "Payees and tags", disconnected],
+      ["rules", "Rules", false],
+      ["schedules", "Schedules", false],
+      ["settings", "Settings", false],
+    ] as const;
+    result.push({
+      id: "accounts",
+      label: "All accounts",
+      disabled: locked,
+      run: () => selectAccount(null),
+    });
+    for (const [id, label, requiresConnection] of views)
+      result.push({
+        id,
+        label,
+        disabled:
+          locked || requiresConnection || (id !== "settings" && !compatible),
+        run: () => {
+          rulesPayee = "";
+          return showForm(id);
+        },
+      });
+    for (const value of accounts)
+      result.push({
+        id: `account:${value.id}`,
+        label: `Account: ${value.name}${value.closed ? " (closed)" : ""}`,
+        keywords: "register transactions",
+        disabled: locked,
+        run: () => selectAccount(value),
+      });
+    return result;
+  });
   async function focusContent() {
     await tick();
     main?.focus();
@@ -163,7 +262,7 @@
     accounts = [];
     loading = true;
     error = "";
-    form = null;
+    form = readView(value.id);
     retry = () => openBudget(value, accountId);
     try {
       const cached = await readBudget(value.id).catch((e) => {
@@ -291,6 +390,8 @@
   }
   async function selectAccount(value: Account | null) {
     navigation++;
+    form = null;
+    if (budget) rememberView(budget.id, null);
     account = value;
     saveSelection(budget!.id, value?.id);
     await focusContent();
@@ -315,6 +416,7 @@
     navigation++;
     recoveryError = "";
     form = value;
+    if (budget) rememberView(budget.id, value);
     await focusContent();
   }
   async function manage(value: ManagedBudget) {
@@ -388,9 +490,16 @@
 
 <a class="skip-link" href="#main">{t("Skip to content")}</a>
 <ThemeRecovery />
-<div class="app-shell">
+<div class="app-shell" class:privacy-mode={!!preferences.shared.privacy_mode}>
   <aside class="sidebar" aria-label={t("Budget navigation")}>
     <div class="brand">actualBudget</div>
+    <NavigationTools
+      {commands}
+      budgetId={budget?.id}
+      offline={disconnected}
+      busy={loading}
+    />
+
     {#if budget}
       <button class="quiet" onclick={showBudgets} disabled={!!form || loading}
         >{t("All budgets")}</button
@@ -438,7 +547,8 @@
         class={{ current: form === "settings" }}
         aria-current={form === "settings" ? "page" : undefined}
         onclick={() => showForm("settings")}
-        disabled={!!form || loading}>{t("Settings")}</button
+        disabled={(!!form && form !== "settings") || loading}
+        >{t("Settings")}</button
       >
       <button
         onclick={() => budget && manage(budget)}
@@ -577,7 +687,7 @@
     {:else if form === "planning" && budget}{#key budget.id}<BudgetPlan
           budgetId={budget.id}
           {disconnected}
-          onclose={() => (form = null)}
+          onclose={() => showForm(null)}
           onchanged={async (method) => {
             if (budget) budget = { ...budget, budget_type: method };
             await refreshAccounts();

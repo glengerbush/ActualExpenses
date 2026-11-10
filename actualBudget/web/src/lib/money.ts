@@ -95,7 +95,17 @@ export function formatAmountInput(
   const divisor = 10n ** BigInt(format.decimal_places);
   return `${integer < 0n ? "-" : ""}${absolute / divisor}${format.decimal_places ? separator(format) + (absolute % divisor).toString().padStart(2, "0") : ""}`;
 }
+/** Recovery summaries keep their captured format without exposing masked amounts. */
+export function formatSavedAmount(
+  amount: number,
+  format: AmountFormat,
+): string {
+  return preferences.shared.privacy_mode
+    ? "••••"
+    : formatAmountInput(amount, format);
+}
 export function formatAmount(amount: number): string {
+  if (preferences.shared.privacy_mode) return "••••";
   const settings = preferences.shared;
   const format = captureAmountFormat();
   const integer = BigInt(amount);

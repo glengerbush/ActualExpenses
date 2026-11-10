@@ -1,0 +1,634 @@
+{
+  "oracle": "Actual26.10 real normal/query CSV serializers",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "source_files": {
+    "packages/loot-core/src/server/transactions/export/export-to-csv.ts": "f5f26afc384e4f0453a9e261b5bf6b5c162a636f4a17d36ab4b180ad6b4916e2"
+  },
+  "ids": {
+    "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+    "off": "0920450a-b9e3-48a6-9b96-89f9d32717fe",
+    "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+    "shop": "cf8e8de4-01b2-4b13-8847-bb2003a4505b",
+    "group": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+    "food": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+    "other": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+    "first": "25300000-0000-4000-8000-000000000001",
+    "refund": "25300000-0000-4000-8000-000000000002",
+    "zero": "25300000-0000-4000-8000-000000000003",
+    "parent": "25300000-0000-4000-8000-000000000004",
+    "child1": "25300000-0000-4000-8000-000000000005",
+    "child2": "25300000-0000-4000-8000-000000000006",
+    "transfer": "25300000-0000-4000-8000-000000000007",
+    "peer": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa"
+  },
+  "archive": {
+    "filename": "transaction-export-base-26.10.zip",
+    "sha256": "21b1b822a1c2676fcabeae288a0156013b9f4ccf89130eac8ede991a00adc2fd"
+  },
+  "before": {
+    "transactions": [
+      {
+        "id": "25300000-0000-4000-8000-000000000001",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+        "amount": -1234,
+        "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+        "notes": "=SUM(A1:A2)",
+        "date": "2026-11-09",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225600000,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      {
+        "id": "25300000-0000-4000-8000-000000000002",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+        "amount": 500,
+        "payee": "cf8e8de4-01b2-4b13-8847-bb2003a4505b",
+        "notes": "first line\nsecond \"line\"",
+        "date": "2026-11-08",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225598976,
+        "cleared": true,
+        "reconciled": true,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      {
+        "id": "25300000-0000-4000-8000-000000000003",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "category": null,
+        "amount": 0,
+        "payee": null,
+        "notes": "\t=literal",
+        "date": "2026-11-07",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225597952,
+        "cleared": false,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      {
+        "id": "25300000-0000-4000-8000-000000000004",
+        "is_parent": true,
+        "is_child": false,
+        "parent_id": null,
+        "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "category": null,
+        "amount": -101,
+        "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+        "notes": "Parent, note",
+        "date": "2026-11-06",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 1794225596928,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      {
+        "id": "25300000-0000-4000-8000-000000000005",
+        "is_parent": false,
+        "is_child": true,
+        "parent_id": "25300000-0000-4000-8000-000000000004",
+        "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+        "amount": -40,
+        "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+        "notes": "first allocation",
+        "date": "2026-11-06",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": 0,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      {
+        "id": "25300000-0000-4000-8000-000000000006",
+        "is_parent": false,
+        "is_child": true,
+        "parent_id": "25300000-0000-4000-8000-000000000004",
+        "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+        "amount": -61,
+        "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+        "notes": "@second allocation",
+        "date": "2026-11-06",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": null,
+        "sort_order": -1,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      {
+        "id": "25300000-0000-4000-8000-000000000007",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+        "amount": -200,
+        "payee": "c2ffa73e-8563-4b34-aeaf-341aee8bf2a8",
+        "notes": "\rTransfer note",
+        "date": "2026-11-05",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+        "sort_order": 1794225600000,
+        "cleared": true,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      },
+      {
+        "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+        "is_parent": false,
+        "is_child": false,
+        "parent_id": null,
+        "account": "0920450a-b9e3-48a6-9b96-89f9d32717fe",
+        "category": null,
+        "amount": 200,
+        "payee": "860a4868-6b4c-404f-8c0c-770bd733cd72",
+        "notes": "\rTransfer note",
+        "date": "2026-11-05",
+        "imported_id": null,
+        "error": null,
+        "imported_payee": null,
+        "starting_balance_flag": false,
+        "transfer_id": "25300000-0000-4000-8000-000000000007",
+        "sort_order": 1794225600000,
+        "cleared": false,
+        "reconciled": false,
+        "tombstone": false,
+        "schedule": null,
+        "raw_synced_data": null
+      }
+    ],
+    "accounts": [
+      {
+        "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "name": "@Checking, Main",
+        "offbudget": false,
+        "closed": false,
+        "balance_current": null,
+        "account_group_id": null
+      },
+      {
+        "id": "0920450a-b9e3-48a6-9b96-89f9d32717fe",
+        "name": "Off-budget",
+        "offbudget": true,
+        "closed": false,
+        "balance_current": null,
+        "account_group_id": null
+      }
+    ],
+    "payees": [
+      {
+        "id": "cf8e8de4-01b2-4b13-8847-bb2003a4505b",
+        "name": "+Shop",
+        "transfer_acct": null
+      },
+      {
+        "id": "47e20204-61e8-485b-9e33-98721816eed1",
+        "name": "=Cafe, \"quoted\"",
+        "transfer_acct": null
+      },
+      {
+        "id": "860a4868-6b4c-404f-8c0c-770bd733cd72",
+        "name": "@Checking, Main",
+        "transfer_acct": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e"
+      },
+      {
+        "id": "c2ffa73e-8563-4b34-aeaf-341aee8bf2a8",
+        "name": "Off-budget",
+        "transfer_acct": "0920450a-b9e3-48a6-9b96-89f9d32717fe"
+      }
+    ],
+    "categories": [
+      {
+        "id": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+        "name": "Other",
+        "is_income": false,
+        "hidden": false,
+        "group_id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836"
+      },
+      {
+        "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+        "name": "+Food",
+        "is_income": false,
+        "hidden": false,
+        "group_id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836"
+      },
+      {
+        "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+        "name": "Income",
+        "is_income": true,
+        "hidden": false,
+        "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+      },
+      {
+        "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+        "name": "Starting Balances",
+        "is_income": true,
+        "hidden": false,
+        "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "id": "standard-account",
+      "request": {
+        "layout": "standard",
+        "account_id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e"
+      },
+      "csv": "Account,Date,Payee,Notes,Category,Amount,Cleared,Reconciled\n\"'@Checking, Main\",2026-11-09,\"'=Cafe, \"\"quoted\"\"\",'=SUM(A1:A2),'-Expenses: +Food,-12.34,1,\n\"'@Checking, Main\",2026-11-08,'+Shop,\"first line\nsecond \"\"line\"\"\",'-Expenses: +Food,5,1,1\n\"'@Checking, Main\",2026-11-07,,'\t=literal,,0,,\n\"'@Checking, Main\",2026-11-06,\"'=Cafe, \"\"quoted\"\"\",\"Parent, note\",,-1.01,1,\n\"'@Checking, Main\",2026-11-05,Off-budget,'\rTransfer note,'-Expenses: +Food,-2,1,\n"
+    },
+    {
+      "id": "standard-selected",
+      "request": {
+        "layout": "standard",
+        "account_id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "ids": [
+          "25300000-0000-4000-8000-000000000004",
+          "25300000-0000-4000-8000-000000000001"
+        ]
+      },
+      "csv": "Account,Date,Payee,Notes,Category,Amount,Cleared,Reconciled\n\"'@Checking, Main\",2026-11-09,\"'=Cafe, \"\"quoted\"\"\",'=SUM(A1:A2),'-Expenses: +Food,-12.34,1,\n\"'@Checking, Main\",2026-11-06,\"'=Cafe, \"\"quoted\"\"\",\"Parent, note\",,-1.01,1,\n"
+    },
+    {
+      "id": "detailed-account",
+      "source_query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e"
+          }
+        ],
+        "selectExpressions": [],
+        "groupExpressions": [],
+        "orderExpressions": [
+          {
+            "date": "desc"
+          },
+          {
+            "starting_balance_flag": "asc"
+          },
+          {
+            "sort_order": "desc"
+          },
+          {
+            "id": "asc"
+          }
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "request": {
+        "layout": "detailed",
+        "account_id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e"
+      },
+      "csv": "Account,Date,Payee,Notes,Category_Group,Category,Amount,Split_Amount,Cleared\n\"'@Checking, Main\",2026-11-09,\"'=Cafe, \"\"quoted\"\"\",'=SUM(A1:A2),'-Expenses,'+Food,-12.34,0,Cleared\n\"'@Checking, Main\",2026-11-08,'+Shop,\"first line\nsecond \"\"line\"\"\",'-Expenses,'+Food,5,0,Reconciled\n\"'@Checking, Main\",2026-11-07,,'\t=literal,,,0,0,Not cleared\n\"'@Checking, Main\",2026-11-06,\"'=Cafe, \"\"quoted\"\"\",\"(SPLIT INTO 2) Parent, note\",,,0,-1.01,Cleared\n\"'@Checking, Main\",2026-11-06,\"'=Cafe, \"\"quoted\"\"\",(SPLIT 1 OF 2) first allocation,'-Expenses,'+Food,-0.4,0,Cleared\n\"'@Checking, Main\",2026-11-06,\"'=Cafe, \"\"quoted\"\"\",(SPLIT 2 OF 2) @second allocation,'-Expenses,Other,-0.61,0,Cleared\n\"'@Checking, Main\",2026-11-05,Off-budget,'\rTransfer note,'-Expenses,'+Food,-2,0,Cleared\n"
+    },
+    {
+      "id": "detailed-category",
+      "source_query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e"
+          },
+          {
+            "category": "6b7e4f01-1f93-4dff-9033-6a9915519035"
+          }
+        ],
+        "selectExpressions": [],
+        "groupExpressions": [],
+        "orderExpressions": [
+          {
+            "date": "desc"
+          },
+          {
+            "starting_balance_flag": "asc"
+          },
+          {
+            "sort_order": "desc"
+          },
+          {
+            "id": "asc"
+          }
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "request": {
+        "layout": "detailed",
+        "account_id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "query": {
+          "filter": {
+            "conditions": [
+              {
+                "field": "category",
+                "op": "eq",
+                "value": "6b7e4f01-1f93-4dff-9033-6a9915519035"
+              }
+            ]
+          }
+        }
+      },
+      "csv": "Account,Date,Payee,Notes,Category_Group,Category,Amount,Split_Amount,Cleared\n\"'@Checking, Main\",2026-11-09,\"'=Cafe, \"\"quoted\"\"\",'=SUM(A1:A2),'-Expenses,'+Food,-12.34,0,Cleared\n\"'@Checking, Main\",2026-11-08,'+Shop,\"first line\nsecond \"\"line\"\"\",'-Expenses,'+Food,5,0,Reconciled\n\"'@Checking, Main\",2026-11-06,\"'=Cafe, \"\"quoted\"\"\",(SPLIT 1 OF 1) first allocation,'-Expenses,'+Food,-0.4,0,Cleared\n\"'@Checking, Main\",2026-11-05,Off-budget,'\rTransfer note,'-Expenses,'+Food,-2,0,Cleared\n"
+    },
+    {
+      "id": "detailed-selected",
+      "source_query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e"
+          },
+          {
+            "id": {
+              "$oneof": [
+                "25300000-0000-4000-8000-000000000001",
+                "25300000-0000-4000-8000-000000000004",
+                "25300000-0000-4000-8000-000000000005",
+                "25300000-0000-4000-8000-000000000006"
+              ]
+            }
+          }
+        ],
+        "selectExpressions": [],
+        "groupExpressions": [],
+        "orderExpressions": [
+          {
+            "date": "desc"
+          },
+          {
+            "starting_balance_flag": "asc"
+          },
+          {
+            "sort_order": "desc"
+          },
+          {
+            "id": "asc"
+          }
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "request": {
+        "layout": "detailed",
+        "account_id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "ids": [
+          "25300000-0000-4000-8000-000000000004",
+          "25300000-0000-4000-8000-000000000001"
+        ]
+      },
+      "csv": "Account,Date,Payee,Notes,Category_Group,Category,Amount,Split_Amount,Cleared\n\"'@Checking, Main\",2026-11-09,\"'=Cafe, \"\"quoted\"\"\",'=SUM(A1:A2),'-Expenses,'+Food,-12.34,0,Cleared\n\"'@Checking, Main\",2026-11-06,\"'=Cafe, \"\"quoted\"\"\",\"(SPLIT INTO 2) Parent, note\",,,0,-1.01,Cleared\n\"'@Checking, Main\",2026-11-06,\"'=Cafe, \"\"quoted\"\"\",(SPLIT 1 OF 2) first allocation,'-Expenses,'+Food,-0.4,0,Cleared\n\"'@Checking, Main\",2026-11-06,\"'=Cafe, \"\"quoted\"\"\",(SPLIT 2 OF 2) @second allocation,'-Expenses,Other,-0.61,0,Cleared\n"
+    },
+    {
+      "id": "detailed-cleared",
+      "source_query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e"
+          },
+          {
+            "cleared": true
+          }
+        ],
+        "selectExpressions": [],
+        "groupExpressions": [],
+        "orderExpressions": [
+          {
+            "date": "desc"
+          },
+          {
+            "starting_balance_flag": "asc"
+          },
+          {
+            "sort_order": "desc"
+          },
+          {
+            "id": "asc"
+          }
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "request": {
+        "layout": "detailed",
+        "account_id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "query": {
+          "filter": {
+            "conditions": [
+              {
+                "field": "cleared",
+                "op": "eq",
+                "value": true
+              }
+            ]
+          }
+        }
+      },
+      "csv": "Account,Date,Payee,Notes,Category_Group,Category,Amount,Split_Amount,Cleared\n\"'@Checking, Main\",2026-11-09,\"'=Cafe, \"\"quoted\"\"\",'=SUM(A1:A2),'-Expenses,'+Food,-12.34,0,Cleared\n\"'@Checking, Main\",2026-11-08,'+Shop,\"first line\nsecond \"\"line\"\"\",'-Expenses,'+Food,5,0,Reconciled\n\"'@Checking, Main\",2026-11-06,\"'=Cafe, \"\"quoted\"\"\",\"(SPLIT INTO 2) Parent, note\",,,0,-1.01,Cleared\n\"'@Checking, Main\",2026-11-06,\"'=Cafe, \"\"quoted\"\"\",(SPLIT 1 OF 2) first allocation,'-Expenses,'+Food,-0.4,0,Cleared\n\"'@Checking, Main\",2026-11-06,\"'=Cafe, \"\"quoted\"\"\",(SPLIT 2 OF 2) @second allocation,'-Expenses,Other,-0.61,0,Cleared\n\"'@Checking, Main\",2026-11-05,Off-budget,'\rTransfer note,'-Expenses,'+Food,-2,0,Cleared\n"
+    },
+    {
+      "id": "detailed-negative",
+      "source_query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e"
+          },
+          {
+            "amount": {
+              "$lt": 0
+            }
+          }
+        ],
+        "selectExpressions": [],
+        "groupExpressions": [],
+        "orderExpressions": [
+          {
+            "date": "desc"
+          },
+          {
+            "starting_balance_flag": "asc"
+          },
+          {
+            "sort_order": "desc"
+          },
+          {
+            "id": "asc"
+          }
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "request": {
+        "layout": "detailed",
+        "account_id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "query": {
+          "filter": {
+            "conditions": [
+              {
+                "field": "amount",
+                "op": "lt",
+                "value": 0
+              }
+            ]
+          }
+        }
+      },
+      "csv": "Account,Date,Payee,Notes,Category_Group,Category,Amount,Split_Amount,Cleared\n\"'@Checking, Main\",2026-11-09,\"'=Cafe, \"\"quoted\"\"\",'=SUM(A1:A2),'-Expenses,'+Food,-12.34,0,Cleared\n\"'@Checking, Main\",2026-11-06,\"'=Cafe, \"\"quoted\"\"\",\"(SPLIT INTO 2) Parent, note\",,,0,-1.01,Cleared\n\"'@Checking, Main\",2026-11-06,\"'=Cafe, \"\"quoted\"\"\",(SPLIT 1 OF 2) first allocation,'-Expenses,'+Food,-0.4,0,Cleared\n\"'@Checking, Main\",2026-11-06,\"'=Cafe, \"\"quoted\"\"\",(SPLIT 2 OF 2) @second allocation,'-Expenses,Other,-0.61,0,Cleared\n\"'@Checking, Main\",2026-11-05,Off-budget,'\rTransfer note,'-Expenses,'+Food,-2,0,Cleared\n"
+    },
+    {
+      "id": "standard-empty",
+      "request": {
+        "layout": "standard",
+        "account_id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "query": {
+          "filter": {
+            "conditions": [
+              {
+                "field": "notes",
+                "op": "eq",
+                "value": "No matching transaction"
+              }
+            ]
+          }
+        }
+      },
+      "csv": ""
+    },
+    {
+      "id": "detailed-empty",
+      "source_query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e"
+          },
+          {
+            "notes": "No matching transaction"
+          }
+        ],
+        "selectExpressions": [],
+        "groupExpressions": [],
+        "orderExpressions": [
+          {
+            "date": "desc"
+          },
+          {
+            "starting_balance_flag": "asc"
+          },
+          {
+            "sort_order": "desc"
+          },
+          {
+            "id": "asc"
+          }
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "request": {
+        "layout": "detailed",
+        "account_id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "query": {
+          "filter": {
+            "conditions": [
+              {
+                "field": "notes",
+                "op": "eq",
+                "value": "No matching transaction"
+              }
+            ]
+          }
+        }
+      },
+      "csv": ""
+    }
+  ]
+}

@@ -64,23 +64,16 @@ schema20/integrity/FKs. No database relabeling or direct financial writes.
 
 ## Remaining acceptance gates
 
-- Rules/new payees and split/transfer writers joined to import application;
-  safe graph protection, concurrent edits, exact owner/HLC/epoch receipts,
-  cancellation, undo/redo and change-feed/Android behavior.
-- Source bank metadata/deleted import choices, independently clocked saved
-  options, source conversion, genuine20 DB/native upgrade and current native
-  roundtrip; original staged-upload receipts/bytes remain immutable.
-- Full manual merge graph preview/commit and CSV export (including filter/split,
-  exact dates/amounts, quoting/formula handling), with source comparisons.
--26: complete committed workflows and UI for OFX/QFX/QIF/CAMT; raw parsing and structured normalization now pass through the shared workflow;
-  format-specific IDs/memo/date behavior, malformed inputs, saved settings,
-  duplicate/deleted choices. Bank providers remain28–32.
-- Complete Impeccable/Svelte UI: upload/map/review/select/merge/import/export,
-  saved/backdated/error states, keyboard/focus, narrow/dark/200%, plain HTTP,
-  durable lost-ACK recovery and resource bounds. No full offline budget engine.
-- OpenAPI/capabilities and user documentation; meaningful source/public API,
-  browser and Android verification. One consolidated review/qualification after
-  implementation, resolving changed findings without broad repeated reruns.
+- Complete importer/exporter/manual-merge UI, durable original requests and
+  preview recovery, keyboard/narrow/dark/200% captures and consolidated review.
+- Real committed QIF/CAMT file workflows and additional format-option recovery;
+  raw parser48 and structured preview22 are already green, while OFX/CSV cover
+  the14 financial matcher cases.
+- Served OpenAPI and contract smoke for all new seams; current schemas/reports21,
+  cancellation/receipt probes and source capabilities; meaningful Android feed
+  case and maintained CI/container commands for every public source consumer.
+- Final integrated HTTP/native/container qualification once the complete batch is
+  frozen. Reuse reviewed preservation/writer/merge and unchanged source evidence.
 
 Do not mark25/26 done until their whole acceptance criteria pass. Further genuine
 source cases should answer concrete gaps, not expand into unrelated tickets.
@@ -237,3 +230,40 @@ specific field is changed by the captured merge.
 Reviewer proof delta: the newer-lock inverse refusal now also preserves the exact
 post-lock history state. Affected test1 PASS
 `/tmp/transaction-manual-merge-lock-history.log`; no runtime change or broad rerun.
+
+## CSV export checkpoint
+
+POST `/transactions/export` is read-only with a captured snapshot, optional
+account, existing register query, selected IDs, and `standard` totals or default
+`detailed` allocations layout. Predicate/regex work runs once across the whole
+export, not once per page. ID/row hydration uses500-row batches; at most100000
+rows and64MiB of output are accepted, with actionable narrowing errors. Existing
+register predicates are reused rather than a second filter engine. Standard
+selection includes selected transaction totals; detailed selection expands
+selected parents into allocations and applies the filter to each exported row.
+
+Initial genuine normal CSV byte tracer PASS
+`/tmp/transaction-csv-export-tracer.log`. `transaction-export-source.json` plus
+genuine source ZIP capture nine real serializer outputs: standard/detailed,
+selected/filter/category/status/negative, empty, quotes/newlines, formula text
+and split labels. Generation and independent `--check` PASS
+`/tmp/transaction-export-source-check.log`. Native request operator metadata was
+corrected from `is` to the existing register API's `eq`; original source CSV
+outputs were retained.
+
+One deliberate source bug correction: raw source cell `'\rTransfer note` is
+emitted as `"'\rTransfer note"` (the `\r` denotes its original CR, not two text
+characters). The source bytes remain in the fixture. The public consumer defines
+that exact corrected cell independently, requires every other byte unchanged,
+and uses the separate JS `csv-parse` reader to verify every row/cell and the
+original note plus formula-protection prefix. Empty exports follow source's
+empty string. All other displayed monetary strings use exact integer cents;
+negative numeric amounts are never prefixed as formulas.
+
+Nine matrix outputs plus the original normal tracer and readonly invalid-ID/
+selection/bounds/stale/shared-regex guards PASS
+`/tmp/transaction-csv-export-guards-green.log`. A real resource red initially
+returned500 instead of the existing actionable regex-budget400; checking the
+shared matcher failure before propagating SQL errors corrected that boundary.
+No partial CSV or financial/checkpoint mutation escapes. Bin Clippy PASS
+`/tmp/transaction-csv-export-clippy.log`.

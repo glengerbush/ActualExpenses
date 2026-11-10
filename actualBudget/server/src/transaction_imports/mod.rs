@@ -1,5 +1,6 @@
 //! Retained bank files, read-only review, and receipt-owned ledger application.
 mod apply;
+mod export;
 mod formats;
 mod matching;
 mod merge;
@@ -30,6 +31,10 @@ use std::collections::{BTreeMap, BTreeSet};
 const MAX_FILE: usize = 16 * 1024 * 1024;
 pub fn router() -> Router<Store> {
     Router::new()
+        .route(
+            "/api/v1/budgets/{budget}/transactions/export",
+            post(export::download),
+        )
         .route(
             "/api/v1/budgets/{budget}/transactions/merge/preview",
             post(merge::preview),

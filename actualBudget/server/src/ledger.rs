@@ -582,3 +582,30 @@ pub(crate) fn get_many(db: &Connection, budget: &str, ids: &[String]) -> Result<
     }
     Ok(parents)
 }
+
+/// Flat export hydration excludes child aggregation and per-field clock payloads.
+pub(crate) fn export_rows(
+    db: &Connection,
+    budget: &str,
+    ids: &[String],
+) -> Result<Vec<Value>, Error> {
+    let mut output = std::collections::BTreeMap::new();
+    for batch in ids.chunks(500) {
+        let mut values = vec![budget.to_owned()];
+        values.extend(batch.iter().cloned());
+        let marks = (2..=values.len())
+            .map(|i| format!("?{i}"))
+            .collect::<Vec<_>>()
+            .join(",");
+        let mut query = db.prepare(&format!(
+            "{SELECT} WHERE t.budget_id=?1 AND t.tombstone=0 AND t.id IN ({marks})"
+        ))?;
+        for record in query.query_map(rusqlite::params_from_iter(values.iter()), row)? {
+            let row = record?;
+            output.insert(row["id"].as_str().unwrap().to_owned(), row);
+        }
+    }
+    ids.iter()
+        .map(|id| output.remove(id).ok_or_else(Error::missing))
+        .collect()
+}

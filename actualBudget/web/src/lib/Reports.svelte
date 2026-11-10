@@ -19,6 +19,7 @@
     type ReportOperation,
   } from "./reports";
   import { preferences } from "./preferences.svelte";
+  import CrossoverFields from "./CrossoverFields.svelte";
   import SankeyFields from "./SankeyFields.svelte";
   import BudgetAnalysisFields from "./BudgetAnalysisFields.svelte";
   import ForecastFields from "./ForecastFields.svelte";
@@ -106,9 +107,11 @@
       ? widgets.filter((w) => w.config.type === "balance-forecast-card")
       : tab === "analysis"
         ? widgets.filter((w) => w.config.type === "budget-analysis-card")
-        : tab === "sankey"
-          ? widgets.filter((w) => w.config.type === "sankey-card")
-          : widgets,
+        : tab === "crossover"
+          ? widgets.filter((w) => w.config.type === "crossover-card")
+          : tab === "sankey"
+            ? widgets.filter((w) => w.config.type === "sankey-card")
+            : widgets,
   );
   let types = $derived([
     ["cash-flow-card", "Cash flow"],
@@ -118,6 +121,7 @@
     ["summary-card", "Summary"],
     ["calendar-card", "Transaction calendar"],
     ["custom-report", "Saved custom report"],
+    ["crossover-card", "Crossover Point"],
     ...(sankeyEnabled ? [["sankey-card", "Sankey"]] : []),
     ...(analysisEnabled ? [["budget-analysis-card", "Budget Analysis"]] : []),
     ...(forecastEnabled ? [["balance-forecast-card", "Balance forecast"]] : []),
@@ -325,20 +329,28 @@
         type,
         ...position,
         width: 6,
-        height: type === "sankey-card" ? 6 : 3,
+        height: ["sankey-card", "crossover-card"].includes(type) ? 6 : 3,
         meta: {
           name: "",
           timeFrame: {
             start:
-              type === "budget-analysis-card"
-                ? addMonths(today.slice(0, 7), -5)
-                : today.slice(0, 7),
+              type === "crossover-card"
+                ? addMonths(today.slice(0, 7), -120)
+                : type === "budget-analysis-card"
+                  ? addMonths(today.slice(0, 7), -5)
+                  : today.slice(0, 7),
             end:
-              type === "balance-forecast-card"
-                ? addMonths(today.slice(0, 7), 11)
-                : today.slice(0, 7),
+              type === "crossover-card"
+                ? addMonths(today.slice(0, 7), -1)
+                : type === "balance-forecast-card"
+                  ? addMonths(today.slice(0, 7), 11)
+                  : today.slice(0, 7),
             mode:
-              type === "balance-forecast-card" ? "static" : "sliding-window",
+              type === "crossover-card"
+                ? "full"
+                : type === "balance-forecast-card"
+                  ? "static"
+                  : "sliding-window",
           },
         },
       },
@@ -478,6 +490,11 @@
         disabled={!!editor || busy}
         onclick={() => switchTab("analysis")}>{t("Budget Analysis")}</button
       >{/if}
+    <button
+      aria-pressed={tab === "crossover"}
+      disabled={!!editor || busy}
+      onclick={() => switchTab("crossover")}>{t("Crossover Point")}</button
+    >
     {#if sankeyEnabled || tab === "sankey"}<button
         aria-pressed={tab === "sankey"}
         disabled={!!editor || busy}
@@ -502,6 +519,11 @@
             "Enable Balance forecast in Settings → Experimental features. Saved settings are preserved.",
           )}
         </p>{/if}{/if}
+    {#if tab === "crossover"}<p>
+        {t(
+          "Explore financial independence with recorded history and explicit projection assumptions. Choose a dashboard, then create or edit a crossover report.",
+        )}
+      </p>{/if}
     {#if tab === "sankey"}<p>
         {t(
           "Saved Sankey reports show grouped money flows. Choose a dashboard, then create or edit a flow report.",
@@ -601,9 +623,11 @@
                   ? "balance-forecast-card"
                   : tab === "analysis"
                     ? "budget-analysis-card"
-                    : tab === "sankey"
-                      ? "sankey-card"
-                      : "cash-flow-card",
+                    : tab === "crossover"
+                      ? "crossover-card"
+                      : tab === "sankey"
+                        ? "sankey-card"
+                        : "cash-flow-card",
               )}
             disabled={busy ||
               !!editor ||
@@ -618,9 +642,11 @@
                 ? "New forecast"
                 : tab === "analysis"
                   ? "New analysis"
-                  : tab === "sankey"
-                    ? "New flow"
-                    : "Add widget",
+                  : tab === "crossover"
+                    ? "New crossover"
+                    : tab === "sankey"
+                      ? "New flow"
+                      : "Add widget",
             )}</button
           >{/if}
       </div>
@@ -724,9 +750,11 @@
                   >{t("Date mode")}<select
                     value={String(
                       object(meta.timeFrame).mode ||
-                        (editor.config.type === "balance-forecast-card"
-                          ? "static"
-                          : "sliding-window"),
+                        (editor.config.type === "crossover-card"
+                          ? "full"
+                          : editor.config.type === "balance-forecast-card"
+                            ? "static"
+                            : "sliding-window"),
                     )}
                     onchange={(e) => timeframe("mode", e.currentTarget.value)}
                     >{#each dateModes as mode (mode[0])}<option value={mode[0]}
@@ -761,6 +789,15 @@
                   /></label
                 >
               </div>
+              {#if editor.config.type === "crossover-card"}<CrossoverFields
+                  {budgetId}
+                  {meta}
+                  onchange={(patch) => {
+                    void change(() => {
+                      if (editor) editor.config.meta = { ...meta, ...patch };
+                    });
+                  }}
+                />{/if}
               {#if editor.config.type === "sankey-card"}<SankeyFields
                   {meta}
                   onchange={(patch) => {
@@ -903,7 +940,7 @@
                     ></label
                   >
                 </div>{/if}{/if}
-            {#if editor.config.type !== "markdown-card"}<ReportConditions
+            {#if editor.config.type !== "markdown-card" && editor.config.type !== "crossover-card"}<ReportConditions
                 {budgetId}
                 {accounts}
                 sourceCategoryFilters={editor.config.type ===
@@ -969,6 +1006,11 @@
           "No saved analyses on this dashboard. Choose New analysis to begin.",
         )}
       </p>{/if}
+    {#if tab === "crossover" && !displayedWidgets.length && pages.length}<p>
+        {t(
+          "No saved crossover reports on this dashboard. Choose New crossover to begin.",
+        )}
+      </p>{/if}
     {#if tab === "sankey" && !displayedWidgets.length && pages.length}<p>
         {t("No saved flows on this dashboard. Choose New flow to begin.")}
       </p>{/if}
@@ -977,7 +1019,10 @@
         "dashboard",
         {
           forecasts:
-            tab === "forecast" || tab === "analysis" || tab === "sankey",
+            tab === "forecast" ||
+            tab === "analysis" ||
+            tab === "sankey" ||
+            tab === "crossover",
         },
       ]}
     >

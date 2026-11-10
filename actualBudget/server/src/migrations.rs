@@ -28,6 +28,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("migrations/022_reporting.sql"),
     include_str!("migrations/023_banking.sql"),
     include_str!("migrations/024_notes.sql"),
+    include_str!("migrations/025_gocardless.sql"),
 ];
 pub(crate) const CURRENT_VERSION: usize = MIGRATIONS.len();
 pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {

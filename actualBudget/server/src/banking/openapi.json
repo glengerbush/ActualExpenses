@@ -587,6 +587,209 @@
           }
         }
       }
+    },
+    "/api/v1/budgets/{budget}/banking/connections/{id}/gocardless/institutions": {
+      "get": {
+        "summary": "Available institutions; may refresh server-only access credentials without changing ledger or connection identity",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "country",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bounded provider result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoCardlessInstitutions"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized provider/request refusal; no raw body or tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized provider/request refusal; no raw body or tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized provider/request refusal; no raw body or tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized provider/request refusal; no raw body or tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Sanitized provider/request refusal; no raw body or tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized provider/request refusal; no raw body or tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/banking/connections/{id}/gocardless/authorization": {
+      "get": {
+        "summary": "Private current consent handoff; no-store and excluded from ordinary browser cache/archives/receipts",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bounded provider result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoCardlessAuthorization"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized provider/request refusal; no raw body or tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized provider/request refusal; no raw body or tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized provider/request refusal; no raw body or tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized provider/request refusal; no raw body or tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Sanitized provider/request refusal; no raw body or tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized provider/request refusal; no raw body or tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -599,7 +802,10 @@
             "format": "uuid"
           },
           "provider": {
-            "const": "simplefin"
+            "enum": [
+              "simplefin",
+              "gocardless"
+            ]
           },
           "name": {
             "type": "string"
@@ -716,9 +922,73 @@
               "setup_token_sha256"
             ],
             "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "provider": {
+                "const": "gocardless"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "secret_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096,
+                "writeOnly": true
+              },
+              "secret_key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096,
+                "writeOnly": true
+              }
+            },
+            "required": [
+              "id",
+              "provider",
+              "name",
+              "secret_id",
+              "secret_key"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "provider": {
+                "const": "gocardless"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "credentials_sha256": {
+                "$ref": "#/components/schemas/BankSecretDigest"
+              }
+            },
+            "required": [
+              "id",
+              "provider",
+              "name",
+              "credentials_sha256"
+            ],
+            "additionalProperties": false
           }
         ],
-        "description": "Submit a write-only setup token once. Durable client recovery must retain only its SHA256 and original nonsecret identity, then probe the receipt or cancel the original operation; never persist the raw token."
+        "description": "Submit a write-only setup token once. Durable client recovery must retain only its SHA256 and original nonsecret identity, then probe the receipt or cancel the original operation; never persist the raw token. GoCardless accepts secret_id/secret_key once; digest recovery hashes UTF8 JSON.stringify([secret_id,secret_key]) without trimming. Raw secrets never enter generic receipts or client storage."
       },
       "BankConnectionCommand": {
         "oneOf": [
@@ -820,6 +1090,15 @@
               "setup_token_sha256"
             ],
             "additionalProperties": false
+          },
+          {
+            "$ref": "#/components/schemas/GoCardlessAuthorize"
+          },
+          {
+            "$ref": "#/components/schemas/GoCardlessCheckAuthorization"
+          },
+          {
+            "$ref": "#/components/schemas/GoCardlessReplace"
           }
         ]
       },
@@ -1862,6 +2141,241 @@
         "type": "string",
         "pattern": "^[0-9a-f]{64}$",
         "description": "SHA256 of the exact original setup_token string. Only valid with X-Actual-Receipt-Only:true or X-Actual-Cancel-If-Uncommitted:true. It cannot stage or replace credentials. Preserve every original nonsecret field, idempotency key and epoch with this digest."
+      },
+      "GoCardlessAuthorize": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "const": "authorize"
+          },
+          "generation": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "institution_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "redirect_origin": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048,
+            "format": "uri",
+            "description": "Current browser HTTP/HTTPS origin only: no credentials, non-root path, query or fragment. Browser Origin must match."
+          }
+        },
+        "required": [
+          "action",
+          "generation",
+          "institution_id",
+          "country",
+          "redirect_origin"
+        ],
+        "additionalProperties": false
+      },
+      "GoCardlessCheckAuthorization": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "const": "check_authorization"
+          },
+          "generation": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "action",
+          "generation"
+        ],
+        "additionalProperties": false
+      },
+      "GoCardlessInstitution": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "countries": {
+            "type": "array",
+            "maxItems": 300,
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            }
+          },
+          "transaction_total_days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3650
+          },
+          "max_access_valid_for_days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3650
+          },
+          "account_selection": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "countries",
+          "transaction_total_days",
+          "max_access_valid_for_days",
+          "account_selection"
+        ],
+        "additionalProperties": false
+      },
+      "GoCardlessInstitutions": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "$ref": "#/components/schemas/GoCardlessInstitution"
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "GoCardlessAuthorization": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri",
+                "maxLength": 8192
+              },
+              "status": {
+                "enum": [
+                  null,
+                  "CR",
+                  "GC",
+                  "UA",
+                  "RJ",
+                  "SA",
+                  "GA",
+                  "LN",
+                  "EX",
+                  "SU"
+                ]
+              },
+              "requisition_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "institution_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "country": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[A-Z]{2}$"
+              }
+            },
+            "required": [
+              "url",
+              "status",
+              "requisition_id",
+              "institution_id",
+              "country"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "GoCardlessReplace": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "replace"
+              },
+              "generation": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "secret_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096,
+                "writeOnly": true
+              },
+              "secret_key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096,
+                "writeOnly": true
+              }
+            },
+            "required": [
+              "action",
+              "generation",
+              "secret_id",
+              "secret_key"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "replace"
+              },
+              "generation": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "credentials_sha256": {
+                "$ref": "#/components/schemas/BankSecretDigest"
+              }
+            },
+            "required": [
+              "action",
+              "generation",
+              "credentials_sha256"
+            ],
+            "additionalProperties": false
+          }
+        ]
       }
     }
   }

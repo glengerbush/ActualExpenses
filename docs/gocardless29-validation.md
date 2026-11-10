@@ -1,0 +1,23 @@
+# GoCardless29 validation — WIP
+
+Ticket29 is not accepted. This checkpoint covers provider staging/custody, institution listing and consent lifecycle only. Discovery/financial normalization across all44 source bank modules, linked refresh/renewal mappings, genuine24 upgrade/native consumers, imported GoCardless conversion, UI/native integration and final qualification remain pending. SimpleFIN28 and notes24 behavior are retained; no real provider/account calls, setup, deployment or broad suite run.
+
+## Source reference
+
+The original eight service/API/factory witnesses remain unchanged from `fb5547d`; independent root review/check passed `/tmp/gocardless29-root-source-check.log`. `docs/gocardless29-plan.md` records pinned26.10 paths, exact normalization boundary and current official token-shape discrepancy. Those observations qualify EUR default/ING translation, not the other distinct source bank transformations. Financial source graphs/IDs/amounts remain authoritative and have not been rewritten.
+
+## Public custody/consent tracer
+
+`node actualBudget/tools/check-gocardless-http.mjs` owns a disposable local server/provider, refuses a supplied production test URL and never calls the real provider. Source-genuine requests use the fixed GoCardless APIv2 path structure with an explicitly configured loopback transport exception only. Public TDD evidence:
+
+- Staging: genuine24 binary refused400 (`/tmp/gocardless-stage-red.log`); new schema25/runtime stages GoCardless and recovers the identical receipt by SHA256 of UTF8 JSON `[secret_id,secret_key]` (`gocardless-stage-green.log`). Digest-only ordinary writes refuse400.
+- Institution listing: absent route RED (`gocardless-institutions-red.log`) → refresh-only token/new, access exchange, private token reuse GREEN (`gocardless-institutions-green.log`). Both officially documented token shapes are supported; no token is returned in ordinary results.
+- Consent: RED unsupported action → source-shaped institution limits/agreement/requisition, private no-store handoff, waiting→LN, rotated generation and immutable prior-status receipt GREEN (`gocardless-consent-{red,green}.log`). Consent URLs stay outside generic receipts, history/change payloads and ordinary native backups. A new authorization is an explicit generation; a pending/unknown non-idempotent requisition is never silently repeated. Unlike source's broad fallback retry, uncertain remote creation requires review/cancel rather than another remote POST.
+- Replacement/removal: RED unsupported credential shape → new private credentials/generation, digest-only exact recovery and removed-access refusal GREEN (`gocardless-replace-{red,green}.log`). Removal deletes credentials, tokens, consent URL and captured bank jobs while retaining nonsecret financial metadata.
+- Canceling an actual held status GET initially erased the working consent (`gocardless-check-cancel-red.log`). Corrected cancellation clears only its status intention; working consent/public connection remain exact. An actual held requisition POST canceled before completion cannot publish a late authorization URL or repeat provider calls. These and portable duplicate/secret exclusion pass `gocardless-custody-green.log`, including48 actually served request/result/error schema observations. The tracer compares receipts exactly and confirms no financial rows were created by this custody scope.
+
+GoCardless transport pins the fixed provider origin, reuses resolved/public HTTPS validation, refuses redirects and bounds each response to16MiB, institutions to1000, consent accounts to1000 and concurrent provider work to the shared four slots. Raw error text/URLs never become public diagnostics. Typed provider failures and the original request identity remain visible. Account endpoint quota/reset persistence is part of the pending financial adapter, not claimed here.
+
+Schema25 copies/rebuilds only the existing banking family inside one migration transaction to widen the provider CHECK, preserving every column and child table before dropping the old parent. It adds a private GoCardless credential/consent table. Portable table shapes are unchanged; the private table is explicitly excluded through the archive auxiliary registry. Current archives declare25 and accept real6–25. Genuine24 nonempty-state migration/native proof is pending; the immutable root binary SHA is recorded in the plan. Notes24 DDL/triggers/enrichment are unchanged.
+
+Focused build/bin Clippy PASS `/tmp/gocardless-custody-{build,clippy}.log`; existing SimpleFIN digest/cancel recovery passes `/tmp/gocardless-existing-secret-recovery.log`. No Rust/native/browser/container full suite was rerun for this checkpoint.

@@ -1,6 +1,7 @@
 //! Provider-neutral connection custody and SimpleFIN lifecycle. Only nonsecret
 //! metadata crosses client, receipt, change-feed and portable archive boundaries.
 mod financial;
+mod gocardless;
 pub(crate) mod import;
 mod linking;
 mod normalize;
@@ -36,6 +37,14 @@ pub fn router() -> Router<Store> {
             post(linking::command),
         )
         .route("/api/v1/budgets/{budget}/banking", get(read))
+        .route(
+            "/api/v1/budgets/{budget}/banking/connections/{id}/gocardless/institutions",
+            get(gocardless::institutions),
+        )
+        .route(
+            "/api/v1/budgets/{budget}/banking/connections/{id}/gocardless/authorization",
+            get(gocardless::authorization),
+        )
         .route("/api/v1/budgets/{budget}/banking/connections", post(create))
         .route(
             "/api/v1/budgets/{budget}/banking/connections/{id}/commands",
@@ -109,10 +118,15 @@ async fn create(
     State(store): State<Store>,
     Path(budget): Path<String>,
     headers: HeaderMap,
-    input: Result<Json<NewConnection>, JsonRejection>,
+    input: Result<Json<Value>, JsonRejection>,
 ) -> Result<(StatusCode, Json<Value>), Error> {
     models::validate_id(&budget)?;
-    let Json(body) = input.map_err(api::json_error)?;
+    let Json(value) = input.map_err(api::json_error)?;
+    if value["provider"] == "gocardless" {
+        return gocardless::create(store, budget, headers, value).await;
+    }
+    let body: NewConnection = serde_json::from_value(value)
+        .map_err(|_| Error::invalid("Choose a valid connection request"))?;
     models::validate_id(&body.id)?;
     models::validate_name(&body.name)?;
     if body.provider != "simplefin" {
@@ -166,6 +180,21 @@ async fn command(
     models::validate_id(&b)?;
     models::validate_id(&id)?;
     let Json(value) = input.map_err(api::json_error)?;
+    if matches!(
+        value["action"].as_str(),
+        Some("authorize" | "check_authorization")
+    ) {
+        return gocardless::command(store, b, id, headers, value).await;
+    }
+    if matches!(value["action"].as_str(), Some("replace" | "remove")) {
+        let (bb, ii) = (b.clone(), id.clone());
+        if store
+            .run(move |db| Ok(connection(db, &bb, &ii)?["provider"] == "gocardless"))
+            .await?
+        {
+            return gocardless::custody(store, b, id, headers, value).await;
+        }
+    }
     if value["action"] == "refresh" {
         return financial::refresh(store, b, id, headers, value).await;
     }

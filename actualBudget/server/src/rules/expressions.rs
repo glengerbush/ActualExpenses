@@ -42,7 +42,7 @@ fn input(preferences: Value) -> Value {
     json!({"preferences":preferences,"locale":"en-US","locale_format":"comma-dot",
         "local_clock_ms":chrono::DateTime::<chrono::Utc>::from(std::time::SystemTime::now()).timestamp_millis()})
 }
-pub fn validate(rule: &Rule) -> Result<(), Error> {
+pub fn validate_with_budget(rule: &Rule, budget: &mut Budget) -> Result<(), Error> {
     let actions: Vec<_> = rule.actions.iter().filter(|a| calculated(a)).collect();
     if actions.is_empty() {
         return Ok(());
@@ -50,7 +50,7 @@ pub fn validate(rule: &Rule) -> Result<(), Error> {
     let mut value = input(json!({"experimental":{}}));
     value["actions"] = json!(actions);
     value["validate"] = json!(true);
-    Budget::default().run(&value)?;
+    budget.run(&value)?;
     Ok(())
 }
 pub struct Context {

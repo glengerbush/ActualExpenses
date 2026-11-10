@@ -11,6 +11,7 @@ pub(super) struct Environment<'a> {
     pub hide: bool,
     pub cache: BTreeMap<i32, Value>,
     pub work: usize,
+    pub expressions: crate::rules::ExpressionBudget,
 }
 impl<'a> Environment<'a> {
     pub fn new(db: &'a Connection, b: &'a str, m: &str, current: Value) -> Result<Self, Error> {
@@ -50,6 +51,7 @@ impl<'a> Environment<'a> {
             hide: p["hide_fraction"] == true,
             cache,
             work: 2_000_000,
+            expressions: Default::default(),
         })
     }
     pub fn tick(&mut self) -> Result<(), Error> {

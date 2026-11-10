@@ -1,6 +1,12 @@
 //! Rule evaluation is pure: referenced names are read, never created by previews.
 use super::*;
 pub fn validate(rule: &Rule) -> Result<(), Error> {
+    validate_with_budget(rule, &mut super::expressions::Budget::default())
+}
+pub(super) fn validate_with_budget(
+    rule: &Rule,
+    budget: &mut super::expressions::Budget,
+) -> Result<(), Error> {
     crate::models::validate_id(&rule.id)?;
     if rule
         .stage
@@ -18,7 +24,7 @@ pub fn validate(rule: &Rule) -> Result<(), Error> {
     for a in &rule.actions {
         super::actions::validate(a)?;
     }
-    super::expressions::validate(rule)?;
+    super::expressions::validate_with_budget(rule, budget)?;
     Ok(())
 }
 fn score(rule: &Rule) -> i32 {

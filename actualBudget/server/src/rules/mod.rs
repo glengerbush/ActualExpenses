@@ -1,12 +1,14 @@
 //! Rules own parsing/order/evaluation; guarded ledger seams own financial writes.
 mod actions;
+pub(crate) use expressions::Budget as ExpressionBudget;
 pub(crate) fn template_actions(
     db: &rusqlite::Connection,
     b: &str,
     row: &serde_json::Value,
     rule: &Rule,
+    budget: &mut ExpressionBudget,
 ) -> Result<serde_json::Value, crate::error::Error> {
-    engine::validate(rule)?;
+    engine::validate_with_budget(rule, budget)?;
     let mut context = rule
         .actions
         .iter()
@@ -17,14 +19,7 @@ pub(crate) fn template_actions(
         context.prefetch(db, b, std::iter::once(rule))?;
         context.begin_rule(db, b, row, rule)?;
     }
-    actions::apply(
-        db,
-        b,
-        row,
-        rule,
-        context.as_mut(),
-        &mut expressions::Budget::default(),
-    )
+    actions::apply(db, b, row, rule, context.as_mut(), budget)
 }
 mod conditions;
 mod engine;

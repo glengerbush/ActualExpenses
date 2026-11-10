@@ -469,3 +469,27 @@ normal rule command, but context SQL work is not included and schedule-based
 budget-template calls currently start independent expression budgets. These must
 be addressed and tested as42 work. No additional acceptance boxes closed, push or
 deployment.
+
+## Shared budget-template calculation allowance
+
+The public template projection regression reproduced a request exceeding25s:
+each schedule template reset its expression allowance. The planning environment
+now owns one allowance shared by expression validation and action execution across
+templates/categories. Normal standalone rule validation keeps its own allowance.
+
+`npm run test:rule-template-limits` exercises a genuine imported fixture through
+public schedule editing and template projection. Sixteen repeated templates with
+seven calculated actions exceed the allowance; the response reports a work-limit
+error and zero projected allocations, preserves the checkpoint/ledger, and a
+subsequent single-template request succeeds. Red evidence:
+`/tmp/rule-template-limits-red2.log` (25s timeout). Green:
+`/tmp/rule-template-limits-green.log` (10499ms refusal and successful recovery).
+Both envelope/tracking source financial fixtures still pass in
+`/tmp/rule-template-limits-financial.log`.
+
+Root review against `c34ddc1` checked shared ownership, validation charges,
+read-only error handling and preserved ordinary schedule results. Context SQL
+limits and nonfinite split semantics remain open42 work; this checkpoint does
+not claim a complete request-wide wall-clock or database-work bound.
+Rust formatting, changed-tool formatting and warnings-denied Clippy pass
+(`/tmp/rule-template-limits-clippy.log`).

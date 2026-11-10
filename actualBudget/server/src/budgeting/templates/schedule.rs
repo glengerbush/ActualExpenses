@@ -83,7 +83,8 @@ pub(super) fn run(
             )));
         }
         let draft = json!({"id":null,"sort_order":null,"amount":amount,"category_id":category["id"],"account_id":null,"date":next,"notes":"","cleared":false,"children":[]});
-        let after = crate::rules::template_actions(env.db, env.budget, &draft, rule)?;
+        let after =
+            crate::rules::template_actions(env.db, env.budget, &draft, rule, &mut env.expressions)?;
         let sign = if category["is_income"] == true {
             1.0
         } else {

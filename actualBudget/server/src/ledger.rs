@@ -485,6 +485,7 @@ fn resolve_new_references(
                     params![budget, reference.id, reference.name],
                 )?;
             } else {
+                crate::notes::guard_domain_id(db,budget,&reference.id)?;
                 db.execute(
                     "INSERT INTO categories(budget_id,id,name,is_income) VALUES(?1,?2,?3,?4)",
                     params![

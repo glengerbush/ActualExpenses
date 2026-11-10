@@ -116,3 +116,56 @@ Final focused correction PASS /tmp/public-query-review-built-green.log;
 all50 source reads PASS /tmp/public-query-review-source50.log;
 existing bounds PASS /tmp/public-query-review-guards.log;
 binClippy-Dwarnings PASS /tmp/public-query-review-clippy.log.
+
+## Standalone notes — schema24 checkpoint
+
+The published SDK's arbitrary `getNote/updateNote` identity is a genuine import
+gap: original conversion blocked unmatched note rows. Independent source
+`generate-public-notes.mjs` executes arbitrary colon/slash identity, original
+Unicode/multiline prose, update and clear; source financial rows stay exact.
+Original genuine export is retained, hash checked, never rewritten. Missing
+source note is null; cleared existing note is an object with empty text.
+Source generation/check PASS /tmp/public-notes-{source,source-check}.log.
+Official exports have no CRDT clocks; this witness makes no source-clock claim.
+
+Schema24 follows the frozen banking23 foundation5489ac1. Budget-scoped notes
+store only standalone identities. Known account/category/group/month IDs remain
+projections of authoritative domain notes fields. Read-only POST notes/read and
+owned notes/commands preserve literal IDs, original HLC, snapshot/epoch,
+receipt-first recovery, cancellation and field-level history. IDs are bounded to
+512 characters, text10000. Feed records include note clocks; retained tombstones
+support creation undo/redo. Import preserves original source bytes and any
+present source note clocks. Old blocked stages receive a converter while their
+original receipt remains immutable. Native archive/duplication/current history
+registries include notes; older archives enrich only during versioned restore.
+
+True blocked-import RED /tmp/public-notes-http-red.log. Focused public financial,
+known category projection, incremental feed, explicit HLC, update/clear,
+creation/update undo/redo, old-clock refusal, cancellation and native exact
+receipt recovery PASS /tmp/public-notes-focused-final.log. Earlier cancellation
+harness expected200; existing contract correctly returned409 operation_canceled;
+harness aligned without runtime weakening. No idle/background worker added.
+
+Genuine23 fixture generator `generate-public-notes-schema23.py` runs immutable
+865402b executable SHA6012812abb9c6cd9dea026a08128c705f34d6d8a6250f1c7fd5050264b4a0e82.
+This is banking23 foundation +reviewed query read/35, not final28 financial writer.
+SQLite23 integrity/FK/version and native manifest23 checked readonly; no version
+edits. Ordinary money/history/receipts plus blocked original arbitrary-note stage
+retained. Public consumer `check-public-notes-upgrade-http.mjs` verifies unchanged
+old ledger/checkpoint/history/receipts, ready reviewed stage/original bytes and
+activation, then real native23 restore with exact money/receipts and expected
+rotated epoch/history reset. PASS /tmp/public-notes-upgrade-final.log.
+BinClippy PASS /tmp/public-notes-final-clippy.log.
+
+The replacement's explicit-ID create API additionally permits choosing a future
+reference UUID, whereas SDK account/category creation strips supplied IDs.
+Parent-approved replacement identity guarantee: nonempty retained standalone
+notes refuse conflicting account/category/category-group (including inline
+category) creation with note_identity_conflict. Caller chooses a different ID
+or explicitly clears the standalone note first. Genuine public RED
+/tmp/public-notes-identity-red.log showed creation silently shadowed retained
+prose; focused correction checks all3 domain kinds, unchanged checkpoint/lists,
+retained prose and successful explicit-clear resolution. This is explicitly a
+replacement safety guarantee, not mocked source UUID parity. Native validation
+also refuses conflicting live standalone/domain note identities while retaining
+legitimate historical tombstones. Whole47 remains WIP as listed above.

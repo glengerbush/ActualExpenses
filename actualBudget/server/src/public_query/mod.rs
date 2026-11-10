@@ -587,6 +587,8 @@ impl std::io::Write for OutputBudget {
 impl OutputBudget {
     fn record(&mut self, record: &serde_json::Map<String, Value>) -> Result<(), Error> {
         self.rows += 1;
+        // Reserve commas and the optional subtransactions key/array framing.
+        self.bytes += 32;
         self.values += record.len();
         if self.rows > 10000 || self.values > 100000 {
             return Err(invalid(

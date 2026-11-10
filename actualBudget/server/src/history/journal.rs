@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::BTreeSet;
 const TABLES: &[&str] = &[
+    "notes",
     "transactions",
     "transaction_import_metadata",
     "transaction_import_settings",

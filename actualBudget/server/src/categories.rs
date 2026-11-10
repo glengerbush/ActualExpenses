@@ -427,6 +427,7 @@ fn execute(
     let mut conflicts = vec![];
     let mut changed = true;
     if method == Method::POST {
+        crate::notes::guard_domain_id(db,budget,&id)?;
         if db.query_row(
             &format!("SELECT EXISTS(SELECT 1 FROM {table} WHERE budget_id=?1 AND id=?2)"),
             params![budget, id],

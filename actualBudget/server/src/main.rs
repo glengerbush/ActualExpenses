@@ -19,6 +19,7 @@ mod payee_locations;
 mod payees_tags;
 mod preferences;
 mod public_query;
+mod notes;
 mod reconciliation;
 mod recovery;
 mod register;

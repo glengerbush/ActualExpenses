@@ -72,7 +72,9 @@ fn apply(
         || input.max_graph_members == 0
         || input.max_graph_members > 100000
     {
-        return Err(Error::invalid("Provide1–100 transaction operations and graph allowance1–100000"));
+        return Err(Error::invalid(
+            "Provide1–100 transaction operations and graph allowance1–100000",
+        ));
     }
     let mut targets = BTreeSet::new();
     let mut graph = BTreeSet::new();

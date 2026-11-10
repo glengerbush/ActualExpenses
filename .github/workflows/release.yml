@@ -260,6 +260,9 @@ jobs:
           node actualBudget/tools/generate-transaction-merge-source.mjs --check
           node actualBudget/tools/generate-transaction-export-source.mjs --check
           node actualBudget/tools/generate-transaction-format-flows.mjs --check
+          npm --prefix actualBudget/web run test:banking-source
+          npm --prefix actualBudget/web run test:banking-api
+          npm --prefix actualBudget/web run test:banking-provider
           npm --prefix actualBudget/web run test:ynab-source
           python3 actualBudget/tools/generate-v5-receipts.py --check
           python3 -m venv "$RUNNER_TEMP/contract-check"

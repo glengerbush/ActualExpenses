@@ -70,8 +70,12 @@ pub(super) async fn command(
  if lookup{return sync::receipt_owned(db,&scope,&key,&payload,proposed.as_deref(),StatusCode::OK,owner.as_ref());}
  sync::write_owned(db,&scope,&key,&payload,proposed.as_deref(),StatusCode::OK,owner.as_ref(),|db|{
   if cancel{return sync::canceled(db,&b);}
-  crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;crate::ledger::account_exists(db,&b,&a)?;
+  crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;
   let action:Action=serde_json::from_value(value).map_err(|_|Error::invalid("Choose a valid bank link, unlink or settings command"))?;
+  if matches!(&action,Action::Unlink{..}){
+   let exists:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM accounts WHERE budget_id=?1 AND id=?2)",params![b,a],|r|r.get(0))?;
+   if !exists{return Err(Error::missing());}
+  }else{crate::ledger::account_exists(db,&b,&a)?;}
   let snapshot=match &action{Action::Link{snapshot,..}|Action::Unlink{snapshot,..}|Action::Settings{snapshot,..}=>snapshot};sync::check_snapshot(db,&b,Some(snapshot))?;
   let clock=sync::clock(db,&b,proposed.as_deref())?;
   match action{
@@ -112,6 +116,6 @@ pub(super) async fn command(
     if settings::update(db,&b,&a,&changes,&clock)?&&before.is_some(){db.execute("UPDATE bank_links SET revision=revision+1 WHERE budget_id=?1 AND id=?2",params![b,a])?;sync::mark(db,&b,"bank_links",&a)?;}
    }
   }
-  Ok(json!({"response_status":200,"response_body":{"data":match link(db,&b,&a){Ok(v)=>v,Err(e)if e.status==StatusCode::NOT_FOUND=>Value::Null,Err(e)=>return Err(e)},"preferences":settings::read(db,&b,&a)?,"edit_clock":clock,"cursor":sync::cursor(db,&b)?}}))
+  Ok(json!({"response_status":200,"response_body":{"data":match link(db,&b,&a){Ok(v)=>v,Err(e)if e.status==StatusCode::NOT_FOUND=>Value::Null,Err(e)=>return Err(e)},"preferences":settings::read_retained(db,&b,&a)?,"edit_clock":clock,"cursor":sync::cursor(db,&b)?}}))
  })}).await
 }

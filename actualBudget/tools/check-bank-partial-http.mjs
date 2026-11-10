@@ -206,8 +206,99 @@ try {
     final.map((t) => t.amount).sort((a, b) => a - b),
     [-200, -100],
   );
+  const deleted = await fetch(api + root + `/accounts/${ids[0]}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      ...headers,
+      "Idempotency-Key": randomUUID(),
+    },
+    body: JSON.stringify({ confirm_name: "Local 1" }),
+  });
+  assert.equal(deleted.status, 200, await deleted.text());
+  const replacement = randomUUID();
+  await call(
+    root + "/accounts",
+    {
+      id: replacement,
+      name: "Replacement local",
+      off_budget: false,
+      opening_balance: 0,
+      opening_date: "2026-11-01",
+    },
+    { ...headers, "Idempotency-Key": randomUUID() },
+    201,
+  );
+  const captured = (await call(root + "/banking")).data,
+    oldLink = captured.links.find((l) => l.id === ids[0]),
+    remote = captured.accounts.find((r) => r.id === oldLink.remote_account_id);
+  const ledger = await call(root + "/transactions");
+  await call(
+    root + `/accounts/${replacement}/banking/commands`,
+    {
+      action: "link",
+      snapshot: captured.snapshot,
+      connection_id: connection.id,
+      generation: connection.generation,
+      remote_account_id: remote.id,
+      opening_balance_mode: "none",
+    },
+    { ...headers, "Idempotency-Key": randomUUID() },
+    409,
+  );
+  const unlink = {
+      action: "unlink",
+      snapshot: captured.snapshot,
+      revision: oldLink.revision,
+    },
+    unlinkHeaders = { ...headers, "Idempotency-Key": randomUUID() };
+  const unlinked = await call(
+    root + `/accounts/${ids[0]}/banking/commands`,
+    unlink,
+    unlinkHeaders,
+  );
+  assert.equal(unlinked.data.deleted, true);
+  const afterUnlink = await call(root + "/transactions");
+  delete ledger.snapshot;
+  delete afterUnlink.snapshot;
+  assert.deepEqual(
+    afterUnlink,
+    ledger,
+    "Unlinking unavailable metadata cannot alter any financial/reference/version field",
+  );
+  const changes = await call(
+    root + "/changes?cursor=" + encodeURIComponent(captured.snapshot),
+  );
+  assert.ok(changes.data.length > 0);
+  assert.ok(changes.data.every((c) => c.entity === "bank_links"));
+  assert.deepEqual(
+    await call(
+      root + `/accounts/${ids[0]}/banking/commands`,
+      unlink,
+      unlinkHeaders,
+    ),
+    unlinked,
+  );
+  const current = (await call(root + "/banking")).data;
+  await call(
+    root + `/accounts/${replacement}/banking/commands`,
+    {
+      action: "link",
+      snapshot: current.snapshot,
+      connection_id: connection.id,
+      generation: connection.generation,
+      remote_account_id: remote.id,
+      opening_balance_mode: "none",
+    },
+    { ...headers, "Idempotency-Key": randomUUID() },
+  );
+  assert.equal(
+    (await call(root + "/banking")).data.links.find((l) => l.id === replacement)
+      .deleted,
+    false,
+  );
   console.log(
-    "PASS omitted failed account retains cache/window; unaffected scope imports once and recovery preserves IDs",
+    "PASS omitted failed account retains cache/window; unaffected scope imports once and recovery preserves IDs; deleted local mapping can be explicitly unlinked/reused",
   );
 } finally {
   await server.stop();

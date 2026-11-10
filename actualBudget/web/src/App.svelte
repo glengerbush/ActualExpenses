@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Banking from "./lib/Banking.svelte";
+  import { readBankDraft } from "./lib/banking";
   import {
     readCatalog,
     saveCatalog,
@@ -91,6 +93,7 @@
     | "transaction-files"
     | "rules"
     | "schedules"
+    | "banking"
     | "reports"
     | "settings"
     | "categories"
@@ -233,6 +236,7 @@
       ["transaction-files", "Transaction files", false],
       ["rules", "Rules", false],
       ["schedules", "Schedules", false],
+      ["banking", "Bank connections", false],
       ["reports", "Dashboards and reports", false],
       ["settings", "Settings", false],
     ] as const;
@@ -381,6 +385,11 @@
           loading = false;
           return;
         }
+        if ((await readBankDraft(value.id))?.pending) {
+          form = "banking";
+          loading = false;
+          return;
+        }
         if (await readImport(value.id)) {
           form = "transaction-files";
           loading = false;
@@ -500,6 +509,7 @@
       | "transaction-files"
       | "rules"
       | "schedules"
+      | "banking"
       | "reports"
       | "settings"
       | "categories"
@@ -641,6 +651,12 @@
         disabled={!!form || loading || !compatible}>Rules</button
       >
       <button
+        class={{ current: form === "banking" }}
+        aria-current={form === "banking" ? "page" : undefined}
+        onclick={() => showForm("banking")}
+        disabled={!!form || loading || !compatible}>Bank connections</button
+      >
+      <button
         onclick={() => showForm("schedules")}
         disabled={!!form || loading || !compatible}>Schedules</button
       >
@@ -766,6 +782,13 @@
             void showForm("rules");
           }}
           onclose={() => showForm(null)}
+        />{/key}
+    {:else if form === "banking" && budget}{#key budget.id}<Banking
+          budgetId={budget.id}
+          {accounts}
+          {disconnected}
+          onclose={() => showForm(null)}
+          onchanged={refreshAccounts}
         />{/key}
     {:else if form === "schedules" && budget}{#key budget.id}<Schedules
           budgetId={budget.id}

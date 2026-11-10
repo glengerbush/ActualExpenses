@@ -227,10 +227,16 @@ pub(super) fn plan(db: &Connection, b: &str, body: &Value) -> Result<Value, Erro
     let old = configuration::category(db, b, id)?;
     let original = old["templates"].as_array().unwrap().clone();
     let mut pools = pools(db, b)?;
+    let mut resolver = cleanup::PoolResolver::new(&pools)?;
     let original_cleanup = if old["source"] == "ui" {
         old["cleanup"].as_array().unwrap().clone()
     } else {
-        cleanup::notes(b, old["notes"].as_str().unwrap_or(""), &mut pools)?
+        cleanup::notes_with_resolver(
+            b,
+            old["notes"].as_str().unwrap_or(""),
+            &mut pools,
+            &mut resolver,
+        )?
     };
     let mut issues = vec![];
     let rendered = match render::templates(db, b, &original).and_then(|text| {
@@ -284,7 +290,7 @@ pub(super) fn plan(db: &Connection, b: &str, body: &Value) -> Result<Value, Erro
     let cleanup = if target == "ui" {
         original_cleanup.clone()
     } else {
-        cleanup::notes(b, &notes, &mut pools)?
+        cleanup::notes_with_resolver(b, &notes, &mut pools, &mut resolver)?
     };
     match(canonical(db,b,&original),canonical(db,b,&templates)){(Ok(a),Ok(c))if a==c=>{},(Ok(_),Ok(_))=>issues.push("This representation changes an allocation rule or goal indicator. Keep the current source, or edit the automation as a separate change.".into()),(Err(e),_)|(_,Err(e))=>issues.push(e.message)}
     if canonical_number(&json!(original_cleanup)) != canonical_number(&json!(cleanup)) {

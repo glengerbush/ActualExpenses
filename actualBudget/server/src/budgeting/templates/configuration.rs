@@ -7,13 +7,16 @@ fn pools(db: &Connection, b: &str) -> Result<Vec<Value>, Error> {
     q.query_map([b], |r| Ok(json!({"id":r.get::<_,String>(0)?,"name":r.get::<_,String>(1)?,"deleted":r.get::<_,bool>(2)?})))?.collect::<Result<Vec<_>,_>>().map_err(Error::from)
 }
 pub(super) fn category(db: &Connection, b: &str, id: &str) -> Result<Value, Error> {
-    category_using(db, b, id, &mut pools(db, b)?)
+    let mut pools = pools(db, b)?;
+    let mut resolver = cleanup::PoolResolver::new(&pools)?;
+    category_using(db, b, id, &mut pools, &mut resolver)
 }
 fn category_using(
     db: &Connection,
     b: &str,
     id: &str,
     pools: &mut Vec<Value>,
+    resolver: &mut cleanup::PoolResolver,
 ) -> Result<Value, Error> {
     let row = crate::categories::get(db, b, "categories", id)?;
     if row["deleted"] == true {
@@ -29,7 +32,7 @@ fn category_using(
             .cloned()
             .unwrap_or_default()
     } else {
-        cleanup::notes(b, notes, pools)?
+        cleanup::notes_with_resolver(b, notes, pools, resolver)?
     };
     Ok(
         json!({"id":id,"name":row["name"],"notes":notes,"source":if ui{"ui"}else{"notes"},"templates":if ui{config["goal_def"].as_array().cloned().unwrap_or_default()}else{parsed["templates"].as_array().unwrap().clone()},"cleanup":cleanup,"notes_templates":parsed["templates"],"parse_errors":parsed["errors"],"template_settings":config["template_settings"],"field_versions":crate::payees_tags::versions(db,b,"budget_automations",id)?}),
@@ -48,7 +51,7 @@ pub(crate) async fn read(
     let axum::extract::Query(query) = input.map_err(|e| Error::invalid(e.body_text()))?;
     crate::models::validate_id(&b)?;
     super::super::month(&query.month)?;
-    store.run(move|db|{let tx=db.transaction()?;let view=super::super::view(&tx,&b,&query.month,1)?;let mut categories=vec![];let mut pools=pools(&tx,&b)?;for row in view["months"][&query.month]["categories"].as_array().unwrap(){let mut def=category_using(&tx,&b,row["id"].as_str().unwrap(),&mut pools)?;for field in ["is_income","hidden","group_hidden","group_id","group_name"]{def[field]=row[field].clone();}categories.push(def);}
+    store.run(move|db|{let tx=db.transaction()?;let view=super::super::view(&tx,&b,&query.month,1)?;let mut categories=vec![];let mut pools=pools(&tx,&b)?;let mut resolver=cleanup::PoolResolver::new(&pools)?;for row in view["months"][&query.month]["categories"].as_array().unwrap(){let mut def=category_using(&tx,&b,row["id"].as_str().unwrap(),&mut pools,&mut resolver)?;for field in ["is_income","hidden","group_hidden","group_id","group_name"]{def[field]=row[field].clone();}categories.push(def);}
  let pools=pools.into_iter().filter(|p|p["deleted"]!=true).map(|p|json!({"id":p["id"],"name":p["name"]})).collect::<Vec<_>>();
  Ok(json!({"data":{"month":query.month,"method":view["method"],"categories":categories,"pools":pools,"snapshot":view["snapshot"],"epoch":view["epoch"],"experimental":crate::preferences::get_preferences(&tx,&b)?["experimental"]}}))}).await.map(Json)
 }
@@ -78,6 +81,22 @@ pub(super) fn configure(
     if source == "ui" {
         validation::templates(&templates)?;
     }
+    if let Some(value) = body.get("cleanup") {
+        let rows = value
+            .as_array()
+            .ok_or_else(|| Error::invalid("Cleanup definitions require an array"))?;
+        if rows.len() > 256
+            || rows.iter().any(|r| {
+                r.as_object().is_none_or(|o| {
+                    o.keys()
+                        .any(|k| !["role", "groupId", "weight"].contains(&k.as_str()))
+                })
+            })
+        {
+            return Err(Error::invalid("Use at most256 typed cleanup definitions"));
+        }
+        cleanup::validate_directives(rows, &pools(db, b)?)?;
+    }
     let mut config = storage::config(db, b, id)?;
     config["goal_def"] = json!(templates);
     config["template_settings"] = json!({"source":source});
@@ -100,5 +119,32 @@ pub(super) fn configure(
     crate::concurrency::mark(db, b, "budget_automations", id)?;
     Ok(
         json!({"category":category(db,b,id)?,"snapshot":crate::concurrency::cursor(db,b)?,"epoch":crate::lifecycle::epoch(db,b)?}),
+    )
+}
+
+/// Source-supported create/resolve: preserve the existing name and identity on
+/// case-insensitive reuse. New pools remain one receipt-owned history action.
+pub(super) fn create_pool(
+    db: &Connection,
+    b: &str,
+    body: &Value,
+    clock: &str,
+) -> Result<Value, Error> {
+    let name = body["name"]
+        .as_str()
+        .ok_or_else(|| Error::invalid("A pool name is required"))?
+        .trim();
+    crate::models::validate_name(name)?;
+    let mut rows = pools(db, b)?;
+    let id = cleanup::resolve_pool(b, name, &mut rows)?;
+    cleanup::persist_definitions(
+        db,
+        b,
+        &json!({"cleanup_definitions":[],"pools":rows}),
+        clock,
+    )?;
+    let pool = rows.iter().find(|p| p["id"] == id).unwrap();
+    Ok(
+        json!({"pool":{"id":id,"name":pool["name"]},"snapshot":crate::concurrency::cursor(db,b)?,"epoch":crate::lifecycle::epoch(db,b)?}),
     )
 }

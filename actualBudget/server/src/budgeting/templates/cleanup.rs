@@ -22,31 +22,56 @@ impl Work {
     }
 }
 
-fn resolve_pool(b: &str, name: &str, pools: &mut Vec<Value>) -> Result<String, Error> {
-    let name = name.trim();
-    crate::models::validate_name(name)?;
-    if let Some(row) = pools
-        .iter_mut()
-        .find(|row| row["name"].as_str().unwrap().to_lowercase() == name.to_lowercase())
-    {
-        row["deleted"] = json!(false);
-        return Ok(row["id"].as_str().unwrap().to_owned());
+/// One command/read shares this index and work allowance across all categories.
+pub(super) struct PoolResolver {
+    names: BTreeMap<String, usize>,
+    ids: BTreeSet<String>,
+    work: Work,
+}
+impl PoolResolver {
+    pub(super) fn new(pools: &[Value]) -> Result<Self, Error> {
+        let mut result = Self {
+            names: BTreeMap::new(),
+            ids: BTreeSet::new(),
+            work: Work(0),
+        };
+        for (i, row) in pools.iter().enumerate() {
+            result.work.tick()?;
+            result
+                .names
+                .entry(row["name"].as_str().unwrap().to_lowercase())
+                .or_insert(i);
+            result.ids.insert(row["id"].as_str().unwrap().to_owned());
+        }
+        Ok(result)
     }
-    // A preview never allocates random identities or persists state. The same
-    // captured budget/name resolves identically during the subsequent command.
-    let hash = Sha256::digest(format!("{b}\0budget-cleanup\0{}", name.to_lowercase()).as_bytes());
-    let mut bytes = [0; 16];
-    bytes.copy_from_slice(&hash[..16]);
-    bytes[6] = (bytes[6] & 0x0f) | 0x40;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
-    let id = uuid::Uuid::from_bytes(bytes).to_string();
-    if pools.iter().any(|row| row["id"] == id) {
-        return Err(Error::conflict(
-            "Cleanup pool identity conflicts. Rename the pool.",
-        ));
+    fn resolve(&mut self, b: &str, name: &str, pools: &mut Vec<Value>) -> Result<String, Error> {
+        self.work.tick()?;
+        let name = name.trim();
+        crate::models::validate_name(name)?;
+        let key = name.to_lowercase();
+        if let Some(i) = self.names.get(&key) {
+            pools[*i]["deleted"] = json!(false);
+            return Ok(pools[*i]["id"].as_str().unwrap().to_owned());
+        }
+        let hash = Sha256::digest(format!("{b}\0budget-cleanup\0{key}").as_bytes());
+        let mut bytes = [0; 16];
+        bytes.copy_from_slice(&hash[..16]);
+        bytes[6] = (bytes[6] & 0x0f) | 0x40;
+        bytes[8] = (bytes[8] & 0x3f) | 0x80;
+        let id = uuid::Uuid::from_bytes(bytes).to_string();
+        if !self.ids.insert(id.clone()) {
+            return Err(Error::conflict(
+                "Cleanup pool identity conflicts. Rename the pool.",
+            ));
+        }
+        self.names.insert(key, pools.len());
+        pools.push(json!({"id":id,"name":name,"deleted":false}));
+        Ok(id)
     }
-    pools.push(json!({"id":id,"name":name,"deleted":false}));
-    Ok(id)
+}
+pub(super) fn resolve_pool(b: &str, name: &str, pools: &mut Vec<Value>) -> Result<String, Error> {
+    PoolResolver::new(pools)?.resolve(b, name, pools)
 }
 
 fn sink_weight(text: &str) -> Option<u64> {
@@ -59,9 +84,15 @@ fn sink_weight(text: &str) -> Option<u64> {
     text.parse::<u64>().ok().map(|n| if n == 0 { 1 } else { n })
 }
 
-pub(super) fn notes(b: &str, text: &str, pools: &mut Vec<Value>) -> Result<Vec<Value>, Error> {
+pub(super) fn notes_with_resolver(
+    b: &str,
+    text: &str,
+    pools: &mut Vec<Value>,
+    resolver: &mut PoolResolver,
+) -> Result<Vec<Value>, Error> {
     let mut result = vec![];
     for line in text.lines() {
+        resolver.work.tick()?;
         let Some(raw) = line.trim().strip_prefix("#cleanup ") else {
             continue;
         };
@@ -104,7 +135,9 @@ pub(super) fn notes(b: &str, text: &str, pools: &mut Vec<Value>) -> Result<Vec<V
         if role == "overspend" && raw.contains(" source") {
             continue;
         }
-        let pool = group.map(|name| resolve_pool(b, name, pools)).transpose()?;
+        let pool = group
+            .map(|name| resolver.resolve(b, name, pools))
+            .transpose()?;
         let mut row = json!({"role":role,"groupId":pool});
         if let Some(weight) = weight {
             row["weight"] = json!(weight);
@@ -119,7 +152,7 @@ pub(super) fn notes(b: &str, text: &str, pools: &mut Vec<Value>) -> Result<Vec<V
     Ok(result)
 }
 
-fn validate_directives(rows: &[Value], pools: &[Value]) -> Result<(), Error> {
+pub(super) fn validate_directives(rows: &[Value], pools: &[Value]) -> Result<(), Error> {
     for row in rows {
         if !matches!(row["role"].as_str(), Some("source" | "sink" | "overspend")) {
             return Err(Error::invalid("Unknown cleanup role"));
@@ -200,6 +233,7 @@ pub(super) fn compute(db: &Connection, b: &str, month: &str) -> Result<Value, Er
         "SELECT id,name,tombstone FROM budget_cleanup_groups WHERE budget_id=?1 ORDER BY rowid",
     )?;
     let mut pools=query.query_map([b],|r|Ok(json!({"id":r.get::<_,String>(0)?,"name":r.get::<_,String>(1)?,"deleted":r.get::<_,bool>(2)?})))?.collect::<Result<Vec<_>,_>>()?;
+    let mut resolver = PoolResolver::new(&pools)?;
     let mut rows = vec![];
     let mut definitions = vec![];
     let mut work = Work(0);
@@ -216,16 +250,19 @@ pub(super) fn compute(db: &Connection, b: &str, month: &str) -> Result<Value, Er
                 .cloned()
                 .unwrap_or_default()
         } else {
-            let lines = category["notes"].as_str().unwrap_or("").lines().count();
-            // Include pool-name resolution in the cumulative request bound.
-            work.spend(lines.saturating_mul(pools.len().saturating_add(lines).saturating_add(1)))?;
-            notes(b, category["notes"].as_str().unwrap_or(""), &mut pools)?
+            notes_with_resolver(
+                b,
+                category["notes"].as_str().unwrap_or(""),
+                &mut pools,
+                &mut resolver,
+            )?
         };
         definitions.push(json!({"id":id,"cleanup":cleanup}));
         // Source checks zero_budgets carryover even when tracking is selected.
         let rollover:bool=db.query_row("SELECT carryover FROM budget_cells WHERE budget_id=?1 AND category_id=?2 AND month=?3 AND method='envelope' AND tombstone=0",params![b,id,month],|r|r.get(0)).optional()?.unwrap_or(false);
         rows.push(json!({"id":id,"name":category["name"],"is_income":category["is_income"],"budgeted":category["budgeted"],"before_budgeted":category["budgeted"],"balance":category["balance"],"goal":category["goal"].as_str().and_then(|s|serde_json::from_str::<Value>(s).ok()),"long_goal":category["long_goal"].as_str().and_then(|s|serde_json::from_str::<Value>(s).ok()),"notes":category["notes"],"cleanup":cleanup,"rollover":rollover,"templates":config["goal_def"].as_array().cloned().unwrap_or_default(),"applies":false,"clear_goal":false,"per_template":[]}));
     }
+    work.spend(resolver.work.0)?;
     for row in &rows {
         work.spend(
             row["cleanup"]

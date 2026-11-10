@@ -14,7 +14,6 @@ dependencies = [
  "icu_collator",
  "icu_locale",
  "jlens-regress",
- "percent-encoding",
  "reqwest",
  "roxmltree",
  "rquickjs",

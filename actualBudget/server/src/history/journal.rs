@@ -12,7 +12,6 @@ const TABLES: &[&str] = &[
     "notes",
     "transactions",
     "transaction_import_metadata",
-    "bank_transaction_origins",
     "transaction_import_settings",
     "accounts",
     "account_groups",
@@ -386,6 +385,8 @@ pub fn apply(
         |r| r.get(0),
     )?;
     let mut changes: Vec<Change> = serde_json::from_str(&saved).map_err(Error::internal)?;
+    // Old owned bank imports still undo their financial rows; connector lineage is retired.
+    changes.retain(|change| change.table != "bank_transaction_origins");
     for c in &changes {
         if c.table == "notes"
             && crate::notes::binding(db, budget, &c.id)?

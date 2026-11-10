@@ -1,4 +1,4 @@
-//! Retained bank files, read-only review, and receipt-owned ledger application.
+//! Retained transaction files, read-only review, and receipt-owned ledger application.
 mod apply;
 mod export;
 mod formats;
@@ -7,10 +7,6 @@ mod merge;
 mod settings;
 mod storage;
 mod title;
-/// Shared pinned title vocabulary used by bank-provider normalizers.
-pub(crate) fn bank_title(input: &str) -> String {
-    title::title(input)
-}
 pub(crate) use storage::{
     archive_tables, convert, decorate_many, enrich, import_clock, imported_preference, install,
     record, validate,
@@ -218,30 +214,18 @@ fn plan(
     id: &str,
     body: &Review,
 ) -> Result<(Value, crate::rules::Work), Error> {
-    plan_input(db, b, id, body, None, crate::rules::Work::default())
+    plan_input(db, b, id, body, crate::rules::Work::default())
 }
 fn plan_input(
     db: &Connection,
     b: &str,
     id: &str,
     body: &Review,
-    bank_input: Option<(&str, &str, Vec<Value>)>,
     mut work: crate::rules::Work,
 ) -> Result<(Value, crate::rules::Work), Error> {
     sync::check_snapshot(db, b, Some(&body.snapshot))?;
-    let (account, filename, parsed, bank_remote) = if let Some((account, remote, rows)) = bank_input
-    {
-        (
-            account.to_owned(),
-            "provider.bank".to_owned(),
-            rows,
-            Some(remote),
-        )
-    } else {
-        let (account, filename, bytes) = file(db, b, id)?;
-        let parsed = parse::file(&filename, &bytes, &body.options)?;
-        (account, filename, parsed, None)
-    };
+    let (account, filename, bytes) = file(db, b, id)?;
+    let parsed = parse::file(&filename, &bytes, &body.options)?;
     crate::ledger::account_exists(db, b, &account)?;
     let kind = filename
         .rsplit('.')
@@ -298,18 +282,14 @@ fn plan_input(
     work.remaining = work
         .remaining
         .checked_sub(payees.len() + categories.len() + parsed.len())
-        .ok_or_else(|| {
-            Error::invalid("Bank/file reference work limit reached. Select fewer accounts or rows")
-        })?;
+        .ok_or_else(|| Error::invalid("File reference work limit reached. Select fewer rows"))?;
     let mut runner = crate::rules::import_runner(db, b, work)?;
     let mut provisional_payees = BTreeMap::new();
     for (index, source) in parsed.into_iter().enumerate() {
         if selected.as_ref().is_some_and(|rows| !rows.contains(&index)) {
             continue;
         }
-        let mut transaction = match if kind == "bank" {
-            Ok(source.clone())
-        } else if matches!(kind.as_str(), "csv" | "tsv") {
+        let mut transaction = match if matches!(kind.as_str(), "csv" | "tsv") {
             parse::mapped(&source, &body.mapping, &body.options)
         } else {
             parse::structured(&source, &kind, &body.options)
@@ -341,11 +321,7 @@ fn plan_input(
         if transaction["payee_id"].is_null()
             && let Some(name) = name.as_deref()
         {
-            let name = if kind == "bank" {
-                name.to_owned()
-            } else {
-                title::title(name)
-            };
+            let name = title::title(name);
             let key = name.to_lowercase();
             let (payee, name) = payees
                 .entry(key.clone())
@@ -363,29 +339,11 @@ fn plan_input(
         }
         transaction["imported_payee"] = name.as_deref().map(|n| json!(n)).unwrap_or(Value::Null);
         transaction["account_id"] = json!(account);
-        transaction["category_id"] = if kind == "bank" {
-            transaction["category_id"]
-                .as_str()
-                .filter(|id| categories.values().any(|v| v == *id))
-                .map(|id| json!(id))
-                .unwrap_or(Value::Null)
-        } else {
-            transaction["category_name"]
-                .as_str()
-                .and_then(|n| categories.get(n))
-                .map(|id| json!(id))
-                .unwrap_or(Value::Null)
-        };
-        if kind == "bank" {
-            let mut raw = transaction
-                .as_object_mut()
-                .unwrap()
-                .remove("raw_bank_transaction")
-                .ok_or_else(|| Error::invalid("Missing normalized bank provenance"))?;
-            raw["account"] = json!(account);
-            raw["payee"] = transaction["payee_id"].clone();
-            transaction["raw_synced_data"] = json!(raw.to_string());
-        }
+        transaction["category_id"] = transaction["category_name"]
+            .as_str()
+            .and_then(|name| categories.get(name))
+            .map(|id| json!(id))
+            .unwrap_or(Value::Null);
         let (mut transaction, matched) = runner.evaluate(db, b, &transaction)?;
         if transaction["new_payee"].is_object()
             && transaction["payee_id"] != transaction["new_payee"]["id"]
@@ -407,8 +365,7 @@ fn plan_input(
         &mut rows,
         matching::Mode {
             options: &body.options,
-            strict_ids: kind != "bank",
-            bank_remote,
+            strict_ids: true,
         },
         &mut work.remaining,
     )?;
@@ -426,10 +383,7 @@ fn plan_input(
                 existing.insert(target.clone(), before);
             }
             let before = &existing[&target];
-            row["ignored"] = json!(
-                apply::ignored(before, &row["transaction"])
-                    || kind == "bank" && before["deleted"] == true
-            );
+            row["ignored"] = json!(apply::ignored(before, &row["transaction"]));
             row["existing"] = before.clone();
         } else {
             row["ignored"] = json!(false);
@@ -900,87 +854,4 @@ fn apply_plan(
         json!({"response_status":200,"response_body":{"data":{"added":added,"updated":updated,"ignored":ignored},"edit_clock":clock,"cursor":sync::cursor(db,b)?}}),
         work,
     ))
-}
-
-pub(crate) struct BankInput<'a> {
-    pub account: &'a str,
-    pub remote: &'a str,
-    pub identity: &'a str,
-    pub snapshot: &'a str,
-    pub rows: Vec<Value>,
-    pub proposed: Option<&'a str>,
-    pub epoch: Option<&'a str>,
-    pub update_dates: bool,
-    pub work: crate::rules::Work,
-}
-pub(crate) fn apply_bank(
-    db: &Connection,
-    b: &str,
-    input: BankInput<'_>,
-) -> Result<(Value, crate::rules::Work), Error> {
-    let BankInput {
-        account,
-        remote,
-        identity,
-        snapshot,
-        rows,
-        proposed,
-        epoch,
-        update_dates,
-        work,
-    } = input;
-    let body = Review {
-        snapshot: snapshot.into(),
-        mapping: parse::Mapping::default(),
-        options: parse::Options {
-            reimport_deleted: false,
-            ..Default::default()
-        },
-        rows: None,
-        remember: false,
-    };
-    let (mut plan, work) = plan_input(db, b, identity, &body, Some((account, remote, rows)), work)?;
-    if update_dates {
-        for row in plan["rows"].as_array_mut().unwrap() {
-            if row["existing"].is_object()
-                && row["existing"]["reconciled"] != true
-                && row["existing"]["deleted"] != true
-                && row["existing"]["date"] != row["transaction"]["date"]
-            {
-                row["ignored"] = json!(false);
-            }
-        }
-    }
-    let selected = plan["rows"].as_array().unwrap();
-    if selected.is_empty() {
-        return Ok((
-            json!({"response_status":200,"response_body":{"data":{"added":[],"updated":[],"ignored":[]},"cursor":sync::cursor(db,b)?}}),
-            work,
-        ));
-    }
-    let body = Review {
-        rows: Some(
-            selected
-                .iter()
-                .map(|r| Choice {
-                    row: r["row"].as_u64().unwrap() as usize,
-                    action: "auto".into(),
-                    match_id: None,
-                })
-                .collect(),
-        ),
-        ..body
-    };
-    apply_plan(
-        db,
-        b,
-        &plan,
-        &body,
-        WriteIntent {
-            proposed,
-            epoch,
-            update_dates,
-        },
-        work,
-    )
 }

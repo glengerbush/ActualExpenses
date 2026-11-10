@@ -497,42 +497,23 @@ pub(super) fn convert_loaded(
         }
         let name = text(row, "name")?;
         validate_name(name).map_err(|_| invalid("Invalid source account name"))?;
-        let unsupported = [
-            "balance_current",
-            "balance_available",
-            "balance_limit",
-            "mask",
-            "official_name",
-            "subtype",
+        let retired = [
             "bank",
             "account_id",
             "account_sync_source",
-            "type",
+            "balance_current",
+            "balance_available",
             "last_sync",
             "bank_sync_status",
         ]
         .iter()
-        .any(|field| {
-            !row[*field].is_null()
-                && !(row["account_sync_source"] == "simpleFin"
-                    && matches!(
-                        *field,
-                        "balance_current"
-                            | "balance_available"
-                            | "official_name"
-                            | "bank"
-                            | "account_id"
-                            | "account_sync_source"
-                            | "last_sync"
-                            | "bank_sync_status"
-                    ))
-        });
+        .any(|field| !row[*field].is_null());
         requirement(
             &mut requirements,
-            "account_configuration",
-            usize::from(unsupported),
-            true,
-            "Bank metadata needs its feature converter",
+            "external_bank_connections_retired",
+            usize::from(retired),
+            false,
+            "External connections are removed. Accounts import as manual accounts; financial rows and historical imported identifiers remain unchanged.",
         );
         let notes = array(&source, "notes")
             .iter()
@@ -922,7 +903,6 @@ pub(super) fn convert_loaded(
             .cloned(),
     );
     converted["budgeting"] = crate::budgeting::convert_actual(&source)?;
-    converted["banking"] = crate::banking::import::convert(&source)?;
     converted["transaction_imports"] = crate::transaction_imports::convert(&source)?;
     converted["transaction_imports_version"] = json!(1);
     converted["automations"] = crate::budgeting::templates::convert(&source)?;
@@ -1002,13 +982,11 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
     crate::reports::import::install(db, budget, &data["reporting"])?;
     crate::notes::install(db, budget, &data["notes"])?;
     crate::transaction_imports::install(db, budget, &data["transaction_imports"])?;
-    crate::banking::import::install(db, budget, &data["banking"])?;
     crate::budgeting::install_actual(db, budget, &data["budgeting"])?;
     crate::budgeting::templates::install(db, budget, &data["automations"])?;
     crate::rules::install_actual(db, budget, &data["rules"])?;
     crate::schedules::install_actual(db, budget, &data["schedules"])?;
     for row in array(data, "clocks") {
-        crate::banking::import::import_clock(db, budget, row)?;
         crate::reports::import::import_clock(db, budget, row)?;
         crate::notes::import_clock(db, budget, row)?;
         crate::transaction_imports::import_clock(db, budget, row)?;

@@ -110,17 +110,9 @@
     },
     {
       "sdk": ["runBankSync"],
-      "routes": [
-        {
-          "method": "GET",
-          "path": "/api/v1/budgets/{budget}/banking"
-        },
-        {
-          "method": "POST",
-          "path": "/api/v1/budgets/{budget}/banking/connections/{id}/commands"
-        }
-      ],
-      "translation": "Explicit refresh action for a configured supported provider/connection; secrets use specialized banking routes, never the example financial outbox."
+      "routes": [],
+      "translation": "External bank connections are removed. No replacement route or network operation exists; use manual accounts and explicit transaction file imports.",
+      "status": "removed"
     },
     {
       "sdk": ["batchBudgetUpdates"],

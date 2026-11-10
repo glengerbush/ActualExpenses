@@ -90,6 +90,7 @@ fn column(field: &str) -> Result<(&'static str, &'static str), Error> {
         "transfer" => ("(t.transfer_id IS NOT NULL)", "bool"),
         "parent" => ("t.is_parent", "bool"),
         "notes" => ("t.notes", "text"),
+        "imported_payee" => ("t.imported_payee", "text"),
         "date" => ("t.date", "date"),
         "amount" => ("t.amount", "money"),
         "cleared" => ("t.cleared", "bool"),

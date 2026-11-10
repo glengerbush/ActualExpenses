@@ -145,15 +145,16 @@ impl Context<'_> {
         for condition in &conditions {
             let group = condition["field"] == "category_group";
             let pattern = if condition["op"] == "matches" {
-                Some(
-                    crate::register_regex::Pattern::compile(
-                        condition["value"]
-                            .as_str()
-                            .ok_or_else(|| Error::invalid("Category pattern must be text"))?,
-                        true,
-                    )
-                    .map_err(|e| e.api_error())?,
-                )
+                match crate::register_regex::Pattern::compile(
+                    condition["value"]
+                        .as_str()
+                        .ok_or_else(|| Error::invalid("Category pattern must be text"))?,
+                    true,
+                ) {
+                    Ok(pattern) => Some(pattern),
+                    Err(crate::register_regex::Failure::Invalid) => None,
+                    Err(error) => return Err(error.api_error()),
+                }
             } else {
                 None
             };
@@ -191,11 +192,12 @@ impl Context<'_> {
                             .ok_or_else(|| Error::invalid("Category text filter requires text"))?
                             .to_lowercase(),
                     ),
-                    Some("matches") => pattern
-                        .as_ref()
-                        .unwrap()
-                        .matches(text, self.matcher)
-                        .map_err(|e| e.api_error())?,
+                    Some("matches") => match &pattern {
+                        Some(pattern) => pattern
+                            .matches(text, self.matcher)
+                            .map_err(|e| e.api_error())?,
+                        None => false,
+                    },
                     _ => false,
                 };
                 if matches {
@@ -430,7 +432,7 @@ impl Context<'_> {
             }
         }
         for name in names(requests, "balanceOfNames")? {
-            let account:Option<String>=self.db.query_row("SELECT id FROM accounts WHERE budget_id=?1 AND tombstone=0 AND (id=?2 OR name=?2) ORDER BY id<>?2,closed,sort_order,name,id LIMIT 1",params![self.budget,name],|r|r.get(0)).optional()?;
+            let account:Option<String>=self.db.query_row("SELECT id FROM accounts WHERE budget_id=?1 AND tombstone=0 AND (id=?2 OR name=?2) ORDER BY id<>?2,sort_order,name,id LIMIT 1",params![self.budget,name],|r|r.get(0)).optional()?;
             let value = match account {
                 Some(id) => {
                     let value:i64=self.db.query_row("SELECT coalesce(sum(amount),0) FROM transactions WHERE budget_id=?1 AND account_id=?2 AND tombstone=0 AND is_parent=0",params![self.budget,id],|r|r.get(0))?;

@@ -10,7 +10,8 @@ import vm from "node:vm";
 export function formulaSourceRuntime(api, engine) {
   let states = [],
     stateIndex = 0,
-    settled;
+    settled,
+    selectedLocale = "en-US";
   const dependencies = createRequire(
       new URL(
         "../../actualExpenses/tools/compatibility/package.json",
@@ -67,8 +68,8 @@ export function formulaSourceRuntime(api, engine) {
           createElement: () => null,
           Fragment: () => null,
         };
-      if (name === "./useLocale") return { useLocale: () => "en-US" };
-      if (name === "./useGlobalPref") return { useGlobalPref: () => ["en-US"] };
+      if (name === "./useLocale") return { useLocale: () => selectedLocale };
+      if (name === "./useGlobalPref") return { useGlobalPref: () => [selectedLocale] };
       if (name === "hyperformula" || name.startsWith("hyperformula/"))
         return dependencies(name);
       if (name.startsWith("#util/"))
@@ -132,7 +133,8 @@ export function formulaSourceRuntime(api, engine) {
     return module.exports;
   }
   return {
-    async evaluate(formula, queries = {}, namedExpressions, accounts = []) {
+    async evaluate(formula, queries = {}, namedExpressions, accounts = [], locale = "en-US") {
+      selectedLocale = locale;
       states = [];
       stateIndex = 0;
       const done = new Promise((resolve) => {

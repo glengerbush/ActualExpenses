@@ -61,3 +61,30 @@ and nonempty seven banking tables plus notes. Composed at6ce2042; both public
 database/native modes PASS `/tmp/gocardless-upgrade-root-http.log`, reusing the
 unchanged b68379d runtime build. Genuine24 preservation gate closed. Provider
 financial/conversion/UI/native feature gates remain open; no29 acceptance claim.
+# Root financial checkpoint review (open correction)
+
+2026-11-10:2c28e9c reviewed independently from unimplemented bank families,
+paging, renewal continuity and UI. Default/ING normalization feeds the existing
+owned capture/writer; booked-only source opening math, source date choices,
+original idempotency/snapshot checks, private quota storage and public error
+sanitization were inspected. Worker reports five exact whole-source financial
+graphs and80 served shapes; unchanged SimpleFIN financial/custody checks pass.
+This checkpoint is not whole29 acceptance.
+
+One correction remains: transaction download unconditionally fetches balances
+and computes an opening amount. The pinned `/transactions` route uses
+`getNormalizedTransactions` alone when `includeBalance=false`; genuine existing
+account/renewal requests select that path. An unnecessary balance endpoint
+failure currently blocks valid transaction refreshes and consumes extra quota.
+Carry the scoped balance/opening need into capture, preserve truthful prior
+balance freshness, and prove existing-account refresh without that request.
+Initial automatic opening must still require its actual balance data.
+
+Renewal source checkpointa111b09 reviewed; independent reproduction
+`/tmp/gocardless-renewal-root-source-check.log` PASS. An immutable genuine linked
+export is explicitly relinked through the registered source handler to new
+provider account/requisition IDs, then refreshed again. All original financial
+rows/IDs remain literal and unchanged; only new metadata UUIDs normalize.
+Transport responses reuse previously reviewed source normalization. No native
+replacement supplies expected financial values. Renewal runtime remains open.
+

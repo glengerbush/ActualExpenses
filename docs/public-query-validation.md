@@ -461,3 +461,16 @@ source outputs now pass /tmp/report-named-http-green.log with unchanged financia
 rows/checkpoint. Independent source check /tmp/custom-report-named-source-check.log
 and binClippy /tmp/report-named-clippy.log PASS. This is the bounded shared
 compatibility correction requested during47, not a fresh whole report audit.
+### Root shared-report correction review
+
+2026-11-10:7582a7f reviewed and composed as4844c74. The existing analysis
+JavaScript-truthiness helper now also governs ordinary report predicates and
+forecast normalization; raw ActualQL remains strict. Original source fixtures
+are unchanged; the eight supplemental marker cases use the unchanged custom
+spreadsheet oracle. No remaining finding in this correction.
+
+Combined build PASS `/tmp/report-named-root-build.log`; all eight exact public
+outputs and unchanged ledger/checkpoint PASS `/tmp/report-named-root-http.log`;
+extended source forecast/cache/opt-in/companion/bounds consumer PASS
+`/tmp/report-named-root-forecast.log`. Whole47 acceptance remains pending final
+caller/contracts/workflow evidence.

@@ -1,5 +1,14 @@
 # Recovery49 — stories81/82/87
 
+Accepted locally at `7e176f4` on2026-11-09. Consolidated Standards/Spec and
+Impeccable review passes; the two review findings are resolved. Initial review
+found cancellation intent lost across failed delivery/reload and missing external
+container coverage. Targeted closure verified durable monotonic cancellation,
+exact request identity, the delayed-request fence and the separately maintained
+external-server smoke. Root's served-schema consumer passes. Existing unaffected
+evidence is reused; broad combined container qualification remains scheduled for
+the integrated importer/recovery batch. No release or live deployment.
+
 Base2a737bd. Acceptance/API pinned before implementation. Public seams: running versioned HTTP API and browser, representative companion API. Disposable copied-data corruption is labeled fault injection; no claim that fabricated corruption is a genuine historical schema.
 
 Contract: GET `/api/v1/budgets/{budget}/recovery` produces a read-only complete preview of supported edits, cached-vs-calculated account totals and review-only issues. Registered domain checks cover references/splits/transfers/derived ledger; existing strict native archive validator supplies the final compatibility gate. Token binds epoch, checkpoint, source rows/clocks, exact edits/issues/totals; no preview writes or silent truncation. Future delivered domains register checks rather than hypothetical actions.

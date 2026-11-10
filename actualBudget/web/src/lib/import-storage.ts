@@ -1,6 +1,7 @@
-import type { ImportStage } from "./imports-api";
+import type { ImportStage, ImportSource } from "./imports-api";
 export interface ImportSession {
   version: 1;
+  sourceKind?: ImportSource;
   key: string;
   file: Blob | null;
   filename: string;
@@ -34,6 +35,8 @@ export async function readImportSession(): Promise<ImportSession | null> {
           value &&
           (value.version !== 1 ||
             typeof value.key !== "string" ||
+            (value.sourceKind !== undefined &&
+              !["actual", "ynab4", "nynab"].includes(value.sourceKind)) ||
             typeof value.activationKey !== "string" ||
             (value.file !== null && !(value.file instanceof Blob)))
         )
@@ -63,6 +66,9 @@ export async function saveImportSession(session: ImportSession): Promise<void> {
         if (
           previous.result &&
           (previous.result.key !== session.key ||
+            (previous.result.sourceKind ?? "actual") !==
+              (session.sourceKind ?? "actual") ||
+            previous.result.filename !== session.filename ||
             (previous.result.pendingActivation && !session.pendingActivation))
         ) {
           conflict = true;

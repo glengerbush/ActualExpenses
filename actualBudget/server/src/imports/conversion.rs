@@ -417,7 +417,20 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         true,
         "Additional archive entries require explicit conversion; original bytes retained",
     );
-    let source = Value::Object(source);
+    convert_loaded(Value::Object(source), metadata, counts, requirements, extra)
+}
+
+/// Shared native validation/install plan for bounded, source-specific adapters.
+/// The original upload is retained separately; these rows never replace it.
+pub(super) fn convert_loaded(
+    source: Value,
+    metadata: Value,
+    counts: Map<String, Value>,
+    mut requirements: Vec<Value>,
+    extra: Vec<String>,
+) -> Result<(Value, Value), Error> {
+    let name = text(&metadata, "budgetName")?;
+    validate_name(name).map_err(|_| invalid("Invalid source budget name"))?;
     for table in ["category_groups", "account_groups", "preferences", "notes"] {
         let mut identities = BTreeSet::new();
         for row in array(&source, table) {

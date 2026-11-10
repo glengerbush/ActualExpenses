@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { onMount } from "svelte";
   import { errorMessage, type Account } from "./api";
   import { references, type Reference } from "./register-api";
@@ -78,6 +79,34 @@
   onMount(() => {
     void load();
   });
+  function allowed(field: string) {
+    const names =
+      field === "amount"
+        ? ["eq", "ne", "gt", "gte", "lt", "lte", "isapprox", "isbetween"]
+        : field === "date"
+          ? ["eq", "ne", "gt", "gte", "lt", "lte", "isapprox"]
+          : ["cleared", "reconciled", "transfer", "parent"].includes(field)
+            ? ["eq", "ne"]
+            : ["account", "payee", "category", "category_group"].includes(field)
+              ? [
+                  "eq",
+                  "ne",
+                  "in",
+                  "not_in",
+                  ...(field === "account" ? ["onBudget", "offBudget"] : []),
+                ]
+              : [
+                  "eq",
+                  "ne",
+                  "contains",
+                  "not_contains",
+                  "matches",
+                  "in",
+                  "not_in",
+                  ...(field === "notes" ? ["hasTags", "hasAnyTag"] : []),
+                ];
+    return operators.filter((op) => names.includes(op[0]));
+  }
   function canonical(row: Record<string, unknown>): Condition {
     const map: Record<string, string> = {
       is: "eq",
@@ -88,7 +117,15 @@
     };
     return {
       ...row,
-      field: String(row.field),
+      field:
+        ["account", "payee", "category", "category_group"].includes(
+          String(row.field),
+        ) &&
+        ["contains", "doesNotContain", "not_contains", "matches"].includes(
+          String(row.op),
+        )
+          ? String(row.field) + "_name"
+          : String(row.field),
       op: map[String(row.op)] || String(row.op),
       value: row.value as Condition["value"],
     };
@@ -138,41 +175,46 @@
 </script>
 
 <fieldset>
-  <legend>Report conditions</legend>
-  {#if error}<p role="alert">{error}</p>
+  <legend>{t("Report conditions")}</legend>
+  {#if error}<p role="alert">{t(error)}</p>
     <button type="button" onclick={load} disabled={busy}
-      >Reload filter choices</button
+      >{t("Reload filter choices")}</button
     >{/if}
   <label
-    >Match report conditions<select
+    >{t("Match report conditions")}<select
       value={String(conditionsOp || "and")}
       onchange={(e) => onchange(rows, e.currentTarget.value)}
-      ><option value="and">All conditions</option><option value="or"
-        >Any condition</option
+      ><option value="and">{t("All conditions")}</option><option value="or"
+        >{t("Any condition")}</option
       ></select
     ></label
   >
   {#each rows as raw, index (raw)}{@const condition = canonical(raw)}
     <div class="condition">
       <label
-        >Report field {index + 1}<select
+        >{t("Report field")}
+        {index + 1}<select
           value={condition.field}
           onchange={(e) => field(index, e.currentTarget.value)}
           >{#if !fields.includes(condition.field)}<option
-              value={condition.field}>Preserved: {condition.field}</option
+              value={condition.field}
+              >{t("Preserved:")} {condition.field}</option
             >{/if}{#each fields as name (name)}<option value={name}
-              >{name.replaceAll("_", " ")}</option
+              >{t(
+                name.replaceAll("_", " ").replace(/^./, (s) => s.toUpperCase()),
+              )}</option
             >{/each}</select
         ></label
       >
       <label
-        >Report operator {index + 1}<select
+        >{t("Report operator")}
+        {index + 1}<select
           value={condition.op}
           onchange={(e) => operator(index, e.currentTarget.value)}
-          >{#if !operators.some((o) => o[0] === condition.op)}<option
-              value={condition.op}>Preserved: {condition.op}</option
-            >{/if}{#each operators as op (op[0])}<option value={op[0]}
-              >{op[1]}</option
+          >{#if !allowed(condition.field).some((o) => o[0] === condition.op)}<option
+              value={condition.op}>{t("Preserved:")} {condition.op}</option
+            >{/if}{#each allowed(condition.field) as op (op[0])}<option
+              value={op[0]}>{t(op[1])}</option
             >{/each}</select
         ></label
       >
@@ -190,7 +232,7 @@
           onchange(
             rows.filter((_, i) => i !== index),
             String(conditionsOp || "and"),
-          )}>Remove report condition {index + 1}</button
+          )}>{t("Remove report condition")} {index + 1}</button
       >
     </div>{/each}
   <button
@@ -200,7 +242,7 @@
       onchange(
         [...rows, { field: "notes", op: "contains", value: "" }],
         String(conditionsOp || "and"),
-      )}>Add report condition</button
+      )}>{t("Add report condition")}</button
   >
 </fieldset>
 

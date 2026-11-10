@@ -215,7 +215,11 @@ fn receipt_budget(
             ));
         }
         input["id"].as_str().map(str::to_owned)
-    } else if path == "/imports/actual" && method == "POST" {
+    } else if matches!(
+        path,
+        "/imports/actual" | "/imports/ynab4" | "/imports/nynab"
+    ) && method == "POST"
+    {
         let result: Value = serde_json::from_str(response).map_err(Error::internal)?;
         if let Some(id) = result["id"].as_str() {
             let found: Option<String> = db
@@ -275,7 +279,7 @@ pub fn link_operation(
     if let Some(budget) = receipt_budget(db, scope, payload, response)? {
         db.execute("INSERT OR IGNORE INTO operation_budget_links(budget_id,scope,operation_id) VALUES(?1,?2,?3)",params![budget,scope,key])?;
         if scope.starts_with("POST /imports/") && scope.ends_with("/activate") {
-            let mut query=db.prepare("SELECT scope,operation_id,payload,response FROM operations WHERE scope='POST /imports/actual'")?;
+            let mut query=db.prepare("SELECT scope,operation_id,payload,response FROM operations WHERE scope IN('POST /imports/actual','POST /imports/ynab4','POST /imports/nynab')")?;
             let rows = query
                 .query_map([], |r| {
                     Ok((
@@ -812,12 +816,12 @@ async fn duplicate_budget(
   let mut copy=archive::validate(&archive::capture(db,&budget)?)?;let original_name=copy.state.budget["name"].clone();copy.state.budget["id"]=json!(input.id);copy.state.budget["name"]=json!(input.name);copy.state.receipts.clear();
   // Clone provenance is evidence, never an active legacy/cloud identity mapping.
   let mut provenance=vec![];
-  {let mut query=db.prepare("SELECT s.original,s.archive_sha256,i.source_metadata FROM imported_sources i JOIN staged_imports s ON s.id=i.import_id WHERE i.budget_id=?1")?;for row in query.query_map([&budget],|r|Ok((r.get::<_,Vec<u8>>(0)?,r.get::<_,String>(1)?,r.get::<_,String>(2)?)))?{provenance.push(row?);}}
+  {let mut query=db.prepare("SELECT s.original,s.archive_sha256,i.source_metadata,s.report FROM imported_sources i JOIN staged_imports s ON s.id=i.import_id WHERE i.budget_id=?1")?;for row in query.query_map([&budget],|r|Ok((r.get::<_,Vec<u8>>(0)?,r.get::<_,String>(1)?,r.get::<_,String>(2)?,r.get::<_,String>(3)?)))?{provenance.push(row?);}}
   copy.state.tables.get_mut("staged_imports").unwrap().rows.clear();copy.state.tables.get_mut("imported_sources").unwrap().rows.clear();
   for table in copy.state.tables.values_mut(){let index=table.columns.iter().position(|c|c=="budget_id").unwrap();for row in &mut table.rows{row[index]=json!(input.id);}}
   db.execute("INSERT INTO budgets(id,name,budget_type) VALUES(?1,?2,?3)",params![input.id,input.name,copy.state.budget["budget_type"].as_str()])?;archive::install_tables(db,&copy)?;
   db.execute("INSERT INTO budget_provenance(budget_id,id,kind,source_budget_id,metadata) VALUES(?1,?2,'duplicate',?3,?4)",params![input.id,uuid::Uuid::new_v4().to_string(),budget,json!({"source_name":original_name}).to_string()])?;
-  for (bytes,sha,metadata) in provenance{db.execute("INSERT INTO budget_provenance(budget_id,id,kind,source_budget_id,metadata,archive_sha256,original) VALUES(?1,?2,'actual-import',?3,?4,?5,?6)",params![input.id,uuid::Uuid::new_v4().to_string(),budget,metadata,sha,bytes])?;}
+  for (bytes,sha,metadata,report) in provenance{let report:Value=serde_json::from_str(&report).map_err(Error::internal)?;let kind=match report["source_format"].as_str(){Some("ynab4")=>"ynab4-import",Some("nynab")=>"nynab-import",_=>"actual-import"};db.execute("INSERT INTO budget_provenance(budget_id,id,kind,source_budget_id,metadata,archive_sha256,original) VALUES(?1,?2,?3,?4,?5,?6,?7)",params![input.id,uuid::Uuid::new_v4().to_string(),kind,budget,metadata,sha,bytes])?;}
   archive::validate_financial_state(db,&input.id)?;db.execute("UPDATE budget_sync SET clock=MAX(clock,?2) WHERE budget_id=?1",params![input.id,copy.state.clock])?;metadata(db,&input.id,false)
  })).await?;
     Ok((StatusCode::CREATED, Json(json!({"data":result}))))

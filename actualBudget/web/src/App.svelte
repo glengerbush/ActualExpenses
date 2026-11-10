@@ -51,6 +51,8 @@
   import Settings from "./lib/Settings.svelte";
   import RecoveryTools from "./lib/RecoveryTools.svelte";
   import Reports from "./lib/Reports.svelte";
+  let reportEntryKey = $state(0);
+  import { writeValue } from "./lib/offline/storage";
   import { readRepair } from "./lib/recovery";
   import NavigationTools from "./lib/NavigationTools.svelte";
   import {
@@ -99,6 +101,7 @@
     | "pending"
     | null
   >(null);
+  let importSource = $state<"actual" | "ynab4">("actual");
   let rulesPayee = $state("");
   let managedBudget = $state.raw<ManagedBudget | null>(null);
   let deletedBudgets = $state.raw<ManagedBudget[]>([]);
@@ -146,8 +149,21 @@
           id,
           label,
           disabled: locked || disconnected || !compatible,
-          run: () => showForm(id),
+          run: () => {
+            if (id === "import") importSource = "actual";
+            showForm(id);
+          },
         });
+      result.push({
+        id: "ynab-import",
+        label: "Import YNAB budget",
+        keywords: "YNAB4 nYNAB JSON migration",
+        disabled: locked || disconnected || !compatible,
+        run: () => {
+          importSource = "ynab4";
+          showForm("import");
+        },
+      });
       return result;
     }
     result.push(
@@ -170,6 +186,16 @@
         run: () => manage(budget!),
       },
     );
+    result.push({
+      id: "custom-reports",
+      label: "Custom reports",
+      disabled: locked || !compatible,
+      run: async () => {
+        await writeValue(`view:reporting-tab:${budget!.id}`, "custom");
+        reportEntryKey++;
+        showForm("reports");
+      },
+    });
     const views = [
       ["planning", "Budget", false],
       ["categories", "Categories", disconnected],
@@ -591,7 +617,7 @@
       <button
         onclick={() => showForm("reports")}
         disabled={!!form || loading || !compatible}
-        >Dashboards and reports</button
+        >{t("Dashboards and reports")}</button
       >
       <button
         class={{ current: form === "settings" }}
@@ -739,7 +765,7 @@
           onclose={() => showForm(null)}
           onchanged={refreshAccounts}
         />{/key}
-    {:else if form === "reports" && budget}{#key budget.id}<Reports
+    {:else if form === "reports" && budget}{#key budget.id + reportEntryKey}<Reports
           budgetId={budget.id}
           {accounts}
           {disconnected}
@@ -781,6 +807,7 @@
         onclose={() => showForm(null)}
       />
     {:else if form === "import"}<ImportBudget
+        initialSource={importSource}
         oncreated={budgetCreated}
         oncancel={() => showForm(null)}
       />
@@ -796,9 +823,20 @@
             disabled={disconnected || !compatible}>{t("Restore backup")}</button
           >
           <button
-            onclick={() => showForm("import")}
+            onclick={() => {
+              importSource = "actual";
+              showForm("import");
+            }}
             disabled={disconnected || !compatible}
             >{t("Import Actual budget")}</button
+          >
+          <button
+            onclick={() => {
+              importSource = "ynab4";
+              showForm("import");
+            }}
+            disabled={disconnected || !compatible}
+            >{t("Import YNAB budget")}</button
           >
           <button
             class="primary"

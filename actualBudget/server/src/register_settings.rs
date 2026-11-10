@@ -398,7 +398,7 @@ pub fn imported_preference(key: &str) -> bool {
         .any(|prefix| key.starts_with(prefix))
 }
 pub fn enrich_legacy_imports(db: &Connection, only_budget: Option<&str>) -> Result<(), Error> {
-    let mut q=db.prepare("SELECT i.budget_id,s.original FROM imported_sources i JOIN staged_imports s ON s.id=i.import_id WHERE (?1 IS NULL OR i.budget_id=?1) AND NOT EXISTS(SELECT 1 FROM register_settings r WHERE r.budget_id=i.budget_id)")?;
+    let mut q=db.prepare("SELECT i.budget_id,s.original FROM imported_sources i JOIN staged_imports s ON s.id=i.import_id AND COALESCE(json_extract(s.report,'$.source_format'),'actual') NOT IN('ynab4','nynab') WHERE (?1 IS NULL OR i.budget_id=?1) AND NOT EXISTS(SELECT 1 FROM register_settings r WHERE r.budget_id=i.budget_id)")?;
     let sources = q
         .query_map([only_budget], |r| {
             Ok((r.get::<_, String>(0)?, r.get::<_, Vec<u8>>(1)?))

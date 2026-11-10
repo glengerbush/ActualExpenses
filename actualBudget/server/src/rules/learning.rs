@@ -65,6 +65,43 @@ pub fn manual(db: &Connection, b: &str, ids: &[String], clock: &str) -> Result<(
             changed.insert(id.clone());
         }
     }
+    learn(db, b, clock, candidates, changed, oldest)
+}
+/// A fresh YNAB budget supplies explicit historical categories, just as the
+/// baseline importer requests learning. Existing/native budget imports never call this.
+pub(crate) fn imported(db: &Connection, b: &str, clock: &str) -> Result<(), Error> {
+    if !enabled(db, b)? {
+        return Ok(());
+    }
+    let mut candidates = BTreeSet::new();
+    let mut changed = BTreeSet::new();
+    let mut oldest: Option<String> = None;
+    let mut query=db.prepare("SELECT id,date,payee_id FROM transactions WHERE budget_id=?1 AND tombstone=0 AND is_parent=0 AND payee_id IS NOT NULL AND category_id IS NOT NULL")?;
+    for row in query.query_map([b], |row| {
+        Ok((
+            row.get::<_, String>(0)?,
+            row.get::<_, String>(1)?,
+            row.get::<_, String>(2)?,
+        ))
+    })? {
+        let (id, date, payee) = row?;
+        oldest = Some(match oldest {
+            Some(old) => old.min(date),
+            None => date,
+        });
+        candidates.insert(payee);
+        changed.insert(id);
+    }
+    learn(db, b, clock, candidates, changed, oldest)
+}
+fn learn(
+    db: &Connection,
+    b: &str,
+    clock: &str,
+    candidates: BTreeSet<String>,
+    changed: BTreeSet<String>,
+    oldest: Option<String>,
+) -> Result<(), Error> {
     let Some(oldest) = oldest else { return Ok(()) };
     let start = NaiveDate::parse_from_str(&oldest, "%Y-%m-%d")
         .map_err(Error::internal)?
@@ -79,8 +116,16 @@ pub fn manual(db: &Connection, b: &str, ids: &[String], clock: &str) -> Result<(
         .collect::<Vec<_>>()
         .join(",");
     let mut args = vec![b.to_owned(), start, end];
-    args.extend(candidates.iter().cloned());
-    let mut query=db.prepare(&format!("SELECT t.id,t.payee_id,t.category_id FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id WHERE t.budget_id=?1 AND t.date>=?2 AND t.date<=?3 AND t.payee_id IN ({placeholders}) AND t.tombstone=0 AND t.is_parent=0 AND a.closed=0 AND p.learn_categories=1 ORDER BY t.date DESC,t.sort_order DESC,t.id DESC"))?;
+    let narrow = candidates.len() <= 500;
+    if narrow {
+        args.extend(candidates.iter().cloned());
+    }
+    let restriction = if narrow {
+        format!(" AND t.payee_id IN ({placeholders})")
+    } else {
+        String::new()
+    };
+    let mut query=db.prepare(&format!("SELECT t.id,t.payee_id,t.category_id FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id WHERE t.budget_id=?1 AND t.date>=?2 AND t.date<=?3 {restriction} AND t.tombstone=0 AND t.is_parent=0 AND a.closed=0 AND p.learn_categories=1 ORDER BY t.date DESC,t.sort_order DESC,t.id DESC"))?;
     let mut latest = BTreeMap::<String, Vec<(String, Option<String>)>>::new();
     for row in query.query_map(rusqlite::params_from_iter(args.iter()), |r| {
         Ok((
@@ -90,6 +135,9 @@ pub fn manual(db: &Connection, b: &str, ids: &[String], clock: &str) -> Result<(
         ))
     })? {
         let (id, p, c) = row?;
+        if !candidates.contains(&p) {
+            continue;
+        }
         let rows = latest.entry(p).or_default();
         if rows.len() < 5 {
             rows.push((id, c));

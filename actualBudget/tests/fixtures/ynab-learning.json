@@ -1,0 +1,77 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00.000Z",
+  "input_sha256": "673f9b1fe2ca265ba6cdfc40fd37aacf13ca026087aa3f2355dd632b52b111a9",
+  "unique_setter_effects": [
+    {
+      "payee": "Employer1",
+      "category": "Income/Income"
+    },
+    {
+      "payee": "Employer2",
+      "category": "Income/Income"
+    },
+    {
+      "payee": "Expense1",
+      "category": "Giving/Tithing"
+    }
+  ],
+  "effects": [
+    {
+      "payee": "Employer1",
+      "category": "Income/Income",
+      "amount": -100,
+      "notes": ""
+    },
+    {
+      "payee": "Employer2",
+      "category": "Income/Income",
+      "amount": -100,
+      "notes": ""
+    },
+    {
+      "payee": "Expense1",
+      "category": "Giving/Tithing",
+      "amount": -100,
+      "notes": ""
+    },
+    {
+      "payee": "Starting Balance",
+      "category": null,
+      "amount": -100,
+      "notes": ""
+    },
+    {
+      "payee": "Transfer : Account1 with Starting Balance",
+      "category": null,
+      "amount": -100,
+      "notes": ""
+    },
+    {
+      "payee": "Transfer : Account2 no Starting Balance",
+      "category": null,
+      "amount": -100,
+      "notes": ""
+    }
+  ],
+  "normalization": "Concurrent account import may generate repeated identical one-payee category setters. Full original exported rules remain in the genuine Actual ZIP. Only these proved-idempotent duplicate setters are collapsed for effective-rule comparison; read-only rules-run results are asserted exactly.",
+  "observed_rule_samples": [
+    {
+      "payee": "Expense1",
+      "category": "Giving/Tithing"
+    },
+    {
+      "payee": "Employer2",
+      "category": "Income/Income"
+    },
+    {
+      "payee": "Employer1",
+      "category": "Income/Income"
+    },
+    {
+      "payee": "Expense1",
+      "category": "Giving/Tithing"
+    }
+  ]
+}

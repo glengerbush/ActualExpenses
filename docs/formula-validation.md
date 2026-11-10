@@ -51,3 +51,15 @@ These are local feasibility observations, not a latency/power SLO or release
 benchmark. Production work uses ICU collation, not a lexical approximation;
 comparison text/work are bounded. Runtime dependencies and source assets remain
 under development and are excluded from this source-only review checkpoint.
+
+## Root source review
+
+2026-11-10:abe6be4 reviewed and composed as94e09c8. The adapter invokes the
+unchanged full production hook; lifecycle stubs merely capture completion/state.
+Actual query, budget, account and preference messages use the genuine engine;
+no native replacement or financial callback supplies expected values. Trusted
+module hashes, original report archive digest and source errors are preserved.
+Independent reproduction `/tmp/formula-root-source-check.log` PASS40. No source
+provenance finding remains. This corpus is a reviewed foundation, not complete41:
+tracking-mode budget queries and nonzero goal/carry observations still need a
+small append-only supplement, alongside runtime/UI/contracts/recovery evidence.

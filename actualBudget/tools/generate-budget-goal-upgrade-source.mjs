@@ -9,12 +9,14 @@ process.env.TZ='UTC';
 const require=createRequire(new URL('../../actualExpenses/tools/compatibility/package.json',import.meta.url)),api=require('@actual-app/api');
 assert.equal(JSON.parse(await readFile(require.resolve('@actual-app/api').replace(/dist\/index\.js$/,'package.json'),'utf8')).version,'26.10.0');
 const directory=await mkdtemp(tmpdir()+'/budget-goal-upgrade-'),check=process.argv.includes('--check');
-const archivePath=new URL('../tests/fixtures/budget-goal-upgrade-source.zip',import.meta.url),manifestPath=new URL('../tests/fixtures/budget-goal-upgrade-source.json',import.meta.url);
+const jpy=process.argv.includes('--jpy'),stem='budget-goal-upgrade-source'+(jpy?'-jpy':'');
+const archivePath=new URL('../tests/fixtures/'+stem+'.zip',import.meta.url),manifestPath=new URL('../tests/fixtures/'+stem+'.json',import.meta.url);
 try{
  const engine=await api.init({dataDir:directory}),send=(name,body)=>engine.send(name,body),ids={};
  const notes='Keep original description\n#template 72.99\n#goal 1000\n#cleanup source';
  await api.runImport('Goal cells before template support',async()=>{
   await send('preferences/save',{id:'budgetType',value:'envelope'});
+  if(jpy)await send('preferences/save',{id:'defaultCurrencyCode',value:'JPY'});
   ids.Checking=await api.createAccount({name:'Checking'},0);
   ids.Plans=await api.createCategoryGroup({name:'Plans',is_income:false});
   ids.Fixed=await api.createCategory({name:'Fixed',group_id:ids.Plans,is_income:false});
@@ -25,7 +27,7 @@ try{
  await send('budget/apply-goal-template',{month:'2026-11'});
  const cells={};
  for(const field of ['budget','goal','long-goal','leftover'])cells[field]=(await send('get-cell',{sheetName:'budget202611',name:field+'-'+ids.Fixed})).value;
- assert.deepEqual(cells,{budget:7299,goal:100000,'long-goal':1,leftover:7299});
+ assert.deepEqual(cells,jpy?{budget:73,goal:1000,'long-goal':1,leftover:73}:{budget:7299,goal:100000,'long-goal':1,leftover:7299});
  // This is an actual engine command, not a SQLite rewrite or synthetic schema.
  await send('budget/set-category-automations',{source:'notes',categoriesWithTemplates:[{id:ids.Fixed,templates:[],cleanup:[]}]});
  for(const [field,value] of Object.entries(cells))assert.equal((await send('get-cell',{sheetName:'budget202611',name:field+'-'+ids.Fixed})).value,value);

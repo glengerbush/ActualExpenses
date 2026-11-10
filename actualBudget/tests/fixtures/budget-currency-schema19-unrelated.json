@@ -1,0 +1,234 @@
+{
+  "name": "unrelated",
+  "schema_version": 19,
+  "source_commit": "94bd0c2",
+  "source_sha256": "57c55beb5a099398021fc564903dc91a059471fb0bf2aca5a74081702d0eedfe",
+  "metadata": {
+    "auto_due": 1794273014,
+    "backup_error": null,
+    "budget_type": "envelope",
+    "deleted": false,
+    "epoch": "061ab142c871c7a1fe47d8b4653a4c08",
+    "generation": 0,
+    "id": "d1479c79-cafa-4570-8693-4637a5ebbd78",
+    "last_auto": null,
+    "name": "Goal cells before template support"
+  },
+  "category_id": "a4f00697-bc6f-4a96-83ef-0eddb7aa258f",
+  "receipts": [
+    {
+      "body": {
+        "date_format": "yyyy-MM-dd"
+      },
+      "key": "currency-0",
+      "result": {
+        "data": {
+          "currency_code": "",
+          "currency_space": false,
+          "currency_symbol_position": "before",
+          "date_format": "yyyy-MM-dd",
+          "experimental": {
+            "actionTemplating": false,
+            "akahuBankSync": false,
+            "balanceForecastReport": false,
+            "budgetAnalysisReport": false,
+            "currency": false,
+            "customThemes": false,
+            "enableBanking": false,
+            "formulaMode": false,
+            "goalTemplatesEnabled": false,
+            "goalTemplatesUIEnabled": false,
+            "mobileCalculator": false,
+            "monteCarloReport": false,
+            "newSidebarUI": false,
+            "sankeyReport": false
+          },
+          "first_day_of_week": 0,
+          "hide_fraction": false,
+          "number_format": "comma-dot",
+          "revision": 1
+        }
+      }
+    }
+  ],
+  "preferences": {
+    "data": {
+      "currency_code": "",
+      "currency_space": false,
+      "currency_symbol_position": "before",
+      "date_format": "yyyy-MM-dd",
+      "experimental": {
+        "actionTemplating": false,
+        "akahuBankSync": false,
+        "balanceForecastReport": false,
+        "budgetAnalysisReport": false,
+        "currency": false,
+        "customThemes": false,
+        "enableBanking": false,
+        "formulaMode": false,
+        "goalTemplatesEnabled": false,
+        "goalTemplatesUIEnabled": false,
+        "mobileCalculator": false,
+        "monteCarloReport": false,
+        "newSidebarUI": false,
+        "sankeyReport": false
+      },
+      "first_day_of_week": 0,
+      "hide_fraction": false,
+      "number_format": "comma-dot",
+      "revision": 1
+    }
+  },
+  "plan": {
+    "data": {
+      "edit_clock": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+      "epoch": "061ab142c871c7a1fe47d8b4653a4c08",
+      "method": "envelope",
+      "months": {
+        "2026-11": {
+          "categories": [
+            {
+              "actual": 100000,
+              "balance": 0,
+              "budgeted": 0,
+              "carryover": false,
+              "goal": null,
+              "group_hidden": false,
+              "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+              "group_name": "Income",
+              "hidden": false,
+              "id": "fb6c0c11-e979-4e40-a184-e6faf0898205",
+              "is_income": true,
+              "long_goal": null,
+              "name": "Salary",
+              "notes": ""
+            },
+            {
+              "actual": 0,
+              "balance": 0,
+              "budgeted": 0,
+              "carryover": false,
+              "goal": null,
+              "group_hidden": false,
+              "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+              "group_name": "Income",
+              "hidden": false,
+              "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+              "is_income": true,
+              "long_goal": null,
+              "name": "Income",
+              "notes": ""
+            },
+            {
+              "actual": 0,
+              "balance": 0,
+              "budgeted": 0,
+              "carryover": false,
+              "goal": null,
+              "group_hidden": false,
+              "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+              "group_name": "Income",
+              "hidden": false,
+              "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+              "is_income": true,
+              "long_goal": null,
+              "name": "Starting Balances",
+              "notes": ""
+            },
+            {
+              "actual": 0,
+              "balance": 73,
+              "budgeted": 73,
+              "carryover": false,
+              "goal": "1000",
+              "group_hidden": false,
+              "group_id": "8fc8b45a-05df-4de0-b932-05df6226070d",
+              "group_name": "Plans",
+              "hidden": false,
+              "id": "a4f00697-bc6f-4a96-83ef-0eddb7aa258f",
+              "is_income": false,
+              "long_goal": "1",
+              "name": "Fixed",
+              "notes": "Keep original description\n#template 72.99\n#goal 1000\n#cleanup source"
+            }
+          ],
+          "month": "2026-11",
+          "notes": "",
+          "summary": {
+            "available_funds": 100000,
+            "buffered": 0,
+            "buffered_selected": 0,
+            "from_last_month": 0,
+            "last_month_overspent": 0,
+            "to_budget": 99927,
+            "total_budgeted": -73,
+            "total_income": 100000,
+            "total_leftover": 73,
+            "total_spent": 0
+          }
+        }
+      },
+      "snapshot": "c1061ab142c871c7a1fe47d8b4653a4c08000000000000000b"
+    }
+  },
+  "checkpoint": {
+    "data": {
+      "epoch": "061ab142c871c7a1fe47d8b4653a4c08",
+      "generation": 0,
+      "snapshot": "c1061ab142c871c7a1fe47d8b4653a4c08000000000000000b"
+    }
+  },
+  "register": {
+    "as_of": null,
+    "balances": {
+      "cleared": 100000,
+      "total": 100000,
+      "uncleared": 0
+    },
+    "data": [
+      {
+        "account_id": "89796544-cde7-47ec-87ac-d59fbede44a9",
+        "account_name": "Checking",
+        "amount": 100000,
+        "category_group_name": "Income",
+        "category_id": "fb6c0c11-e979-4e40-a184-e6faf0898205",
+        "category_is_income": true,
+        "category_name": "Salary",
+        "cleared": true,
+        "date": "2026-11-01",
+        "field_versions": {
+          "account_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "amount": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "cleared": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "date": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "notes": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "reconciled": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+        },
+        "id": "19200000-0000-4000-8000-000000000001",
+        "imported_payee": null,
+        "notes": "",
+        "payee_id": null,
+        "payee_name": null,
+        "reconciled": false,
+        "retained_payee_id": null,
+        "running_balance": 100000,
+        "sort_order": 1,
+        "starting_balance": false
+      }
+    ],
+    "filtered_balances": {
+      "cleared": 100000,
+      "total": 100000,
+      "uncleared": 0
+    },
+    "filtered_count": 1,
+    "next_offset": null,
+    "snapshot": "c1061ab142c871c7a1fe47d8b4653a4c08000000000000000b"
+  },
+  "expected_template_allocation": 73,
+  "archive_sha256": "021bcb23cff7535f734dca4d1527326941a5b1afb7b8789a9a832fb8e93fe9a4"
+}

@@ -258,3 +258,137 @@ fn genuine_schema19_native_backup_restores_goals_notes_and_schedule_with_new_epo
         persisted_schedules(f["schedules"].clone(), true)
     );
 }
+
+fn currency_upgrade_case(name: &str, native: bool) {
+    let stem = format!("budget-currency-schema19-{name}");
+    let f: Value = serde_json::from_slice(&fixture(&format!("{stem}.json"))).unwrap();
+    let data = tempfile::tempdir().unwrap();
+    if !native {
+        std::fs::write(
+            data.path().join("actualbudget.sqlite3"),
+            fixture(&format!("{stem}.sqlite3")),
+        )
+        .unwrap();
+    }
+    let server = Server::start(data);
+    let root = format!("/api/v1/budgets/{}", f["metadata"]["id"].as_str().unwrap());
+    if native {
+        let bytes = fixture(&format!("{stem}.zip"));
+        assert_eq!(format!("{:x}", Sha256::digest(&bytes)), f["archive_sha256"]);
+        let response = server
+            .client
+            .post(format!("{}/api/v1/restores", server.url))
+            .header("Content-Type", "application/zip")
+            .header("Idempotency-Key", "native-currency")
+            .body(bytes)
+            .send()
+            .unwrap();
+        assert_eq!(response.status(), 201, "{}", response.text().unwrap());
+        let stage: Value = response.json().unwrap();
+        let response = server
+            .client
+            .post(format!(
+                "{}{root}/restores/{}/activate",
+                server.url,
+                stage["data"]["id"].as_str().unwrap()
+            ))
+            .header("Idempotency-Key", "activate-currency")
+            .json(&json!({"confirm_name":f["metadata"]["name"]}))
+            .send()
+            .unwrap();
+        assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    }
+    assert_eq!(
+        server.get(&format!("{root}/preferences")),
+        f["preferences"],
+        "legacy current preferences survive"
+    );
+    if !native {
+        for receipt in f["receipts"].as_array().unwrap() {
+            let replay = server
+                .client
+                .patch(format!("{}{root}/preferences", server.url))
+                .header("Idempotency-Key", receipt["key"].as_str().unwrap())
+                .json(&receipt["body"])
+                .send()
+                .unwrap();
+            assert_eq!(replay.status(), 200);
+            assert_eq!(replay.json::<Value>().unwrap(), receipt["result"]);
+        }
+        assert_eq!(server.get(&format!("{root}/checkpoint")), f["checkpoint"]);
+    }
+    let register = server.get(&format!("{root}/transactions"));
+    let checkpoint = server.get(&format!("{root}/checkpoint"));
+    let body =
+        json!({"action":"overwrite","month":"2026-11","snapshot":checkpoint["data"]["snapshot"]});
+    let response = server
+        .client
+        .post(format!("{}{root}/budget/templates/commands", server.url))
+        .header("Idempotency-Key", "apply-current-currency")
+        .header(
+            "X-Actual-Budget-Epoch",
+            checkpoint["data"]["epoch"].as_str().unwrap(),
+        )
+        .json(&body)
+        .send()
+        .unwrap();
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let view = server.get(&format!("{root}/budget?month=2026-11"));
+    let row = view["data"]["months"]["2026-11"]["categories"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["id"] == f["category_id"])
+        .unwrap();
+    assert_eq!(
+        row["budgeted"], f["expected_template_allocation"],
+        "{name} native={native}: newer preference must outrank retained source currency"
+    );
+    assert_eq!(
+        row["goal"],
+        if f["expected_template_allocation"] == 73 {
+            "1000"
+        } else {
+            "100000"
+        }
+    );
+    let mut after = server.get(&format!("{root}/transactions"));
+    let mut before = register;
+    after.as_object_mut().unwrap().remove("snapshot");
+    before.as_object_mut().unwrap().remove("snapshot");
+    assert_eq!(after, before);
+}
+#[test]
+fn schema19_untouched_jpy_remains_calculation_currency() {
+    currency_upgrade_case("untouched", false)
+}
+#[test]
+fn schema19_later_usd_selection_overrides_original_jpy() {
+    currency_upgrade_case("usd", false)
+}
+#[test]
+fn schema19_later_currency_disable_overrides_original_jpy() {
+    currency_upgrade_case("disabled", false)
+}
+#[test]
+fn native19_untouched_jpy_remains_calculation_currency() {
+    currency_upgrade_case("untouched", true)
+}
+#[test]
+fn native19_later_usd_selection_overrides_original_jpy() {
+    currency_upgrade_case("usd", true)
+}
+#[test]
+fn native19_later_currency_disable_overrides_original_jpy() {
+    currency_upgrade_case("disabled", true)
+}
+
+#[test]
+fn schema19_unrelated_preference_keeps_original_jpy() {
+    currency_upgrade_case("unrelated", false)
+}
+
+#[test]
+fn native19_unrelated_preference_keeps_original_jpy() {
+    currency_upgrade_case("unrelated", true)
+}

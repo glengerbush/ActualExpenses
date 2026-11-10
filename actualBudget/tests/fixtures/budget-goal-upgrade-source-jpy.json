@@ -1,0 +1,18 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "ids": {
+    "Checking": "89796544-cde7-47ec-87ac-d59fbede44a9",
+    "Plans": "8fc8b45a-05df-4de0-b932-05df6226070d",
+    "Fixed": "a4f00697-bc6f-4a96-83ef-0eddb7aa258f",
+    "Salary": "fb6c0c11-e979-4e40-a184-e6faf0898205"
+  },
+  "notes": "Keep original description\n#template 72.99\n#goal 1000\n#cleanup source",
+  "cells": {
+    "budget": 73,
+    "goal": 1000,
+    "long-goal": 1,
+    "leftover": 73
+  },
+  "archive_sha256": "57c55beb5a099398021fc564903dc91a059471fb0bf2aca5a74081702d0eedfe"
+}

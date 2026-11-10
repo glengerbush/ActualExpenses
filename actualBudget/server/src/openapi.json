@@ -20688,6 +20688,16 @@
                         },
                         "deleted": {
                           "type": "boolean"
+                        },
+                        "template_currency": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "template_currency_review": {
+                          "type": "boolean",
+                          "description": "Legacy currency history needs an explicit choice in Settings before template calculations can run."
                         }
                       }
                     }

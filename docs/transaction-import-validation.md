@@ -1,6 +1,6 @@
-# Transaction imports — working evidence
+# Transaction imports — accepted evidence
 
-Tickets25/26 implementation is ready for consolidated review and integrated qualification; acceptance remains pending. Branch `codex/imports25-26` includes accepted main49 (`7c6a794`) and45. No release, push, version change or live deployment. Reviewed checkpoints include persistence `ce92da3`, shared writer `a7ff6e4`, parsers/options `78610a9`, source choice order `1972c73`, manual merge `3fcffd1`/`dcde5c4`, CSV `836fd2c`, format flows `1ba8a29`, and served contracts `38dfbd5`/`09132f7`.
+Tickets25/26 accepted locally on2026-11-10 after consolidated review and integrated qualification through `79ef888`. See [combined acceptance](import-report-integration-validation.md). Branch `codex/imports25-26` includes accepted main49 (`7c6a794`) and45. No release, push, version change or live deployment. Reviewed checkpoints include persistence `ce92da3`, shared writer `a7ff6e4`, parsers/options `78610a9`, source choice order `1972c73`, manual merge `3fcffd1`/`dcde5c4`, CSV `836fd2c`, format flows `1ba8a29`, served contracts `38dfbd5`/`09132f7`, and final UI/native through `133bb22`.
 
 ## Contract and ownership
 
@@ -60,13 +60,12 @@ SHA256 `fabd86650e86bbdab91e2796040d3e455ffef67e713721740f046694b80f6eed`.
 Fixtures were created by that binary through HTTP, then checked read-only for
 schema20/integrity/FKs. No database relabeling or direct financial writes.
 
-## Remaining acceptance gates
+## Completed acceptance gates
 
-- Consolidated Standards/Spec/Impeccable review of the completed interface/native/wiring delta and focused corrections, if any.
-- One final integrated HTTP/native/container qualification against the frozen composition. Reports owns schema22; integration must preserve both21/22 tables and archive enums. Reuse unchanged reviewed source and focused evidence.
+- Consolidated Standards/Spec/Impeccable review passed, including final interface/native/wiring corrections; no outstanding findings.
+- Integrated454 Rust tests,44 native API cases and63 container commands across recorded runs passed. Reports schema22 and importer21 registries/archive enums preserved. See combined acceptance for exact logs and the test-only concurrency correction.
 
-Do not mark25/26 done until their whole acceptance criteria pass. Further genuine
-source cases should answer concrete gaps, not expand into unrelated tickets.
+All25/26 acceptance criteria are reconciled against the evidence below and the combined qualification record.
 
 ## Current21 preservation join
 

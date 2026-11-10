@@ -1,9 +1,8 @@
-# Import and dashboard integration — in progress
+# Import and dashboard integration — accepted
 
-Development branch `codex/integrate-imports-reports`, current integration
-`8a49adb`: reviewed25/26 through `133bb22`,33 through `f817118`, and previously
-accepted49.34/custom reports are separate work. No main acceptance, release,
-push or live deployment claimed until the remaining qualification closes.
+Accepted locally on2026-11-10 through `79ef888`: reviewed25/26 through
+`133bb22`,33 through `f817118`, and previously accepted49.34/custom reports are
+separate work. No release, push, version change or live deployment.
 
 ## Review and merge
 
@@ -23,7 +22,7 @@ consumer and reporting API consumer pass on the combined runtime:
 `/tmp/import-report-merge-contract.log`,
 `/tmp/import-report-merge-reports-api.log`.
 
-## Qualification so far
+## Completed qualification
 
 - Full Rust run:454 passed,0 failed,0 ignored across36 targets,
   `/tmp/import-report-full-rust-final.log`. Initial run stopped at a stale
@@ -36,14 +35,32 @@ consumer and reporting API consumer pass on the combined runtime:
   exact receipts, companion money, duplication, original source field clocks,
   native22 layout round trip and genuine21 restore/epoch fences:
   `/tmp/import-report-reporting-native.log`.
-- Production container batch still running all63 commands with keep-going:
-  `/tmp/import-report-container.log`. Existing `concurrency-browser.mjs` saw
-  cancellation attempt count3 rather than2; diagnosis is isolated while the
-  remaining batch continues. No claim of a green container batch yet.
+- Production container batch:62/63 commands passed in
+  `/tmp/import-report-container.log`; the remaining concurrency browser command
+  passed separately on the same immutable image after test-only correction
+  `79ef888`, independently reviewed by root. This is coverage across recorded
+  runs, not an uninterrupted63/63 batch. A valid reachability wakeup retried a
+  saved cancellation after its lost acknowledgement; exact attempt count2 was
+  racy. Phase-based checks now require the lost-ACK barrier, repeated fenced
+  retry and terminal recovery, asserting unchanged body/key/HLC/epoch/owner on
+  every request. Delayed original409, no resurrection and exactly-once financial
+  counts remain checked. Minimal red/green and whole-file green logs:
+  `/tmp/concurrency-cancel-repro-red.log`,
+  `/tmp/concurrency-cancel-focused-green.log`,
+  `/tmp/concurrency-cancel-whole-green.log`.
 
-Exact image retained for scoped verification:
+Exact image used for scoped verification:
 `actualbudget-qualification:imports-reports-8a49adb`,
 SHA256 `0916cc06e931484de0bd77f28171d553693966e74453a894dceabb8b5a964799`,
 139213264 bytes, user `10001:10001`. All checks use disposable data/volumes.
-Remove the retained image alias after qualification. No unmeasured latency or
-power-efficiency claim; whole-system qualification remains ticket51.
+Disposable containers, volumes and image alias/image removed after qualification.
+Screenshots retained under `.scratch/qualification-imports-reports/`.
+No unmeasured latency or power-efficiency claim; whole-system qualification
+remains ticket51. No new Android UI/device/APK claim; unchanged device evidence
+is reused.
+
+Immutable schema22 executable preserved as
+`.scratch/actualbudget-schema22-8a49adb-server` (mode0555), SHA256
+`764c8b0cf48e61d8ca36376a94adf35dec1dd771ee97e79398fc5c3035eb94ff`.
+Server source and Cargo inputs verified unchanged from `8a49adb`; subsequent
+changes were tests, UI and records. Never relabel older fixtures as schema22.

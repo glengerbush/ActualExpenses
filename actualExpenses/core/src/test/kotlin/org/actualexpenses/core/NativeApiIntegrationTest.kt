@@ -2693,4 +2693,28 @@ class NativeApiIntegrationTest {
             )
         }
     }
+    @Test
+    fun `formula preserves source summary and companion state over plain HTTP`() {
+        Server().use { server ->
+            val fixtures = Path.of("../../actualBudget/tests/fixtures")
+            val source = JsonParser.parseString(Files.readString(fixtures.resolve("formula-saved-source.json"))).asJsonObject
+            val report = JsonParser.parseString(Files.readString(fixtures.resolve("reports-source-26.10.json"))).asJsonObject
+            val stage = server.upload(Files.readAllBytes(fixtures.resolve(source.getAsJsonObject("archive")["filename"].asString)))
+            if (stage["status"].asString == "ready")
+                server.post("/imports/${stage["id"].asString}/activate", "{}")
+            val root = "/budgets/${stage["budget_id"].asString}"
+            val account = report.getAsJsonObject("ids")["checking"].asString
+            val before = server.get("$root/companion?account_id=$account")
+            val meta = source.getAsJsonObject("widget").getAsJsonObject("meta")
+            val query = JsonObject().apply {
+                add("snapshot", server.get("$root/checkpoint").getAsJsonObject("data")["snapshot"])
+                addProperty("as_of", "2026-11-09")
+                addProperty("evaluated_at", "2026-11-09T12:00:00Z")
+                add("formula", meta["formula"])
+                add("queries", meta["queries"])
+            }
+            assertEquals(source["output"], server.post("$root/reports/formula", query.toString(), 200)["output"])
+            assertEquals(before, server.get("$root/companion?account_id=$account"))
+        }
+    }
 }

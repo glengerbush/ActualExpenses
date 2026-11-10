@@ -20,6 +20,7 @@
   } from "./reports";
   import { preferences } from "./preferences.svelte";
   import CrossoverFields from "./CrossoverFields.svelte";
+  import FormulaFields from "./FormulaFields.svelte";
   import SankeyFields from "./SankeyFields.svelte";
   import BudgetAnalysisFields from "./BudgetAnalysisFields.svelte";
   import ForecastFields from "./ForecastFields.svelte";
@@ -102,16 +103,23 @@
       preferences.hasUsableShared &&
       preferences.shared.experimental.sankeyReport,
   );
+  let formulaEnabled = $derived(
+    preferences.budgetId === budgetId &&
+      preferences.hasUsableShared &&
+      preferences.shared.experimental.formulaMode,
+  );
   let displayedWidgets = $derived(
-    tab === "forecast"
-      ? widgets.filter((w) => w.config.type === "balance-forecast-card")
-      : tab === "analysis"
-        ? widgets.filter((w) => w.config.type === "budget-analysis-card")
-        : tab === "crossover"
-          ? widgets.filter((w) => w.config.type === "crossover-card")
-          : tab === "sankey"
-            ? widgets.filter((w) => w.config.type === "sankey-card")
-            : widgets,
+    tab === "formula"
+      ? widgets.filter((w) => w.config.type === "formula-card")
+      : tab === "forecast"
+        ? widgets.filter((w) => w.config.type === "balance-forecast-card")
+        : tab === "analysis"
+          ? widgets.filter((w) => w.config.type === "budget-analysis-card")
+          : tab === "crossover"
+            ? widgets.filter((w) => w.config.type === "crossover-card")
+            : tab === "sankey"
+              ? widgets.filter((w) => w.config.type === "sankey-card")
+              : widgets,
   );
   let types = $derived([
     ["cash-flow-card", "Cash flow"],
@@ -122,6 +130,7 @@
     ["calendar-card", "Transaction calendar"],
     ["custom-report", "Saved custom report"],
     ["crossover-card", "Crossover Point"],
+    ...(formulaEnabled ? [["formula-card", "Formula"]] : []),
     ...(sankeyEnabled ? [["sankey-card", "Sankey"]] : []),
     ...(analysisEnabled ? [["budget-analysis-card", "Budget Analysis"]] : []),
     ...(forecastEnabled ? [["balance-forecast-card", "Balance forecast"]] : []),
@@ -480,6 +489,11 @@
       disabled={!!editor || busy}
       onclick={() => switchTab("custom")}>{t("Custom reports")}</button
     >
+    {#if formulaEnabled || tab === "formula"}<button
+        aria-pressed={tab === "formula"}
+        disabled={!!editor || busy}
+        onclick={() => switchTab("formula")}>{t("Formula")}</button
+      >{/if}
     {#if forecastEnabled || tab === "forecast"}<button
         aria-pressed={tab === "forecast"}
         disabled={!!editor || busy}
@@ -619,34 +633,39 @@
           ><button
             onclick={() =>
               newWidget(
-                tab === "forecast"
-                  ? "balance-forecast-card"
-                  : tab === "analysis"
-                    ? "budget-analysis-card"
-                    : tab === "crossover"
-                      ? "crossover-card"
-                      : tab === "sankey"
-                        ? "sankey-card"
-                        : "cash-flow-card",
+                tab === "formula"
+                  ? "formula-card"
+                  : tab === "forecast"
+                    ? "balance-forecast-card"
+                    : tab === "analysis"
+                      ? "budget-analysis-card"
+                      : tab === "crossover"
+                        ? "crossover-card"
+                        : tab === "sankey"
+                          ? "sankey-card"
+                          : "cash-flow-card",
               )}
             disabled={busy ||
               !!editor ||
               !!pending ||
               cached ||
               disconnected ||
+              (tab === "formula" && !formulaEnabled) ||
               (tab === "forecast" && !forecastEnabled) ||
               (tab === "analysis" && !analysisEnabled) ||
               (tab === "sankey" && !sankeyEnabled)}
             >{t(
-              tab === "forecast"
-                ? "New forecast"
-                : tab === "analysis"
-                  ? "New analysis"
-                  : tab === "crossover"
-                    ? "New crossover"
-                    : tab === "sankey"
-                      ? "New flow"
-                      : "Add widget",
+              tab === "formula"
+                ? "New formula"
+                : tab === "forecast"
+                  ? "New forecast"
+                  : tab === "analysis"
+                    ? "New analysis"
+                    : tab === "crossover"
+                      ? "New crossover"
+                      : tab === "sankey"
+                        ? "New flow"
+                        : "Add widget",
             )}</button
           >{/if}
       </div>
@@ -724,6 +743,17 @@
                   ><option value="right">{t("right")}</option></select
                 ></label
               >
+            {:else if editor.config.type === "formula-card"}<FormulaFields
+                {budgetId}
+                {accounts}
+                document={editor}
+                epoch={editorEpoch}
+                onchange={(patch) => {
+                  void change(() => {
+                    if (editor) editor.config.meta = { ...meta, ...patch };
+                  });
+                }}
+              />
             {:else if editor.config.type === "custom-report"}<label
                 >{t("Saved custom report")}<select
                   value={String(meta.id || "")}
@@ -940,7 +970,7 @@
                     ></label
                   >
                 </div>{/if}{/if}
-            {#if editor.config.type !== "markdown-card" && editor.config.type !== "crossover-card"}<ReportConditions
+            {#if !["markdown-card", "crossover-card", "formula-card"].includes(String(editor.config.type))}<ReportConditions
                 {budgetId}
                 {accounts}
                 sourceCategoryFilters={editor.config.type ===

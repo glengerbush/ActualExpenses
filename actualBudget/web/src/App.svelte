@@ -251,6 +251,21 @@
         showForm("reports");
       },
     });
+    if (
+      preferences.budgetId === budget!.id &&
+      preferences.hasUsableShared &&
+      preferences.shared.experimental.formulaMode
+    )
+      result.push({
+        id: "formula",
+        label: "Formula",
+        disabled: locked || !compatible,
+        run: async () => {
+          await writeValue(`view:reporting-tab:${budget!.id}`, "formula");
+          reportEntryKey++;
+          showForm("reports");
+        },
+      });
     const views = [
       ["planning", "Budget", false],
       ["categories", "Categories", disconnected],

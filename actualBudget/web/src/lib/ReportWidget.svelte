@@ -14,6 +14,7 @@
     type Projection,
   } from "./reports";
   import CrossoverWidget from "./CrossoverWidget.svelte";
+  import FormulaWidget from "./FormulaWidget.svelte";
   import SankeyWidget from "./SankeyWidget.svelte";
   import BudgetAnalysisWidget from "./BudgetAnalysisWidget.svelte";
   import ForecastWidget from "./ForecastWidget.svelte";
@@ -54,6 +55,7 @@
               "budget-analysis-card": t("Budget Analysis"),
               "sankey-card": t("Sankey"),
               "crossover-card": t("Crossover Point"),
+              "formula-card": t("Formula"),
               "markdown-card": t("Text"),
               "custom-report": String(
                 report?.config.name || t("Saved custom report"),
@@ -188,7 +190,13 @@
 
 <article data-testid="report-widget" aria-label={name}>
   <header>
-    <h3>{name}</h3>
+    <h3
+      class={type === "formula-card" && meta.showTitle === false
+        ? "sr-only"
+        : undefined}
+    >
+      {name}
+    </h3>
     <div class="actions">
       <button onclick={onedit} disabled={disconnected}
         >{t("Edit")} <span class="sr-only">{name}</span></button
@@ -229,6 +237,12 @@
       {disconnected}
     />
   {:else if type === "crossover-card"}<CrossoverWidget
+      {budgetId}
+      {document}
+      {epoch}
+      {disconnected}
+    />
+  {:else if type === "formula-card"}<FormulaWidget
       {budgetId}
       {document}
       {epoch}

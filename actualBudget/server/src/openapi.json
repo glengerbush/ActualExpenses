@@ -15736,7 +15736,7 @@
     },
     "/api/v1/budgets/{budget}/rules/apply": {
       "post": {
-        "description": "Re-evaluate selected saved rules on1–100 captured ledger rows. One atomic receipt/history group covers all rows, generated peers/payees and splits; one shared work budget. Reconciled graph members require explicit unlock and a fresh preview. Never trains category defaults.",
+        "description": "Re-evaluate selected saved rules on1\u2013100 captured ledger rows. One atomic receipt/history group covers all rows, generated peers/payees and splits; one shared work budget. Reconciled graph members require explicit unlock and a fresh preview. Never trains category defaults.",
         "parameters": [
           {
             "name": "budget",
@@ -16110,7 +16110,7 @@
     },
     "/api/v1/budgets/{budget}/rules/rename-payee": {
       "post": {
-        "description": "Union nonempty raw imported names into an existing pre-stage oneOf→payee setter, or create one. Canonical merged payee IDs are resolved. One original receipt/history action.",
+        "description": "Union nonempty raw imported names into an existing pre-stage oneOf\u2192payee setter, or create one. Canonical merged payee IDs are resolved. One original receipt/history action.",
         "parameters": [
           {
             "name": "budget",
@@ -17357,7 +17357,7 @@
     },
     "/api/v1/budgets/{budget}/schedules/{id}/occurrences": {
       "get": {
-        "description": "Read calendar occurrences and their durable outcomes without posting or advancing. Limit1–1000, optional inclusive from/through dates. Carry the returned snapshot and next_from for a consistent continuation.",
+        "description": "Read calendar occurrences and their durable outcomes without posting or advancing. Limit1\u20131000, optional inclusive from/through dates. Carry the returned snapshot and next_from for a consistent continuation.",
         "parameters": [
           {
             "name": "budget",
@@ -21374,7 +21374,7 @@
     },
     "/api/v1/budgets/{budget}/reports/sankey/drilldown": {
       "post": {
-        "description": "Snapshot-bound base/grouped flow contributions. Exact signed reconciliation, original amounts, linked net-transfer pairs, planned cells and derived budget context are distinct. Routing links refused. Count/offset bounded100000; limit1–200; response8MiB; stale snapshot/unsupported reconciliation conflicts explicit. Read-only; no complete-history browser response.",
+        "description": "Snapshot-bound base/grouped flow contributions. Exact signed reconciliation, original amounts, linked net-transfer pairs, planned cells and derived budget context are distinct. Routing links refused. Count/offset bounded100000; limit1\u2013200; response8MiB; stale snapshot/unsupported reconciliation conflicts explicit. Read-only; no complete-history browser response.",
         "parameters": [
           {
             "name": "budget",
@@ -22017,7 +22017,7 @@
     },
     "/api/v1/budgets/{budget}/transactions/batch": {
       "post": {
-        "summary": "Atomically apply1–100 existing-writer transaction commands",
+        "summary": "Atomically apply1\u2013100 existing-writer transaction commands",
         "description": "One ordered atomic command/receipt and optional owned undo. Existing financial writers preserve split/transfer/reconciliation and original per-field HLC guards. Any failure or losing field rolls back all; failed commands have no successful receipt. Distinct targets and one operation per connected graph; resolve inline refs first. Optional max_graph_members1..100000 bounds indexed discovery itself, refusing graph_limit rather than truncating. Conservative4MiB response bound. Stronger atomicity than SDK spreadsheet batching; not arbitrary callback execution. Original body/key/clock/epoch/owner stay unchanged for replay, lookup/cancel, restore and restart.",
         "parameters": [
           {
@@ -22309,6 +22309,116 @@
         "summary": "Read exact monthly budget analysis",
         "operationId": "postCrossoverProjection"
       }
+    },
+    "/api/v1/budgets/{budget}/reports/formula": {
+      "post": {
+        "description": "Read-only HyperFormula and Actual custom functions, without host code execution.64KiB request,8192 expression bytes,32 named queries,512 named values;64MiB heap,512KiB stack,2s execution, bounded SQL/prefetch work. Statistical expressions use floating point; financial inputs remain exact. Optional evaluated_at freezes the three passes at an RFC3339 wall clock with its supplied offset; otherwise current UTC. as_of independently selects report dates. Formula parse/type/runtime errors are returned as output.error; request/work bounds and stale snapshots return structured HTTP errors. No ledger, receipt or clock writes.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid input or bounded calculation failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Budget snapshot changed; refresh before evaluating",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Calculation failed without financial changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Formula result or calculation diagnostic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/FormulaProjection"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FormulaRequest"
+              }
+            }
+          }
+        },
+        "summary": "Evaluate a formula against a confirmed budget snapshot",
+        "operationId": "evaluateFormula"
+      }
     }
   },
   "components": {
@@ -22505,7 +22615,7 @@
             "type": "string",
             "format": "date",
             "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
-            "description": "Calendar date YYYY-MM-DD, year 0001–9999."
+            "description": "Calendar date YYYY-MM-DD, year 0001\u20139999."
           }
         },
         "required": [
@@ -26022,7 +26132,7 @@
             }
           }
         ],
-        "description": "Select 1–100 parent or child entries. Split selections are grouped before applying; final allocations must equal the parent. Duplicate parent+children produces one split using the first selected member destination ID. Child account/date/cleared changes require parent selected too. Notes modes apply per selected entry."
+        "description": "Select 1\u2013100 parent or child entries. Split selections are grouped before applying; final allocations must equal the parent. Duplicate parent+children produces one split using the first selected member destination ID. Child account/date/cleared changes require parent selected too. Notes modes apply per selected entry."
       },
       "HistoryNavigate": {
         "type": "object",
@@ -26271,7 +26381,7 @@
       "TransferProtectionToken": {
         "type": "string",
         "pattern": "^[0-9a-f]{64}$",
-        "description": "Captured fixed-size proof of complete connected live split/transfer membership, relationship edges and every member’s own reconciled flag/version, bound to this budget. Capture GET /transactions/{id}/splits; for linking include counterpart_id query parameter. Verify inside the receipt transaction with the original intent clock newer than every captured protection version. Immutable retries never refresh proof."
+        "description": "Captured fixed-size proof of complete connected live split/transfer membership, relationship edges and every member\u2019s own reconciled flag/version, bound to this budget. Capture GET /transactions/{id}/splits; for linking include counterpart_id query parameter. Verify inside the receipt transaction with the original intent clock newer than every captured protection version. Immutable retries never refresh proof."
       },
       "BudgetPlan": {
         "type": "object",
@@ -35584,6 +35694,147 @@
           "cache",
           "assumptions"
         ]
+      },
+      "FormulaQuery": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "conditions": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object"
+            }
+          },
+          "conditionsOp": {
+            "type": "string",
+            "enum": [
+              "and",
+              "or"
+            ]
+          },
+          "timeFrame": {
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        }
+      },
+      "FormulaRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "snapshot",
+          "as_of",
+          "formula"
+        ],
+        "properties": {
+          "snapshot": {
+            "type": "string",
+            "pattern": "^c1[0-9a-f]{48}$"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "evaluated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "formula": {
+            "type": "string",
+            "maxLength": 8192
+          },
+          "locale": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100
+          },
+          "queries": {
+            "type": "object",
+            "maxProperties": 32,
+            "propertyNames": {
+              "maxLength": 512
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FormulaQuery"
+            }
+          },
+          "named_expressions": {
+            "type": "object",
+            "maxProperties": 512,
+            "propertyNames": {
+              "maxLength": 100
+            },
+            "additionalProperties": {
+              "type": [
+                "string",
+                "number"
+              ]
+            }
+          }
+        }
+      },
+      "FormulaOutput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "result",
+          "error"
+        ],
+        "properties": {
+          "result": {
+            "type": [
+              "number",
+              "string",
+              "boolean",
+              "null"
+            ]
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "FormulaProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "output",
+          "snapshot",
+          "as_of",
+          "evaluated_at",
+          "locale"
+        ],
+        "properties": {
+          "output": {
+            "$ref": "#/components/schemas/FormulaOutput"
+          },
+          "snapshot": {
+            "type": "string",
+            "pattern": "^c1[0-9a-f]{48}$"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "evaluated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "locale": {
+            "type": "string"
+          }
+        }
       }
     }
   }

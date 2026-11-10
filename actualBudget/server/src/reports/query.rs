@@ -45,6 +45,15 @@ fn month_end(d: NaiveDate) -> NaiveDate {
 fn text<'a>(v: &'a Value, key: &str, default: &'a str) -> &'a str {
     v[key].as_str().unwrap_or(default)
 }
+fn truthy(value: &Value) -> bool {
+    match value {
+        Value::Null => false,
+        Value::Bool(value) => *value,
+        Value::String(value) => !value.is_empty(),
+        Value::Number(value) => value.as_f64().is_some_and(|value| value != 0.0),
+        _ => true,
+    }
+}
 fn predicate(
     db: &Connection,
     b: &str,
@@ -66,7 +75,7 @@ fn predicate(
         {
             return Err(Error::invalid("Invalid report condition"));
         }
-        if c.get("customName").is_some() {
+        if truthy(&c["customName"]) {
             continue;
         }
         let field = text(c, "field", "");

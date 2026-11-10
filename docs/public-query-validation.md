@@ -442,3 +442,22 @@ ordinary unlimited protection is untouched. Composed at278e51f: build PASS
 atomic refusal, graph bounds, undo/redo, original clock/receipt, portable restore,
 restart and cancellation consumer PASS `/tmp/bank-batch-compose-batch.log`.
 Final47 caller/contracts and representative workflows remain open.
+
+## Shared report named-condition correction
+
+Ticket37's genuine empty-name witness exposed inherited shared report behavior:
+query::predicate skipped any customName property, so empty/null/false/zero names
+silently removed actual filters. Actual forecast-filters.ts:52 also uses JS
+truthiness. The existing analysis truthiness helper is now shared by predicate,
+analysis and forecast preprocessing; genuine truthy names remain skipped. Raw
+ActualQL does not use report annotations and remains strict/unchanged.
+
+Eight new genuine custom spreadsheet observations use the existing reviewed
+report archive and unchanged pinned helper/AQL. Producer mode
+`generate-custom-reports-source.mjs --named [--check]` writes a separate fixture;
+all original report fixtures remain untouched. Public red
+/tmp/report-named-http-red.log reproduced four falsy failures; all eight full
+source outputs now pass /tmp/report-named-http-green.log with unchanged financial
+rows/checkpoint. Independent source check /tmp/custom-report-named-source-check.log
+and binClippy /tmp/report-named-clippy.log PASS. This is the bounded shared
+compatibility correction requested during47, not a fresh whole report audit.

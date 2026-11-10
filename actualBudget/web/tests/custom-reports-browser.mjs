@@ -84,6 +84,102 @@ try {
     "Saved category history",
   );
   await expect(result).toContainText("60.00");
+  const savedBeforeLanguage = (
+    await api(`/budgets/${budget}/reporting`)
+  ).data.documents.find((d) => d.kind === "custom_report" && !d.tombstone);
+  await page
+    .getByRole("button", { name: "Close reports", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click(); // Fault injection: conflicting downloaded keys must fail visibly, not overwrite a message.
+  await context.route("**/de-*.json", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        "collision.key": "first",
+        collision: { key: "second" },
+      }),
+    }),
+  );
+  await page.locator("#language").selectOption("de");
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Language preference is saved" }),
+  ).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await context.unroute("**/de-*.json");
+  await page.getByRole("button", { name: "Retry", exact: true }).click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "de");
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Dashboards and reports", exact: true })
+    .click();
+  const germanMode = page.getByRole("combobox", {
+      name: "Balance mode",
+      exact: true,
+    }),
+    germanInterval = page.getByRole("combobox", {
+      name: "Report interval",
+      exact: true,
+    }),
+    germanGroup = page.getByRole("combobox", {
+      name: "Group report by",
+      exact: true,
+    });
+  await expect(
+    germanMode.getByRole("option", { name: "Auszahlung", exact: true }),
+  ).toHaveAttribute("value", "Payment");
+  await expect(
+    germanMode.getByRole("option", { name: "Nettoauszahlung", exact: true }),
+  ).toHaveAttribute("value", "Net Payment");
+  await expect(germanMode).toHaveValue("Payment");
+  await expect(
+    germanInterval.getByRole("option", { name: "Monatlich", exact: true }),
+  ).toHaveAttribute("value", "Monthly");
+  await expect(germanInterval).toHaveValue("Monthly");
+  await expect(
+    germanGroup.getByRole("option", { name: "Kategorie", exact: true }),
+  ).toHaveAttribute("value", "Category");
+  await expect(
+    germanGroup.getByRole("option", { name: "Konto", exact: true }),
+  ).toHaveAttribute("value", "Account");
+  await germanGroup.selectOption({ label: "Konto" });
+  await expect(germanGroup).toHaveValue("Account");
+  await germanGroup.selectOption({ label: "Kategorie" });
+  await page
+    .getByRole("button", { name: "Preview report", exact: true })
+    .click();
+  await expect(result).toContainText("60.00");
+  await expect(page.getByLabel("Report name", { exact: true })).toHaveValue(
+    "Saved category history",
+  );
+  await page.getByRole("button", { name: "Save report", exact: true }).click();
+  await expect(page.getByLabel("Report name", { exact: true })).toBeEnabled();
+  const savedAfterLanguage = (
+    await api(`/budgets/${budget}/reporting`)
+  ).data.documents.find((d) => d.id === savedBeforeLanguage.id);
+  expect(savedAfterLanguage.config).toEqual(savedBeforeLanguage.config);
+  await mkdir(new URL("../artifacts/", import.meta.url), { recursive: true });
+  await page.screenshot({
+    path: new URL("../artifacts/custom-reports-german.png", import.meta.url)
+      .pathname,
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", { name: "Close reports", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Einstellungen", exact: true })
+    .click();
+  await page.locator("#language").selectOption("en");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Dashboards and reports", exact: true })
+    .click();
+  await expect(result).toContainText("60.00");
+  console.log(
+    "PASS German shipped report labels preserve API option values, user report name, saved config and60.00 result",
+  );
   await page.getByText("Exact values", { exact: true }).click();
   await expect(result.getByRole("row", { name: /food.*60.00/ })).toBeVisible();
   await page

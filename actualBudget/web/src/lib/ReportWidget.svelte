@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { onMount } from "svelte";
   import { errorMessage } from "./api";
   import { preferences } from "./preferences.svelte";
@@ -38,14 +39,14 @@
         meta.name ||
           (
             {
-              "cash-flow-card": "Cash flow",
-              "net-worth-card": "Net worth",
-              "spending-card": "Spending analysis",
-              "summary-card": "Summary",
-              "calendar-card": "Transaction calendar",
-              "markdown-card": "Text",
+              "cash-flow-card": t("Cash flow"),
+              "net-worth-card": t("Net worth"),
+              "spending-card": t("Spending analysis"),
+              "summary-card": t("Summary"),
+              "calendar-card": t("Transaction calendar"),
+              "markdown-card": t("Text"),
               "custom-report": String(
-                report?.config.name || "Saved custom report",
+                report?.config.name || t("Saved custom report"),
               ),
             } as Record<string, string>
           )[type] ||
@@ -180,15 +181,15 @@
     <h3>{name}</h3>
     <div class="actions">
       <button onclick={onedit} disabled={disconnected}
-        >Edit <span class="sr-only">{name}</span></button
+        >{t("Edit")} <span class="sr-only">{name}</span></button
       ><button onclick={onremove} disabled={disconnected}
-        >Remove <span class="sr-only">{name}</span></button
+        >{t("Remove")} <span class="sr-only">{name}</span></button
       >
     </div>
   </header>
   {#if type === "custom-report" && report}<button
       onclick={() => onopenreport(report!.id)}
-      disabled={disconnected}>Open saved report</button
+      disabled={disconnected}>{t("Open saved report")}</button
     >{/if}
   {#if type === "markdown-card"}<div
       style:text-align={["left", "center", "right"].includes(
@@ -200,22 +201,23 @@
       <MarkdownNotes text={String(meta.content || "")} />
     </div>
   {:else if !kinds[type]}<p>
-      This widget’s settings are preserved. Its report type is not available in
-      this version.
+      {t(
+        "This widget’s settings are preserved. Its report type is not available in this version.",
+      )}
     </p>
   {:else}<p class="muted">
       {projection?.basis === "budget_allocations"
-        ? "Planned budget allocations"
-        : "Recorded entries"} · {#if cached}Cached view ·
+        ? t("Planned budget allocations")
+        : t("Recorded entries")} · {#if cached}{t("Cached view ·")}
       {/if}{query?.as_of || localDay()}
     </p>
-    {#if busy}<p role="status">Loading report…</p>{/if}{#if error}<p
+    {#if busy}<p role="status">{t("Loading report…")}</p>{/if}{#if error}<p
         role="alert"
       >
-        {error}
+        {t(error)}
       </p>
       <button onclick={load} disabled={busy || disconnected}
-        >Refresh report</button
+        >{t("Refresh report")}</button
       >{/if}{#if query && projection}{#key projection.snapshot + JSON.stringify(query)}<ReportResult
           {budgetId}
           {query}

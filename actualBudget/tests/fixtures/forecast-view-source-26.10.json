@@ -1,0 +1,2370 @@
+{
+  "oracle": "Whole26.10 forecast handler and unchanged balanceForecastChartData.ts",
+  "clock": "2026-11-09T12:00:00Z",
+  "base_sha256": "a66023467b5224dd21bc89fd0eba7e9ec9e0e7768ff9609a256b9cbace7d2c38",
+  "source_files": {
+    "packages/desktop-client/src/components/reports/reports/balanceForecastChartData.ts": "8dba9249ac4b37cf0bd138e8ed135033cc3f2a6de9d81eec1c590390fd31b1d5",
+    "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+    "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153"
+  },
+  "view": {
+    "options": {
+      "startDate": "2026-11-01",
+      "endDate": "2026-11-30",
+      "accountIds": [
+        "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85"
+      ],
+      "source": "schedules",
+      "includeAccountlessSchedules": false,
+      "viewStart": "2026-11-15",
+      "viewEnd": "2026-11-16"
+    },
+    "result": {
+      "dataPoints": [
+        {
+          "date": "2026-11-01",
+          "balance": 19000,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-01",
+          "balance": 5000,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-02",
+          "balance": 17800,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-02",
+          "balance": 5000,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-03",
+          "balance": 18000,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-03",
+          "balance": 5000,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-04",
+          "balance": 17700,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-04",
+          "balance": 5000,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-05",
+          "balance": 17000,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-05",
+          "balance": 5000,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-06",
+          "balance": 16600,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-06",
+          "balance": 5000,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-07",
+          "balance": 15100,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-07",
+          "balance": 5000,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-08",
+          "balance": 10600,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-08",
+          "balance": 5000,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-09",
+          "balance": 10500,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-09",
+          "balance": 5000,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-10",
+          "balance": 10400,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-10",
+          "balance": 5000,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-11",
+          "balance": 10300,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-11",
+          "balance": 5000,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-12",
+          "balance": 9900,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            },
+            {
+              "amount": -300,
+              "payee": "savings",
+              "scheduleId": "35350000-0000-4000-8000-000000000002",
+              "scheduleName": "Forecast move"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-12",
+          "balance": 5300,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": [
+            {
+              "amount": 300,
+              "payee": "checking",
+              "scheduleId": "35350000-0000-4000-8000-000000000002",
+              "scheduleName": "Forecast move"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-13",
+          "balance": 9700,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-13",
+          "balance": 5300,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-14",
+          "balance": 9600,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-14",
+          "balance": 5300,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-15",
+          "balance": 9250,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            },
+            {
+              "amount": -250,
+              "payee": "Forecast controlled",
+              "scheduleId": "35350000-0000-4000-8000-000000000005",
+              "scheduleName": "Rule-adjusted forecast"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-15",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": [
+            {
+              "amount": 101,
+              "payee": "Employer",
+              "scheduleId": "35350000-0000-4000-8000-000000000006",
+              "scheduleName": "Positive range"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-16",
+          "balance": 9110,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-16",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-17",
+          "balance": 9010,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-17",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-18",
+          "balance": 8910,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-18",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-19",
+          "balance": 8810,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-19",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-20",
+          "balance": 7910,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-20",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-21",
+          "balance": 7710,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            },
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000004",
+              "scheduleName": "Already paid range"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-21",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-22",
+          "balance": 7610,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-22",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-23",
+          "balance": 7510,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-23",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-24",
+          "balance": 7410,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-24",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-25",
+          "balance": 7310,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-25",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-26",
+          "balance": 7210,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-26",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-27",
+          "balance": 7110,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-27",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-28",
+          "balance": 6910,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            },
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000004",
+              "scheduleName": "Already paid range"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-28",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-29",
+          "balance": 6810,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-29",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        },
+        {
+          "date": "2026-11-30",
+          "balance": 6710,
+          "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "accountName": "checking",
+          "transactions": [
+            {
+              "amount": -100,
+              "payee": "Market",
+              "scheduleId": "35350000-0000-4000-8000-000000000001",
+              "scheduleName": "Daily forecast bill"
+            }
+          ]
+        },
+        {
+          "date": "2026-11-30",
+          "balance": 5401,
+          "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "accountName": "savings",
+          "transactions": []
+        }
+      ],
+      "lowestBalance": {
+        "date": "2026-11-30",
+        "balance": 12111,
+        "accountId": "",
+        "accountName": ""
+      },
+      "forecastStartDate": "2026-11-01",
+      "forecastEndDate": "2026-11-30"
+    },
+    "views": {
+      "Daily": {
+        "chart": [
+          {
+            "date": "2026-11-15",
+            "balance": 14651
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 14511
+          }
+        ],
+        "scheduled_occurrence_count": 4,
+        "lowest_displayed": {
+          "date": "2026-11-16",
+          "balance": 14511
+        }
+      },
+      "Monthly": {
+        "chart": [
+          {
+            "date": "2026-11",
+            "balance": 12111
+          }
+        ],
+        "scheduled_occurrence_count": 27,
+        "lowest_displayed": {
+          "date": "2026-11",
+          "balance": 12111
+        }
+      }
+    }
+  },
+  "group_plan": {
+    "mutation": {
+      "month": "2027-01",
+      "category": "95610153-0d9b-4abd-b817-bdc32291a737",
+      "amount": 10000
+    },
+    "options": {
+      "startDate": "2027-01-01",
+      "endDate": "2027-01-31",
+      "source": "tracking-budget"
+    },
+    "expected": {
+      "dataPoints": [
+        {
+          "date": "2027-01-31",
+          "balance": 8660,
+          "accountId": "tracking-budget",
+          "accountName": "Tracking Budget",
+          "transactions": []
+        }
+      ],
+      "lowestBalance": {
+        "date": "2027-01-31",
+        "balance": 8660,
+        "accountId": "tracking-budget",
+        "accountName": "Tracking Budget"
+      },
+      "forecastStartDate": "2027-01-01",
+      "forecastEndDate": "2027-01-31"
+    }
+  },
+  "account_mutation": {
+    "id": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+    "name": "Checking Mixed %?"
+  },
+  "rule_mutation": {
+    "stage": "post",
+    "conditionsOp": "and",
+    "conditions": [
+      {
+        "field": "amount",
+        "op": "is",
+        "value": -100
+      }
+    ],
+    "actions": [
+      {
+        "op": "set",
+        "field": "notes",
+        "value": "Literal ? 25% \\%"
+      }
+    ]
+  },
+  "account_cases": [
+    {
+      "options": {
+        "startDate": "2026-11-09",
+        "endDate": "2026-11-16",
+        "source": "schedules",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "matches",
+            "value": "^checking"
+          }
+        ],
+        "conditionsOp": "and"
+      },
+      "expected": {
+        "dataPoints": [
+          {
+            "date": "2026-11-09",
+            "balance": 0,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 0,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 0,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 0,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 0,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 0,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 0,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 0,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          }
+        ],
+        "lowestBalance": {
+          "date": "2026-11-09",
+          "balance": 0,
+          "accountId": "",
+          "accountName": ""
+        },
+        "forecastStartDate": "2026-11-09",
+        "forecastEndDate": "2026-11-16"
+      }
+    },
+    {
+      "options": {
+        "startDate": "2026-11-09",
+        "endDate": "2026-11-16",
+        "source": "schedules",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "matches",
+            "value": "^Checking"
+          }
+        ],
+        "conditionsOp": "and"
+      },
+      "expected": {
+        "dataPoints": [],
+        "lowestBalance": {
+          "date": "2026-11-09",
+          "balance": 0,
+          "accountId": "",
+          "accountName": ""
+        },
+        "forecastStartDate": "2026-11-09",
+        "forecastEndDate": "2026-11-16"
+      }
+    },
+    {
+      "options": {
+        "startDate": "2026-11-09",
+        "endDate": "2026-11-16",
+        "source": "schedules",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "contains",
+            "value": "%"
+          }
+        ],
+        "conditionsOp": "and"
+      },
+      "expected": {
+        "dataPoints": [
+          {
+            "date": "2026-11-09",
+            "balance": 10500,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 10400,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 10300,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 9900,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              },
+              {
+                "amount": -300,
+                "payee": "savings",
+                "scheduleId": "35350000-0000-4000-8000-000000000002",
+                "scheduleName": "Forecast move"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 9700,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 9600,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 9250,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              },
+              {
+                "amount": -250,
+                "payee": "Forecast controlled",
+                "scheduleId": "35350000-0000-4000-8000-000000000005",
+                "scheduleName": "Rule-adjusted forecast"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 9110,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          }
+        ],
+        "lowestBalance": {
+          "date": "2026-11-16",
+          "balance": 9110,
+          "accountId": "",
+          "accountName": ""
+        },
+        "forecastStartDate": "2026-11-09",
+        "forecastEndDate": "2026-11-16"
+      }
+    },
+    {
+      "options": {
+        "startDate": "2026-11-09",
+        "endDate": "2026-11-16",
+        "source": "schedules",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "contains",
+            "value": "?"
+          }
+        ],
+        "conditionsOp": "and"
+      },
+      "expected": {
+        "dataPoints": [
+          {
+            "date": "2026-11-09",
+            "balance": 10500,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 10400,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 10300,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 9900,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              },
+              {
+                "amount": -300,
+                "payee": "savings",
+                "scheduleId": "35350000-0000-4000-8000-000000000002",
+                "scheduleName": "Forecast move"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 9700,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 9600,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 9250,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              },
+              {
+                "amount": -250,
+                "payee": "Forecast controlled",
+                "scheduleId": "35350000-0000-4000-8000-000000000005",
+                "scheduleName": "Rule-adjusted forecast"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 9110,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          }
+        ],
+        "lowestBalance": {
+          "date": "2026-11-16",
+          "balance": 9110,
+          "accountId": "",
+          "accountName": ""
+        },
+        "forecastStartDate": "2026-11-09",
+        "forecastEndDate": "2026-11-16"
+      }
+    },
+    {
+      "options": {
+        "startDate": "2026-11-09",
+        "endDate": "2026-11-16",
+        "source": "schedules",
+        "conditions": [
+          {
+            "field": "notes",
+            "op": "contains",
+            "value": "?"
+          }
+        ],
+        "conditionsOp": "and"
+      },
+      "expected": {
+        "dataPoints": [
+          {
+            "date": "2026-11-09",
+            "balance": -5700,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-09",
+            "balance": 1600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-09",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-09",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-10",
+            "balance": -5800,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 1600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-11",
+            "balance": -5900,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 1600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-12",
+            "balance": -6000,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 1600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-13",
+            "balance": -6100,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 1600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-14",
+            "balance": -6300,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              },
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000004",
+                "scheduleName": "Already paid range"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 1600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-15",
+            "balance": -6400,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 1600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-16",
+            "balance": -6500,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 1600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          }
+        ],
+        "lowestBalance": {
+          "date": "2026-11-16",
+          "balance": -4900,
+          "accountId": "",
+          "accountName": ""
+        },
+        "forecastStartDate": "2026-11-09",
+        "forecastEndDate": "2026-11-16"
+      }
+    },
+    {
+      "options": {
+        "startDate": "2026-11-09",
+        "endDate": "2026-11-16",
+        "source": "schedules",
+        "conditions": [
+          {
+            "field": "notes",
+            "op": "contains",
+            "value": "\\%"
+          }
+        ],
+        "conditionsOp": "and"
+      },
+      "expected": {
+        "dataPoints": [
+          {
+            "date": "2026-11-09",
+            "balance": -100,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-09",
+            "balance": 0,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-09",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-09",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-10",
+            "balance": -200,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 0,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-11",
+            "balance": -300,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 0,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-12",
+            "balance": -400,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 0,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-13",
+            "balance": -500,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 0,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-14",
+            "balance": -700,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              },
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000004",
+                "scheduleName": "Already paid range"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 0,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-15",
+            "balance": -800,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 0,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-16",
+            "balance": -900,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 0,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          }
+        ],
+        "lowestBalance": {
+          "date": "2026-11-16",
+          "balance": -900,
+          "accountId": "",
+          "accountName": ""
+        },
+        "forecastStartDate": "2026-11-09",
+        "forecastEndDate": "2026-11-16"
+      }
+    },
+    {
+      "options": {
+        "startDate": "2026-11-09",
+        "endDate": "2026-11-16",
+        "source": "schedules",
+        "conditions": [
+          {
+            "field": "payee",
+            "op": "contains",
+            "value": "?"
+          }
+        ],
+        "conditionsOp": "and"
+      },
+      "expected": {
+        "dataPoints": [
+          {
+            "date": "2026-11-09",
+            "balance": 10900,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-09",
+            "balance": 101600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-09",
+            "balance": 5000,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-09",
+            "balance": 2000,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 10900,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 101600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 5000,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 2000,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 10900,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 101600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 5000,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 2000,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 10900,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 101600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 5300,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": [
+              {
+                "amount": 300,
+                "payee": "Checking Mixed %?",
+                "scheduleId": "35350000-0000-4000-8000-000000000002",
+                "scheduleName": "Forecast move"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 2000,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 10800,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 101600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 5300,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 2000,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 10800,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 101600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 5300,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 2000,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 10800,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 101600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 5300,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 2000,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 10760,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 101600,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 5300,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 2000,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          }
+        ],
+        "lowestBalance": {
+          "date": "2026-11-09",
+          "balance": 119500,
+          "accountId": "",
+          "accountName": ""
+        },
+        "forecastStartDate": "2026-11-09",
+        "forecastEndDate": "2026-11-16"
+      }
+    },
+    {
+      "options": {
+        "startDate": "2026-11-09",
+        "endDate": "2026-11-16",
+        "source": "schedules",
+        "conditions": [
+          {
+            "field": "category",
+            "op": "is",
+            "value": null
+          }
+        ],
+        "conditionsOp": "and"
+      },
+      "expected": {
+        "dataPoints": [
+          {
+            "date": "2026-11-09",
+            "balance": -400,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-09",
+            "balance": 99100,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-09",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-09",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-10",
+            "balance": -500,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 99100,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-10",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-11",
+            "balance": -600,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 99100,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-11",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-12",
+            "balance": -700,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 99100,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-12",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-13",
+            "balance": -900,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 99100,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-13",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-14",
+            "balance": -1000,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 99100,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 0,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-14",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-15",
+            "balance": -1100,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 99100,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 101,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": [
+              {
+                "amount": 101,
+                "payee": "Employer",
+                "scheduleId": "35350000-0000-4000-8000-000000000006",
+                "scheduleName": "Positive range"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-15",
+            "balance": 0,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-16",
+            "balance": -1240,
+            "accountId": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "accountName": "Checking Mixed %?",
+            "transactions": [
+              {
+                "amount": -100,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000001",
+                "scheduleName": "Daily forecast bill"
+              }
+            ]
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 99100,
+            "accountId": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+            "accountName": "brokerage",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-16",
+            "balance": 101,
+            "accountId": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+            "accountName": "savings",
+            "transactions": []
+          },
+          {
+            "date": "2026-11-16",
+            "balance": -70,
+            "accountId": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+            "accountName": "closed",
+            "transactions": [
+              {
+                "amount": -70,
+                "payee": "Market",
+                "scheduleId": "35350000-0000-4000-8000-000000000007",
+                "scheduleName": "Closed account estimate"
+              }
+            ]
+          }
+        ],
+        "lowestBalance": {
+          "date": "2026-11-16",
+          "balance": 97891,
+          "accountId": "",
+          "accountName": ""
+        },
+        "forecastStartDate": "2026-11-09",
+        "forecastEndDate": "2026-11-16"
+      }
+    },
+    {
+      "options": {
+        "startDate": "1700-01-01",
+        "endDate": "2300-01-01",
+        "source": "schedules",
+        "accountIds": []
+      },
+      "expected": {
+        "dataPoints": [],
+        "lowestBalance": {
+          "date": "1700-01-01",
+          "balance": 0,
+          "accountId": "",
+          "accountName": ""
+        },
+        "forecastStartDate": "1700-01-01",
+        "forecastEndDate": "2300-01-01"
+      }
+    }
+  ]
+}

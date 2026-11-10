@@ -350,7 +350,7 @@ fn date_match(date: &str, op: &str, values: &mut Vec<SqlValue>) -> Result<String
 }
 // Actual 26.10 unicodeLike: unanchored, case-insensitive, % and ? wildcards;
 // underscore is literal and backslash escapes %, ? and backslash only.
-fn like_regex(pattern: &str) -> String {
+pub(crate) fn like_regex(pattern: &str) -> String {
     let mut result = String::new();
     let mut chars = pattern.chars().peekable();
     while let Some(ch) = chars.next() {
@@ -488,7 +488,10 @@ impl Query {
 fn canonical_query(db: &Connection, budget: &str, query: &Query) -> Result<Query, Error> {
     let mut query = query.clone();
     for condition in &mut query.filter.conditions {
-        if !["payee", "category"].contains(&condition.field.as_str()) {
+        // Category predicates compare literal identities, including retired IDs.
+        // Resolving mutation replacements here would broaden null predicates or
+        // silently retarget imported saved filters to a different category.
+        if condition.field != "payee" {
             continue;
         }
         let values: Vec<&mut Value> = match &mut condition.value {
@@ -497,22 +500,13 @@ fn canonical_query(db: &Connection, budget: &str, query: &Query) -> Result<Query
         };
         for value in values {
             if let Some(id) = value.as_str() {
-                let table = if condition.field == "payee" {
-                    "payees"
-                } else {
-                    "categories"
-                };
                 let exists: bool = db.query_row(
-                    &format!("SELECT EXISTS(SELECT 1 FROM {table} WHERE budget_id=?1 AND id=?2)"),
+                    "SELECT EXISTS(SELECT 1 FROM payees WHERE budget_id=?1 AND id=?2)",
                     rusqlite::params![budget, id],
                     |r| r.get(0),
                 )?;
                 if exists {
-                    *value = if condition.field == "payee" {
-                        json!(crate::payees_tags::canonical(db, budget, id)?)
-                    } else {
-                        json!(crate::categories::resolve(db, budget, Some(id.into()))?)
-                    };
+                    *value = json!(crate::payees_tags::canonical(db, budget, id)?);
                 }
             }
         }

@@ -1,0 +1,1145 @@
+{
+  "oracle": "Unchanged @actual-app/api26.10.0 registered bank handlers; loopback sync-server response stub only",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "api_bundle_sha256": "fdfed936dac6ba6dc411bac27f94237a90c8cb0ea047a5d9d0d8a5d21ea9aa56",
+  "source_files": {
+    "packages/loot-core/src/server/accounts/sync.ts": "5561e484d09691308640864ece5e3c3ec07365d68bb0ed4e08f01e18ed364a0f",
+    "packages/loot-core/src/server/accounts/app.ts": "fe9e1d2150e63bd6f55443e38ecc4e2a0a2e708eec3aa631dd922784258ebc70",
+    "packages/loot-core/src/server/accounts/link.ts": "25448812ac1c1caf896df782c2e585c95d0002019985b42ae833391230887f3f",
+    "packages/loot-core/src/server/util/custom-sync-mapping.ts": "a0b3da04d1c732c3299dbb386c90e73aa71a02dc6b5984775eded82fa6e3c235",
+    "packages/loot-core/src/server/accounts/payees.ts": "81178670a00320653fce0205d06f1d3a6f7b4062ce656dbb4477c42931e84b7d"
+  },
+  "scope": "Bounded whole-source first-link edge observations; original six observations unchanged. Source divergences and original renamed reference identities are retained.",
+  "cases": [
+    {
+      "id": "first-sync-imports-disabled",
+      "input": {
+        "id": "first-sync-imports-disabled",
+        "empty": true,
+        "preferences": {
+          "sync-import-transactions": "false"
+        },
+        "rounds": [
+          [
+            {
+              "transactionId": "disabled-but-source-imports",
+              "date": "2026-11-01",
+              "booked": true,
+              "payeeName": "CAFE",
+              "notes": "Bank #note",
+              "transactionAmount": {
+                "amount": "-6.00",
+                "currency": "USD"
+              }
+            }
+          ]
+        ],
+        "balance": 25000
+      },
+      "ids": {
+        "anchor": "28280000-0000-4000-8000-000000000006",
+        "account": "7be502dc-1b11-4487-97b1-9124913112fe"
+      },
+      "before": {
+        "transactions": [],
+        "accounts": [
+          {
+            "id": "7be502dc-1b11-4487-97b1-9124913112fe",
+            "name": "Source checking",
+            "offbudget": 0,
+            "closed": 0,
+            "sort_order": 16384,
+            "last_reconciled": null,
+            "tombstone": 0,
+            "account_id": null,
+            "bank": null,
+            "bankName": null,
+            "bankId": null,
+            "mask": null,
+            "official_name": null,
+            "balance_current": null,
+            "balance_available": null,
+            "balance_limit": null,
+            "account_sync_source": null,
+            "last_sync": null,
+            "bank_sync_status": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "b41a9e21-cd63-4347-8ef1-5a0903a357c0",
+            "name": "Source checking",
+            "transfer_acct": "7be502dc-1b11-4487-97b1-9124913112fe"
+          }
+        ],
+        "categories": [
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {
+          "sync-import-transactions-7be502dc-1b11-4487-97b1-9124913112fe": "false"
+        }
+      },
+      "archive": {
+        "filename": "first-sync-imports-disabled-26.10.zip",
+        "sha256": "60d180592df6474bf7a608cda5894485952cc282f9ddab72321cfbefff248e2a"
+      },
+      "requests": [
+        {
+          "path": "/simplefin/transactions",
+          "body": {
+            "accountId": "synthetic-remote-account",
+            "startDate": "2026-11-01"
+          }
+        },
+        {
+          "path": "/simplefin/transactions",
+          "body": {
+            "accountId": "synthetic-remote-account",
+            "startDate": "2026-11-01"
+          }
+        }
+      ],
+      "outcomes": [
+        {
+          "source_ledger_total": 25000,
+          "input": [
+            {
+              "transactionId": "disabled-but-source-imports",
+              "date": "2026-11-01",
+              "booked": true,
+              "payeeName": "CAFE",
+              "notes": "Bank #note",
+              "transactionAmount": {
+                "amount": "-6.00",
+                "currency": "USD"
+              }
+            }
+          ],
+          "transport_response": {
+            "startingBalance": 25000,
+            "balances": [
+              {
+                "balanceAmount": {
+                  "amount": "250",
+                  "currency": "USD"
+                },
+                "balanceType": "expected",
+                "referenceDate": "2026-11-09"
+              }
+            ],
+            "transactions": {
+              "all": [
+                {
+                  "transactionId": "disabled-but-source-imports",
+                  "date": "2026-11-01",
+                  "booked": true,
+                  "payeeName": "CAFE",
+                  "notes": "Bank #note",
+                  "transactionAmount": {
+                    "amount": "-6.00",
+                    "currency": "USD"
+                  }
+                }
+              ],
+              "booked": [
+                {
+                  "transactionId": "disabled-but-source-imports",
+                  "date": "2026-11-01",
+                  "booked": true,
+                  "payeeName": "CAFE",
+                  "notes": "Bank #note",
+                  "transactionAmount": {
+                    "amount": "-6.00",
+                    "currency": "USD"
+                  }
+                }
+              ],
+              "pending": []
+            }
+          },
+          "result": "ok",
+          "after": {
+            "transactions": [
+              {
+                "id": "7462cb0b-52df-4509-8be7-a63ff7855148",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "7be502dc-1b11-4487-97b1-9124913112fe",
+                "category": null,
+                "amount": -600,
+                "payee": "742057ec-0872-42e9-9084-4b34b310eb0f",
+                "notes": "Bank ##note",
+                "date": "2026-11-01",
+                "imported_id": "disabled-but-source-imports",
+                "error": null,
+                "imported_payee": "CAFE",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "sort_order": 1794225600000,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": "{\"transactionId\":\"disabled-but-source-imports\",\"date\":\"2026-11-01\",\"booked\":true,\"payeeName\":\"CAFE\",\"notes\":\"Bank #note\",\"transactionAmount\":{\"amount\":\"-6.00\",\"currency\":\"USD\"},\"cleared\":true,\"amount\":\"-6.00\",\"imported_payee\":\"CAFE\",\"account\":\"7be502dc-1b11-4487-97b1-9124913112fe\",\"payee\":\"742057ec-0872-42e9-9084-4b34b310eb0f\"}"
+              },
+              {
+                "id": "33d01526-c43b-4b91-bc40-c01cb7f03221",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "7be502dc-1b11-4487-97b1-9124913112fe",
+                "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "amount": 25600,
+                "payee": "8b6d0aa9-542f-4293-8582-b7dd7cdd7097",
+                "notes": null,
+                "date": "2026-11-01",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": null,
+                "starting_balance_flag": true,
+                "transfer_id": null,
+                "sort_order": 1794225600000,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null
+              }
+            ],
+            "accounts": [
+              {
+                "id": "7be502dc-1b11-4487-97b1-9124913112fe",
+                "name": "Source checking",
+                "offbudget": 0,
+                "closed": 0,
+                "sort_order": 16384,
+                "last_reconciled": null,
+                "tombstone": 0,
+                "account_id": "synthetic-remote-account",
+                "bank": "a4b8793e-dbff-40c5-8925-9ac5ae51f183",
+                "bankName": "Synthetic institution",
+                "bankId": "a4b8793e-dbff-40c5-8925-9ac5ae51f183",
+                "mask": null,
+                "official_name": null,
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "account_sync_source": "simpleFin",
+                "last_sync": "1794225600000",
+                "bank_sync_status": "ok",
+                "account_group_id": null
+              }
+            ],
+            "payees": [
+              {
+                "id": "742057ec-0872-42e9-9084-4b34b310eb0f",
+                "name": "CAFE",
+                "transfer_acct": null
+              },
+              {
+                "id": "8b6d0aa9-542f-4293-8582-b7dd7cdd7097",
+                "name": "Starting Balance",
+                "transfer_acct": null
+              },
+              {
+                "id": "b41a9e21-cd63-4347-8ef1-5a0903a357c0",
+                "name": "Source checking",
+                "transfer_acct": "7be502dc-1b11-4487-97b1-9124913112fe"
+              }
+            ],
+            "categories": [
+              {
+                "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+                "name": "Income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+              },
+              {
+                "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "name": "Starting Balances",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+              }
+            ],
+            "preferences": {
+              "sync-import-transactions-7be502dc-1b11-4487-97b1-9124913112fe": "false"
+            }
+          },
+          "repeat": {
+            "errors": [],
+            "newTransactions": [],
+            "matchedTransactions": [],
+            "updatedAccounts": []
+          },
+          "repeated": {
+            "transactions": [
+              {
+                "id": "7462cb0b-52df-4509-8be7-a63ff7855148",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "7be502dc-1b11-4487-97b1-9124913112fe",
+                "category": null,
+                "amount": -600,
+                "payee": "742057ec-0872-42e9-9084-4b34b310eb0f",
+                "notes": "Bank ##note",
+                "date": "2026-11-01",
+                "imported_id": "disabled-but-source-imports",
+                "error": null,
+                "imported_payee": "CAFE",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "sort_order": 1794225600000,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": "{\"transactionId\":\"disabled-but-source-imports\",\"date\":\"2026-11-01\",\"booked\":true,\"payeeName\":\"CAFE\",\"notes\":\"Bank #note\",\"transactionAmount\":{\"amount\":\"-6.00\",\"currency\":\"USD\"},\"cleared\":true,\"amount\":\"-6.00\",\"imported_payee\":\"CAFE\",\"account\":\"7be502dc-1b11-4487-97b1-9124913112fe\",\"payee\":\"742057ec-0872-42e9-9084-4b34b310eb0f\"}"
+              },
+              {
+                "id": "33d01526-c43b-4b91-bc40-c01cb7f03221",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "7be502dc-1b11-4487-97b1-9124913112fe",
+                "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "amount": 25600,
+                "payee": "8b6d0aa9-542f-4293-8582-b7dd7cdd7097",
+                "notes": null,
+                "date": "2026-11-01",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": null,
+                "starting_balance_flag": true,
+                "transfer_id": null,
+                "sort_order": 1794225600000,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null
+              }
+            ],
+            "accounts": [
+              {
+                "id": "7be502dc-1b11-4487-97b1-9124913112fe",
+                "name": "Source checking",
+                "offbudget": 0,
+                "closed": 0,
+                "sort_order": 16384,
+                "last_reconciled": null,
+                "tombstone": 0,
+                "account_id": "synthetic-remote-account",
+                "bank": "a4b8793e-dbff-40c5-8925-9ac5ae51f183",
+                "bankName": "Synthetic institution",
+                "bankId": "a4b8793e-dbff-40c5-8925-9ac5ae51f183",
+                "mask": null,
+                "official_name": null,
+                "balance_current": 25000,
+                "balance_available": null,
+                "balance_limit": null,
+                "account_sync_source": "simpleFin",
+                "last_sync": "1794225600000",
+                "bank_sync_status": "ok",
+                "account_group_id": null
+              }
+            ],
+            "payees": [
+              {
+                "id": "742057ec-0872-42e9-9084-4b34b310eb0f",
+                "name": "CAFE",
+                "transfer_acct": null
+              },
+              {
+                "id": "8b6d0aa9-542f-4293-8582-b7dd7cdd7097",
+                "name": "Starting Balance",
+                "transfer_acct": null
+              },
+              {
+                "id": "b41a9e21-cd63-4347-8ef1-5a0903a357c0",
+                "name": "Source checking",
+                "transfer_acct": "7be502dc-1b11-4487-97b1-9124913112fe"
+              }
+            ],
+            "categories": [
+              {
+                "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+                "name": "Income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+              },
+              {
+                "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "name": "Starting Balances",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+              }
+            ],
+            "preferences": {
+              "sync-import-transactions-7be502dc-1b11-4487-97b1-9124913112fe": "false"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "first-sync-one-decimal",
+      "input": {
+        "id": "first-sync-one-decimal",
+        "seed": false,
+        "rounds": [
+          [
+            {
+              "transactionId": "one-decimal",
+              "date": "2026-11-01",
+              "booked": true,
+              "payeeName": "CAFE",
+              "notes": "Bank #note",
+              "transactionAmount": {
+                "amount": "-1.2",
+                "currency": "USD"
+              }
+            }
+          ]
+        ]
+      },
+      "ids": {
+        "anchor": "28280000-0000-4000-8000-000000000007",
+        "account": "34507dda-d6a5-49b9-b65f-8adb53392f82"
+      },
+      "before": {
+        "transactions": [],
+        "accounts": [],
+        "payees": [],
+        "categories": [
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {}
+      },
+      "archive": {
+        "filename": "first-sync-one-decimal-26.10.zip",
+        "sha256": "0492f643bff5c9ef469e2d9ce606ddb0562b650ed120a0c80c286e17024a1222"
+      },
+      "requests": [
+        {
+          "path": "/simplefin/transactions",
+          "body": {
+            "accountId": "synthetic-remote-account",
+            "startDate": "2026-11-01"
+          }
+        },
+        {
+          "path": "/simplefin/transactions",
+          "body": {
+            "accountId": "synthetic-remote-account",
+            "startDate": "2026-11-01"
+          }
+        }
+      ],
+      "outcomes": [
+        {
+          "source_ledger_total": 9892,
+          "input": [
+            {
+              "transactionId": "one-decimal",
+              "date": "2026-11-01",
+              "booked": true,
+              "payeeName": "CAFE",
+              "notes": "Bank #note",
+              "transactionAmount": {
+                "amount": "-1.2",
+                "currency": "USD"
+              }
+            }
+          ],
+          "transport_response": {
+            "startingBalance": 10000,
+            "balances": [
+              {
+                "balanceAmount": {
+                  "amount": "100",
+                  "currency": "USD"
+                },
+                "balanceType": "expected",
+                "referenceDate": "2026-11-09"
+              }
+            ],
+            "transactions": {
+              "all": [
+                {
+                  "transactionId": "one-decimal",
+                  "date": "2026-11-01",
+                  "booked": true,
+                  "payeeName": "CAFE",
+                  "notes": "Bank #note",
+                  "transactionAmount": {
+                    "amount": "-1.2",
+                    "currency": "USD"
+                  }
+                }
+              ],
+              "booked": [
+                {
+                  "transactionId": "one-decimal",
+                  "date": "2026-11-01",
+                  "booked": true,
+                  "payeeName": "CAFE",
+                  "notes": "Bank #note",
+                  "transactionAmount": {
+                    "amount": "-1.2",
+                    "currency": "USD"
+                  }
+                }
+              ],
+              "pending": []
+            }
+          },
+          "result": "ok",
+          "after": {
+            "transactions": [
+              {
+                "id": "f81e1bc7-1855-4655-acdd-4ad4041b44dd",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "34507dda-d6a5-49b9-b65f-8adb53392f82",
+                "category": null,
+                "amount": -120,
+                "payee": "e9a9a967-fe55-4d9b-8fe3-4bb88e7586cc",
+                "notes": "Bank ##note",
+                "date": "2026-11-01",
+                "imported_id": "one-decimal",
+                "error": null,
+                "imported_payee": "CAFE",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "sort_order": 1794225600000,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": "{\"transactionId\":\"one-decimal\",\"date\":\"2026-11-01\",\"booked\":true,\"payeeName\":\"CAFE\",\"notes\":\"Bank #note\",\"transactionAmount\":{\"amount\":\"-1.2\",\"currency\":\"USD\"},\"cleared\":true,\"amount\":\"-1.2\",\"imported_payee\":\"CAFE\",\"account\":\"34507dda-d6a5-49b9-b65f-8adb53392f82\",\"payee\":\"e9a9a967-fe55-4d9b-8fe3-4bb88e7586cc\"}"
+              },
+              {
+                "id": "f0c03908-3dc6-406b-a133-392c75dd0b8b",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "34507dda-d6a5-49b9-b65f-8adb53392f82",
+                "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "amount": 10012,
+                "payee": "4e0a79f5-ca3b-48d8-99b5-8418a14c1128",
+                "notes": null,
+                "date": "2026-11-01",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": null,
+                "starting_balance_flag": true,
+                "transfer_id": null,
+                "sort_order": 1794225600000,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null
+              }
+            ],
+            "accounts": [
+              {
+                "id": "34507dda-d6a5-49b9-b65f-8adb53392f82",
+                "name": "Source checking",
+                "offbudget": 0,
+                "closed": 0,
+                "sort_order": null,
+                "last_reconciled": null,
+                "tombstone": 0,
+                "account_id": "synthetic-remote-account",
+                "bank": "8364fd3e-5ea5-4cb9-83d1-6d9165093b42",
+                "bankName": "Synthetic institution",
+                "bankId": "8364fd3e-5ea5-4cb9-83d1-6d9165093b42",
+                "mask": null,
+                "official_name": "Source checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "account_sync_source": "simpleFin",
+                "last_sync": "1794225600000",
+                "bank_sync_status": "ok",
+                "account_group_id": null
+              }
+            ],
+            "payees": [
+              {
+                "id": "e9a9a967-fe55-4d9b-8fe3-4bb88e7586cc",
+                "name": "CAFE",
+                "transfer_acct": null
+              },
+              {
+                "id": "4e0a79f5-ca3b-48d8-99b5-8418a14c1128",
+                "name": "Starting Balance",
+                "transfer_acct": null
+              },
+              {
+                "id": "ac56fc29-99b1-415f-b8b6-5f630d5ce548",
+                "name": "Source checking",
+                "transfer_acct": "34507dda-d6a5-49b9-b65f-8adb53392f82"
+              }
+            ],
+            "categories": [
+              {
+                "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+                "name": "Income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+              },
+              {
+                "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "name": "Starting Balances",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+              }
+            ],
+            "preferences": {}
+          },
+          "repeat": {
+            "errors": [],
+            "newTransactions": [],
+            "matchedTransactions": [],
+            "updatedAccounts": []
+          },
+          "repeated": {
+            "transactions": [
+              {
+                "id": "f81e1bc7-1855-4655-acdd-4ad4041b44dd",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "34507dda-d6a5-49b9-b65f-8adb53392f82",
+                "category": null,
+                "amount": -120,
+                "payee": "e9a9a967-fe55-4d9b-8fe3-4bb88e7586cc",
+                "notes": "Bank ##note",
+                "date": "2026-11-01",
+                "imported_id": "one-decimal",
+                "error": null,
+                "imported_payee": "CAFE",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "sort_order": 1794225600000,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": "{\"transactionId\":\"one-decimal\",\"date\":\"2026-11-01\",\"booked\":true,\"payeeName\":\"CAFE\",\"notes\":\"Bank #note\",\"transactionAmount\":{\"amount\":\"-1.2\",\"currency\":\"USD\"},\"cleared\":true,\"amount\":\"-1.2\",\"imported_payee\":\"CAFE\",\"account\":\"34507dda-d6a5-49b9-b65f-8adb53392f82\",\"payee\":\"e9a9a967-fe55-4d9b-8fe3-4bb88e7586cc\"}"
+              },
+              {
+                "id": "f0c03908-3dc6-406b-a133-392c75dd0b8b",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "34507dda-d6a5-49b9-b65f-8adb53392f82",
+                "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "amount": 10012,
+                "payee": "4e0a79f5-ca3b-48d8-99b5-8418a14c1128",
+                "notes": null,
+                "date": "2026-11-01",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": null,
+                "starting_balance_flag": true,
+                "transfer_id": null,
+                "sort_order": 1794225600000,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null
+              }
+            ],
+            "accounts": [
+              {
+                "id": "34507dda-d6a5-49b9-b65f-8adb53392f82",
+                "name": "Source checking",
+                "offbudget": 0,
+                "closed": 0,
+                "sort_order": null,
+                "last_reconciled": null,
+                "tombstone": 0,
+                "account_id": "synthetic-remote-account",
+                "bank": "8364fd3e-5ea5-4cb9-83d1-6d9165093b42",
+                "bankName": "Synthetic institution",
+                "bankId": "8364fd3e-5ea5-4cb9-83d1-6d9165093b42",
+                "mask": null,
+                "official_name": "Source checking",
+                "balance_current": 10000,
+                "balance_available": null,
+                "balance_limit": null,
+                "account_sync_source": "simpleFin",
+                "last_sync": "1794225600000",
+                "bank_sync_status": "ok",
+                "account_group_id": null
+              }
+            ],
+            "payees": [
+              {
+                "id": "e9a9a967-fe55-4d9b-8fe3-4bb88e7586cc",
+                "name": "CAFE",
+                "transfer_acct": null
+              },
+              {
+                "id": "4e0a79f5-ca3b-48d8-99b5-8418a14c1128",
+                "name": "Starting Balance",
+                "transfer_acct": null
+              },
+              {
+                "id": "ac56fc29-99b1-415f-b8b6-5f630d5ce548",
+                "name": "Source checking",
+                "transfer_acct": "34507dda-d6a5-49b9-b65f-8adb53392f82"
+              }
+            ],
+            "categories": [
+              {
+                "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+                "name": "Income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+              },
+              {
+                "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "name": "Starting Balances",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+              }
+            ],
+            "preferences": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "first-sync-renamed-starting-reference",
+      "input": {
+        "id": "first-sync-renamed-starting-reference",
+        "empty": true,
+        "renamedReference": true,
+        "rounds": [
+          [
+            {
+              "transactionId": "renamed-reference",
+              "date": "2026-11-01",
+              "booked": true,
+              "payeeName": "CAFE",
+              "notes": "Bank #note",
+              "transactionAmount": {
+                "amount": "-6.00",
+                "currency": "USD"
+              }
+            }
+          ]
+        ]
+      },
+      "ids": {
+        "anchor": "28280000-0000-4000-8000-000000000008",
+        "account": "58e8bec4-90f9-4888-a6f2-f9b138670a1b",
+        "startingPayee": "c71594b1-6500-4169-b039-02efd2d26020",
+        "startingCategory": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2"
+      },
+      "before": {
+        "transactions": [],
+        "accounts": [
+          {
+            "id": "58e8bec4-90f9-4888-a6f2-f9b138670a1b",
+            "name": "Source checking",
+            "offbudget": 0,
+            "closed": 0,
+            "sort_order": 16384,
+            "last_reconciled": null,
+            "tombstone": 0,
+            "account_id": null,
+            "bank": null,
+            "bankName": null,
+            "bankId": null,
+            "mask": null,
+            "official_name": null,
+            "balance_current": null,
+            "balance_available": null,
+            "balance_limit": null,
+            "account_sync_source": null,
+            "last_sync": null,
+            "bank_sync_status": null,
+            "account_group_id": null
+          }
+        ],
+        "payees": [
+          {
+            "id": "c71594b1-6500-4169-b039-02efd2d26020",
+            "name": "STARTING BALANCE",
+            "transfer_acct": null
+          },
+          {
+            "id": "1b1175ca-c2a0-4a8e-ad7e-c62adacfc634",
+            "name": "Source checking",
+            "transfer_acct": "58e8bec4-90f9-4888-a6f2-f9b138670a1b"
+          }
+        ],
+        "categories": [
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "starting balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ],
+        "preferences": {}
+      },
+      "archive": {
+        "filename": "first-sync-renamed-starting-reference-26.10.zip",
+        "sha256": "d70d82a525f565d6781b48401daee421509f48b685d5caa18a934e12648b72f0"
+      },
+      "requests": [
+        {
+          "path": "/simplefin/transactions",
+          "body": {
+            "accountId": "synthetic-remote-account",
+            "startDate": "2026-11-01"
+          }
+        },
+        {
+          "path": "/simplefin/transactions",
+          "body": {
+            "accountId": "synthetic-remote-account",
+            "startDate": "2026-11-01"
+          }
+        }
+      ],
+      "outcomes": [
+        {
+          "source_ledger_total": 10000,
+          "input": [
+            {
+              "transactionId": "renamed-reference",
+              "date": "2026-11-01",
+              "booked": true,
+              "payeeName": "CAFE",
+              "notes": "Bank #note",
+              "transactionAmount": {
+                "amount": "-6.00",
+                "currency": "USD"
+              }
+            }
+          ],
+          "transport_response": {
+            "startingBalance": 10000,
+            "balances": [
+              {
+                "balanceAmount": {
+                  "amount": "100",
+                  "currency": "USD"
+                },
+                "balanceType": "expected",
+                "referenceDate": "2026-11-09"
+              }
+            ],
+            "transactions": {
+              "all": [
+                {
+                  "transactionId": "renamed-reference",
+                  "date": "2026-11-01",
+                  "booked": true,
+                  "payeeName": "CAFE",
+                  "notes": "Bank #note",
+                  "transactionAmount": {
+                    "amount": "-6.00",
+                    "currency": "USD"
+                  }
+                }
+              ],
+              "booked": [
+                {
+                  "transactionId": "renamed-reference",
+                  "date": "2026-11-01",
+                  "booked": true,
+                  "payeeName": "CAFE",
+                  "notes": "Bank #note",
+                  "transactionAmount": {
+                    "amount": "-6.00",
+                    "currency": "USD"
+                  }
+                }
+              ],
+              "pending": []
+            }
+          },
+          "result": "ok",
+          "after": {
+            "transactions": [
+              {
+                "id": "06f2b61b-f1d9-4ce0-b5bb-1aee69752d0a",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "58e8bec4-90f9-4888-a6f2-f9b138670a1b",
+                "category": null,
+                "amount": -600,
+                "payee": "bda7ebbe-9f00-46c4-86b8-2341d866dfda",
+                "notes": "Bank ##note",
+                "date": "2026-11-01",
+                "imported_id": "renamed-reference",
+                "error": null,
+                "imported_payee": "CAFE",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "sort_order": 1794225600000,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": "{\"transactionId\":\"renamed-reference\",\"date\":\"2026-11-01\",\"booked\":true,\"payeeName\":\"CAFE\",\"notes\":\"Bank #note\",\"transactionAmount\":{\"amount\":\"-6.00\",\"currency\":\"USD\"},\"cleared\":true,\"amount\":\"-6.00\",\"imported_payee\":\"CAFE\",\"account\":\"58e8bec4-90f9-4888-a6f2-f9b138670a1b\",\"payee\":\"bda7ebbe-9f00-46c4-86b8-2341d866dfda\"}"
+              },
+              {
+                "id": "9ff35ff1-26b1-4d33-80d0-3b66045dafcd",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "58e8bec4-90f9-4888-a6f2-f9b138670a1b",
+                "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "amount": 10600,
+                "payee": "c71594b1-6500-4169-b039-02efd2d26020",
+                "notes": null,
+                "date": "2026-11-01",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": null,
+                "starting_balance_flag": true,
+                "transfer_id": null,
+                "sort_order": 1794225600000,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null
+              }
+            ],
+            "accounts": [
+              {
+                "id": "58e8bec4-90f9-4888-a6f2-f9b138670a1b",
+                "name": "Source checking",
+                "offbudget": 0,
+                "closed": 0,
+                "sort_order": 16384,
+                "last_reconciled": null,
+                "tombstone": 0,
+                "account_id": "synthetic-remote-account",
+                "bank": "7123c017-9953-4fdb-a87e-82b2c40ae89a",
+                "bankName": "Synthetic institution",
+                "bankId": "7123c017-9953-4fdb-a87e-82b2c40ae89a",
+                "mask": null,
+                "official_name": null,
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "account_sync_source": "simpleFin",
+                "last_sync": "1794225600000",
+                "bank_sync_status": "ok",
+                "account_group_id": null
+              }
+            ],
+            "payees": [
+              {
+                "id": "bda7ebbe-9f00-46c4-86b8-2341d866dfda",
+                "name": "CAFE",
+                "transfer_acct": null
+              },
+              {
+                "id": "c71594b1-6500-4169-b039-02efd2d26020",
+                "name": "STARTING BALANCE",
+                "transfer_acct": null
+              },
+              {
+                "id": "1b1175ca-c2a0-4a8e-ad7e-c62adacfc634",
+                "name": "Source checking",
+                "transfer_acct": "58e8bec4-90f9-4888-a6f2-f9b138670a1b"
+              }
+            ],
+            "categories": [
+              {
+                "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+                "name": "Income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+              },
+              {
+                "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "name": "starting balances",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+              }
+            ],
+            "preferences": {}
+          },
+          "repeat": {
+            "errors": [],
+            "newTransactions": [],
+            "matchedTransactions": [],
+            "updatedAccounts": []
+          },
+          "repeated": {
+            "transactions": [
+              {
+                "id": "06f2b61b-f1d9-4ce0-b5bb-1aee69752d0a",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "58e8bec4-90f9-4888-a6f2-f9b138670a1b",
+                "category": null,
+                "amount": -600,
+                "payee": "bda7ebbe-9f00-46c4-86b8-2341d866dfda",
+                "notes": "Bank ##note",
+                "date": "2026-11-01",
+                "imported_id": "renamed-reference",
+                "error": null,
+                "imported_payee": "CAFE",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "sort_order": 1794225600000,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": "{\"transactionId\":\"renamed-reference\",\"date\":\"2026-11-01\",\"booked\":true,\"payeeName\":\"CAFE\",\"notes\":\"Bank #note\",\"transactionAmount\":{\"amount\":\"-6.00\",\"currency\":\"USD\"},\"cleared\":true,\"amount\":\"-6.00\",\"imported_payee\":\"CAFE\",\"account\":\"58e8bec4-90f9-4888-a6f2-f9b138670a1b\",\"payee\":\"bda7ebbe-9f00-46c4-86b8-2341d866dfda\"}"
+              },
+              {
+                "id": "9ff35ff1-26b1-4d33-80d0-3b66045dafcd",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "58e8bec4-90f9-4888-a6f2-f9b138670a1b",
+                "category": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "amount": 10600,
+                "payee": "c71594b1-6500-4169-b039-02efd2d26020",
+                "notes": null,
+                "date": "2026-11-01",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": null,
+                "starting_balance_flag": true,
+                "transfer_id": null,
+                "sort_order": 1794225600000,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null
+              }
+            ],
+            "accounts": [
+              {
+                "id": "58e8bec4-90f9-4888-a6f2-f9b138670a1b",
+                "name": "Source checking",
+                "offbudget": 0,
+                "closed": 0,
+                "sort_order": 16384,
+                "last_reconciled": null,
+                "tombstone": 0,
+                "account_id": "synthetic-remote-account",
+                "bank": "7123c017-9953-4fdb-a87e-82b2c40ae89a",
+                "bankName": "Synthetic institution",
+                "bankId": "7123c017-9953-4fdb-a87e-82b2c40ae89a",
+                "mask": null,
+                "official_name": null,
+                "balance_current": 10000,
+                "balance_available": null,
+                "balance_limit": null,
+                "account_sync_source": "simpleFin",
+                "last_sync": "1794225600000",
+                "bank_sync_status": "ok",
+                "account_group_id": null
+              }
+            ],
+            "payees": [
+              {
+                "id": "bda7ebbe-9f00-46c4-86b8-2341d866dfda",
+                "name": "CAFE",
+                "transfer_acct": null
+              },
+              {
+                "id": "c71594b1-6500-4169-b039-02efd2d26020",
+                "name": "STARTING BALANCE",
+                "transfer_acct": null
+              },
+              {
+                "id": "1b1175ca-c2a0-4a8e-ad7e-c62adacfc634",
+                "name": "Source checking",
+                "transfer_acct": "58e8bec4-90f9-4888-a6f2-f9b138670a1b"
+              }
+            ],
+            "categories": [
+              {
+                "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+                "name": "Income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+              },
+              {
+                "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                "name": "starting balances",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+              }
+            ],
+            "preferences": {}
+          }
+        }
+      ]
+    }
+  ]
+}

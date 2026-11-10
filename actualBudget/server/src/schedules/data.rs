@@ -42,10 +42,11 @@ fn read(
     offset: usize,
     limit: usize,
     account: Option<&str>,
+    active_only: bool,
 ) -> Result<Vec<Value>, Error> {
     crate::store::require_budget(db, b)?;
-    let mut query=db.prepare("SELECT s.id,s.rule_id,s.name,s.posts_transaction,s.completed,s.next_date,s.custom_upcoming_length,r.conditions,r.actions FROM schedules s LEFT JOIN rules r ON r.budget_id=s.budget_id AND r.id=s.rule_id AND r.tombstone=0 WHERE s.budget_id=?1 AND s.tombstone=0 AND (?2 IS NULL OR s.id=?2) AND (?5 IS NULL OR EXISTS(SELECT 1 FROM json_each(r.conditions) c WHERE json_extract(c.value,'$.field') IN('account','acct') AND json_extract(c.value,'$.op')='is' AND json_extract(c.value,'$.value')=?5)) ORDER BY s.next_date,s.id LIMIT ?3 OFFSET ?4")?;
-    let rows=query.query_map(params![b,id,limit as i64,offset as i64,account],|r|Ok((json!({"id":r.get::<_,String>(0)?,"rule_id":r.get::<_,String>(1)?,"name":r.get::<_,Option<String>>(2)?,"posts_transaction":r.get::<_,bool>(3)?,"completed":r.get::<_,bool>(4)?,"next_date":r.get::<_,Option<String>>(5)?,"custom_upcoming_length":r.get::<_,Option<String>>(6)?}),r.get::<_,Option<String>>(7)?,r.get::<_,Option<String>>(8)?)))?.collect::<Result<Vec<_>,_>>()?;
+    let mut query=db.prepare("SELECT s.id,s.rule_id,s.name,s.posts_transaction,s.completed,s.next_date,s.custom_upcoming_length,r.conditions,r.actions FROM schedules s LEFT JOIN rules r ON r.budget_id=s.budget_id AND r.id=s.rule_id AND r.tombstone=0 WHERE s.budget_id=?1 AND s.tombstone=0 AND (?6=0 OR s.completed=0) AND (?2 IS NULL OR s.id=?2) AND (?5 IS NULL OR EXISTS(SELECT 1 FROM json_each(r.conditions) c WHERE json_extract(c.value,'$.field') IN('account','acct') AND json_extract(c.value,'$.op')='is' AND json_extract(c.value,'$.value')=?5)) ORDER BY s.next_date,s.id LIMIT ?3 OFFSET ?4")?;
+    let rows=query.query_map(params![b,id,limit as i64,offset as i64,account,active_only],|r|Ok((json!({"id":r.get::<_,String>(0)?,"rule_id":r.get::<_,String>(1)?,"name":r.get::<_,Option<String>>(2)?,"posts_transaction":r.get::<_,bool>(3)?,"completed":r.get::<_,bool>(4)?,"next_date":r.get::<_,Option<String>>(5)?,"custom_upcoming_length":r.get::<_,Option<String>>(6)?}),r.get::<_,Option<String>>(7)?,r.get::<_,Option<String>>(8)?)))?.collect::<Result<Vec<_>,_>>()?;
     rows.into_iter()
         .map(|(mut row, conditions, actions)| {
             row["conditions"] = serde_json::from_str(
@@ -60,13 +61,22 @@ fn read(
         })
         .collect()
 }
+pub(super) fn forecast_rows(db: &Connection, b: &str) -> Result<Vec<Value>, Error> {
+    let sizes=db.prepare("SELECT coalesce(length(CAST(r.conditions AS BLOB)),0)+coalesce(length(CAST(r.actions AS BLOB)),0) FROM schedules s LEFT JOIN rules r ON r.budget_id=s.budget_id AND r.id=s.rule_id AND r.tombstone=0 WHERE s.budget_id=?1 AND s.tombstone=0 AND s.completed=0 LIMIT 5001")?.query_map([b],|r|r.get::<_,i64>(0))?.collect::<Result<Vec<_>,_>>()?;
+    if sizes.len() > 5000 || sizes.iter().sum::<i64>() > 8 * 1024 * 1024 {
+        return Err(Error::invalid(
+            "The active schedule set exceeds forecast limits. Review large or obsolete schedules before calculating.",
+        ));
+    }
+    read(db, b, None, 0, 5000, None, true)
+}
 pub fn get(db: &Connection, b: &str, id: &str) -> Result<Value, Error> {
-    read(db, b, Some(id), 0, 1, None)?
+    read(db, b, Some(id), 0, 1, None, false)?
         .pop()
         .ok_or_else(Error::missing)
 }
 pub fn list(db: &Connection, b: &str) -> Result<Vec<Value>, Error> {
-    let rows = read(db, b, None, 0, 100001, None)?;
+    let rows = read(db, b, None, 0, 100001, None, false)?;
     if rows.len() > 100000 {
         return Err(Error::invalid("Schedule set exceeds100000 rows"));
     }
@@ -80,6 +90,7 @@ pub fn page(db: &Connection, b: &str, query: &super::Page) -> Result<Vec<Value>,
         query.offset,
         query.limit + 1,
         query.account_id.as_deref(),
+        false,
     )
 }
 pub fn link(db: &Connection, b: &str, id: &str, schedule: &str, clock: &str) -> Result<(), Error> {

@@ -1,0 +1,659 @@
+{
+  "oracle": "@actual-app/api26.10 getNote/updateNote and actual AQL notes table",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "input": {
+    "filename": "transaction-export-base-26.10.zip",
+    "sha256": "21b1b822a1c2676fcabeae288a0156013b9f4ccf89130eac8ede991a00adc2fd"
+  },
+  "archive": {
+    "filename": "note-identities-cleared-26.10.zip",
+    "sha256": "10834a3d46fbe4945668e78d2903df3672774cc9e9edb7d15310d3688d4c151f"
+  },
+  "identities": [
+    [
+      "account",
+      "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e"
+    ],
+    [
+      "category",
+      "6b7e4f01-1f93-4dff-9033-6a9915519035"
+    ],
+    [
+      "group",
+      "11ea6bb4-7518-4c2b-b1f0-c88c16712836"
+    ],
+    [
+      "month",
+      "budget-2026-11"
+    ],
+    [
+      "standalone",
+      "caller:cleared-note"
+    ]
+  ],
+  "cases": [
+    {
+      "id": "initial",
+      "state": {
+        "reads": [
+          {
+            "kind": "account",
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "value": null
+          },
+          {
+            "kind": "category",
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "value": null
+          },
+          {
+            "kind": "group",
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "value": null
+          },
+          {
+            "kind": "month",
+            "id": "budget-2026-11",
+            "value": null
+          },
+          {
+            "kind": "standalone",
+            "id": "caller:cleared-note",
+            "value": null
+          }
+        ],
+        "rows": []
+      }
+    },
+    {
+      "id": "write-account",
+      "change": {
+        "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "note": "Original account prose"
+      },
+      "state": {
+        "reads": [
+          {
+            "kind": "account",
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "value": {
+              "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+              "note": "Original account prose"
+            }
+          },
+          {
+            "kind": "category",
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "value": null
+          },
+          {
+            "kind": "group",
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "value": null
+          },
+          {
+            "kind": "month",
+            "id": "budget-2026-11",
+            "value": null
+          },
+          {
+            "kind": "standalone",
+            "id": "caller:cleared-note",
+            "value": null
+          }
+        ],
+        "rows": [
+          {
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "note": "Original account prose"
+          }
+        ]
+      }
+    },
+    {
+      "id": "clear-account",
+      "change": {
+        "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+        "note": ""
+      },
+      "state": {
+        "reads": [
+          {
+            "kind": "account",
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "value": {
+              "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+              "note": ""
+            }
+          },
+          {
+            "kind": "category",
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "value": null
+          },
+          {
+            "kind": "group",
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "value": null
+          },
+          {
+            "kind": "month",
+            "id": "budget-2026-11",
+            "value": null
+          },
+          {
+            "kind": "standalone",
+            "id": "caller:cleared-note",
+            "value": null
+          }
+        ],
+        "rows": [
+          {
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "note": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "write-category",
+      "change": {
+        "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+        "note": "Original category prose"
+      },
+      "state": {
+        "reads": [
+          {
+            "kind": "account",
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "value": {
+              "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+              "note": ""
+            }
+          },
+          {
+            "kind": "category",
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "value": {
+              "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+              "note": "Original category prose"
+            }
+          },
+          {
+            "kind": "group",
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "value": null
+          },
+          {
+            "kind": "month",
+            "id": "budget-2026-11",
+            "value": null
+          },
+          {
+            "kind": "standalone",
+            "id": "caller:cleared-note",
+            "value": null
+          }
+        ],
+        "rows": [
+          {
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "note": "Original category prose"
+          },
+          {
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "note": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "clear-category",
+      "change": {
+        "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+        "note": ""
+      },
+      "state": {
+        "reads": [
+          {
+            "kind": "account",
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "value": {
+              "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+              "note": ""
+            }
+          },
+          {
+            "kind": "category",
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "value": {
+              "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+              "note": ""
+            }
+          },
+          {
+            "kind": "group",
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "value": null
+          },
+          {
+            "kind": "month",
+            "id": "budget-2026-11",
+            "value": null
+          },
+          {
+            "kind": "standalone",
+            "id": "caller:cleared-note",
+            "value": null
+          }
+        ],
+        "rows": [
+          {
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "note": ""
+          },
+          {
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "note": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "write-group",
+      "change": {
+        "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+        "note": "Original group prose"
+      },
+      "state": {
+        "reads": [
+          {
+            "kind": "account",
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "value": {
+              "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+              "note": ""
+            }
+          },
+          {
+            "kind": "category",
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "value": {
+              "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+              "note": ""
+            }
+          },
+          {
+            "kind": "group",
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "value": {
+              "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+              "note": "Original group prose"
+            }
+          },
+          {
+            "kind": "month",
+            "id": "budget-2026-11",
+            "value": null
+          },
+          {
+            "kind": "standalone",
+            "id": "caller:cleared-note",
+            "value": null
+          }
+        ],
+        "rows": [
+          {
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "note": "Original group prose"
+          },
+          {
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "note": ""
+          },
+          {
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "note": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "clear-group",
+      "change": {
+        "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+        "note": ""
+      },
+      "state": {
+        "reads": [
+          {
+            "kind": "account",
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "value": {
+              "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+              "note": ""
+            }
+          },
+          {
+            "kind": "category",
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "value": {
+              "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+              "note": ""
+            }
+          },
+          {
+            "kind": "group",
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "value": {
+              "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+              "note": ""
+            }
+          },
+          {
+            "kind": "month",
+            "id": "budget-2026-11",
+            "value": null
+          },
+          {
+            "kind": "standalone",
+            "id": "caller:cleared-note",
+            "value": null
+          }
+        ],
+        "rows": [
+          {
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "note": ""
+          },
+          {
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "note": ""
+          },
+          {
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "note": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "write-month",
+      "change": {
+        "id": "budget-2026-11",
+        "note": "Original month prose"
+      },
+      "state": {
+        "reads": [
+          {
+            "kind": "account",
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "value": {
+              "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+              "note": ""
+            }
+          },
+          {
+            "kind": "category",
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "value": {
+              "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+              "note": ""
+            }
+          },
+          {
+            "kind": "group",
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "value": {
+              "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+              "note": ""
+            }
+          },
+          {
+            "kind": "month",
+            "id": "budget-2026-11",
+            "value": {
+              "id": "budget-2026-11",
+              "note": "Original month prose"
+            }
+          },
+          {
+            "kind": "standalone",
+            "id": "caller:cleared-note",
+            "value": null
+          }
+        ],
+        "rows": [
+          {
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "note": ""
+          },
+          {
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "note": ""
+          },
+          {
+            "id": "budget-2026-11",
+            "note": "Original month prose"
+          },
+          {
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "note": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "clear-month",
+      "change": {
+        "id": "budget-2026-11",
+        "note": ""
+      },
+      "state": {
+        "reads": [
+          {
+            "kind": "account",
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "value": {
+              "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+              "note": ""
+            }
+          },
+          {
+            "kind": "category",
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "value": {
+              "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+              "note": ""
+            }
+          },
+          {
+            "kind": "group",
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "value": {
+              "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+              "note": ""
+            }
+          },
+          {
+            "kind": "month",
+            "id": "budget-2026-11",
+            "value": {
+              "id": "budget-2026-11",
+              "note": ""
+            }
+          },
+          {
+            "kind": "standalone",
+            "id": "caller:cleared-note",
+            "value": null
+          }
+        ],
+        "rows": [
+          {
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "note": ""
+          },
+          {
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "note": ""
+          },
+          {
+            "id": "budget-2026-11",
+            "note": ""
+          },
+          {
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "note": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "write-standalone",
+      "change": {
+        "id": "caller:cleared-note",
+        "note": "Original standalone prose"
+      },
+      "state": {
+        "reads": [
+          {
+            "kind": "account",
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "value": {
+              "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+              "note": ""
+            }
+          },
+          {
+            "kind": "category",
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "value": {
+              "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+              "note": ""
+            }
+          },
+          {
+            "kind": "group",
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "value": {
+              "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+              "note": ""
+            }
+          },
+          {
+            "kind": "month",
+            "id": "budget-2026-11",
+            "value": {
+              "id": "budget-2026-11",
+              "note": ""
+            }
+          },
+          {
+            "kind": "standalone",
+            "id": "caller:cleared-note",
+            "value": {
+              "id": "caller:cleared-note",
+              "note": "Original standalone prose"
+            }
+          }
+        ],
+        "rows": [
+          {
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "note": ""
+          },
+          {
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "note": ""
+          },
+          {
+            "id": "budget-2026-11",
+            "note": ""
+          },
+          {
+            "id": "caller:cleared-note",
+            "note": "Original standalone prose"
+          },
+          {
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "note": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "clear-standalone",
+      "change": {
+        "id": "caller:cleared-note",
+        "note": ""
+      },
+      "state": {
+        "reads": [
+          {
+            "kind": "account",
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "value": {
+              "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+              "note": ""
+            }
+          },
+          {
+            "kind": "category",
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "value": {
+              "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+              "note": ""
+            }
+          },
+          {
+            "kind": "group",
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "value": {
+              "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+              "note": ""
+            }
+          },
+          {
+            "kind": "month",
+            "id": "budget-2026-11",
+            "value": {
+              "id": "budget-2026-11",
+              "note": ""
+            }
+          },
+          {
+            "kind": "standalone",
+            "id": "caller:cleared-note",
+            "value": {
+              "id": "caller:cleared-note",
+              "note": ""
+            }
+          }
+        ],
+        "rows": [
+          {
+            "id": "11ea6bb4-7518-4c2b-b1f0-c88c16712836",
+            "note": ""
+          },
+          {
+            "id": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+            "note": ""
+          },
+          {
+            "id": "budget-2026-11",
+            "note": ""
+          },
+          {
+            "id": "caller:cleared-note",
+            "note": ""
+          },
+          {
+            "id": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+            "note": ""
+          }
+        ]
+      }
+    }
+  ]
+}

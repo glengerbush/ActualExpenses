@@ -478,6 +478,7 @@ async fn download(
     ))
 }
 fn remove_active_data(db: &Connection, budget: &str) -> Result<(), Error> {
+    db.execute("DELETE FROM bank_connections WHERE budget_id=?1", [budget])?;
     for table in [
         "budget_provenance",
         "imported_field_clocks",
@@ -486,6 +487,7 @@ fn remove_active_data(db: &Connection, budget: &str) -> Result<(), Error> {
         "budget_preferences",
         "register_settings",
         "reporting_documents",
+        "notes",
         "rules",
         "rule_settings",
         "schedules",
@@ -677,7 +679,7 @@ async fn upload(
         let validated=archive::validate(&bytes)?;
         let budget=validated.state.budget["id"].as_str().unwrap().to_owned();
         let name=validated.state.budget["name"].as_str().unwrap().to_owned();
-        let report=json!({"format_version":1,"schema_version":22,"domains":validated.state.tables.iter().map(|(name,table)|(name.clone(),json!(table.rows.len()))).collect::<serde_json::Map<_,_>>(),"receipt_count":validated.state.receipts.len(),"original_preserved":true});
+        let report=json!({"format_version":1,"schema_version":crate::migrations::CURRENT_VERSION,"domains":validated.state.tables.iter().map(|(name,table)|(name.clone(),json!(table.rows.len()))).collect::<serde_json::Map<_,_>>(),"receipt_count":validated.state.receipts.len(),"original_preserved":true});
         let id=uuid::Uuid::new_v4().to_string();
         db.execute("INSERT INTO native_restore_stages(id,archive_sha256,original,budget_id,name,created_at,report) VALUES(?1,?2,?3,?4,?5,strftime('%Y-%m-%dT%H:%M:%fZ','now'),?6)",params![id,sha,bytes.as_ref(),budget,name,report.to_string()])?;
         stage_report(db,&id)

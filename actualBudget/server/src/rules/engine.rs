@@ -118,6 +118,16 @@ impl Runner {
         b: &str,
         input: &Value,
     ) -> Result<(Value, Vec<String>), Error> {
+        self.evaluate_with_account_context(db, b, input, None)
+    }
+    /// Pure simulations may supply the on/off-budget context of a virtual account.
+    pub(crate) fn evaluate_with_account_context(
+        &mut self,
+        db: &Connection,
+        b: &str,
+        input: &Value,
+        account_override: Option<bool>,
+    ) -> Result<(Value, Vec<String>), Error> {
         let mut row = input.clone();
         let mut matched = vec![];
         let account_off = if let Some(id) = input["account_id"].as_str() {
@@ -130,6 +140,7 @@ impl Runner {
         } else {
             None
         };
+        let account_off = account_override.or(account_off);
         let context = super::conditions::Context { db, b, account_off };
         let attached = input["schedule_id"]
             .as_str()

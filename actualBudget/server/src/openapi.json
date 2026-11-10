@@ -20633,6 +20633,114 @@
         }
       }
     },
+    "/api/v1/budgets/{budget}/reports/forecast": {
+      "post": {
+        "description": "Experimental opt-in, read-only26.10-compatible balance forecast. No entries, schedules, receipts or clocks change. Bound500 selected accounts,5000 active schedules,10000 active rules,8MiB schedule/rule definitions,100000 selected posted/planned rows,10000 occurrences/20000 transfer legs,20000 account/day points,2m shared recurrence/rule work and scoped regex work;8MiB response. Router cache is keyed by budget snapshot/epoch, request and as_of, limited to8 entries/16MiB including keys. Oversized/unsupported work rejects rather than truncates. Result lowestBalance follows source raw scope; lowest_displayed and scheduled count follow the selected chart window.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Unsupported source/method/range/view/filter, invalid_regex or calculation/work bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "feature_disabled or budget lifecycle conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Calculation failed without financial changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed estimate with explicit input revision and assumptions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ForecastProjection"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForecastRequest"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/imports/ynab4": {
       "post": {
         "summary": "Stage a YNAB4 budget folder ZIP",
@@ -20920,6 +21028,814 @@
           }
         },
         "summary": "Download the unchanged original budget export"
+      }
+    },
+    "/api/v1/budgets/{budget}/banking": {
+      "get": {
+        "summary": "Read sanitized bank connections; never contacts provider",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sanitized durable outcome",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BankState"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid budget/account identifier",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/banking/connections": {
+      "post": {
+        "summary": "Stage one-use setup token in server-only custody",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "required": true
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Budget-Epoch",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "required": false,
+            "description": "Original captured epoch. Required for provider downloads; persist with the immutable command before sending."
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "schema": {
+              "const": "true"
+            },
+            "required": false
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Receipt-Only",
+            "schema": {
+              "const": "true"
+            },
+            "required": false
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankConnectionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sanitized durable outcome",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BankConnection"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or unsafe provider URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing connection or unknown receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Changed generation, canceled operation or different payload under same key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Bounded provider workers busy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin does not match this server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/banking/connections/{id}/commands": {
+      "post": {
+        "summary": "Claim once; ambiguous claims require replacement, exact committed retries never repeat transport",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "required": true
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Budget-Epoch",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "required": false,
+            "description": "Original captured epoch. Required for provider downloads; persist with the immutable command before sending."
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "schema": {
+              "const": "true"
+            },
+            "required": false
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Receipt-Only",
+            "schema": {
+              "const": "true"
+            },
+            "required": false
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Edit-Clock",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Refresh only: persist the original clock/owner with the immutable request."
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-History-Owner",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Refresh only: persist the original clock/owner with the immutable request."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankConnectionCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sanitized durable outcome",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/BankConnection"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/BankDiscovery"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "$ref": "#/components/schemas/BankRefreshResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or unsafe provider URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing connection or unknown receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Changed generation, canceled operation or different payload under same key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Bounded provider workers busy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Local rolling 24-hour connection request quota exhausted; no remote request made",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin does not match this server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/accounts/{account}/banking": {
+      "get": {
+        "summary": "Read the retained link and independently clocked bank preferences",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "account",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account banking snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BankAccount"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unavailable account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid budget/account identifier",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/accounts/{account}/banking/commands": {
+      "post": {
+        "summary": "Explicit link/unlink or per-field preference change; no provider request",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "account",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "required": true
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Budget-Epoch",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            },
+            "required": false,
+            "description": "Original captured epoch. Required for provider downloads; persist with the immutable command before sending."
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "schema": {
+              "const": "true"
+            },
+            "required": false
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Receipt-Only",
+            "schema": {
+              "const": "true"
+            },
+            "required": false
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-Edit-Clock",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/EditClock"
+            },
+            "description": "Refresh only: persist the original clock/owner with the immutable request."
+          },
+          {
+            "in": "header",
+            "name": "X-Actual-History-Owner",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Refresh only: persist the original clock/owner with the immutable request."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankAccountCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Durable account banking outcome",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankAccountResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid shape or opening choice",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing account/receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale snapshot/link/clock, canceled command or reused key with different intent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin does not match this server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/reports/budget-analysis": {
+      "post": {
+        "description": "Read-only mixed planned allocations and recorded entries. Opt-in required; category/group filters only. Preserves source method/carry/overspending rules. Bounds actual input rows, category/month work, regex work, output and revision cache. No ledger, plan, clock or receipt writes. A scoped32m SQLite VM-step budget returns typed analysis_work_limit refusal independently of matched-row limits.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Unsupported source/method/range/view/filter, invalid_regex or calculation/work bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "feature_disabled or budget lifecycle conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Calculation failed without financial changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed read-only analysis response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetAnalysisProjection"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetAnalysisRequest"
+              }
+            }
+          }
+        },
+        "summary": "Read exact monthly budget analysis",
+        "operationId": "budgetAnalysisRead"
+      }
+    },
+    "/api/v1/budgets/{budget}/reports/budget-analysis/drilldown": {
+      "post": {
+        "description": "Read-only bounded underlying rows for one month at a confirmed snapshot. Spent returns recorded leaf entries; budgeted returns contributing planned cells. Derived balance and overspending adjustments are not purchases. Stale snapshots are rejected. A scoped32m SQLite VM-step budget returns typed analysis_work_limit refusal independently of matched-row limits.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Unsupported source/method/range/view/filter, invalid_regex or calculation/work bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "feature_disabled or budget lifecycle conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Calculation failed without financial changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed read-only analysis response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetAnalysisDetails"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetAnalysisDetailRequest"
+              }
+            }
+          }
+        },
+        "summary": "Inspect analysis recorded entries or planned allocations",
+        "operationId": "budgetAnalysisInspect"
       }
     }
   },
@@ -23082,6 +23998,126 @@
                       "$ref": "#/components/schemas/BudgetCleanupGroupRecord"
                     }
                   }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "bank_connections"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/BankConnection"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "bank_remote_accounts"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/BankRemoteAccount"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "bank_links"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/BankLink"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "bank_transaction_origins"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/BankTransactionOrigin"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "transaction_import_metadata"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/TransactionImportMetadataRecord"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "entity": {
+                      "const": "transaction_import_settings"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/TransactionImportSettingsRecord"
+                    }
+                  },
+                  "required": [
+                    "entity",
+                    "id",
+                    "data"
+                  ],
+                  "additionalProperties": false
                 }
               ]
             }
@@ -23564,7 +24600,8 @@
                   19,
                   20,
                   21,
-                  22
+                  22,
+                  23
                 ]
               },
               "domains": {
@@ -30667,6 +31704,327 @@
           "record_kind"
         ]
       },
+      "ForecastOptions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "viewStart": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}(-[0-9]{2})?$"
+          },
+          "viewEnd": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}(-[0-9]{2})?$"
+          },
+          "source": {
+            "enum": [
+              "schedules",
+              "tracking-budget"
+            ],
+            "default": "schedules"
+          },
+          "granularity": {
+            "enum": [
+              "Daily",
+              "Monthly"
+            ],
+            "default": "Monthly"
+          },
+          "accountIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "maxItems": 500
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportCondition"
+            },
+            "maxItems": 20
+          },
+          "conditionsOp": {
+            "enum": [
+              "and",
+              "or"
+            ],
+            "default": "and"
+          },
+          "includeAccountlessSchedules": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "startDate",
+          "endDate"
+        ],
+        "description": "Dates are explicit calendar days. Optional view bounds retain source day-shaped chart windows over full-month forecast inputs; Monthly collapses view bounds to months. Tracking budget is monthly only, at most12 months, ignores account/report filters and schedules. Maximum canonical request65536 bytes."
+      },
+      "ForecastRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": 1
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "options": {
+            "$ref": "#/components/schemas/ForecastOptions"
+          }
+        },
+        "required": [
+          "version",
+          "as_of",
+          "options"
+        ]
+      },
+      "ForecastScheduleEntry": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "payee": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "scheduleName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "payee",
+          "scheduleId",
+          "scheduleName"
+        ]
+      },
+      "ForecastDataPoint": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "balance": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "accountId": {
+            "type": "string",
+            "description": "Real account UUID, tracking-budget aggregate, or __unassigned_schedule__ virtual account."
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForecastScheduleEntry"
+            }
+          }
+        },
+        "required": [
+          "date",
+          "balance",
+          "accountId",
+          "accountName",
+          "transactions"
+        ]
+      },
+      "ForecastLowest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "balance": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "accountName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "balance",
+          "accountId",
+          "accountName"
+        ]
+      },
+      "ForecastResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "dataPoints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForecastDataPoint"
+            },
+            "maxItems": 20000
+          },
+          "lowestBalance": {
+            "$ref": "#/components/schemas/ForecastLowest"
+          },
+          "forecastStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "forecastEndDate": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "dataPoints",
+          "lowestBalance",
+          "forecastStartDate",
+          "forecastEndDate"
+        ]
+      },
+      "ForecastChartPoint": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}(-[0-9]{2})?$"
+          },
+          "balance": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "date",
+          "balance"
+        ]
+      },
+      "ForecastProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "result": {
+            "$ref": "#/components/schemas/ForecastResult"
+          },
+          "chart": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForecastChartPoint"
+            },
+            "maxItems": 20000
+          },
+          "lowest_displayed": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ForecastChartPoint"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduled_occurrence_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "assumptions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ]
+            }
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "recorded": {
+            "const": false
+          },
+          "cache": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "hit": {
+                "type": "boolean"
+              },
+              "input_revision": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "hit",
+              "input_revision"
+            ]
+          }
+        },
+        "required": [
+          "result",
+          "chart",
+          "lowest_displayed",
+          "scheduled_occurrence_count",
+          "assumptions",
+          "snapshot",
+          "epoch",
+          "as_of",
+          "recorded",
+          "cache"
+        ]
+      },
       "CustomReportInterval": {
         "type": "object",
         "properties": {
@@ -30938,6 +32296,1706 @@
         ],
         "additionalProperties": true,
         "description": "Source26.10 custom report semantics. Budgeted supports category/group/interval and monthly/yearly only; transaction-only conditions do not alter planned allocations. Bounds reject rather than truncate."
+      },
+      "BankConnection": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "provider": {
+            "const": "simplefin"
+          },
+          "name": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "claim_pending",
+              "claim_inflight",
+              "connected",
+              "claim_failed",
+              "credentials_missing"
+            ]
+          },
+          "generation": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "error_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_success": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deleted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "provider",
+          "name",
+          "state",
+          "generation",
+          "revision",
+          "error_code",
+          "message",
+          "last_success",
+          "deleted"
+        ],
+        "additionalProperties": false
+      },
+      "BankConnectionCreate": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "provider": {
+                "const": "simplefin"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "setup_token": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 8192,
+                "writeOnly": true,
+                "description": "Base64 one-use HTTPS claim URL. Stored only in the private server credential store; generic receipts retain a SHA-256 fingerprint."
+              }
+            },
+            "required": [
+              "id",
+              "provider",
+              "name",
+              "setup_token"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "provider": {
+                "const": "simplefin"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "setup_token_sha256": {
+                "$ref": "#/components/schemas/BankSecretDigest"
+              }
+            },
+            "required": [
+              "id",
+              "provider",
+              "name",
+              "setup_token_sha256"
+            ],
+            "additionalProperties": false
+          }
+        ],
+        "description": "Submit a write-only setup token once. Durable client recovery must retain only its SHA256 and original nonsecret identity, then probe the receipt or cancel the original operation; never persist the raw token."
+      },
+      "BankConnectionCommand": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "claim"
+              },
+              "generation": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "action",
+              "generation"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "replace"
+              },
+              "generation": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "setup_token": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 8192,
+                "writeOnly": true
+              }
+            },
+            "required": [
+              "action",
+              "generation",
+              "setup_token"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "remove"
+              },
+              "generation": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "action",
+              "generation"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "discover"
+              },
+              "generation": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "action",
+              "generation"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "$ref": "#/components/schemas/BankRefresh"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "replace"
+              },
+              "generation": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "setup_token_sha256": {
+                "$ref": "#/components/schemas/BankSecretDigest"
+              }
+            },
+            "required": [
+              "action",
+              "generation",
+              "setup_token_sha256"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "BankState": {
+        "type": "object",
+        "properties": {
+          "connections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankConnection"
+            }
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankLink"
+            }
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "snapshot": {
+            "type": "string",
+            "minLength": 50,
+            "maxLength": 50
+          },
+          "accounts": {
+            "type": "array",
+            "maxItems": 5000,
+            "items": {
+              "$ref": "#/components/schemas/BankRemoteAccount"
+            }
+          },
+          "clock": {
+            "$ref": "#/components/schemas/EditClock"
+          }
+        },
+        "required": [
+          "connections",
+          "links",
+          "epoch",
+          "snapshot",
+          "accounts",
+          "clock"
+        ],
+        "additionalProperties": false
+      },
+      "BankRemoteAccount": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "connection_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "generation": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "remote_connection_id": {
+            "type": "string"
+          },
+          "remote_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "balance": {
+            "type": "string"
+          },
+          "available_balance": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "balance_date": {
+            "type": "integer"
+          },
+          "diagnostics": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "$ref": "#/components/schemas/BankDiagnostic"
+            }
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "institution": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "connection_id",
+          "generation",
+          "remote_connection_id",
+          "remote_id",
+          "name",
+          "currency",
+          "balance",
+          "available_balance",
+          "balance_date",
+          "diagnostics",
+          "deleted",
+          "institution"
+        ],
+        "additionalProperties": false
+      },
+      "BankLink": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "connection_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "remote_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "connection_generation": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "initial_sync": {
+            "type": "boolean"
+          },
+          "opening_mode": {
+            "enum": [
+              "auto",
+              "none",
+              "custom"
+            ]
+          },
+          "opening_amount": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "opening_date": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_sync_end": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "connection_id",
+          "remote_account_id",
+          "connection_generation",
+          "revision",
+          "deleted",
+          "initial_sync",
+          "opening_mode",
+          "opening_amount",
+          "opening_date",
+          "last_sync_end"
+        ],
+        "additionalProperties": false
+      },
+      "BankDiagnostic": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "remote_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "remote_connection_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "additionalProperties": false
+      },
+      "BankDiscovery": {
+        "type": "object",
+        "properties": {
+          "connection": {
+            "$ref": "#/components/schemas/BankConnection"
+          },
+          "accounts": {
+            "type": "array",
+            "maxItems": 500,
+            "items": {
+              "$ref": "#/components/schemas/BankRemoteAccount"
+            }
+          },
+          "errors": {
+            "type": "array",
+            "maxItems": 1001,
+            "items": {
+              "$ref": "#/components/schemas/BankDiagnostic"
+            }
+          }
+        },
+        "required": [
+          "connection",
+          "accounts",
+          "errors"
+        ],
+        "additionalProperties": false
+      },
+      "BankSettings": {
+        "type": "object",
+        "properties": {
+          "import_transactions": {
+            "type": "boolean"
+          },
+          "import_pending": {
+            "type": "boolean"
+          },
+          "import_notes": {
+            "type": "boolean"
+          },
+          "update_dates": {
+            "type": "boolean"
+          },
+          "mappings": {
+            "type": "object",
+            "properties": {
+              "payment": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "payee": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "notes": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  }
+                },
+                "required": [
+                  "date",
+                  "payee",
+                  "notes"
+                ],
+                "additionalProperties": false
+              },
+              "deposit": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "payee": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "notes": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  }
+                },
+                "required": [
+                  "date",
+                  "payee",
+                  "notes"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "payment",
+              "deposit"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "import_transactions",
+          "import_pending",
+          "import_notes",
+          "update_dates",
+          "mappings"
+        ],
+        "additionalProperties": false
+      },
+      "BankPreferences": {
+        "type": "object",
+        "properties": {
+          "settings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BankSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "raw_preferences": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "field_versions": {
+            "type": "object",
+            "properties": {
+              "import_transactions": {
+                "$ref": "#/components/schemas/EditClock"
+              },
+              "import_pending": {
+                "$ref": "#/components/schemas/EditClock"
+              },
+              "import_notes": {
+                "$ref": "#/components/schemas/EditClock"
+              },
+              "update_dates": {
+                "$ref": "#/components/schemas/EditClock"
+              },
+              "mappings": {
+                "$ref": "#/components/schemas/EditClock"
+              }
+            },
+            "required": [
+              "import_transactions",
+              "import_pending",
+              "import_notes",
+              "update_dates",
+              "mappings"
+            ],
+            "additionalProperties": false
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "settings",
+          "raw_preferences",
+          "field_versions",
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "BankRefresh": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "const": "refresh"
+          },
+          "generation": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "accounts": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "properties": {
+                "account_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "account_id",
+                "revision"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "action",
+          "generation",
+          "snapshot",
+          "start_date",
+          "end_date",
+          "accounts"
+        ],
+        "additionalProperties": false
+      },
+      "BankRefreshResult": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "complete",
+              "partial",
+              "failed"
+            ]
+          },
+          "accounts": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "account_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "const": "complete"
+                    },
+                    "added": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "maxItems": 100000
+                    },
+                    "updated": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "maxItems": 100000
+                    },
+                    "ignored": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "maxItems": 100000
+                    }
+                  },
+                  "required": [
+                    "account_id",
+                    "status",
+                    "added",
+                    "updated",
+                    "ignored"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "account_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "const": "balance_only"
+                    },
+                    "added": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "maxItems": 100000
+                    },
+                    "updated": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "maxItems": 100000
+                    },
+                    "ignored": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "maxItems": 100000
+                    }
+                  },
+                  "required": [
+                    "account_id",
+                    "status",
+                    "added",
+                    "updated",
+                    "ignored"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "account_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "status": {
+                          "const": "failed"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "account_id",
+                        "status",
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "account_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "status": {
+                          "const": "failed"
+                        },
+                        "diagnostics": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/BankDiagnostic"
+                          }
+                        }
+                      },
+                      "required": [
+                        "account_id",
+                        "status",
+                        "diagnostics"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BankDiagnostic"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "accounts",
+          "errors"
+        ],
+        "additionalProperties": false
+      },
+      "BankRefreshResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/BankRefreshResult"
+          },
+          "edit_clock": {
+            "$ref": "#/components/schemas/EditClock"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          }
+        },
+        "required": [
+          "data",
+          "cursor"
+        ],
+        "additionalProperties": false
+      },
+      "BankAccountCommand": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "link"
+              },
+              "snapshot": {
+                "$ref": "#/components/schemas/ChangeCursor"
+              },
+              "connection_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "generation": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "remote_account_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "opening_balance_mode": {
+                "enum": [
+                  "auto",
+                  "none",
+                  "custom"
+                ]
+              },
+              "opening_amount": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "opening_date": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date"
+              }
+            },
+            "required": [
+              "action",
+              "snapshot",
+              "connection_id",
+              "generation",
+              "remote_account_id",
+              "opening_balance_mode"
+            ],
+            "additionalProperties": false,
+            "if": {
+              "properties": {
+                "opening_balance_mode": {
+                  "const": "custom"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "opening_amount",
+                "opening_date"
+              ],
+              "properties": {
+                "opening_amount": {
+                  "type": "integer"
+                },
+                "opening_date": {
+                  "type": "string",
+                  "format": "date"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "opening_amount": {
+                  "type": "null"
+                },
+                "opening_date": {
+                  "type": "null"
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "unlink"
+              },
+              "snapshot": {
+                "$ref": "#/components/schemas/ChangeCursor"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "action",
+              "snapshot",
+              "revision"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "settings"
+              },
+              "snapshot": {
+                "$ref": "#/components/schemas/ChangeCursor"
+              },
+              "revision": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1
+              },
+              "changes": {
+                "type": "object",
+                "properties": {
+                  "import_transactions": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "import_pending": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "import_notes": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "update_dates": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "mappings": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "payment": {
+                            "type": "object",
+                            "properties": {
+                              "date": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "payee": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "notes": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              }
+                            },
+                            "required": [
+                              "date",
+                              "payee",
+                              "notes"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "deposit": {
+                            "type": "object",
+                            "properties": {
+                              "date": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "payee": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "notes": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              }
+                            },
+                            "required": [
+                              "date",
+                              "payee",
+                              "notes"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "payment",
+                          "deposit"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [],
+                "additionalProperties": false,
+                "minProperties": 1,
+                "maxProperties": 5
+              }
+            },
+            "required": [
+              "action",
+              "snapshot",
+              "changes"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "BankAccount": {
+        "type": "object",
+        "properties": {
+          "link": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BankLink"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/BankPreferences"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          }
+        },
+        "required": [
+          "link",
+          "preferences",
+          "snapshot",
+          "epoch"
+        ],
+        "additionalProperties": false
+      },
+      "BankAccountResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BankLink"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/BankPreferences"
+          },
+          "edit_clock": {
+            "$ref": "#/components/schemas/EditClock"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/ChangeCursor"
+          }
+        },
+        "required": [
+          "data",
+          "preferences",
+          "edit_clock",
+          "cursor"
+        ],
+        "additionalProperties": false
+      },
+      "BankTransactionOrigin": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "connection_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "remote_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deleted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "connection_id",
+          "remote_account_id",
+          "deleted"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionImportMetadataRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "imported_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "raw_synced_data": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pending": {
+            "type": "boolean"
+          },
+          "import_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deleted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "imported_id",
+          "raw_synced_data",
+          "pending",
+          "import_type",
+          "deleted"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionImportSettingsRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "option_key": {
+            "type": "string"
+          },
+          "value": {},
+          "deleted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "account_id",
+          "option_key",
+          "value",
+          "deleted"
+        ],
+        "additionalProperties": false
+      },
+      "BankSecretDigest": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$",
+        "description": "SHA256 of the exact original setup_token string. Only valid with X-Actual-Receipt-Only:true or X-Actual-Cancel-If-Uncommitted:true. It cannot stage or replace credentials. Preserve every original nonsecret field, idempotency key and epoch with this digest."
+      },
+      "BudgetAnalysisOptions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$"
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$"
+          },
+          "conditions": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "op": {
+                  "type": "string"
+                },
+                "value": {},
+                "customName": {}
+              },
+              "required": [
+                "field",
+                "op",
+                "value"
+              ],
+              "additionalProperties": true
+            }
+          },
+          "conditionsOp": {
+            "type": "string",
+            "enum": [
+              "and",
+              "or"
+            ],
+            "default": "and"
+          },
+          "showHiddenCategories": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "startDate",
+          "endDate"
+        ]
+      },
+      "BudgetAnalysisRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "const": 1
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "options": {
+            "$ref": "#/components/schemas/BudgetAnalysisOptions"
+          }
+        },
+        "required": [
+          "version",
+          "as_of",
+          "options"
+        ]
+      },
+      "BudgetAnalysisInterval": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$"
+          },
+          "budgeted": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "spent": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "balance": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "overspendingAdjustment": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "date",
+          "budgeted",
+          "spent",
+          "balance",
+          "overspendingAdjustment"
+        ]
+      },
+      "BudgetAnalysisResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "intervalData": {
+            "type": "array",
+            "maxItems": 20000,
+            "items": {
+              "$ref": "#/components/schemas/BudgetAnalysisInterval"
+            }
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$"
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}(-\\d{2})?$"
+          },
+          "totalBudgeted": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "totalSpent": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "totalOverspendingAdjustment": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "finalOverspendingAdjustment": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 0
+          }
+        },
+        "required": [
+          "intervalData",
+          "startDate",
+          "endDate",
+          "totalBudgeted",
+          "totalSpent",
+          "totalOverspendingAdjustment",
+          "finalOverspendingAdjustment"
+        ]
+      },
+      "BudgetAnalysisCategory": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "group_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "income_group": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "group_id",
+          "income_group"
+        ]
+      },
+      "BudgetAnalysisProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "result": {
+            "$ref": "#/components/schemas/BudgetAnalysisResult"
+          },
+          "categories": {
+            "type": "array",
+            "maxItems": 5000,
+            "items": {
+              "$ref": "#/components/schemas/BudgetAnalysisCategory"
+            }
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "recorded": {
+            "type": "boolean",
+            "const": false
+          },
+          "basis": {
+            "type": "string",
+            "const": "budget_allocations_and_recorded_entries"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "envelope",
+              "tracking"
+            ]
+          },
+          "assumptions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ]
+            }
+          },
+          "cache": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "hit": {
+                "type": "boolean"
+              },
+              "input_revision": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "hit",
+              "input_revision"
+            ]
+          }
+        },
+        "required": [
+          "result",
+          "categories",
+          "snapshot",
+          "epoch",
+          "as_of",
+          "recorded",
+          "basis",
+          "method",
+          "assumptions",
+          "cache"
+        ]
+      },
+      "BudgetAnalysisDetailRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "query": {
+            "$ref": "#/components/schemas/BudgetAnalysisRequest"
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "month": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$"
+          },
+          "metric": {
+            "type": "string",
+            "enum": [
+              "spent",
+              "budgeted"
+            ]
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000,
+            "default": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200,
+            "default": 50
+          }
+        },
+        "required": [
+          "query",
+          "snapshot",
+          "month",
+          "metric"
+        ]
+      },
+      "BudgetAnalysisAllocation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "category_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "category_name": {
+            "type": "string"
+          },
+          "month": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$"
+          }
+        },
+        "required": [
+          "id",
+          "amount",
+          "category_id",
+          "category_name",
+          "month"
+        ]
+      },
+      "BudgetAnalysisDetails": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "rows": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/Transaction"
+                },
+                {
+                  "$ref": "#/components/schemas/BudgetAnalysisAllocation"
+                }
+              ]
+            }
+          },
+          "total_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "total_amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "month": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$"
+          },
+          "metric": {
+            "type": "string",
+            "enum": [
+              "spent",
+              "budgeted"
+            ]
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "budget_allocations",
+              "recorded_entries"
+            ]
+          }
+        },
+        "required": [
+          "rows",
+          "total_count",
+          "total_amount",
+          "offset",
+          "limit",
+          "has_more",
+          "snapshot",
+          "month",
+          "metric",
+          "basis"
+        ]
       }
     }
   }

@@ -1,6 +1,8 @@
 //! Backend schedule authority. Explicit commands own all durable effects.
 mod calendar;
+mod forecast;
 pub(crate) use calendar::{after as template_after, next as template_next};
+pub(crate) use forecast::inputs as forecast_inputs;
 mod commands;
 mod conversion;
 mod data;

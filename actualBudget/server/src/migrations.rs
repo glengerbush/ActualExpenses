@@ -26,7 +26,10 @@ const MIGRATIONS: &[&str] = &[
     include_str!("migrations/020_budget_automations.sql"),
     include_str!("migrations/021_transaction_imports.sql"),
     include_str!("migrations/022_reporting.sql"),
+    include_str!("migrations/023_banking.sql"),
+    include_str!("migrations/024_notes.sql"),
 ];
+pub(crate) const CURRENT_VERSION: usize = MIGRATIONS.len();
 pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     crate::android_upgrade::order::configure(db)?;
     let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
@@ -45,6 +48,13 @@ pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     let tx = db.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     for (index, sql) in MIGRATIONS.iter().enumerate().skip(version as usize) {
         tx.execute_batch(sql)?;
+        if index == 23 {
+            crate::notes::configure(&tx)?;
+            crate::notes::enrich(&tx, None)?;
+        }
+        if index == 22 {
+            crate::banking::import::enrich(&tx, None)?;
+        }
         if index == 21 {
             crate::reports::import::enrich(&tx, None)?;
         }

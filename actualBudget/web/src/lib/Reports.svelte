@@ -18,6 +18,10 @@
     type ReportDocument,
     type ReportOperation,
   } from "./reports";
+  import { preferences } from "./preferences.svelte";
+  import BudgetAnalysisFields from "./BudgetAnalysisFields.svelte";
+  import ForecastFields from "./ForecastFields.svelte";
+  import { addMonths } from "./forecasts";
   import CustomReports from "./CustomReports.svelte";
   import ReportWidget from "./ReportWidget.svelte";
   import ReportConditions from "./ReportConditions.svelte";
@@ -54,7 +58,7 @@
     tab = value;
     customId = id;
     await writeValue(`view:reporting-tab:${budgetId}`, value);
-    if (value === "dashboards") await load();
+    if (value !== "custom") await load();
   }
   function reportsChanged(value: Reporting) {
     data = value;
@@ -81,7 +85,24 @@
   );
   let page = $derived(pages.find((d) => d.id === selected));
   let meta = $derived(object(editor?.config.meta));
-  const types = [
+  let forecastEnabled = $derived(
+    preferences.budgetId === budgetId &&
+      preferences.hasUsableShared &&
+      preferences.shared.experimental.balanceForecastReport,
+  );
+  let analysisEnabled = $derived(
+    preferences.budgetId === budgetId &&
+      preferences.hasUsableShared &&
+      preferences.shared.experimental.budgetAnalysisReport,
+  );
+  let displayedWidgets = $derived(
+    tab === "forecast"
+      ? widgets.filter((w) => w.config.type === "balance-forecast-card")
+      : tab === "analysis"
+        ? widgets.filter((w) => w.config.type === "budget-analysis-card")
+        : widgets,
+  );
+  let types = $derived([
     ["cash-flow-card", "Cash flow"],
     ["net-worth-card", "Net worth"],
     ["spending-card", "Spending analysis"],
@@ -89,7 +110,9 @@
     ["summary-card", "Summary"],
     ["calendar-card", "Transaction calendar"],
     ["custom-report", "Saved custom report"],
-  ];
+    ...(analysisEnabled ? [["budget-analysis-card", "Budget Analysis"]] : []),
+    ...(forecastEnabled ? [["balance-forecast-card", "Balance forecast"]] : []),
+  ]);
   const dateModes = [
     ["sliding-window", "Live sliding window"],
     ["static", "Static dates"],
@@ -134,7 +157,17 @@
     });
   }
   function timeframe(key: string, value: string) {
-    metadata("timeFrame", { ...object(meta.timeFrame), [key]: value });
+    metadata("timeFrame", {
+      ...(editor?.config.type === "balance-forecast-card"
+        ? {
+            mode: "static",
+            start: meta.startDate || localDay().slice(0, 7),
+            end: meta.endDate || addMonths(localDay().slice(0, 7), 11),
+          }
+        : {}),
+      ...object(meta.timeFrame),
+      [key]: value,
+    });
   }
   function summaryType() {
     try {
@@ -244,7 +277,7 @@
       tombstone: false,
     });
   }
-  async function newWidget() {
+  async function newWidget(type = "cash-flow-card") {
     const today = localDay();
     let position = {
       x: 0,
@@ -280,16 +313,23 @@
       revision: 0,
       config: {
         dashboard_page_id: selected,
-        type: "cash-flow-card",
+        type,
         ...position,
         width: 6,
         height: 3,
         meta: {
           name: "",
           timeFrame: {
-            start: today.slice(0, 7),
-            end: today.slice(0, 7),
-            mode: "sliding-window",
+            start:
+              type === "budget-analysis-card"
+                ? addMonths(today.slice(0, 7), -5)
+                : today.slice(0, 7),
+            end:
+              type === "balance-forecast-card"
+                ? addMonths(today.slice(0, 7), 11)
+                : today.slice(0, 7),
+            mode:
+              type === "balance-forecast-card" ? "static" : "sliding-window",
           },
         },
       },
@@ -419,6 +459,16 @@
       disabled={!!editor || busy}
       onclick={() => switchTab("custom")}>{t("Custom reports")}</button
     >
+    {#if forecastEnabled || tab === "forecast"}<button
+        aria-pressed={tab === "forecast"}
+        disabled={!!editor || busy}
+        onclick={() => switchTab("forecast")}>{t("Balance forecast")}</button
+      >{/if}
+    {#if analysisEnabled || tab === "analysis"}<button
+        aria-pressed={tab === "analysis"}
+        disabled={!!editor || busy}
+        onclick={() => switchTab("analysis")}>{t("Budget Analysis")}</button
+      >{/if}
   </nav>
   {#if tab === "custom"}{#key customId}<CustomReports
         {budgetId}
@@ -428,6 +478,26 @@
         onchanged={reportsChanged}
       />{/key}
   {:else}
+    {#if tab === "forecast"}<p>
+        {t(
+          "Forecasts are saved dashboard widgets. Choose a dashboard, then create or edit a forecast. Estimates never change recorded balances.",
+        )}
+      </p>
+      {#if !forecastEnabled}<p role="status">
+          {t(
+            "Enable Balance forecast in Settings → Experimental features. Saved settings are preserved.",
+          )}
+        </p>{/if}{/if}
+    {#if tab === "analysis"}<p>
+        {t(
+          "Saved monthly analyses compare planned allocations and recorded spending. Choose a dashboard, then create or edit an analysis.",
+        )}
+      </p>
+      {#if !analysisEnabled}<p role="status">
+          {t(
+            "Enable Budget Analysis in Settings → Experimental features. Saved settings are preserved.",
+          )}
+        </p>{/if}{/if}
     {#if error}<p role="alert">{t(error)}</p>{/if}{#if notice}<p role="status">
         {t(notice)}
       </p>{/if}{#if cached}<p role="status">
@@ -501,9 +571,28 @@
               cached ||
               disconnected}>{t("Delete dashboard")}</button
           ><button
-            onclick={newWidget}
-            disabled={busy || !!editor || !!pending || cached || disconnected}
-            >{t("Add widget")}</button
+            onclick={() =>
+              newWidget(
+                tab === "forecast"
+                  ? "balance-forecast-card"
+                  : tab === "analysis"
+                    ? "budget-analysis-card"
+                    : "cash-flow-card",
+              )}
+            disabled={busy ||
+              !!editor ||
+              !!pending ||
+              cached ||
+              disconnected ||
+              (tab === "forecast" && !forecastEnabled) ||
+              (tab === "analysis" && !analysisEnabled)}
+            >{t(
+              tab === "forecast"
+                ? "New forecast"
+                : tab === "analysis"
+                  ? "New analysis"
+                  : "Add widget",
+            )}</button
           >{/if}
       </div>
     </div>
@@ -605,7 +694,10 @@
                 <label
                   >{t("Date mode")}<select
                     value={String(
-                      object(meta.timeFrame).mode || "sliding-window",
+                      object(meta.timeFrame).mode ||
+                        (editor.config.type === "balance-forecast-card"
+                          ? "static"
+                          : "sliding-window"),
                     )}
                     onchange={(e) => timeframe("mode", e.currentTarget.value)}
                     >{#each dateModes as mode (mode[0])}<option value={mode[0]}
@@ -617,7 +709,11 @@
                     type="month"
                     required
                     value={String(
-                      object(meta.timeFrame).start || localDay(),
+                      object(meta.timeFrame).start ||
+                        (editor.config.type === "balance-forecast-card"
+                          ? meta.startDate
+                          : null) ||
+                        localDay(),
                     ).slice(0, 7)}
                     oninput={(e) => timeframe("start", e.currentTarget.value)}
                   /></label
@@ -626,12 +722,25 @@
                     type="month"
                     required
                     value={String(
-                      object(meta.timeFrame).end || localDay(),
+                      object(meta.timeFrame).end ||
+                        (editor.config.type === "balance-forecast-card"
+                          ? meta.endDate
+                          : null) ||
+                        localDay(),
                     ).slice(0, 7)}
                     oninput={(e) => timeframe("end", e.currentTarget.value)}
                   /></label
                 >
               </div>
+              {#if editor.config.type === "budget-analysis-card"}<BudgetAnalysisFields
+                  {meta}
+                  onchange={metadata}
+                />{/if}
+              {#if editor.config.type === "balance-forecast-card"}<ForecastFields
+                  {meta}
+                  {accounts}
+                  onchange={metadata}
+                />{/if}
               {#if editor.config.type === "net-worth-card"}<label
                   >{t("Interval")}<select
                     value={String(meta.interval || "Monthly")}
@@ -760,6 +869,8 @@
             {#if editor.config.type !== "markdown-card"}<ReportConditions
                 {budgetId}
                 {accounts}
+                sourceCategoryFilters={editor.config.type ===
+                  "budget-analysis-card"}
                 conditions={meta.conditions}
                 conditionsOp={meta.conditionsOp}
                 onchange={(conditions, conditionsOp) => {
@@ -807,8 +918,23 @@
     {#if !pages.length && !busy && !editor}<p>
         {t("No dashboards yet. Create one, then add a report or text widget.")}
       </p>{/if}
-    <div class="dashboard">
-      {#each widgets as widget (widget.id + ":" + widget.revision + ":" + (customReports.find((d) => d.id === object(widget.config.meta).id)?.revision ?? "missing"))}<div
+    {#if tab === "forecast" && !displayedWidgets.length && pages.length}<p>
+        {t(
+          "No saved forecasts on this dashboard. Choose New forecast to begin.",
+        )}
+      </p>{/if}
+    {#if tab === "analysis" && !displayedWidgets.length && pages.length}<p>
+        {t(
+          "No saved analyses on this dashboard. Choose New analysis to begin.",
+        )}
+      </p>{/if}
+    <div
+      class={[
+        "dashboard",
+        { forecasts: tab === "forecast" || tab === "analysis" },
+      ]}
+    >
+      {#each displayedWidgets as widget (widget.id + ":" + widget.revision + ":" + (customReports.find((d) => d.id === object(widget.config.meta).id)?.revision ?? "missing"))}<div
           class="widget"
           style:--column={Number(widget.config.x) + 1}
           style:--width={Number(widget.config.width)}
@@ -818,6 +944,7 @@
           <ReportWidget
             {budgetId}
             document={widget}
+            epoch={data?.epoch || ""}
             report={customReports.find(
               (d) => d.id === object(widget.config.meta).id,
             ) || null}
@@ -905,6 +1032,13 @@
     gap: 1rem;
     grid-auto-rows: minmax(2rem, auto);
     align-items: stretch;
+  }
+  .dashboard.forecasts {
+    display: flex;
+    flex-direction: column;
+  }
+  .dashboard.forecasts .widget {
+    width: 100%;
   }
   .widget {
     min-width: 0;

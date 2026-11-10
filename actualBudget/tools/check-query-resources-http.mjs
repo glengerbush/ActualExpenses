@@ -32,24 +32,43 @@ async function request(path, body, status = 200) {
 // Preserve every nested recurrence discriminator, value, option and action.
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
-  if (value && typeof value === "object")
-    return Object.fromEntries(
-      Object.entries(value).map(([k, v]) => [
-        k,
-        ["goal_def", "cleanup_def", "raw_synced_data"].includes(k) &&
-        typeof v === "string"
-          ? canonical(JSON.parse(v))
-          : k === "field"
-            ? ({
-                acct: "account",
-                description: "payee",
-                imported_description: "imported_payee",
-              }[v] ?? v)
-            : canonical(v),
-      ]),
-    );
-  return value;
+  if (!value || typeof value !== "object") return value;
+  const aliases = {
+    acct: "account",
+    description: "payee",
+    imported_description: "imported_payee",
+  };
+  return Object.fromEntries(
+    Object.entries(value).map(([key, original]) => {
+      let field = original;
+      if (
+        ["goal_def", "cleanup_def", "raw_synced_data"].includes(key) &&
+        typeof field === "string"
+      ) {
+        try {
+          field = JSON.parse(field);
+        } catch {
+          /* Non-JSON raw source text remains exact text. */
+        }
+      }
+      if (
+        ["conditions", "actions", "rule.conditions", "rule.actions"].includes(
+          key,
+        ) &&
+        Array.isArray(field)
+      ) {
+        field = field.map((entry) =>
+          entry && typeof entry === "object" && typeof entry.field === "string"
+            ? { ...entry, field: aliases[entry.field] ?? entry.field }
+            : entry,
+        );
+      }
+      // Never rewrite nested value/options/metadata properties called field/type.
+      return [key, field];
+    }),
+  );
 }
+
 try {
   const capabilities = (await request("/query-capabilities")).data;
   assert.ok(capabilities.tables.includes("budget_cells"));

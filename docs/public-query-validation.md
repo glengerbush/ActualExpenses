@@ -1,8 +1,55 @@
-# Public query/API automation — in progress
+# Public query/API automation — candidate complete
 
-Ticket47 on codex/query47. Initial base0a284f2; root owns final review/qualification.
-No live data, deployment, release or version changes. Plan /tmp/actualbudget47-handoff.md;
-public seams and source scope will move into the caller guide as implementation lands.
+Ticket47, branch codex/query47. Initial base0a284f2; accepted28/35/36 integration
+836918a joined before final interface work. Root owns consolidated review,
+composition with later schema versions and final qualification. No live data,
+deployment, release or version changes. Runtime read/notes/batch checkpoints are
+reviewed; the final interface/workflow checkpoint awaits root review.
+
+## Final scope and maintained proof
+
+[Caller guide](PUBLIC-API.md) and [complete SDK/resource map](public-api-sdk-map.json)
+cover all67 baseline SDK methods and18 declared query resources. Ten closed native
+query profiles plus existing typed feature routes provide validated remote reads;
+notes24 preserve arbitrary identities/domain aliases; atomic mixed transaction
+commands reuse existing financial writers and durable replay/history protections.
+No local engine, unrestricted SQL/JS executor, query GUI or periodic polling.
+
+| Criterion | Maintained evidence |
+| --- | --- |
+| Independent source query/Unicode/retired identity/notes/profile/types/batch | npm run test:public-api-source; original fixtures/hashes and every source quirk retained. |
+| Public financial/output/resource/protection/history/receipt/cancel guards | npm run test:public-api-http; constituent commands also join test:browser for production keep-going qualification. |
+| Genuine schema23 DB/native upgrade | npm run test:public-api-upgrade, isolated local server; source versions unchanged, current version not hardcoded. |
+| Real external caller reads/imports/updates | check-public-caller-http.mjs spawns stdlib-only Python, proves ACK lost after verified200 commit, immutable request across processes, genuine source graph/sums and original-byte manual-match import. |
+| Every SDK operation/resource mapped to served interface | check-public-api-map.mjs checks pinned source inventory/hash, every mapped method/path and discovered profile. |
+| Served schemas | contract-smoke.py validates catalog/query/notes/batch success/errors/replay/cancel plus existing contracts. Fragment/core equality and2020-12 schemas checked. |
+| Companion observes external work | NativeApiIntegrationTest.externalAutomationPreservesCompanionProjection: mixed batch+notes feed, IDs/money/manual category, cursor, no automation write or idle cache rewrite; restart. Native production unchanged. |
+| Existing web register observes caller | public-api-browser.mjs: real Python batch, source graph/balance, desktop/mobile/private display, no JS/global API error; maintained browser command. No Svelte product changes. |
+
+Focused final interface logs: /tmp/public-api-contract-smoke-first.log,
+/tmp/public-api-map-served-corrected.log, /tmp/public-caller-composed-http.log,
+/tmp/public-api-native-focused.log (1 passed,0 skipped),
+/tmp/public-api-browser-final.log. Web check0errors/0warnings and buildPASS
+/tmp/public-api-web-{check,build}.log. Existing default chunk warning retained;
+no new latency/energy claim. Initial native invocation's wrong working directory
+produced no matching test (setup failure, not a product red); corrected focused
+case passes. Initial browser privacy locator assumed an Amount column, while
+source settings show Payment/Deposit; corrected locator retains exact masking
+assertion. Source CSV camel/null mapping keys were explicitly translated to the
+native mapping schema; original source observations were not changed.
+
+Rendered evidence: actualBudget/web/test-results/public-api/{desktop,mobile,
+mobile-register-viewport,dark-large-private,dark-large-private-viewport}.png.
+Incumbent Operate system preserved. Manual PRODUCT/DESIGN read corrected an
+Impeccable context command launched from the wrong directory. Register autofixer
+reported no issues and one pre-existing mutable-Set suggestion outside this
+read-only workflow scope. Desktop/mobile/dark200% inspected; no new layout/copy
+or design artifacts required. Chromium emulated viewports, not physical phones.
+Parent performs final rendered/consolidated review.
+
+Remaining sections retain chronological checkpoint/red→green provenance. Their
+historical WIP statements describe those earlier checkpoints, not current feature
+omissions. Parent full qualification remains pending after final freeze.
 
 ## First independent query witness
 
@@ -35,7 +82,7 @@ native validation/literal behavior needs separate public assertions.
 only a missing ZIP Content-Type in the harness, corrected before route red.
 Read-only transaction query checkpoint implemented; whole47 remains incomplete.
 
-## Planned joins
+## Initial plan (historical)
 
 Closed query registry/validated typed expressions and fixed budget-scoped joins,
 exact money aggregates, split/ordering semantics, read-only POST snapshots/pages,
@@ -44,7 +91,7 @@ financial writers and original epoch/HLC/receipt/history/cancellation contracts.
 Real external Python caller reads/imports/updates budget without a local engine;
 caller guide maps existing feature routes and provider capability errors.
 
-Generic arbitrary-ID notes currently remain blocked/preserved in original Actual
+At the initial checkpoint, generic arbitrary-ID notes remained blocked/preserved in original Actual
 imports (conversion.rs explicitly reports unmatched notes). Root reserved schema24
 after banking23; standalone genuine source/public witness precedes implementation.
 No placeholder23, relabeled migration, or bank-secret projection permitted.
@@ -461,3 +508,22 @@ source outputs now pass /tmp/report-named-http-green.log with unchanged financia
 rows/checkpoint. Independent source check /tmp/custom-report-named-source-check.log
 and binClippy /tmp/report-named-clippy.log PASS. This is the bounded shared
 compatibility correction requested during47, not a fresh whole report audit.
+
+Final proof/wiring notes: public resource normalization now changes only top-level
+condition/action field aliases; nested values/options/metadata field/type keys
+remain exact. Structured source JSON text decoding is limited to documented
+columns. Public22+24 remain green /tmp/public-api-{resource,types}-proof-final.log.
+Caller redirects are refused without changing captured method/origin/body; the
+real subprocess witness proves zero redirect follow-up, retained attempted state,
+explicit cancel/fence and no added purchase (/tmp/public-caller-final.log).
+Known committed/canceled states are not downgraded by another attempted delivery.
+
+Maintained commands resolve all paths; source and isolated-upgrade tasks join
+release CI, HTTP consumers and register workflow join production test:browser.
+Shared-source note tests accept ready/already-activated stages while still
+cloning before mutation and comparing original bytes/financial state; two runs
+against one disposable server PASS /tmp/public-api-note-template-reuse.log.
+Isolated genuine23→current task PASS /tmp/public-api-upgrade-maintained.log.
+Final formatter/py_compile checks PASS /tmp/public-api-final-format.log; no
+worker-wide Rust/native/container repetition. Later schema25 composition is root
+owned; current-version assertions are not hardcoded24 and genuine fixtures stay23.

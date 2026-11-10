@@ -21249,6 +21249,226 @@
         "summary": "Inspect analysis recorded entries or planned allocations",
         "operationId": "budgetAnalysisInspect"
       }
+    },
+    "/api/v1/budgets/{budget}/reports/sankey": {
+      "post": {
+        "description": "Read-only source-compatible grouped money flow. Default-off Sankey opt-in; mixed budgeted/recorded context is explicit. Bounds64KiB/20conditions,100000 matching rows,5000 categories/base nodes,20000 links/category-month cells/tooltips,50m graph operations,32m SQLite VM steps and8MiB response. Base cache8entries/16MiB binds owned epoch and relevant financial clocks/revisions; visual changes reuse source aggregates. Hidden -1 routing links and source ending-layer target -1 indices are explicitly classified, not monetary purchases. No financial/clock/receipt writes.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Unsupported source/method/range/view/filter, invalid_regex or calculation/work bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "feature_disabled, stale immutable snapshot or flow_not_reconciled; no financial changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Calculation failed without financial changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed read-only Sankey response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/SankeyProjection"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SankeyRequest"
+              }
+            }
+          }
+        },
+        "summary": "Read exact monthly budget analysis",
+        "operationId": "postSankeyProjection"
+      }
+    },
+    "/api/v1/budgets/{budget}/reports/sankey/drilldown": {
+      "post": {
+        "description": "Snapshot-bound base/grouped flow contributions. Exact signed reconciliation, original amounts, linked net-transfer pairs, planned cells and derived budget context are distinct. Routing links refused. Count/offset bounded100000; limit1\u2013200; response8MiB; stale snapshot/unsupported reconciliation conflicts explicit. Read-only; no complete-history browser response.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Unsupported source/method/range/view/filter, invalid_regex or calculation/work bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "feature_disabled, stale immutable snapshot or flow_not_reconciled; no financial changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Calculation failed without financial changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed read-only Sankey response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/SankeyDetails"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SankeyDetailRequest"
+              }
+            }
+          }
+        },
+        "summary": "Inspect analysis recorded entries or planned allocations",
+        "operationId": "postSankeyContributions"
+      }
     }
   },
   "components": {
@@ -32014,6 +32234,772 @@
           "month",
           "metric",
           "basis"
+        ]
+      },
+      "SankeyOptions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "spent",
+              "budgeted"
+            ],
+            "default": "spent"
+          },
+          "conditions": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "op": {
+                  "type": "string"
+                },
+                "value": {},
+                "customName": {}
+              },
+              "required": [
+                "field",
+                "op",
+                "value"
+              ],
+              "additionalProperties": true
+            }
+          },
+          "conditionsOp": {
+            "type": "string",
+            "enum": [
+              "and",
+              "or"
+            ],
+            "default": "and"
+          },
+          "groupAccounts": {
+            "type": "boolean",
+            "default": false
+          },
+          "showTransfers": {
+            "type": "boolean",
+            "default": false
+          },
+          "topNcategories": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000,
+            "default": 15
+          },
+          "categorySort": {
+            "type": "string",
+            "enum": [
+              "per-group",
+              "global",
+              "budget-order"
+            ],
+            "default": "per-group"
+          },
+          "layerFrom": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "payee",
+                  "income_category",
+                  "account",
+                  "budget",
+                  "category_group",
+                  "category"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "layerTo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "payee",
+                  "income_category",
+                  "account",
+                  "budget",
+                  "category_group",
+                  "category"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "showPercentages": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "startDate",
+          "endDate"
+        ]
+      },
+      "SankeyRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "const": 1
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "options": {
+            "$ref": "#/components/schemas/SankeyOptions"
+          }
+        },
+        "required": [
+          "version",
+          "as_of",
+          "options"
+        ]
+      },
+      "SankeyBaseNode": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "payee",
+              "income_category",
+              "account",
+              "budget",
+              "category_group",
+              "category"
+            ]
+          },
+          "to": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              ],
+              "items": false
+            },
+            "maxItems": 20000
+          },
+          "name": {
+            "type": "string"
+          },
+          "labelKey": {
+            "type": "string"
+          },
+          "labelParams": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "isNegative": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "key",
+          "type",
+          "to"
+        ]
+      },
+      "SankeyNode": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "percentageLabel": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "palette0",
+              "palette1",
+              "palette2",
+              "positive",
+              "negative",
+              "neutral",
+              "flow"
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "percentageLabel"
+        ]
+      },
+      "SankeyTooltip": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ]
+      },
+      "SankeyLink": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4999
+          },
+          "target": {
+            "type": "integer",
+            "minimum": -1,
+            "maximum": 4999
+          },
+          "value": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "tooltipInfo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SankeyTooltip"
+            },
+            "maxItems": 20000
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "palette0",
+              "palette1",
+              "palette2",
+              "positive",
+              "negative",
+              "neutral",
+              "flow"
+            ]
+          }
+        },
+        "required": [
+          "source",
+          "target",
+          "value",
+          "tooltipInfo"
+        ]
+      },
+      "SankeyResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SankeyNode"
+            },
+            "maxItems": 5000
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SankeyLink"
+            },
+            "maxItems": 20000
+          }
+        },
+        "required": [
+          "nodes",
+          "links"
+        ]
+      },
+      "SankeyNodeMetadata": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "layer": {
+            "type": "string",
+            "enum": [
+              "payee",
+              "income_category",
+              "account",
+              "budget",
+              "category_group",
+              "category"
+            ]
+          },
+          "depth": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5000
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "label_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "label_params": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "user_owned": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "key",
+          "layer",
+          "depth",
+          "hidden",
+          "amount",
+          "label_key",
+          "label_params",
+          "user_owned"
+        ]
+      },
+      "SankeyLinkMetadata": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "flow",
+              "routing",
+              "outside_selection"
+            ]
+          },
+          "member_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20000
+          }
+        },
+        "required": [
+          "source",
+          "target",
+          "kind",
+          "member_count"
+        ]
+      },
+      "SankeyProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "result": {
+            "$ref": "#/components/schemas/SankeyResult"
+          },
+          "base_graph": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SankeyBaseNode"
+            },
+            "maxItems": 5000
+          },
+          "node_metadata": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SankeyNodeMetadata"
+            },
+            "maxItems": 5000
+          },
+          "link_metadata": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SankeyLinkMetadata"
+            },
+            "maxItems": 20000
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "spent",
+              "budgeted"
+            ]
+          },
+          "recorded": {
+            "type": "boolean"
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "grouped_recorded_entries",
+              "budget_allocations_and_context"
+            ]
+          },
+          "cache": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "hit": {
+                "type": "boolean"
+              },
+              "input_revision": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "hit",
+              "input_revision"
+            ]
+          },
+          "assumptions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ]
+            }
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "tracking",
+              "envelope"
+            ]
+          }
+        },
+        "required": [
+          "result",
+          "base_graph",
+          "node_metadata",
+          "link_metadata",
+          "snapshot",
+          "epoch",
+          "as_of",
+          "mode",
+          "recorded",
+          "basis",
+          "cache",
+          "assumptions",
+          "method"
+        ]
+      },
+      "SankeyLinkSelection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "target": {
+            "type": "string",
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "source",
+          "target"
+        ]
+      },
+      "SankeyDetailRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "query": {
+            "$ref": "#/components/schemas/SankeyRequest"
+          },
+          "snapshot": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "link": {
+            "$ref": "#/components/schemas/SankeyLinkSelection"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000,
+            "default": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200,
+            "default": 50
+          }
+        },
+        "required": [
+          "query",
+          "snapshot",
+          "link"
+        ]
+      },
+      "SankeyContribution": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "recorded_entry",
+              "net_transfer",
+              "budget_allocation",
+              "budget_context"
+            ]
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "original_amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "label_key": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "month": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$"
+          },
+          "account_id": {
+            "type": "string"
+          },
+          "account_name": {
+            "type": "string"
+          },
+          "category_id": {
+            "type": "string"
+          },
+          "category_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "payee_name": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "transfer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "peer_id": {
+            "type": "string"
+          },
+          "peer_account_id": {
+            "type": "string"
+          },
+          "peer_account_name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "basis",
+          "amount",
+          "original_amount",
+          "label_key"
+        ]
+      },
+      "SankeyDetails": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SankeyContribution"
+            },
+            "maxItems": 200
+          },
+          "total_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "total_amount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "link": {
+            "$ref": "#/components/schemas/SankeyLinkSelection"
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "recorded_entry",
+              "net_transfer",
+              "budget_allocation",
+              "budget_context",
+              "mixed"
+            ]
+          },
+          "assumptions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10
+          }
+        },
+        "required": [
+          "rows",
+          "total_count",
+          "total_amount",
+          "offset",
+          "limit",
+          "has_more",
+          "snapshot",
+          "link",
+          "basis",
+          "assumptions"
         ]
       }
     }

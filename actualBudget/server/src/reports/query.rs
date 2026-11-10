@@ -1,4 +1,6 @@
 mod analysis;
+mod sankey;
+pub(super) use sankey::router as sankey_router;
 mod forecast;
 mod revision_cache;
 mod sql_work;

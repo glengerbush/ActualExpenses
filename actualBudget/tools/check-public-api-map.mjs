@@ -45,7 +45,12 @@ assert.deepEqual(
   "Every18 declared source resource has explicit profile/feature mapping",
 );
 for (const row of mapping.operations)
-  assert.ok(row.translation && row.routes.length);
+  assert.ok(
+    row.translation &&
+      (row.routes.length ||
+        (row.status === "removed" &&
+          JSON.stringify(row.sdk) === '["runBankSync"]')),
+  );
 console.log(
   "PASS67 SDK functions +18 query resources explicitly mapped with pinned source hash",
 );

@@ -12,7 +12,6 @@ dependencies = [
  "csv",
  "encoding_rs",
  "jlens-regress",
- "percent-encoding",
  "reqwest",
  "roxmltree",
  "rusqlite",

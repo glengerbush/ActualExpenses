@@ -29,6 +29,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("migrations/023_banking.sql"),
     include_str!("migrations/024_notes.sql"),
     include_str!("migrations/025_gocardless.sql"),
+    include_str!("migrations/026_retire_external_banks.sql"),
 ];
 pub(crate) const CURRENT_VERSION: usize = MIGRATIONS.len();
 pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
@@ -52,9 +53,6 @@ pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
         if index == 23 {
             crate::notes::configure(&tx)?;
             crate::notes::enrich(&tx, None)?;
-        }
-        if index == 22 {
-            crate::banking::import::enrich(&tx, None)?;
         }
         if index == 21 {
             crate::reports::import::enrich(&tx, None)?;

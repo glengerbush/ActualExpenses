@@ -66,11 +66,6 @@ def main():
                 assert contract['paths'][path] == operations
             for name, schema in import_fragment['components']['schemas'].items():
                 assert contract['components']['schemas'][name] == schema
-            bank_fragment = json.loads((project / 'server/src/banking/openapi.json').read_text())
-            for path, operations in bank_fragment['paths'].items():
-                assert contract['paths'][path] == operations
-            for name, schema in bank_fragment['components']['schemas'].items():
-                assert contract['components']['schemas'][name] == schema
             query_fragment = json.loads((project / 'server/src/public_query/openapi.json').read_text())
             for path, operations in query_fragment['paths'].items():
                 assert contract['paths'][path] == operations
@@ -841,57 +836,9 @@ def main():
             assert final['balances']['total'] == -1234 and len(final['data']) == 1
             print('PASS: import parse/plan/commit/settings/original/export and merge served schemas, exact receipts, cancellation and financial totals')
 
-            # Bank custody contract: synthetic HTTPS token, no claim or provider call.
-            bank_id, bank_account = str(uuid.uuid4()), str(uuid.uuid4())
-            bank_root = budgets + '/' + bank_id
-            check(budgets, budgets, 'POST', {'id': bank_id, 'name': 'Bank contract', 'budget_type': 'tracking'}, {'Idempotency-Key': 'bank-budget'}, 201)
-            check(bank_root + '/accounts', account_template, 'POST', {'id': bank_account, 'name': 'Bank local account', 'opening_balance': 0, 'opening_date': '2026-11-01'}, {'Idempotency-Key': 'bank-account'}, 201)
-            bank_cp = check(bank_root + '/checkpoint', checkpoint_template)['data']
-            bank_state = bank_root + '/banking'
-            bank_template = budgets + '/{budget}/banking'
-            assert check(bank_state, bank_template)['data']['connections'] == []
-            assert check(bank_root + '/checkpoint', checkpoint_template)['data'] == bank_cp
-            bank_create = bank_state + '/connections'
-            create_template = bank_template + '/connections'
-            token = base64.b64encode(b'https://synthetic.invalid/claim/NOT-A-REAL-TOKEN').decode()
-            raw = {'id': str(uuid.uuid4()), 'provider': 'simplefin', 'name': 'Original label', 'setup_token': token}
-            digest = hashlib.sha256(token.encode()).hexdigest()
-            recover = {k: v for k, v in raw.items() if k != 'setup_token'}
-            recover['setup_token_sha256'] = digest
-            bank_identity = {'Idempotency-Key': 'bank-stage', 'X-Actual-Budget-Epoch': bank_cp['epoch']}
-            validate_request(create_template, raw)
-            validate_request(create_template, recover)
-            staged = check(bank_create, create_template, 'POST', raw, bank_identity, 201)
-            assert check(bank_create, create_template, 'POST', recover, {**bank_identity, 'X-Actual-Receipt-Only': 'true'}, 201) == staged
-            check(bank_create, create_template, 'POST', {**recover, 'name': 'Different label'}, {**bank_identity, 'X-Actual-Receipt-Only': 'true'}, 409)
-            check(bank_create, create_template, 'POST', {**recover, 'id': str(uuid.uuid4())}, {**bank_identity, 'Idempotency-Key': 'bank-digest-write'}, 400)
-            canceled_raw = {**raw, 'id': str(uuid.uuid4())}
-            canceled_recover = {**recover, 'id': canceled_raw['id']}
-            canceled_identity = {**bank_identity, 'Idempotency-Key': 'bank-stage-cancel'}
-            assert check(bank_create, create_template, 'POST', canceled_recover, {**canceled_identity, 'X-Actual-Cancel-If-Uncommitted': 'true'}, 409)['error']['code'] == 'operation_canceled'
-            check(bank_create, create_template, 'POST', canceled_raw, canceled_identity, 409)
-            command = bank_create + '/' + raw['id'] + '/commands'
-            command_template = create_template + '/{id}/commands'
-            replace = {'action': 'replace', 'generation': staged['data']['generation'], 'setup_token': token}
-            validate_request(command_template, replace)
-            replaced = check(command, command_template, 'POST', replace, {**bank_identity, 'Idempotency-Key': 'bank-replace'})
-            replacement_recovery = {'action': 'replace', 'generation': replace['generation'], 'setup_token_sha256': digest}
-            validate_request(command_template, replacement_recovery)
-            assert check(command, command_template, 'POST', replacement_recovery, {**bank_identity, 'Idempotency-Key': 'bank-replace', 'X-Actual-Receipt-Only': 'true'}) == replaced
-            check(command, command_template, 'POST', {'action': 'invented', 'generation': replaced['data']['generation']}, {**bank_identity, 'Idempotency-Key': 'bank-invalid'}, 400)
-            bank_account_path = bank_root + '/accounts/' + bank_account + '/banking'
-            bank_account_template = budgets + '/{budget}/accounts/{account}/banking'
-            assert check(bank_account_path, bank_account_template)['data']['preferences']['settings']['import_pending'] is True
-            settings_cp = check(bank_root + '/checkpoint', checkpoint_template)['data']
-            settings = {'action': 'settings', 'snapshot': settings_cp['snapshot'], 'revision': None, 'changes': {'import_pending': False}}
-            validate_request(bank_account_template + '/commands', settings)
-            check(bank_account_path + '/commands', bank_account_template + '/commands', 'POST', settings, {**bank_identity, 'Idempotency-Key': 'bank-prefs'})
-            assert check(bank_account_path, bank_account_template)['data']['preferences']['settings']['import_pending'] is False
-            removed = check(command, command_template, 'POST', {'action': 'remove', 'generation': replaced['data']['generation']}, {**bank_identity, 'Idempotency-Key': 'bank-remove'})
-            assert removed['data']['deleted'] is True
-            assert check(bank_state, bank_template)['data']['connections'] == []
-            assert check(bank_root + '/transactions', transaction_template)['data'] == []
-            print('PASS: served bank custody/settings schemas, digest-only original receipt/cancel and secret-free public state; no provider call')
+            assert not any('/banking' in path for path in contract['paths'])
+            assert request(base, import_root + '/banking')[0] == 404
+            print('PASS: external-bank routes absent; manual imported ledger remains available')
 
             query_caps = check('/api/v1/query-capabilities', '/api/v1/query-capabilities')['data']
             assert 'budget_cells' in query_caps['tables'] and query_caps['max_page'] == 1000

@@ -17,19 +17,15 @@ use zip::{ZipArchive, ZipWriter, write::SimpleFileOptions};
 pub const MAX_ARCHIVE: usize = 64 * 1024 * 1024;
 const MAX_EXPANDED: usize = 256 * 1024 * 1024;
 pub const TABLES: &[&str] = &[
-    "bank_connections",
-    "bank_remote_accounts",
     "account_groups",
     "notes",
     "accounts",
-    "bank_links",
     "payees",
     "payee_locations",
     "category_groups",
     "tags",
     "categories",
     "transactions",
-    "bank_transaction_origins",
     "transaction_import_metadata",
     "transaction_import_settings",
     "transaction_import_files",
@@ -55,11 +51,6 @@ pub const TABLES: &[&str] = &[
     "budget_provenance",
 ];
 const AUXILIARY: &[&str] = &[
-    "bank_credentials",
-    "bank_gocardless_credentials",
-    "bank_gocardless_limits",
-    "bank_jobs",
-    "bank_request_log",
     "history_lineage",
     "history_actions", // Engine-owned history intentionally excluded; restore rotates epoch.
     "budgets",
@@ -97,6 +88,7 @@ pub struct BudgetArchive {
 }
 pub struct Validated {
     pub legacy_category_metadata: bool,
+    pub retired_external_connections: usize,
     pub legacy_locations: bool,
     pub legacy_budgeting: bool,
     pub legacy_rules: bool,
@@ -176,7 +168,7 @@ pub fn capture(db: &Connection, budget: &str) -> Result<Vec<u8>, Error> {
     let body = serde_json::to_vec(&state).map_err(Error::internal)?;
     let mut entries = BTreeMap::from([("budget.json".to_owned(), body)]);
     entries.extend(blobs);
-    let manifest = json!({"format":"actualBudget","version":1,"schema_version":25,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
+    let manifest = json!({"format":"actualBudget","version":1,"schema_version":crate::migrations::CURRENT_VERSION,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
     if entries.len() + 1 > 1000
         || entries.values().map(Vec::len).sum::<usize>() + manifest.to_string().len() > MAX_EXPANDED
     {
@@ -252,7 +244,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || !matches!(manifest["schema_version"].as_u64(), Some(6..=25))
+        || !matches!(manifest["schema_version"].as_u64(), Some(6..=26))
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }
@@ -276,6 +268,38 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             .ok_or_else(|| invalid("Missing budget data"))?,
     )
     .map_err(|_| invalid("Invalid budget state"))?;
+    let retired_external_connections = state
+        .tables
+        .get("bank_connections")
+        .map_or(0, |table| table.rows.len());
+    // Legacy portable bank metadata is inert; never recreate a connector.
+    for table in [
+        "bank_connections",
+        "bank_remote_accounts",
+        "bank_links",
+        "bank_transaction_origins",
+    ] {
+        state.tables.remove(table);
+    }
+    if let Some(versions) = state.tables.get_mut("field_versions") {
+        let entity = versions
+            .columns
+            .iter()
+            .position(|c| c == "entity")
+            .ok_or_else(|| invalid("Missing field version entity"))?;
+        versions.rows.retain(|row| {
+            !matches!(
+                row.get(entity).and_then(Value::as_str),
+                Some(
+                    "bank_connections"
+                        | "bank_remote_accounts"
+                        | "bank_links"
+                        | "bank_transaction_origins"
+                )
+            )
+        });
+    }
+
     if manifest["schema_version"].as_u64().is_some_and(|v| v < 16) {
         for (name, columns, rows) in [
             (
@@ -625,17 +649,6 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             },
         );
     }
-    if manifest["schema_version"].as_u64().is_some_and(|v| v < 23) {
-        for (table, columns) in crate::banking::archive_tables() {
-            state.tables.insert(
-                table.into(),
-                Table {
-                    columns: columns.into_iter().map(str::to_owned).collect(),
-                    rows: vec![],
-                },
-            );
-        }
-    }
     if manifest["schema_version"].as_u64().is_some_and(|v| v < 22) {
         state.tables.insert(
             "reporting_documents".into(),
@@ -782,6 +795,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
         .filter(|(name, _)| name.starts_with("blobs/"))
         .collect();
     let mut validated = Validated {
+        retired_external_connections,
         state,
         blobs,
         legacy_notes: manifest["schema_version"].as_u64().is_some_and(|v| v < 24),
@@ -1016,14 +1030,12 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
     {
         crate::android_upgrade::order::enrich(db, archive.state.budget["id"].as_str())?;
     }
-    db.execute("UPDATE bank_connections SET state='credentials_missing',generation=?2,error_code=NULL,message=NULL WHERE budget_id=?1 AND tombstone=0",params![archive.state.budget["id"].as_str(),uuid::Uuid::new_v4().to_string()])?;
     crate::register_settings::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
     crate::reports::import::enrich(db, archive.state.budget["id"].as_str())?;
     crate::notes::domain_identities(db, archive.state.budget["id"].as_str())?;
     if archive.legacy_notes {
         crate::notes::enrich(db, archive.state.budget["id"].as_str())?;
     }
-    crate::banking::import::enrich(db, archive.state.budget["id"].as_str())?;
     if archive.legacy_category_metadata {
         crate::categories::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
     }

@@ -28,6 +28,7 @@
     busy = $state(false),
     error = $state(""),
     cached = $state(false),
+    cacheSaveFailed = $state(false),
     page = $state(0),
     detailPage = $state(0);
   let alive = true,
@@ -83,6 +84,7 @@
     busy = true;
     error = "";
     cached = false;
+    cacheSaveFailed = false;
     page = 0;
     detailPage = 0;
     try {
@@ -100,12 +102,17 @@
           "The budget version changed. Refresh dashboards before calculating again.",
         );
       projection = value;
-      await writeValue(key(), {
-        query,
-        projection: value,
-        revision: document.revision,
-        epoch,
-      });
+      try {
+        await writeValue(key(), {
+          query,
+          projection: value,
+          revision: document.revision,
+          epoch,
+        });
+      } catch {
+        // Downloaded views are optional; a cache failure cannot undo a valid read.
+        if (alive && current === generation) cacheSaveFailed = true;
+      }
     } catch (e) {
       if (!alive || current !== generation) return;
       error = errorMessage(e);
@@ -151,6 +158,11 @@
   <p class="muted">{t("Estimated balances · not recorded account balances")}</p>
   {#if busy}<p role="status">{t("Calculating forecast…")}</p>{/if}
   {#if error}<p role="alert">{t(error)}</p>{/if}
+  {#if cacheSaveFailed && projection && enabled}<p role="status">
+      {t(
+        "Forecast calculated, but this browser could not save a cached copy. Current results remain available.",
+      )}
+    </p>{/if}
   <button onclick={load} disabled={busy || disconnected || !enabled}
     >{t("Recalculate forecast")}</button
   >

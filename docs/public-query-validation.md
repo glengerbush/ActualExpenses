@@ -312,3 +312,55 @@ current24 clone/restore/tombstones/late-response fencing) and
 blocked stages/history/exact receipts). Input fixtures unchanged. Existing alias
 clock red/green and source reproduction evidence reused; no full-suite rerun or
 whole47 acceptance claimed.
+
+## Closed resource profiles and query types (47 checkpoint)
+
+`query-capabilities` now lists the closed profiles, typed fields/references,
+functions/operators, pagination contract and cumulative work/output limits.
+Accounts/groups, payees, categories/groups, rules, schedules, notes and native
+budget_cells share the bounded compiler; arbitrary storage/provider tables stay
+unavailable. References follow only advertised budget-scoped paths (depth4).
+`*` expands only advertised fields. Structured automation definitions and raw
+bank metadata are JSON; substring/pattern/order operations on these fields
+refuse400 rather than promising original serialized key order. Original source
+bytes remain retained. Rule fields use documented canonical account/payee names.
+
+`generate-query-resources.mjs` executes21 real Actual26.10 queries on seven
+reviewed genuine archives; original observations remain unchanged when extended.
+The source category-group executor automatically expands children even with
+explicit selection. The native profile is intentionally flat: the consumer
+compares every group and every child's identity/count/fields through a bounded
+categories(group=ID) read. The SDK's implicit transaction ID is requested
+explicitly when translating scalar-only projections. Both source allocation
+tables map to budget_cells(method/month/category): exact amounts, carry flags,
+goals and ISO months are compared; native cell IDs are opaque, not claimed equal
+to source concatenated IDs. Unsupported private source positions are not exposed
+as financial identities. The final SDK/CLI guide must map remaining resources
+and operations to their existing typed feature routes.
+
+`generate-query-types.mjs` independently executes24 typed/calendar/composition
+queries. Real public reds exposed boolean-null casting, invalid numeric/text
+coercions, date granularity, scalar-over-SUM and grouped aggregate ordering.
+The compiler now matches these source observations: null boolean predicates
+mean false, membership retains source scalar stringification with bound values,
+calendar fields/functions are typed, and source-valid aggregate composition/order
+works. Aggregate/window placement guards and exact-money/output budgets remain.
+The source accepts structurally formed invalid calendar dates in read predicates;
+that observation is retained and does not relax financial write validation.
+
+Source checks PASS /tmp/query-registry-source-check.log and
+/tmp/query-types-source-final-check.log. Public21 PASS
+/tmp/query-registry-http-final.log; public24 PASS
+/tmp/query-types-http-final-green.log (includes original financial/checkpoint
+preservation). Guards also verify wildcard allowlists, unknown/private resources,
+structured-field refusal and invalid aggregate ordering. BinClippy-Dwarnings PASS
+/tmp/query-registry-clippy-final.log. Batch/caller, final served contracts,
+representative browser/native observation and maintained wiring remain47 work.
+
+Registry follow-up: the schedule reference was initially advertised but dotted
+transaction paths refused400 (root/public red plus
+/tmp/query-schedule-reference-red.log). A22nd genuine source case compares seven
+linked rows' schedule.name and schedule.rule.stage through the same closed,
+budget-scoped resolver. Source22 check and focused public green:
+/tmp/query-schedule-reference-source-check.log,
+/tmp/query-schedule-reference-green.log. No unrelated financial writer change.

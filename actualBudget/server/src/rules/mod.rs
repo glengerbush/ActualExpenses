@@ -22,7 +22,11 @@ use axum::{
     http::{HeaderMap, StatusCode},
     routing::{get, post},
 };
-pub(crate) use engine::Work;
+pub(crate) use engine::{Runner, Work};
+pub(crate) use entry::save_import;
+pub(crate) fn import_runner(db: &Connection, b: &str, work: Work) -> Result<Runner, Error> {
+    Ok(Runner::with_work(load(db, b)?, work))
+}
 pub(crate) use engine::validate as validate_definition;
 pub(crate) use entry::post_schedule;
 pub use import::{

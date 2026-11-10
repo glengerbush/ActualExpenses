@@ -36,10 +36,10 @@ expectations.
 |---|---|---|
 | `transaction-import-manual.json` + source ZIP | Parser→frontend normalization→manual match→repeat→CSV export | Initial Rust HTTP tracer1 passes |
 | `transaction-parser-source.json` |48 genuine raw parser cases, input bytes/hashes/options;21 CSV/TSV,27 other formats/errors | `check-transaction-parser-http.mjs --csv`:21 pass |
-| `transaction-normalization-source.json` |71 unchanged frontend finalization observations | `check-transaction-normalization-http.mjs`:44 CSV financial/error cases pass; selection/format cases separate |
+| `transaction-normalization-source.json` |73 unchanged frontend finalization observations (prior71 retained; exact ±1.1250 half-cent cases added) | `check-transaction-normalization-http.mjs`:46 CSV financial/error cases pass; selection/format cases separate |
 | `transaction-matching-source.json` |14 genuine matching/repeat scenarios | `check-transaction-matching-http.mjs`:8 CSV workflows pass; six bank-ID/deleted/locked scenarios pending |
 | `transaction-merge-source.json` +14 source ZIPs | Keeper precedence, fields/status, split reparent, transfers, four atomic refusals | Consumer/implementation pending |
-| `transaction-import-rules-source.json` +4 source ZIPs | Lazy payees, no unused payee on manual match, rules before matching, split rule once, repeat identity,19 saved source options | Consumer/implementation pending |
+| `transaction-import-rules-source.json` +4 source ZIPs | Lazy payees, no unused payee on manual match, rules before matching, split rule once, repeat identity,19 saved source options | Public source4 workflows pass (rules before matching, split allocations, append once, lazy payees, repeat IDs) |
 | `transaction-import-schema20.{sqlite3,zip,json}` | Genuine20 owned expense/edit/history/receipts, balances, two blocked source stages, original bytes and native backup |Public Rust database/native consumers2 pass (working21 joins) |
 
 Logs: `/tmp/transaction-parser-http-csv-green.log` (21),
@@ -111,3 +111,22 @@ and explicit force-add). The current full-file preview matcher passes the eight
 source financial scenarios but this selection interaction needs its own executed
 source witness before acceptance. File ordering of multiple new distinct rows
 also needs an observable fixture; do not rewrite existing private order anchors.
+
+## Rules/payee checkpoint
+
+Source4 public workflows PASS `/tmp/transaction-import-rules-green.log`; raw
+preview leaves references, checkpoint and financial rows unchanged. The consumer
+compares every parent/child monetary/reference/status field and first-import IDs
+across repeats; account-managed transfer payees use the established separate
+public projection. A provisional reference is saved only when a resulting new
+row or matched empty reference uses it. Rules run before matching and the
+evaluated graph reuses the guarded writer without executing primary rules twice.
+One command work allowance spans evaluation, matching and counterpart effects.
+Pinned title vocabulary/character class comes from the unchanged26.10 title
+module; `title-data.json` records those static tables.
+
+Existing automatic-entry2 and linked-schedule1 regressions PASS
+`/tmp/transaction-import-rule-entry-regression.log`; bin Clippy PASS
+`/tmp/transaction-import-rules-clippy.log`. Exact-half source generator/check73
+and public normalization46 PASS. Preservation checkpoint `ce92da3` independently
+reviewed Standards/Spec PASS; current per-key clock/native roundtrip remains open.

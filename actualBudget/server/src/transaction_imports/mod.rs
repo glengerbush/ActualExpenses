@@ -2,6 +2,7 @@
 mod matching;
 mod settings;
 mod storage;
+mod title;
 pub(crate) use storage::{
     archive_tables, convert, decorate_many, enrich, import_clock, imported_preference, install,
     record, validate,
@@ -180,7 +181,23 @@ struct Review {
     #[serde(default)]
     remember: bool,
 }
-fn plan(db: &Connection, b: &str, id: &str, body: &Review) -> Result<Value, Error> {
+fn identity(parts: &[&str]) -> String {
+    let mut hasher = Sha256::new();
+    for part in parts {
+        hasher.update((part.len() as u64).to_be_bytes());
+        hasher.update(part.as_bytes());
+    }
+    let mut bytes: [u8; 16] = hasher.finalize()[..16].try_into().unwrap();
+    bytes[6] = (bytes[6] & 15) | 64;
+    bytes[8] = (bytes[8] & 63) | 128;
+    uuid::Uuid::from_bytes(bytes).to_string()
+}
+fn plan(
+    db: &Connection,
+    b: &str,
+    id: &str,
+    body: &Review,
+) -> Result<(Value, crate::rules::Work), Error> {
     sync::check_snapshot(db, b, Some(&body.snapshot))?;
     let (account, filename, bytes) = file(db, b, id)?;
     crate::ledger::account_exists(db, b, &account)?;
@@ -205,6 +222,11 @@ fn plan(db: &Connection, b: &str, id: &str, body: &Review) -> Result<Value, Erro
             Ok((r.get::<_, String>(1)?, r.get::<_, String>(0)?))
         })?
         .collect::<Result<BTreeMap<_, _>, _>>()?;
+    let existing_payees = payees
+        .values()
+        .map(|p| p.0.clone())
+        .collect::<BTreeSet<_>>();
+    let mut runner = crate::rules::import_runner(db, b, crate::rules::Work::default())?;
     for (index, source) in parsed.into_iter().enumerate() {
         let mut transaction = match parse::mapped(&source, &body.mapping, &body.options) {
             Ok(t) => t,
@@ -222,6 +244,33 @@ fn plan(db: &Connection, b: &str, id: &str, body: &Review) -> Result<Value, Erro
             .as_deref()
             .and_then(|n| payees.get(&n.to_lowercase()).map(|p| json!(p.0)))
             .unwrap_or(Value::Null);
+        transaction["id"] = json!(identity(&[
+            b,
+            id,
+            &body.snapshot,
+            "row",
+            &index.to_string()
+        ]));
+        transaction["is_parent"] = json!(false);
+        transaction["parent_id"] = Value::Null;
+        if transaction["payee_id"].is_null()
+            && let Some(name) = name.as_deref()
+        {
+            let name = title::title(name);
+            let key = name.to_lowercase();
+            let (payee, name) = payees
+                .entry(key.clone())
+                .or_insert_with(|| (identity(&[b, id, "payee", &key]), name));
+            transaction["payee_id"] = json!(payee);
+            transaction["payee_name"] = json!(name);
+            transaction["new_payee"] = json!({"id":payee,"name":name});
+        }
+        if let Some(payee) = transaction["payee_id"].as_str()
+            && !existing_payees.contains(payee)
+            && let Some((_, name)) = payees.values().find(|p| p.0 == payee)
+        {
+            transaction["new_payee"] = json!({"id":payee,"name":name});
+        }
         transaction["imported_payee"] = name.as_deref().map(|n| json!(n)).unwrap_or(Value::Null);
         transaction["account_id"] = json!(account);
         transaction["category_id"] = transaction["category_name"]
@@ -229,19 +278,27 @@ fn plan(db: &Connection, b: &str, id: &str, body: &Review) -> Result<Value, Erro
             .and_then(|n| categories.get(n))
             .map(|id| json!(id))
             .unwrap_or(Value::Null);
-        rows.push(json!({"row":index,"source":source,"transaction":transaction,"match_id":null,"action":"add"}));
+        let (mut transaction, matched) = runner.evaluate(db, b, &transaction)?;
+        if transaction["new_payee"].is_object()
+            && transaction["payee_id"] != transaction["new_payee"]["id"]
+        {
+            transaction.as_object_mut().unwrap().remove("new_payee");
+        }
+        rows.push(json!({"row":index,"source":source,"transaction":transaction,"matched_rule_ids":matched,"match_id":null,"action":"add"}));
     }
+    let mut work = runner.into_work();
     matching::apply(
         db,
         b,
         &account,
         &mut rows,
         &body.options,
-        &mut 2_000_000usize,
+        &mut work.remaining,
     )?;
-    Ok(
+    Ok((
         json!({"id":id,"filename":filename,"account_id":account,"rows":rows,"errors":errors,"snapshot":sync::cursor(db,b)?,"epoch":crate::lifecycle::epoch(db,b)?}),
-    )
+        work,
+    ))
 }
 async fn preview(
     State(store): State<Store>,
@@ -254,7 +311,7 @@ async fn preview(
     store
         .run(move |db| {
             let tx = db.transaction()?;
-            Ok(json!({"data":plan(&tx,&b,&id,&body)?}))
+            Ok(json!({"data":plan(&tx,&b,&id,&body)?.0}))
         })
         .await
         .map(Json)
@@ -373,7 +430,7 @@ if lookup{return sync::receipt_owned(db,&scope,&key,&payload,proposed.as_deref()
 }sync::write_owned(db,&scope,&key,&payload,proposed.as_deref(),StatusCode::OK,owner.as_ref(),|db|{if cancel{return sync::canceled(db,&b);
 }crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;
 let body:Review=serde_json::from_value(body).map_err(|e|Error::invalid(format!("Invalid import command: {e}")))?;
-let plan=plan(db,&b,&id,&body)?;
+let (plan,mut work)=plan(db,&b,&id,&body)?;
 if !plan["errors"].as_array().unwrap().is_empty(){return Err(Error::invalid("Repair invalid import rows before committing"));
 }let choices=body.rows.as_ref().ok_or_else(||Error::invalid("Select the reviewed rows to import"))?;
 if choices.is_empty()||choices.len()>10000{return Err(Error::invalid("Select1–10000 rows per atomic import"));
@@ -387,7 +444,7 @@ let mut ignored=vec![];
  for choice in choices{if !selected.insert(choice.row){return Err(Error::invalid("A source row was selected twice"));
 }let row=reviewed.get(&choice.row).copied().ok_or_else(||Error::invalid("Unknown source row"))?;
 let transaction=&row["transaction"];
-if choice.action=="skip"{continue;
+if choice.action=="skip"||transaction["deleted"]==true{continue;
 }
 if choice.action=="merge"{let target=choice.match_id.as_deref().ok_or_else(||Error::invalid("A merge requires its reviewed match"))?;
 if row["match_id"]!=target{return Err(Error::conflict("The selected match differs from the captured preview"));
@@ -399,7 +456,9 @@ for field in ["payee_id","category_id","notes"]{let empty=before[field].is_null(
 if empty&&!transaction[field].is_null()&&before[field]!=transaction[field]{patch.insert(field.into(),transaction[field].clone());
 }}
 if before["cleared"]!=true&&transaction["cleared"]==true{patch.insert("cleared".into(),json!(true));
-}for field in patch.keys(){guard(db,&b,"transactions",target,field,&clock)?;
+}
+if patch.get("payee_id").is_some() && transaction["new_payee"].is_object(){patch.insert("payee_id".into(),Value::Null);patch.insert("new_payee".into(),transaction["new_payee"].clone());}
+for field in patch.keys().filter(|field|field.as_str()!="new_payee"){guard(db,&b,"transactions",target,field,&clock)?;
 }
 if !patch.is_empty(){let response=sync::execute(db,&b,Some(&clock),false,epoch.as_deref(),sync::Mutation::Patch(target.into(),Value::Object(patch)))?;
 if response["response_status"].as_u64().unwrap_or(500)>=400{return Err(Error::conflict("The matched transaction requires review before import"));
@@ -410,14 +469,16 @@ db.execute("UPDATE transactions SET imported_payee=?3 WHERE budget_id=?1 AND id=
 sync::seed_field_version(db,&b,"transactions",target,"imported_payee",&clock)?;
 sync::mark(db,&b,"transactions",target)?;
 }
- }else if choice.action=="add"{let input=crate::ledger::NewTransaction{id:uuid::Uuid::new_v4().to_string(),account_id:plan["account_id"].as_str().unwrap().into(),amount:transaction["amount"].as_i64().unwrap(),date:transaction["date"].as_str().unwrap().into(),cleared:transaction["cleared"]==true,notes:transaction["notes"].as_str().unwrap_or("").into(),payee_id:transaction["payee_id"].as_str().map(str::to_owned),category_id:transaction["category_id"].as_str().map(str::to_owned),new_payee:None,new_category:None,learn_categories:None};
-let new_id=input.id.clone();
-let response=sync::execute(db,&b,Some(&clock),false,epoch.as_deref(),sync::Mutation::Create(Box::new(input)))?;
-if response["response_status"]!=201{return Err(Error::conflict("The imported transaction could not be created"));
+ }else if choice.action=="add"{
+let new_id=transaction["id"].as_str().unwrap().to_owned();
+let matched=serde_json::from_value(row["matched_rule_ids"].clone()).map_err(Error::internal)?;
+let runner=crate::rules::import_runner(db,&b,work)?;
+let result=crate::rules::save_import(db,&b,transaction.clone(),matched,&clock,epoch.as_deref(),runner)?;
+work=result.0;
+if result.1{
+if !transaction["imported_payee"].is_null(){db.execute("UPDATE transactions SET imported_payee=?3 WHERE budget_id=?1 AND id=?2",params![b,new_id,transaction["imported_payee"].as_str()])?;sync::seed_field_version(db,&b,"transactions",&new_id,"imported_payee",&clock)?;}
+added.push(new_id);
 }
-if !transaction["imported_payee"].is_null(){db.execute("UPDATE transactions SET imported_payee=?3 WHERE budget_id=?1 AND id=?2",params![b,new_id,transaction["imported_payee"].as_str()])?;
-sync::seed_field_version(db,&b,"transactions",&new_id,"imported_payee",&clock)?;
-}added.push(new_id);
 }else{return Err(Error::invalid("Choose add, merge or skip"));
 }}
  if body.remember{remember(db,&b,plan["account_id"].as_str().unwrap(),&body,&clock)?;

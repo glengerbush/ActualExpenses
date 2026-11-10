@@ -3,15 +3,17 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
-export async function startServer() {
-  if (process.env.ACTUALBUDGET_TEST_URL) {
+export async function startServer(options = {}) {
+  if (process.env.ACTUALBUDGET_TEST_URL && !options.dataDirectory) {
     console.log(
       "Using explicitly supplied isolated test server:",
       process.env.ACTUALBUDGET_TEST_URL,
     );
     return { url: process.env.ACTUALBUDGET_TEST_URL, stop: async () => {} };
   }
-  const directory = await mkdtemp(`${tmpdir()}/actualbudget-browser-`);
+  const directory =
+    options.dataDirectory ??
+    (await mkdtemp(`${tmpdir()}/actualbudget-browser-`));
   const child = spawn(
     fileURLToPath(
       new URL("../../server/target/debug/actualbudget-server", import.meta.url),
@@ -38,7 +40,8 @@ export async function startServer() {
   async function stop() {
     if (child.exitCode === null && !child.killed) child.kill();
     await closed;
-    await rm(directory, { recursive: true, force: true });
+    if (!options.dataDirectory)
+      await rm(directory, { recursive: true, force: true });
   }
   try {
     const port = await new Promise((resolve, reject) => {

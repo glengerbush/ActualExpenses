@@ -79,7 +79,7 @@ pub(super) async fn discover(
         tx.execute("DELETE FROM bank_request_log WHERE started_at<?1",[timestamp-86400])?;
         let requests:i64=tx.query_row("SELECT count(*) FROM bank_request_log WHERE budget_id=?1 AND connection_id=?2",params![bb,ii],|r|r.get(0))?;
         if requests>=24{return Err(Error::new(StatusCode::TOO_MANY_REQUESTS,"provider_rate_limited","This connection has used its 24 requests in the last 24 hours. Wait before refreshing"));}
-        let size:i64=tx.query_row("SELECT COALESCE(SUM(length(response)),0) FROM bank_jobs WHERE budget_id=?1",[&bb],|r|r.get(0))?;
+        let size:i64=tx.query_row("SELECT COALESCE(SUM(length(CAST(response AS BLOB))),0) FROM bank_jobs WHERE budget_id=?1",[&bb],|r|r.get(0))?;
         if size>=64*1024*1024{return Err(Error::conflict("Finish or cancel captured provider requests before downloading more data"));}
         let access:String=tx.query_row("SELECT access_url FROM bank_credentials WHERE budget_id=?1 AND connection_id=?2 AND generation=?3",params![bb,ii,gg],|r|r.get(0)).optional()?.ok_or_else(||Error::conflict("Credentials are missing. Replace the setup token"))?;
         let permit=transport::permit()?;
@@ -130,7 +130,7 @@ pub(super) async fn discover(
                 crate::lifecycle::require_epoch(&tx,&bb,ee.as_deref())?;
                 if connection(&tx,&bb,&ii)?["generation"]!=gg{return Err(Error::conflict("Credentials changed during provider retrieval"));}
                 let(response,code,message)=match &result{Ok(value)=>(Some(value.to_string()),None,None),Err(e)=>(None,Some(e.code.to_owned()),Some(e.message.clone()))};
-                let existing:i64=tx.query_row("SELECT COALESCE(SUM(length(response)),0) FROM bank_jobs WHERE budget_id=?1 AND NOT(connection_id=?2 AND id=?3)",params![bb,ii,kk],|r|r.get(0))?;
+                let existing:i64=tx.query_row("SELECT COALESCE(SUM(length(CAST(response AS BLOB))),0) FROM bank_jobs WHERE budget_id=?1 AND NOT(connection_id=?2 AND id=?3)",params![bb,ii,kk],|r|r.get(0))?;
                 if existing+response.as_ref().map_or(0,|s|s.len()) as i64>64*1024*1024{return Err(Error::conflict("Captured provider data exceeds the 64 MiB recovery limit. Finish existing requests first"));}
                 tx.execute("UPDATE bank_jobs SET phase='captured',response=?4,error_code=?5,error_message=?6 WHERE budget_id=?1 AND connection_id=?2 AND id=?3",params![bb,ii,kk,response,code,message])?;tx.commit()?;Ok(result)
             }).await?

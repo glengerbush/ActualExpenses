@@ -18,6 +18,23 @@ use std::{
         atomic::{AtomicUsize, Ordering},
     },
 };
+fn normalise(value: &str) -> String {
+    use unicode_normalization::UnicodeNormalization;
+    static DIACRITIC: std::sync::OnceLock<regress::Regex> = std::sync::OnceLock::new();
+    let mapped = value
+        .to_lowercase()
+        .replace('ł', "l")
+        .replace('ø', "o")
+        .replace('ß', "ss")
+        .replace('œ', "oe");
+    let decomposed: String = mapped.nfd().collect();
+    DIACRITIC
+        .get_or_init(|| {
+            regress::Regex::with_flags(r"\p{Diacritic}", "u").expect("constant Unicode property")
+        })
+        .replace_all(&decomposed, "")
+}
+
 fn sql_error(error: rusqlite::Error) -> Error {
     if matches!(&error, rusqlite::Error::SqliteFailure(_,Some(message)) if message == "integer overflow")
     {
@@ -452,10 +469,13 @@ impl Compiler<'_> {
             let pattern = right
                 .as_str()
                 .ok_or_else(|| invalid("Pattern must be text"))?;
+            if op != "$regexp" && pattern.is_empty() {
+                return Ok(if op == "$notlike" { "1" } else { "0" }.into());
+            }
             let pattern = if op == "$regexp" {
                 pattern.to_owned()
             } else {
-                crate::register::like_regex(pattern)
+                crate::register::like_regex(&normalise(pattern))
             };
             let parameter = self.bind(&json!(pattern))?;
             return Ok(format!(
@@ -466,7 +486,11 @@ impl Compiler<'_> {
                 } else {
                     "register_like"
                 },
-                left.sql,
+                if op == "$regexp" {
+                    left.sql.clone()
+                } else {
+                    format!("query_normalise({})", left.sql)
+                },
                 if op == "$notlike" {
                     format!(" OR {} IS NULL)", left.sql)
                 } else {
@@ -474,6 +498,7 @@ impl Compiler<'_> {
                 }
             ));
         }
+
         let operator = match op {
             "$eq" => "=",
             "$ne" => "!=",
@@ -819,12 +844,47 @@ fn run(
 }
 pub fn execute(db: &Connection, b: &str, q: &Query) -> Result<Value, Error> {
     use rusqlite::functions::FunctionFlags;
-    db.create_scalar_function(
-        "query_lower",
-        1,
-        FunctionFlags::SQLITE_UTF8 | FunctionFlags::SQLITE_DETERMINISTIC,
-        |ctx| Ok(ctx.get::<Option<String>>(0)?.map(|s| s.to_lowercase())),
-    )?;
+    const TEXT_WORK: usize = 64 * 1024 * 1024;
+    let text_work = Arc::new(AtomicUsize::new(0));
+    for (name, normalised) in [("query_lower", false), ("query_normalise", true)] {
+        let work = text_work.clone();
+        db.create_scalar_function(
+            name,
+            1,
+            FunctionFlags::SQLITE_UTF8 | FunctionFlags::SQLITE_DETERMINISTIC,
+            move |ctx| {
+                let input = ctx.get::<Option<String>>(0)?;
+                let Some(input) = input else {
+                    return Ok(None::<String>);
+                };
+                let failed = || {
+                    rusqlite::Error::UserFunctionError(Box::new(std::io::Error::other(
+                        "Query text work limit",
+                    )))
+                };
+                if work
+                    .fetch_add(input.len(), Ordering::Relaxed)
+                    .saturating_add(input.len())
+                    > TEXT_WORK
+                {
+                    return Err(failed());
+                }
+                let value = if normalised {
+                    normalise(&input)
+                } else {
+                    input.to_lowercase()
+                };
+                if work
+                    .fetch_add(value.len(), Ordering::Relaxed)
+                    .saturating_add(value.len())
+                    > TEXT_WORK
+                {
+                    return Err(failed());
+                }
+                Ok(Some(value))
+            },
+        )?;
+    }
     let regex = crate::register_regex::install(db)?;
     let steps = Arc::new(AtomicUsize::new(0));
     let progress = steps.clone();
@@ -834,6 +894,11 @@ pub fn execute(db: &Connection, b: &str, q: &Query) -> Result<Value, Error> {
     )?;
     let result = run(db, b, q, &regex);
     db.progress_handler(0, None::<fn() -> bool>)?;
+    if text_work.load(Ordering::Relaxed) > TEXT_WORK {
+        return Err(invalid(
+            "Query text work limit reached; narrow account/date/fields",
+        ));
+    }
     if let Some(error) = regex.error() {
         return Err(error);
     }

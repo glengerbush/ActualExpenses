@@ -169,3 +169,40 @@ retained prose and successful explicit-clear resolution. This is explicitly a
 replacement safety guarantee, not mocked source UUID parity. Native validation
 also refuses conflicting live standalone/domain note identities while retaining
 legitimate historical tombstones. Whole47 remains WIP as listed above.
+
+## Notes review corrections and Unicode query witness
+
+Unowned notes originally bound body only; owned history already bound epoch.
+True unowned RED /tmp/public-notes-unowned-epoch-red.log returned200 for a changed
+valid epoch. All notes receipts now bind {request,epoch}. Focused checks prove
+owned/unowned original old-epoch replay after native restore and changed-epoch
+rejection. Earlier UUID-shaped epoch attempt was invalid400 (harness error), not
+that product red. True month RED /tmp/public-notes-month-red.log returned200 with
+null after create→undo→fresh write. Month upsert now revives tombstones, guards
+both note and tombstone generations, preserves buffered, and refuses a clock
+between original creation and newer undo without changing history. PASS
+/tmp/public-notes-epoch-month-final-green.log.
+
+`generate-query-unicode.mjs` executes51 genuine SDK mutations and ActualQL reads,
+recording input hash, compiler/normalization digests and executed SDK entry hash.
+Every mutation is observed publicly before querying: source updateTransaction
+returns before its batch promise settles. The initial unobserved provisional
+fixture/logs were discarded from evidence (/tmp/query-unicode-unsettled-source.json
+retained diagnostically); corrected generation/check PASS
+/tmp/query-unicode-source-{settled,final-check}.log. Extension asserted all42
+existing settled observations unchanged while adding9 empty-text/pattern cases.
+
+Genuine source red /tmp/query-unicode-http-settled-red.log: cafe failed to match
+Café. AQL-only LIKE normalization now lowercases, expands ł/ø/ß/œ, decomposes NFD
+and removes ECMAScript Diacritic property via the existing bundled regex engine.
+Pinned unicode-normalization0.1.25 supplies NFD; no external process or application
+server. Regexp stays literal. Source empty LIKE pattern is false, while percent
+matches empty text; these observed distinctions are retained. All51 exact public
+matches/errors and unchanged per-query ledger/checkpoint PASS
+/tmp/query-unicode-http-final-green.log; original50 source reads PASS
+/tmp/query-unicode-query50.log. One cumulative64MiB input/output scalar-text work
+allowance covers count and page; public composed50-transform query refuses with
+typed400, preserving graph/checkpoint (/tmp/query-unicode-text-budget-green.log).
+BinClippy-Dwarnings PASS /tmp/query-unicode-epoch-clippy.log. No broad domain suite
+repeated. Known-note row-presence markers/registry, atomic batch, caller/contracts
+and maintained integration commands remain47 work, not accepted completion.

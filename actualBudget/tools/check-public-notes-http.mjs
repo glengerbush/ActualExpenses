@@ -128,6 +128,16 @@ try {
     },
     saved = await call(root + "/notes/commands", body, 200, headers);
   assert.equal(saved.data.note, source.updated.note);
+  const receiptCheckpoint = (await call(root + "/checkpoint")).data;
+  await call(root + "/notes/commands", body, 409, {
+    ...headers,
+    "X-Actual-Budget-Epoch": randomUUID().replaceAll("-", ""),
+  });
+  assert.deepEqual(
+    (await call(root + "/checkpoint")).data,
+    receiptCheckpoint,
+    "Changed captured epoch cannot replay a different intent",
+  );
   assert.equal(saved.edit_clock, clock, "Original caller HLC retained exactly");
   const changes = await call(
     root + "/changes?cursor=" + encodeURIComponent(body.snapshot),
@@ -246,13 +256,84 @@ try {
       .notes,
     category.notes,
   );
+  const monthId = "budget-2025-02";
+  const createdMonth = await call(
+    root + "/notes/commands",
+    {
+      id: monthId,
+      note: "Original month annotation",
+      snapshot: (await call(root + "/checkpoint")).data.snapshot,
+    },
+    200,
+    owned,
+  );
+  const monthUndo = (await call(root + "/history", undefined, 200, owned)).data
+    .undo;
+  await call(root + "/history/undo", { action_id: monthUndo.id }, 200, owned);
+  assert.equal(
+    (await call(root + "/notes/read", { id: monthId })).data,
+    null,
+    "Undo new month restores absence",
+  );
+  const undoneMonthHistory = (
+      await call(root + "/history", undefined, 200, owned)
+    ).data,
+    midClock = createdMonth.edit_clock.slice(0, 30) + "ffffffffffffffff";
+  assert.ok(midClock > createdMonth.edit_clock);
+  await call(
+    root + "/notes/commands",
+    {
+      id: monthId,
+      note: "Stale revival",
+      snapshot: (await call(root + "/checkpoint")).data.snapshot,
+    },
+    409,
+    { ...owned, "X-Actual-Edit-Clock": midClock },
+  );
+  assert.deepEqual(
+    (await call(root + "/history", undefined, 200, owned)).data,
+    undoneMonthHistory,
+    "Stale tombstone revival preserves history",
+  );
+  const monthSnapshot = (await call(root + "/checkpoint")).data.snapshot;
+  const rewrittenMonth = await call(
+    root + "/notes/commands",
+    { id: monthId, note: "Fresh month annotation", snapshot: monthSnapshot },
+    200,
+    owned,
+  );
+  const monthChanges = (
+    await call(root + "/changes?cursor=" + encodeURIComponent(monthSnapshot))
+  ).data;
+  assert.equal(
+    monthChanges.find((r) => r.entity === "budget_months" && r.id === "2025-02")
+      .data.buffered,
+    0,
+    "Revival preserves original buffered value",
+  );
+  assert.equal(
+    rewrittenMonth.data?.note,
+    "Fresh month annotation",
+    "Fresh note revives its tombstoned month",
+  );
   const fresh = {
     id: source.id,
     note: source.cleared.note,
     snapshot: (await call(root + "/checkpoint")).data.snapshot,
   };
-  await call(root + "/notes/commands", fresh, 200, {
-    "X-Actual-Budget-Epoch": epoch,
+  const clearHeaders = {
+      "X-Actual-Budget-Epoch": epoch,
+      "Idempotency-Key": randomUUID(),
+    },
+    clearReceipt = await call(
+      root + "/notes/commands",
+      fresh,
+      200,
+      clearHeaders,
+    );
+  await call(root + "/notes/commands", fresh, 409, {
+    ...clearHeaders,
+    "X-Actual-Budget-Epoch": randomUUID().replaceAll("-", ""),
   });
   assert.equal((await read()).data.note, source.cleared.note);
   const backup = (await call(root + "/backups", { label: "Caller notes" }, 201))
@@ -276,6 +357,21 @@ try {
     saved,
     "Original old-epoch receipt replays after restore",
   );
+  const restoredEpoch = (await call(root)).data.epoch;
+  assert.notEqual(restoredEpoch, epoch);
+  assert.deepEqual(
+    await call(root + "/notes/commands", fresh, 200, clearHeaders),
+    clearReceipt,
+    "Unowned original old-epoch request still replays",
+  );
+  await call(root + "/notes/commands", fresh, 409, {
+    ...clearHeaders,
+    "X-Actual-Budget-Epoch": restoredEpoch,
+  });
+  await call(root + "/notes/commands", body, 409, {
+    ...headers,
+    "X-Actual-Budget-Epoch": restoredEpoch,
+  });
   const financial = ({ snapshot, ...rest }) => rest;
   assert.deepEqual(
     financial(await call(root + "/transactions?limit=1000")),

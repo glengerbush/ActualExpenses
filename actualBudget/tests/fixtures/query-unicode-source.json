@@ -1,0 +1,1804 @@
+{
+  "oracle": "@actual-app/api26.10 updateTransaction + real AQL LIKE/NOTLIKE/regexp",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "input": {
+    "filename": "transaction-export-base-26.10.zip",
+    "sha256": "21b1b822a1c2676fcabeae288a0156013b9f4ccf89130eac8ede991a00adc2fd"
+  },
+  "source_files": {
+    "packages/loot-core/src/shared/normalisation.ts": "a3eb2322f8cce7ecf06a4c87aae444cf34ad4838140a76afd014af84dc047dfb",
+    "packages/loot-core/src/server/aql/compiler.ts": "2bde167567764d0b5f4ec014e72f028c3cfb407e1a411eb009f115426532f065"
+  },
+  "engine_entry_sha256": "fdfed936dac6ba6dc411bac27f94237a90c8cb0ea047a5d9d0d8a5d21ea9aa56",
+  "id": "25300000-0000-4000-8000-000000000001",
+  "cases": [
+    {
+      "id": "composed-$like",
+      "notes": "Café",
+      "pattern": "cafe",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": "cafe"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "Café"
+        }
+      ]
+    },
+    {
+      "id": "composed-$notlike",
+      "notes": "Café",
+      "pattern": "cafe",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": "cafe"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "composed-$regexp",
+      "notes": "Café",
+      "pattern": "cafe",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": "cafe"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "decomposed-$like",
+      "notes": "Café",
+      "pattern": "CAFÉ",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": "CAFÉ"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "Café"
+        }
+      ]
+    },
+    {
+      "id": "decomposed-$notlike",
+      "notes": "Café",
+      "pattern": "CAFÉ",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": "CAFÉ"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "decomposed-$regexp",
+      "notes": "Café",
+      "pattern": "CAFÉ",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": "CAFÉ"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "expansions-$like",
+      "notes": "ŁØßŒ",
+      "pattern": "lossoe",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": "lossoe"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "ŁØßŒ"
+        }
+      ]
+    },
+    {
+      "id": "expansions-$notlike",
+      "notes": "ŁØßŒ",
+      "pattern": "lossoe",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": "lossoe"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "expansions-$regexp",
+      "notes": "ŁØßŒ",
+      "pattern": "lossoe",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": "lossoe"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "greek-$like",
+      "notes": "Άλφα",
+      "pattern": "αλφα",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": "αλφα"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "Άλφα"
+        }
+      ]
+    },
+    {
+      "id": "greek-$notlike",
+      "notes": "Άλφα",
+      "pattern": "αλφα",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": "αλφα"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "greek-$regexp",
+      "notes": "Άλφα",
+      "pattern": "αλφα",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": "αλφα"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "greek-final-$like",
+      "notes": "ΟΣ",
+      "pattern": "ος",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": "ος"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "ΟΣ"
+        }
+      ]
+    },
+    {
+      "id": "greek-final-$notlike",
+      "notes": "ΟΣ",
+      "pattern": "ος",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": "ος"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "greek-final-$regexp",
+      "notes": "ΟΣ",
+      "pattern": "ος",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": "ος"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "non-diacritic-mark-$like",
+      "notes": "a͏b",
+      "pattern": "ab",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": "ab"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "non-diacritic-mark-$notlike",
+      "notes": "a͏b",
+      "pattern": "ab",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": "ab"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "a͏b"
+        }
+      ]
+    },
+    {
+      "id": "non-diacritic-mark-$regexp",
+      "notes": "a͏b",
+      "pattern": "ab",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": "ab"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "non-diacritic-preserved-$like",
+      "notes": "a͏b",
+      "pattern": "a͏b",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": "a͏b"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "a͏b"
+        }
+      ]
+    },
+    {
+      "id": "non-diacritic-preserved-$notlike",
+      "notes": "a͏b",
+      "pattern": "a͏b",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": "a͏b"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "non-diacritic-preserved-$regexp",
+      "notes": "a͏b",
+      "pattern": "a͏b",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": "a͏b"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "a͏b"
+        }
+      ]
+    },
+    {
+      "id": "diacritic-modifier-$like",
+      "notes": "aʰb",
+      "pattern": "ab",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": "ab"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "aʰb"
+        }
+      ]
+    },
+    {
+      "id": "diacritic-modifier-$notlike",
+      "notes": "aʰb",
+      "pattern": "ab",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": "ab"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "diacritic-modifier-$regexp",
+      "notes": "aʰb",
+      "pattern": "ab",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": "ab"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "wildcard-percent-$like",
+      "notes": "Crème brûlée",
+      "pattern": "creme%brulee",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": "creme%brulee"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "Crème brûlée"
+        }
+      ]
+    },
+    {
+      "id": "wildcard-percent-$notlike",
+      "notes": "Crème brûlée",
+      "pattern": "creme%brulee",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": "creme%brulee"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "wildcard-percent-$regexp",
+      "notes": "Crème brûlée",
+      "pattern": "creme%brulee",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": "creme%brulee"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "wildcard-question-$like",
+      "notes": "café",
+      "pattern": "caf?",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": "caf?"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "café"
+        }
+      ]
+    },
+    {
+      "id": "wildcard-question-$notlike",
+      "notes": "café",
+      "pattern": "caf?",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": "caf?"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "wildcard-question-$regexp",
+      "notes": "café",
+      "pattern": "caf?",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": "caf?"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "café"
+        }
+      ]
+    },
+    {
+      "id": "underscore-literal-$like",
+      "notes": "café",
+      "pattern": "caf_",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": "caf_"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "underscore-literal-$notlike",
+      "notes": "café",
+      "pattern": "caf_",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": "caf_"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "café"
+        }
+      ]
+    },
+    {
+      "id": "underscore-literal-$regexp",
+      "notes": "café",
+      "pattern": "caf_",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": "caf_"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "escaped-percent-$like",
+      "notes": "100% café",
+      "pattern": "100\\% cafe",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": "100\\% cafe"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "100% café"
+        }
+      ]
+    },
+    {
+      "id": "escaped-percent-$notlike",
+      "notes": "100% café",
+      "pattern": "100\\% cafe",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": "100\\% cafe"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "escaped-percent-$regexp",
+      "notes": "100% café",
+      "pattern": "100\\% cafe",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": "100\\% cafe"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "negative-$like",
+      "notes": "café",
+      "pattern": "tea",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": "tea"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "negative-$notlike",
+      "notes": "café",
+      "pattern": "tea",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": "tea"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "café"
+        }
+      ]
+    },
+    {
+      "id": "negative-$regexp",
+      "notes": "café",
+      "pattern": "tea",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": "tea"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "empty-$like",
+      "notes": "café",
+      "pattern": "",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": ""
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "empty-$notlike",
+      "notes": "café",
+      "pattern": "",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": ""
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "café"
+        }
+      ]
+    },
+    {
+      "id": "empty-$regexp",
+      "notes": "café",
+      "pattern": "",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": ""
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "café"
+        }
+      ]
+    },
+    {
+      "id": "empty-text-$like",
+      "notes": "",
+      "pattern": "%",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": "%"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "empty-text-$notlike",
+      "notes": "",
+      "pattern": "%",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": "%"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "empty-text-$regexp",
+      "notes": "",
+      "pattern": "%",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": "%"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "empty-both-$like",
+      "notes": "",
+      "pattern": "",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": ""
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "empty-both-$notlike",
+      "notes": "",
+      "pattern": "",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": ""
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "empty-both-$regexp",
+      "notes": "",
+      "pattern": "",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": ""
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "only-diacritic-$like",
+      "notes": "́",
+      "pattern": "%",
+      "op": "$like",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$like": "%"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "notes": "́"
+        }
+      ]
+    },
+    {
+      "id": "only-diacritic-$notlike",
+      "notes": "́",
+      "pattern": "%",
+      "op": "$notlike",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$notlike": "%"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    },
+    {
+      "id": "only-diacritic-$regexp",
+      "notes": "́",
+      "pattern": "%",
+      "op": "$regexp",
+      "query": {
+        "tableOptions": {},
+        "filterExpressions": [
+          {
+            "id": "25300000-0000-4000-8000-000000000001",
+            "notes": {
+              "$regexp": "%"
+            }
+          }
+        ],
+        "selectExpressions": [
+          "id",
+          "notes"
+        ],
+        "groupExpressions": [],
+        "orderExpressions": [
+          "id"
+        ],
+        "calculation": false,
+        "rawMode": false,
+        "withDead": false,
+        "validateRefs": true,
+        "limit": null,
+        "offset": null,
+        "table": "transactions"
+      },
+      "data": []
+    }
+  ]
+}

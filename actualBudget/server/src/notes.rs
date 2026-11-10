@@ -137,7 +137,7 @@ async fn command(
     let epoch = crate::lifecycle::epoch_header(&headers)?;
     let cancel = sync::cancel_header(&headers)?;
     let lookup = sync::receipt_only_header(&headers)?;
-    let payload = body.to_string();
+    let payload = json!({"request":body,"epoch":epoch}).to_string();
     store.run(move|db|{let scope=format!("POST /budgets/{b}/notes/commands");if lookup{return sync::receipt_owned(db,&scope,&key,&payload,proposed.as_deref(),StatusCode::OK,owner.as_ref());}
  sync::write_owned(db,&scope,&key,&payload,proposed.as_deref(),StatusCode::OK,owner.as_ref(),|db|{
  if cancel{return sync::canceled(db,&b);}crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;
@@ -145,7 +145,8 @@ async fn command(
  let id=body["id"].as_str().ok_or_else(||Error::invalid("Provide note identity"))?;let note=body["note"].as_str().ok_or_else(||Error::invalid("Provide note text"))?;validate(id,note)?;
  sync::check_snapshot(db,&b,Some(body["snapshot"].as_str().ok_or_else(||Error::invalid("Provide current snapshot"))?))?;
  let(table,row,field)=target(db,&b,id)?;let clock=sync::clock(db,&b,proposed.as_deref())?;crate::rules::guard(db,&b,table,&row,field,&clock)?;
- if table=="notes"{db.execute("INSERT INTO notes(budget_id,id,note) VALUES(?1,?2,?3) ON CONFLICT(budget_id,id) DO UPDATE SET note=excluded.note,tombstone=0",params![b,row,note])?;}else if table=="budget_months"{db.execute("INSERT INTO budget_months(budget_id,id,notes) VALUES(?1,?2,?3) ON CONFLICT(budget_id,id) DO UPDATE SET notes=excluded.notes",params![b,row,note])?;}else{db.execute(&format!("UPDATE {table} SET {field}=?3 WHERE budget_id=?1 AND id=?2"),params![b,row,note])?;}
+ if matches!(table,"notes"|"budget_months") && db.query_row(&format!("SELECT EXISTS(SELECT 1 FROM {table} WHERE budget_id=?1 AND id=?2 AND tombstone=1)"),params![b,row],|r|r.get::<_,bool>(0))? {crate::rules::guard(db,&b,table,&row,"tombstone",&clock)?;}
+ if table=="notes"{db.execute("INSERT INTO notes(budget_id,id,note) VALUES(?1,?2,?3) ON CONFLICT(budget_id,id) DO UPDATE SET note=excluded.note,tombstone=0",params![b,row,note])?;}else if table=="budget_months"{db.execute("INSERT INTO budget_months(budget_id,id,notes) VALUES(?1,?2,?3) ON CONFLICT(budget_id,id) DO UPDATE SET notes=excluded.notes,tombstone=0",params![b,row,note])?;}else{db.execute(&format!("UPDATE {table} SET {field}=?3 WHERE budget_id=?1 AND id=?2"),params![b,row,note])?;}
  sync::seed_field_version(db,&b,table,&row,field,&clock)?;sync::mark(db,&b,table,&row)?;
  Ok(json!({"response_status":200,"response_body":{"data":get(db,&b,id)?,"snapshot":sync::cursor(db,&b)?,"edit_clock":clock}}))
  })}).await

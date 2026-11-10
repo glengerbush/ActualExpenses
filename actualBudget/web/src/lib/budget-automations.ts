@@ -26,6 +26,13 @@ export type DefinitionPage = {
   epoch: string;
   experimental: Record<string, boolean>;
 };
+export type CleanupNotification = {
+  type: string;
+  message: string;
+  pre?: string;
+  sourceCount?: number;
+  sinkCount?: number;
+};
 export type TemplatePlan = {
   month: string;
   method: "tracking" | "envelope";
@@ -40,7 +47,7 @@ export type TemplatePlan = {
     clear_goal: boolean;
     per_template: number[];
   }[];
-  notification?: { type: string; message: string };
+  notification?: CleanupNotification;
   errors: { id: string; name: string; error: string }[];
   snapshot: string;
   epoch: string;

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { prepareVisualBody } from "./visual-automations";
   import TemplateEditor from "./TemplateEditor.svelte";
+  import CleanupNotice from "./CleanupNotice.svelte";
   import CleanupEditor from "./CleanupEditor.svelte";
   import { preferences } from "./preferences.svelte";
   import type { SchedulePage } from "./schedules";
@@ -29,6 +30,7 @@
     type TemplateDefinition,
     type TemplatePlan,
     type MigrationPreview,
+    type CleanupNotification,
   } from "./budget-automations";
   let {
     budgetId,
@@ -55,6 +57,7 @@
       templates: Record<string, unknown>[];
       errors: { line: string; error: string }[];
     } | null>(null);
+  let cleanupOutcome = $state.raw<CleanupNotification | null>(null);
   let schedules = $state.raw<{ id: string; name: string }[]>([]),
     nextScheduleOffset = $state<number | null>(0);
   function money(amount: number, format?: AmountFormat) {
@@ -176,6 +179,7 @@
       });
 
       parsed = null;
+      cleanupOutcome = null;
       notice = savings
         ? "Enter a target, then review the resulting notes before saving."
         : "";
@@ -264,6 +268,7 @@
     busy = true;
     error = "";
     notice = "";
+    cleanupOutcome = null;
     try {
       if (ids && !ids.length) throw new Error("Select at least one category.");
       const body: Record<string, unknown> = {
@@ -353,6 +358,7 @@
       });
       error = "";
       notice = "";
+      cleanupOutcome = null;
       schedules = [];
       nextScheduleOffset = 0;
       if (mode === "migrate") void migrationPreview();
@@ -468,6 +474,7 @@
     busy = true;
     error = "";
     notice = "";
+    cleanupOutcome = null;
     try {
       if (!draft.pending) {
         if (data?.method !== draft.method)
@@ -511,7 +518,20 @@
       if (cancel) requestCancellation(draft.pending!);
       save(structuredClone(draft));
       try {
-        await mutate(draft.pending!, cancel);
+        const response = await mutate(draft.pending!, cancel);
+        if (draft.mode === "cleanup" && "notification" in response) {
+          const value = response.notification;
+          if (
+            value &&
+            typeof value === "object" &&
+            "message" in value &&
+            typeof value.message === "string" &&
+            "type" in value &&
+            typeof value.type === "string"
+          ) {
+            cleanupOutcome = value as CleanupNotification;
+          }
+        }
       } catch (e) {
         if (
           e instanceof Error &&
@@ -529,7 +549,9 @@
       save(null);
       parsed = null;
       await onchanged();
-      notice = "Template change saved.";
+      notice = cleanupOutcome
+        ? "Month-end cleanup saved."
+        : "Template change saved.";
       await load();
     } catch (e) {
       error = errorMessage(e);
@@ -603,6 +625,9 @@
     >
       {notice}
     </p>{/if}
+  {#if cleanupOutcome}<section aria-label="Confirmed cleanup outcome">
+      <CleanupNotice notification={cleanupOutcome} committed={true} />
+    </section>{/if}
   {#if storageBlocked}<p class="error" role="alert">
       These fields are retained in this view but are not safely saved on this
       device. Sending is blocked.
@@ -834,9 +859,9 @@
               ? "Proposed month-end cleanup"
               : "Proposed allocations and targets"}
           </h4>
-          {#if draft.preview.notification}<p role="status">
-              {draft.preview.notification.message}
-            </p>{/if}
+          {#if draft.preview.notification}<CleanupNotice
+              notification={draft.preview.notification}
+            />{/if}
           {#if draft.preview.errors.length}<ul class="error" role="alert">
               {#each draft.preview.errors as issue, index (index)}<li>
                   {issue.name}: {issue.error}

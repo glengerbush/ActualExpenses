@@ -80,6 +80,26 @@ fn links(
     }
     Ok(result)
 }
+fn starting_payee(db: &Connection, b: &str) -> Result<Option<String>, Error> {
+    let mut query=db.prepare("SELECT id,name FROM payees WHERE budget_id=?1 AND tombstone=0 AND transfer_account_id IS NULL ORDER BY rowid LIMIT 100001")?;
+    for (index, row) in query
+        .query_map([b], |r| {
+            Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
+        })?
+        .enumerate()
+    {
+        if index >= 100000 {
+            return Err(Error::invalid(
+                "Starting reference lookup exceeds 100000 payees. Choose no automatic opening entry",
+            ));
+        }
+        let (id, name) = row?;
+        if name.to_lowercase() == "starting balance" {
+            return Ok(Some(id));
+        }
+    }
+    Ok(None)
+}
 fn opening(
     db: &Connection,
     b: &str,
@@ -96,14 +116,14 @@ fn opening(
     }
     models::validate_date(date)?;
     let account = crate::accounts::get(db, b, a)?;
-    let existing=db.query_row("SELECT id FROM payees WHERE budget_id=?1 AND name='Starting Balance' AND tombstone=0 AND transfer_account_id IS NULL ORDER BY rowid LIMIT 1",[b],|r|r.get::<_,String>(0)).optional()?;
+    let existing = starting_payee(db, b)?;
     let payee = existing
         .clone()
         .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
     let category: Option<String> = if account["off_budget"] == true {
         None
     } else {
-        db.query_row("SELECT id FROM categories WHERE budget_id=?1 AND is_income=1 AND tombstone=0 ORDER BY name='Starting Balances' DESC,id LIMIT 1",[b],|r|r.get(0)).optional()?
+        db.query_row("SELECT id FROM categories WHERE budget_id=?1 AND is_income=1 AND tombstone=0 ORDER BY LOWER(name)='starting balances' DESC,rowid LIMIT 1",[b],|r|r.get(0)).optional()?
     };
     let id = uuid::Uuid::new_v4().to_string();
     let input:crate::ledger::NewTransaction=serde_json::from_value(json!({"id":id,"account_id":a,"amount":amount,"date":date,"cleared":true,"payee_id":if existing.is_some(){Some(payee.clone())}else{None},"new_payee":if existing.is_none(){Some(json!({"id":payee,"name":"Starting Balance"}))}else{None},"category_id":category})).map_err(Error::internal)?;

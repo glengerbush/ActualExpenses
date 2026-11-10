@@ -10,6 +10,20 @@ const fixture = JSON.parse(
     new URL("../tests/fixtures/bank-sync-source-26.10.json", import.meta.url),
   ),
 );
+if (process.argv.includes("--edges-only"))
+  fixture.cases = JSON.parse(
+    await readFile(
+      new URL(
+        "../tests/fixtures/bank-sync-edges-source-26.10.json",
+        import.meta.url,
+      ),
+    ),
+  ).cases;
+const selectedCase = process.argv
+  .find((a) => a.startsWith("--case="))
+  ?.slice(7);
+if (selectedCase)
+  fixture.cases = fixture.cases.filter((c) => c.id === selectedCase);
 let current,
   round = 0;
 const fetched = [];
@@ -269,40 +283,118 @@ try {
       const rows = (await call(root + "/transactions")).data,
         payees = (await call(root + "/payees")).data,
         categories = (await call(root + "/categories")).data;
-      assert.deepEqual(
-        financial(rows, payees, categories, false),
-        financial(
-          expected.transactions,
-          expected.payees,
-          expected.categories,
-          true,
-        ),
-        item.id + " round " + round,
-      );
-      assert.deepEqual(
-        payees.map((p) => p.name).sort(),
-        expected.payees
-          .filter((p) => !p.transfer_acct)
-          .map((p) => p.name)
-          .sort(),
-        "No unused or duplicate provisional payees persist",
-      );
-      const bankAccount = (await call(root + "/banking")).data.accounts.find(
+      if (item.id === "first-sync-imports-disabled") {
+        assert.ok(
+          expected.transactions.some(
+            (t) => t.imported_id === "disabled-but-source-imports",
+          ),
+          "Retained source actually imports despite disabled preference",
+        );
+        assert.deepEqual(
+          rows,
+          [],
+          "Explicit disabled-import intent prevents all financial writes, including opening",
+        );
+        assert.deepEqual(
+          payees.map((p) => p.name).sort(),
+          item.before.payees
+            .filter((p) => !p.transfer_acct)
+            .map((p) => p.name)
+            .sort(),
+        );
+        assert.equal(
+          (await call(root + "/accounts")).data.find((a) => a.id === account)
+            .balance,
+          0,
+        );
+      } else if (item.id === "first-sync-one-decimal") {
+        assert.equal(
+          item.outcomes[round].source_ledger_total,
+          9892,
+          "Original source divergence remains recorded",
+        );
+        assert.deepEqual(
+          financial(
+            rows.filter((t) => !t.starting_balance),
+            payees,
+            categories,
+            false,
+          ),
+          financial(
+            expected.transactions.filter((t) => !t.starting_balance_flag),
+            expected.payees,
+            expected.categories,
+            true,
+          ),
+        );
+        const actualOpening = financial(
+            rows.filter((t) => t.starting_balance),
+            payees,
+            categories,
+            false,
+          )[0],
+          sourceOpening = financial(
+            expected.transactions.filter((t) => t.starting_balance_flag),
+            expected.payees,
+            expected.categories,
+            true,
+          )[0];
+        assert.equal(rows.length, expected.transactions.length);
+        assert.ok(actualOpening && sourceOpening);
+        const { amount: actualAmount, ...actualFields } = actualOpening,
+          { amount: sourceAmount, ...sourceFields } = sourceOpening;
+        assert.deepEqual(actualFields, sourceFields);
+        assert.notEqual(actualAmount, sourceAmount);
+        assert.equal(
+          (await call(root + "/accounts")).data.find((a) => a.id === account)
+            .balance,
+          item.outcomes[round].transport_response.startingBalance,
+          "Numeric-money invariant matches provided current balance",
+        );
+      } else {
+        assert.deepEqual(
+          financial(rows, payees, categories, false),
+          financial(
+            expected.transactions,
+            expected.payees,
+            expected.categories,
+            true,
+          ),
+          item.id + " round " + round,
+        );
+        assert.deepEqual(
+          payees.map((p) => p.name).sort(),
+          expected.payees
+            .filter((p) => !p.transfer_acct)
+            .map((p) => p.name)
+            .sort(),
+          "No unused or duplicate provisional payees persist",
+        );
+        const bankAccount = (await call(root + "/banking")).data.accounts.find(
+          (a) => a.remote_id === "synthetic-remote-account",
+        );
+        assert.equal(
+          bankAccount.balance,
+          item.outcomes[round].transport_response.balances[0].balanceAmount
+            .amount,
+        );
+        assert.equal(
+          bankAccount.currency,
+          item.outcomes[round].transport_response.balances[0].balanceAmount
+            .currency,
+        );
+        assert.ok(
+          rows.every((r) => r.account_id === account),
+          "Bank rows retain their captured local account",
+        );
+      }
+      const bank = (await call(root + "/banking")).data.accounts.find(
         (a) => a.remote_id === "synthetic-remote-account",
       );
       assert.equal(
-        bankAccount.balance,
+        bank.balance,
         item.outcomes[round].transport_response.balances[0].balanceAmount
           .amount,
-      );
-      assert.equal(
-        bankAccount.currency,
-        item.outcomes[round].transport_response.balances[0].balanceAmount
-          .currency,
-      );
-      assert.ok(
-        rows.every((r) => r.account_id === account),
-        "Bank rows retain their captured local account",
       );
       const ids = rows.map((r) => r.id).sort();
       if (round === 0) firstIds = ids;

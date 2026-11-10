@@ -189,3 +189,41 @@ source financial observations/archives are unchanged. Full linked-source convers
 genuine22 DB/native upgrade/restore/duplicate, account unlink/relink matrix, parallel
 capture ordering/partial missing-account recovery, final contracts/CI and UI are
 still pending. This checkpoint is not complete28 acceptance.
+
+### Starting-reference correction and explicit first-link boundaries
+
+Three bounded genuine source cases now supplement the unchanged original six.
+`generate-bank-sync-source.mjs --check --check-edges --export-linked` verifies the
+old observations, new edge JSON/prelink ZIP hashes, and one genuine already-linked
+export. Capture only adds new artifacts; existing observations/ZIPs are never
+rewritten. Two fresh checks pass (`/tmp/bank28-source-edges-check.log`,
+`/tmp/bank28-source-edges-check-repeat.log`). Original helper/API bundle hashes stay
+pinned, including `accounts/payees.ts` for reference lookup. Official exports clear
+CRDT; these artifacts prove values/identities, not per-field source clocks.
+
+The exact source boundaries are retained, not patched in the oracle:
+
+- Empty existing account + `sync-import-transactions=false`: source first link still
+  inserts opening and expense, source AQL total25000. Replacement intentionally keeps
+  the explicit balance-only setting: zero ledger rows, provider balance25000 retained.
+- Initial transaction `-1.2`: source normalizes the expense to−120 but its formatting
+  dependent opening is10012, source AQL total9892 against provider10000. Replacement
+  retains the source expense and all opening fields/references but uses the numeric
+  money invariant, yielding the provided10000 total. No FX or source expected-value
+  substitution is involved.
+- SDK-created starting payee renamed `STARTING BALANCE`, starting category renamed
+  `starting balances`, while another income category remains: source reuses both
+  original IDs. Public red `/tmp/bank28-opening-reference-red.log` showed replacement
+  creating a second cased payee and choosing Income. Payee-only correction isolated
+  the category red `/tmp/bank28-opening-category-red.log`. Final Unicode-lower payee
+  lookup and SQLite-lower category preference preserve the original IDs; the normal
+  mutation duplicate guard is unchanged. Payee lookup refuses beyond100000 rows.
+
+All three public edge workflows and27 served-schema observations pass
+`/tmp/bank28-opening-edges-green.log`; focused bin Clippy passes
+`/tmp/bank28-opening-fix-clippy.log`. Fresh source checking also exposed incidental
+UUID ordering of otherwise exact `(date, sort_order, starting flag)` ties. CHECK
+canonicalizes only those ties by bank ID/fixed-anchor/financial signature before
+UUID aliasing. Raw original rows, fixed IDs, references, multiplicity and values stay
+untouched; no generated-UUID tie-order parity is claimed. The unpublished prelink
+artifact from the interrupted check remains `/tmp/bank28-unpublished-rename-prelink-26.10.zip`.

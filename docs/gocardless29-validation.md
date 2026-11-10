@@ -29,3 +29,20 @@ A true held-GoCardless-status public red showed an altered generation could inst
 A common pending-fingerprint check now runs inside the atomic command transaction before any canceled receipt or custody mutation. It compares the captured full receipt identity (including original body/epoch and, for financial requests, owner/clock). Same-key altered cancel/remove/replace refuses409 without metadata, cursor or receipt changes. New SimpleFIN claims retain their original private intent ID/fingerprint in nullable schema25 credential columns; interrupted pre25 claims remain conservative/replace-only. Schema23 is unchanged. Successful/canceled original receipts keep their existing shapes.
 
 `gocardless-cancel-identity-green.log` passes65 served-schema observations, altered-body/epoch refusal, exact original receipt absence before completion, correct original cancellation and no late resurrection. `bank-capture-identity-green.log` and `bank-claim-identity-green.log` pass the shared held-provider cases; the capture case explicitly exercises the owned financial cancel route with another body/owner/clock. All use public HTTP and actual held provider requests, without private SQL inspection. Build/bin Clippy and targeted JS formatting are in `gocardless-identity-{build,clippy,format}.log`. No broad suite rerun.
+
+## Root custody checkpoint review
+
+2026-11-10:27cddf9/c0e093a reviewed independently. Private token/consent storage,
+fixed-origin bounded transport, no-store handoff, generation/epoch fences,
+portable exclusions and transactional25 banking-family reconstruction inspected.
+Root found the altered-key-payload cancellation gap; the common guard and private
+claim identities above close it, including same-scope replacement/removal and
+owned download clocks. Original23 migration remains unchanged. No remaining
+custody finding; genuine nonempty24→25 proof and complete29 acceptance remain open.
+
+Composed atb68379d with the accepted reporting/query work: build PASS
+`/tmp/gocardless-root-build.log`;65 served-contract/custody observations PASS
+`/tmp/gocardless-root-custody.log`; held SimpleFIN capture/claim identity checks
+PASS `/tmp/gocardless-root-{capture,claim}-identity.log`; existing digest-only
+original receipt/cancel recovery PASS `/tmp/gocardless-root-secret-recovery.log`.
+No real provider call or broad suite rerun.

@@ -1,8 +1,8 @@
 //! Forecast reads are bound to one immutable input revision. Simulation never posts.
+use super::revision_cache as cache;
 use super::*;
 use axum::Extension;
 use std::sync::{Arc, Mutex};
-mod cache;
 type SharedCache = Arc<Mutex<cache::Cache>>;
 pub(crate) fn router() -> Router<Store> {
     Router::new()

@@ -14,7 +14,7 @@ pub use import::{
     clock as import_clock, convert as convert_actual, enrich as enrich_legacy_imports,
     install as install_actual, validate,
 };
-use rusqlite::{Connection, params};
+use rusqlite::{Connection, params, params_from_iter};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
@@ -104,6 +104,7 @@ struct Category {
     hidden: bool,
     group: Option<String>,
     group_hidden: bool,
+    group_income: bool,
     group_name: String,
     notes: String,
 }
@@ -130,10 +131,58 @@ async fn read(
     ))
 }
 pub fn view(db: &Connection, b: &str, start: &str, count: usize) -> Result<Value, Error> {
+    scoped_view(db, b, start, count, None)
+}
+/// Financial category cells only: a scoped report must not treat its partial
+/// budget summary as the complete budget page.
+#[derive(Deserialize)]
+pub(crate) struct ReportCell {
+    pub id: String,
+    pub budgeted: i64,
+    pub actual: i64,
+    pub balance: i64,
+    pub carryover: bool,
+}
+pub(crate) fn report_cells(
+    db: &Connection,
+    b: &str,
+    start: &str,
+    count: usize,
+    categories: &std::collections::BTreeSet<String>,
+) -> Result<BTreeMap<String, Vec<ReportCell>>, Error> {
+    if count.saturating_mul(categories.len()) > 20000 {
+        return Err(Error::invalid(
+            "Analysis contains more than20000 category/month cells; select fewer categories or a shorter range",
+        ));
+    }
+    let view = scoped_view(db, b, start, count, Some(categories))?;
+    view["months"]
+        .as_object()
+        .ok_or_else(|| Error::internal("Missing scoped month cells"))?
+        .iter()
+        .map(|(month, data)| {
+            Ok((
+                month.clone(),
+                serde_json::from_value(data["categories"].clone()).map_err(Error::internal)?,
+            ))
+        })
+        .collect()
+}
+fn scoped_view(
+    db: &Connection,
+    b: &str,
+    start: &str,
+    count: usize,
+    scope: Option<&std::collections::BTreeSet<String>>,
+) -> Result<Value, Error> {
     crate::store::require_budget(db, b)?;
     let start = month(start)?;
-    if !(1..=12).contains(&count) {
-        return Err(Error::invalid("Display 1–12 months"));
+    if !(1..=if scope.is_some() { 20000 } else { 12 }).contains(&count) {
+        return Err(Error::invalid(if scope.is_some() {
+            "Analysis permits up to20000 monthly points"
+        } else {
+            "Display 1–12 months"
+        }));
     }
     let end = start + count as i32 - 1;
     month_name(end)?;
@@ -141,7 +190,8 @@ pub fn view(db: &Connection, b: &str, start: &str, count: usize) -> Result<Value
         r.get(0)
     })?;
     let tracking = method == "tracking";
-    let mut q=db.prepare("SELECT c.id,c.name,c.is_income,c.hidden,c.group_id,COALESCE(g.hidden,0),c.notes,COALESCE(g.name,'Ungrouped') FROM categories c LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id WHERE c.budget_id=?1 AND c.tombstone=0 ORDER BY COALESCE(g.sort_order,0),COALESCE(c.sort_order,0),c.id")?;
+    let note_column = if scope.is_some() { "''" } else { "c.notes" };
+    let mut q=db.prepare(&format!("SELECT c.id,c.name,c.is_income,c.hidden,c.group_id,COALESCE(g.hidden,0),{note_column},COALESCE(g.name,'Ungrouped'),COALESCE(g.is_income,0) FROM categories c LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id WHERE c.budget_id=?1 AND c.tombstone=0 ORDER BY COALESCE(g.sort_order,0),COALESCE(c.sort_order,0),c.id"))?;
     let categories = q
         .query_map([b], |r| {
             Ok(Category {
@@ -153,13 +203,52 @@ pub fn view(db: &Connection, b: &str, start: &str, count: usize) -> Result<Value
                 group_hidden: r.get(5)?,
                 notes: r.get(6)?,
                 group_name: r.get(7)?,
+                group_income: r.get(8)?,
             })
         })?
-        .collect::<Result<Vec<_>, _>>()?;
+        .collect::<Result<Vec<_>, _>>()?
+        .into_iter()
+        .filter(|category| scope.is_none_or(|ids| ids.contains(&category.id)))
+        .collect::<Vec<_>>();
     let mut earliest = start;
     let mut actuals = BTreeMap::<(i32, String), i128>::new();
-    let mut q=db.prepare("SELECT substr(t.date,1,7),t.category_id,t.amount FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id WHERE t.budget_id=?1 AND t.tombstone=0 AND t.is_parent=0 AND a.off_budget=0 AND t.category_id IS NOT NULL")?;
-    for row in q.query_map([b], |r| {
+    let mut actual_values = vec![b.to_owned()];
+    let actual_scope = if let Some(ids) = scope {
+        actual_values.push(format!("{}-31", month_name(end)?));
+        let slots = ids
+            .iter()
+            .map(|id| {
+                actual_values.push(id.clone());
+                format!("?{}", actual_values.len())
+            })
+            .collect::<Vec<_>>()
+            .join(",");
+        format!(
+            " AND t.date<=?2 AND t.category_id IN ({})",
+            if slots.is_empty() { "NULL" } else { &slots }
+        )
+    } else {
+        String::new()
+    };
+    let actual_sql = format!(
+        "FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id WHERE t.budget_id=?1 AND t.tombstone=0 AND t.is_parent=0 AND a.off_budget=0 AND t.category_id IS NOT NULL{actual_scope}"
+    );
+    if scope.is_some() {
+        let count: i64 = db.query_row(
+            &format!("SELECT count(*) FROM (SELECT t.id {actual_sql} LIMIT 100001)"),
+            params_from_iter(actual_values.iter()),
+            |r| r.get(0),
+        )?;
+        if count > 100000 {
+            return Err(Error::invalid(
+                "Analysis exceeds100000 selected recorded inputs; select fewer categories or an earlier ending month",
+            ));
+        }
+    }
+    let mut q = db.prepare(&format!(
+        "SELECT substr(t.date,1,7),t.category_id,t.amount {actual_sql}"
+    ))?;
+    for row in q.query_map(params_from_iter(actual_values.iter()), |r| {
         Ok((
             r.get::<_, String>(0)?,
             r.get::<_, String>(1)?,
@@ -167,6 +256,9 @@ pub fn view(db: &Connection, b: &str, start: &str, count: usize) -> Result<Value
         ))
     })? {
         let (date, id, amount) = row?;
+        if scope.is_some_and(|ids| !ids.contains(&id)) {
+            continue;
+        }
         let m = month(&date)?;
         if m <= end {
             earliest = earliest.min(m);
@@ -174,8 +266,47 @@ pub fn view(db: &Connection, b: &str, start: &str, count: usize) -> Result<Value
         }
     }
     let mut cells = BTreeMap::new();
-    let mut q=db.prepare("SELECT month,category_id,amount,carryover,goal,long_goal FROM budget_cells WHERE budget_id=?1 AND method=?2 AND tombstone=0")?;
-    for row in q.query_map(params![b, method], |r| {
+    let goal_columns = if scope.is_some() {
+        "NULL,NULL"
+    } else {
+        "goal,long_goal"
+    };
+    let mut cell_values = vec![b.to_owned(), method.clone()];
+    let cell_scope = if let Some(ids) = scope {
+        cell_values.push(month_name(end)?);
+        let slots = ids
+            .iter()
+            .map(|id| {
+                cell_values.push(id.clone());
+                format!("?{}", cell_values.len())
+            })
+            .collect::<Vec<_>>()
+            .join(",");
+        format!(
+            " AND month<=?3 AND category_id IN ({})",
+            if slots.is_empty() { "NULL" } else { &slots }
+        )
+    } else {
+        String::new()
+    };
+    let cell_sql =
+        format!("FROM budget_cells WHERE budget_id=?1 AND method=?2 AND tombstone=0{cell_scope}");
+    if scope.is_some() {
+        let count: i64 = db.query_row(
+            &format!("SELECT count(*) FROM (SELECT id {cell_sql} LIMIT 100001)"),
+            params_from_iter(cell_values.iter()),
+            |r| r.get(0),
+        )?;
+        if count > 100000 {
+            return Err(Error::invalid(
+                "Analysis exceeds100000 selected planned inputs; select fewer categories or an earlier ending month",
+            ));
+        }
+    }
+    let mut q = db.prepare(&format!(
+        "SELECT month,category_id,amount,carryover,{goal_columns} {cell_sql}"
+    ))?;
+    for row in q.query_map(params_from_iter(cell_values.iter()), |r| {
         Ok((
             r.get::<_, String>(0)?,
             r.get::<_, String>(1)?,
@@ -188,6 +319,9 @@ pub fn view(db: &Connection, b: &str, start: &str, count: usize) -> Result<Value
         ))
     })? {
         let (m, id, cell) = row?;
+        if scope.is_some_and(|ids| !ids.contains(&id)) {
+            continue;
+        }
         let m = month(&m)?;
         if m <= end {
             earliest = earliest.min(m);
@@ -195,21 +329,23 @@ pub fn view(db: &Connection, b: &str, start: &str, count: usize) -> Result<Value
         }
     }
     let mut months = BTreeMap::new();
-    let mut q = db.prepare(
-        "SELECT id,buffered,notes FROM budget_months WHERE budget_id=?1 AND tombstone=0",
-    )?;
-    for row in q.query_map([b], |r| {
-        Ok((
-            r.get::<_, String>(0)?,
-            r.get::<_, i64>(1)?,
-            r.get::<_, String>(2)?,
-        ))
-    })? {
-        let (m, held, notes) = row?;
-        let m = month(&m)?;
-        if m <= end {
-            earliest = earliest.min(m);
-            months.insert(m, (held, notes));
+    if scope.is_none() {
+        let mut q = db.prepare(
+            "SELECT id,buffered,notes FROM budget_months WHERE budget_id=?1 AND tombstone=0",
+        )?;
+        for row in q.query_map([b], |r| {
+            Ok((
+                r.get::<_, String>(0)?,
+                r.get::<_, i64>(1)?,
+                r.get::<_, String>(2)?,
+            ))
+        })? {
+            let (m, held, notes) = row?;
+            let m = month(&m)?;
+            if m <= end {
+                earliest = earliest.min(m);
+                months.insert(m, (held, notes));
+            }
         }
     }
     // Bound adversarial centuries × huge category sets without silently truncating.
@@ -237,16 +373,25 @@ pub fn view(db: &Connection, b: &str, start: &str, count: usize) -> Result<Value
             let cell = cells.get(&(m, cat.id.clone())).cloned().unwrap_or_default();
             let actual = *actuals.get(&(m, cat.id.clone())).unwrap_or(&0);
             let prev = previous.get(&cat.id);
-            let carried = prev.map_or(0, |p| {
-                if tracking {
-                    if p.carry { p.left } else { 0 }
-                } else if p.carry {
-                    p.left
-                } else {
-                    p.left.max(0)
-                }
-            });
-            let left = if cat.income {
+            // The source envelope-month command emits only actuals for income
+            // groups, even when a legacy category's own income flag differs.
+            let actual_only = scope.is_some() && cat.group_income;
+            let carried = if actual_only {
+                0
+            } else {
+                prev.map_or(0, |p| {
+                    if tracking {
+                        if p.carry { p.left } else { 0 }
+                    } else if p.carry {
+                        p.left
+                    } else {
+                        p.left.max(0)
+                    }
+                })
+            };
+            let left = if actual_only {
+                0
+            } else if cat.income {
                 if tracking {
                     cell.amount as i128 - actual + carried
                 } else {
@@ -255,23 +400,31 @@ pub fn view(db: &Connection, b: &str, start: &str, count: usize) -> Result<Value
             } else {
                 cell.amount as i128 + actual + carried
             };
-            let visible = !tracking || (!cat.hidden && (cat.income || !cat.group_hidden));
-            if cat.income {
-                if visible {
-                    income += actual;
-                    planned_income += cell.amount as i128;
+            if scope.is_some() {
+                if !actual_only {
+                    money(cell.amount as i128)?;
+                    money(left)?;
                 }
-                if cell.carry {
-                    auto_hold += actual;
-                }
+                money(actual)?;
             } else {
-                if visible {
-                    spending += actual;
-                    allocated += cell.amount as i128;
-                    balance += left;
-                }
-                if !cell.carry {
-                    overspent += left.min(0);
+                let visible = !tracking || (!cat.hidden && (cat.income || !cat.group_hidden));
+                if cat.income {
+                    if visible {
+                        income += actual;
+                        planned_income += cell.amount as i128;
+                    }
+                    if cell.carry {
+                        auto_hold += actual;
+                    }
+                } else {
+                    if visible {
+                        spending += actual;
+                        allocated += cell.amount as i128;
+                        balance += left;
+                    }
+                    if !cell.carry {
+                        overspent += left.min(0);
+                    }
                 }
             }
             next.insert(
@@ -282,8 +435,15 @@ pub fn view(db: &Connection, b: &str, start: &str, count: usize) -> Result<Value
                 },
             );
             if m >= start {
-                rows.push(json!({"id":cat.id,"name":cat.name,"is_income":cat.income,"hidden":cat.hidden,"group_id":cat.group,"group_hidden":cat.group_hidden,"group_name":cat.group_name,"notes":cat.notes,"budgeted":if !tracking&&cat.income{0}else{cell.amount},"actual":money(actual)?,"balance":money(left)?,"carryover":cell.carry,"goal":cell.goal,"long_goal":cell.long_goal}));
+                rows.push(json!({"id":cat.id,"name":cat.name,"is_income":cat.income,"hidden":cat.hidden,"group_id":cat.group,"group_hidden":cat.group_hidden,"group_name":cat.group_name,"notes":cat.notes,"budgeted":if actual_only || !tracking&&cat.income{0}else{cell.amount},"actual":money(actual)?,"balance":money(left)?,"carryover":!actual_only && cell.carry,"goal":cell.goal,"long_goal":cell.long_goal}));
             }
+        }
+        if scope.is_some() {
+            if m >= start {
+                output.insert(month_name(m)?, json!({"categories":rows}));
+            }
+            previous = next;
+            continue;
         }
         let (manual, notes) = months.get(&m).cloned().unwrap_or_default();
         let held = if manual != 0 {

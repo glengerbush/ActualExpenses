@@ -1,0 +1,45 @@
+{
+  "oracle": "Unchanged26.10 createBudgetAnalysisSpreadsheet with ten real funded months",
+  "clock": "2026-11-09T12:00:00Z",
+  "archive_sha256": "aa5b2c5bffc00c78b2966912e9a5c357c955a2878e2b18913fbf99e548d791df",
+  "base_sha256": "8b54cf9bc377ecd3d608382995efb5c7445c748f849bc971ce70a1610f1ed250",
+  "source_files": {
+    "packages/desktop-client/src/components/reports/spreadsheets/budget-analysis-spreadsheet.ts": "5ceea0b1007d774f2d824ffcaa52aa1f3cc6ef4be084f07bf8f57e73b79850be",
+    "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+    "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153"
+  },
+  "ids": {
+    "account": "d090ef7b-3f66-4e02-8e76-6e2066468327",
+    "expense": "14694cb2-86da-434d-bfe6-39e3c68270a8",
+    "income": "46662680-6258-47e2-8bc9-fba8c030f79c"
+  },
+  "options": {
+    "startDate": "2026-10-01",
+    "endDate": "2026-10-31",
+    "conditions": [
+      {
+        "field": "category",
+        "op": "is",
+        "value": "14694cb2-86da-434d-bfe6-39e3c68270a8"
+      }
+    ],
+    "conditionsOp": "and"
+  },
+  "expected": {
+    "intervalData": [
+      {
+        "date": "2026-10",
+        "budgeted": 1000000000000000,
+        "spent": -1000000000000000,
+        "balance": 0,
+        "overspendingAdjustment": 0
+      }
+    ],
+    "startDate": "2026-10-01",
+    "endDate": "2026-10-31",
+    "totalBudgeted": 1000000000000000,
+    "totalSpent": -1000000000000000,
+    "totalOverspendingAdjustment": 0,
+    "finalOverspendingAdjustment": 0
+  }
+}

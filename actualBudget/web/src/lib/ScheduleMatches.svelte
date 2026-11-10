@@ -139,7 +139,7 @@
   {#if page}<p>
       {page.total_count}
       {page.total_count === 1 ? "payment" : "payments"} · {selected.length} selected
-      (maximum500). Reconciled entries require unlocking before their graph can change.
+      (maximum 500). Reconciled entries require unlocking before their graph can change.
     </p>
     <ul>
       {#each page.transactions as row (row.id)}<li>

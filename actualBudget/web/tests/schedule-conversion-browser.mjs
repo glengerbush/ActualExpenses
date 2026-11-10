@@ -116,10 +116,11 @@ try {
     });
     if (!dropped) {
       dropped = true;
-      await route.fetch({
+      const forwarded = await route.fetch({
         url: req.url().replace("actualbudget.test", "127.0.0.1"),
         headers: { ...req.headers(), host: new URL(req.url()).host },
       });
+      expect(forwarded.status(), await forwarded.text()).toBe(201);
       return route.abort("connectionfailed");
     }
     return route.continue();
@@ -141,6 +142,28 @@ try {
   expect(pending.pending.body.transaction.new_payee.name).toBe(
     "Future merchant",
   );
+  const committedBeforeRetry = (await call(`/budgets/${budget}/schedules`)).data
+    .schedules;
+  expect(committedBeforeRetry).toHaveLength(1);
+  expect(committedBeforeRetry[0].id).toBe(pending.pending.body.id);
+  const reservedBeforeRetry = await fetch(
+    api + `/budgets/${budget}/transactions`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": randomUUID(),
+      },
+      body: JSON.stringify({
+        id: original.id,
+        account_id: account,
+        date,
+        amount: -1234,
+        notes: "Original save before retry",
+      }),
+    },
+  );
+  expect(reservedBeforeRetry.status).toBe(409);
   await page.reload();
   await page
     .getByRole("button", { name: "Retry saved conversion", exact: true })

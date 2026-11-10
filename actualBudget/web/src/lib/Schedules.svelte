@@ -94,11 +94,20 @@
     if (!draft || draft.pending || busy) return;
     try {
       const body = { ...$state.snapshot(draft.body), [key]: value };
+      const next = { ...$state.snapshot(draft), body };
       if (key === "conditions") {
+        const hadSelection =
+          !!next.transactions?.length ||
+          (Array.isArray(body.transaction_ids) &&
+            body.transaction_ids.length > 0);
         delete body.transaction_ids;
+        delete next.transactions;
         matchingContext = null;
+        notice = hadSelection
+          ? "Payment selection cleared. Match existing payments again to link them."
+          : "";
       }
-      save({ ...$state.snapshot(draft), body });
+      save(next);
       dates = [];
       error = "";
     } catch (e) {

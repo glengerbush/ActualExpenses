@@ -88,6 +88,37 @@ try {
   await matches
     .getByRole("button", { name: "Use selected payments", exact: true })
     .click();
+  await expect(
+    page.getByText("Captured payment selection", { exact: true }),
+  ).toBeVisible();
+  await page.getByLabel(/^Amount value /).fill("-99.00");
+  await page.getByLabel(/^Amount value /).press("Tab");
+  await expect(
+    page.getByText("Captured payment selection", { exact: true }),
+  ).toHaveCount(0);
+  await expect(page.locator(".schedules [role=status]")).toContainText(
+    "Payment selection cleared",
+  );
+  await page.reload();
+  expect(
+    await page.evaluate(
+      (b) =>
+        JSON.parse(localStorage.getItem(`actualBudget.schedules.v1.${b}`))
+          .transactions ?? null,
+      budget,
+    ),
+  ).toBeNull();
+  await page.getByLabel(/^Amount value /).fill("-100.00");
+  await page.getByLabel(/^Amount value /).press("Tab");
+  await page
+    .getByRole("button", { name: "Match existing payments", exact: true })
+    .click();
+  await expect(matches.getByRole("checkbox")).toHaveCount(3);
+  for (const box of await matches.getByRole("checkbox").all())
+    await box.check();
+  await matches
+    .getByRole("button", { name: "Use selected payments", exact: true })
+    .click();
   await page.getByLabel("Schedule name", { exact: true }).fill("Weekly bill");
   expect(await call(root + "/checkpoint")).toEqual(checkpoint);
   await page

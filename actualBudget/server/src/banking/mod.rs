@@ -1,5 +1,7 @@
 //! Provider-neutral connection custody and SimpleFIN lifecycle. Only nonsecret
 //! metadata crosses client, receipt, change-feed and portable archive boundaries.
+mod records;
+mod remote;
 mod transport;
 use crate::{
     api, concurrency as sync,
@@ -39,7 +41,7 @@ fn state(db: &Connection, budget: &str) -> Result<Value, Error> {
         .query_map([budget], |r| r.get::<_, String>(0))?
         .collect::<Result<Vec<_>, _>>()?;
     Ok(
-        json!({"connections":ids.iter().map(|id|connection(db,budget,id)).collect::<Result<Vec<_>,_>>()?,"links":[],"epoch":crate::lifecycle::epoch(db,budget)?,"snapshot":sync::cursor(db,budget)?}),
+        json!({"connections":ids.iter().map(|id|connection(db,budget,id)).collect::<Result<Vec<_>,_>>()?,"links":records::links(db,budget)?,"accounts":records::accounts(db,budget)?,"epoch":crate::lifecycle::epoch(db,budget)?,"snapshot":sync::cursor(db,budget)?}),
     )
 }
 async fn read(
@@ -113,6 +115,7 @@ async fn create(
 struct Command {
     action: String,
     generation: String,
+    setup_token: Option<String>,
 }
 async fn command(
     State(store): State<Store>,
@@ -123,13 +126,33 @@ async fn command(
     models::validate_id(&b)?;
     models::validate_id(&id)?;
     let Json(body) = input.map_err(api::json_error)?;
-    if body.action != "claim" {
+    if !matches!(
+        body.action.as_str(),
+        "claim" | "replace" | "remove" | "discover"
+    ) {
         return Err(Error::invalid("Unsupported connection action"));
+    }
+    models::validate_id(&body.generation)?;
+    if body.action == "replace" {
+        let token = body
+            .setup_token
+            .as_deref()
+            .filter(|v| !v.is_empty() && v.len() <= 8192)
+            .ok_or_else(|| Error::invalid("Supply a new setup token"))?;
+        transport::setup(token)?;
+    } else if body.setup_token.is_some() {
+        return Err(Error::invalid(
+            "Only credential replacement accepts a setup token",
+        ));
     }
     let key = api::idempotency_key(&headers)?;
     let epoch = crate::lifecycle::epoch_header(&headers)?;
-    let payload =
-        json!({"action":body.action,"generation":body.generation,"epoch":epoch}).to_string();
+    let mut fingerprint = json!({"action":body.action,"generation":body.generation,"epoch":epoch});
+    if let Some(token) = &body.setup_token {
+        fingerprint["setup_token_sha256"] =
+            json!(format!("{:x}", Sha256::digest(token.as_bytes())));
+    }
+    let payload = fingerprint.to_string();
     let scope = format!("POST /budgets/{b}/banking/connections/{id}/commands");
     if sync::receipt_only_header(&headers)? {
         return store
@@ -145,19 +168,26 @@ async fn command(
             })
             .await;
     }
+    if body.action == "discover" {
+        return remote::discover(store, b, id, key, payload, epoch, body.generation).await;
+    }
+    if body.action != "claim" {
+        return store.run(move|db|sync::write(db,&scope,&key,&payload,None,StatusCode::OK,|db|{
+            crate::lifecycle::require_epoch(db,&b,epoch.as_deref())?;
+            let current=connection(db,&b,&id)?;
+            if current["generation"]!=body.generation || current["deleted"]==true{return Err(Error::conflict("Connection changed. Reload before replacing or removing it"));}
+            let generation=uuid::Uuid::new_v4().to_string();
+            db.execute("DELETE FROM bank_jobs WHERE budget_id=?1 AND connection_id=?2",params![b,id])?;
+            db.execute("DELETE FROM bank_credentials WHERE budget_id=?1 AND connection_id=?2",params![b,id])?;
+            if body.action=="replace" {
+                db.execute("INSERT INTO bank_credentials(budget_id,connection_id,generation,setup_token) VALUES(?1,?2,?3,?4)",params![b,id,generation,body.setup_token])?;
+            }
+            db.execute("UPDATE bank_connections SET generation=?3,state=?4,tombstone=?5,error_code=NULL,message=NULL,revision=revision+1 WHERE budget_id=?1 AND id=?2",params![b,id,generation,if body.action=="replace"{"claim_pending"}else{"credentials_missing"},body.action=="remove"])?;
+            sync::mark(db,&b,"bank_connections",&id)?;
+            Ok(json!({"response_status":200,"response_body":{"data":connection(db,&b,&id)?}}))
+        })).await;
+    }
     // Probe before taking the one-use token. Replays must never repeat transport.
-    static SLOTS: std::sync::OnceLock<std::sync::Arc<tokio::sync::Semaphore>> =
-        std::sync::OnceLock::new();
-    let slots = SLOTS
-        .get_or_init(|| std::sync::Arc::new(tokio::sync::Semaphore::new(4)))
-        .clone();
-    let permit = slots.try_acquire_owned().map_err(|_| {
-        Error::new(
-            StatusCode::SERVICE_UNAVAILABLE,
-            "provider_busy",
-            "Other provider requests are finishing. Retry later",
-        )
-    })?;
     let (bb, ii, ss, kk, pp, ee, gg) = (
         b.clone(),
         id.clone(),
@@ -175,13 +205,14 @@ async fn command(
         if current["generation"]!=gg || current["deleted"]==true{return Err(Error::conflict("Connection changed. Reload before claiming"));}
         if current["state"]!="claim_pending" {return Err(Error::conflict("This claim may already have been used. Replace the setup token explicitly"));}
         let token:String=tx.query_row("SELECT setup_token FROM bank_credentials WHERE budget_id=?1 AND connection_id=?2 AND generation=?3",params![bb,ii,gg],|r|r.get(0)).optional()?.ok_or_else(||Error::conflict("Credentials are missing. Supply a new setup token"))?;
+        let permit=transport::permit()?;
         tx.execute("UPDATE bank_connections SET state='claim_inflight',revision=revision+1 WHERE budget_id=?1 AND id=?2",params![bb,ii])?;
         sync::mark(&tx,&bb,"bank_connections",&ii)?;
         tx.commit()?;
-        Ok(Ok(token))
+        Ok(Ok((token,permit)))
     }).await?;
-    let token = match prepared {
-        Ok(token) => token,
+    let (token, permit) = match prepared {
+        Ok(value) => value,
         Err(_) => {
             return store
                 .run(move |db| sync::receipt(db, &scope, &key, &payload, None, StatusCode::OK))
@@ -215,4 +246,11 @@ async fn command(
         sync::mark(db,&b,"bank_connections",&id)?;
         Ok(json!({"response_status":200,"response_body":{"data":connection(db,&b,&id)?}}))
     })).await
+}
+
+pub(crate) fn remote_account(db: &Connection, b: &str, id: &str) -> Result<Value, Error> {
+    records::remote(db, b, id)
+}
+pub(crate) fn archive_tables() -> Vec<(&'static str, Vec<&'static str>)> {
+    records::tables()
 }

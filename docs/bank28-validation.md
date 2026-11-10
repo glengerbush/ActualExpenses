@@ -62,3 +62,40 @@ Still pending for complete28: replacement/remove, discovery and transport failur
 matrix, rate/work bounds, financial linking/settings/refresh through the shared
 writer and six source financial witnesses, reference conversion/genuine22 upgrades,
 full contract consumer, browser UI and representative Android qualification.
+
+## Checkpoint 2 — discovery and explicit replacement (partial)
+
+Replacement and discovery produced public400 reds before implementation:
+`/tmp/bank28-replacement-red.log`, `/tmp/bank28-discovery-red.log`.
+The extended same public tracer now proves new-token replacement rotates generation;
+old-generation work refuses; explicit remove deletes private custody; discovery
+sends authenticated balances-only GET and never modifies the ledger. Local remote
+identities include both the access connection and institution connection, so equal
+remote account IDs under distinct institutions remain distinct.
+
+Provider GETs reserve a rolling24-request/day connection quota before transport,
+capture their immutable response privately before applying metadata, and reuse
+committed original receipts without another request (including after restart).
+Public scope is at most500 accounts/download and5000 retained remote accounts/budget;
+16MiB responses and64MiB unfinished private captures are explicit refusal bounds.
+SimpleFIN has no documented continuation cursor: a returned continuation refuses
+rather than silently truncating. A captured response is not re-fetched under its
+original identity. Request/response and rate ledgers remain private archive exclusions.
+
+Sanitized HTTP fixtures prove partial v2 account errors, legacy warnings, HTTP429,
+revoked403, malformed JSON, oversized response, unsupported continuation, exact
+failure replay and quota refusal before the25th provider GET. The one-use fixture
+now refuses a setup URL consumed by an earlier claim. Provider strings containing
+HTML and synthetic secret URLs never appear in public diagnostics. Partial/error
+accounts retain explicit diagnostics; no error case fabricates a ledger entry.
+
+Current runtime matrix: `/tmp/bank28-discovery-final.log`; focused bin lint:
+`/tmp/bank28-discovery-clippy.log`. This is metadata discovery, not yet financial
+refresh acceptance. Linking/settings, guarded financial import and all previously
+listed UI/native/genuine-upgrade/restore gates remain open.
+
+Transport follows [SimpleFIN protocol](https://www.simplefin.org/protocol.html)
+(current2.0.0-draft and legacy shape): institution-scoped account IDs and structured
+account/connection diagnostics. Unknown diagnostic subcodes remain an attention
+warning; raw diagnostic prose is not returned. TLS verification stays enabled;
+the only HTTP exception is the exact explicitly configured loopback fixture origin.

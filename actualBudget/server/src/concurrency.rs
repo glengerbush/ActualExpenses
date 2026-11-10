@@ -751,6 +751,7 @@ pub fn read_changes(
                 }
             }
             "bank_connections" => crate::banking::connection(db, budget, &id)?,
+            "bank_remote_accounts" => crate::banking::remote_account(db,budget,&id)?,
             "accounts" => crate::accounts::get(db, budget, &id)?,
             "account_groups" => crate::accounts::get_group(db, budget, &id)?,
             "preferences" => crate::preferences::get_preferences(db, budget)?,

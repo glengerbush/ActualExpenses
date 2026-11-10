@@ -18,8 +18,10 @@ pub const MAX_ARCHIVE: usize = 64 * 1024 * 1024;
 const MAX_EXPANDED: usize = 256 * 1024 * 1024;
 pub const TABLES: &[&str] = &[
     "bank_connections",
+    "bank_remote_accounts",
     "account_groups",
     "accounts",
+    "bank_links",
     "payees",
     "payee_locations",
     "category_groups",
@@ -52,6 +54,8 @@ pub const TABLES: &[&str] = &[
 ];
 const AUXILIARY: &[&str] = &[
     "bank_credentials",
+    "bank_jobs",
+    "bank_request_log",
     "history_lineage",
     "history_actions", // Engine-owned history intentionally excluded; restore rotates epoch.
     "budgets",
@@ -606,27 +610,15 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
         }
     }
     if manifest["schema_version"].as_u64().is_some_and(|v| v < 23) {
-        state.tables.insert(
-            "bank_connections".into(),
-            Table {
-                columns: [
-                    "budget_id",
-                    "id",
-                    "provider",
-                    "name",
-                    "state",
-                    "generation",
-                    "revision",
-                    "error_code",
-                    "message",
-                    "last_success",
-                    "tombstone",
-                ]
-                .map(str::to_owned)
-                .to_vec(),
-                rows: vec![],
-            },
-        );
+        for (table, columns) in crate::banking::archive_tables() {
+            state.tables.insert(
+                table.into(),
+                Table {
+                    columns: columns.into_iter().map(str::to_owned).collect(),
+                    rows: vec![],
+                },
+            );
+        }
     }
     if manifest["schema_version"].as_u64().is_some_and(|v| v < 22) {
         state.tables.insert(

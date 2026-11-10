@@ -12,14 +12,97 @@ const binary =
   fileURLToPath(
     new URL("../server/target/debug/actualbudget-server", import.meta.url),
   );
-let claimCalls = 0;
+let claimCalls = 0,
+  downloadCalls = 0,
+  mode = "normal";
+const claimedTokens = new Set();
 const provider = createServer((req, res) => {
+  if (req.url.startsWith("/access/accounts")) {
+    downloadCalls++;
+    if (mode === "rate") {
+      res.statusCode = 429;
+      res.end("secret " + origin);
+      return;
+    }
+    if (mode === "revoked") {
+      res.statusCode = 403;
+      res.end("secret " + origin);
+      return;
+    }
+    if (mode === "bad-json") {
+      res.end("not JSON secret " + origin);
+      return;
+    }
+    if (mode === "large") {
+      res.end("x".repeat(16 * 1024 * 1024 + 1));
+      return;
+    }
+    if (mode === "continuation") {
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify({ accounts: [], next_cursor: "unexpected" }));
+      return;
+    }
+    assert.equal(
+      req.headers.authorization,
+      "Basic " + Buffer.from("synthetic:credential").toString("base64"),
+    );
+    const url = new URL(req.url, "http://fixture.invalid");
+    assert.equal(url.searchParams.get("balances-only"), "1");
+    res.setHeader("Content-Type", "application/json");
+    res.end(
+      JSON.stringify({
+        errlist:
+          mode === "partial"
+            ? [
+                {
+                  code: "act.missingdata",
+                  msg: "secret " + origin,
+                  account_id: "remote-A",
+                  conn_id: "institution-A",
+                },
+              ]
+            : [],
+        errors: mode === "legacy" ? ["<b>secret " + origin + "</b>"] : [],
+        connections: [
+          { conn_id: "institution-A", name: "Bank A" },
+          { conn_id: "institution-B", name: "Bank B" },
+        ],
+        accounts: [
+          {
+            id: "remote-A",
+            conn_id: "institution-A",
+            name: "Checking",
+            currency: "USD",
+            balance: "100.50",
+            "available-balance": "90.25",
+            "balance-date": 1794225600,
+          },
+          {
+            id: "remote-A",
+            conn_id: "institution-B",
+            name: "Savings",
+            currency: "USD",
+            balance: "200.00",
+            "balance-date": 1794225600,
+          },
+        ],
+      }),
+    );
+    return;
+  }
+
   if (req.url === "/uncertain" && req.method === "POST") {
     claimCalls++;
     req.socket.destroy();
     return;
   }
-  if (req.url === "/claim" && req.method === "POST") {
+  if (req.url.startsWith("/claim/") && req.method === "POST") {
+    if (claimedTokens.has(req.url)) {
+      res.statusCode = 403;
+      res.end("Forbidden");
+      return;
+    }
+    claimedTokens.add(req.url);
     claimCalls++;
     res.end(
       `http://synthetic:credential@127.0.0.1:${provider.address().port}/access`,
@@ -99,7 +182,7 @@ try {
   const root = "/budgets/" + budget;
   const state = (await call(root + "/checkpoint")).data,
     id = randomUUID(),
-    token = Buffer.from(origin + "/claim").toString("base64");
+    token = Buffer.from(origin + "/claim/initial").toString("base64");
   const checkpoint = state.snapshot;
   const body = {
       id,
@@ -154,6 +237,31 @@ try {
   );
   for (const secret of [token, "synthetic:credential", origin])
     assert.ok(!JSON.stringify(claimed).includes(secret));
+  const discover = { action: "discover", generation: claimed.data.generation };
+  const discovered = await call(
+    root + "/banking/connections/" + id + "/commands",
+    discover,
+    "discover",
+    headers,
+  );
+  assert.equal(discovered.data.accounts.length, 2);
+  assert.equal(
+    new Set(discovered.data.accounts.map((a) => a.id)).size,
+    2,
+    "Remote IDs are scoped to institution connection",
+  );
+  assert.equal(discovered.data.accounts[0].balance, "100.50");
+  assert.equal(discovered.data.accounts[0].available_balance, "90.25");
+  assert.deepEqual(
+    await call(
+      root + "/banking/connections/" + id + "/commands",
+      discover,
+      "discover",
+      headers,
+    ),
+    discovered,
+  );
+  assert.equal(downloadCalls, 1);
   const ambiguousId = randomUUID(),
     ambiguousToken = Buffer.from(origin + "/uncertain").toString("base64");
   const ambiguous = await call(
@@ -289,6 +397,163 @@ try {
       !stderr.includes(secret),
       "Logs exclude externally submitted credentials",
     );
+  assert.deepEqual(
+    await call(
+      root + "/banking/connections/" + id + "/commands",
+      discover,
+      "discover",
+      headers,
+    ),
+    discovered,
+  );
+  assert.equal(downloadCalls, 1);
+  const replacement = {
+    action: "replace",
+    generation: ambiguous.data.generation,
+    setup_token: Buffer.from(origin + "/claim/replacement").toString("base64"),
+  };
+  const replaced = await call(
+    root + "/banking/connections/" + ambiguousId + "/commands",
+    replacement,
+    "replace",
+    headers,
+  );
+  assert.equal(replaced.data.state, "claim_pending");
+  assert.notEqual(replaced.data.generation, ambiguous.data.generation);
+  await call(
+    root + "/banking/connections/" + ambiguousId + "/commands",
+    lost,
+    "stale-generation",
+    headers,
+    409,
+  );
+  const reconnected = await call(
+    root + "/banking/connections/" + ambiguousId + "/commands",
+    { action: "claim", generation: replaced.data.generation },
+    "claim-replacement",
+    headers,
+  );
+  assert.equal(reconnected.data.state, "connected");
+  assert.equal(claimCalls, 3);
+  const remove = { action: "remove", generation: reconnected.data.generation };
+  const removed = await call(
+    root + "/banking/connections/" + ambiguousId + "/commands",
+    remove,
+    "remove",
+    headers,
+  );
+  assert.equal(removed.data.deleted, true);
+  assert.equal((await call(root + "/banking")).data.connections.length, 1);
+  for (const [variant, expected] of [
+    ["partial", "provider_incomplete"],
+    ["legacy", "provider_attention"],
+    ["rate", "provider_rate_limited"],
+    ["bad-json", "provider_invalid_response"],
+    ["large", "provider_response_limit"],
+    ["continuation", "provider_pagination_unsupported"],
+  ]) {
+    mode = variant;
+    const key = "transport-" + variant;
+    const out = await call(
+      root + "/banking/connections/" + id + "/commands",
+      discover,
+      key,
+      headers,
+    );
+    assert.equal(out.data.errors[0].code, expected);
+    assert.ok(
+      !JSON.stringify(out).includes(origin),
+      "Provider diagnostics never echo secrets",
+    );
+    const before = downloadCalls;
+    assert.deepEqual(
+      await call(
+        root + "/banking/connections/" + id + "/commands",
+        discover,
+        key,
+        headers,
+      ),
+      out,
+    );
+    assert.equal(downloadCalls, before);
+    assert.equal(
+      (await call(root + "/banking")).data.connections.find((c) => c.id === id)
+        .error_code,
+      expected,
+    );
+    if (variant === "partial") {
+      assert.equal(
+        out.data.accounts[0].diagnostics[0].code,
+        "provider_incomplete",
+      );
+      assert.deepEqual(out.data.accounts[1].diagnostics, []);
+    }
+  }
+  mode = "normal";
+  const quotaBase = downloadCalls;
+  for (let i = quotaBase; i < 24; i++)
+    await call(
+      root + "/banking/connections/" + id + "/commands",
+      discover,
+      "quota-" + i,
+      headers,
+    );
+  assert.equal(downloadCalls, 24);
+  await call(
+    root + "/banking/connections/" + id + "/commands",
+    discover,
+    "quota-limit",
+    headers,
+    429,
+  );
+  assert.equal(downloadCalls, 24, "Local quota refuses before remote HTTP");
+  assert.deepEqual(
+    (await call(root + "/transactions")).data,
+    [],
+    "Provider failures and discovery never fabricate ledger rows",
+  );
+  const revokedId = randomUUID(),
+    revokedToken = Buffer.from(origin + "/claim/revoked").toString("base64");
+  const revokedStage = await call(
+    root + "/banking/connections",
+    { ...body, id: revokedId, setup_token: revokedToken },
+    "revoked-stage",
+    headers,
+    201,
+  );
+  const revokedConnection = await call(
+    root + "/banking/connections/" + revokedId + "/commands",
+    { action: "claim", generation: revokedStage.data.generation },
+    "revoked-claim",
+    headers,
+  );
+  mode = "revoked";
+  const revokedCommand = {
+    action: "discover",
+    generation: revokedConnection.data.generation,
+  };
+  const revoked = await call(
+    root + "/banking/connections/" + revokedId + "/commands",
+    revokedCommand,
+    "revoked-fetch",
+    headers,
+  );
+  assert.equal(revoked.data.connection.state, "credentials_missing");
+  assert.equal(revoked.data.errors[0].code, "provider_revoked");
+  const revokedCalls = downloadCalls;
+  await call(
+    root + "/banking/connections/" + revokedId + "/commands",
+    revokedCommand,
+    "revoked-new-key",
+    headers,
+    409,
+  );
+  assert.equal(
+    downloadCalls,
+    revokedCalls,
+    "Revoked credentials require explicit replacement",
+  );
+  mode = "normal";
   const contract = await (await fetch(base + "/openapi.json")).json();
   const schemaProof = spawnSync(
     "uv",
@@ -316,6 +581,9 @@ except Exception as e:
         values: [
           ["BankConnectionCreate", body],
           ["BankConnectionCommand", command],
+          ["BankConnectionCommand", replacement],
+          ["BankConnectionCommand", discover],
+          ["BankDiscovery", discovered.data],
           ["BankConnection", claimed.data],
           ["BankState", (await call(root + "/banking")).data],
         ],
@@ -329,7 +597,7 @@ except Exception as e:
     schemaProof.stdout.toString() + schemaProof.stderr.toString(),
   );
   console.log(
-    "PASS staging/claim/replay/uncertain/cancel/feed/portable-secret boundaries",
+    "PASS bank lifecycle/discovery/transport/rate/recovery/contract/secret boundaries",
   );
 } finally {
   server.kill();

@@ -150,3 +150,141 @@ pub(super) fn claim(token: &str) -> Result<String, Error> {
     })?;
     Ok(access.to_owned())
 }
+
+pub(super) fn permit() -> Result<tokio::sync::OwnedSemaphorePermit, Error> {
+    static SLOTS: std::sync::OnceLock<std::sync::Arc<tokio::sync::Semaphore>> =
+        std::sync::OnceLock::new();
+    SLOTS
+        .get_or_init(|| std::sync::Arc::new(tokio::sync::Semaphore::new(4)))
+        .clone()
+        .try_acquire_owned()
+        .map_err(|_| {
+            Error::new(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "provider_busy",
+                "Other provider requests are finishing. Retry later",
+            )
+        })
+}
+pub(super) fn accounts(access: &str) -> Result<serde_json::Value, Error> {
+    let mut current = url(access, true)?;
+    let username = percent_encoding::percent_decode_str(current.username())
+        .decode_utf8()
+        .map_err(|_| Error::invalid("Invalid provider access credentials"))?
+        .into_owned();
+    let password = percent_encoding::percent_decode_str(current.password().unwrap())
+        .decode_utf8()
+        .map_err(|_| Error::invalid("Invalid provider access credentials"))?
+        .into_owned();
+    current
+        .set_username("")
+        .map_err(|_| Error::invalid("Invalid provider URL"))?;
+    current
+        .set_password(None)
+        .map_err(|_| Error::invalid("Invalid provider URL"))?;
+    current.set_path(&format!(
+        "{}/accounts",
+        current.path().trim_end_matches('/')
+    ));
+    current
+        .query_pairs_mut()
+        .append_pair("balances-only", "1")
+        .append_pair("version", "2");
+    let mut authorization = Some(format!(
+        "Basic {}",
+        STANDARD.encode(format!("{username}:{password}"))
+    ));
+    for hop in 0..=5 {
+        let mut request = client(&current)?.get(current.clone());
+        if let Some(auth) = &authorization {
+            request = request.header(reqwest::header::AUTHORIZATION, auth);
+        }
+        let response = request.send().map_err(|_| {
+            failure(
+                "provider_unavailable",
+                "The provider response was interrupted. Retry later",
+            )
+        })?;
+        let status = response.status().as_u16();
+        if (300..400).contains(&status) {
+            if hop == 5 {
+                return Err(failure(
+                    "provider_redirect_limit",
+                    "The provider redirected too many times",
+                ));
+            }
+            let location = response
+                .headers()
+                .get(reqwest::header::LOCATION)
+                .and_then(|v| v.to_str().ok())
+                .ok_or_else(|| {
+                    failure(
+                        "provider_invalid_response",
+                        "Provider redirect is missing its destination",
+                    )
+                })?;
+            let next = current.join(location).map_err(|_| {
+                failure(
+                    "provider_invalid_response",
+                    "The provider returned an invalid redirect",
+                )
+            })?;
+            url(next.as_str(), false)?;
+            if next.origin() != current.origin() {
+                authorization = None;
+            }
+            current = next;
+            continue;
+        }
+        match status {
+            200..=299 => {}
+            402 => {
+                return Err(failure(
+                    "provider_payment_required",
+                    "The provider requires payment. Review your SimpleFIN subscription",
+                ));
+            }
+            403 => {
+                return Err(failure(
+                    "provider_revoked",
+                    "Provider access was revoked. Replace the setup token",
+                ));
+            }
+            429 => {
+                return Err(failure(
+                    "provider_rate_limited",
+                    "The provider rate limit was reached. Wait before refreshing again",
+                ));
+            }
+            _ => {
+                return Err(failure(
+                    "provider_unavailable",
+                    "The provider is unavailable. Retry later",
+                ));
+            }
+        }
+        let mut bytes = Vec::new();
+        response
+            .take(16 * 1024 * 1024 + 1)
+            .read_to_end(&mut bytes)
+            .map_err(|_| {
+                failure(
+                    "provider_unavailable",
+                    "The provider response was interrupted",
+                )
+            })?;
+        if bytes.len() > 16 * 1024 * 1024 {
+            return Err(failure(
+                "provider_response_limit",
+                "The provider response exceeds 16 MiB. No data was applied",
+            ));
+        }
+        return serde_json::from_slice(&bytes).map_err(|_| {
+            failure(
+                "provider_invalid_response",
+                "The provider returned invalid JSON. No data was applied",
+            )
+        });
+    }
+    unreachable!()
+}

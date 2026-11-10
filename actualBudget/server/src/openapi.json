@@ -20703,7 +20703,8 @@
               "type": "string",
               "pattern": "^[0-9a-f]{32}$"
             },
-            "required": false
+            "required": false,
+            "description": "Original captured epoch. Required for provider downloads; persist with the immutable command before sending."
           },
           {
             "in": "header",
@@ -20806,7 +20807,8 @@
               "type": "string",
               "pattern": "^[0-9a-f]{32}$"
             },
-            "required": false
+            "required": false,
+            "description": "Original captured epoch. Required for provider downloads; persist with the immutable command before sending."
           },
           {
             "in": "header",
@@ -20841,16 +20843,32 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/BankConnection"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/BankConnection"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/BankDiscovery"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ],
+                      "additionalProperties": false
                     }
-                  },
-                  "required": [
-                    "data"
-                  ],
-                  "additionalProperties": false
+                  ]
                 }
               }
             }
@@ -20866,6 +20884,9 @@
           },
           "503": {
             "description": "Bounded provider workers busy"
+          },
+          "429": {
+            "description": "Local rolling 24-hour connection request quota exhausted; no remote request made"
           }
         }
       }
@@ -30617,7 +30638,7 @@
           "name": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 200
+            "maxLength": 120
           },
           "setup_token": {
             "type": "string",
@@ -30636,21 +30657,83 @@
         "additionalProperties": false
       },
       "BankConnectionCommand": {
-        "type": "object",
-        "properties": {
-          "action": {
-            "const": "claim"
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "claim"
+              },
+              "generation": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "action",
+              "generation"
+            ],
+            "additionalProperties": false
           },
-          "generation": {
-            "type": "string",
-            "format": "uuid"
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "replace"
+              },
+              "generation": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "setup_token": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 8192,
+                "writeOnly": true
+              }
+            },
+            "required": [
+              "action",
+              "generation",
+              "setup_token"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "remove"
+              },
+              "generation": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "action",
+              "generation"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "discover"
+              },
+              "generation": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "action",
+              "generation"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "action",
-          "generation"
-        ],
-        "additionalProperties": false
+        ]
       },
       "BankState": {
         "type": "object",
@@ -30663,7 +30746,9 @@
           },
           "links": {
             "type": "array",
-            "maxItems": 0
+            "items": {
+              "$ref": "#/components/schemas/BankLink"
+            }
           },
           "epoch": {
             "type": "string",
@@ -30673,13 +30758,184 @@
             "type": "string",
             "minLength": 50,
             "maxLength": 50
+          },
+          "accounts": {
+            "type": "array",
+            "maxItems": 5000,
+            "items": {
+              "$ref": "#/components/schemas/BankRemoteAccount"
+            }
           }
         },
         "required": [
           "connections",
           "links",
           "epoch",
-          "snapshot"
+          "snapshot",
+          "accounts"
+        ],
+        "additionalProperties": false
+      },
+      "BankRemoteAccount": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "connection_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "generation": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "remote_connection_id": {
+            "type": "string"
+          },
+          "remote_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "balance": {
+            "type": "string"
+          },
+          "available_balance": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "balance_date": {
+            "type": "integer"
+          },
+          "diagnostics": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "$ref": "#/components/schemas/BankDiagnostic"
+            }
+          },
+          "deleted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "connection_id",
+          "generation",
+          "remote_connection_id",
+          "remote_id",
+          "name",
+          "currency",
+          "balance",
+          "available_balance",
+          "balance_date",
+          "diagnostics",
+          "deleted"
+        ],
+        "additionalProperties": false
+      },
+      "BankLink": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "connection_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "remote_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "connection_generation": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "deleted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "connection_id",
+          "remote_account_id",
+          "connection_generation",
+          "revision",
+          "deleted"
+        ],
+        "additionalProperties": false
+      },
+      "BankDiagnostic": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "remote_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "remote_connection_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "additionalProperties": false
+      },
+      "BankDiscovery": {
+        "type": "object",
+        "properties": {
+          "connection": {
+            "$ref": "#/components/schemas/BankConnection"
+          },
+          "accounts": {
+            "type": "array",
+            "maxItems": 500,
+            "items": {
+              "$ref": "#/components/schemas/BankRemoteAccount"
+            }
+          },
+          "errors": {
+            "type": "array",
+            "maxItems": 1001,
+            "items": {
+              "$ref": "#/components/schemas/BankDiagnostic"
+            }
+          }
+        },
+        "required": [
+          "connection",
+          "accounts",
+          "errors"
         ],
         "additionalProperties": false
       }

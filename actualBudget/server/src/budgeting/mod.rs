@@ -104,6 +104,7 @@ struct Category {
     hidden: bool,
     group: Option<String>,
     group_hidden: bool,
+    group_income: bool,
     group_name: String,
     notes: String,
 }
@@ -190,7 +191,7 @@ fn scoped_view(
     })?;
     let tracking = method == "tracking";
     let note_column = if scope.is_some() { "''" } else { "c.notes" };
-    let mut q=db.prepare(&format!("SELECT c.id,c.name,c.is_income,c.hidden,c.group_id,COALESCE(g.hidden,0),{note_column},COALESCE(g.name,'Ungrouped') FROM categories c LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id WHERE c.budget_id=?1 AND c.tombstone=0 ORDER BY COALESCE(g.sort_order,0),COALESCE(c.sort_order,0),c.id"))?;
+    let mut q=db.prepare(&format!("SELECT c.id,c.name,c.is_income,c.hidden,c.group_id,COALESCE(g.hidden,0),{note_column},COALESCE(g.name,'Ungrouped'),COALESCE(g.is_income,0) FROM categories c LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id WHERE c.budget_id=?1 AND c.tombstone=0 ORDER BY COALESCE(g.sort_order,0),COALESCE(c.sort_order,0),c.id"))?;
     let categories = q
         .query_map([b], |r| {
             Ok(Category {
@@ -202,6 +203,7 @@ fn scoped_view(
                 group_hidden: r.get(5)?,
                 notes: r.get(6)?,
                 group_name: r.get(7)?,
+                group_income: r.get(8)?,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?
@@ -371,16 +373,25 @@ fn scoped_view(
             let cell = cells.get(&(m, cat.id.clone())).cloned().unwrap_or_default();
             let actual = *actuals.get(&(m, cat.id.clone())).unwrap_or(&0);
             let prev = previous.get(&cat.id);
-            let carried = prev.map_or(0, |p| {
-                if tracking {
-                    if p.carry { p.left } else { 0 }
-                } else if p.carry {
-                    p.left
-                } else {
-                    p.left.max(0)
-                }
-            });
-            let left = if cat.income {
+            // The source envelope-month command emits only actuals for income
+            // groups, even when a legacy category's own income flag differs.
+            let actual_only = scope.is_some() && cat.group_income;
+            let carried = if actual_only {
+                0
+            } else {
+                prev.map_or(0, |p| {
+                    if tracking {
+                        if p.carry { p.left } else { 0 }
+                    } else if p.carry {
+                        p.left
+                    } else {
+                        p.left.max(0)
+                    }
+                })
+            };
+            let left = if actual_only {
+                0
+            } else if cat.income {
                 if tracking {
                     cell.amount as i128 - actual + carried
                 } else {
@@ -389,23 +400,31 @@ fn scoped_view(
             } else {
                 cell.amount as i128 + actual + carried
             };
-            let visible = !tracking || (!cat.hidden && (cat.income || !cat.group_hidden));
-            if cat.income {
-                if visible {
-                    income += actual;
-                    planned_income += cell.amount as i128;
+            if scope.is_some() {
+                if !actual_only {
+                    money(cell.amount as i128)?;
+                    money(left)?;
                 }
-                if cell.carry {
-                    auto_hold += actual;
-                }
+                money(actual)?;
             } else {
-                if visible {
-                    spending += actual;
-                    allocated += cell.amount as i128;
-                    balance += left;
-                }
-                if !cell.carry {
-                    overspent += left.min(0);
+                let visible = !tracking || (!cat.hidden && (cat.income || !cat.group_hidden));
+                if cat.income {
+                    if visible {
+                        income += actual;
+                        planned_income += cell.amount as i128;
+                    }
+                    if cell.carry {
+                        auto_hold += actual;
+                    }
+                } else {
+                    if visible {
+                        spending += actual;
+                        allocated += cell.amount as i128;
+                        balance += left;
+                    }
+                    if !cell.carry {
+                        overspent += left.min(0);
+                    }
                 }
             }
             next.insert(
@@ -416,8 +435,15 @@ fn scoped_view(
                 },
             );
             if m >= start {
-                rows.push(json!({"id":cat.id,"name":cat.name,"is_income":cat.income,"hidden":cat.hidden,"group_id":cat.group,"group_hidden":cat.group_hidden,"group_name":cat.group_name,"notes":cat.notes,"budgeted":if !tracking&&cat.income{0}else{cell.amount},"actual":money(actual)?,"balance":money(left)?,"carryover":cell.carry,"goal":cell.goal,"long_goal":cell.long_goal}));
+                rows.push(json!({"id":cat.id,"name":cat.name,"is_income":cat.income,"hidden":cat.hidden,"group_id":cat.group,"group_hidden":cat.group_hidden,"group_name":cat.group_name,"notes":cat.notes,"budgeted":if actual_only || !tracking&&cat.income{0}else{cell.amount},"actual":money(actual)?,"balance":money(left)?,"carryover":!actual_only && cell.carry,"goal":cell.goal,"long_goal":cell.long_goal}));
             }
+        }
+        if scope.is_some() {
+            if m >= start {
+                output.insert(month_name(m)?, json!({"categories":rows}));
+            }
+            previous = next;
+            continue;
         }
         let (manual, notes) = months.get(&m).cloned().unwrap_or_default();
         let held = if manual != 0 {

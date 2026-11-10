@@ -21032,7 +21032,7 @@
     },
     "/api/v1/budgets/{budget}/reports/budget-analysis": {
       "post": {
-        "description": "Read-only mixed planned allocations and recorded entries. Opt-in required; category/group filters only. Preserves source method/carry/overspending rules. Bounds actual input rows, category/month work, regex work, output and revision cache. No ledger, plan, clock or receipt writes.",
+        "description": "Read-only mixed planned allocations and recorded entries. Opt-in required; category/group filters only. Preserves source method/carry/overspending rules. Bounds actual input rows, category/month work, regex work, output and revision cache. No ledger, plan, clock or receipt writes. A scoped32m SQLite VM-step budget returns typed analysis_work_limit refusal independently of matched-row limits.",
         "parameters": [
           {
             "name": "budget",
@@ -21142,7 +21142,7 @@
     },
     "/api/v1/budgets/{budget}/reports/budget-analysis/drilldown": {
       "post": {
-        "description": "Read-only bounded underlying rows for one month at a confirmed snapshot. Spent returns recorded leaf entries; budgeted returns contributing planned cells. Derived balance and overspending adjustments are not purchases. Stale snapshots are rejected.",
+        "description": "Read-only bounded underlying rows for one month at a confirmed snapshot. Spent returns recorded leaf entries; budgeted returns contributing planned cells. Derived balance and overspending adjustments are not purchases. Stale snapshots are rejected. A scoped32m SQLite VM-step budget returns typed analysis_work_limit refusal independently of matched-row limits.",
         "parameters": [
           {
             "name": "budget",

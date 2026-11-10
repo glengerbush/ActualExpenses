@@ -213,7 +213,7 @@ fn calculate(db: &Connection, b: &str, q: &Request, start: i32, end: i32) -> Res
             &ids,
         )?;
     }
-    let summarize = |month: i32| -> Result<(i64, i64, i64, i64, bool), Error> {
+    let summarize = |month: i32| -> Result<(i128, i128, i128, i128, bool), Error> {
         let name = crate::budgeting::month_name(month)?;
         let mut budgeted = 0i128;
         let mut spent = 0i128;
@@ -245,16 +245,10 @@ fn calculate(db: &Connection, b: &str, q: &Request, start: i32, end: i32) -> Res
                 overspent += balance as i128;
             }
         }
-        Ok((
-            exact(budgeted)?,
-            exact(spent)?,
-            exact(carry)?,
-            exact(overspent)?,
-            data,
-        ))
+        Ok((budgeted, spent, carry, overspent, data))
     };
     let mut running = if start > 12 {
-        summarize(start - 1)?.2
+        exact(summarize(start - 1)?.2)?
     } else {
         0
     };
@@ -265,15 +259,15 @@ fn calculate(db: &Connection, b: &str, q: &Request, start: i32, end: i32) -> Res
     let mut rows = vec![];
     for month in start..=end {
         let (budgeted, spent, carry, overspent, has_data) = summarize(month)?;
-        let balance = exact(budgeted as i128 + spent as i128 + running as i128)?;
-        total_budget += budgeted as i128;
-        total_spent += spent as i128;
+        let balance = exact(budgeted + spent + running as i128)?;
+        total_budget += budgeted;
+        total_spent += spent;
         total_adjust += (previous_overspent as i128).abs();
-        rows.push(json!({"date":crate::budgeting::month_name(month)?,"budgeted":budgeted,"spent":spent,"balance":balance,"overspendingAdjustment":previous_overspent.abs()}));
+        rows.push(json!({"date":crate::budgeting::month_name(month)?,"budgeted":exact(budgeted)?,"spent":exact(spent)?,"balance":balance,"overspendingAdjustment":previous_overspent.abs()}));
         if has_data {
-            running = carry;
+            running = exact(carry)?;
         }
-        previous_overspent = overspent;
+        previous_overspent = exact(overspent)?;
     }
     let mut assumptions = vec![
         json!({"code":"monthly","message":"Monthly planned allocations and signed recorded entries, including future-dated records. This analysis does not change the budget."}),
@@ -314,11 +308,11 @@ async fn read(
     let Json(q) = input.map_err(crate::api::json_error)?;
     let (start, end) = validate(&q)?;
     let signature = serde_json::to_string(&q).map_err(Error::internal)?;
-    let value=store.run(move|db|{let tx=db.transaction()?;let prefs=crate::preferences::get_preferences(&tx,&b)?;if prefs["experimental"]["budgetAnalysisReport"]!=true{return Err(Error::new(StatusCode::CONFLICT,"feature_disabled","Enable Budget analysis in experimental settings before calculating it"));}
+    let value=store.run(move|db|{let tx=db.transaction()?;super::sql_work::run(&tx, || {let prefs=crate::preferences::get_preferences(&tx,&b)?;if prefs["experimental"]["budgetAnalysisReport"]!=true{return Err(Error::new(StatusCode::CONFLICT,"feature_disabled","Enable Budget analysis in experimental settings before calculating it"));}
   let method:String=tx.query_row("SELECT budget_type FROM budgets WHERE id=?1",[&b],|r|r.get(0))?;let revision:i64=tx.query_row("SELECT COALESCE(max(sequence),0) FROM budget_changes WHERE budget_id=?1 AND (entity IN ('transactions','accounts','categories','category_groups','budget_cells') OR (entity='budget_settings' AND entity_id='method'))",[&b],|r|r.get(0))?;let epoch=crate::lifecycle::epoch(&tx,&b)?;let revision=format!("a1{epoch}{revision:016x}:{method}");let key=format!("{b}:{revision}:{signature}");
   if let Some(mut value)=cache.lock().map_err(Error::internal)?.get(&key){value["cache"]["hit"]=json!(true);value["snapshot"]=json!(sync::cursor(&tx,&b)?);return Ok(value);}
   let mut value=calculate(&tx,&b,&q,start,end)?;value["method"]=json!(method);value["assumptions"].as_array_mut().unwrap().push(json!({"code":"method","message":if method=="tracking"{"Tracking budgets use tracking category plans and rollover flags. This report then applies its own source running-balance rules, so totals can differ from the budget summary."}else{"Envelope budgets use envelope category plans and rollover flags. The report excludes income categories and follows each category’s carryover."}}));value["cache"]=json!({"hit":false,"input_revision":revision});if value.to_string().len()>8*1024*1024{return Err(Error::invalid("Analysis exceeds8MiB; shorten the range or reduce categories"));}cache.lock().map_err(Error::internal)?.put(key,value.clone());Ok(value)
- }).await?;
+ })}).await?;
     Ok(Json(json!({"data":value})))
 }
 
@@ -359,12 +353,14 @@ async fn drilldown(
     }
     let value=store.run(move|db|{
         let tx=db.transaction()?;
+        super::sql_work::run(&tx, || {
         let prefs=crate::preferences::get_preferences(&tx,&b)?;
         if prefs["experimental"]["budgetAnalysisReport"]!=true{return Err(Error::new(StatusCode::CONFLICT,"feature_disabled","Enable Budget analysis in experimental settings before inspecting it"));}
         sync::check_snapshot(&tx,&b,Some(&input.snapshot))?;
         let categories=selection(&tx,&b,&input.query.options)?;
         let planned=input.metric=="budgeted";
-        let mut values=vec![SqlValue::Text(b.clone()),SqlValue::Text(input.month.clone())];
+        let mut values=vec![SqlValue::Text(b.clone()),SqlValue::Text(if planned{input.month.clone()}else{format!("{}-01",input.month)})];
+        if !planned{values.push(SqlValue::Text(format!("{}-31",input.month)));}
         if planned {let method:String=tx.query_row("SELECT budget_type FROM budgets WHERE id=?1",[&b],|r|r.get(0))?;values.push(SqlValue::Text(method));}
         let slots=categories.iter().filter(|category|!planned||!category.income_group).map(|category|{values.push(SqlValue::Text(category.id.clone()));format!("?{}",values.len())}).collect::<Vec<_>>();
         let selected=if slots.is_empty(){"NULL".into()}else{slots.join(",")};
@@ -376,7 +372,7 @@ async fn drilldown(
             let count=all.len();
             (all.into_iter().skip(input.offset).take(input.limit).collect::<Vec<_>>(),count,total)
         } else {
-            let sql=format!("SELECT t.id,t.amount FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id WHERE t.budget_id=?1 AND substr(t.date,1,7)=?2 AND t.tombstone=0 AND t.is_parent=0 AND a.off_budget=0 AND t.category_id IN ({selected}) ORDER BY t.date DESC,t.sort_order DESC,t.id LIMIT 100001");
+            let sql=format!("SELECT t.id,t.amount FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id WHERE t.budget_id=?1 AND t.date>=?2 AND t.date<=?3 AND t.tombstone=0 AND t.is_parent=0 AND a.off_budget=0 AND t.category_id IN ({selected}) ORDER BY t.date DESC,t.sort_order DESC,t.id LIMIT 100001");
             let all=tx.prepare(&sql)?.query_map(params_from_iter(values.iter()),|r|Ok((r.get::<_,String>(0)?,r.get::<_,i64>(1)?)))?.collect::<Result<Vec<_>,_>>()?;
             if all.len()>100000{return Err(Error::invalid("Analysis detail exceeds100000 recorded inputs"));}
             let total=exact(all.iter().map(|(_,amount)|*amount as i128).sum())?;
@@ -387,6 +383,6 @@ async fn drilldown(
         let response=json!({"rows":rows,"total_count":count,"total_amount":total,"offset":input.offset,"limit":input.limit,"has_more":input.offset+rows.len()<count,"snapshot":input.snapshot,"month":input.month,"metric":input.metric,"basis":if planned{"budget_allocations"}else{"recorded_entries"}});
         if response.to_string().len()>8*1024*1024{return Err(Error::invalid("Analysis detail exceeds8MiB; use a smaller page"));}
         Ok(response)
-    }).await?;
+    })}).await?;
     Ok(Json(json!({"data":value})))
 }

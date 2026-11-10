@@ -1,6 +1,7 @@
 mod analysis;
 mod forecast;
 mod revision_cache;
+mod sql_work;
 use super::*;
 mod custom;
 pub(super) use analysis::router as analysis_router;

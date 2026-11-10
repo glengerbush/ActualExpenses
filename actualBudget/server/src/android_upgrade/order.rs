@@ -34,7 +34,7 @@ pub fn seed(db: &Connection, budget: &str, id: &str, source: Option<f64>) -> Res
     Ok(())
 }
 pub fn enrich(db: &Connection, only: Option<&str>) -> Result<(), Error> {
-    let mut q=db.prepare("SELECT i.budget_id,s.original FROM imported_sources i JOIN staged_imports s ON s.id=i.import_id WHERE (?1 IS NULL OR i.budget_id=?1)")?;
+    let mut q=db.prepare("SELECT i.budget_id,s.original FROM imported_sources i JOIN staged_imports s ON s.id=i.import_id AND COALESCE(json_extract(s.report,'$.source_format'),'actual') NOT IN('ynab4','nynab') WHERE (?1 IS NULL OR i.budget_id=?1)")?;
     let imports = q
         .query_map([only], |r| {
             Ok((r.get::<_, String>(0)?, r.get::<_, Vec<u8>>(1)?))

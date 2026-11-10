@@ -1,0 +1,4469 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00.000Z",
+  "normalization": "Generated identities are labeled by public reference names and ledger/child order; sort_order numbers alone are omitted, preserving array order, multiplicity and every graph reference.",
+  "cases": [
+    {
+      "id": "ynab4-demo",
+      "type": "ynab4",
+      "filename": "ynab4-demo-budget.zip",
+      "input": {
+        "filename": "ynab4-demo.zip",
+        "sha256": "673f9b1fe2ca265ba6cdfc40fd37aacf13ca026087aa3f2355dd632b52b111a9",
+        "bytes": 88624
+      },
+      "actual": {
+        "filename": "ynab4-demo-actual-26.10.zip",
+        "sha256": "2a9c7e6739417252775ca6abdd86c2f0cbb510006d908b88ca61fefe6f5283b3"
+      },
+      "snapshot": {
+        "accounts": [
+          {
+            "id": "account:Account1 with Starting Balance",
+            "name": "Account1 with Starting Balance",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "account:Account2 no Starting Balance",
+            "name": "Account2 no Starting Balance",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "groups": [
+          {
+            "id": "group:Giving",
+            "name": "Giving",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "category:group:Giving/Tithing",
+                "name": "Tithing",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Giving"
+              },
+              {
+                "id": "category:group:Giving/Charitable",
+                "name": "Charitable",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Giving"
+              }
+            ]
+          },
+          {
+            "id": "group:Monthly Bills",
+            "name": "Monthly Bills",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "category:group:Monthly Bills/Rent/Mortgage",
+                "name": "Rent/Mortgage",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Monthly Bills"
+              },
+              {
+                "id": "category:group:Monthly Bills/Phone",
+                "name": "Phone",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Monthly Bills"
+              },
+              {
+                "id": "category:group:Monthly Bills/Internet",
+                "name": "Internet",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Monthly Bills"
+              },
+              {
+                "id": "category:group:Monthly Bills/Cable TV",
+                "name": "Cable TV",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Monthly Bills"
+              },
+              {
+                "id": "category:group:Monthly Bills/Electricity",
+                "name": "Electricity",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Monthly Bills"
+              },
+              {
+                "id": "category:group:Monthly Bills/Water",
+                "name": "Water",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Monthly Bills"
+              },
+              {
+                "id": "category:group:Monthly Bills/Natural Gas/Propane/Oil",
+                "name": "Natural Gas/Propane/Oil",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Monthly Bills"
+              }
+            ]
+          },
+          {
+            "id": "group:Everyday Expenses",
+            "name": "Everyday Expenses",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "category:group:Everyday Expenses/Groceries",
+                "name": "Groceries",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Everyday Expenses"
+              },
+              {
+                "id": "category:group:Everyday Expenses/Fuel",
+                "name": "Fuel",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Everyday Expenses"
+              },
+              {
+                "id": "category:group:Everyday Expenses/Spending Money",
+                "name": "Spending Money",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Everyday Expenses"
+              },
+              {
+                "id": "category:group:Everyday Expenses/Restaurants",
+                "name": "Restaurants",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Everyday Expenses"
+              },
+              {
+                "id": "category:group:Everyday Expenses/Medical",
+                "name": "Medical",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Everyday Expenses"
+              },
+              {
+                "id": "category:group:Everyday Expenses/Clothing",
+                "name": "Clothing",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Everyday Expenses"
+              },
+              {
+                "id": "category:group:Everyday Expenses/Household Goods",
+                "name": "Household Goods",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Everyday Expenses"
+              }
+            ]
+          },
+          {
+            "id": "group:Rainy Day Funds",
+            "name": "Rainy Day Funds",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "category:group:Rainy Day Funds/Emergency Fund",
+                "name": "Emergency Fund",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Rainy Day Funds"
+              },
+              {
+                "id": "category:group:Rainy Day Funds/Car Repairs",
+                "name": "Car Repairs",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Rainy Day Funds"
+              },
+              {
+                "id": "category:group:Rainy Day Funds/Home Maintenance",
+                "name": "Home Maintenance",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Rainy Day Funds"
+              },
+              {
+                "id": "category:group:Rainy Day Funds/Car Insurance",
+                "name": "Car Insurance",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Rainy Day Funds"
+              },
+              {
+                "id": "category:group:Rainy Day Funds/Life Insurance",
+                "name": "Life Insurance",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Rainy Day Funds"
+              },
+              {
+                "id": "category:group:Rainy Day Funds/Health Insurance",
+                "name": "Health Insurance",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Rainy Day Funds"
+              },
+              {
+                "id": "category:group:Rainy Day Funds/Birthdays",
+                "name": "Birthdays",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Rainy Day Funds"
+              },
+              {
+                "id": "category:group:Rainy Day Funds/Christmas",
+                "name": "Christmas",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Rainy Day Funds"
+              }
+            ]
+          },
+          {
+            "id": "group:Savings Goals",
+            "name": "Savings Goals",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "category:group:Savings Goals/Car Replacement",
+                "name": "Car Replacement",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Savings Goals"
+              },
+              {
+                "id": "category:group:Savings Goals/Vacation",
+                "name": "Vacation",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Savings Goals"
+              }
+            ]
+          },
+          {
+            "id": "group:Debt",
+            "name": "Debt",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "category:group:Debt/Car Payment",
+                "name": "Car Payment",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Debt"
+              },
+              {
+                "id": "category:group:Debt/Student Loan Payment",
+                "name": "Student Loan Payment",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Debt"
+              },
+              {
+                "id": "category:group:Debt/Personal Loan Payment",
+                "name": "Personal Loan Payment",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Debt"
+              }
+            ]
+          },
+          {
+            "id": "group:Income",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "category:group:Income/Income",
+                "name": "Income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "group:Income"
+              },
+              {
+                "id": "category:group:Income/Starting Balances",
+                "name": "Starting Balances",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "group:Income"
+              }
+            ]
+          }
+        ],
+        "categories": [
+          {
+            "id": "category:group:Giving/Tithing",
+            "name": "Tithing",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Giving"
+          },
+          {
+            "id": "category:group:Giving/Charitable",
+            "name": "Charitable",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Giving"
+          },
+          {
+            "id": "category:group:Monthly Bills/Rent/Mortgage",
+            "name": "Rent/Mortgage",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Monthly Bills"
+          },
+          {
+            "id": "category:group:Monthly Bills/Phone",
+            "name": "Phone",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Monthly Bills"
+          },
+          {
+            "id": "category:group:Monthly Bills/Internet",
+            "name": "Internet",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Monthly Bills"
+          },
+          {
+            "id": "category:group:Monthly Bills/Cable TV",
+            "name": "Cable TV",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Monthly Bills"
+          },
+          {
+            "id": "category:group:Monthly Bills/Electricity",
+            "name": "Electricity",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Monthly Bills"
+          },
+          {
+            "id": "category:group:Monthly Bills/Water",
+            "name": "Water",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Monthly Bills"
+          },
+          {
+            "id": "category:group:Monthly Bills/Natural Gas/Propane/Oil",
+            "name": "Natural Gas/Propane/Oil",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Monthly Bills"
+          },
+          {
+            "id": "category:group:Everyday Expenses/Groceries",
+            "name": "Groceries",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Everyday Expenses"
+          },
+          {
+            "id": "category:group:Everyday Expenses/Fuel",
+            "name": "Fuel",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Everyday Expenses"
+          },
+          {
+            "id": "category:group:Everyday Expenses/Spending Money",
+            "name": "Spending Money",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Everyday Expenses"
+          },
+          {
+            "id": "category:group:Everyday Expenses/Restaurants",
+            "name": "Restaurants",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Everyday Expenses"
+          },
+          {
+            "id": "category:group:Everyday Expenses/Medical",
+            "name": "Medical",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Everyday Expenses"
+          },
+          {
+            "id": "category:group:Everyday Expenses/Clothing",
+            "name": "Clothing",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Everyday Expenses"
+          },
+          {
+            "id": "category:group:Everyday Expenses/Household Goods",
+            "name": "Household Goods",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Everyday Expenses"
+          },
+          {
+            "id": "category:group:Rainy Day Funds/Emergency Fund",
+            "name": "Emergency Fund",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Rainy Day Funds"
+          },
+          {
+            "id": "category:group:Rainy Day Funds/Car Repairs",
+            "name": "Car Repairs",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Rainy Day Funds"
+          },
+          {
+            "id": "category:group:Rainy Day Funds/Home Maintenance",
+            "name": "Home Maintenance",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Rainy Day Funds"
+          },
+          {
+            "id": "category:group:Rainy Day Funds/Car Insurance",
+            "name": "Car Insurance",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Rainy Day Funds"
+          },
+          {
+            "id": "category:group:Rainy Day Funds/Life Insurance",
+            "name": "Life Insurance",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Rainy Day Funds"
+          },
+          {
+            "id": "category:group:Rainy Day Funds/Health Insurance",
+            "name": "Health Insurance",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Rainy Day Funds"
+          },
+          {
+            "id": "category:group:Rainy Day Funds/Birthdays",
+            "name": "Birthdays",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Rainy Day Funds"
+          },
+          {
+            "id": "category:group:Rainy Day Funds/Christmas",
+            "name": "Christmas",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Rainy Day Funds"
+          },
+          {
+            "id": "category:group:Savings Goals/Car Replacement",
+            "name": "Car Replacement",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Savings Goals"
+          },
+          {
+            "id": "category:group:Savings Goals/Vacation",
+            "name": "Vacation",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Savings Goals"
+          },
+          {
+            "id": "category:group:Debt/Car Payment",
+            "name": "Car Payment",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Debt"
+          },
+          {
+            "id": "category:group:Debt/Student Loan Payment",
+            "name": "Student Loan Payment",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Debt"
+          },
+          {
+            "id": "category:group:Debt/Personal Loan Payment",
+            "name": "Personal Loan Payment",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Debt"
+          },
+          {
+            "id": "category:group:Income/Income",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "group:Income"
+          },
+          {
+            "id": "category:group:Income/Starting Balances",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "group:Income"
+          }
+        ],
+        "payees": [
+          {
+            "id": "payee:Employer1",
+            "name": "Employer1",
+            "transfer_acct": null
+          },
+          {
+            "id": "payee:Employer2",
+            "name": "Employer2",
+            "transfer_acct": null
+          },
+          {
+            "id": "payee:Expense1",
+            "name": "Expense1",
+            "transfer_acct": null
+          },
+          {
+            "id": "payee:Starting Balance",
+            "name": "Starting Balance",
+            "transfer_acct": null
+          },
+          {
+            "id": "payee:Transfer : Account1 with Starting Balance",
+            "name": "Transfer : Account1 with Starting Balance",
+            "transfer_acct": null
+          },
+          {
+            "id": "payee:Transfer : Account2 no Starting Balance",
+            "name": "Transfer : Account2 no Starting Balance",
+            "transfer_acct": null
+          },
+          {
+            "id": "transfer:account:Account1 with Starting Balance",
+            "name": "Account1 with Starting Balance",
+            "transfer_acct": "account:Account1 with Starting Balance"
+          },
+          {
+            "id": "transfer:account:Account2 no Starting Balance",
+            "name": "Account2 no Starting Balance",
+            "transfer_acct": "account:Account2 no Starting Balance"
+          }
+        ],
+        "ledgers": [
+          {
+            "account_id": "account:Account1 with Starting Balance",
+            "balance": -40000,
+            "transactions": [
+              {
+                "id": "account:Account1 with Starting Balance:transaction:0",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Account1 with Starting Balance",
+                "category": "category:group:Giving/Tithing",
+                "amount": -50300,
+                "payee": "payee:Expense1",
+                "notes": null,
+                "date": "2022-11-07",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Expense1",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": false,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Account1 with Starting Balance:transaction:1",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Account1 with Starting Balance",
+                "category": "category:group:Income/Income",
+                "amount": 50200,
+                "payee": "payee:Employer2",
+                "notes": "This month",
+                "date": "2022-11-04",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Employer2",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": false,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Account1 with Starting Balance:transaction:2",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Account1 with Starting Balance",
+                "category": "category:group:Giving/Tithing",
+                "amount": -60000,
+                "payee": "payee:Expense1",
+                "notes": null,
+                "date": "2022-11-01",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Expense1",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": false,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Account1 with Starting Balance:transaction:3",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Account1 with Starting Balance",
+                "category": "category:group:Giving/Tithing",
+                "amount": -70000,
+                "payee": "payee:Expense1",
+                "notes": null,
+                "date": "2022-11-01",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Expense1",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": false,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Account1 with Starting Balance:transaction:4",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Account1 with Starting Balance",
+                "category": "category:group:Income/Income",
+                "amount": 50100,
+                "payee": "payee:Employer2",
+                "notes": "This month",
+                "date": "2022-10-21",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Employer2",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": false,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Account1 with Starting Balance:transaction:5",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Account1 with Starting Balance",
+                "category": "category:group:Income/Income",
+                "amount": 50000,
+                "payee": "payee:Employer2",
+                "notes": "This month",
+                "date": "2022-10-07",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Employer2",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": false,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Account1 with Starting Balance:transaction:6",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Account1 with Starting Balance",
+                "category": "category:group:Giving/Tithing",
+                "amount": -10000,
+                "payee": "payee:Expense1",
+                "notes": null,
+                "date": "2022-10-03",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Expense1",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": false,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Account1 with Starting Balance:transaction:7",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Account1 with Starting Balance",
+                "category": "category:group:Giving/Tithing",
+                "amount": -50000,
+                "payee": "payee:Expense1",
+                "notes": null,
+                "date": "2022-10-03",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Expense1",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": false,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Account1 with Starting Balance:transaction:8",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Account1 with Starting Balance",
+                "category": "category:group:Income/Income",
+                "amount": 50000,
+                "payee": "payee:Starting Balance",
+                "notes": null,
+                "date": "2022-10-01",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Starting Balance",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              }
+            ]
+          },
+          {
+            "account_id": "account:Account2 no Starting Balance",
+            "balance": 260700,
+            "transactions": [
+              {
+                "id": "account:Account2 no Starting Balance:transaction:0",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Account2 no Starting Balance",
+                "category": "category:group:Giving/Tithing",
+                "amount": -99900,
+                "payee": "payee:Expense1",
+                "notes": null,
+                "date": "2022-12-05",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Expense1",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": false,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Account2 no Starting Balance:transaction:1",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Account2 no Starting Balance",
+                "category": "category:group:Income/Income",
+                "amount": 90300,
+                "payee": "payee:Employer1",
+                "notes": "Next month",
+                "date": "2022-11-18",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Employer1",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": false,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Account2 no Starting Balance:transaction:2",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Account2 no Starting Balance",
+                "category": "category:group:Income/Income",
+                "amount": 90200,
+                "payee": "payee:Employer1",
+                "notes": "Next month",
+                "date": "2022-11-04",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Employer1",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": false,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Account2 no Starting Balance:transaction:3",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Account2 no Starting Balance",
+                "category": "category:group:Income/Income",
+                "amount": 90100,
+                "payee": "payee:Employer1",
+                "notes": "Next month",
+                "date": "2022-10-21",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Employer1",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": false,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Account2 no Starting Balance:transaction:4",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Account2 no Starting Balance",
+                "category": "category:group:Income/Income",
+                "amount": 90000,
+                "payee": "payee:Employer1",
+                "notes": "Next month",
+                "date": "2022-10-07",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Employer1",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": false,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Account2 no Starting Balance:transaction:5",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Account2 no Starting Balance",
+                "category": "category:group:Income/Income",
+                "amount": 0,
+                "payee": "payee:Starting Balance",
+                "notes": null,
+                "date": "2022-10-01",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Starting Balance",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              }
+            ]
+          }
+        ],
+        "months": [
+          {
+            "month": "2021-11",
+            "error": {
+              "type": "APIError",
+              "message": "No budget exists for month: 2021-11"
+            }
+          },
+          {
+            "month": "2022-01",
+            "error": {
+              "type": "APIError",
+              "message": "No budget exists for month: 2022-01"
+            }
+          },
+          {
+            "month": "2022-10",
+            "data": {
+              "month": "2022-10",
+              "incomeAvailable": 330200,
+              "lastMonthOverspent": 0,
+              "forNextMonth": 0,
+              "totalBudgeted": -150100,
+              "toBudget": 180100,
+              "fromLastMonth": 0,
+              "totalIncome": 330200,
+              "totalSpent": -60000,
+              "totalBalance": 90100,
+              "categoryGroups": [
+                {
+                  "id": "group:Giving",
+                  "name": "Giving",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Giving/Tithing",
+                      "name": "Tithing",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Giving",
+                      "budgeted": 60000,
+                      "spent": -60000,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Giving/Charitable",
+                      "name": "Charitable",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Giving",
+                      "budgeted": 90100,
+                      "spent": 0,
+                      "balance": 90100,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 150100,
+                  "spent": -60000,
+                  "balance": 90100
+                },
+                {
+                  "id": "group:Monthly Bills",
+                  "name": "Monthly Bills",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Monthly Bills/Rent/Mortgage",
+                      "name": "Rent/Mortgage",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Phone",
+                      "name": "Phone",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Internet",
+                      "name": "Internet",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Cable TV",
+                      "name": "Cable TV",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Electricity",
+                      "name": "Electricity",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Water",
+                      "name": "Water",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Natural Gas/Propane/Oil",
+                      "name": "Natural Gas/Propane/Oil",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Everyday Expenses",
+                  "name": "Everyday Expenses",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Everyday Expenses/Groceries",
+                      "name": "Groceries",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Fuel",
+                      "name": "Fuel",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Spending Money",
+                      "name": "Spending Money",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Restaurants",
+                      "name": "Restaurants",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Medical",
+                      "name": "Medical",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Clothing",
+                      "name": "Clothing",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Household Goods",
+                      "name": "Household Goods",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Rainy Day Funds",
+                  "name": "Rainy Day Funds",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Rainy Day Funds/Emergency Fund",
+                      "name": "Emergency Fund",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Car Repairs",
+                      "name": "Car Repairs",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Home Maintenance",
+                      "name": "Home Maintenance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Car Insurance",
+                      "name": "Car Insurance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Life Insurance",
+                      "name": "Life Insurance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Health Insurance",
+                      "name": "Health Insurance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Birthdays",
+                      "name": "Birthdays",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Christmas",
+                      "name": "Christmas",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Savings Goals",
+                  "name": "Savings Goals",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Savings Goals/Car Replacement",
+                      "name": "Car Replacement",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Savings Goals",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Savings Goals/Vacation",
+                      "name": "Vacation",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Savings Goals",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Debt",
+                  "name": "Debt",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Debt/Car Payment",
+                      "name": "Car Payment",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Debt",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Debt/Student Loan Payment",
+                      "name": "Student Loan Payment",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Debt",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Debt/Personal Loan Payment",
+                      "name": "Personal Loan Payment",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Debt",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Income",
+                  "name": "Income",
+                  "is_income": true,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Income/Income",
+                      "name": "Income",
+                      "is_income": true,
+                      "hidden": false,
+                      "group_id": "group:Income",
+                      "received": 330200
+                    },
+                    {
+                      "id": "category:group:Income/Starting Balances",
+                      "name": "Starting Balances",
+                      "is_income": true,
+                      "hidden": false,
+                      "group_id": "group:Income",
+                      "received": 0
+                    }
+                  ],
+                  "received": 330200
+                }
+              ]
+            }
+          },
+          {
+            "month": "2022-12",
+            "data": {
+              "month": "2022-12",
+              "incomeAvailable": 180500,
+              "lastMonthOverspent": 0,
+              "forNextMonth": 0,
+              "totalBudgeted": -180500,
+              "toBudget": 0,
+              "fromLastMonth": 180500,
+              "totalIncome": 0,
+              "totalSpent": -99900,
+              "totalBalance": 220700,
+              "categoryGroups": [
+                {
+                  "id": "group:Giving",
+                  "name": "Giving",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Giving/Tithing",
+                      "name": "Tithing",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Giving",
+                      "budgeted": 90500,
+                      "spent": -99900,
+                      "balance": -9400,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Giving/Charitable",
+                      "name": "Charitable",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Giving",
+                      "budgeted": 90000,
+                      "spent": 0,
+                      "balance": 230100,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 180500,
+                  "spent": -99900,
+                  "balance": 220700
+                },
+                {
+                  "id": "group:Monthly Bills",
+                  "name": "Monthly Bills",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Monthly Bills/Rent/Mortgage",
+                      "name": "Rent/Mortgage",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Phone",
+                      "name": "Phone",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Internet",
+                      "name": "Internet",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Cable TV",
+                      "name": "Cable TV",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Electricity",
+                      "name": "Electricity",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Water",
+                      "name": "Water",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Natural Gas/Propane/Oil",
+                      "name": "Natural Gas/Propane/Oil",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Everyday Expenses",
+                  "name": "Everyday Expenses",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Everyday Expenses/Groceries",
+                      "name": "Groceries",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Fuel",
+                      "name": "Fuel",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Spending Money",
+                      "name": "Spending Money",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Restaurants",
+                      "name": "Restaurants",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Medical",
+                      "name": "Medical",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Clothing",
+                      "name": "Clothing",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Household Goods",
+                      "name": "Household Goods",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Rainy Day Funds",
+                  "name": "Rainy Day Funds",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Rainy Day Funds/Emergency Fund",
+                      "name": "Emergency Fund",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Car Repairs",
+                      "name": "Car Repairs",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Home Maintenance",
+                      "name": "Home Maintenance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Car Insurance",
+                      "name": "Car Insurance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Life Insurance",
+                      "name": "Life Insurance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Health Insurance",
+                      "name": "Health Insurance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Birthdays",
+                      "name": "Birthdays",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Christmas",
+                      "name": "Christmas",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Savings Goals",
+                  "name": "Savings Goals",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Savings Goals/Car Replacement",
+                      "name": "Car Replacement",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Savings Goals",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Savings Goals/Vacation",
+                      "name": "Vacation",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Savings Goals",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Debt",
+                  "name": "Debt",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Debt/Car Payment",
+                      "name": "Car Payment",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Debt",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Debt/Student Loan Payment",
+                      "name": "Student Loan Payment",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Debt",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Debt/Personal Loan Payment",
+                      "name": "Personal Loan Payment",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Debt",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Income",
+                  "name": "Income",
+                  "is_income": true,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Income/Income",
+                      "name": "Income",
+                      "is_income": true,
+                      "hidden": false,
+                      "group_id": "group:Income",
+                      "received": 0
+                    },
+                    {
+                      "id": "category:group:Income/Starting Balances",
+                      "name": "Starting Balances",
+                      "is_income": true,
+                      "hidden": false,
+                      "group_id": "group:Income",
+                      "received": 0
+                    }
+                  ],
+                  "received": 0
+                }
+              ]
+            }
+          },
+          {
+            "month": "2023-01",
+            "data": {
+              "month": "2023-01",
+              "incomeAvailable": 0,
+              "lastMonthOverspent": -9400,
+              "forNextMonth": 0,
+              "totalBudgeted": 0,
+              "toBudget": -9400,
+              "fromLastMonth": 0,
+              "totalIncome": 0,
+              "totalSpent": 0,
+              "totalBalance": 230100,
+              "categoryGroups": [
+                {
+                  "id": "group:Giving",
+                  "name": "Giving",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Giving/Tithing",
+                      "name": "Tithing",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Giving",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Giving/Charitable",
+                      "name": "Charitable",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Giving",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 230100,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 230100
+                },
+                {
+                  "id": "group:Monthly Bills",
+                  "name": "Monthly Bills",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Monthly Bills/Rent/Mortgage",
+                      "name": "Rent/Mortgage",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Phone",
+                      "name": "Phone",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Internet",
+                      "name": "Internet",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Cable TV",
+                      "name": "Cable TV",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Electricity",
+                      "name": "Electricity",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Water",
+                      "name": "Water",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Natural Gas/Propane/Oil",
+                      "name": "Natural Gas/Propane/Oil",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Everyday Expenses",
+                  "name": "Everyday Expenses",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Everyday Expenses/Groceries",
+                      "name": "Groceries",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Fuel",
+                      "name": "Fuel",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Spending Money",
+                      "name": "Spending Money",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Restaurants",
+                      "name": "Restaurants",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Medical",
+                      "name": "Medical",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Clothing",
+                      "name": "Clothing",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Household Goods",
+                      "name": "Household Goods",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Rainy Day Funds",
+                  "name": "Rainy Day Funds",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Rainy Day Funds/Emergency Fund",
+                      "name": "Emergency Fund",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Car Repairs",
+                      "name": "Car Repairs",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Home Maintenance",
+                      "name": "Home Maintenance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Car Insurance",
+                      "name": "Car Insurance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Life Insurance",
+                      "name": "Life Insurance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Health Insurance",
+                      "name": "Health Insurance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Birthdays",
+                      "name": "Birthdays",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Christmas",
+                      "name": "Christmas",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Savings Goals",
+                  "name": "Savings Goals",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Savings Goals/Car Replacement",
+                      "name": "Car Replacement",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Savings Goals",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Savings Goals/Vacation",
+                      "name": "Vacation",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Savings Goals",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Debt",
+                  "name": "Debt",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Debt/Car Payment",
+                      "name": "Car Payment",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Debt",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Debt/Student Loan Payment",
+                      "name": "Student Loan Payment",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Debt",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Debt/Personal Loan Payment",
+                      "name": "Personal Loan Payment",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Debt",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Income",
+                  "name": "Income",
+                  "is_income": true,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Income/Income",
+                      "name": "Income",
+                      "is_income": true,
+                      "hidden": false,
+                      "group_id": "group:Income",
+                      "received": 0
+                    },
+                    {
+                      "id": "category:group:Income/Starting Balances",
+                      "name": "Starting Balances",
+                      "is_income": true,
+                      "hidden": false,
+                      "group_id": "group:Income",
+                      "received": 0
+                    }
+                  ],
+                  "received": 0
+                }
+              ]
+            }
+          },
+          {
+            "month": "2024-01",
+            "data": {
+              "month": "2024-01",
+              "incomeAvailable": -9400,
+              "lastMonthOverspent": 0,
+              "forNextMonth": 0,
+              "totalBudgeted": 0,
+              "toBudget": -9400,
+              "fromLastMonth": -9400,
+              "totalIncome": 0,
+              "totalSpent": 0,
+              "totalBalance": 230100,
+              "categoryGroups": [
+                {
+                  "id": "group:Giving",
+                  "name": "Giving",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Giving/Tithing",
+                      "name": "Tithing",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Giving",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Giving/Charitable",
+                      "name": "Charitable",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Giving",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 230100,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 230100
+                },
+                {
+                  "id": "group:Monthly Bills",
+                  "name": "Monthly Bills",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Monthly Bills/Rent/Mortgage",
+                      "name": "Rent/Mortgage",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Phone",
+                      "name": "Phone",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Internet",
+                      "name": "Internet",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Cable TV",
+                      "name": "Cable TV",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Electricity",
+                      "name": "Electricity",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Water",
+                      "name": "Water",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Monthly Bills/Natural Gas/Propane/Oil",
+                      "name": "Natural Gas/Propane/Oil",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Monthly Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Everyday Expenses",
+                  "name": "Everyday Expenses",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Everyday Expenses/Groceries",
+                      "name": "Groceries",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Fuel",
+                      "name": "Fuel",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Spending Money",
+                      "name": "Spending Money",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Restaurants",
+                      "name": "Restaurants",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Medical",
+                      "name": "Medical",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Clothing",
+                      "name": "Clothing",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Everyday Expenses/Household Goods",
+                      "name": "Household Goods",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Everyday Expenses",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Rainy Day Funds",
+                  "name": "Rainy Day Funds",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Rainy Day Funds/Emergency Fund",
+                      "name": "Emergency Fund",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Car Repairs",
+                      "name": "Car Repairs",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Home Maintenance",
+                      "name": "Home Maintenance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Car Insurance",
+                      "name": "Car Insurance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Life Insurance",
+                      "name": "Life Insurance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Health Insurance",
+                      "name": "Health Insurance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Birthdays",
+                      "name": "Birthdays",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Rainy Day Funds/Christmas",
+                      "name": "Christmas",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Rainy Day Funds",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Savings Goals",
+                  "name": "Savings Goals",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Savings Goals/Car Replacement",
+                      "name": "Car Replacement",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Savings Goals",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Savings Goals/Vacation",
+                      "name": "Vacation",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Savings Goals",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Debt",
+                  "name": "Debt",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Debt/Car Payment",
+                      "name": "Car Payment",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Debt",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Debt/Student Loan Payment",
+                      "name": "Student Loan Payment",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Debt",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Debt/Personal Loan Payment",
+                      "name": "Personal Loan Payment",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Debt",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Income",
+                  "name": "Income",
+                  "is_income": true,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Income/Income",
+                      "name": "Income",
+                      "is_income": true,
+                      "hidden": false,
+                      "group_id": "group:Income",
+                      "received": 0
+                    },
+                    {
+                      "id": "category:group:Income/Starting Balances",
+                      "name": "Starting Balances",
+                      "is_income": true,
+                      "hidden": false,
+                      "group_id": "group:Income",
+                      "received": 0
+                    }
+                  ],
+                  "received": 0
+                }
+              ]
+            }
+          }
+        ],
+        "schedules": [],
+        "tags": []
+      }
+    },
+    {
+      "id": "nynab-demo",
+      "type": "ynab5",
+      "filename": "ynab5-demo-budget.json",
+      "input": {
+        "filename": "nynab-demo.json",
+        "sha256": "88d44014d7d4360da417b1173fce9207f01f972acfbaa398709af74c188524a7",
+        "bytes": 73226
+      },
+      "actual": {
+        "filename": "nynab-demo-actual-26.10.zip",
+        "sha256": "5544bf7a1c05927b3ff2ccca1f3034f8457b11d3ca7d01a2c002cd5bdd6aa1e5"
+      },
+      "snapshot": {
+        "accounts": [
+          {
+            "id": "account:Checking",
+            "name": "Checking",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          },
+          {
+            "id": "account:Saving",
+            "name": "Saving",
+            "offbudget": false,
+            "closed": false,
+            "balance_current": null,
+            "account_group_id": null
+          }
+        ],
+        "groups": [
+          {
+            "id": "group:Bills",
+            "name": "Bills",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "category:group:Bills/Rent/Mortgage",
+                "name": "Rent/Mortgage",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Bills"
+              },
+              {
+                "id": "category:group:Bills/Sneaky Category (hidden)",
+                "name": "Sneaky Category (hidden)",
+                "is_income": false,
+                "hidden": true,
+                "group_id": "group:Bills"
+              },
+              {
+                "id": "category:group:Bills/Electric",
+                "name": "Electric",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Bills"
+              },
+              {
+                "id": "category:group:Bills/Water",
+                "name": "Water",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Bills"
+              },
+              {
+                "id": "category:group:Bills/Internet",
+                "name": "Internet",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Bills"
+              },
+              {
+                "id": "category:group:Bills/Cellphone",
+                "name": "Cellphone",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Bills"
+              }
+            ]
+          },
+          {
+            "id": "group:Frequent",
+            "name": "Frequent",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "category:group:Frequent/Groceries",
+                "name": "Groceries",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Frequent"
+              },
+              {
+                "id": "category:group:Frequent/Eating Out",
+                "name": "Eating Out",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Frequent"
+              },
+              {
+                "id": "category:group:Frequent/Transportation",
+                "name": "Transportation",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Frequent"
+              }
+            ]
+          },
+          {
+            "id": "group:Non-Monthly",
+            "name": "Non-Monthly",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "category:group:Non-Monthly/Home Maintenance",
+                "name": "Home Maintenance",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Non-Monthly"
+              },
+              {
+                "id": "category:group:Non-Monthly/Auto Maintenance",
+                "name": "Auto Maintenance",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Non-Monthly"
+              },
+              {
+                "id": "category:group:Non-Monthly/Gifts",
+                "name": "Gifts",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Non-Monthly"
+              }
+            ]
+          },
+          {
+            "id": "group:Goals",
+            "name": "Goals",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "category:group:Goals/Vacation",
+                "name": "Vacation",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Goals"
+              },
+              {
+                "id": "category:group:Goals/Education",
+                "name": "Education",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Goals"
+              },
+              {
+                "id": "category:group:Goals/Home Improvement",
+                "name": "Home Improvement",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Goals"
+              }
+            ]
+          },
+          {
+            "id": "group:Quality of Life",
+            "name": "Quality of Life",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "category:group:Quality of Life/Hobbies",
+                "name": "Hobbies",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Quality of Life"
+              },
+              {
+                "id": "category:group:Quality of Life/Hobbies (hidden)",
+                "name": "Hobbies (hidden)",
+                "is_income": false,
+                "hidden": true,
+                "group_id": "group:Quality of Life"
+              },
+              {
+                "id": "category:group:Quality of Life/Entertainment",
+                "name": "Entertainment",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Quality of Life"
+              },
+              {
+                "id": "category:group:Quality of Life/Health & Wellness",
+                "name": "Health & Wellness",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Quality of Life"
+              }
+            ]
+          },
+          {
+            "id": "group:Category Group",
+            "name": "Category Group",
+            "is_income": false,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "category:group:Category Group/Category",
+                "name": "Category",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Category Group"
+              }
+            ]
+          },
+          {
+            "id": "group:Bills (hidden)",
+            "name": "Bills (hidden)",
+            "is_income": false,
+            "hidden": true,
+            "categories": [
+              {
+                "id": "category:group:Bills (hidden)/Under extra Bills",
+                "name": "Under extra Bills",
+                "is_income": false,
+                "hidden": false,
+                "group_id": "group:Bills (hidden)"
+              }
+            ]
+          },
+          {
+            "id": "group:Income",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "categories": [
+              {
+                "id": "category:group:Income/Income",
+                "name": "Income",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "group:Income"
+              },
+              {
+                "id": "category:group:Income/Starting Balances",
+                "name": "Starting Balances",
+                "is_income": true,
+                "hidden": false,
+                "group_id": "group:Income"
+              }
+            ]
+          }
+        ],
+        "categories": [
+          {
+            "id": "category:group:Bills/Rent/Mortgage",
+            "name": "Rent/Mortgage",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Bills"
+          },
+          {
+            "id": "category:group:Bills/Sneaky Category (hidden)",
+            "name": "Sneaky Category (hidden)",
+            "is_income": false,
+            "hidden": true,
+            "group_id": "group:Bills"
+          },
+          {
+            "id": "category:group:Bills/Electric",
+            "name": "Electric",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Bills"
+          },
+          {
+            "id": "category:group:Bills/Water",
+            "name": "Water",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Bills"
+          },
+          {
+            "id": "category:group:Bills/Internet",
+            "name": "Internet",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Bills"
+          },
+          {
+            "id": "category:group:Bills/Cellphone",
+            "name": "Cellphone",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Bills"
+          },
+          {
+            "id": "category:group:Frequent/Groceries",
+            "name": "Groceries",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Frequent"
+          },
+          {
+            "id": "category:group:Frequent/Eating Out",
+            "name": "Eating Out",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Frequent"
+          },
+          {
+            "id": "category:group:Frequent/Transportation",
+            "name": "Transportation",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Frequent"
+          },
+          {
+            "id": "category:group:Non-Monthly/Home Maintenance",
+            "name": "Home Maintenance",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Non-Monthly"
+          },
+          {
+            "id": "category:group:Non-Monthly/Auto Maintenance",
+            "name": "Auto Maintenance",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Non-Monthly"
+          },
+          {
+            "id": "category:group:Non-Monthly/Gifts",
+            "name": "Gifts",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Non-Monthly"
+          },
+          {
+            "id": "category:group:Goals/Vacation",
+            "name": "Vacation",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Goals"
+          },
+          {
+            "id": "category:group:Goals/Education",
+            "name": "Education",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Goals"
+          },
+          {
+            "id": "category:group:Goals/Home Improvement",
+            "name": "Home Improvement",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Goals"
+          },
+          {
+            "id": "category:group:Quality of Life/Hobbies",
+            "name": "Hobbies",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Quality of Life"
+          },
+          {
+            "id": "category:group:Quality of Life/Hobbies (hidden)",
+            "name": "Hobbies (hidden)",
+            "is_income": false,
+            "hidden": true,
+            "group_id": "group:Quality of Life"
+          },
+          {
+            "id": "category:group:Quality of Life/Entertainment",
+            "name": "Entertainment",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Quality of Life"
+          },
+          {
+            "id": "category:group:Quality of Life/Health & Wellness",
+            "name": "Health & Wellness",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Quality of Life"
+          },
+          {
+            "id": "category:group:Category Group/Category",
+            "name": "Category",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Category Group"
+          },
+          {
+            "id": "category:group:Bills (hidden)/Under extra Bills",
+            "name": "Under extra Bills",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "group:Bills (hidden)"
+          },
+          {
+            "id": "category:group:Income/Income",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "group:Income"
+          },
+          {
+            "id": "category:group:Income/Starting Balances",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "group:Income"
+          }
+        ],
+        "payees": [
+          {
+            "id": "payee:Manual Balance Adjustment",
+            "name": "Manual Balance Adjustment",
+            "transfer_acct": null
+          },
+          {
+            "id": "payee:Reconciliation Balance Adjustment",
+            "name": "Reconciliation Balance Adjustment",
+            "transfer_acct": null
+          },
+          {
+            "id": "payee:Salary",
+            "name": "Salary",
+            "transfer_acct": null
+          },
+          {
+            "id": "payee:Schedule Payee",
+            "name": "Schedule Payee",
+            "transfer_acct": null
+          },
+          {
+            "id": "payee:Starting Balance",
+            "name": "Starting Balance",
+            "transfer_acct": null
+          },
+          {
+            "id": "payee:Store",
+            "name": "Store",
+            "transfer_acct": null
+          },
+          {
+            "id": "payee:Work",
+            "name": "Work",
+            "transfer_acct": null
+          },
+          {
+            "id": "transfer:account:Checking",
+            "name": "Checking",
+            "transfer_acct": "account:Checking"
+          },
+          {
+            "id": "transfer:account:Saving",
+            "name": "Saving",
+            "transfer_acct": "account:Saving"
+          }
+        ],
+        "ledgers": [
+          {
+            "account_id": "account:Checking",
+            "balance": 260000,
+            "transactions": [
+              {
+                "id": "account:Checking:transaction:0",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Checking",
+                "category": "category:group:Income/Income",
+                "amount": 200000,
+                "payee": "payee:Work",
+                "notes": "Paycheck",
+                "date": "2024-02-02",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Work",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Checking:transaction:1",
+                "is_parent": true,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Checking",
+                "category": null,
+                "amount": -10000,
+                "payee": "payee:Store",
+                "notes": "Test transaction",
+                "date": "2023-09-04",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Store",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": [
+                  {
+                    "id": "account:Checking:transaction:1:child:0",
+                    "is_parent": false,
+                    "is_child": true,
+                    "parent_id": "account:Checking:transaction:1",
+                    "account": "account:Checking",
+                    "category": "category:group:Income/Income",
+                    "amount": -5000,
+                    "payee": "payee:Store",
+                    "notes": "split part a",
+                    "date": "2023-09-04",
+                    "imported_id": null,
+                    "error": null,
+                    "imported_payee": "Store",
+                    "starting_balance_flag": false,
+                    "transfer_id": null,
+                    "cleared": true,
+                    "reconciled": false,
+                    "tombstone": false,
+                    "schedule": null,
+                    "raw_synced_data": null
+                  },
+                  {
+                    "id": "account:Checking:transaction:1:child:1",
+                    "is_parent": false,
+                    "is_child": true,
+                    "parent_id": "account:Checking:transaction:1",
+                    "account": "account:Checking",
+                    "category": null,
+                    "amount": -5000,
+                    "payee": "transfer:account:Saving",
+                    "notes": "split part b",
+                    "date": "2023-09-04",
+                    "imported_id": null,
+                    "error": null,
+                    "imported_payee": null,
+                    "starting_balance_flag": false,
+                    "transfer_id": "account:Saving:transaction:0",
+                    "cleared": true,
+                    "reconciled": false,
+                    "tombstone": false,
+                    "schedule": null,
+                    "raw_synced_data": null
+                  }
+                ]
+              },
+              {
+                "id": "account:Checking:transaction:2",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Checking",
+                "category": null,
+                "amount": -20000,
+                "payee": "transfer:account:Saving",
+                "notes": "sending to savings #Savings-blue",
+                "date": "2023-08-04",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": null,
+                "starting_balance_flag": false,
+                "transfer_id": "account:Saving:transaction:2",
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Checking:transaction:3",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Checking",
+                "category": "category:group:Frequent/Groceries",
+                "amount": -10000,
+                "payee": "payee:Store",
+                "notes": "#One-off",
+                "date": "2023-08-04",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Store",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Checking:transaction:4",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Checking",
+                "category": "category:group:Income/Starting Balances",
+                "amount": 0,
+                "payee": null,
+                "notes": "getting paid #JOB",
+                "date": "2023-08-04",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Starting Balance",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": true,
+                "reconciled": true,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Checking:transaction:5",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Checking",
+                "category": "category:group:Income/Income",
+                "amount": 100000,
+                "payee": "payee:Salary",
+                "notes": null,
+                "date": "2023-08-04",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Salary",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": true,
+                "reconciled": true,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              }
+            ]
+          },
+          {
+            "account_id": "account:Saving",
+            "balance": 25000,
+            "transactions": [
+              {
+                "id": "account:Saving:transaction:0",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Saving",
+                "category": null,
+                "amount": 5000,
+                "payee": "transfer:account:Checking",
+                "notes": "split part b",
+                "date": "2023-09-04",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": null,
+                "starting_balance_flag": false,
+                "transfer_id": "account:Checking:transaction:1:child:1",
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Saving:transaction:1",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Saving",
+                "category": "category:group:Income/Starting Balances",
+                "amount": 0,
+                "payee": null,
+                "notes": "#Savings-purple",
+                "date": "2023-08-04",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": "Starting Balance",
+                "starting_balance_flag": false,
+                "transfer_id": null,
+                "cleared": true,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              },
+              {
+                "id": "account:Saving:transaction:2",
+                "is_parent": false,
+                "is_child": false,
+                "parent_id": null,
+                "account": "account:Saving",
+                "category": null,
+                "amount": 20000,
+                "payee": "transfer:account:Checking",
+                "notes": "sending to savings",
+                "date": "2023-08-04",
+                "imported_id": null,
+                "error": null,
+                "imported_payee": null,
+                "starting_balance_flag": false,
+                "transfer_id": "account:Checking:transaction:2",
+                "cleared": false,
+                "reconciled": false,
+                "tombstone": false,
+                "schedule": null,
+                "raw_synced_data": null,
+                "subtransactions": []
+              }
+            ]
+          }
+        ],
+        "months": [
+          {
+            "month": "2023-08",
+            "data": {
+              "month": "2023-08",
+              "incomeAvailable": 100000,
+              "lastMonthOverspent": 0,
+              "forNextMonth": 0,
+              "totalBudgeted": -10000,
+              "toBudget": 90000,
+              "fromLastMonth": 0,
+              "totalIncome": 100000,
+              "totalSpent": -10000,
+              "totalBalance": 0,
+              "categoryGroups": [
+                {
+                  "id": "group:Bills",
+                  "name": "Bills",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Bills/Rent/Mortgage",
+                      "name": "Rent/Mortgage",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Bills/Sneaky Category (hidden)",
+                      "name": "Sneaky Category (hidden)",
+                      "is_income": false,
+                      "hidden": true,
+                      "group_id": "group:Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Bills/Electric",
+                      "name": "Electric",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Bills/Water",
+                      "name": "Water",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Bills/Internet",
+                      "name": "Internet",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Bills/Cellphone",
+                      "name": "Cellphone",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Frequent",
+                  "name": "Frequent",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Frequent/Groceries",
+                      "name": "Groceries",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Frequent",
+                      "budgeted": 10000,
+                      "spent": -10000,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Frequent/Eating Out",
+                      "name": "Eating Out",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Frequent",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Frequent/Transportation",
+                      "name": "Transportation",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Frequent",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 10000,
+                  "spent": -10000,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Non-Monthly",
+                  "name": "Non-Monthly",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Non-Monthly/Home Maintenance",
+                      "name": "Home Maintenance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Non-Monthly",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Non-Monthly/Auto Maintenance",
+                      "name": "Auto Maintenance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Non-Monthly",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Non-Monthly/Gifts",
+                      "name": "Gifts",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Non-Monthly",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Goals",
+                  "name": "Goals",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Goals/Vacation",
+                      "name": "Vacation",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Goals",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Goals/Education",
+                      "name": "Education",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Goals",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Goals/Home Improvement",
+                      "name": "Home Improvement",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Goals",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Quality of Life",
+                  "name": "Quality of Life",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Quality of Life/Hobbies",
+                      "name": "Hobbies",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Quality of Life",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Quality of Life/Hobbies (hidden)",
+                      "name": "Hobbies (hidden)",
+                      "is_income": false,
+                      "hidden": true,
+                      "group_id": "group:Quality of Life",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Quality of Life/Entertainment",
+                      "name": "Entertainment",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Quality of Life",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Quality of Life/Health & Wellness",
+                      "name": "Health & Wellness",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Quality of Life",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Category Group",
+                  "name": "Category Group",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Category Group/Category",
+                      "name": "Category",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Category Group",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Bills (hidden)",
+                  "name": "Bills (hidden)",
+                  "is_income": false,
+                  "hidden": true,
+                  "categories": [
+                    {
+                      "id": "category:group:Bills (hidden)/Under extra Bills",
+                      "name": "Under extra Bills",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Bills (hidden)",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Income",
+                  "name": "Income",
+                  "is_income": true,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Income/Income",
+                      "name": "Income",
+                      "is_income": true,
+                      "hidden": false,
+                      "group_id": "group:Income",
+                      "received": 100000
+                    },
+                    {
+                      "id": "category:group:Income/Starting Balances",
+                      "name": "Starting Balances",
+                      "is_income": true,
+                      "hidden": false,
+                      "group_id": "group:Income",
+                      "received": 0
+                    }
+                  ],
+                  "received": 100000
+                }
+              ]
+            }
+          },
+          {
+            "month": "2023-09",
+            "data": {
+              "month": "2023-09",
+              "incomeAvailable": 85000,
+              "lastMonthOverspent": 0,
+              "forNextMonth": 0,
+              "totalBudgeted": 0,
+              "toBudget": 85000,
+              "fromLastMonth": 90000,
+              "totalIncome": -5000,
+              "totalSpent": 0,
+              "totalBalance": 0,
+              "categoryGroups": [
+                {
+                  "id": "group:Bills",
+                  "name": "Bills",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Bills/Rent/Mortgage",
+                      "name": "Rent/Mortgage",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Bills/Sneaky Category (hidden)",
+                      "name": "Sneaky Category (hidden)",
+                      "is_income": false,
+                      "hidden": true,
+                      "group_id": "group:Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Bills/Electric",
+                      "name": "Electric",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Bills/Water",
+                      "name": "Water",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Bills/Internet",
+                      "name": "Internet",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Bills/Cellphone",
+                      "name": "Cellphone",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Bills",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Frequent",
+                  "name": "Frequent",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Frequent/Groceries",
+                      "name": "Groceries",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Frequent",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Frequent/Eating Out",
+                      "name": "Eating Out",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Frequent",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Frequent/Transportation",
+                      "name": "Transportation",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Frequent",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Non-Monthly",
+                  "name": "Non-Monthly",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Non-Monthly/Home Maintenance",
+                      "name": "Home Maintenance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Non-Monthly",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Non-Monthly/Auto Maintenance",
+                      "name": "Auto Maintenance",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Non-Monthly",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Non-Monthly/Gifts",
+                      "name": "Gifts",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Non-Monthly",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Goals",
+                  "name": "Goals",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Goals/Vacation",
+                      "name": "Vacation",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Goals",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Goals/Education",
+                      "name": "Education",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Goals",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Goals/Home Improvement",
+                      "name": "Home Improvement",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Goals",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Quality of Life",
+                  "name": "Quality of Life",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Quality of Life/Hobbies",
+                      "name": "Hobbies",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Quality of Life",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Quality of Life/Hobbies (hidden)",
+                      "name": "Hobbies (hidden)",
+                      "is_income": false,
+                      "hidden": true,
+                      "group_id": "group:Quality of Life",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Quality of Life/Entertainment",
+                      "name": "Entertainment",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Quality of Life",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    },
+                    {
+                      "id": "category:group:Quality of Life/Health & Wellness",
+                      "name": "Health & Wellness",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Quality of Life",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Category Group",
+                  "name": "Category Group",
+                  "is_income": false,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Category Group/Category",
+                      "name": "Category",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Category Group",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Bills (hidden)",
+                  "name": "Bills (hidden)",
+                  "is_income": false,
+                  "hidden": true,
+                  "categories": [
+                    {
+                      "id": "category:group:Bills (hidden)/Under extra Bills",
+                      "name": "Under extra Bills",
+                      "is_income": false,
+                      "hidden": false,
+                      "group_id": "group:Bills (hidden)",
+                      "budgeted": 0,
+                      "spent": 0,
+                      "balance": 0,
+                      "carryover": false
+                    }
+                  ],
+                  "budgeted": 0,
+                  "spent": 0,
+                  "balance": 0
+                },
+                {
+                  "id": "group:Income",
+                  "name": "Income",
+                  "is_income": true,
+                  "hidden": false,
+                  "categories": [
+                    {
+                      "id": "category:group:Income/Income",
+                      "name": "Income",
+                      "is_income": true,
+                      "hidden": false,
+                      "group_id": "group:Income",
+                      "received": -5000
+                    },
+                    {
+                      "id": "category:group:Income/Starting Balances",
+                      "name": "Starting Balances",
+                      "is_income": true,
+                      "hidden": false,
+                      "group_id": "group:Income",
+                      "received": 0
+                    }
+                  ],
+                  "received": -5000
+                }
+              ]
+            }
+          }
+        ],
+        "schedules": [
+          {
+            "id": "generated:1",
+            "name": "Scheduled - not repeated",
+            "rule": "generated:2",
+            "next_date": "2025-08-04",
+            "completed": false,
+            "posts_transaction": false,
+            "payee": "payee:Schedule Payee",
+            "account": "account:Checking",
+            "amount": -10000,
+            "amountOp": "is",
+            "date": "2025-08-04"
+          },
+          {
+            "id": "generated:3",
+            "name": "Scheduled - repeated daily",
+            "rule": "generated:4",
+            "next_date": "2026-11-09",
+            "completed": false,
+            "posts_transaction": false,
+            "payee": "payee:Schedule Payee",
+            "account": "account:Checking",
+            "amount": -10000,
+            "amountOp": "is",
+            "date": {
+              "frequency": "daily",
+              "skipWeekend": false,
+              "weekendSolveMode": "after",
+              "endMode": "never",
+              "start": "2025-08-03"
+            }
+          },
+          {
+            "id": "generated:5",
+            "name": "Scheduled - transfer to Saving",
+            "rule": "generated:6",
+            "next_date": "2026-11-12",
+            "completed": false,
+            "posts_transaction": false,
+            "payee": "transfer:account:Saving",
+            "account": "account:Checking",
+            "amount": -5000,
+            "amountOp": "is",
+            "date": {
+              "frequency": "weekly",
+              "interval": 2,
+              "skipWeekend": false,
+              "weekendSolveMode": "after",
+              "endMode": "never",
+              "start": "2025-08-07"
+            }
+          },
+          {
+            "id": "generated:7",
+            "name": "Scheduled - repeated weekly",
+            "rule": "generated:8",
+            "next_date": "2026-11-15",
+            "completed": false,
+            "posts_transaction": false,
+            "payee": "payee:Schedule Payee",
+            "account": "account:Checking",
+            "amount": -10000,
+            "amountOp": "is",
+            "date": {
+              "frequency": "weekly",
+              "skipWeekend": false,
+              "weekendSolveMode": "after",
+              "endMode": "never",
+              "start": "2025-08-03"
+            }
+          },
+          {
+            "id": "generated:9",
+            "name": "Scheduled - repeated twice a month",
+            "rule": "generated:10",
+            "next_date": "2026-11-18",
+            "completed": false,
+            "posts_transaction": false,
+            "payee": "payee:Schedule Payee",
+            "account": "account:Checking",
+            "amount": -10000,
+            "amountOp": "is",
+            "date": {
+              "frequency": "monthly",
+              "patterns": [
+                {
+                  "type": "day",
+                  "value": 3
+                },
+                {
+                  "type": "day",
+                  "value": 18
+                }
+              ],
+              "skipWeekend": false,
+              "weekendSolveMode": "after",
+              "endMode": "never",
+              "start": "2025-08-03"
+            }
+          },
+          {
+            "id": "generated:11",
+            "name": "Scheduled - repeated every other week",
+            "rule": "generated:12",
+            "next_date": "2026-11-22",
+            "completed": false,
+            "posts_transaction": false,
+            "payee": "payee:Schedule Payee",
+            "account": "account:Checking",
+            "amount": -10000,
+            "amountOp": "is",
+            "date": {
+              "frequency": "weekly",
+              "interval": 2,
+              "skipWeekend": false,
+              "weekendSolveMode": "after",
+              "endMode": "never",
+              "start": "2025-08-03"
+            }
+          },
+          {
+            "id": "generated:13",
+            "name": "Scheduled - repeated every four weeks",
+            "rule": "generated:14",
+            "next_date": "2026-11-24",
+            "completed": false,
+            "posts_transaction": false,
+            "payee": "payee:Schedule Payee",
+            "account": "account:Checking",
+            "amount": -10000,
+            "amountOp": "is",
+            "date": {
+              "frequency": "weekly",
+              "interval": 4,
+              "skipWeekend": false,
+              "weekendSolveMode": "after",
+              "endMode": "never",
+              "start": "2025-08-05"
+            }
+          },
+          {
+            "id": "generated:15",
+            "name": "Scheduled - repeated every four months",
+            "rule": "generated:16",
+            "next_date": "2026-12-05",
+            "completed": false,
+            "posts_transaction": false,
+            "payee": "payee:Schedule Payee",
+            "account": "account:Checking",
+            "amount": -10000,
+            "amountOp": "is",
+            "date": {
+              "frequency": "monthly",
+              "interval": 4,
+              "patterns": [],
+              "skipWeekend": false,
+              "weekendSolveMode": "after",
+              "endMode": "never",
+              "start": "2025-08-05"
+            }
+          },
+          {
+            "id": "generated:17",
+            "name": "Scheduled - repeated monthly",
+            "rule": "generated:18",
+            "next_date": "2026-12-05",
+            "completed": false,
+            "posts_transaction": false,
+            "payee": "payee:Schedule Payee",
+            "account": "account:Checking",
+            "amount": -10000,
+            "amountOp": "is",
+            "date": {
+              "frequency": "monthly",
+              "patterns": [],
+              "skipWeekend": false,
+              "weekendSolveMode": "after",
+              "endMode": "never",
+              "start": "2025-08-05"
+            }
+          },
+          {
+            "id": "generated:19",
+            "name": "Scheduled - repeated every other month",
+            "rule": "generated:20",
+            "next_date": "2026-12-05",
+            "completed": false,
+            "posts_transaction": false,
+            "payee": "payee:Schedule Payee",
+            "account": "account:Checking",
+            "amount": -10000,
+            "amountOp": "is",
+            "date": {
+              "frequency": "monthly",
+              "interval": 2,
+              "patterns": [],
+              "skipWeekend": false,
+              "weekendSolveMode": "after",
+              "endMode": "never",
+              "start": "2025-08-05"
+            }
+          },
+          {
+            "id": "generated:21",
+            "name": "Scheduled - split categories monthly",
+            "rule": "generated:22",
+            "next_date": "2026-12-06",
+            "completed": false,
+            "posts_transaction": false,
+            "payee": "payee:Schedule Payee",
+            "account": "account:Checking",
+            "amount": -10000,
+            "amountOp": "is",
+            "date": {
+              "frequency": "monthly",
+              "patterns": [],
+              "skipWeekend": false,
+              "weekendSolveMode": "after",
+              "endMode": "never",
+              "start": "2025-08-06"
+            }
+          },
+          {
+            "id": "generated:23",
+            "name": "Scheduled - repeated twice a year",
+            "rule": "generated:24",
+            "next_date": "2027-02-05",
+            "completed": false,
+            "posts_transaction": false,
+            "payee": "payee:Schedule Payee",
+            "account": "account:Checking",
+            "amount": -10000,
+            "amountOp": "is",
+            "date": {
+              "frequency": "monthly",
+              "interval": 6,
+              "patterns": [],
+              "skipWeekend": false,
+              "weekendSolveMode": "after",
+              "endMode": "never",
+              "start": "2025-08-05"
+            }
+          },
+          {
+            "id": "generated:25",
+            "name": "Scheduled - repeated every three months",
+            "rule": "generated:26",
+            "next_date": "2027-02-05",
+            "completed": false,
+            "posts_transaction": false,
+            "payee": "payee:Schedule Payee",
+            "account": "account:Checking",
+            "amount": -10000,
+            "amountOp": "is",
+            "date": {
+              "frequency": "monthly",
+              "interval": 3,
+              "patterns": [],
+              "skipWeekend": false,
+              "weekendSolveMode": "after",
+              "endMode": "never",
+              "start": "2025-08-05"
+            }
+          },
+          {
+            "id": "generated:27",
+            "name": "Scheduled - repeated every other year",
+            "rule": "generated:28",
+            "next_date": "2027-08-05",
+            "completed": false,
+            "posts_transaction": false,
+            "payee": "payee:Schedule Payee",
+            "account": "account:Checking",
+            "amount": -10000,
+            "amountOp": "is",
+            "date": {
+              "frequency": "yearly",
+              "interval": 2,
+              "skipWeekend": false,
+              "weekendSolveMode": "after",
+              "endMode": "never",
+              "start": "2025-08-05"
+            }
+          },
+          {
+            "id": "generated:29",
+            "name": "Scheduled - repeated yearly",
+            "rule": "generated:30",
+            "next_date": "2027-08-05",
+            "completed": false,
+            "posts_transaction": false,
+            "payee": "payee:Schedule Payee",
+            "account": "account:Checking",
+            "amount": -10000,
+            "amountOp": "is",
+            "date": {
+              "frequency": "yearly",
+              "skipWeekend": false,
+              "weekendSolveMode": "after",
+              "endMode": "never",
+              "start": "2025-08-05"
+            }
+          }
+        ],
+        "tags": [
+          {
+            "id": "generated:31",
+            "tag": "JOB",
+            "color": "#689F38",
+            "description": "Imported from YNAB",
+            "hidden": false
+          },
+          {
+            "id": "generated:32",
+            "tag": "One-off",
+            "color": "#FF6666",
+            "description": "Imported from YNAB",
+            "hidden": false
+          },
+          {
+            "id": "generated:33",
+            "tag": "Savings-blue",
+            "color": "#1976D2",
+            "description": "Imported from YNAB",
+            "hidden": false
+          },
+          {
+            "id": "generated:34",
+            "tag": "Savings-purple",
+            "color": "#512DA8",
+            "description": "Imported from YNAB",
+            "hidden": false
+          },
+          {
+            "id": "generated:35",
+            "tag": "Split",
+            "color": "#FBC02D",
+            "description": "Imported from YNAB",
+            "hidden": false
+          },
+          {
+            "id": "generated:36",
+            "tag": "Transfer",
+            "color": "#F57C00",
+            "description": "Imported from YNAB",
+            "hidden": false
+          }
+        ]
+      }
+    }
+  ],
+  "source_files": [
+    {
+      "path": "packages/loot-core/src/server/importers/ynab4.ts",
+      "sha256": "4bc088862a4129418c548793e1d228c9587be087fef3f0ca7e53ca802350bfa0"
+    },
+    {
+      "path": "packages/loot-core/src/server/importers/ynab4-types.ts",
+      "sha256": "c80afa856a5a1f710eb3f51977bcd538dd9548a6960c4dac1bb81b3b3442a291"
+    },
+    {
+      "path": "packages/loot-core/src/server/importers/ynab5.ts",
+      "sha256": "c1a04e7bbf9afe1ecb676c97d9dae6b95c01271af983315d70fbddfd6a4eb0cb"
+    },
+    {
+      "path": "packages/loot-core/src/server/importers/ynab5-types.ts",
+      "sha256": "5ea6d6c6dbe8c6460fd5bef917d86cc44922f7229d6aa99baefd0a437ad8356f"
+    }
+  ]
+}

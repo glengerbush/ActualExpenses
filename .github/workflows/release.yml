@@ -260,6 +260,7 @@ jobs:
           node actualBudget/tools/generate-transaction-merge-source.mjs --check
           node actualBudget/tools/generate-transaction-export-source.mjs --check
           node actualBudget/tools/generate-transaction-format-flows.mjs --check
+          npm --prefix actualBudget/web run test:ynab-source
           python3 actualBudget/tools/generate-v5-receipts.py --check
           python3 -m venv "$RUNNER_TEMP/contract-check"
           "$RUNNER_TEMP/contract-check/bin/pip" install jsonschema==4.23.0

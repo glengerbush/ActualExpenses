@@ -114,10 +114,10 @@ class NativeApiIntegrationTest {
             assertEquals(200, response.statusCode(), response.body())
         }
 
-        fun upload(bytes: ByteArray): JsonObject {
+        fun upload(bytes: ByteArray, path: String = "/imports/actual"): JsonObject {
             val response =
                 client.send(
-                    HttpRequest.newBuilder(URI("$url/api/v1/imports/actual"))
+                    HttpRequest.newBuilder(URI("$url/api/v1$path"))
                         .header("Content-Type", "application/zip")
                         .header("Idempotency-Key", UUID.randomUUID().toString())
                         .POST(HttpRequest.BodyPublishers.ofByteArray(bytes))
@@ -1757,6 +1757,99 @@ class NativeApiIntegrationTest {
                 restarted.state().expenses.single { it.id == aliasExpense }.payee,
             )
             assertEquals(3, server.get("$base/transactions").getAsJsonArray("data").size())
+        }
+    }
+
+    @Test
+    fun `YNAB migrations retain native ordinary expenses references and offline delivery`() {
+        val directory = Path.of("../../actualBudget/tests/fixtures")
+        val oracle =
+            JsonParser.parseString(Files.readString(directory.resolve("ynab-source.json")))
+                .asJsonObject
+        for (case in oracle.getAsJsonArray("cases")) {
+            Server().use { server ->
+                val source = case.asJsonObject
+                val ynab4 = source["type"].asString == "ynab4"
+                val file = source.getAsJsonObject("input")["filename"].asString
+                val path =
+                    if (ynab4) "/imports/ynab4?filename=companion.ynab4.zip"
+                    else "/imports/nynab?filename=companion.json"
+                val stage = server.upload(Files.readAllBytes(directory.resolve("ynab/$file")), path)
+                val budget = stage["budget_id"].asString
+                server.post("/imports/${stage["id"].asString}/activate", "{}")
+                val snapshot = source.getAsJsonObject("snapshot")
+                val baselineAccount =
+                    snapshot
+                        .getAsJsonArray("accounts")
+                        .map { it.asJsonObject }
+                        .first { !it["offbudget"].asBoolean && !it["closed"].asBoolean }
+                val account =
+                    server
+                        .get("/budgets/$budget/accounts")
+                        .getAsJsonArray("data")
+                        .map { it.asJsonObject }
+                        .single { it["name"].asString == baselineAccount["name"].asString }["id"]
+                        .asString
+                val baselineLedger =
+                    snapshot
+                        .getAsJsonArray("ledgers")
+                        .map { it.asJsonObject }
+                        .single { it["account_id"].asString == baselineAccount["id"].asString }
+                val expected =
+                    baselineLedger
+                        .getAsJsonArray("transactions")
+                        .map { it.asJsonObject }
+                        .filter {
+                            it["amount"].asLong < 0 &&
+                                !it["is_parent"].asBoolean &&
+                                !it["reconciled"].asBoolean &&
+                                it["transfer_id"].isJsonNull
+                        }
+                        .map {
+                            Triple(
+                                -it["amount"].asLong,
+                                it["date"].asString,
+                                if (it["notes"].isJsonNull) "" else it["notes"].asString,
+                            )
+                        }
+                        .sortedBy { it.toString() }
+                val store = MemoryStore()
+                val app = ApiExpenseService(store)
+                app.connect(server.url)
+                app.chooseBudget(budget)
+                app.chooseAccount(account)
+                assertNull(app.state().error)
+                assertEquals(
+                    expected,
+                    app.state()
+                        .expenses
+                        .map { Triple(it.amountMinor, it.date, it.notes) }
+                        .sortedBy { it.toString() },
+                )
+                assertTrue(app.state().categories.isNotEmpty())
+                assertTrue(app.state().payees.isNotEmpty())
+                val oldIds = app.state().expenses.map { it.id }.toSet()
+                app.markOffline()
+                val id = app.saveExpense(ExpenseDraft("1.23", notes = "YNAB companion offline"))
+                assertEquals(1, app.state().pendingCount)
+                val raw = store.raw
+                val restarted = ApiExpenseService(store)
+                assertEquals(raw, store.raw, "Restart does not recapture pending request")
+                assertEquals(1, restarted.state().pendingCount)
+                restarted.refresh()
+                assertNull(restarted.state().error)
+                assertEquals(0, restarted.state().pendingCount)
+                assertEquals(oldIds + id, restarted.state().expenses.map { it.id }.toSet())
+                assertEquals(123L, restarted.state().expenses.single { it.id == id }.amountMinor)
+                restarted.refresh()
+                val rows =
+                    server
+                        .get("/budgets/$budget/transactions?limit=1000")
+                        .getAsJsonArray("data")
+                        .map { it.asJsonObject }
+                assertEquals(1, rows.count { it["id"].asString == id })
+                assertEquals(-123L, rows.single { it["id"].asString == id }["amount"].asLong)
+            }
         }
     }
 

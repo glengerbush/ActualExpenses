@@ -15724,7 +15724,7 @@
     },
     "/api/v1/budgets/{budget}/rules/apply": {
       "post": {
-        "description": "Re-evaluate selected saved rules on1–100 captured ledger rows. One atomic receipt/history group covers all rows, generated peers/payees and splits; one shared work budget. Reconciled graph members require explicit unlock and a fresh preview. Never trains category defaults.",
+        "description": "Re-evaluate selected saved rules on1\u2013100 captured ledger rows. One atomic receipt/history group covers all rows, generated peers/payees and splits; one shared work budget. Reconciled graph members require explicit unlock and a fresh preview. Never trains category defaults.",
         "parameters": [
           {
             "name": "budget",
@@ -16098,7 +16098,7 @@
     },
     "/api/v1/budgets/{budget}/rules/rename-payee": {
       "post": {
-        "description": "Union nonempty raw imported names into an existing pre-stage oneOf→payee setter, or create one. Canonical merged payee IDs are resolved. One original receipt/history action.",
+        "description": "Union nonempty raw imported names into an existing pre-stage oneOf\u2192payee setter, or create one. Canonical merged payee IDs are resolved. One original receipt/history action.",
         "parameters": [
           {
             "name": "budget",
@@ -17345,7 +17345,7 @@
     },
     "/api/v1/budgets/{budget}/schedules/{id}/occurrences": {
       "get": {
-        "description": "Read calendar occurrences and their durable outcomes without posting or advancing. Limit1–1000, optional inclusive from/through dates. Carry the returned snapshot and next_from for a consistent continuation.",
+        "description": "Read calendar occurrences and their durable outcomes without posting or advancing. Limit1\u20131000, optional inclusive from/through dates. Carry the returned snapshot and next_from for a consistent continuation.",
         "parameters": [
           {
             "name": "budget",
@@ -20632,6 +20632,295 @@
           }
         }
       }
+    },
+    "/api/v1/imports/ynab4": {
+      "post": {
+        "summary": "Stage a YNAB4 budget folder ZIP",
+        "description": "Maximum16MiB original file,100000 rows per source collection. YNAB4 ZIP expansion is limited to64MiB and10000 entries. Original bytes, source identity mapping, immutable upload/activation receipts retained. No source edit log is synthesized as undo history. Review source-model differences before separate-budget activation. Same original SHA resolves the same stage; another source kind cannot reinterpret it.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "filename",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/zip": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Durable ready or blocked stage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ActualImportStage"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Missing/unknown/malformed filename query rejected before JSON API processing."
+              }
+            }
+          },
+          "403": {
+            "description": "Origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Archive exceeds16MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid archive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/imports/nynab": {
+      "post": {
+        "summary": "Stage a supported nYNAB JSON budget export",
+        "description": "Maximum16MiB original file,100000 rows per source collection. YNAB4 ZIP expansion is limited to64MiB and10000 entries. Original bytes, source identity mapping, immutable upload/activation receipts retained. No source edit log is synthesized as undo history. Review source-model differences before separate-budget activation. Same original SHA resolves the same stage; another source kind cannot reinterpret it.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "filename",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Source budget object, optionally wrapped in data and plan or budget.",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Durable ready or blocked stage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ActualImportStage"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Missing/unknown/malformed filename query rejected before JSON API processing."
+              }
+            }
+          },
+          "403": {
+            "description": "Origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Archive exceeds16MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid archive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/imports/{id}/original": {
+      "get": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Byte-identical original archive; attachment, no-store",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Original nYNAB JSON; binary ZIP for Actual/YNAB4."
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Import missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Download the unchanged original budget export"
+      }
     }
   },
   "components": {
@@ -20828,7 +21117,7 @@
             "type": "string",
             "format": "date",
             "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
-            "description": "Calendar date YYYY-MM-DD, year 0001–9999."
+            "description": "Calendar date YYYY-MM-DD, year 0001\u20139999."
           }
         },
         "required": [
@@ -23098,6 +23387,21 @@
                 "type": "object",
                 "additionalProperties": {
                   "type": "boolean"
+                },
+                "properties": {
+                  "sqlite_integrity": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ],
+                    "description": "Null for non-SQLite YNAB exports; relationship/financial checks still apply."
+                  },
+                  "source_format": {
+                    "enum": [
+                      "ynab4",
+                      "nynab"
+                    ]
+                  }
                 }
               },
               "extra_archive_entries": {
@@ -23105,6 +23409,15 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "source_format": {
+                "type": "string",
+                "enum": [
+                  "actual",
+                  "ynab4",
+                  "nynab"
+                ],
+                "description": "Authoritative source adapter, absent for legacy Actual stages. Source metadata.format is not authoritative."
               }
             },
             "additionalProperties": false
@@ -24294,7 +24607,7 @@
             }
           }
         ],
-        "description": "Select 1–100 parent or child entries. Split selections are grouped before applying; final allocations must equal the parent. Duplicate parent+children produces one split using the first selected member destination ID. Child account/date/cleared changes require parent selected too. Notes modes apply per selected entry."
+        "description": "Select 1\u2013100 parent or child entries. Split selections are grouped before applying; final allocations must equal the parent. Duplicate parent+children produces one split using the first selected member destination ID. Child account/date/cleared changes require parent selected too. Notes modes apply per selected entry."
       },
       "HistoryNavigate": {
         "type": "object",
@@ -24543,7 +24856,7 @@
       "TransferProtectionToken": {
         "type": "string",
         "pattern": "^[0-9a-f]{64}$",
-        "description": "Captured fixed-size proof of complete connected live split/transfer membership, relationship edges and every member’s own reconciled flag/version, bound to this budget. Capture GET /transactions/{id}/splits; for linking include counterpart_id query parameter. Verify inside the receipt transaction with the original intent clock newer than every captured protection version. Immutable retries never refresh proof."
+        "description": "Captured fixed-size proof of complete connected live split/transfer membership, relationship edges and every member\u2019s own reconciled flag/version, bound to this budget. Capture GET /transactions/{id}/splits; for linking include counterpart_id query parameter. Verify inside the receipt transaction with the original intent clock newer than every captured protection version. Immutable retries never refresh proof."
       },
       "BudgetPlan": {
         "type": "object",

@@ -1,0 +1,49 @@
+{
+  "oracle": "@actual-app/api@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "grammar": [
+    {
+      "name": "simple decimal",
+      "notes": "#template 72.99",
+      "templates": [
+        {
+          "type": "simple",
+          "monthly": 72.99,
+          "limit": null,
+          "priority": 0,
+          "directive": "template"
+        }
+      ]
+    }
+  ],
+  "financial": [
+    {
+      "name": "simple decimal",
+      "method": "envelope",
+      "month": "2026-11",
+      "notes": "#template 72.99",
+      "seed": {
+        "budget": 0,
+        "goal": null,
+        "long-goal": null,
+        "leftover": 0
+      },
+      "notification": {
+        "type": "message",
+        "message": "templates-applied",
+        "count": 1
+      },
+      "result": {
+        "budget": 7299,
+        "goal": 7299,
+        "long-goal": null,
+        "leftover": 7299
+      },
+      "archive": {
+        "filename": "budget-templates-simple-base-26.10.zip",
+        "sha256": "cb98724bbc54c211dd5369dca8b69f13958b47db2e3d831d675be45660723bb6"
+      }
+    }
+  ]
+}

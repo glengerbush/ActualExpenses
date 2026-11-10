@@ -79,6 +79,45 @@ and exhausted-work-guard qualification. No source fixture was relabeled.
 
 Merged reviewed main08bae64 before the UI freeze, retaining current native25, shared predicate fixes, banking/public API commands and both root/backend and UI evidence. Only capability/test-list/document conflicts required resolution; no source financial calculation was replaced.
 
+## Root final UI review and local acceptance
+
+2026-11-10:966e596/3c4d5ca and date correction62f4f6b reviewed against all37
+criteria and repository standards. Source-specific controls, imported documents,
+financial/cached result validation, epoch/revision guards, scoped record
+inspection, privacy masking and bounded presentation were checked. The diagram
+uses server-calculated amounts; client arithmetic only lays out geometry.
+No extra polling, financial engine or mutation queue was introduced.
+
+Two visible review corrections are closed. Full report dates now use selected
+date_format without changing request/document dates (worker genuine Settings
+red/green). Shared report field columns now have a responsive15rem minimum;
+the390px month selector shows the full year instead of clipping it behind the
+calendar icon. Root inspected desktop/mobile/German/dark large-text captures and
+the corrected month selector. Horizontally scrolling diagrams/tables are
+intentional; named keyboard regions and exact signed tables remain available.
+
+Composedd8b5d52 Rust build, Svelte0errors/0warnings and production web build PASS
+(`/tmp/sankey-root-ui-{build,check,webbuild}.log`). Browser workflow PASS
+`/tmp/sankey-root-ui-browser.log`; after the CSS-only correction, rebuilt browser
+workflow PASS `/tmp/sankey-root-fields-browser.log` and build PASS
+`/tmp/sankey-root-fields-webbuild.log`. These include source-exact flow records,
+lost committed save/reload/exact retry, cache failure/fallback, privacy, opt-out,
+keyboard inspection and non-ISO dates with unchanged source configuration.
+Existing backend26/native25/companion evidence above is reused unchanged.
+
+Impeccable technical audit:17/20 (accessibility3, performance3, theming4,
+responsive3, integrity4); no remaining scoped finding. Amounts/percentages and
+geometry obey privacy; theme tokens,44px controls and semantic tables preserve
+the existing Operate design. Root detector returned[] (source scan, not rendered
+contrast certification); Svelte autofixer reports0issues. Its local Map
+advisories concern ephemeral layout calculations, not reactive shared state.
+Reports autofixer has0issues/suggestions after the layout fix. Final51 still
+owns browser zoom/physical accessibility and resource qualification; the bundle
+advisory remains visible. No real-device or live screen-reader claim.
+
+All37 feature criteria are met locally. Whole-system qualification50–53 remains
+open; no version bump, publication or live deployment.
+
 Post-merge Svelte0errors/0warnings and production build PASS (`/tmp/sankey37-ui-merge-{check,build}.log`); owned UI/test formatting PASS `/tmp/sankey37-ui-format-check.log`. Final formatting-only change expands one browser-test header object; no behavior changed. The merged Rust build is recorded separately at `/tmp/sankey37-ui-merge-rust.log`.
 
 Root's final UI review found the header's full dates bypassed `date_format`. `/tmp/sankey37-date-format-red.log` reproduces ISO text after saving `dd.MM.yyyy` through real Settings. The header now uses the existing `displayDate` helper for as-of/start/end; stored/query dates are unchanged. Extended existing browser witness PASS `/tmp/sankey37-date-format-green.log`, including `09.11.2026 ·01.11.2026–30.11.2026` and identical saved document/financial configuration. Svelte0/0/build PASS `/tmp/sankey37-date-format-{check,build}.log`; targeted loader autofixer still zero issues. No backend/source/native rerun.

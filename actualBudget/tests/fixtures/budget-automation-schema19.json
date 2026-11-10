@@ -1,0 +1,1639 @@
+{
+  "source_commit": "94bd0c2",
+  "accepted_product_commit": "b7c1ca7",
+  "schema_version": 19,
+  "executable_sha256": "eb1b47e56443f805c5ae828916329d1501ad5f1f67481e2a91c29a28b5c6b135",
+  "source_archive": "budget-goal-upgrade-source.zip",
+  "source_archive_sha256": "3bbb5022d4d80059559a5d521768dcb44a4e4420eb19771fb67335ca68689a63",
+  "active_stage": {
+    "data": {
+      "budget_id": "5bc8fb84-78b4-4cce-8419-0c5118eefbfc",
+      "id": "bd266b62-8fa4-4e9c-9624-d5a309fd22bc",
+      "report": {
+        "accounts": [
+          {
+            "closed": false,
+            "group_id": null,
+            "id": "f19a36c7-8ee3-498f-a283-fd8f68fb1719",
+            "last_reconciled": null,
+            "name": "Checking",
+            "notes": "",
+            "off_budget": false,
+            "sort_order": 0,
+            "tombstone": false
+          }
+        ],
+        "archive_sha256": "3bbb5022d4d80059559a5d521768dcb44a4e4420eb19771fb67335ca68689a63",
+        "balances": [
+          {
+            "account_id": "f19a36c7-8ee3-498f-a283-fd8f68fb1719",
+            "cleared": 100000,
+            "total": 100000,
+            "uncleared": 0
+          }
+        ],
+        "checks": {
+          "converted_relationships": true,
+          "financial_totals": true,
+          "identifiers": true,
+          "sqlite_integrity": true
+        },
+        "counts": {
+          "__meta__": 1,
+          "__migrations__": 60,
+          "account_groups": 0,
+          "accounts": 1,
+          "banks": 0,
+          "categories": 4,
+          "category_groups": 2,
+          "category_mapping": 9,
+          "cleanup_groups": 0,
+          "created_budgets": 0,
+          "custom_reports": 0,
+          "dashboard": 12,
+          "dashboard_pages": 1,
+          "kvcache": 0,
+          "kvcache_key": 0,
+          "messages_clock": 1,
+          "messages_crdt": 0,
+          "messages_pending": 0,
+          "notes": 1,
+          "payee_locations": 0,
+          "payee_mapping": 1,
+          "payees": 1,
+          "pending_transactions": 0,
+          "preferences": 1,
+          "reflect_budgets": 0,
+          "rules": 0,
+          "schedules": 0,
+          "schedules_json_paths": 0,
+          "schedules_next_date": 0,
+          "sqlite_stat1": 4,
+          "sqlite_stat4": 31,
+          "tags": 0,
+          "transaction_filters": 0,
+          "transactions": 1,
+          "zero_budget_months": 0,
+          "zero_budgets": 1
+        },
+        "extra_archive_entries": [],
+        "preferences": {
+          "device": {
+            "language": "",
+            "preferred_dark_theme": "dark",
+            "theme": "system"
+          },
+          "shared": {
+            "currency_code": "",
+            "currency_space": false,
+            "currency_symbol_position": "before",
+            "date_format": "MM/dd/yyyy",
+            "experimental": {
+              "actionTemplating": false,
+              "akahuBankSync": false,
+              "balanceForecastReport": false,
+              "budgetAnalysisReport": false,
+              "currency": false,
+              "customThemes": false,
+              "enableBanking": false,
+              "formulaMode": false,
+              "goalTemplatesEnabled": false,
+              "goalTemplatesUIEnabled": false,
+              "mobileCalculator": false,
+              "monteCarloReport": false,
+              "newSidebarUI": false,
+              "sankeyReport": false
+            },
+            "first_day_of_week": 0,
+            "hide_fraction": false,
+            "number_format": "comma-dot"
+          },
+          "unmapped": {
+            "global": {},
+            "synced": {
+              "budgetType": "envelope"
+            }
+          },
+          "warnings": [
+            {
+              "key": "budgetType",
+              "reason": "Preference belongs to another feature; retained for its importer"
+            }
+          ]
+        },
+        "requirements": [
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "__meta__",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 60,
+            "feature": "__migrations__",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 9,
+            "feature": "category_mapping",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 12,
+            "feature": "dashboard",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "dashboard_pages",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "messages_clock",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "payee_mapping",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 4,
+            "feature": "sqlite_stat1",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 31,
+            "feature": "sqlite_stat4",
+            "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+          },
+          {
+            "blocking": false,
+            "count": 1,
+            "feature": "transfer_payees",
+            "reason": "Transfer payee metadata preserved; excluded from ordinary payee selection"
+          },
+          {
+            "blocking": false,
+            "count": 5,
+            "feature": "unreferenced_category_alias",
+            "reason": "Obsolete source alias retained; converted transactions must still resolve to an existing category"
+          }
+        ],
+        "source": {
+          "budgetName": "Goal cells before template support",
+          "id": "Goal-cells-before-template-support-212ac90",
+          "resetClock": true
+        },
+        "source_field_clock_count": 0,
+        "source_preferences": [
+          {
+            "id": "budgetType",
+            "value": "envelope"
+          }
+        ]
+      },
+      "status": "ready"
+    }
+  },
+  "activated": {
+    "data": {
+      "budget_type": "envelope",
+      "id": "5bc8fb84-78b4-4cce-8419-0c5118eefbfc",
+      "name": "Goal cells before template support"
+    }
+  },
+  "metadata": {
+    "auto_due": 1794271953,
+    "backup_error": null,
+    "budget_type": "envelope",
+    "deleted": false,
+    "epoch": "e0906070005460114dc10b9fb51575fb",
+    "generation": 0,
+    "id": "5bc8fb84-78b4-4cce-8419-0c5118eefbfc",
+    "last_auto": null,
+    "name": "Goal cells before template support"
+  },
+  "account_id": "f19a36c7-8ee3-498f-a283-fd8f68fb1719",
+  "category_id": "dba8d7eb-0e32-4175-ac27-4459ff6ba9b4",
+  "owner_headers": {
+    "X-Actual-History-Owner": "19200000-0000-4000-8000-000000000090",
+    "X-Actual-Budget-Epoch": "e0906070005460114dc10b9fb51575fb"
+  },
+  "commands": [
+    {
+      "path": "/transactions",
+      "body": {
+        "id": "19200000-0000-4000-8000-000000000002",
+        "account_id": "f19a36c7-8ee3-498f-a283-fd8f68fb1719",
+        "category_id": "dba8d7eb-0e32-4175-ac27-4459ff6ba9b4",
+        "amount": -1234,
+        "date": "2026-11-03",
+        "notes": "Before automation support",
+        "cleared": true
+      },
+      "key": "expense19",
+      "method": "POST",
+      "result": {
+        "conflicts": [],
+        "cursor": "c1e0906070005460114dc10b9fb51575fb000000000000000d",
+        "data": {
+          "account_id": "f19a36c7-8ee3-498f-a283-fd8f68fb1719",
+          "account_name": "Checking",
+          "amount": -1234,
+          "category_id": "dba8d7eb-0e32-4175-ac27-4459ff6ba9b4",
+          "category_is_income": false,
+          "category_name": "Fixed",
+          "cleared": true,
+          "date": "2026-11-03",
+          "field_versions": {
+            "account_id": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "amount": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "category_id": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "cleared": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "date": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "notes": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "payee_id": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "reconciled": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "starting_balance": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "tombstone": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e"
+          },
+          "id": "19200000-0000-4000-8000-000000000002",
+          "imported_payee": null,
+          "notes": "Before automation support",
+          "payee_id": null,
+          "payee_name": null,
+          "reconciled": false,
+          "retained_payee_id": null,
+          "sort_order": 2,
+          "starting_balance": false
+        },
+        "edit_clock": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e"
+      }
+    },
+    {
+      "path": "/transactions/19200000-0000-4000-8000-000000000002",
+      "body": {
+        "notes": "Owned edit before automation support"
+      },
+      "key": "edit19",
+      "method": "PATCH",
+      "result": {
+        "conflicts": [],
+        "cursor": "c1e0906070005460114dc10b9fb51575fb000000000000000f",
+        "data": {
+          "account_id": "f19a36c7-8ee3-498f-a283-fd8f68fb1719",
+          "account_name": "Checking",
+          "amount": -1234,
+          "category_id": "dba8d7eb-0e32-4175-ac27-4459ff6ba9b4",
+          "category_is_income": false,
+          "category_name": "Fixed",
+          "cleared": true,
+          "date": "2026-11-03",
+          "field_versions": {
+            "account_id": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "amount": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "category_id": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "cleared": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "date": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "notes": "2026-11-10T00:37:33.873Z-0000-2060e3e00af1d90e",
+            "payee_id": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "reconciled": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "starting_balance": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+            "tombstone": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e"
+          },
+          "id": "19200000-0000-4000-8000-000000000002",
+          "imported_payee": null,
+          "notes": "Owned edit before automation support",
+          "payee_id": null,
+          "payee_name": null,
+          "reconciled": false,
+          "retained_payee_id": null,
+          "sort_order": 2,
+          "starting_balance": false
+        },
+        "edit_clock": "2026-11-10T00:37:33.873Z-0000-2060e3e00af1d90e"
+      }
+    },
+    {
+      "path": "/schedules/commands",
+      "body": {
+        "action": "create",
+        "id": "19200000-0000-4000-8000-000000000003",
+        "name": "Monthly reserve",
+        "posts_transaction": false,
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "f19a36c7-8ee3-498f-a283-fd8f68fb1719"
+          },
+          {
+            "field": "amount",
+            "op": "is",
+            "value": -2345
+          },
+          {
+            "field": "date",
+            "op": "is",
+            "value": {
+              "frequency": "monthly",
+              "start": "2026-11-15"
+            }
+          }
+        ],
+        "snapshot": "c1e0906070005460114dc10b9fb51575fb000000000000000f"
+      },
+      "key": "schedule19",
+      "method": "POST",
+      "result": {
+        "data": {
+          "actions": [
+            {
+              "op": "link-schedule",
+              "value": "19200000-0000-4000-8000-000000000003"
+            }
+          ],
+          "completed": false,
+          "conditions": [
+            {
+              "field": "account",
+              "op": "is",
+              "value": "f19a36c7-8ee3-498f-a283-fd8f68fb1719"
+            },
+            {
+              "field": "amount",
+              "op": "is",
+              "value": -2345
+            },
+            {
+              "field": "date",
+              "op": "is",
+              "value": {
+                "frequency": "monthly",
+                "start": "2026-11-15"
+              }
+            }
+          ],
+          "custom_upcoming_length": null,
+          "id": "19200000-0000-4000-8000-000000000003",
+          "name": "Monthly reserve",
+          "next_date": "2026-11-15",
+          "posts_transaction": false,
+          "rule_id": "84011d1b-3fa8-40bb-b9fe-2e2f7fa2f345"
+        },
+        "edit_clock": "2026-11-10T00:37:33.888Z-0000-2060e3e00af1d90e",
+        "snapshot": "c1e0906070005460114dc10b9fb51575fb0000000000000011"
+      }
+    },
+    {
+      "path": "/budget",
+      "body": {
+        "action": "notes",
+        "month": "2026-11",
+        "notes": "Month note before automation support",
+        "snapshot": "c1e0906070005460114dc10b9fb51575fb0000000000000011"
+      },
+      "key": "month-note19",
+      "method": "POST",
+      "result": {
+        "cursor": "c1e0906070005460114dc10b9fb51575fb0000000000000012",
+        "data": {
+          "edit_clock": "2026-11-10T00:37:33.898Z-0000-2060e3e00af1d90e",
+          "epoch": "e0906070005460114dc10b9fb51575fb",
+          "method": "envelope",
+          "months": {
+            "2026-11": {
+              "categories": [
+                {
+                  "actual": 100000,
+                  "balance": 0,
+                  "budgeted": 0,
+                  "carryover": false,
+                  "goal": null,
+                  "group_hidden": false,
+                  "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                  "group_name": "Income",
+                  "hidden": false,
+                  "id": "0ea1ac02-ddaf-4c0e-98fe-a281c74f354a",
+                  "is_income": true,
+                  "long_goal": null,
+                  "name": "Salary",
+                  "notes": ""
+                },
+                {
+                  "actual": 0,
+                  "balance": 0,
+                  "budgeted": 0,
+                  "carryover": false,
+                  "goal": null,
+                  "group_hidden": false,
+                  "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                  "group_name": "Income",
+                  "hidden": false,
+                  "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+                  "is_income": true,
+                  "long_goal": null,
+                  "name": "Income",
+                  "notes": ""
+                },
+                {
+                  "actual": 0,
+                  "balance": 0,
+                  "budgeted": 0,
+                  "carryover": false,
+                  "goal": null,
+                  "group_hidden": false,
+                  "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+                  "group_name": "Income",
+                  "hidden": false,
+                  "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+                  "is_income": true,
+                  "long_goal": null,
+                  "name": "Starting Balances",
+                  "notes": ""
+                },
+                {
+                  "actual": -1234,
+                  "balance": 6065,
+                  "budgeted": 7299,
+                  "carryover": false,
+                  "goal": "100000",
+                  "group_hidden": false,
+                  "group_id": "315b422f-e04e-4c51-ade0-e3ca6ae8ee80",
+                  "group_name": "Plans",
+                  "hidden": false,
+                  "id": "dba8d7eb-0e32-4175-ac27-4459ff6ba9b4",
+                  "is_income": false,
+                  "long_goal": "1",
+                  "name": "Fixed",
+                  "notes": "Keep original description\n#template 72.99\n#goal 1000\n#cleanup source"
+                }
+              ],
+              "month": "2026-11",
+              "notes": "Month note before automation support",
+              "summary": {
+                "available_funds": 100000,
+                "buffered": 0,
+                "buffered_selected": 0,
+                "from_last_month": 0,
+                "last_month_overspent": 0,
+                "to_budget": 92701,
+                "total_budgeted": -7299,
+                "total_income": 100000,
+                "total_leftover": 6065,
+                "total_spent": -1234
+              }
+            }
+          },
+          "snapshot": "c1e0906070005460114dc10b9fb51575fb0000000000000012"
+        },
+        "edit_clock": "2026-11-10T00:37:33.898Z-0000-2060e3e00af1d90e"
+      }
+    }
+  ],
+  "plan": {
+    "data": {
+      "edit_clock": "2026-11-10T00:37:33.898Z-0000-2060e3e00af1d90e",
+      "epoch": "e0906070005460114dc10b9fb51575fb",
+      "method": "envelope",
+      "months": {
+        "2026-11": {
+          "categories": [
+            {
+              "actual": 100000,
+              "balance": 0,
+              "budgeted": 0,
+              "carryover": false,
+              "goal": null,
+              "group_hidden": false,
+              "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+              "group_name": "Income",
+              "hidden": false,
+              "id": "0ea1ac02-ddaf-4c0e-98fe-a281c74f354a",
+              "is_income": true,
+              "long_goal": null,
+              "name": "Salary",
+              "notes": ""
+            },
+            {
+              "actual": 0,
+              "balance": 0,
+              "budgeted": 0,
+              "carryover": false,
+              "goal": null,
+              "group_hidden": false,
+              "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+              "group_name": "Income",
+              "hidden": false,
+              "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+              "is_income": true,
+              "long_goal": null,
+              "name": "Income",
+              "notes": ""
+            },
+            {
+              "actual": 0,
+              "balance": 0,
+              "budgeted": 0,
+              "carryover": false,
+              "goal": null,
+              "group_hidden": false,
+              "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00",
+              "group_name": "Income",
+              "hidden": false,
+              "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+              "is_income": true,
+              "long_goal": null,
+              "name": "Starting Balances",
+              "notes": ""
+            },
+            {
+              "actual": -1234,
+              "balance": 6065,
+              "budgeted": 7299,
+              "carryover": false,
+              "goal": "100000",
+              "group_hidden": false,
+              "group_id": "315b422f-e04e-4c51-ade0-e3ca6ae8ee80",
+              "group_name": "Plans",
+              "hidden": false,
+              "id": "dba8d7eb-0e32-4175-ac27-4459ff6ba9b4",
+              "is_income": false,
+              "long_goal": "1",
+              "name": "Fixed",
+              "notes": "Keep original description\n#template 72.99\n#goal 1000\n#cleanup source"
+            }
+          ],
+          "month": "2026-11",
+          "notes": "Month note before automation support",
+          "summary": {
+            "available_funds": 100000,
+            "buffered": 0,
+            "buffered_selected": 0,
+            "from_last_month": 0,
+            "last_month_overspent": 0,
+            "to_budget": 92701,
+            "total_budgeted": -7299,
+            "total_income": 100000,
+            "total_leftover": 6065,
+            "total_spent": -1234
+          }
+        }
+      },
+      "snapshot": "c1e0906070005460114dc10b9fb51575fb0000000000000012"
+    }
+  },
+  "history": {
+    "data": {
+      "edit_clock": "2026-11-10T00:37:33.898Z-0000-2060e3e00af1d90e",
+      "epoch": "e0906070005460114dc10b9fb51575fb",
+      "limit": 20,
+      "redo": null,
+      "undo": {
+        "id": "e8e3ee23-0233-456d-916c-e3b93d31be64",
+        "label": "Edit budget"
+      }
+    }
+  },
+  "register": {
+    "as_of": null,
+    "balances": {
+      "cleared": 98766,
+      "total": 98766,
+      "uncleared": 0
+    },
+    "data": [
+      {
+        "account_id": "f19a36c7-8ee3-498f-a283-fd8f68fb1719",
+        "account_name": "Checking",
+        "amount": -1234,
+        "category_group_name": "Plans",
+        "category_id": "dba8d7eb-0e32-4175-ac27-4459ff6ba9b4",
+        "category_is_income": false,
+        "category_name": "Fixed",
+        "cleared": true,
+        "date": "2026-11-03",
+        "field_versions": {
+          "account_id": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+          "amount": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+          "category_id": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+          "cleared": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+          "date": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+          "notes": "2026-11-10T00:37:33.873Z-0000-2060e3e00af1d90e",
+          "payee_id": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+          "reconciled": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+          "starting_balance": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e",
+          "tombstone": "2026-11-10T00:37:33.862Z-0000-2060e3e00af1d90e"
+        },
+        "id": "19200000-0000-4000-8000-000000000002",
+        "imported_payee": null,
+        "notes": "Owned edit before automation support",
+        "payee_id": null,
+        "payee_name": null,
+        "reconciled": false,
+        "retained_payee_id": null,
+        "running_balance": 98766,
+        "sort_order": 2,
+        "starting_balance": false
+      },
+      {
+        "account_id": "f19a36c7-8ee3-498f-a283-fd8f68fb1719",
+        "account_name": "Checking",
+        "amount": 100000,
+        "category_group_name": "Income",
+        "category_id": "0ea1ac02-ddaf-4c0e-98fe-a281c74f354a",
+        "category_is_income": true,
+        "category_name": "Salary",
+        "cleared": true,
+        "date": "2026-11-01",
+        "field_versions": {
+          "account_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "amount": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "category_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "cleared": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "date": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "notes": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "payee_id": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "reconciled": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "starting_balance": "1970-01-01T00:00:00.000Z-0000-0000000000000000",
+          "tombstone": "1970-01-01T00:00:00.000Z-0000-0000000000000000"
+        },
+        "id": "19200000-0000-4000-8000-000000000001",
+        "imported_payee": null,
+        "notes": "",
+        "payee_id": null,
+        "payee_name": null,
+        "reconciled": false,
+        "retained_payee_id": null,
+        "running_balance": 100000,
+        "sort_order": 1,
+        "starting_balance": false
+      }
+    ],
+    "filtered_balances": {
+      "cleared": 98766,
+      "total": 98766,
+      "uncleared": 0
+    },
+    "filtered_count": 2,
+    "next_offset": null,
+    "snapshot": "c1e0906070005460114dc10b9fb51575fb0000000000000012"
+  },
+  "accounts": {
+    "data": [
+      {
+        "balance": 98766,
+        "closed": false,
+        "deleted": false,
+        "field_versions": {},
+        "group_id": null,
+        "id": "f19a36c7-8ee3-498f-a283-fd8f68fb1719",
+        "last_reconciled": null,
+        "name": "Checking",
+        "notes": "",
+        "off_budget": false,
+        "sort_order": 0
+      }
+    ]
+  },
+  "schedules": {
+    "data": {
+      "epoch": "e0906070005460114dc10b9fb51575fb",
+      "next_offset": null,
+      "preview_continuations": [],
+      "previews": [
+        {
+          "account_id": "f19a36c7-8ee3-498f-a283-fd8f68fb1719",
+          "amount": -2345,
+          "date": "2026-11-15",
+          "id": "preview/19200000-0000-4000-8000-000000000003/2026-11-15",
+          "payee_id": null,
+          "schedule_id": "19200000-0000-4000-8000-000000000003",
+          "status": "upcoming"
+        }
+      ],
+      "schedules": [
+        {
+          "account_id": "f19a36c7-8ee3-498f-a283-fd8f68fb1719",
+          "actions": [
+            {
+              "op": "link-schedule",
+              "value": "19200000-0000-4000-8000-000000000003"
+            }
+          ],
+          "amount": -2345,
+          "completed": false,
+          "conditions": [
+            {
+              "field": "account",
+              "op": "is",
+              "value": "f19a36c7-8ee3-498f-a283-fd8f68fb1719"
+            },
+            {
+              "field": "amount",
+              "op": "is",
+              "value": -2345
+            },
+            {
+              "field": "date",
+              "op": "is",
+              "value": {
+                "frequency": "monthly",
+                "start": "2026-11-15"
+              }
+            }
+          ],
+          "custom_upcoming_length": null,
+          "id": "19200000-0000-4000-8000-000000000003",
+          "name": "Monthly reserve",
+          "next_date": "2026-11-15",
+          "payee_id": null,
+          "posts_transaction": false,
+          "rule_id": "84011d1b-3fa8-40bb-b9fe-2e2f7fa2f345",
+          "status": "upcoming"
+        }
+      ],
+      "snapshot": "c1e0906070005460114dc10b9fb51575fb0000000000000012",
+      "today": "2026-11-10",
+      "upcoming_length": "7"
+    }
+  },
+  "checkpoint": {
+    "data": {
+      "epoch": "e0906070005460114dc10b9fb51575fb",
+      "generation": 0,
+      "snapshot": "c1e0906070005460114dc10b9fb51575fb0000000000000012"
+    }
+  },
+  "blocked": [
+    {
+      "archive": "budget-templates-simple-base-26.10.zip",
+      "sha256": "cb98724bbc54c211dd5369dca8b69f13958b47db2e3d831d675be45660723bb6",
+      "key": "blocked19-0",
+      "result": {
+        "data": {
+          "budget_id": "1bdcfa40-a873-4f47-9c9d-e12fccdadddc",
+          "id": "f54253d9-513d-45d2-8922-21c370155ffe",
+          "report": {
+            "accounts": [
+              {
+                "closed": false,
+                "group_id": null,
+                "id": "91284f76-6f6a-4041-af8a-ae9efafb4575",
+                "last_reconciled": null,
+                "name": "Checking",
+                "notes": "",
+                "off_budget": false,
+                "sort_order": 0,
+                "tombstone": false
+              }
+            ],
+            "archive_sha256": "cb98724bbc54c211dd5369dca8b69f13958b47db2e3d831d675be45660723bb6",
+            "balances": [
+              {
+                "account_id": "91284f76-6f6a-4041-af8a-ae9efafb4575",
+                "cleared": 100000,
+                "total": 100000,
+                "uncleared": 0
+              }
+            ],
+            "checks": {
+              "converted_relationships": true,
+              "financial_totals": true,
+              "identifiers": true,
+              "sqlite_integrity": true
+            },
+            "counts": {
+              "__meta__": 1,
+              "__migrations__": 60,
+              "account_groups": 0,
+              "accounts": 1,
+              "banks": 0,
+              "categories": 4,
+              "category_groups": 2,
+              "category_mapping": 9,
+              "cleanup_groups": 0,
+              "created_budgets": 0,
+              "custom_reports": 0,
+              "dashboard": 12,
+              "dashboard_pages": 1,
+              "kvcache": 0,
+              "kvcache_key": 0,
+              "messages_clock": 1,
+              "messages_crdt": 0,
+              "messages_pending": 0,
+              "notes": 1,
+              "payee_locations": 0,
+              "payee_mapping": 1,
+              "payees": 1,
+              "pending_transactions": 0,
+              "preferences": 1,
+              "reflect_budgets": 0,
+              "rules": 0,
+              "schedules": 0,
+              "schedules_json_paths": 0,
+              "schedules_next_date": 0,
+              "sqlite_stat1": 4,
+              "sqlite_stat4": 31,
+              "tags": 0,
+              "transaction_filters": 0,
+              "transactions": 1,
+              "zero_budget_months": 0,
+              "zero_budgets": 0
+            },
+            "extra_archive_entries": [],
+            "preferences": {
+              "device": {
+                "language": "",
+                "preferred_dark_theme": "dark",
+                "theme": "system"
+              },
+              "shared": {
+                "currency_code": "",
+                "currency_space": false,
+                "currency_symbol_position": "before",
+                "date_format": "MM/dd/yyyy",
+                "experimental": {
+                  "actionTemplating": false,
+                  "akahuBankSync": false,
+                  "balanceForecastReport": false,
+                  "budgetAnalysisReport": false,
+                  "currency": false,
+                  "customThemes": false,
+                  "enableBanking": false,
+                  "formulaMode": false,
+                  "goalTemplatesEnabled": false,
+                  "goalTemplatesUIEnabled": false,
+                  "mobileCalculator": false,
+                  "monteCarloReport": false,
+                  "newSidebarUI": false,
+                  "sankeyReport": false
+                },
+                "first_day_of_week": 0,
+                "hide_fraction": false,
+                "number_format": "comma-dot"
+              },
+              "unmapped": {
+                "global": {},
+                "synced": {
+                  "budgetType": "envelope"
+                }
+              },
+              "warnings": [
+                {
+                  "key": "budgetType",
+                  "reason": "Preference belongs to another feature; retained for its importer"
+                }
+              ]
+            },
+            "requirements": [
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "__meta__",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 60,
+                "feature": "__migrations__",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 9,
+                "feature": "category_mapping",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 12,
+                "feature": "dashboard",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "dashboard_pages",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "messages_clock",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "payee_mapping",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 4,
+                "feature": "sqlite_stat1",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 31,
+                "feature": "sqlite_stat4",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": true,
+                "count": 1,
+                "feature": "category_configuration",
+                "reason": "Goals or templates require their converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "transfer_payees",
+                "reason": "Transfer payee metadata preserved; excluded from ordinary payee selection"
+              },
+              {
+                "blocking": false,
+                "count": 5,
+                "feature": "unreferenced_category_alias",
+                "reason": "Obsolete source alias retained; converted transactions must still resolve to an existing category"
+              }
+            ],
+            "source": {
+              "budgetName": "Budget template oracle",
+              "id": "Budget-template-oracle-5256cd3",
+              "resetClock": true
+            },
+            "source_field_clock_count": 0,
+            "source_preferences": [
+              {
+                "id": "budgetType",
+                "value": "envelope"
+              }
+            ]
+          },
+          "status": "blocked"
+        }
+      },
+      "latest": {
+        "data": {
+          "budget_id": "1bdcfa40-a873-4f47-9c9d-e12fccdadddc",
+          "id": "f54253d9-513d-45d2-8922-21c370155ffe",
+          "report": {
+            "accounts": [
+              {
+                "closed": false,
+                "group_id": null,
+                "id": "91284f76-6f6a-4041-af8a-ae9efafb4575",
+                "last_reconciled": null,
+                "name": "Checking",
+                "notes": "",
+                "off_budget": false,
+                "sort_order": 0,
+                "tombstone": false
+              }
+            ],
+            "archive_sha256": "cb98724bbc54c211dd5369dca8b69f13958b47db2e3d831d675be45660723bb6",
+            "balances": [
+              {
+                "account_id": "91284f76-6f6a-4041-af8a-ae9efafb4575",
+                "cleared": 100000,
+                "total": 100000,
+                "uncleared": 0
+              }
+            ],
+            "checks": {
+              "converted_relationships": true,
+              "financial_totals": true,
+              "identifiers": true,
+              "sqlite_integrity": true
+            },
+            "counts": {
+              "__meta__": 1,
+              "__migrations__": 60,
+              "account_groups": 0,
+              "accounts": 1,
+              "banks": 0,
+              "categories": 4,
+              "category_groups": 2,
+              "category_mapping": 9,
+              "cleanup_groups": 0,
+              "created_budgets": 0,
+              "custom_reports": 0,
+              "dashboard": 12,
+              "dashboard_pages": 1,
+              "kvcache": 0,
+              "kvcache_key": 0,
+              "messages_clock": 1,
+              "messages_crdt": 0,
+              "messages_pending": 0,
+              "notes": 1,
+              "payee_locations": 0,
+              "payee_mapping": 1,
+              "payees": 1,
+              "pending_transactions": 0,
+              "preferences": 1,
+              "reflect_budgets": 0,
+              "rules": 0,
+              "schedules": 0,
+              "schedules_json_paths": 0,
+              "schedules_next_date": 0,
+              "sqlite_stat1": 4,
+              "sqlite_stat4": 31,
+              "tags": 0,
+              "transaction_filters": 0,
+              "transactions": 1,
+              "zero_budget_months": 0,
+              "zero_budgets": 0
+            },
+            "extra_archive_entries": [],
+            "preferences": {
+              "device": {
+                "language": "",
+                "preferred_dark_theme": "dark",
+                "theme": "system"
+              },
+              "shared": {
+                "currency_code": "",
+                "currency_space": false,
+                "currency_symbol_position": "before",
+                "date_format": "MM/dd/yyyy",
+                "experimental": {
+                  "actionTemplating": false,
+                  "akahuBankSync": false,
+                  "balanceForecastReport": false,
+                  "budgetAnalysisReport": false,
+                  "currency": false,
+                  "customThemes": false,
+                  "enableBanking": false,
+                  "formulaMode": false,
+                  "goalTemplatesEnabled": false,
+                  "goalTemplatesUIEnabled": false,
+                  "mobileCalculator": false,
+                  "monteCarloReport": false,
+                  "newSidebarUI": false,
+                  "sankeyReport": false
+                },
+                "first_day_of_week": 0,
+                "hide_fraction": false,
+                "number_format": "comma-dot"
+              },
+              "unmapped": {
+                "global": {},
+                "synced": {
+                  "budgetType": "envelope"
+                }
+              },
+              "warnings": [
+                {
+                  "key": "budgetType",
+                  "reason": "Preference belongs to another feature; retained for its importer"
+                }
+              ]
+            },
+            "requirements": [
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "__meta__",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 60,
+                "feature": "__migrations__",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 9,
+                "feature": "category_mapping",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 12,
+                "feature": "dashboard",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "dashboard_pages",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "messages_clock",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "payee_mapping",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 4,
+                "feature": "sqlite_stat1",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 31,
+                "feature": "sqlite_stat4",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": true,
+                "count": 1,
+                "feature": "category_configuration",
+                "reason": "Goals or templates require their converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "transfer_payees",
+                "reason": "Transfer payee metadata preserved; excluded from ordinary payee selection"
+              },
+              {
+                "blocking": false,
+                "count": 5,
+                "feature": "unreferenced_category_alias",
+                "reason": "Obsolete source alias retained; converted transactions must still resolve to an existing category"
+              }
+            ],
+            "source": {
+              "budgetName": "Budget template oracle",
+              "id": "Budget-template-oracle-5256cd3",
+              "resetClock": true
+            },
+            "source_field_clock_count": 0,
+            "source_preferences": [
+              {
+                "id": "budgetType",
+                "value": "envelope"
+              }
+            ]
+          },
+          "status": "blocked"
+        }
+      }
+    },
+    {
+      "archive": "budget-cleanup/envelope-ui-pool-ignores-stale-notes.zip",
+      "sha256": "849c5f1496c6b0a6c76f4fb67946e9e6b3bac5f0455d4ab8fa8fd44f8a454ff5",
+      "key": "blocked19-1",
+      "result": {
+        "data": {
+          "budget_id": "8877de93-c1e6-4ced-9def-a761c9b6461e",
+          "id": "c7b9cc8f-2c99-423d-a50d-b5fdcb5e60d4",
+          "report": {
+            "accounts": [
+              {
+                "closed": false,
+                "group_id": null,
+                "id": "f5238aed-1a62-4ee6-b179-cfee8321bc24",
+                "last_reconciled": null,
+                "name": "Checking",
+                "notes": "",
+                "off_budget": false,
+                "sort_order": 0,
+                "tombstone": false
+              }
+            ],
+            "archive_sha256": "849c5f1496c6b0a6c76f4fb67946e9e6b3bac5f0455d4ab8fa8fd44f8a454ff5",
+            "balances": [
+              {
+                "account_id": "f5238aed-1a62-4ee6-b179-cfee8321bc24",
+                "cleared": 12000,
+                "total": 12000,
+                "uncleared": 0
+              }
+            ],
+            "checks": {
+              "converted_relationships": true,
+              "financial_totals": true,
+              "identifiers": true,
+              "sqlite_integrity": true
+            },
+            "counts": {
+              "__meta__": 1,
+              "__migrations__": 60,
+              "account_groups": 0,
+              "accounts": 1,
+              "banks": 0,
+              "categories": 6,
+              "category_groups": 2,
+              "category_mapping": 11,
+              "cleanup_groups": 1,
+              "created_budgets": 0,
+              "custom_reports": 0,
+              "dashboard": 12,
+              "dashboard_pages": 1,
+              "kvcache": 0,
+              "kvcache_key": 0,
+              "messages_clock": 1,
+              "messages_crdt": 0,
+              "messages_pending": 0,
+              "notes": 3,
+              "payee_locations": 0,
+              "payee_mapping": 1,
+              "payees": 1,
+              "pending_transactions": 0,
+              "preferences": 1,
+              "reflect_budgets": 0,
+              "rules": 0,
+              "schedules": 0,
+              "schedules_json_paths": 0,
+              "schedules_next_date": 0,
+              "sqlite_stat1": 4,
+              "sqlite_stat4": 31,
+              "tags": 0,
+              "transaction_filters": 0,
+              "transactions": 1,
+              "zero_budget_months": 0,
+              "zero_budgets": 1
+            },
+            "extra_archive_entries": [],
+            "preferences": {
+              "device": {
+                "language": "",
+                "preferred_dark_theme": "dark",
+                "theme": "system"
+              },
+              "shared": {
+                "currency_code": "",
+                "currency_space": false,
+                "currency_symbol_position": "before",
+                "date_format": "MM/dd/yyyy",
+                "experimental": {
+                  "actionTemplating": false,
+                  "akahuBankSync": false,
+                  "balanceForecastReport": false,
+                  "budgetAnalysisReport": false,
+                  "currency": false,
+                  "customThemes": false,
+                  "enableBanking": false,
+                  "formulaMode": false,
+                  "goalTemplatesEnabled": false,
+                  "goalTemplatesUIEnabled": false,
+                  "mobileCalculator": false,
+                  "monteCarloReport": false,
+                  "newSidebarUI": false,
+                  "sankeyReport": false
+                },
+                "first_day_of_week": 0,
+                "hide_fraction": false,
+                "number_format": "comma-dot"
+              },
+              "unmapped": {
+                "global": {},
+                "synced": {
+                  "budgetType": "envelope"
+                }
+              },
+              "warnings": [
+                {
+                  "key": "budgetType",
+                  "reason": "Preference belongs to another feature; retained for its importer"
+                }
+              ]
+            },
+            "requirements": [
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "__meta__",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 60,
+                "feature": "__migrations__",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 11,
+                "feature": "category_mapping",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": true,
+                "count": 1,
+                "feature": "cleanup_groups",
+                "reason": "A feature converter is required before activation; original records retained"
+              },
+              {
+                "blocking": false,
+                "count": 12,
+                "feature": "dashboard",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "dashboard_pages",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "messages_clock",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "payee_mapping",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 4,
+                "feature": "sqlite_stat1",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 31,
+                "feature": "sqlite_stat4",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": true,
+                "count": 3,
+                "feature": "category_configuration",
+                "reason": "Goals or templates require their converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "transfer_payees",
+                "reason": "Transfer payee metadata preserved; excluded from ordinary payee selection"
+              },
+              {
+                "blocking": false,
+                "count": 5,
+                "feature": "unreferenced_category_alias",
+                "reason": "Obsolete source alias retained; converted transactions must still resolve to an existing category"
+              }
+            ],
+            "source": {
+              "budgetName": "envelope-ui-pool-ignores-stale-notes",
+              "id": "envelope-ui-pool-ignores-stale-notes-033aec5",
+              "resetClock": true
+            },
+            "source_field_clock_count": 0,
+            "source_preferences": [
+              {
+                "id": "budgetType",
+                "value": "envelope"
+              }
+            ]
+          },
+          "status": "blocked"
+        }
+      },
+      "latest": {
+        "data": {
+          "budget_id": "8877de93-c1e6-4ced-9def-a761c9b6461e",
+          "id": "c7b9cc8f-2c99-423d-a50d-b5fdcb5e60d4",
+          "report": {
+            "accounts": [
+              {
+                "closed": false,
+                "group_id": null,
+                "id": "f5238aed-1a62-4ee6-b179-cfee8321bc24",
+                "last_reconciled": null,
+                "name": "Checking",
+                "notes": "",
+                "off_budget": false,
+                "sort_order": 0,
+                "tombstone": false
+              }
+            ],
+            "archive_sha256": "849c5f1496c6b0a6c76f4fb67946e9e6b3bac5f0455d4ab8fa8fd44f8a454ff5",
+            "balances": [
+              {
+                "account_id": "f5238aed-1a62-4ee6-b179-cfee8321bc24",
+                "cleared": 12000,
+                "total": 12000,
+                "uncleared": 0
+              }
+            ],
+            "checks": {
+              "converted_relationships": true,
+              "financial_totals": true,
+              "identifiers": true,
+              "sqlite_integrity": true
+            },
+            "counts": {
+              "__meta__": 1,
+              "__migrations__": 60,
+              "account_groups": 0,
+              "accounts": 1,
+              "banks": 0,
+              "categories": 6,
+              "category_groups": 2,
+              "category_mapping": 11,
+              "cleanup_groups": 1,
+              "created_budgets": 0,
+              "custom_reports": 0,
+              "dashboard": 12,
+              "dashboard_pages": 1,
+              "kvcache": 0,
+              "kvcache_key": 0,
+              "messages_clock": 1,
+              "messages_crdt": 0,
+              "messages_pending": 0,
+              "notes": 3,
+              "payee_locations": 0,
+              "payee_mapping": 1,
+              "payees": 1,
+              "pending_transactions": 0,
+              "preferences": 1,
+              "reflect_budgets": 0,
+              "rules": 0,
+              "schedules": 0,
+              "schedules_json_paths": 0,
+              "schedules_next_date": 0,
+              "sqlite_stat1": 4,
+              "sqlite_stat4": 31,
+              "tags": 0,
+              "transaction_filters": 0,
+              "transactions": 1,
+              "zero_budget_months": 0,
+              "zero_budgets": 1
+            },
+            "extra_archive_entries": [],
+            "preferences": {
+              "device": {
+                "language": "",
+                "preferred_dark_theme": "dark",
+                "theme": "system"
+              },
+              "shared": {
+                "currency_code": "",
+                "currency_space": false,
+                "currency_symbol_position": "before",
+                "date_format": "MM/dd/yyyy",
+                "experimental": {
+                  "actionTemplating": false,
+                  "akahuBankSync": false,
+                  "balanceForecastReport": false,
+                  "budgetAnalysisReport": false,
+                  "currency": false,
+                  "customThemes": false,
+                  "enableBanking": false,
+                  "formulaMode": false,
+                  "goalTemplatesEnabled": false,
+                  "goalTemplatesUIEnabled": false,
+                  "mobileCalculator": false,
+                  "monteCarloReport": false,
+                  "newSidebarUI": false,
+                  "sankeyReport": false
+                },
+                "first_day_of_week": 0,
+                "hide_fraction": false,
+                "number_format": "comma-dot"
+              },
+              "unmapped": {
+                "global": {},
+                "synced": {
+                  "budgetType": "envelope"
+                }
+              },
+              "warnings": [
+                {
+                  "key": "budgetType",
+                  "reason": "Preference belongs to another feature; retained for its importer"
+                }
+              ]
+            },
+            "requirements": [
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "__meta__",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 60,
+                "feature": "__migrations__",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 11,
+                "feature": "category_mapping",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": true,
+                "count": 1,
+                "feature": "cleanup_groups",
+                "reason": "A feature converter is required before activation; original records retained"
+              },
+              {
+                "blocking": false,
+                "count": 12,
+                "feature": "dashboard",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "dashboard_pages",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "messages_clock",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "payee_mapping",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 4,
+                "feature": "sqlite_stat1",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": false,
+                "count": 31,
+                "feature": "sqlite_stat4",
+                "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+              },
+              {
+                "blocking": true,
+                "count": 3,
+                "feature": "category_configuration",
+                "reason": "Goals or templates require their converter"
+              },
+              {
+                "blocking": false,
+                "count": 1,
+                "feature": "transfer_payees",
+                "reason": "Transfer payee metadata preserved; excluded from ordinary payee selection"
+              },
+              {
+                "blocking": false,
+                "count": 5,
+                "feature": "unreferenced_category_alias",
+                "reason": "Obsolete source alias retained; converted transactions must still resolve to an existing category"
+              }
+            ],
+            "source": {
+              "budgetName": "envelope-ui-pool-ignores-stale-notes",
+              "id": "envelope-ui-pool-ignores-stale-notes-033aec5",
+              "resetClock": true
+            },
+            "source_field_clock_count": 0,
+            "source_preferences": [
+              {
+                "id": "budgetType",
+                "value": "envelope"
+              }
+            ]
+          },
+          "status": "blocked"
+        }
+      }
+    }
+  ],
+  "backup": {
+    "data": {
+      "archive_sha256": "fb68d58a00c2c9dc407135c737943d86163f6a8a15e75d2a7da6f7a6ddef048e",
+      "budget_id": "5bc8fb84-78b4-4cce-8419-0c5118eefbfc",
+      "bytes": 17693,
+      "created_at": "2026-11-10T00:37:33.998Z",
+      "id": "de9e4a3b-057c-4c3d-b180-c5b74e454adf",
+      "kind": "manual",
+      "label": "Before budget automations",
+      "source_sequence": 18
+    }
+  },
+  "archive_sha256": "fb68d58a00c2c9dc407135c737943d86163f6a8a15e75d2a7da6f7a6ddef048e"
+}

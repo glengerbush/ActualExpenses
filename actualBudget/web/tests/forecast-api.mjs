@@ -163,6 +163,76 @@ try {
     "Forecasts do not advance schedules",
   );
   if (supplemental) {
+    assert.equal(
+      (
+        await api(
+          root + "/accounts/" + supplemental.account_mutation.id,
+          { name: supplemental.account_mutation.name },
+          {
+            "Idempotency-Key": randomUUID(),
+            "X-Actual-Budget-Epoch": registry.data.epoch,
+          },
+          "PATCH",
+        )
+      ).status,
+      200,
+    );
+    assert.equal(
+      (
+        await api(
+          root + "/rules",
+          {
+            id: randomUUID(),
+            snapshot: (await api(root + "/rules")).snapshot,
+            ...supplemental.rule_mutation,
+          },
+          {
+            "Idempotency-Key": randomUUID(),
+            "X-Actual-Budget-Epoch": registry.data.epoch,
+          },
+        )
+      ).status,
+      201,
+    );
+  }
+  if (supplemental)
+    for (const item of supplemental.account_cases) {
+      const actual = await api(root + "/reports/forecast", {
+        version: 1,
+        as_of: source.clock.slice(0, 10),
+        options: { ...item.options, granularity: "Daily" },
+      });
+      assert.equal(actual.status, 200, JSON.stringify(actual));
+      // Account rename can reorder the source's account presentation; compare every
+      // financial point and entry using stable date/account identity.
+      const ordered = (value) => ({
+        ...value,
+        dataPoints: [...value.dataPoints].sort((a, b) =>
+          (a.date + a.accountId).localeCompare(b.date + b.accountId),
+        ),
+      });
+      assert.deepEqual(
+        ordered(actual.data.result),
+        ordered(item.expected),
+        JSON.stringify(item.options),
+      );
+    }
+  if (supplemental)
+    assert.equal(
+      (
+        await api(
+          root + "/accounts/" + supplemental.account_mutation.id,
+          { name: "checking" },
+          {
+            "Idempotency-Key": randomUUID(),
+            "X-Actual-Budget-Epoch": registry.data.epoch,
+          },
+          "PATCH",
+        )
+      ).status,
+      200,
+    );
+  if (supplemental) {
     const plan = supplemental.group_plan,
       prior = (await api(root + "/budget?month=" + plan.mutation.month)).data;
     const allocated = await api(

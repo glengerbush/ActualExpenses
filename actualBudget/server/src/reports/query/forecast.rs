@@ -213,15 +213,39 @@ fn accounts(db: &Connection, b: &str, q: &Request) -> Result<Vec<Account>, Error
     if !account_conditions.is_empty()
         && (account_conditions.len() == all.len() || q.options.conditions_op == "and")
     {
-        constraints.push(
-            predicate(
+        let mut matches = vec![];
+        for condition in account_conditions {
+            let op = condition["op"].as_str().unwrap_or("");
+            let mut expression = predicate(
                 db,
                 b,
-                &json!({"conditions":account_conditions,"conditionsOp":q.options.conditions_op}),
+                &json!({"conditions":[condition],"conditionsOp":"and"}),
                 &mut values,
             )?
-            .replace("t.account_id", "a.id"),
-        );
+            .replace("t.account_id", "a.id");
+            if matches!(op, "contains" | "doesNotContain") {
+                let text = condition["value"]
+                    .as_str()
+                    .ok_or_else(|| Error::invalid("Account name condition requires text"))?;
+                *values.last_mut().unwrap() = SqlValue::Text(text.to_lowercase());
+                expression = format!(
+                    "instr(register_lower(a.name),?{}){}0",
+                    values.len(),
+                    if op == "contains" { ">" } else { "=" }
+                );
+            } else if op == "matches" {
+                expression = expression.replace("a.name", "register_lower(a.name)");
+            }
+            matches.push(expression);
+        }
+        constraints.push(format!(
+            "({})",
+            matches.join(if q.options.conditions_op == "or" {
+                " OR "
+            } else {
+                " AND "
+            })
+        ));
     }
     let sql = format!(
         "SELECT a.id,a.name,a.off_budget FROM accounts a WHERE {} ORDER BY a.sort_order,a.name,a.id LIMIT 501",
@@ -446,7 +470,38 @@ fn filter_simulations(
     ];
     let mut values = vec![SqlValue::Text(b.into())];
     values.extend(fields.iter().map(|_| SqlValue::Null));
-    let condition = predicate(db, b, &options, &mut values)?;
+    let mut clauses = vec![];
+    for condition in options["conditions"].as_array().unwrap() {
+        let clause = predicate(
+            db,
+            b,
+            &json!({"conditions":[condition],"conditionsOp":"and"}),
+            &mut values,
+        )?;
+        if matches!(
+            condition["op"].as_str(),
+            Some("contains" | "doesNotContain")
+        ) {
+            let text = condition["value"]
+                .as_str()
+                .ok_or_else(|| Error::invalid("Forecast text condition requires text"))?;
+            // Source simulated $like anchors the whole value, treats '?' literally,
+            // and expands every '%' even after a literal backslash.
+            *values.last_mut().unwrap() = SqlValue::Text(format!(
+                "^.*{}.*$",
+                crate::register_regex::escape(text).replace('%', ".*")
+            ));
+        }
+        clauses.push(clause);
+    }
+    let condition = format!(
+        "({})",
+        clauses.join(if q.options.conditions_op == "or" {
+            " OR "
+        } else {
+            " AND "
+        })
+    );
     let columns = fields
         .iter()
         .enumerate()
@@ -728,6 +783,15 @@ fn calculate(
         ));
     }
     let accounts = accounts(db, b, q)?;
+    if accounts.is_empty() {
+        return response(
+            db,
+            b,
+            q,
+            json!({"dataPoints":[],"lowestBalance":{"date":q.options.start_date,"balance":0,"accountId":"","accountName":""},"forecastStartDate":q.options.start_date,"forecastEndDate":q.options.end_date}),
+            vec![],
+        );
+    }
     let days = (end - start).num_days() as usize + 1;
     if days.saturating_mul(accounts.len().max(1)) > 20000 {
         return Err(Error::invalid(

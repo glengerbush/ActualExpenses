@@ -87,6 +87,50 @@ try {
       source: "tracking-budget",
     },
     groupExpected = await engine.send("forecast/generate", groupOptions);
+  const accountMutation = {
+    id: original.ids.checking,
+    name: "Checking Mixed %?",
+  };
+  await api.updateAccount(accountMutation.id, { name: accountMutation.name });
+  const ruleMutation = {
+    stage: "post",
+    conditionsOp: "and",
+    conditions: [{ field: "amount", op: "is", value: -100 }],
+    actions: [{ op: "set", field: "notes", value: "Literal ? 25% \\%" }],
+  };
+  await engine.send("rule-add", ruleMutation);
+  const accountCases = [];
+  for (const [field, op, value] of [
+    ["account", "matches", "^checking"],
+    ["account", "matches", "^Checking"],
+    ["account", "contains", "%"],
+    ["account", "contains", "?"],
+    ["notes", "contains", "?"],
+    ["notes", "contains", "\\%"],
+    ["payee", "contains", "?"],
+  ]) {
+    const options = {
+      startDate: "2026-11-09",
+      endDate: "2026-11-16",
+      source: "schedules",
+      conditions: [{ field, op, value }],
+      conditionsOp: "and",
+    };
+    accountCases.push({
+      options,
+      expected: await engine.send("forecast/generate", options),
+    });
+  }
+  const emptyOptions = {
+    startDate: "1700-01-01",
+    endDate: "2300-01-01",
+    source: "schedules",
+    accountIds: [],
+  };
+  accountCases.push({
+    options: emptyOptions,
+    expected: await engine.send("forecast/generate", emptyOptions),
+  });
   const output = JSON.parse(
     JSON.stringify({
       oracle:
@@ -96,6 +140,9 @@ try {
       source_files: runtime.hashes,
       view: { options: viewOptions, result, views },
       group_plan: { mutation, options: groupOptions, expected: groupExpected },
+      account_mutation: accountMutation,
+      rule_mutation: ruleMutation,
+      account_cases: accountCases,
     }),
   );
   const path = new URL("forecast-view-source-26.10.json", fixtures);

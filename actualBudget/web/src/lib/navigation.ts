@@ -10,6 +10,7 @@ export const rememberedViews = [
   "planning",
   "rules",
   "schedules",
+  "reports",
   "settings",
 ] as const;
 export type RememberedView = (typeof rememberedViews)[number];

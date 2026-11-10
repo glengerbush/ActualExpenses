@@ -48,6 +48,7 @@
   import Categories from "./lib/Categories.svelte";
   import Settings from "./lib/Settings.svelte";
   import RecoveryTools from "./lib/RecoveryTools.svelte";
+  import Reports from "./lib/Reports.svelte";
   import { readRepair } from "./lib/recovery";
   import NavigationTools from "./lib/NavigationTools.svelte";
   import {
@@ -85,6 +86,7 @@
     | "planning"
     | "rules"
     | "schedules"
+    | "reports"
     | "settings"
     | "categories"
     | "import"
@@ -171,6 +173,7 @@
       ["references", "Payees and tags", disconnected],
       ["rules", "Rules", false],
       ["schedules", "Schedules", false],
+      ["reports", "Dashboards and reports", false],
       ["settings", "Settings", false],
     ] as const;
     result.push({
@@ -431,6 +434,7 @@
       | "planning"
       | "rules"
       | "schedules"
+      | "reports"
       | "settings"
       | "categories"
       | "import"
@@ -571,6 +575,11 @@
         disabled={!!form || loading || !compatible}>Schedules</button
       >
       <button
+        onclick={() => showForm("reports")}
+        disabled={!!form || loading || !compatible}
+        >Dashboards and reports</button
+      >
+      <button
         class={{ current: form === "settings" }}
         aria-current={form === "settings" ? "page" : undefined}
         onclick={() => showForm("settings")}
@@ -704,6 +713,12 @@
           onschedules={() => showForm("schedules")}
           onclose={() => showForm(null)}
           onchanged={refreshAccounts}
+        />{/key}
+    {:else if form === "reports" && budget}{#key budget.id}<Reports
+          budgetId={budget.id}
+          {accounts}
+          {disconnected}
+          onclose={() => showForm(null)}
         />{/key}
     {:else if form === "organize" && budget}{#key budget.id}<AccountManagement
           budgetId={budget.id}

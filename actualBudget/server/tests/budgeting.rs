@@ -429,7 +429,7 @@ fn genuine_schema15_upgrade_retains_history_and_replay_while_archive_rotates_own
         .unwrap()
         .json::<Value>()
         .unwrap();
-    assert_eq!(upload["data"]["report"]["schema_version"], 20, "{upload}");
+    assert_eq!(upload["data"]["report"]["schema_version"], 22, "{upload}");
     let activate = target.post(
         &format!(
             "{root}/restores/{}/activate",
@@ -610,7 +610,7 @@ fn allocated_actual_exports_and_native_archives_preserve_both_methods_notes_hold
             .unwrap()
             .json::<Value>()
             .unwrap();
-        assert_eq!(stage["data"]["report"]["schema_version"], 20, "{stage}");
+        assert_eq!(stage["data"]["report"]["schema_version"], 22, "{stage}");
         let metadata = s.get(&root).json::<Value>().unwrap();
         let r = t.post(
             &format!(

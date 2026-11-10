@@ -234,7 +234,7 @@ fn genuine20_native_backup_preserves_receipts_finances_and_rotates_history_epoch
         .unwrap();
     assert_eq!(upload.status(), 201, "{}", upload.text().unwrap());
     let stage: Value = upload.json().unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 21);
+    assert_eq!(stage["data"]["report"]["schema_version"], 22);
     let response = s
         .client
         .post(format!(

@@ -372,7 +372,7 @@ fn remembered_options_keep_individual_original_clocks_files_and_receipts_across_
         .unwrap();
     assert_eq!(stage.status(), 201);
     let stage = stage.json::<Value>().unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 21);
+    assert_eq!(stage["data"]["report"]["schema_version"], 22);
     let activate = target.post(
         &format!(
             "{root}/restores/{}/activate",

@@ -1,0 +1,184 @@
+{
+  "clock": "2026-11-09T12:00:00Z",
+  "source_files": {
+    "packages/desktop-client/src/components/reports/reportRanges.ts": "82ce4574b3814dcdde05d2d7a91a09e37f9a80ea3beb9c63467f45d62aaf339b",
+    "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+    "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153"
+  },
+  "cases": [
+    {
+      "options": {},
+      "latest": "2026-12-02",
+      "expected": [
+        "2026-06",
+        "2026-11",
+        "sliding-window"
+      ]
+    },
+    {
+      "options": {
+        "timeFrame": {
+          "mode": "full",
+          "start": "2026-01",
+          "end": "2026-03"
+        }
+      },
+      "latest": "2026-12-02",
+      "expected": [
+        "2026-01",
+        "2026-12",
+        "full"
+      ]
+    },
+    {
+      "options": {
+        "timeFrame": {
+          "mode": "sliding-window",
+          "start": "2026-01",
+          "end": "2026-03"
+        }
+      },
+      "latest": "2026-12-02",
+      "expected": [
+        "2026-09",
+        "2026-11",
+        "sliding-window"
+      ]
+    },
+    {
+      "options": {
+        "timeFrame": {
+          "mode": "static",
+          "start": "2026-01",
+          "end": "2026-03"
+        }
+      },
+      "latest": "2026-12-02",
+      "expected": [
+        "2026-01",
+        "2026-03",
+        "static"
+      ]
+    },
+    {
+      "options": {
+        "timeFrame": {
+          "mode": "lastMonth",
+          "start": "2026-01",
+          "end": "2026-03"
+        }
+      },
+      "latest": "2026-12-02",
+      "expected": [
+        "2026-10",
+        "2026-10",
+        "lastMonth"
+      ]
+    },
+    {
+      "options": {
+        "timeFrame": {
+          "mode": "lastYear",
+          "start": "2026-01",
+          "end": "2026-03"
+        }
+      },
+      "latest": "2026-12-02",
+      "expected": [
+        "2025-01",
+        "2025-12",
+        "lastYear"
+      ]
+    },
+    {
+      "options": {
+        "timeFrame": {
+          "mode": "yearToDate",
+          "start": "2026-01",
+          "end": "2026-03"
+        }
+      },
+      "latest": "2026-12-02",
+      "expected": [
+        "2026-01",
+        "2026-11",
+        "yearToDate"
+      ]
+    },
+    {
+      "options": {
+        "timeFrame": {
+          "mode": "priorYearToDate",
+          "start": "2026-01",
+          "end": "2026-03"
+        }
+      },
+      "latest": "2026-12-02",
+      "expected": [
+        "2025-01",
+        "2025-11-09",
+        "priorYearToDate"
+      ]
+    },
+    {
+      "options": {
+        "timeFrame": {
+          "mode": "currentQuarter",
+          "start": "2026-01",
+          "end": "2026-03"
+        }
+      },
+      "latest": "2026-12-02",
+      "expected": [
+        "2026-10",
+        "2026-12",
+        "currentQuarter"
+      ]
+    },
+    {
+      "options": {
+        "timeFrame": {
+          "mode": "previousQuarter",
+          "start": "2026-01",
+          "end": "2026-03"
+        }
+      },
+      "latest": "2026-12-02",
+      "expected": [
+        "2026-07",
+        "2026-09",
+        "previousQuarter"
+      ]
+    },
+    {
+      "options": {
+        "timeFrame": {
+          "mode": "sliding-window",
+          "start": "2026-01-10",
+          "end": "2026-01-20"
+        }
+      },
+      "latest": "2026-12-02",
+      "expected": [
+        "2026-10-30",
+        "2026-11-09",
+        "sliding-window"
+      ]
+    },
+    {
+      "options": {
+        "timeFrame": {
+          "mode": "sliding-window",
+          "start": "2026-04",
+          "end": "2026-01"
+        }
+      },
+      "latest": "2026-12-02",
+      "expected": [
+        "2026-11",
+        "2026-08",
+        "sliding-window"
+      ]
+    }
+  ]
+}

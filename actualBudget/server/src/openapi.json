@@ -19100,6 +19100,483 @@
           }
         }
       }
+    },
+    "/api/v1/budgets/{budget}/reporting": {
+      "get": {
+        "description": "Read reporting documents, including preserved tombstones/source metadata.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid query, range, bounds or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "reporting_changed, snapshot_changed, budget_restored, operation_canceled, or idempotency conflict; retain original pending request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "No partial mutation; retry original request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Authoritative reporting response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ReportingState"
+                    },
+                    "edit_clock": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/reporting/commands": {
+      "post": {
+        "description": "Atomic per-document revision CAS. New IDs require revision0. Source clocks are retained; stale supplied field ordering conflicts. Immutable key/body/epoch retries replay the original response. Cancellation is a durable fence. No ledger mutation. Survives native backups, duplication, restore and upgrade.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "name": "X-Actual-Edit-Clock",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Actual-Cancel-If-Uncommitted",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "X-Actual-Receipt-Only",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid query, range, bounds or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "reporting_changed, snapshot_changed, budget_restored, operation_canceled, or idempotency conflict; retain original pending request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "No partial mutation; retry original request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Authoritative reporting response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ReportingState"
+                    },
+                    "edit_clock": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/reports/query": {
+      "post": {
+        "description": "Read-only recorded-entry aggregates. Explicit as_of. No estimates of future transactions; future-dated recorded entries follow pinned26.10 report semantics. Max3660 days,500 accounts/groups,20000 inspectable cells,100000 matching projected entries/exact safe money flow; oversized queries reject without truncated totals. Unknown report types reject.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid query, range, bounds or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "reporting_changed, snapshot_changed, budget_restored, operation_canceled, or idempotency conflict; retain original pending request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "No partial mutation; retry original request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Authoritative reporting response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ReportProjection"
+                    },
+                    "edit_clock": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportQuery"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/reports/drilldown": {
+      "post": {
+        "description": "Same validated query and captured snapshot plus server-issued cell ID. At most200 split-leaf records per stable date/ID page. Snapshot mismatch requires fresh aggregate; never mixes financial snapshots.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid query, range, bounds or document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "reporting_changed, snapshot_changed, budget_restored, operation_canceled, or idempotency conflict; retain original pending request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "No partial mutation; retry original request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Authoritative reporting response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ReportInspection"
+                    },
+                    "edit_clock": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportInspectionRequest"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -26493,6 +26970,905 @@
             "type": "string"
           }
         }
+      },
+      "ReportDocument": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "enum": [
+              "page",
+              "widget",
+              "custom_report"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "config": {
+            "type": "object",
+            "description": "Source-shaped page/widget/custom-report settings. Metadata, layout and unknown future widget fields are retained; unavailable widget kinds are explicitly presented as such. Maximum serialized config65536 bytes."
+          },
+          "tombstone": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "revision",
+          "config",
+          "tombstone"
+        ]
+      },
+      "ReportingState": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportDocument"
+            }
+          },
+          "epoch": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "snapshot": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "documents",
+          "epoch",
+          "snapshot"
+        ]
+      },
+      "ReportCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "writes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportDocument"
+            },
+            "maxItems": 200,
+            "minItems": 1
+          }
+        },
+        "required": [
+          "writes"
+        ]
+      },
+      "ReportCondition": {
+        "type": "object",
+        "required": [
+          "field",
+          "op",
+          "value"
+        ],
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "op": {
+            "type": "string"
+          },
+          "value": {},
+          "options": {
+            "type": "object"
+          },
+          "type": {
+            "type": "string"
+          },
+          "customName": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      },
+      "ReportQuery": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": 1
+          },
+          "kind": {
+            "enum": [
+              "cash-flow",
+              "net-worth",
+              "spending",
+              "summary",
+              "calendar",
+              "range",
+              "widget-range"
+            ]
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "options": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "start": {
+                "type": "string"
+              },
+              "end": {
+                "type": "string"
+              },
+              "conditions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ReportCondition"
+                },
+                "maxItems": 20
+              },
+              "conditionsOp": {
+                "enum": [
+                  "and",
+                  "or"
+                ]
+              },
+              "isConcise": {
+                "type": "boolean"
+              },
+              "interval": {
+                "enum": [
+                  "Daily",
+                  "Weekly",
+                  "Monthly",
+                  "Yearly"
+                ]
+              },
+              "accounts": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "maxItems": 500
+              },
+              "first_day_of_week": {
+                "enum": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4",
+                  "5",
+                  "6"
+                ]
+              },
+              "summary": {
+                "type": "object"
+              },
+              "compare": {
+                "type": "string"
+              },
+              "compareTo": {
+                "type": "string"
+              },
+              "averageRange": {
+                "type": "object"
+              },
+              "budgetType": {
+                "enum": [
+                  "tracking",
+                  "envelope"
+                ]
+              },
+              "range": {
+                "type": "string"
+              },
+              "includeCurrent": {
+                "type": "boolean"
+              },
+              "timeFrame": {
+                "type": "object"
+              }
+            },
+            "required": []
+          }
+        },
+        "required": [
+          "version",
+          "kind",
+          "as_of",
+          "options"
+        ]
+      },
+      "ReportCashFlow": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "graphData": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "income": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "x": {
+                      "type": "string"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y"
+                  ]
+                }
+              },
+              "expenses": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "x": {
+                      "type": "string"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y"
+                  ]
+                }
+              },
+              "transfers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "x": {
+                      "type": "string"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y"
+                  ]
+                }
+              },
+              "balances": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "x": {
+                      "type": "string"
+                    },
+                    "y": {
+                      "type": "number"
+                    },
+                    "amount": {
+                      "type": "number"
+                    },
+                    "premadeLabel": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y",
+                    "amount",
+                    "premadeLabel"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "income",
+              "expenses",
+              "transfers",
+              "balances"
+            ]
+          },
+          "balance": {
+            "type": "number"
+          },
+          "totalIncome": {
+            "type": "number"
+          },
+          "totalExpenses": {
+            "type": "number"
+          },
+          "totalTransfers": {
+            "type": "number"
+          },
+          "totalChange": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "graphData",
+          "balance",
+          "totalIncome",
+          "totalExpenses",
+          "totalTransfers",
+          "totalChange"
+        ]
+      },
+      "ReportNetWorth": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "graphData": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "x",
+                    "y",
+                    "assets",
+                    "debt",
+                    "change",
+                    "networth",
+                    "date"
+                  ],
+                  "properties": {
+                    "x": {
+                      "type": "string"
+                    },
+                    "y": {
+                      "type": "number"
+                    },
+                    "assets": {
+                      "type": "string"
+                    },
+                    "debt": {
+                      "type": "string"
+                    },
+                    "change": {
+                      "type": "string"
+                    },
+                    "networth": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": {
+                    "type": [
+                      "number",
+                      "string"
+                    ]
+                  }
+                }
+              },
+              "hasNegative": {
+                "type": "boolean"
+              },
+              "start": {
+                "type": "string",
+                "format": "date"
+              },
+              "end": {
+                "type": "string",
+                "format": "date"
+              }
+            },
+            "required": [
+              "data",
+              "hasNegative",
+              "start",
+              "end"
+            ]
+          },
+          "netWorth": {
+            "type": "number"
+          },
+          "totalChange": {
+            "type": "number"
+          },
+          "lowestNetWorth": {
+            "type": "number"
+          },
+          "highestNetWorth": {
+            "type": "number"
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ]
+            },
+            "maxItems": 500
+          }
+        },
+        "required": [
+          "graphData",
+          "netWorth",
+          "totalChange",
+          "lowestNetWorth",
+          "highestNetWorth",
+          "accounts"
+        ]
+      },
+      "ReportSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fromRange": {
+            "type": "string"
+          },
+          "toRange": {
+            "type": "string"
+          },
+          "total": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "dividend": {
+            "type": "number"
+          },
+          "divisor": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "fromRange",
+          "toRange",
+          "total",
+          "dividend",
+          "divisor"
+        ]
+      },
+      "ReportCalendar": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "calendarData": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "data": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "incomeValue": {
+                        "type": "number"
+                      },
+                      "expenseValue": {
+                        "type": "number"
+                      },
+                      "incomeSize": {
+                        "type": "number"
+                      },
+                      "expenseSize": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "date",
+                      "incomeValue",
+                      "expenseValue",
+                      "incomeSize",
+                      "expenseSize"
+                    ]
+                  },
+                  "maxItems": 42
+                },
+                "totalIncome": {
+                  "type": "number"
+                },
+                "totalExpense": {
+                  "type": "number"
+                },
+                "start": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "end": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "data",
+                "totalIncome",
+                "totalExpense",
+                "start",
+                "end"
+              ]
+            }
+          }
+        },
+        "required": [
+          "calendarData"
+        ]
+      },
+      "ReportSpending": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "intervalData": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "months": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "cumulative": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "daily": {
+                        "type": "number"
+                      },
+                      "month": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "date",
+                      "cumulative",
+                      "daily",
+                      "month"
+                    ]
+                  }
+                },
+                "day": {
+                  "type": "string"
+                },
+                "average": {
+                  "type": "number"
+                },
+                "compare": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "compareTo": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "budget": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "months",
+                "day",
+                "average",
+                "compare",
+                "compareTo",
+                "budget"
+              ]
+            },
+            "maxItems": 28
+          },
+          "averageRange": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "startMonth": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "endMonth": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "months": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "startMonth",
+              "endMonth",
+              "months"
+            ]
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "totalAssets": {
+            "type": "number"
+          },
+          "totalDebts": {
+            "type": "number"
+          },
+          "totalTotals": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "intervalData",
+          "averageRange",
+          "startDate",
+          "endDate",
+          "totalAssets",
+          "totalDebts",
+          "totalTotals"
+        ]
+      },
+      "ReportCell": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string",
+            "format": "date"
+          },
+          "end": {
+            "type": "string",
+            "format": "date"
+          },
+          "metric": {
+            "type": "string"
+          },
+          "account": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "start",
+          "end",
+          "metric",
+          "account"
+        ]
+      },
+      "ReportProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "result": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ReportCashFlow"
+              },
+              {
+                "$ref": "#/components/schemas/ReportNetWorth"
+              },
+              {
+                "$ref": "#/components/schemas/ReportSummary"
+              },
+              {
+                "$ref": "#/components/schemas/ReportCalendar"
+              },
+              {
+                "$ref": "#/components/schemas/ReportSpending"
+              },
+              {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "cells": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportCell"
+            },
+            "maxItems": 20000
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "recorded": {
+            "const": true
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "result",
+          "cells",
+          "snapshot",
+          "recorded",
+          "as_of"
+        ]
+      },
+      "ReportInspectionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "query": {
+            "$ref": "#/components/schemas/ReportQuery"
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "cell_id": {
+            "type": "string"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200
+          }
+        },
+        "required": [
+          "query",
+          "snapshot",
+          "cell_id",
+          "offset",
+          "limit"
+        ]
+      },
+      "ReportInspection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "date": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "amount": {
+                  "type": "number"
+                },
+                "account": {
+                  "type": "string"
+                },
+                "payee": {
+                  "type": "string"
+                },
+                "category": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "account_id": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "required": [
+                "id",
+                "date",
+                "amount",
+                "account",
+                "payee",
+                "category",
+                "notes",
+                "account_id"
+              ]
+            },
+            "maxItems": 200
+          },
+          "total_count": {
+            "type": "integer"
+          },
+          "total_amount": {
+            "type": "number"
+          },
+          "offset": {
+            "type": "integer"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "cell": {
+            "$ref": "#/components/schemas/ReportCell"
+          }
+        },
+        "required": [
+          "rows",
+          "total_count",
+          "total_amount",
+          "offset",
+          "limit",
+          "has_more",
+          "snapshot",
+          "cell"
+        ]
       }
     }
   }

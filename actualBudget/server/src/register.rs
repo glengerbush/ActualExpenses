@@ -850,3 +850,19 @@ fn list_inner(
         json!({"data":data,"balances":balances(sums)?,"filtered_balances":balances(filtered)?,"filtered_count":count,"as_of":as_of,"snapshot":current,"next_offset":if more{Some(offset+limit)}else{None}}),
     )
 }
+
+/// Reports share the validated register predicate language, while deliberately
+/// owning their own account/split/period inclusion rules.
+pub(crate) fn report_predicate(
+    db: &Connection,
+    budget: &str,
+    filter: Filter,
+    values: &mut Vec<SqlValue>,
+) -> Result<String, Error> {
+    let query = Query {
+        filter,
+        ..Query::default()
+    };
+    let query = canonical_query(db, budget, &query)?;
+    query.sql(values, None)
+}

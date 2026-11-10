@@ -1,0 +1,205 @@
+{
+  "schema_version": 21,
+  "source_commit": "78610a9",
+  "executable_sha256": "61a29c48caf58cfeb8908c743e3da96718f8109904ff32c868ce1878781f8c26",
+  "created": {
+    "data": {
+      "auto_due": 1794287463,
+      "backup_error": null,
+      "budget_type": "tracking",
+      "deleted": false,
+      "epoch": "ad4f47b5fc3df05a0f579bccd9c1beb4",
+      "generation": 0,
+      "id": "33340021-0000-4000-8000-000000000001",
+      "last_auto": null,
+      "name": "Before reporting"
+    }
+  },
+  "metadata": {
+    "auto_due": 1794287463,
+    "backup_error": null,
+    "budget_type": "tracking",
+    "deleted": false,
+    "epoch": "ad4f47b5fc3df05a0f579bccd9c1beb4",
+    "generation": 0,
+    "id": "33340021-0000-4000-8000-000000000001",
+    "last_auto": null,
+    "name": "Before reporting"
+  },
+  "account": "33340021-0000-4000-8000-000000000002",
+  "body": {
+    "id": "33340021-0000-4000-8000-000000000003",
+    "account_id": "33340021-0000-4000-8000-000000000002",
+    "amount": -345,
+    "date": "2026-11-02",
+    "notes": "Before reporting",
+    "cleared": true
+  },
+  "key": "expense21",
+  "headers": {
+    "X-Actual-Budget-Epoch": "ad4f47b5fc3df05a0f579bccd9c1beb4"
+  },
+  "receipt": {
+    "conflicts": [],
+    "cursor": "c1ad4f47b5fc3df05a0f579bccd9c1beb40000000000000009",
+    "data": {
+      "account_id": "33340021-0000-4000-8000-000000000002",
+      "account_name": "Spending",
+      "amount": -345,
+      "category_id": null,
+      "category_is_income": null,
+      "category_name": null,
+      "cleared": true,
+      "date": "2026-11-02",
+      "field_versions": {
+        "account_id": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+        "amount": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+        "category_id": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+        "cleared": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+        "date": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+        "notes": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+        "payee_id": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+        "reconciled": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+        "starting_balance": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+        "tombstone": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54"
+      },
+      "id": "33340021-0000-4000-8000-000000000003",
+      "imported_payee": null,
+      "notes": "Before reporting",
+      "payee_id": null,
+      "payee_name": null,
+      "reconciled": false,
+      "retained_payee_id": null,
+      "sort_order": 1,
+      "starting_balance": false
+    },
+    "edit_clock": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54"
+  },
+  "register": {
+    "as_of": null,
+    "balances": {
+      "cleared": 12000,
+      "total": 12000,
+      "uncleared": 0
+    },
+    "data": [
+      {
+        "account_id": "33340021-0000-4000-8000-000000000002",
+        "account_name": "Spending",
+        "amount": -345,
+        "category_group_name": null,
+        "category_id": null,
+        "category_is_income": null,
+        "category_name": null,
+        "cleared": true,
+        "date": "2026-11-02",
+        "field_versions": {
+          "account_id": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+          "amount": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+          "category_id": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+          "cleared": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+          "date": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+          "notes": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+          "payee_id": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+          "reconciled": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+          "starting_balance": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+          "tombstone": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54"
+        },
+        "id": "33340021-0000-4000-8000-000000000003",
+        "imported_payee": null,
+        "notes": "Before reporting",
+        "payee_id": null,
+        "payee_name": null,
+        "reconciled": false,
+        "retained_payee_id": null,
+        "running_balance": 12000,
+        "sort_order": 1,
+        "starting_balance": false
+      },
+      {
+        "account_id": "33340021-0000-4000-8000-000000000002",
+        "account_name": "Spending",
+        "amount": 12345,
+        "category_group_name": null,
+        "category_id": "ca5cf808-59f7-4903-af16-2a13f58742da",
+        "category_is_income": true,
+        "category_name": "Starting Balances",
+        "cleared": true,
+        "date": "2026-11-01",
+        "field_versions": {
+          "account_id": "2026-11-10T04:56:03.856Z-0000-6569d9e3c34b6a54",
+          "amount": "2026-11-10T04:56:03.856Z-0000-6569d9e3c34b6a54",
+          "category_id": "2026-11-10T04:56:03.856Z-0000-6569d9e3c34b6a54",
+          "cleared": "2026-11-10T04:56:03.856Z-0000-6569d9e3c34b6a54",
+          "date": "2026-11-10T04:56:03.856Z-0000-6569d9e3c34b6a54",
+          "notes": "2026-11-10T04:56:03.856Z-0000-6569d9e3c34b6a54",
+          "payee_id": "2026-11-10T04:56:03.856Z-0000-6569d9e3c34b6a54",
+          "reconciled": "2026-11-10T04:56:03.856Z-0000-6569d9e3c34b6a54",
+          "starting_balance": "2026-11-10T04:56:03.856Z-0000-6569d9e3c34b6a54",
+          "tombstone": "2026-11-10T04:56:03.856Z-0000-6569d9e3c34b6a54"
+        },
+        "id": "c6b265ea-881e-44d8-8e81-22d24e05a032",
+        "imported_payee": null,
+        "notes": "",
+        "payee_id": "454c7561-d15d-447e-b651-786d3efcac15",
+        "payee_name": "Starting Balance",
+        "reconciled": false,
+        "retained_payee_id": "454c7561-d15d-447e-b651-786d3efcac15",
+        "running_balance": 12345,
+        "sort_order": 0,
+        "starting_balance": true
+      }
+    ],
+    "filtered_balances": {
+      "cleared": 12000,
+      "total": 12000,
+      "uncleared": 0
+    },
+    "filtered_count": 2,
+    "next_offset": null,
+    "snapshot": "c1ad4f47b5fc3df05a0f579bccd9c1beb40000000000000009"
+  },
+  "companion": {
+    "data": {
+      "epoch": "ad4f47b5fc3df05a0f579bccd9c1beb4",
+      "recent": [
+        {
+          "account_id": "33340021-0000-4000-8000-000000000002",
+          "account_name": "Spending",
+          "amount": -345,
+          "category_id": null,
+          "category_is_income": null,
+          "category_name": null,
+          "cleared": true,
+          "date": "2026-11-02",
+          "field_versions": {
+            "account_id": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+            "amount": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+            "category_id": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+            "cleared": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+            "date": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+            "notes": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+            "payee_id": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+            "reconciled": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+            "starting_balance": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54",
+            "tombstone": "2026-11-10T04:56:03.862Z-0000-6569d9e3c34b6a54"
+          },
+          "id": "33340021-0000-4000-8000-000000000003",
+          "imported_payee": null,
+          "notes": "Before reporting",
+          "payee_id": null,
+          "payee_name": null,
+          "reconciled": false,
+          "retained_payee_id": null,
+          "sort_order": 1,
+          "starting_balance": false
+        }
+      ],
+      "retained": [],
+      "snapshot": "c1ad4f47b5fc3df05a0f579bccd9c1beb40000000000000009",
+      "unavailable": []
+    }
+  },
+  "archive_sha256": "4c84cd13297644c69acf01b0dcc52c29699bcd6b6626c51b22ed34978ca3e7c3",
+  "database_sha256": "0fa2bd18d8610200a8fce84d5c8959d2b00b63e9702f62d89f9f1406dd3d18f1"
+}

@@ -1,0 +1,834 @@
+<script lang="ts">
+  import { onMount } from "svelte";
+  import { errorMessage, RequestError, uuid, type Account } from "./api";
+  import { readValue, writeValue } from "./offline/storage";
+  import {
+    loadReporting,
+    readReportOperation,
+    prepareReportOperation,
+    sendReportOperation,
+    cancelReportOperation,
+    completeReportOperation,
+    draftKey,
+    object,
+    localDay,
+    type Reporting,
+    type ReportDocument,
+    type ReportOperation,
+  } from "./reports";
+  import ReportWidget from "./ReportWidget.svelte";
+  import ReportConditions from "./ReportConditions.svelte";
+  let {
+    budgetId,
+    accounts = [],
+    disconnected = false,
+    onclose,
+  }: {
+    budgetId: string;
+    accounts?: Account[];
+    disconnected?: boolean;
+    onclose: () => void;
+  } = $props();
+  let data = $state.raw<Reporting | null>(null),
+    pending = $state.raw<ReportOperation | null>(null),
+    editor = $state<ReportDocument | null>(null),
+    editorEpoch = $state(""),
+    selected = $state(""),
+    busy = $state(true),
+    cached = $state(false),
+    error = $state(""),
+    notice = $state(""),
+    confirm = $state(""),
+    storageBlocked = $state(false);
+  let pages = $derived(
+    (data?.documents || []).filter((d) => d.kind === "page" && !d.tombstone),
+  );
+  let widgets = $derived(
+    (data?.documents || [])
+      .filter(
+        (d) =>
+          d.kind === "widget" &&
+          !d.tombstone &&
+          d.config.dashboard_page_id === selected,
+      )
+      .sort(
+        (a, b) =>
+          Number(a.config.y) - Number(b.config.y) ||
+          Number(a.config.x) - Number(b.config.x) ||
+          a.id.localeCompare(b.id),
+      ),
+  );
+  let page = $derived(pages.find((d) => d.id === selected));
+  let meta = $derived(object(editor?.config.meta));
+  const types = [
+    ["cash-flow-card", "Cash flow"],
+    ["net-worth-card", "Net worth"],
+    ["spending-card", "Spending analysis"],
+    ["markdown-card", "Text"],
+    ["summary-card", "Summary"],
+    ["calendar-card", "Transaction calendar"],
+  ];
+  const dateModes = [
+    ["sliding-window", "Live sliding window"],
+    ["static", "Static dates"],
+    ["full", "Through latest recorded month"],
+    ["lastMonth", "Last month"],
+    ["lastYear", "Last year"],
+    ["yearToDate", "Year to date"],
+    ["priorYearToDate", "Prior year to date"],
+    ["currentQuarter", "Current quarter"],
+    ["previousQuarter", "Previous quarter"],
+  ];
+  let alive = true;
+  async function remember() {
+    await writeValue(`view:reporting-selection:${budgetId}`, selected);
+  }
+  async function persistDraft() {
+    if (editor)
+      await writeValue(draftKey(budgetId), {
+        version: 1,
+        epoch: editorEpoch,
+        document: $state.snapshot(editor),
+      });
+  }
+  async function change(work: () => void) {
+    work();
+    try {
+      await persistDraft();
+    } catch (e) {
+      storageBlocked = true;
+      error = errorMessage(e);
+    }
+  }
+  function config(key: string, value: unknown) {
+    void change(() => {
+      if (editor) editor.config[key] = value;
+    });
+  }
+  function metadata(key: string, value: unknown) {
+    void change(() => {
+      if (editor) editor.config.meta = { ...meta, [key]: value };
+    });
+  }
+  function timeframe(key: string, value: string) {
+    metadata("timeFrame", { ...object(meta.timeFrame), [key]: value });
+  }
+  function summaryType() {
+    try {
+      return (
+        object(
+          typeof meta.content === "string"
+            ? JSON.parse(meta.content)
+            : meta.content,
+        ).type || "sum"
+      );
+    } catch {
+      return "sum";
+    }
+  }
+  function setSummaryType(type: string) {
+    let previous: Record<string, unknown> = {};
+    try {
+      previous = object(
+        typeof meta.content === "string"
+          ? JSON.parse(meta.content)
+          : meta.content,
+      );
+    } catch {}
+    metadata(
+      "content",
+      JSON.stringify({
+        ...previous,
+        type,
+        ...(type === "percentage" && previous.type !== "percentage"
+          ? {
+              divisorConditions: [{ field: "amount", op: "gt", value: 0 }],
+              divisorConditionsOp: "and",
+              divisorAllTimeDateRange: false,
+            }
+          : {}),
+      }),
+    );
+  }
+  async function load() {
+    busy = true;
+    error = "";
+    try {
+      const response = await loadReporting(budgetId);
+      if (!alive) return;
+      data = response.data;
+      cached = response.cached;
+      pending = await readReportOperation(budgetId);
+      const prior = await readValue<string>(
+        `view:reporting-selection:${budgetId}`,
+      );
+      if (!pages.some((p) => p.id === selected))
+        selected = pages.some((p) => p.id === prior)
+          ? prior!
+          : pages[0]?.id || "";
+      const draft = await readValue<{
+        version: number;
+        epoch: string;
+        document: ReportDocument;
+      }>(draftKey(budgetId));
+      if (draft?.version === 1) {
+        editor = draft.document;
+        editorEpoch = draft.epoch;
+      }
+      storageBlocked = false;
+    } catch (e) {
+      error = errorMessage(e);
+    } finally {
+      busy = false;
+    }
+  }
+  onMount(() => {
+    void load();
+    return () => {
+      alive = false;
+    };
+  });
+  async function edit(document: ReportDocument) {
+    error = "";
+    confirm = "";
+    editor = structuredClone(document);
+    editorEpoch = data?.epoch || "";
+    try {
+      await persistDraft();
+    } catch (e) {
+      storageBlocked = true;
+      error = errorMessage(e);
+    }
+  }
+  async function newPage() {
+    await edit({
+      id: uuid(),
+      kind: "page",
+      revision: 0,
+      config: { name: "" },
+      tombstone: false,
+    });
+  }
+  async function newWidget() {
+    const today = localDay();
+    let position = {
+      x: 0,
+      y: Math.max(
+        0,
+        ...widgets.map((w) => Number(w.config.y) + Number(w.config.height)),
+      ),
+    };
+    outer: for (const y of [
+      ...new Set([
+        0,
+        ...widgets.map((w) => Number(w.config.y) + Number(w.config.height)),
+      ]),
+    ].sort((a, b) => a - b)) {
+      for (const x of [0, 6]) {
+        if (
+          !widgets.some(
+            (w) =>
+              x < Number(w.config.x) + Number(w.config.width) &&
+              x + 6 > Number(w.config.x) &&
+              y < Number(w.config.y) + Number(w.config.height) &&
+              y + 3 > Number(w.config.y),
+          )
+        ) {
+          position = { x, y };
+          break outer;
+        }
+      }
+    }
+    await edit({
+      id: uuid(),
+      kind: "widget",
+      revision: 0,
+      config: {
+        dashboard_page_id: selected,
+        type: "cash-flow-card",
+        ...position,
+        width: 6,
+        height: 3,
+        meta: {
+          name: "",
+          timeFrame: {
+            start: today.slice(0, 7),
+            end: today.slice(0, 7),
+            mode: "sliding-window",
+          },
+        },
+      },
+      tombstone: false,
+    });
+  }
+  async function resetEditor() {
+    if (!editor || pending) return;
+    const saved = data?.documents.find((d) => d.id === editor!.id);
+    if (saved) await edit(saved);
+    else {
+      editor = null;
+      await writeValue(draftKey(budgetId), null);
+    }
+  }
+  async function closeEditor() {
+    if (pending) return;
+    editor = null;
+    await writeValue(draftKey(budgetId), null);
+  }
+  async function deliver(cancel = false) {
+    if (!pending || busy) return;
+    busy = true;
+    error = "";
+    try {
+      if (cancel) pending = await cancelReportOperation(pending);
+      const confirmed = await sendReportOperation(pending);
+      await completeReportOperation(pending);
+      data = confirmed;
+      cached = false;
+      pending = null;
+      editor = null;
+      await writeValue(draftKey(budgetId), null);
+      confirm = "";
+      notice = "Reporting change saved.";
+      if (!pages.some((p) => p.id === selected)) selected = pages[0]?.id || "";
+      await remember();
+    } catch (e) {
+      if (
+        e instanceof RequestError &&
+        e.code === "operation_canceled" &&
+        pending
+      ) {
+        await completeReportOperation(pending);
+        pending = null;
+        notice = "Change canceled before saving. Your draft is retained.";
+      } else error = errorMessage(e);
+    } finally {
+      busy = false;
+    }
+  }
+  async function commit(writes: ReportDocument[]) {
+    if (!data || busy || pending || cached || disconnected || storageBlocked)
+      return;
+    error = "";
+    try {
+      if (editor) {
+        await persistDraft();
+        if (editorEpoch !== data.epoch)
+          throw Error(
+            "This draft belongs to an earlier budget version. Keep it for reference, then discard or reset before saving.",
+          );
+      }
+      pending = await prepareReportOperation(budgetId, data.epoch, writes);
+      await deliver();
+    } catch (e) {
+      error = errorMessage(e);
+    }
+  }
+  async function saveEditor() {
+    if (!editor) return;
+    if (editor.kind === "page") selected = editor.id;
+    await commit([structuredClone($state.snapshot(editor))]);
+  }
+  async function duplicatePage() {
+    if (!page) return;
+    const id = uuid();
+    await commit([
+      {
+        ...structuredClone(page),
+        id,
+        revision: 0,
+        config: {
+          ...page.config,
+          name: String(page.config.name).slice(0, 114) + " copy",
+        },
+      },
+      ...widgets.map((w) => ({
+        ...structuredClone(w),
+        id: uuid(),
+        revision: 0,
+        config: { ...w.config, dashboard_page_id: id },
+      })),
+    ]);
+    if (!pending && !error) {
+      selected = id;
+      await remember();
+    }
+  }
+  async function remove(document: ReportDocument) {
+    await commit([
+      { ...structuredClone(document), tombstone: true },
+      ...(document.kind === "page"
+        ? widgets.map((w) => ({ ...structuredClone(w), tombstone: true }))
+        : []),
+    ]);
+  }
+</script>
+
+<section aria-labelledby="reporting-title">
+  <header class="heading">
+    <div>
+      <h2 id="reporting-title">Dashboards and reports</h2>
+      <p class="muted">
+        Recorded history, saved views and bounded transaction inspection.
+      </p>
+    </div>
+    <button onclick={onclose}>Close reports</button>
+  </header>
+  {#if error}<p role="alert">{error}</p>{/if}{#if notice}<p role="status">
+      {notice}
+    </p>{/if}{#if cached}<p role="status">
+      Cached dashboard settings. Reconnect and refresh before editing or loading
+      current reports.
+    </p>{/if}
+  {#if pending}<section class="pending" aria-label="Saved reporting change">
+      <h3>Saved change needs confirmation</h3>
+      <p>
+        The original request and budget version are retained. {pending.cancelRequested
+          ? "Cancellation is pending. Retrying keeps the cancellation fence."
+          : "Retry to learn whether the change was saved, or request cancellation."}
+      </p>
+      <div class="actions">
+        <button disabled={busy || disconnected} onclick={() => deliver()}
+          >Retry saved reporting change</button
+        ><button
+          disabled={busy || disconnected || pending.cancelRequested}
+          onclick={() => deliver(true)}>Cancel saved reporting change</button
+        >
+      </div>
+    </section>{/if}
+  {#if busy}<p role="status">Loading reporting settings…</p>{/if}
+  <div class="toolbar">
+    <label
+      >Dashboard<select
+        bind:value={selected}
+        onchange={() => {
+          confirm = "";
+          void remember();
+        }}
+        disabled={busy || !!editor || !!pending}
+        >{#each pages as value (value.id)}<option value={value.id}
+            >{String(value.config.name)}</option
+          >{/each}</select
+      ></label
+    >
+    <div class="actions">
+      <button
+        onclick={newPage}
+        disabled={busy || !!editor || !!pending || cached || disconnected}
+        >New dashboard</button
+      ><button
+        onclick={load}
+        disabled={busy || !!editor || !!pending || disconnected}
+        >Refresh dashboards</button
+      >{#if page}<button
+          onclick={() => edit(page!)}
+          disabled={busy || !!editor || !!pending || cached || disconnected}
+          >Rename dashboard</button
+        ><button
+          onclick={duplicatePage}
+          disabled={busy || !!editor || !!pending || cached || disconnected}
+          >Duplicate dashboard</button
+        ><button
+          onclick={() => (confirm = page!.id)}
+          disabled={busy ||
+            !!editor ||
+            !!pending ||
+            pages.length < 2 ||
+            cached ||
+            disconnected}>Delete dashboard</button
+        ><button
+          onclick={newWidget}
+          disabled={busy || !!editor || !!pending || cached || disconnected}
+          >Add widget</button
+        >{/if}
+    </div>
+  </div>
+  {#if confirm}{@const document = data?.documents.find(
+      (d) => d.id === confirm,
+    )}{#if document}<section class="confirmation">
+        <p>
+          Remove {document.kind === "page"
+            ? "this dashboard and its widgets"
+            : "this widget"} from your saved layout?
+        </p>
+        <button disabled={busy || !!pending} onclick={() => remove(document)}
+          >Confirm remove</button
+        ><button onclick={() => (confirm = "")} disabled={busy}
+          >Keep saved layout</button
+        >
+      </section>{/if}{/if}
+  {#if editor}<form
+      onsubmit={(e) => {
+        e.preventDefault();
+        void saveEditor();
+      }}
+      aria-label="Reporting editor"
+    >
+      <h3>
+        {editor.kind === "page"
+          ? editor.revision
+            ? "Rename dashboard"
+            : "New dashboard"
+          : "Edit widget"}
+      </h3>
+      <fieldset disabled={busy || !!pending || cached || disconnected}>
+        {#if editor.kind === "page"}<label
+            >Dashboard name<input
+              required
+              maxlength="120"
+              value={String(editor.config.name || "")}
+              oninput={(e) => config("name", e.currentTarget.value)}
+            /></label
+          >
+        {:else}<label
+            >Widget type<select
+              value={String(editor.config.type)}
+              onchange={(e) => config("type", e.currentTarget.value)}
+              >{#if !types.some((t) => t[0] === editor?.config.type)}<option
+                  value={String(editor.config.type)}
+                  >Preserved: {String(editor.config.type)}</option
+                >{/if}{#each types as type (type[0])}<option value={type[0]}
+                  >{type[1]}</option
+                >{/each}</select
+            ></label
+          ><label
+            >Widget name<input
+              maxlength="120"
+              value={String(meta.name || "")}
+              oninput={(e) => metadata("name", e.currentTarget.value)}
+            /></label
+          >
+          {#if editor.config.type === "markdown-card"}<label
+              >Text content<textarea
+                rows="5"
+                value={String(meta.content || "")}
+                oninput={(e) => metadata("content", e.currentTarget.value)}
+              ></textarea></label
+            ><label
+              >Text alignment<select
+                value={String(meta.text_align || "left")}
+                onchange={(e) => metadata("text_align", e.currentTarget.value)}
+                ><option>left</option><option>center</option><option
+                  >right</option
+                ></select
+              ></label
+            >
+          {:else}<div class="field-grid">
+              <label
+                >Date mode<select
+                  value={String(
+                    object(meta.timeFrame).mode || "sliding-window",
+                  )}
+                  onchange={(e) => timeframe("mode", e.currentTarget.value)}
+                  >{#each dateModes as mode (mode[0])}<option value={mode[0]}
+                      >{mode[1]}</option
+                    >{/each}</select
+                ></label
+              ><label
+                >Start month<input
+                  type="month"
+                  required
+                  value={String(
+                    object(meta.timeFrame).start || localDay(),
+                  ).slice(0, 7)}
+                  oninput={(e) => timeframe("start", e.currentTarget.value)}
+                /></label
+              ><label
+                >End month<input
+                  type="month"
+                  required
+                  value={String(object(meta.timeFrame).end || localDay()).slice(
+                    0,
+                    7,
+                  )}
+                  oninput={(e) => timeframe("end", e.currentTarget.value)}
+                /></label
+              >
+            </div>
+            {#if editor.config.type === "net-worth-card"}<label
+                >Interval<select
+                  value={String(meta.interval || "Monthly")}
+                  onchange={(e) => metadata("interval", e.currentTarget.value)}
+                  >{#each ["Daily", "Weekly", "Monthly", "Yearly"] as interval (interval)}<option
+                      >{interval}</option
+                    >{/each}</select
+                ></label
+              ><label
+                >Net worth view<select
+                  value={String(meta.mode || "trend")}
+                  onchange={(e) => metadata("mode", e.currentTarget.value)}
+                  ><option value="trend">Trend</option><option value="stacked"
+                    >Stacked accounts</option
+                  ></select
+                ></label
+              ><label
+                >Account breakdown<select
+                  multiple
+                  value={Array.isArray(meta.accounts)
+                    ? (meta.accounts as string[])
+                    : accounts.map((a) => a.id)}
+                  onchange={(e) =>
+                    metadata(
+                      "accounts",
+                      Array.from(e.currentTarget.selectedOptions).map(
+                        (o) => o.value,
+                      ),
+                    )}
+                  >{#each accounts as account (account.id)}<option
+                      value={account.id}
+                      >{account.name}{account.off_budget
+                        ? " (off budget)"
+                        : ""}</option
+                    >{/each}</select
+                ></label
+              >
+            {:else if editor.config.type === "cash-flow-card"}<label
+                class="check"
+                ><input
+                  type="checkbox"
+                  checked={meta.isConcise === true}
+                  onchange={(e) =>
+                    metadata("isConcise", e.currentTarget.checked)}
+                />Monthly totals</label
+              ><label class="check"
+                ><input
+                  type="checkbox"
+                  checked={meta.showBalance !== false}
+                  onchange={(e) =>
+                    metadata("showBalance", e.currentTarget.checked)}
+                />Show balance in plot</label
+              >
+            {:else if editor.config.type === "summary-card"}<label
+                >Summary calculation<select
+                  value={String(summaryType())}
+                  onchange={(e) => setSummaryType(e.currentTarget.value)}
+                  >{#each [["sum", "Sum"], ["avgPerMonth", "Average per month"], ["avgPerYear", "Average per year"], ["avgPerTransact", "Average per entry"], ["percentage", "Percentage of deposits"]] as type (type[0])}<option
+                      value={type[0]}>{type[1]}</option
+                    >{/each}</select
+                ></label
+              >
+            {:else if editor.config.type === "spending-card"}<label
+                >Spending comparison<select
+                  value={String(meta.mode || "single-month")}
+                  onchange={(e) => metadata("mode", e.currentTarget.value)}
+                  ><option value="single-month"
+                    >Previous or selected month</option
+                  ><option value="budget">Budget</option><option value="average"
+                    >Historical average</option
+                  ></select
+                ></label
+              ><label class="check"
+                ><input
+                  type="checkbox"
+                  checked={meta.isLive !== false}
+                  onchange={(e) => metadata("isLive", e.currentTarget.checked)}
+                />Live spending dates</label
+              >
+              <div class="field-grid">
+                <label
+                  >Selected spending month<input
+                    type="month"
+                    value={String(meta.compare || localDay()).slice(0, 7)}
+                    oninput={(e) => metadata("compare", e.currentTarget.value)}
+                  /></label
+                ><label
+                  >Comparison month<input
+                    type="month"
+                    value={String(meta.compareTo || "")}
+                    oninput={(e) =>
+                      metadata("compareTo", e.currentTarget.value)}
+                  /></label
+                ><label
+                  >Spending average<select
+                    value={String(
+                      object(meta.averageRange).mode || "last-n-months",
+                    ) +
+                      ":" +
+                      String(object(meta.averageRange).months || 3)}
+                    onchange={(e) => {
+                      const [mode, n] = e.currentTarget.value.split(":");
+                      metadata("averageRange", {
+                        mode,
+                        ...(mode === "last-n-months"
+                          ? { months: Number(n) }
+                          : {}),
+                      });
+                    }}
+                    ><option value="last-n-months:3">Last 3 months</option
+                    ><option value="last-n-months:6">Last 6 months</option
+                    ><option value="last-n-months:12">Last 12 months</option
+                    ><option value="year-to-date:3">Year to date</option><option
+                      value="all-time:3">All time</option
+                    ></select
+                  ></label
+                >
+              </div>{/if}{/if}
+          {#if editor.config.type !== "markdown-card"}<ReportConditions
+              {budgetId}
+              {accounts}
+              conditions={meta.conditions}
+              conditionsOp={meta.conditionsOp}
+              onchange={(conditions, conditionsOp) => {
+                void change(() => {
+                  if (editor)
+                    editor.config.meta = { ...meta, conditions, conditionsOp };
+                });
+              }}
+            />{/if}
+          <div class="field-grid">
+            {#each [["x", "Column", 0, 11], ["y", "Row", 0, 100000], ["width", "Width", 1, 12], ["height", "Height", 1, 100]] as field (String(field[0]))}<label
+                >{String(field[1])}<input
+                  type="number"
+                  required
+                  min={Number(field[2])}
+                  max={Number(field[3])}
+                  value={Number(editor.config[String(field[0])])}
+                  oninput={(e) =>
+                    config(String(field[0]), Number(e.currentTarget.value))}
+                /></label
+              >{/each}
+          </div>
+          <p class="muted">
+            Layout uses 12 columns. Column and row controls work with keyboard
+            and touch. Imported conditions and metadata are retained when other
+            settings change.
+          </p>{/if}
+        <div class="actions">
+          <button type="submit" disabled={storageBlocked}
+            >{editor.kind === "page" ? "Save dashboard" : "Save widget"}</button
+          ><button type="button" onclick={resetEditor}>Reset to saved</button
+          ><button type="button" onclick={closeEditor}
+            >Discard local draft</button
+          >
+        </div>
+      </fieldset>
+    </form>{/if}
+  {#if !pages.length && !busy && !editor}<p>
+      No dashboards yet. Create one, then add a report or text widget.
+    </p>{/if}
+  <div class="dashboard">
+    {#each widgets as widget (widget.id + ":" + widget.revision)}<div
+        class="widget"
+        style:--column={Number(widget.config.x) + 1}
+        style:--width={Number(widget.config.width)}
+        style:--row={Number(widget.config.y) + 1}
+        style:--height={Number(widget.config.height)}
+      >
+        <ReportWidget
+          {budgetId}
+          document={widget}
+          disconnected={disconnected || busy || !!editor || !!pending || cached}
+          onedit={() => edit(widget)}
+          onremove={() => (confirm = widget.id)}
+        />
+      </div>{/each}
+  </div>
+</section>
+
+<style>
+  section {
+    min-width: 0;
+  }
+  .heading,
+  .toolbar,
+  .actions {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .heading h2 {
+    margin: 0;
+  }
+  .toolbar {
+    margin: 1.5rem 0;
+    align-items: end;
+  }
+  .actions {
+    justify-content: flex-start;
+    align-items: center;
+  }
+  label {
+    display: grid;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 1rem;
+  }
+  form,
+  .pending,
+  .confirmation {
+    padding: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    margin: 1rem 0;
+  }
+  fieldset {
+    border: 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+  }
+  .check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .check input {
+    width: auto;
+  }
+  .dashboard {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1rem;
+    grid-auto-rows: minmax(2rem, auto);
+    align-items: stretch;
+  }
+  .widget {
+    min-width: 0;
+    grid-column: var(--column) / span var(--width);
+    grid-row: var(--row) / span var(--height);
+  }
+  @media (max-width: 700px) {
+    .toolbar > .actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      width: 100%;
+    }
+    .toolbar > .actions button {
+      min-width: 0;
+      width: 100%;
+      white-space: normal;
+    }
+  }
+  @media (max-width: 900px) {
+    .dashboard {
+      display: flex;
+      flex-direction: column;
+    }
+    .widget {
+      width: 100%;
+    }
+    .toolbar {
+      display: block;
+    }
+    .toolbar .actions {
+      margin-top: 1rem;
+    }
+  }
+  button {
+    min-height: 44px;
+  }
+</style>

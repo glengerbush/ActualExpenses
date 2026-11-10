@@ -294,6 +294,9 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
         "category_mapping",
         "preferences",
         "transaction_filters",
+        "dashboard_pages",
+        "dashboard",
+        "custom_reports",
         "reflect_budgets",
         "zero_budgets",
         "zero_budget_months",
@@ -375,6 +378,9 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             "category_groups",
             "preferences",
             "transaction_filters",
+            "dashboard_pages",
+            "dashboard",
+            "custom_reports",
             "reflect_budgets",
             "zero_budgets",
             "zero_budget_months",
@@ -892,6 +898,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             clocks.insert(key, row.clone());
         }
     }
+    converted["reporting"] = crate::reports::import::convert(&source)?;
     converted["rules"] = crate::rules::convert_actual(&source, &payee_map, &category_map)?;
     converted["rules_version"] = json!(1);
     converted["schedules"] = crate::schedules::convert_actual(&source, &converted["rules"])?;
@@ -980,12 +987,14 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
             params![budget, settings.to_string()],
         )?;
     }
+    crate::reports::import::install(db, budget, &data["reporting"])?;
     crate::transaction_imports::install(db, budget, &data["transaction_imports"])?;
     crate::budgeting::install_actual(db, budget, &data["budgeting"])?;
     crate::budgeting::templates::install(db, budget, &data["automations"])?;
     crate::rules::install_actual(db, budget, &data["rules"])?;
     crate::schedules::install_actual(db, budget, &data["schedules"])?;
     for row in array(data, "clocks") {
+        crate::reports::import::import_clock(db, budget, row)?;
         crate::transaction_imports::import_clock(db, budget, row)?;
         crate::budgeting::import_clock(db, budget, &data["budgeting"], row)?;
         crate::budgeting::templates::clock(db, budget, row)?;

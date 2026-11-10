@@ -121,3 +121,10 @@ remaining findings. No publication or production cutover occurred.
 Details: [import](../../docs/import-validation.md),
 [concurrency](../../docs/concurrency-validation.md),
 [custom themes](../web/docs/custom-theme-contract.md).
+
+Reporting33 qualification: `--browser-test reports-browser.mjs` exercises real
+supplied-server dashboard creation, six widgets, reload/cache/cancellation and
+privacy/mobile behavior. `reports-api.mjs` also honors the supplied server and
+imports only its committed disposable source ZIP. The separate
+`reporting-native-smoke.py` is an explicitly local copied-genuine21 fixture
+qualification, not a claim of container upgrade coverage.

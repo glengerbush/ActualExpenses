@@ -11,7 +11,8 @@ Consolidated Standards/Spec/Impeccable review of `f817118...602394a` found two
 P2s: an inner category-group join silently omitted supported ungrouped planned
 allocations, and Net Payment disclosure contradicted its positive magnitude.
 Both fixed in `84e5e08`; root independently reviewed the bounded correction and
-its public/browser proof. No outstanding34 review finding. See
+its public/browser proof. Those two findings are closed; a subsequent locale
+integration finding remains open below. See
 [report evidence](reports-validation.md) for source77 cases, native/contracts,
 accessible renders, failure recovery and focused logs.
 
@@ -24,6 +25,14 @@ ordinary inline ungrouped category allocation5000 remains in Category/nested
 totals and one-row allocation details. Net Payment browser58.00 and accurate
 disclosure pass; unchanged source expectations retained. Focused corrections
 reuse existing77 source/API proof, Svelte/build/autofixer and Clippy logs.
+
+Root follow-up review found reporting controls bypass the existing `t()` layer,
+including Payment/Net Payment/Monthly/Category/Account for which the shipped
+German catalog has exact translations. Owner is integrating the existing
+translator, preserving stable option/API values and user-owned names, with a
+browser language-switch/unchanged-financial-result regression. New untranslated
+prose may retain the established English fallback; no fabricated translations
+are required. Correction and targeted review pending.
 
 ## Remaining gates
 

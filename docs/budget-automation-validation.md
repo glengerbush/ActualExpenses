@@ -112,7 +112,8 @@ including explicit-null reset handling, passed consolidated review.
 - `/tmp/budget-templates-browser-final23.log`: goal-template UI passes including
   exact preview, durable lost-200-ack replay, retained review and quota failures.
   Desktop/mobile, large-text and dark captures were reviewed with Impeccable.
-  A small source-authority copy correction is pending its focused assertion.
+  Source-authority copy correction `6d10200` passes its browser assertion and
+  Svelte analysis.
 - `/tmp/budget-automation-native-first.log`: Android preserves expenses and
   pending delivery across automation, pool and settings events, advances its
   cursor and makes no idle cache writes. Regression passed independent review.
@@ -123,6 +124,39 @@ including explicit-null reset handling, passed consolidated review.
   omitted the required cursor and remains recorded as a failed run.
 - `/tmp/budget-cleanup-contract-first.log`: real cleanup preview/commit and feed
   responses satisfy served schemas.
+- `/tmp/budget-migration-http-final.log`:48 public migration cases pass against
+  checkpoint `7da1aaf`:18 compatible UI-to-notes conversions, six refused source
+  differences, and24 notes-to-UI conversions. Every preview leaves stored state
+  unchanged; commits change definitions only. Subsequent application preserves
+  independent source cells and receipts survive restart.
+- `/tmp/budget-migration-invalid-guard.log`: focused edited-note refusal,
+  cancellation fencing, stale-snapshot rejection and atomic source/notes
+  undo/redo pass. `/tmp/budget-migration-pool-guard.log` verifies newly visible
+  note-derived provisional pools retain identity through preview and undo/redo.
+- `/tmp/budget-migration-contract-first.log` and
+  `/tmp/budget-pool-contract-first.log`: real migration and pool command
+  responses satisfy served schemas. `/tmp/budget-named-pool-http-first.log`
+  passes creation, case-insensitive reuse, single-action history and restart
+  receipts, without changing financial cells or transactions.
+
+Consolidated migration review found one bounded-work gap in pool lookup during
+reads. `7320095` closes it with a shared indexed resolver. The affected48 migration
+and44 cleanup cases pass again in `/tmp/budget-migration-index-green.log` and
+`/tmp/budget-cleanup-index-green.log`. The600-pool stable read/migration guard and
+named-pool history/restart case pass in `/tmp/budget-pool-index-guard.log` and
+`/tmp/budget-named-pool-index-green.log`. Review confirms the finding is closed.
+Typed visual configuration and its browser acceptance remain open. No timing or
+whole-system resource conclusion is inferred from these checks.
+
+## Integrated backend qualification in progress
+
+All-target Clippy passes (`/tmp/budget-automation-clippy-all.log`), the complete43
+native Android API cases pass with zero skips (`/tmp/budget-automation-native-full.log`),
+and the final served-schema contract passes (`/tmp/budget-automation-contract-final.log`).
+The initial full HTTP run passes10 account cases, then catches old expected schema19
+assertions in the schema17 upgrade consumer. Current-result assertions were updated
+to20; original fixture versions and contents remain unchanged. The remaining
+integration binaries are running without fail-fast; completed account evidence is reused.
 
 Public test consumers received independent review. Cleanup's44 cases check exact
 warnings/counts, goal null/zero distinctions, two executions and restart receipts.

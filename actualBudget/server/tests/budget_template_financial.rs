@@ -790,7 +790,8 @@ fn cleanup_new_pool_preview_cancel_undo_and_redo_keep_one_financial_action() {
     let checkpoint = server.get(&format!("{root}/checkpoint"));
     let original = assert_source_ledger(&server, &root, case);
     let definitions = server.get(&format!("{root}/budget/templates?month=2026-11"));
-    assert_eq!(definitions["data"]["pools"], json!([]));
+    assert_eq!(definitions["data"]["pools"].as_array().unwrap().len(), 1);
+    assert_eq!(definitions["data"]["pools"][0]["name"], "Reserve");
     let body =
         json!({"action":"cleanup","month":"2026-11","snapshot":checkpoint["data"]["snapshot"]});
     let preview = || {
@@ -811,6 +812,7 @@ fn cleanup_new_pool_preview_cancel_undo_and_redo_keep_one_financial_action() {
     );
     assert_eq!(first["data"]["pools"].as_array().unwrap().len(), 1);
     let pool = first["data"]["pools"][0]["id"].clone();
+    assert_eq!(pool, definitions["data"]["pools"][0]["id"]);
     assert_eq!(server.get(&format!("{root}/checkpoint")), checkpoint);
     assert_eq!(
         server.get(&format!("{root}/budget/templates?month=2026-11")),
@@ -884,9 +886,11 @@ fn cleanup_new_pool_preview_cancel_undo_and_redo_keep_one_financial_action() {
         Some(&epoch),
     );
     assert_eq!(undone.status(), 200, "{}", undone.text().unwrap());
+    // The original notes still describe this pool after undo. Read-only
+    // resolution returns the same provisional identity without persisting it.
     assert_eq!(
         server.get(&format!("{root}/budget/templates?month=2026-11"))["data"]["pools"],
-        json!([])
+        definitions["data"]["pools"]
     );
     let before = server.get(&format!("{root}/budget?month=2026-11"));
     for (category, amount) in [("A", 10000), ("B", 0), ("C", 0)] {
@@ -1279,6 +1283,67 @@ fn run_visual_migration(name: &str) {
         assert_eq!(proposed_notes, case["configuration"]["notes"]["A"]);
     }
     body["action"] = json!("migrate");
+    let exercise_history = name == "envelope-fixed-with-standalone-cap-ui";
+    if exercise_history {
+        let mut invalid = body.clone();
+        invalid.as_object_mut().unwrap().remove("action");
+        invalid["notes"] = json!(format!("{proposed_notes}\n#template invalid"));
+        let response = server.post(
+            &format!("{root}/budget/templates/migration-preview"),
+            "invalid-migration-preview",
+            &invalid,
+            None,
+        );
+        assert_eq!(response.status(), 200);
+        let invalid_preview: Value = response.json().unwrap();
+        assert_eq!(
+            invalid_preview["data"]["compatible"], false,
+            "invalid extra directives must not be silently dropped"
+        );
+        assert!(
+            !invalid_preview["data"]["issues"]
+                .as_array()
+                .unwrap()
+                .is_empty()
+        );
+        invalid["action"] = json!("migrate");
+        let response = server.post(
+            &format!("{root}/budget/templates/commands"),
+            "invalid-migration",
+            &invalid,
+            Some(epoch),
+        );
+        assert_eq!(response.status(), 400);
+        assert_eq!(server.get(&definition_path), definitions);
+        assert_eq!(server.get(&format!("{root}/checkpoint")), checkpoint);
+        let canceled = server
+            .client
+            .post(format!("{}{root}/budget/templates/commands", server.url))
+            .header("Idempotency-Key", "cancel-migration")
+            .header(
+                "X-Actual-History-Owner",
+                "23240000-0000-4000-8000-000000000998",
+            )
+            .header("X-Actual-Budget-Epoch", epoch)
+            .header("X-Actual-Cancel-If-Uncommitted", "true")
+            .json(&body)
+            .send()
+            .unwrap();
+        assert_eq!(canceled.status(), 409);
+        assert_eq!(
+            canceled.json::<Value>().unwrap()["error"]["code"],
+            "operation_canceled"
+        );
+        let replay = server.post(
+            &format!("{root}/budget/templates/commands"),
+            "cancel-migration",
+            &body,
+            Some(epoch),
+        );
+        assert_eq!(replay.status(), 409);
+        assert_eq!(server.get(&definition_path), definitions);
+        assert_eq!(server.get(&format!("{root}/checkpoint")), checkpoint);
+    }
     let response = server.post(
         &format!("{root}/budget/templates/commands"),
         "commit-migration",
@@ -1321,6 +1386,64 @@ fn run_visual_migration(name: &str) {
     migrated_case["configuration"]["notes"]["A"] = json!(proposed_notes);
     assert_budget(&server, &root, &migrated_case, &case["seed"]);
     assert_eq!(assert_source_ledger(&server, &root, case), original);
+    if exercise_history {
+        let checkpoint = server.get(&format!("{root}/checkpoint"));
+        let stale = server.post(
+            &format!("{root}/budget/templates/commands"),
+            "stale-migration",
+            &body,
+            Some(epoch),
+        );
+        assert_eq!(stale.status(), 409);
+        assert_eq!(server.get(&format!("{root}/checkpoint")), checkpoint);
+        for (action, expected, expected_case) in [
+            ("undo", &definitions, case),
+            ("redo", &current, &migrated_case),
+        ] {
+            let history: Value = server
+                .client
+                .get(format!("{}{root}/history", server.url))
+                .header(
+                    "X-Actual-History-Owner",
+                    "23240000-0000-4000-8000-000000000998",
+                )
+                .send()
+                .unwrap()
+                .error_for_status()
+                .unwrap()
+                .json()
+                .unwrap();
+            let response = server.post(
+                &format!("{root}/history/{action}"),
+                &format!("{action}-migration"),
+                &json!({"action_id":history["data"][action]["id"]}),
+                Some(epoch),
+            );
+            assert_eq!(
+                response.status(),
+                200,
+                "{action}: {}",
+                response.text().unwrap()
+            );
+            let actual = server.get(&definition_path);
+            let select = |view: &Value| {
+                let row = view["data"]["categories"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .find(|r| r["id"] == case["ids"]["A"])
+                    .unwrap();
+                json!({"source":row["source"],"notes":row["notes"],"templates":row["templates"],"cleanup":row["cleanup"]})
+            };
+            assert_eq!(
+                select(&actual),
+                select(expected),
+                "{action} restores both source and notes"
+            );
+            assert_budget(&server, &root, expected_case, &case["seed"]);
+            assert_eq!(assert_source_ledger(&server, &root, case), original);
+        }
+    }
     let committed = server.get(&format!("{root}/checkpoint"));
     let server = server.restart();
     let replay = server.post(
@@ -1340,6 +1463,151 @@ fn run_visual_migration(name: &str) {
     assert_eq!(applied.status(), 200, "{name}: {}", applied.text().unwrap());
     assert_budget(&server, &root, &migrated_case, &case["result"]);
     assert_eq!(assert_source_ledger(&server, &root, case), original);
+}
+
+#[test]
+fn named_cleanup_pool_resolves_once_and_undo_redo_preserves_identity() {
+    let server = Server::start(tempfile::tempdir().unwrap());
+    let budget = "24250000-0000-4000-8000-000000000950";
+    let response = server.post(
+        "/api/v1/budgets",
+        "pool-budget",
+        &json!({"id":budget,"name":"Named cleanup pool"}),
+        None,
+    );
+    assert_eq!(response.status(), 201);
+    let root = format!("/api/v1/budgets/{budget}");
+    let path = format!("{root}/budget/templates/commands");
+    let view_path = format!("{root}/budget/templates?month=2026-11");
+    let checkpoint = server.get(&format!("{root}/checkpoint"));
+    let epoch = checkpoint["data"]["epoch"].as_str().unwrap();
+    let plan = server.get(&format!("{root}/budget?month=2026-11"))["data"]["months"].clone();
+    let mut ledger = server.get(&format!("{root}/transactions"));
+    ledger.as_object_mut().unwrap().remove("snapshot");
+    let invalid = server.post(
+        &path,
+        "invalid-pool",
+        &json!({"action":"pool","snapshot":checkpoint["data"]["snapshot"],"name":"   "}),
+        Some(epoch),
+    );
+    assert_eq!(invalid.status(), 400);
+    assert_eq!(server.get(&format!("{root}/checkpoint")), checkpoint);
+    let body =
+        json!({"action":"pool","snapshot":checkpoint["data"]["snapshot"],"name":"  Reserve  "});
+    let response = server.post(&path, "create-pool", &body, Some(epoch));
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let receipt: Value = response.json().unwrap();
+    let pool = receipt["data"]["pool"].clone();
+    assert_eq!(pool["name"], "Reserve");
+    assert!(uuid::Uuid::parse_str(pool["id"].as_str().unwrap()).is_ok());
+    assert_eq!(server.get(&view_path)["data"]["pools"], json!([pool]));
+    let current = server.get(&format!("{root}/checkpoint"));
+    let response = server.post(
+        &path,
+        "resolve-pool",
+        &json!({"action":"pool","snapshot":current["data"]["snapshot"],"name":"rEsErVe"}),
+        Some(epoch),
+    );
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    assert_eq!(response.json::<Value>().unwrap()["data"]["pool"], pool);
+    assert_eq!(server.get(&view_path)["data"]["pools"], json!([pool]));
+    // Resolving an existing pool introduces no new undoable change. Undo and
+    // redo therefore remove/revive the single original pool with the same ID.
+    for (action, expected) in [("undo", json!([])), ("redo", json!([pool]))] {
+        let history: Value = server
+            .client
+            .get(format!("{}{root}/history", server.url))
+            .header(
+                "X-Actual-History-Owner",
+                "23240000-0000-4000-8000-000000000998",
+            )
+            .send()
+            .unwrap()
+            .error_for_status()
+            .unwrap()
+            .json()
+            .unwrap();
+        let response = server.post(
+            &format!("{root}/history/{action}"),
+            &format!("{action}-pool"),
+            &json!({"action_id":history["data"][action]["id"]}),
+            Some(epoch),
+        );
+        assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+        assert_eq!(server.get(&view_path)["data"]["pools"], expected);
+    }
+    let committed = server.get(&format!("{root}/checkpoint"));
+    let server = server.restart();
+    let response = server.post(&path, "create-pool", &body, Some(epoch));
+    assert_eq!(response.status(), 200);
+    assert_eq!(response.json::<Value>().unwrap(), receipt);
+    assert_eq!(server.get(&format!("{root}/checkpoint")), committed);
+    assert_eq!(
+        server.get(&format!("{root}/budget?month=2026-11"))["data"]["months"],
+        plan
+    );
+    let mut after = server.get(&format!("{root}/transactions"));
+    after.as_object_mut().unwrap().remove("snapshot");
+    assert_eq!(after, ledger);
+}
+
+#[test]
+fn many_note_pools_have_stable_read_only_identities_and_migration_preview() {
+    let server = Server::start(tempfile::tempdir().unwrap());
+    let budget = "24250000-0000-4000-8000-000000000951";
+    let response = server.post(
+        "/api/v1/budgets",
+        "many-pools-budget",
+        &json!({"id":budget,"name":"Many note pools"}),
+        None,
+    );
+    assert_eq!(response.status(), 201);
+    let root = format!("/api/v1/budgets/{budget}");
+    let mut first = String::new();
+    for category in 0..3 {
+        let id = format!("24250000-0000-4000-8000-{:012}", 960 + category);
+        if category == 0 {
+            first = id.clone();
+        }
+        let notes = (0..200)
+            .map(|n| format!("#cleanup Reserve{} source", category * 200 + n))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let response = server.post(
+            &format!("{root}/categories"),
+            &format!("many-pools-category-{category}"),
+            &json!({"id":id,"name":format!("Category {category}"),"is_income":false,"notes":notes}),
+            None,
+        );
+        assert_eq!(response.status(), 201, "{}", response.text().unwrap());
+    }
+    let checkpoint = server.get(&format!("{root}/checkpoint"));
+    let register = server.get(&format!("{root}/transactions"));
+    let path = format!("{root}/budget/templates?month=2026-11");
+    let definitions = server.get(&path);
+    let pools = definitions["data"]["pools"].as_array().unwrap();
+    assert_eq!(pools.len(), 600);
+    let ids = pools
+        .iter()
+        .map(|p| p["id"].as_str().unwrap())
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(ids.len(), 600);
+    assert_eq!(server.get(&path), definitions);
+    let response = server.post(&format!("{root}/budget/templates/migration-preview"), "many-pools-migration",
+        &json!({"month":"2026-11","snapshot":checkpoint["data"]["snapshot"],"category_id":first,"target_source":"ui"}), None);
+    assert_eq!(response.status(), 200, "{}", response.text().unwrap());
+    let preview: Value = response.json().unwrap();
+    assert_eq!(preview["data"]["compatible"], true, "{preview}");
+    assert_eq!(preview["data"]["cleanup"].as_array().unwrap().len(), 200);
+    for pool in preview["data"]["pools"].as_array().unwrap() {
+        assert!(
+            pools.contains(pool),
+            "Migration and list must resolve the same identity"
+        );
+    }
+    assert_eq!(server.get(&path), definitions);
+    assert_eq!(server.get(&format!("{root}/checkpoint")), checkpoint);
+    assert_eq!(server.get(&format!("{root}/transactions")), register);
 }
 
 mod migration {

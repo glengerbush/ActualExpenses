@@ -682,6 +682,12 @@ def main():
                       {"Idempotency-Key": "migrate-to-" + target_source})
             check(template_path + "/migration-preview", template_contract + "/migration-preview", "POST",
                   {"month": "2026-11"}, expected=400)
+            for index, pool_name in enumerate(["Reserve", "reserve"]):
+                current = check(template_path + "?month=2026-11", template_contract)["data"]
+                resolved = check(template_path + "/commands", template_contract + "/commands", "POST",
+                                 {"action": "pool", "snapshot": current["snapshot"], "name": pool_name},
+                                 {"Idempotency-Key": "pool-" + str(index)})["data"]
+                assert resolved["pool"]["name"] == "Reserve"
             check(template_root + "/changes?cursor=" + template_cursor, budgets + "/{budget}/changes")
             print("PASS: served OpenAPI schemas validate real success, validation, conflict, origin and missing-resource responses")
         finally:

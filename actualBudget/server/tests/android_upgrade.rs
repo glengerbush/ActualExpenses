@@ -521,7 +521,7 @@ fn genuine_schema17_upgrade_and_portable_archive_keep_ranks_history_epochs_and_o
     assert_eq!(
         db.pragma_query_value(None, "user_version", |r| r.get::<_, i64>(0))
             .unwrap(),
-        19
+        20
     );
     assert_eq!(
         db.query_row(
@@ -544,7 +544,7 @@ fn genuine_schema17_upgrade_and_portable_archive_keep_ranks_history_epochs_and_o
         .unwrap();
     assert_eq!(upload.status(), 201, "{}", upload.text().unwrap());
     let stage: Value = upload.json().unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 19);
+    assert_eq!(stage["data"]["report"]["schema_version"], 20);
     let activate = target.post(
         &format!(
             "{root}/restores/{}/activate",

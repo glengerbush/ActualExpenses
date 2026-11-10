@@ -417,7 +417,7 @@ fn genuine_schema18_upgrade_keeps_ledger_history_receipts_and_refreshes_blocked_
         .unwrap();
     assert_eq!(upload.status(), 201, "{}", upload.text().unwrap());
     let stage: Value = upload.json().unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 19);
+    assert_eq!(stage["data"]["report"]["schema_version"], 20);
     let response = target.post(
         &format!(
             "{root}/restores/{}/activate",

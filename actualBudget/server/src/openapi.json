@@ -18544,7 +18544,7 @@
     },
     "/api/v1/budgets/{budget}/budget/templates/commands": {
       "post": {
-        "description": "Atomic owned command. Apply/overwrite exact plans; configure switches effective notes/UI definitions while retaining original notes. Capture snapshot, epoch, original edit clock, owner, key and body before send. Exact receipts replay before current preconditions; cancellation fences unknown operations, and receipt-only lookup never executes. Financial and configuration effects join one undo group; validation or stale state refuses all writes. Cleanup atomically persists note-derived pool definitions and month allocations, preserving source ordering, rounding and warnings. It does not change transactions. Migrate recomputes compatibility against the captured snapshot and original edit clock; commits only definition/source changes, retaining current financial cells. Incompatible migration refuses all changes.",
+        "description": "Atomic owned command. Apply/overwrite exact plans; configure switches effective notes/UI definitions while retaining original notes. Capture snapshot, epoch, original edit clock, owner, key and body before send. Exact receipts replay before current preconditions; cancellation fences unknown operations, and receipt-only lookup never executes. Financial and configuration effects join one undo group; validation or stale state refuses all writes. Cleanup atomically persists note-derived pool definitions and month allocations, preserving source ordering, rounding and warnings. It does not change transactions. Migrate recomputes compatibility against the captured snapshot and original edit clock; commits only definition/source changes, retaining current financial cells. Incompatible migration refuses all changes. Pool creates or resolves a named cleanup pool without applying allocations or modifying transactions. An existing case-insensitive match preserves its ID and name.",
         "parameters": [
           {
             "name": "budget",
@@ -18743,6 +18743,9 @@
                               "type": "string"
                             }
                           }
+                        },
+                        {
+                          "$ref": "#/components/schemas/BudgetCleanupPoolResult"
                         }
                       ]
                     },
@@ -25680,6 +25683,29 @@
                 "const": "migrate"
               }
             }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "snapshot",
+              "name"
+            ],
+            "properties": {
+              "action": {
+                "const": "pool"
+              },
+              "snapshot": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120,
+                "description": "Trimmed nonempty name without control characters. Resolve case-insensitively, preserving the existing identity and spelling."
+              }
+            }
           }
         ]
       },
@@ -25961,6 +25987,38 @@
               "envelope",
               "tracking"
             ]
+          }
+        }
+      },
+      "BudgetCleanupPoolResult": {
+        "type": "object",
+        "required": [
+          "pool",
+          "snapshot",
+          "epoch"
+        ],
+        "properties": {
+          "pool": {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "string"
           }
         }
       }

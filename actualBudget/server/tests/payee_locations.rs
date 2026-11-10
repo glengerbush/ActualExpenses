@@ -683,7 +683,7 @@ fn genuine_schema13_upgrade_retains_protected_transfer_state_and_original_receip
                 .body(include_bytes!("../../tests/fixtures/locations-schema13.zip").to_vec())
                 .send()
                 .unwrap());
-            assert_eq!(stage["data"]["report"]["schema_version"], 19);
+            assert_eq!(stage["data"]["report"]["schema_version"], 20);
             ok(s.write(
                 "POST",
                 &format!(

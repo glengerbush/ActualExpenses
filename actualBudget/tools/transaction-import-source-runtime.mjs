@@ -43,5 +43,13 @@ export async function loadSourceNormalization(translate = () => { throw new Erro
     };`,
     {...frontend,...sourceUtil,t:translate},
   ).finalize;
-  return {frontend,sourceUtil,finalize,sourceFiles:Object.fromEntries(Object.entries(names).map(([k,path])=>[path,createHash('sha256').update(sources[k]).digest('hex')]))};
+  const preferenceWrites=section(sources.modal,'    if (!isOfxFile(filetype) && !isCamtFile(filetype)) {','\n    importTransactions.mutate(');
+  const saveOptions=execute(sources.modal.slice(sources.modal.indexOf('function isOfxFile('))+`
+    exports.saveOptions=function(options){
+      const {accountId,filetype,parseDateFormat,fallbackMissingPayeeToMemo,ofxSwapPayeeAndMemo,fieldMappings,delimiter,csvEncoding,hasHeaderRow,skipStartLines,skipEndLines,inOutMode,outValue,flipAmount,importNotes,qifSwapPayeeAndMemo,camtSwapPayeeAndMemo,reimportDeleted}=options;
+      const preferences={};const savePrefs=values=>Object.assign(preferences,values);
+      ${preferenceWrites}
+      return preferences;
+    };`).saveOptions;
+  return {frontend,sourceUtil,finalize,saveOptions,sourceFiles:Object.fromEntries(Object.entries(names).map(([k,path])=>[path,createHash('sha256').update(sources[k]).digest('hex')]))};
 }

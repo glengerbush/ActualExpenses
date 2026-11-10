@@ -1,0 +1,2719 @@
+{
+  "oracle": "Actual26.10 parser + unchanged frontend finalize/savePrefs + real import writer",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "source_files": {
+    "packages/desktop-client/src/components/modals/ImportTransactionsModal/utils.ts": "fba1908a04fe623ae0944275c368452151679f66137593b3018d7a068f7150f8",
+    "packages/desktop-client/src/components/modals/ImportTransactionsModal/ImportTransactionsModal.tsx": "0cb7ceffde7e9426ce635d55842d544ff39664ff383174c8c1ae10fde6df2d88",
+    "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d"
+  },
+  "cases": [
+    {
+      "id": "ofx",
+      "ids": {
+        "manual": "25320000-0000-4000-8000-000000000000",
+        "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+        "payee": "111088cc-d79c-4b8c-9c00-8df5572d98f6",
+        "group": "8a8a33a9-5ed5-43cc-850a-c8e349eb1456",
+        "category": "1dfbf370-3500-49fb-b79e-c7adb7144ec2"
+      },
+      "filename": "data-payee-memo.ofx",
+      "bytes_base64": "T0ZYSEVBREVSOjEwMApEQVRBOk9GWFNHTUwKVkVSU0lPTjoxMDIKU0VDVVJJVFk6Tk9ORQpFTkNPRElORzpVU0FTQ0lJCkNIQVJTRVQ6MTI1MgpDT01QUkVTU0lPTjpOT05FCk9MREZJTEVVSUQ6Tk9ORQpORVdGSUxFVUlEOk5PTkUKCjxPRlg+CjxTSUdOT05NU0dTUlNWMT4KPFNPTlJTPgo8U1RBVFVTPgo8Q09ERT4wCjxTRVZFUklUWT5JTkZPCjwvU1RBVFVTPgo8RFRTRVJWRVI+MjAxOTAxMjQyMTI4NTEuMDAwWzA6VVRDXQo8TEFOR1VBR0U+RU5HCjwvU09OUlM+CjwvU0lHTk9OTVNHU1JTVjE+CjxCQU5LTVNHU1JTVjE+CjxTVE1UVFJOUlM+CjxUUk5VSUQ+MAo8U1RBVFVTPgo8Q09ERT4wCjxTRVZFUklUWT5JTkZPCjwvU1RBVFVTPgo8U1RNVFJTPgo8Q1VSREVGPlVTRAo8QkFOS0FDQ1RGUk9NPgo8QkFOS0lEPjAxMjM0NTY3OAo8QUNDVElEPjEyMzQ1Njc4OTEyMwo8QUNDVFRZUEU+Q0hFQ0tJTkcKPC9CQU5LQUNDVEZST00+CjxCQU5LVFJBTkxJU1Q+CjxEVFNUQVJUPjIwMTkwMTE5MTIwMDAwCjxEVEVORD4yMDE5MDEyNDEyMDAwMAo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCjxUUk5BTVQ+LTEwLjAwCjxGSVRJRD50ZXN0LW5hbWUtYW5kLW1lbW8KPE5BTUU+UGF5ZWUgTmFtZQo8TUVNTz5NZW1vIFRleHQKPC9TVE1UVFJOPgo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCjxUUk5BTVQ+LTIwLjAwCjxGSVRJRD50ZXN0LW5hbWUtb25seQo8TkFNRT5QYXllZSBOYW1lIE9ubHkKPC9TVE1UVFJOPgo8U1RNVFRSTj4KPFRSTlRZUEU+REVCSVQKPERUUE9TVEVEPjIwMTkwMTIzMTIwMDAwCjxUUk5BTVQ+LTMwLjAwCjxGSVRJRD50ZXN0LW1lbW8tb25seQo8TUVNTz5NZW1vIE9ubHkgVGV4dAo8L1NUTVRUUk4+CjxTVE1UVFJOPgo8VFJOVFlQRT5ERUJJVAo8RFRQT1NURUQ+MjAxOTAxMjMxMjAwMDAKPFRSTkFNVD4tNDAuMDAKPEZJVElEPnRlc3QtbmVpdGhlcgo8L1NUTVRUUk4+CjwvQkFOS1RSQU5MSVNUPgo8TEVER0VSQkFMPgo8QkFMQU1UPjEwMDAuMDAKPERUQVNPRj4yMDE5MDEyNDIxMjg1MQo8L0xFREdFUkJBTD4KPC9TVE1UUlM+CjwvU1RNVFRSTlJTPgo8L0JBTktNU0dTUlNWMT4KPC9PRlg+Cg==",
+      "sha256": "bbce9403c39275b1382b4eda2f227e11ec9d5ddff28ceb8b0c773c39e8805592",
+      "options": {
+        "importNotes": true,
+        "fallbackMissingPayeeToMemo": true
+      },
+      "frontend": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "ofx",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [],
+        "clearOnImport": true,
+        "importNotes": true
+      },
+      "parsed": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -10,
+            "imported_id": "test-name-and-memo",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": "Memo Text"
+          },
+          {
+            "amount": -20,
+            "imported_id": "test-name-only",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null
+          },
+          {
+            "amount": -30,
+            "imported_id": "test-memo-only",
+            "date": "2019-01-23",
+            "payee_name": "Memo Only Text",
+            "imported_payee": "Memo Only Text",
+            "notes": null
+          },
+          {
+            "amount": -40,
+            "imported_id": "test-neither",
+            "date": "2019-01-23",
+            "notes": null
+          }
+        ]
+      },
+      "normalized": {
+        "transactions": [
+          {
+            "amount": -1000,
+            "imported_id": "test-name-and-memo",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name",
+            "imported_payee": "Payee Name",
+            "notes": "Memo Text",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -2000,
+            "imported_id": "test-name-only",
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -3000,
+            "imported_id": "test-memo-only",
+            "date": "2019-01-23",
+            "payee_name": "Memo Only Text",
+            "imported_payee": "Memo Only Text",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -4000,
+            "imported_id": "test-neither",
+            "date": "2019-01-23",
+            "notes": null,
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      },
+      "saved_preferences": {
+        "ofx-fallback-missing-payee-06e52c80-8346-4838-9f9e-196b3759403d": "true",
+        "ofx-swap-payee-memo-06e52c80-8346-4838-9f9e-196b3759403d": "false",
+        "import-reimport-deleted-06e52c80-8346-4838-9f9e-196b3759403d": "false"
+      },
+      "archive": {
+        "filename": "ofx-26.10.zip",
+        "sha256": "b3def314210a15ff68d1ffa34614bad0473005171dd59b91aabe9cf14cd7ce7b"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25320000-0000-4000-8000-000000000000",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+            "category": "1dfbf370-3500-49fb-b79e-c7adb7144ec2",
+            "amount": -1000,
+            "payee": "111088cc-d79c-4b8c-9c00-8df5572d98f6",
+            "notes": "Keep manual note",
+            "date": "2019-01-23",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "111088cc-d79c-4b8c-9c00-8df5572d98f6",
+            "name": "Manual payer",
+            "transfer_acct": null
+          },
+          {
+            "id": "93c49600-3c13-4e2d-b6bf-dc2007538aae",
+            "name": "Checking",
+            "transfer_acct": "06e52c80-8346-4838-9f9e-196b3759403d"
+          }
+        ],
+        "categories": [
+          {
+            "id": "1dfbf370-3500-49fb-b79e-c7adb7144ec2",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "8a8a33a9-5ed5-43cc-850a-c8e349eb1456"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [
+          "eb651e37-d4db-4369-be47-bb68fb8563bf",
+          "35a3e61c-5d8f-4925-a49e-40aaa51a6cdf",
+          "130f99ca-2f08-40b4-9f83-bcfde76e30cd"
+        ],
+        "updated": [
+          "25320000-0000-4000-8000-000000000000"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "amount": -1000,
+              "imported_id": "test-name-and-memo",
+              "date": "2019-01-23",
+              "imported_payee": "Payee Name",
+              "notes": "Memo Text",
+              "category": null,
+              "cleared": true,
+              "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+              "payee": "13ac510a-c56f-430e-97fe-3d22e4888c2a",
+              "_account": {
+                "id": "06e52c80-8346-4838-9f9e-196b3759403d",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25320000-0000-4000-8000-000000000000",
+              "is_parent": 0,
+              "date": "2019-01-23",
+              "imported_id": null,
+              "payee": "111088cc-d79c-4b8c-9c00-8df5572d98f6",
+              "imported_payee": null,
+              "category": "1dfbf370-3500-49fb-b79e-c7adb7144ec2",
+              "notes": "Keep manual note",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -10,
+              "payee_name": "Manual payer"
+            }
+          }
+        ]
+      },
+      "result": {
+        "errors": [],
+        "added": [
+          "d165c205-edcb-4124-b860-6341905a6bbe",
+          "e854d3b9-dda9-454c-aad5-5ffddbea9d6f",
+          "65b38166-056c-4cdd-ba0e-9479c4df754c"
+        ],
+        "updated": [
+          "25320000-0000-4000-8000-000000000000"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "amount": -1000,
+              "imported_id": "test-name-and-memo",
+              "date": "2019-01-23",
+              "imported_payee": "Payee Name",
+              "notes": "Memo Text",
+              "category": null,
+              "cleared": true,
+              "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+              "payee": "69f47272-6fd2-4ca2-ae1e-cf759eb31af5",
+              "_account": {
+                "id": "06e52c80-8346-4838-9f9e-196b3759403d",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25320000-0000-4000-8000-000000000000",
+              "is_parent": 0,
+              "date": "2019-01-23",
+              "imported_id": null,
+              "payee": "111088cc-d79c-4b8c-9c00-8df5572d98f6",
+              "imported_payee": null,
+              "category": "1dfbf370-3500-49fb-b79e-c7adb7144ec2",
+              "notes": "Keep manual note",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -10,
+              "payee_name": "Manual payer"
+            }
+          }
+        ]
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25320000-0000-4000-8000-000000000000",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+            "category": "1dfbf370-3500-49fb-b79e-c7adb7144ec2",
+            "amount": -1000,
+            "payee": "111088cc-d79c-4b8c-9c00-8df5572d98f6",
+            "notes": "Keep manual note",
+            "date": "2019-01-23",
+            "imported_id": "test-name-and-memo",
+            "error": null,
+            "imported_payee": "Payee Name",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "d165c205-edcb-4124-b860-6341905a6bbe",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+            "category": null,
+            "amount": -2000,
+            "payee": "dd3ecda9-f40d-493e-9f99-e62f789ba009",
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": "test-name-only",
+            "error": null,
+            "imported_payee": "Payee Name Only",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "e854d3b9-dda9-454c-aad5-5ffddbea9d6f",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+            "category": null,
+            "amount": -3000,
+            "payee": "4e8e777f-1544-49b1-8366-6ae335879745",
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": "test-memo-only",
+            "error": null,
+            "imported_payee": "Memo Only Text",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225598976,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "65b38166-056c-4cdd-ba0e-9479c4df754c",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+            "category": null,
+            "amount": -4000,
+            "payee": null,
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": "test-neither",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225597952,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "111088cc-d79c-4b8c-9c00-8df5572d98f6",
+            "name": "Manual payer",
+            "transfer_acct": null
+          },
+          {
+            "id": "4e8e777f-1544-49b1-8366-6ae335879745",
+            "name": "Memo Only Text",
+            "transfer_acct": null
+          },
+          {
+            "id": "dd3ecda9-f40d-493e-9f99-e62f789ba009",
+            "name": "Payee Name Only",
+            "transfer_acct": null
+          },
+          {
+            "id": "93c49600-3c13-4e2d-b6bf-dc2007538aae",
+            "name": "Checking",
+            "transfer_acct": "06e52c80-8346-4838-9f9e-196b3759403d"
+          }
+        ],
+        "categories": [
+          {
+            "id": "1dfbf370-3500-49fb-b79e-c7adb7144ec2",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "8a8a33a9-5ed5-43cc-850a-c8e349eb1456"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "repeat": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "amount": -1000,
+              "imported_id": "test-name-and-memo",
+              "date": "2019-01-23",
+              "imported_payee": "Payee Name",
+              "notes": "Memo Text",
+              "category": null,
+              "cleared": true,
+              "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+              "payee": "e6a16a54-cb53-400e-b18c-2633d74e678d",
+              "_account": {
+                "id": "06e52c80-8346-4838-9f9e-196b3759403d",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          },
+          {
+            "transaction": {
+              "amount": -2000,
+              "imported_id": "test-name-only",
+              "date": "2019-01-23",
+              "imported_payee": "Payee Name Only",
+              "notes": null,
+              "category": null,
+              "cleared": true,
+              "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+              "payee": "dd3ecda9-f40d-493e-9f99-e62f789ba009",
+              "_account": {
+                "id": "06e52c80-8346-4838-9f9e-196b3759403d",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          },
+          {
+            "transaction": {
+              "amount": -3000,
+              "imported_id": "test-memo-only",
+              "date": "2019-01-23",
+              "imported_payee": "Memo Only Text",
+              "notes": null,
+              "category": null,
+              "cleared": true,
+              "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+              "payee": "4e8e777f-1544-49b1-8366-6ae335879745",
+              "_account": {
+                "id": "06e52c80-8346-4838-9f9e-196b3759403d",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          },
+          {
+            "transaction": {
+              "amount": -4000,
+              "imported_id": "test-neither",
+              "date": "2019-01-23",
+              "notes": null,
+              "category": null,
+              "cleared": true,
+              "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+              "_account": {
+                "id": "06e52c80-8346-4838-9f9e-196b3759403d",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25320000-0000-4000-8000-000000000000",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+            "category": "1dfbf370-3500-49fb-b79e-c7adb7144ec2",
+            "amount": -1000,
+            "payee": "111088cc-d79c-4b8c-9c00-8df5572d98f6",
+            "notes": "Keep manual note",
+            "date": "2019-01-23",
+            "imported_id": "test-name-and-memo",
+            "error": null,
+            "imported_payee": "Payee Name",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "d165c205-edcb-4124-b860-6341905a6bbe",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+            "category": null,
+            "amount": -2000,
+            "payee": "dd3ecda9-f40d-493e-9f99-e62f789ba009",
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": "test-name-only",
+            "error": null,
+            "imported_payee": "Payee Name Only",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "e854d3b9-dda9-454c-aad5-5ffddbea9d6f",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+            "category": null,
+            "amount": -3000,
+            "payee": "4e8e777f-1544-49b1-8366-6ae335879745",
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": "test-memo-only",
+            "error": null,
+            "imported_payee": "Memo Only Text",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225598976,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "65b38166-056c-4cdd-ba0e-9479c4df754c",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "06e52c80-8346-4838-9f9e-196b3759403d",
+            "category": null,
+            "amount": -4000,
+            "payee": null,
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": "test-neither",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225597952,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "111088cc-d79c-4b8c-9c00-8df5572d98f6",
+            "name": "Manual payer",
+            "transfer_acct": null
+          },
+          {
+            "id": "4e8e777f-1544-49b1-8366-6ae335879745",
+            "name": "Memo Only Text",
+            "transfer_acct": null
+          },
+          {
+            "id": "dd3ecda9-f40d-493e-9f99-e62f789ba009",
+            "name": "Payee Name Only",
+            "transfer_acct": null
+          },
+          {
+            "id": "93c49600-3c13-4e2d-b6bf-dc2007538aae",
+            "name": "Checking",
+            "transfer_acct": "06e52c80-8346-4838-9f9e-196b3759403d"
+          }
+        ],
+        "categories": [
+          {
+            "id": "1dfbf370-3500-49fb-b79e-c7adb7144ec2",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "8a8a33a9-5ed5-43cc-850a-c8e349eb1456"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "qfx",
+      "ids": {
+        "manual": "25320000-0000-4000-8000-000000000001",
+        "account": "fa9b7ac7-7d7d-44a9-9900-48fbd34183a3",
+        "payee": "60895ee0-113f-4b9a-aee4-9d7aa23a97f8",
+        "group": "448596f0-81d1-4d0b-ac03-f420a6c3266b",
+        "category": "a877bd8b-d2d0-4c64-8187-7b90734eba27"
+      },
+      "filename": "1252.qfx",
+      "bytes_base64": "T0ZYSEVBREVSOjEwMApEQVRBOk9GWFNHTUwKVkVSU0lPTjoxMDIKU0VDVVJJVFk6VFlQRTEKRU5DT0RJTkc6VVNBU0NJSQpDSEFSU0VUOjEyNTIKQ09NUFJFU1NJT046Tk9ORQpPTERGSUxFVUlEOk5PTkUKTkVXRklMRVVJRDpOT05FCjxPRlg+CjxTSUdOT05NU0dTUlNWMT4KPFNPTlJTPgo8U1RBVFVTPgo8Q09ERT4wCjxTRVZFUklUWT5JTkZPCjxNRVNTQUdFPk9LCjwvU1RBVFVTPgo8RFRTRVJWRVI+MjAyMjEwMjAyMzE1NTYKPFVTRVJLRVk+M0FBQUFBQUFBQUFBQUFBCjxJTlRVLkJJRD4wMDk5OQo8TEFOR1VBR0U+RlJBCjwvU09OUlM+CjwvU0lHTk9OTVNHU1JTVjE+CjxCQU5LTVNHU1JTVjE+CjxTVE1UVFJOUlM+CjxUUk5VSUQ+QUFBQS0yMDIyMTAyMDIzMTU1NjE0MzU3CjxTVEFUVVM+CjxDT0RFPjAKPFNFVkVSSVRZPklORk8KPE1FU1NBR0U+T0sKPC9TVEFUVVM+CjxTVE1UUlM+CjxDVVJERUY+Q0FECjxCQU5LQUNDVEZST00+CjxCQU5LSUQ+NzAwMDEyMzQ1CjxCUkFOQ0hJRD4wMDU1NjY2CjxBQ0NUSUQ+OTk5LTEyMzQ1LTAwNTU2NjYtRU9QCjxBQ0NUVFlQRT5DSEVDS0lORwo8L0JBTktBQ0NURlJPTT4KPEJBTktUUkFOTElTVD4KPERUU1RBUlQ+MjAyMjEwMTkxMjAwMDAKPERURU5EPjIwMjIxMDE5MTIwMDAwCjxTVE1UVFJOPgo8VFJOVFlQRT5ERUJJVAo8RFRQT1NURUQ+MjAyMjEwMTkxMjAwMDAKPFRSTkFNVD4tMjAuMDAKPEZJVElEPmNhZmUxMjUyeHgKPE5BTUU+Q2Fm6SBN6XRybyCAdXJvCjxNRU1PPlBhaWVtZW50IDWAIJcgZOliaXQKPC9TVE1UVFJOPgo8L0JBTktUUkFOTElTVD4KPExFREdFUkJBTD4KPEJBTEFNVD45OTk5Ljk5CjxEVEFTT0Y+MjAyMjEwMjAyMzE1NTYKPC9MRURHRVJCQUw+CjxBVkFJTEJBTD4KPEJBTEFNVD45OTk5Ljk5CjxEVEFTT0Y+MjAyMjEwMjAyMzE1NTYKPC9BVkFJTEJBTD4KPC9TVE1UUlM+CjwvU1RNVFRSTlJTPgo8L0JBTktNU0dTUlNWMT4KPC9PRlg+Cg==",
+      "sha256": "5cc9ca7da6e8cad68481bef50ac83fd894513ce4473b3803f58504b5a841fb8a",
+      "options": {
+        "importNotes": true,
+        "swapPayeeAndMemo": true
+      },
+      "frontend": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "qfx",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [],
+        "clearOnImport": true,
+        "importNotes": true
+      },
+      "parsed": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -20,
+            "imported_id": "cafe1252xx",
+            "date": "2022-10-19",
+            "payee_name": "Paiement 5€ — débit",
+            "imported_payee": "Paiement 5€ — débit",
+            "notes": "Café Métro €uro"
+          }
+        ]
+      },
+      "normalized": {
+        "transactions": [
+          {
+            "amount": -2000,
+            "imported_id": "cafe1252xx",
+            "date": "2022-10-19",
+            "payee_name": "Paiement 5€ — débit",
+            "imported_payee": "Paiement 5€ — débit",
+            "notes": "Café Métro €uro",
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      },
+      "saved_preferences": {
+        "ofx-fallback-missing-payee-fa9b7ac7-7d7d-44a9-9900-48fbd34183a3": "false",
+        "ofx-swap-payee-memo-fa9b7ac7-7d7d-44a9-9900-48fbd34183a3": "true",
+        "import-reimport-deleted-fa9b7ac7-7d7d-44a9-9900-48fbd34183a3": "false"
+      },
+      "archive": {
+        "filename": "qfx-26.10.zip",
+        "sha256": "03f7508f5f4a46c62c1304b8de93674bcfae744571595802efd24836f913c420"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25320000-0000-4000-8000-000000000001",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "fa9b7ac7-7d7d-44a9-9900-48fbd34183a3",
+            "category": "a877bd8b-d2d0-4c64-8187-7b90734eba27",
+            "amount": -2000,
+            "payee": "60895ee0-113f-4b9a-aee4-9d7aa23a97f8",
+            "notes": "Keep manual note",
+            "date": "2022-10-19",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "60895ee0-113f-4b9a-aee4-9d7aa23a97f8",
+            "name": "Manual payer",
+            "transfer_acct": null
+          },
+          {
+            "id": "89b97aa7-1e05-4063-8674-5977620fd885",
+            "name": "Checking",
+            "transfer_acct": "fa9b7ac7-7d7d-44a9-9900-48fbd34183a3"
+          }
+        ],
+        "categories": [
+          {
+            "id": "a877bd8b-d2d0-4c64-8187-7b90734eba27",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "448596f0-81d1-4d0b-ac03-f420a6c3266b"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25320000-0000-4000-8000-000000000001"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "amount": -2000,
+              "imported_id": "cafe1252xx",
+              "date": "2022-10-19",
+              "imported_payee": "Paiement 5€ — débit",
+              "notes": "Café Métro €uro",
+              "category": null,
+              "cleared": true,
+              "account": "fa9b7ac7-7d7d-44a9-9900-48fbd34183a3",
+              "payee": "da17a9ee-de0b-4751-9144-6f6a488a6814",
+              "_account": {
+                "id": "fa9b7ac7-7d7d-44a9-9900-48fbd34183a3",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25320000-0000-4000-8000-000000000001",
+              "is_parent": 0,
+              "date": "2022-10-19",
+              "imported_id": null,
+              "payee": "60895ee0-113f-4b9a-aee4-9d7aa23a97f8",
+              "imported_payee": null,
+              "category": "a877bd8b-d2d0-4c64-8187-7b90734eba27",
+              "notes": "Keep manual note",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -20,
+              "payee_name": "Manual payer"
+            }
+          }
+        ]
+      },
+      "result": {
+        "errors": [],
+        "added": [],
+        "updated": [
+          "25320000-0000-4000-8000-000000000001"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "amount": -2000,
+              "imported_id": "cafe1252xx",
+              "date": "2022-10-19",
+              "imported_payee": "Paiement 5€ — débit",
+              "notes": "Café Métro €uro",
+              "category": null,
+              "cleared": true,
+              "account": "fa9b7ac7-7d7d-44a9-9900-48fbd34183a3",
+              "payee": "906c884a-ce43-4cf2-9658-d55a890db1c6",
+              "_account": {
+                "id": "fa9b7ac7-7d7d-44a9-9900-48fbd34183a3",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25320000-0000-4000-8000-000000000001",
+              "is_parent": 0,
+              "date": "2022-10-19",
+              "imported_id": null,
+              "payee": "60895ee0-113f-4b9a-aee4-9d7aa23a97f8",
+              "imported_payee": null,
+              "category": "a877bd8b-d2d0-4c64-8187-7b90734eba27",
+              "notes": "Keep manual note",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -20,
+              "payee_name": "Manual payer"
+            }
+          }
+        ]
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25320000-0000-4000-8000-000000000001",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "fa9b7ac7-7d7d-44a9-9900-48fbd34183a3",
+            "category": "a877bd8b-d2d0-4c64-8187-7b90734eba27",
+            "amount": -2000,
+            "payee": "60895ee0-113f-4b9a-aee4-9d7aa23a97f8",
+            "notes": "Keep manual note",
+            "date": "2022-10-19",
+            "imported_id": "cafe1252xx",
+            "error": null,
+            "imported_payee": "Paiement 5€ — débit",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "60895ee0-113f-4b9a-aee4-9d7aa23a97f8",
+            "name": "Manual payer",
+            "transfer_acct": null
+          },
+          {
+            "id": "89b97aa7-1e05-4063-8674-5977620fd885",
+            "name": "Checking",
+            "transfer_acct": "fa9b7ac7-7d7d-44a9-9900-48fbd34183a3"
+          }
+        ],
+        "categories": [
+          {
+            "id": "a877bd8b-d2d0-4c64-8187-7b90734eba27",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "448596f0-81d1-4d0b-ac03-f420a6c3266b"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "repeat": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "amount": -2000,
+              "imported_id": "cafe1252xx",
+              "date": "2022-10-19",
+              "imported_payee": "Paiement 5€ — débit",
+              "notes": "Café Métro €uro",
+              "category": null,
+              "cleared": true,
+              "account": "fa9b7ac7-7d7d-44a9-9900-48fbd34183a3",
+              "payee": "bf3caf77-7698-4ede-8561-654365004ab6",
+              "_account": {
+                "id": "fa9b7ac7-7d7d-44a9-9900-48fbd34183a3",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25320000-0000-4000-8000-000000000001",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "fa9b7ac7-7d7d-44a9-9900-48fbd34183a3",
+            "category": "a877bd8b-d2d0-4c64-8187-7b90734eba27",
+            "amount": -2000,
+            "payee": "60895ee0-113f-4b9a-aee4-9d7aa23a97f8",
+            "notes": "Keep manual note",
+            "date": "2022-10-19",
+            "imported_id": "cafe1252xx",
+            "error": null,
+            "imported_payee": "Paiement 5€ — débit",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "60895ee0-113f-4b9a-aee4-9d7aa23a97f8",
+            "name": "Manual payer",
+            "transfer_acct": null
+          },
+          {
+            "id": "89b97aa7-1e05-4063-8674-5977620fd885",
+            "name": "Checking",
+            "transfer_acct": "fa9b7ac7-7d7d-44a9-9900-48fbd34183a3"
+          }
+        ],
+        "categories": [
+          {
+            "id": "a877bd8b-d2d0-4c64-8187-7b90734eba27",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "448596f0-81d1-4d0b-ac03-f420a6c3266b"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "qif",
+      "ids": {
+        "manual": "25320000-0000-4000-8000-000000000002",
+        "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+        "payee": "bcd6cf05-82c4-4058-bd40-6214abf09b3d",
+        "group": "8773ad85-7d86-449f-a497-3cbdc10ac89c",
+        "category": "61539de7-309f-47ee-9575-0583168c57b9"
+      },
+      "filename": "data-payee-memo.qif",
+      "bytes_base64": "IVR5cGU6QmFuawpEMDEvMjMvMjAxOQpQUGF5ZWUgTmFtZQpNTm90ZSBUZXh0ClQtMTAuMDAKXgpEMDEvMjMvMjAxOQpQUGF5ZWUgTmFtZSBPbmx5ClQtMjAuMDAKXgpEMDEvMjMvMjAxOQpNTm90ZSBPbmx5IFRleHQKVC0zMC4wMApeCkQwMS8yMy8yMDE5ClQtNDAuMDAKXgo=",
+      "sha256": "9768e56f3d0e53fa0e4015d8707205d6ebea54776c93fba4f84346ae3ae9a855",
+      "options": {
+        "importNotes": false,
+        "swapPayeeAndMemo": true
+      },
+      "frontend": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "qif",
+        "parseDateFormat": "mm dd yyyy",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [],
+        "clearOnImport": true,
+        "importNotes": false
+      },
+      "parsed": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -10,
+            "date": "01/23/2019",
+            "payee_name": "Note Text",
+            "imported_payee": "Note Text",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -20,
+            "date": "01/23/2019",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -30,
+            "date": "01/23/2019",
+            "payee_name": "Note Only Text",
+            "imported_payee": "Note Only Text",
+            "category": null,
+            "notes": null
+          },
+          {
+            "amount": -40,
+            "date": "01/23/2019",
+            "category": null,
+            "notes": null
+          }
+        ]
+      },
+      "normalized": {
+        "transactions": [
+          {
+            "amount": -1000,
+            "date": "2019-01-23",
+            "payee_name": "Note Text",
+            "imported_payee": "Note Text",
+            "category": null,
+            "notes": null,
+            "cleared": true
+          },
+          {
+            "amount": -2000,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "category": null,
+            "notes": null,
+            "cleared": true
+          },
+          {
+            "amount": -3000,
+            "date": "2019-01-23",
+            "payee_name": "Note Only Text",
+            "imported_payee": "Note Only Text",
+            "category": null,
+            "notes": null,
+            "cleared": true
+          },
+          {
+            "amount": -4000,
+            "date": "2019-01-23",
+            "category": null,
+            "notes": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      },
+      "saved_preferences": {
+        "parse-date-92d58acc-c700-4e71-9efd-2808fd07fc31-qif": "mm dd yyyy",
+        "flip-amount-92d58acc-c700-4e71-9efd-2808fd07fc31-qif": "false",
+        "import-notes-92d58acc-c700-4e71-9efd-2808fd07fc31-qif": "false",
+        "qif-swap-payee-memo-92d58acc-c700-4e71-9efd-2808fd07fc31": "true",
+        "import-reimport-deleted-92d58acc-c700-4e71-9efd-2808fd07fc31": "false"
+      },
+      "archive": {
+        "filename": "qif-26.10.zip",
+        "sha256": "e1c2278b36f4bf4afc0c4ac429f15672447d3ac47ce375ee94738de38cd1148b"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25320000-0000-4000-8000-000000000002",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+            "category": "61539de7-309f-47ee-9575-0583168c57b9",
+            "amount": -1000,
+            "payee": "bcd6cf05-82c4-4058-bd40-6214abf09b3d",
+            "notes": "Keep manual note",
+            "date": "2019-01-23",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "bcd6cf05-82c4-4058-bd40-6214abf09b3d",
+            "name": "Manual payer",
+            "transfer_acct": null
+          },
+          {
+            "id": "ecf2ee1e-773a-49bb-8588-1067fd45b662",
+            "name": "Checking",
+            "transfer_acct": "92d58acc-c700-4e71-9efd-2808fd07fc31"
+          }
+        ],
+        "categories": [
+          {
+            "id": "61539de7-309f-47ee-9575-0583168c57b9",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "8773ad85-7d86-449f-a497-3cbdc10ac89c"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [
+          "03af7df4-e7dc-420c-8fee-567d3881e00f",
+          "47ebff54-9263-440e-8a7d-86ec5ec6baa7",
+          "8c7eb060-8c51-43be-a65c-fd4439c391cd"
+        ],
+        "updated": [
+          "25320000-0000-4000-8000-000000000002"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "amount": -1000,
+              "date": "2019-01-23",
+              "imported_payee": "Note Text",
+              "category": null,
+              "notes": null,
+              "cleared": true,
+              "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+              "payee": "63c73a6d-b2dd-4678-b001-4a22eec07736",
+              "_account": {
+                "id": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25320000-0000-4000-8000-000000000002",
+              "is_parent": 0,
+              "date": "2019-01-23",
+              "imported_id": null,
+              "payee": "bcd6cf05-82c4-4058-bd40-6214abf09b3d",
+              "imported_payee": null,
+              "category": "61539de7-309f-47ee-9575-0583168c57b9",
+              "notes": "Keep manual note",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -10,
+              "payee_name": "Manual payer"
+            }
+          }
+        ]
+      },
+      "result": {
+        "errors": [],
+        "added": [
+          "6462d71d-14b5-4050-8099-e4680eb1c3ed",
+          "9e12ebea-ad62-4998-a916-9008ca1296e6",
+          "e70d7542-6e37-4e50-976a-b84e29b62d87"
+        ],
+        "updated": [
+          "25320000-0000-4000-8000-000000000002"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "amount": -1000,
+              "date": "2019-01-23",
+              "imported_payee": "Note Text",
+              "category": null,
+              "notes": null,
+              "cleared": true,
+              "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+              "payee": "7a4db646-0b9b-47d8-b575-c6d9737c1a5a",
+              "_account": {
+                "id": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25320000-0000-4000-8000-000000000002",
+              "is_parent": 0,
+              "date": "2019-01-23",
+              "imported_id": null,
+              "payee": "bcd6cf05-82c4-4058-bd40-6214abf09b3d",
+              "imported_payee": null,
+              "category": "61539de7-309f-47ee-9575-0583168c57b9",
+              "notes": "Keep manual note",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -10,
+              "payee_name": "Manual payer"
+            }
+          }
+        ]
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25320000-0000-4000-8000-000000000002",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+            "category": "61539de7-309f-47ee-9575-0583168c57b9",
+            "amount": -1000,
+            "payee": "bcd6cf05-82c4-4058-bd40-6214abf09b3d",
+            "notes": "Keep manual note",
+            "date": "2019-01-23",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Note Text",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "6462d71d-14b5-4050-8099-e4680eb1c3ed",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+            "category": null,
+            "amount": -2000,
+            "payee": "5aed4ab7-747b-4948-bfd4-f00010580617",
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Payee Name Only",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "9e12ebea-ad62-4998-a916-9008ca1296e6",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+            "category": null,
+            "amount": -3000,
+            "payee": "e4928109-7611-446a-9718-9811732f1f3c",
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Note Only Text",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225598976,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "e70d7542-6e37-4e50-976a-b84e29b62d87",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+            "category": null,
+            "amount": -4000,
+            "payee": null,
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225597952,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "bcd6cf05-82c4-4058-bd40-6214abf09b3d",
+            "name": "Manual payer",
+            "transfer_acct": null
+          },
+          {
+            "id": "e4928109-7611-446a-9718-9811732f1f3c",
+            "name": "Note Only Text",
+            "transfer_acct": null
+          },
+          {
+            "id": "5aed4ab7-747b-4948-bfd4-f00010580617",
+            "name": "Payee Name Only",
+            "transfer_acct": null
+          },
+          {
+            "id": "ecf2ee1e-773a-49bb-8588-1067fd45b662",
+            "name": "Checking",
+            "transfer_acct": "92d58acc-c700-4e71-9efd-2808fd07fc31"
+          }
+        ],
+        "categories": [
+          {
+            "id": "61539de7-309f-47ee-9575-0583168c57b9",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "8773ad85-7d86-449f-a497-3cbdc10ac89c"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "repeat": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "amount": -1000,
+              "date": "2019-01-23",
+              "imported_payee": "Note Text",
+              "category": null,
+              "notes": null,
+              "cleared": true,
+              "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+              "payee": "eed6a22d-fb8a-436d-a833-3cd75220ed9f",
+              "_account": {
+                "id": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          },
+          {
+            "transaction": {
+              "amount": -2000,
+              "date": "2019-01-23",
+              "imported_payee": "Payee Name Only",
+              "category": null,
+              "notes": null,
+              "cleared": true,
+              "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+              "payee": "5aed4ab7-747b-4948-bfd4-f00010580617",
+              "_account": {
+                "id": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          },
+          {
+            "transaction": {
+              "amount": -3000,
+              "date": "2019-01-23",
+              "imported_payee": "Note Only Text",
+              "category": null,
+              "notes": null,
+              "cleared": true,
+              "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+              "payee": "e4928109-7611-446a-9718-9811732f1f3c",
+              "_account": {
+                "id": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          },
+          {
+            "transaction": {
+              "amount": -4000,
+              "date": "2019-01-23",
+              "category": null,
+              "notes": null,
+              "cleared": true,
+              "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+              "_account": {
+                "id": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25320000-0000-4000-8000-000000000002",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+            "category": "61539de7-309f-47ee-9575-0583168c57b9",
+            "amount": -1000,
+            "payee": "bcd6cf05-82c4-4058-bd40-6214abf09b3d",
+            "notes": "Keep manual note",
+            "date": "2019-01-23",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Note Text",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "6462d71d-14b5-4050-8099-e4680eb1c3ed",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+            "category": null,
+            "amount": -2000,
+            "payee": "5aed4ab7-747b-4948-bfd4-f00010580617",
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Payee Name Only",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "9e12ebea-ad62-4998-a916-9008ca1296e6",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+            "category": null,
+            "amount": -3000,
+            "payee": "e4928109-7611-446a-9718-9811732f1f3c",
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": "Note Only Text",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225598976,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "e70d7542-6e37-4e50-976a-b84e29b62d87",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "92d58acc-c700-4e71-9efd-2808fd07fc31",
+            "category": null,
+            "amount": -4000,
+            "payee": null,
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225597952,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "bcd6cf05-82c4-4058-bd40-6214abf09b3d",
+            "name": "Manual payer",
+            "transfer_acct": null
+          },
+          {
+            "id": "e4928109-7611-446a-9718-9811732f1f3c",
+            "name": "Note Only Text",
+            "transfer_acct": null
+          },
+          {
+            "id": "5aed4ab7-747b-4948-bfd4-f00010580617",
+            "name": "Payee Name Only",
+            "transfer_acct": null
+          },
+          {
+            "id": "ecf2ee1e-773a-49bb-8588-1067fd45b662",
+            "name": "Checking",
+            "transfer_acct": "92d58acc-c700-4e71-9efd-2808fd07fc31"
+          }
+        ],
+        "categories": [
+          {
+            "id": "61539de7-309f-47ee-9575-0583168c57b9",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "8773ad85-7d86-449f-a497-3cbdc10ac89c"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "camt",
+      "ids": {
+        "manual": "25320000-0000-4000-8000-000000000003",
+        "account": "398e68ea-5d56-4767-9b22-016179567169",
+        "payee": "47096ed2-4e0e-416f-99bc-6cb470afcd51",
+        "group": "f2750c17-55e7-4ed2-8807-353448abc4b3",
+        "category": "dcf8b979-6445-40b5-853e-8bc91e70429f"
+      },
+      "filename": "camt.053.payee-memo.xml",
+      "bytes_base64": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPERvY3VtZW50IHhzaTpzY2hlbWFMb2NhdGlvbj0idXJuOmlzbzpzdGQ6aXNvOjIwMDIyOnRlY2g6eHNkOmNhbXQuMDUzLjAwMS4wNCBjYW10LjA1My4wMDEuMDQueHNkIgogICAgeG1sbnM9InVybjppc286c3RkOmlzbzoyMDAyMjp0ZWNoOnhzZDpjYW10LjA1My4wMDEuMDQiCiAgICB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hLWluc3RhbmNlIj4KCiAgICA8QmtUb0NzdG1yU3RtdD4KICAgICAgICA8R3JwSGRyPgogICAgICAgICAgICA8TXNnSWQ+MDUzRDIwMTktMDEtMjNUMDA6MDA6MDAuME4wMDAwMDAwMDE8L01zZ0lkPgogICAgICAgICAgICA8Q3JlRHRUbT4yMDE5LTAxLTIzVDAwOjAwOjAwLjArMDA6MDA8L0NyZUR0VG0+CiAgICAgICAgPC9HcnBIZHI+CiAgICAgICAgPFN0bXQ+CiAgICAgICAgICAgIDxJZD5URVNULVBBWUVFLU1FTU88L0lkPgogICAgICAgICAgICA8Q3JlRHRUbT4yMDE5LTAxLTIzVDAwOjAwOjAwLjArMDA6MDA8L0NyZUR0VG0+CiAgICAgICAgICAgIDxBY2N0PgogICAgICAgICAgICAgICAgPElkPgogICAgICAgICAgICAgICAgICAgIDxJQkFOPkRFMTQ3NDA2MTgxMzAwMDAwMzM2MjY8L0lCQU4+CiAgICAgICAgICAgICAgICA8L0lkPgogICAgICAgICAgICAgICAgPENjeT5FVVI8L0NjeT4KICAgICAgICAgICAgPC9BY2N0PgoKICAgICAgICAgICAgPCEtLSAxOiBwYXllZSAoQ2R0ci9ObSkgQU5EIG5vdGVzIChSbXRJbmYvVXN0cmQpIC0tPgogICAgICAgICAgICA8TnRyeT4KICAgICAgICAgICAgICAgIDxBbXQgQ2N5PSJFVVIiPjEwLjAwPC9BbXQ+CiAgICAgICAgICAgICAgICA8Q2R0RGJ0SW5kPkRCSVQ8L0NkdERidEluZD4KICAgICAgICAgICAgICAgIDxTdHM+Qk9PSzwvU3RzPgogICAgICAgICAgICAgICAgPEJvb2tnRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9Cb29rZ0R0PgogICAgICAgICAgICAgICAgPFZhbER0PgogICAgICAgICAgICAgICAgICAgIDxEdD4yMDE5LTAxLTIzPC9EdD4KICAgICAgICAgICAgICAgIDwvVmFsRHQ+CiAgICAgICAgICAgICAgICA8QWNjdFN2Y3JSZWY+dGVzdC1wYXllZS1hbmQtbm90ZXM8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1wYXllZS1hbmQtbm90ZXM8L0VuZFRvRW5kSWQ+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvUmVmcz4KICAgICAgICAgICAgICAgICAgICAgICAgPFJsdGRQdGllcz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxDZHRyPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxObT5QYXllZSBOYW1lPC9ObT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvQ2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbXRJbmY+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VXN0cmQ+Tm90ZSBUZXh0PC9Vc3RyZD4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbXRJbmY+CiAgICAgICAgICAgICAgICAgICAgPC9UeER0bHM+CiAgICAgICAgICAgICAgICA8L050cnlEdGxzPgogICAgICAgICAgICA8L050cnk+CgogICAgICAgICAgICA8IS0tIDI6IHBheWVlIG9ubHkgKENkdHIvTm0sIG5vIFJtdEluZikgLS0+CiAgICAgICAgICAgIDxOdHJ5PgogICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+MjAuMDA8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxOS0wMS0yMzwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj50ZXN0LXBheWVlLW9ubHk8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1wYXllZS1vbmx5PC9FbmRUb0VuZElkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JlZnM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Q2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Tm0+UGF5ZWUgTmFtZSBPbmx5PC9ObT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvQ2R0cj4KICAgICAgICAgICAgICAgICAgICAgICAgPC9SbHRkUHRpZXM+CiAgICAgICAgICAgICAgICAgICAgPC9UeER0bHM+CiAgICAgICAgICAgICAgICA8L050cnlEdGxzPgogICAgICAgICAgICA8L050cnk+CgogICAgICAgICAgICA8IS0tIDM6IG5vdGVzIG9ubHkgKFJtdEluZi9Vc3RyZCwgbm8gQ2R0ci9ObSkgLS0+CiAgICAgICAgICAgIDxOdHJ5PgogICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+MzAuMDA8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxOS0wMS0yMzwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj50ZXN0LW5vdGVzLW9ubHk8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1ub3Rlcy1vbmx5PC9FbmRUb0VuZElkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JlZnM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSbXRJbmY+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8VXN0cmQ+Tm90ZSBPbmx5IFRleHQ8L1VzdHJkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JtdEluZj4KICAgICAgICAgICAgICAgICAgICA8L1R4RHRscz4KICAgICAgICAgICAgICAgIDwvTnRyeUR0bHM+CiAgICAgICAgICAgIDwvTnRyeT4KCiAgICAgICAgICAgIDwhLS0gNDogbmVpdGhlciBwYXllZSBub3Igbm90ZXMgLS0+CiAgICAgICAgICAgIDxOdHJ5PgogICAgICAgICAgICAgICAgPEFtdCBDY3k9IkVVUiI+NDAuMDA8L0FtdD4KICAgICAgICAgICAgICAgIDxDZHREYnRJbmQ+REJJVDwvQ2R0RGJ0SW5kPgogICAgICAgICAgICAgICAgPFN0cz5CT09LPC9TdHM+CiAgICAgICAgICAgICAgICA8Qm9va2dEdD4KICAgICAgICAgICAgICAgICAgICA8RHQ+MjAxOS0wMS0yMzwvRHQ+CiAgICAgICAgICAgICAgICA8L0Jvb2tnRHQ+CiAgICAgICAgICAgICAgICA8VmFsRHQ+CiAgICAgICAgICAgICAgICAgICAgPER0PjIwMTktMDEtMjM8L0R0PgogICAgICAgICAgICAgICAgPC9WYWxEdD4KICAgICAgICAgICAgICAgIDxBY2N0U3ZjclJlZj50ZXN0LW5laXRoZXI8L0FjY3RTdmNyUmVmPgogICAgICAgICAgICAgICAgPEJrVHhDZCAvPgogICAgICAgICAgICAgICAgPE50cnlEdGxzPgogICAgICAgICAgICAgICAgICAgIDxUeER0bHM+CiAgICAgICAgICAgICAgICAgICAgICAgIDxSZWZzPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPEVuZFRvRW5kSWQ+dGVzdC1uZWl0aGVyPC9FbmRUb0VuZElkPgogICAgICAgICAgICAgICAgICAgICAgICA8L1JlZnM+CiAgICAgICAgICAgICAgICAgICAgPC9UeER0bHM+CiAgICAgICAgICAgICAgICA8L050cnlEdGxzPgogICAgICAgICAgICA8L050cnk+CgogICAgICAgIDwvU3RtdD4KICAgIDwvQmtUb0NzdG1yU3RtdD4KPC9Eb2N1bWVudD4K",
+      "sha256": "8db78efc3bc0ba4c68c88cbf0bdf994b966d7343fd3af03248010b60a537a671",
+      "options": {
+        "importNotes": true,
+        "swapPayeeAndMemo": true
+      },
+      "frontend": {
+        "reconcile": true,
+        "fieldMappings": null,
+        "filetype": "xml",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [],
+        "clearOnImport": true,
+        "importNotes": true
+      },
+      "parsed": {
+        "errors": [],
+        "transactions": [
+          {
+            "amount": -10,
+            "date": "2019-01-23",
+            "payee_name": "Note Text",
+            "imported_payee": "Note Text",
+            "notes": "Payee Name",
+            "imported_id": "test-payee-and-notes"
+          },
+          {
+            "amount": -20,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "imported_id": "test-payee-only"
+          },
+          {
+            "amount": -30,
+            "date": "2019-01-23",
+            "payee_name": "Note Only Text",
+            "imported_payee": "Note Only Text",
+            "notes": null,
+            "imported_id": "test-notes-only"
+          },
+          {
+            "amount": -40,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "imported_id": "test-neither"
+          }
+        ]
+      },
+      "normalized": {
+        "transactions": [
+          {
+            "amount": -1000,
+            "date": "2019-01-23",
+            "payee_name": "Note Text",
+            "imported_payee": "Note Text",
+            "notes": "Payee Name",
+            "imported_id": "test-payee-and-notes",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -2000,
+            "date": "2019-01-23",
+            "payee_name": "Payee Name Only",
+            "imported_payee": "Payee Name Only",
+            "notes": null,
+            "imported_id": "test-payee-only",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -3000,
+            "date": "2019-01-23",
+            "payee_name": "Note Only Text",
+            "imported_payee": "Note Only Text",
+            "notes": null,
+            "imported_id": "test-notes-only",
+            "category": null,
+            "cleared": true
+          },
+          {
+            "amount": -4000,
+            "date": "2019-01-23",
+            "payee_name": null,
+            "imported_payee": null,
+            "notes": null,
+            "imported_id": "test-neither",
+            "category": null,
+            "cleared": true
+          }
+        ],
+        "error": null
+      },
+      "saved_preferences": {
+        "camt-swap-payee-memo-398e68ea-5d56-4767-9b22-016179567169": "true",
+        "import-reimport-deleted-398e68ea-5d56-4767-9b22-016179567169": "false"
+      },
+      "archive": {
+        "filename": "camt-26.10.zip",
+        "sha256": "b7dee9eadaab14477254ac82a29a3609472a30f26aa1394bcda6e3d16b78845e"
+      },
+      "before": {
+        "transactions": [
+          {
+            "id": "25320000-0000-4000-8000-000000000003",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "398e68ea-5d56-4767-9b22-016179567169",
+            "category": "dcf8b979-6445-40b5-853e-8bc91e70429f",
+            "amount": -1000,
+            "payee": "47096ed2-4e0e-416f-99bc-6cb470afcd51",
+            "notes": "Keep manual note",
+            "date": "2019-01-23",
+            "imported_id": null,
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": false,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "47096ed2-4e0e-416f-99bc-6cb470afcd51",
+            "name": "Manual payer",
+            "transfer_acct": null
+          },
+          {
+            "id": "3fa38539-9c1b-4042-801c-d57e58060cde",
+            "name": "Checking",
+            "transfer_acct": "398e68ea-5d56-4767-9b22-016179567169"
+          }
+        ],
+        "categories": [
+          {
+            "id": "dcf8b979-6445-40b5-853e-8bc91e70429f",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "f2750c17-55e7-4ed2-8807-353448abc4b3"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "preview": {
+        "errors": [],
+        "added": [
+          "0371973a-6d92-496f-9956-943280699f5c",
+          "1d7ae7fe-ac10-4e65-828f-6fe7598bc73d",
+          "92ef421e-d796-4a05-a071-fe4637f599fe"
+        ],
+        "updated": [
+          "25320000-0000-4000-8000-000000000003"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "amount": -1000,
+              "date": "2019-01-23",
+              "imported_payee": "Note Text",
+              "notes": "Payee Name",
+              "imported_id": "test-payee-and-notes",
+              "category": null,
+              "cleared": true,
+              "account": "398e68ea-5d56-4767-9b22-016179567169",
+              "payee": "829d9b24-e242-49ee-8724-3b435816117b",
+              "_account": {
+                "id": "398e68ea-5d56-4767-9b22-016179567169",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25320000-0000-4000-8000-000000000003",
+              "is_parent": 0,
+              "date": "2019-01-23",
+              "imported_id": null,
+              "payee": "47096ed2-4e0e-416f-99bc-6cb470afcd51",
+              "imported_payee": null,
+              "category": "dcf8b979-6445-40b5-853e-8bc91e70429f",
+              "notes": "Keep manual note",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -10,
+              "payee_name": "Manual payer"
+            }
+          }
+        ]
+      },
+      "result": {
+        "errors": [],
+        "added": [
+          "bfaf6107-b568-4eac-acdc-cad1277930ab",
+          "88a8fbd0-e249-415e-af3d-b7208080f009",
+          "bda84f3e-da2b-4d66-8728-1f6443262977"
+        ],
+        "updated": [
+          "25320000-0000-4000-8000-000000000003"
+        ],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "amount": -1000,
+              "date": "2019-01-23",
+              "imported_payee": "Note Text",
+              "notes": "Payee Name",
+              "imported_id": "test-payee-and-notes",
+              "category": null,
+              "cleared": true,
+              "account": "398e68ea-5d56-4767-9b22-016179567169",
+              "payee": "c88d5c93-3603-4554-b821-ad1827d337be",
+              "_account": {
+                "id": "398e68ea-5d56-4767-9b22-016179567169",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "existing": {
+              "id": "25320000-0000-4000-8000-000000000003",
+              "is_parent": 0,
+              "date": "2019-01-23",
+              "imported_id": null,
+              "payee": "47096ed2-4e0e-416f-99bc-6cb470afcd51",
+              "imported_payee": null,
+              "category": "dcf8b979-6445-40b5-853e-8bc91e70429f",
+              "notes": "Keep manual note",
+              "reconciled": 0,
+              "cleared": false,
+              "amount": -10,
+              "payee_name": "Manual payer"
+            }
+          }
+        ]
+      },
+      "after": {
+        "transactions": [
+          {
+            "id": "25320000-0000-4000-8000-000000000003",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "398e68ea-5d56-4767-9b22-016179567169",
+            "category": "dcf8b979-6445-40b5-853e-8bc91e70429f",
+            "amount": -1000,
+            "payee": "47096ed2-4e0e-416f-99bc-6cb470afcd51",
+            "notes": "Keep manual note",
+            "date": "2019-01-23",
+            "imported_id": "test-payee-and-notes",
+            "error": null,
+            "imported_payee": "Note Text",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "bfaf6107-b568-4eac-acdc-cad1277930ab",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "398e68ea-5d56-4767-9b22-016179567169",
+            "category": null,
+            "amount": -2000,
+            "payee": "7b09725c-9ffc-4f20-a99d-01c73951ac26",
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": "test-payee-only",
+            "error": null,
+            "imported_payee": "Payee Name Only",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "88a8fbd0-e249-415e-af3d-b7208080f009",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "398e68ea-5d56-4767-9b22-016179567169",
+            "category": null,
+            "amount": -3000,
+            "payee": "b9601fdb-df8d-4d62-a820-50adef48a006",
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": "test-notes-only",
+            "error": null,
+            "imported_payee": "Note Only Text",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225598976,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "bda84f3e-da2b-4d66-8728-1f6443262977",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "398e68ea-5d56-4767-9b22-016179567169",
+            "category": null,
+            "amount": -4000,
+            "payee": null,
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": "test-neither",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225597952,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "47096ed2-4e0e-416f-99bc-6cb470afcd51",
+            "name": "Manual payer",
+            "transfer_acct": null
+          },
+          {
+            "id": "b9601fdb-df8d-4d62-a820-50adef48a006",
+            "name": "Note Only Text",
+            "transfer_acct": null
+          },
+          {
+            "id": "7b09725c-9ffc-4f20-a99d-01c73951ac26",
+            "name": "Payee Name Only",
+            "transfer_acct": null
+          },
+          {
+            "id": "3fa38539-9c1b-4042-801c-d57e58060cde",
+            "name": "Checking",
+            "transfer_acct": "398e68ea-5d56-4767-9b22-016179567169"
+          }
+        ],
+        "categories": [
+          {
+            "id": "dcf8b979-6445-40b5-853e-8bc91e70429f",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "f2750c17-55e7-4ed2-8807-353448abc4b3"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      },
+      "repeat": {
+        "errors": [],
+        "added": [],
+        "updated": [],
+        "updatedPreview": [
+          {
+            "transaction": {
+              "amount": -1000,
+              "date": "2019-01-23",
+              "imported_payee": "Note Text",
+              "notes": "Payee Name",
+              "imported_id": "test-payee-and-notes",
+              "category": null,
+              "cleared": true,
+              "account": "398e68ea-5d56-4767-9b22-016179567169",
+              "payee": "7bc7ce38-eb94-468a-a27f-ad1a4fe690fa",
+              "_account": {
+                "id": "398e68ea-5d56-4767-9b22-016179567169",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          },
+          {
+            "transaction": {
+              "amount": -2000,
+              "date": "2019-01-23",
+              "imported_payee": "Payee Name Only",
+              "notes": null,
+              "imported_id": "test-payee-only",
+              "category": null,
+              "cleared": true,
+              "account": "398e68ea-5d56-4767-9b22-016179567169",
+              "payee": "7b09725c-9ffc-4f20-a99d-01c73951ac26",
+              "_account": {
+                "id": "398e68ea-5d56-4767-9b22-016179567169",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          },
+          {
+            "transaction": {
+              "amount": -3000,
+              "date": "2019-01-23",
+              "imported_payee": "Note Only Text",
+              "notes": null,
+              "imported_id": "test-notes-only",
+              "category": null,
+              "cleared": true,
+              "account": "398e68ea-5d56-4767-9b22-016179567169",
+              "payee": "b9601fdb-df8d-4d62-a820-50adef48a006",
+              "_account": {
+                "id": "398e68ea-5d56-4767-9b22-016179567169",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          },
+          {
+            "transaction": {
+              "amount": -4000,
+              "date": "2019-01-23",
+              "imported_payee": null,
+              "notes": null,
+              "imported_id": "test-neither",
+              "category": null,
+              "cleared": true,
+              "account": "398e68ea-5d56-4767-9b22-016179567169",
+              "_account": {
+                "id": "398e68ea-5d56-4767-9b22-016179567169",
+                "account_id": null,
+                "name": "Checking",
+                "balance_current": null,
+                "balance_available": null,
+                "balance_limit": null,
+                "mask": null,
+                "official_name": null,
+                "subtype": null,
+                "bank": null,
+                "offbudget": 0,
+                "closed": 0,
+                "tombstone": 0,
+                "sort_order": 16384,
+                "type": null,
+                "account_sync_source": null,
+                "last_sync": null,
+                "last_reconciled": null,
+                "bank_sync_status": null,
+                "account_group_id": null,
+                "bankName": null,
+                "bankId": null
+              },
+              "_account_name": "Checking"
+            },
+            "ignored": true
+          }
+        ]
+      },
+      "repeated": {
+        "transactions": [
+          {
+            "id": "25320000-0000-4000-8000-000000000003",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "398e68ea-5d56-4767-9b22-016179567169",
+            "category": "dcf8b979-6445-40b5-853e-8bc91e70429f",
+            "amount": -1000,
+            "payee": "47096ed2-4e0e-416f-99bc-6cb470afcd51",
+            "notes": "Keep manual note",
+            "date": "2019-01-23",
+            "imported_id": "test-payee-and-notes",
+            "error": null,
+            "imported_payee": "Note Text",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "bfaf6107-b568-4eac-acdc-cad1277930ab",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "398e68ea-5d56-4767-9b22-016179567169",
+            "category": null,
+            "amount": -2000,
+            "payee": "7b09725c-9ffc-4f20-a99d-01c73951ac26",
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": "test-payee-only",
+            "error": null,
+            "imported_payee": "Payee Name Only",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225600000,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "88a8fbd0-e249-415e-af3d-b7208080f009",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "398e68ea-5d56-4767-9b22-016179567169",
+            "category": null,
+            "amount": -3000,
+            "payee": "b9601fdb-df8d-4d62-a820-50adef48a006",
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": "test-notes-only",
+            "error": null,
+            "imported_payee": "Note Only Text",
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225598976,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          },
+          {
+            "id": "bda84f3e-da2b-4d66-8728-1f6443262977",
+            "is_parent": false,
+            "is_child": false,
+            "parent_id": null,
+            "account": "398e68ea-5d56-4767-9b22-016179567169",
+            "category": null,
+            "amount": -4000,
+            "payee": null,
+            "notes": null,
+            "date": "2019-01-23",
+            "imported_id": "test-neither",
+            "error": null,
+            "imported_payee": null,
+            "starting_balance_flag": false,
+            "transfer_id": null,
+            "sort_order": 1794225597952,
+            "cleared": true,
+            "reconciled": false,
+            "tombstone": false,
+            "schedule": null,
+            "raw_synced_data": null,
+            "subtransactions": []
+          }
+        ],
+        "payees": [
+          {
+            "id": "47096ed2-4e0e-416f-99bc-6cb470afcd51",
+            "name": "Manual payer",
+            "transfer_acct": null
+          },
+          {
+            "id": "b9601fdb-df8d-4d62-a820-50adef48a006",
+            "name": "Note Only Text",
+            "transfer_acct": null
+          },
+          {
+            "id": "7b09725c-9ffc-4f20-a99d-01c73951ac26",
+            "name": "Payee Name Only",
+            "transfer_acct": null
+          },
+          {
+            "id": "3fa38539-9c1b-4042-801c-d57e58060cde",
+            "name": "Checking",
+            "transfer_acct": "398e68ea-5d56-4767-9b22-016179567169"
+          }
+        ],
+        "categories": [
+          {
+            "id": "dcf8b979-6445-40b5-853e-8bc91e70429f",
+            "name": "Food",
+            "is_income": false,
+            "hidden": false,
+            "group_id": "f2750c17-55e7-4ed2-8807-353448abc4b3"
+          },
+          {
+            "id": "3c1699a5-522a-435e-86dc-93d900a14f0e",
+            "name": "Income",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          },
+          {
+            "id": "506e8d9d-7ed0-4397-84e4-07a9185dc6b2",
+            "name": "Starting Balances",
+            "is_income": true,
+            "hidden": false,
+            "group_id": "2E1F5BDB-209B-43F9-AF2C-3CE28E380C00"
+          }
+        ]
+      }
+    }
+  ]
+}

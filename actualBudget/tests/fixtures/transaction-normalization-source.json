@@ -910,6 +910,122 @@
       }
     },
     {
+      "id": "amount-negative-exact-half",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "-1.1250",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": -112,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
+      "id": "amount-positive-exact-half",
+      "input": {
+        "reconcile": true,
+        "fieldMappings": {
+          "date": "Date",
+          "payee": "Payee",
+          "amount": "Amount",
+          "notes": "Memo",
+          "category": "Category",
+          "inOut": "Direction",
+          "outflow": "Out",
+          "inflow": "In"
+        },
+        "filetype": "csv",
+        "parseDateFormat": "yyyy mm dd",
+        "splitMode": false,
+        "inOutMode": false,
+        "outValue": "Debit",
+        "flipAmount": false,
+        "multiplierAmount": "1",
+        "categories": [
+          {
+            "id": "25260000-0000-4000-8000-000000000003",
+            "name": "Food"
+          }
+        ],
+        "clearOnImport": true,
+        "importNotes": true,
+        "transactions": [
+          {
+            "trx_id": "0",
+            "selected": true,
+            "selected_merge": true,
+            "existing": false,
+            "ignored": false,
+            "Date": "2026-11-09",
+            "Payee": "Cafe",
+            "Amount": "1.1250",
+            "Memo": "Import note",
+            "Category": "Food"
+          }
+        ]
+      },
+      "result": {
+        "transactions": [
+          {
+            "date": "2026-11-09",
+            "payee_name": "Cafe",
+            "amount": 113,
+            "notes": "Import note",
+            "category": "25260000-0000-4000-8000-000000000003",
+            "cleared": true
+          }
+        ],
+        "error": null
+      }
+    },
+    {
       "id": "amount-extra-precision",
       "input": {
         "reconcile": true,

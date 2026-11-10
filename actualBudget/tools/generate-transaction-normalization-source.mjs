@@ -18,7 +18,7 @@ function add(id,rows=[base],options={}){
 add('mapped-csv');
 for(const [format,date] of [['yyyy mm dd','20261109'],['yy mm dd','26/11/09'],['mm dd yyyy','11/09/2026'],['mm dd yy','11/09/26'],['dd mm yyyy','09/11/2026'],['dd mm yy','09/11/26']])add(`date-${format}`,[{...base,Date:date}],{parseDateFormat:format});
 for(const [id,date] of [['english-month','9 November 2026'],['invalid','31/02/2026'],['leap-valid','29/02/2024'],['leap-invalid','29/02/2025'],['empty',''],['extra-groups','09/11/2026 12:34']])add(`date-${id}`,[{...base,Date:date}],{parseDateFormat:'dd mm yyyy'});
-for(const [id,amount] of [['positive','12.34'],['negative-half','-1.005'],['positive-half','1.005'],['extra-precision','12.3456'],['comma','12,34'],['thousands','1,234.56'],['currency','$ 12.34'],['invalid','word'],['empty',''],['zero','0'],['missing',null]])add(`amount-${id}`,[{...base,Amount:amount}]);
+for(const [id,amount] of [['positive','12.34'],['negative-half','-1.005'],['positive-half','1.005'],['negative-exact-half','-1.1250'],['positive-exact-half','1.1250'],['extra-precision','12.3456'],['comma','12,34'],['thousands','1,234.56'],['currency','$ 12.34'],['invalid','word'],['empty',''],['zero','0'],['missing',null]])add(`amount-${id}`,[{...base,Amount:amount}]);
 for(const multiplierAmount of ['2','0','-1','0.125','bad','2tail'])add(`multiplier-${multiplierAmount}`,[base],{multiplierAmount});
 add('flip',[base],{flipAmount:true});
 add('flip-multiplier',[base],{flipAmount:true,multiplierAmount:'2'});
@@ -47,5 +47,10 @@ const output={oracle:'Actual 26.10.0 unchanged frontend import finalization',sou
 assert.equal(new Set(cases.map(item=>item.id)).size,cases.length);
 const fixture=new URL('../tests/fixtures/transaction-normalization-source.json',import.meta.url);
 if(process.argv.includes('--check'))assert.deepEqual(output,JSON.parse(await readFile(fixture,'utf8')));
-else await writeFile(fixture,JSON.stringify(output,null,2)+'\n',{flag:'wx'});
+else if(process.argv.includes('--extend')){
+  const previous=JSON.parse(await readFile(fixture,'utf8'));
+  assert.deepEqual({...output,cases:previous.cases},previous);
+  for(const item of previous.cases)assert.deepEqual(cases.find(next=>next.id===item.id),item);
+  await writeFile(fixture,JSON.stringify(output,null,2)+'\n');
+}else await writeFile(fixture,JSON.stringify(output,null,2)+'\n',{flag:'wx'});
 console.log(`PASS ${cases.length} unchanged frontend normalization observations`);

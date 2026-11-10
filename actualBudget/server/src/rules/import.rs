@@ -86,15 +86,8 @@ pub fn convert(
         let rule: Rule = serde_json::from_value(value.clone())
             .map_err(|_| Error::invalid("Invalid saved rule shape"))?;
         let dead = row["tombstone"] == 1 || row["tombstone"] == true;
-        if !dead {
-            let dependencies = actions::requirements(&rule);
-            if !dependencies.is_empty() {
-                for detail in dependencies {
-                    requirements.push(json!({"feature":"rules","count":1,"blocking":true,"rule_id":id,"reason":detail["reason"],"ticket":detail["ticket"],"raw":detail["raw"]}));
-                }
-            } else if let Err(error) = engine::validate(&rule) {
-                requirements.push(json!({"feature":"rules","count":1,"blocking":true,"rule_id":id,"reason":error.message,"raw":row}));
-            }
+        if !dead && let Err(error) = engine::validate(&rule) {
+            requirements.push(json!({"feature":"rules","count":1,"blocking":true,"rule_id":id,"reason":error.message,"raw":row}));
         }
         rules.push(json!({"rule":value,"tombstone":dead}));
     }

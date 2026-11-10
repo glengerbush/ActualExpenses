@@ -14871,7 +14871,7 @@
             }
           },
           "422": {
-            "description": "Retained action requires ticket21 or42 capability",
+            "description": "Unsupported retained rule definition",
             "content": {
               "application/json": {
                 "schema": {
@@ -15021,7 +15021,7 @@
             }
           },
           "422": {
-            "description": "Retained action requires ticket21 or42 capability",
+            "description": "Unsupported retained rule definition",
             "content": {
               "application/json": {
                 "schema": {
@@ -15178,7 +15178,7 @@
             }
           },
           "422": {
-            "description": "Retained action requires ticket21 or42 capability",
+            "description": "Unsupported retained rule definition",
             "content": {
               "application/json": {
                 "schema": {
@@ -15338,7 +15338,7 @@
             }
           },
           "422": {
-            "description": "Retained action requires ticket21 or42 capability",
+            "description": "Unsupported retained rule definition",
             "content": {
               "application/json": {
                 "schema": {
@@ -15549,7 +15549,7 @@
             }
           },
           "422": {
-            "description": "Retained action requires ticket21 or42 capability",
+            "description": "Unsupported retained rule definition",
             "content": {
               "application/json": {
                 "schema": {
@@ -15655,7 +15655,7 @@
             }
           },
           "422": {
-            "description": "Retained action requires ticket21 or42 capability",
+            "description": "Unsupported retained rule definition",
             "content": {
               "application/json": {
                 "schema": {
@@ -15874,7 +15874,7 @@
             }
           },
           "422": {
-            "description": "Retained action requires ticket21 or42 capability",
+            "description": "Unsupported retained rule definition",
             "content": {
               "application/json": {
                 "schema": {
@@ -16068,7 +16068,7 @@
             }
           },
           "422": {
-            "description": "Retained action requires ticket21 or42 capability",
+            "description": "Unsupported retained rule definition",
             "content": {
               "application/json": {
                 "schema": {
@@ -16248,7 +16248,7 @@
             }
           },
           "422": {
-            "description": "Retained action requires ticket21 or42 capability",
+            "description": "Unsupported retained rule definition",
             "content": {
               "application/json": {
                 "schema": {
@@ -16383,7 +16383,7 @@
             }
           },
           "422": {
-            "description": "Retained action requires ticket21 or42 capability",
+            "description": "Unsupported retained rule definition",
             "content": {
               "application/json": {
                 "schema": {
@@ -16557,7 +16557,7 @@
             }
           },
           "422": {
-            "description": "Retained action requires ticket21 or42 capability",
+            "description": "Unsupported retained rule definition",
             "content": {
               "application/json": {
                 "schema": {
@@ -26651,10 +26651,12 @@
                 ]
               },
               "template": {
-                "type": "string"
+                "type": "string",
+                "maxLength": 8192
               },
               "formula": {
-                "type": "string"
+                "type": "string",
+                "maxLength": 8192
               }
             },
             "required": [],
@@ -26666,7 +26668,7 @@
           "op"
         ],
         "additionalProperties": false,
-        "description": "Normal set/notes/delete/split actions execute now. Raw templates/formulas require ticket42; schedule links retain the referenced live schedule and run in the schedule posting pipeline. Text joins without implicit separators. Explicit apply follows pinned action parser options; live automatic entry follows rules-run. Invalid split/paired aggregate results refuse the entire command."
+        "description": "Ordered set/notes/delete/split actions, including source Handlebars templates and HyperFormula expressions. Formulas take precedence over templates. Formula errors retain the prior field and append rule_errors; later actions still execute. Numeric formula results convert to minor units before field conversion. Preview may contain fractional minor units; persistence refuses them atomically. Schedule links retain their live schedule. Text joins without implicit separators. Explicit apply follows the pinned action parser; automatic entry follows rules-run."
       },
       "Rule": {
         "type": "object",
@@ -26782,8 +26784,7 @@
             "type": "object"
           },
           "after": {
-            "type": "object",
-            "description": "Virtual projection, including planned payees, children or deleted flag; preview never writes these resources."
+            "$ref": "#/components/schemas/RuleProjection"
           },
           "matched_rule_ids": {
             "type": "array",
@@ -35876,6 +35877,30 @@
           },
           "locale": {
             "type": "string"
+          }
+        }
+      },
+      "RuleProjection": {
+        "type": "object",
+        "description": "Virtual ledger projection; no resources are written by preview. Calculated amounts may be fractional or null on invalid conversion; writes require exact finite minor units. Diagnostics are transient and are not ledger fields.",
+        "properties": {
+          "amount": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "rule_errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RuleProjection"
+            }
           }
         }
       }

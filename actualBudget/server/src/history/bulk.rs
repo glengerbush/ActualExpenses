@@ -197,6 +197,7 @@ pub fn apply(
             sync::Mutation::Split(
                 root.clone(),
                 splits::Change {
+                    clear_parent_references: false,
                     snapshot: sync::cursor(db, budget)?,
                     action,
                     children,

@@ -1,18 +1,6 @@
-//! Normal rule actions. Templates/formulas42 and schedules21 remain explicit requirements.
+//! Ordered rule actions and exact split allocation, with source expression conversions.
 use super::*;
 use sha2::{Digest, Sha256};
-pub fn requirements(rule: &Rule) -> Vec<Value> {
-    let mut out = vec![];
-    for (index, a) in rule.actions.iter().enumerate() {
-        if a["options"]["template"].is_string()
-            || a["options"]["formula"].is_string()
-            || a["options"]["method"] == "formula"
-        {
-            out.push(json!({"action":index,"ticket":42,"reason":"Template/formula execution requires the expression capability","raw":a}));
-        }
-    }
-    out
-}
 pub fn validate(a: &Value) -> Result<(), Error> {
     if a.as_object().is_none_or(|o| {
         o.keys()
@@ -37,7 +25,34 @@ pub fn validate(a: &Value) -> Result<(), Error> {
     {
         return Err(Error::invalid("Unknown action option"));
     }
+    for field in ["template", "formula"] {
+        if let Some(value) = a["options"].get(field)
+            && !value.is_null()
+            && value.as_str().is_none_or(|s| s.len() > 8192)
+        {
+            return Err(Error::invalid(
+                "Rule formula/template requires at most8192 bytes of text",
+            ));
+        }
+    }
     match op {
+        "set" if super::expressions::calculated(a) => {
+            if !matches!(
+                field,
+                "account"
+                    | "payee"
+                    | "category"
+                    | "amount"
+                    | "date"
+                    | "cleared"
+                    | "notes"
+                    | "payee_name"
+            ) {
+                return Err(Error::invalid("Unsupported rule action field"));
+            }
+            // The source Action constructor owns calculated-value validation.
+            // A formula's unused raw placeholder need not have the output type.
+        }
         "set" => {
             match field {
                 "account" | "payee" | "category" => {
@@ -102,7 +117,7 @@ pub fn validate(a: &Value) -> Result<(), Error> {
                 Some("fixed-percent") => {
                     percent(value)?;
                 }
-                Some("remainder") => {}
+                Some("remainder" | "formula") => {}
                 _ => return Err(Error::invalid("Unknown split allocation method")),
             }
         }
@@ -194,6 +209,7 @@ fn exec(a: &Value, row: &mut Value) -> Result<(), Error> {
                 row[key(a["field"].as_str().unwrap())] = a["value"].clone();
                 if a["field"] == "payee" {
                     row.as_object_mut().unwrap().remove("new_payee");
+                    row.as_object_mut().unwrap().remove("_rule_payee_name");
                 }
             }
         }
@@ -245,14 +261,30 @@ fn resolve_name(db: &Connection, b: &str, row: &mut Value) -> Result<(), Error> 
 fn child(parent: &Value, payee: &Value, id: String) -> Value {
     json!({"id":id,"amount":0,"category_id":parent["category_id"],"payee_id":payee,"notes":"","account_id":parent["account_id"],"date":parent["date"],"cleared":parent["cleared"],"parent_id":parent["id"]})
 }
-pub fn apply(db: &Connection, b: &str, input: &Value, rule: &Rule) -> Result<Value, Error> {
+pub fn apply(
+    db: &Connection,
+    b: &str,
+    input: &Value,
+    rule: &Rule,
+    mut expressions: Option<&mut super::expressions::Context>,
+    work: &mut super::expressions::Budget,
+) -> Result<Value, Error> {
     let mut row = input.clone();
     for a in rule
         .actions
         .iter()
         .filter(|a| a["options"]["splitIndex"].as_u64().unwrap_or(0) == 0)
     {
-        exec(a, &mut row)?;
+        if super::expressions::calculated(a)
+            && matches!(a["op"].as_str(), Some("set" | "set-split-amount"))
+        {
+            expressions
+                .as_deref_mut()
+                .ok_or_else(|| Error::internal("Missing rule expression context"))?
+                .apply(db, b, &mut row, a, None, work)?;
+        } else {
+            exec(a, &mut row)?;
+        }
     }
     resolve_name(db, b, &mut row)?;
     let child_actions = rule
@@ -275,6 +307,7 @@ pub fn apply(db: &Connection, b: &str, input: &Value, rule: &Rule) -> Result<Val
         )]
     });
     let original_payee = row["payee_id"].clone();
+    let parent_context = row.clone();
     row["payee_id"] = Value::Null;
     for a in &child_actions {
         let index = a["options"]["splitIndex"].as_u64().unwrap() as usize;
@@ -293,7 +326,16 @@ pub fn apply(db: &Connection, b: &str, input: &Value, rule: &Rule) -> Result<Val
             ]);
             children.push(child(&row, payee, id));
         }
-        exec(a, &mut children[index])?;
+        if super::expressions::calculated(a)
+            && matches!(a["op"].as_str(), Some("set" | "set-split-amount"))
+        {
+            expressions
+                .as_deref_mut()
+                .ok_or_else(|| Error::internal("Missing rule expression context"))?
+                .apply(db, b, &mut children[index], a, Some(&parent_context), work)?;
+        } else {
+            exec(a, &mut children[index])?;
+        }
         resolve_name(db, b, &mut children[index])?;
     }
     let remainder = |children: &[Value]| -> Result<i128, Error> {
@@ -303,7 +345,13 @@ pub fn apply(db: &Connection, b: &str, input: &Value, rule: &Rule) -> Result<Val
             as i128
             - children
                 .iter()
-                .map(|c| c["amount"].as_i64().unwrap_or(0) as i128)
+                .map(|c| {
+                    c["amount"].as_i64().map(i128::from).ok_or_else(|| {
+                        Error::invalid("Split allocation requires exact minor units")
+                    })
+                })
+                .collect::<Result<Vec<_>, _>>()?
+                .iter()
                 .sum::<i128>())
     };
     let remaining = remainder(&children)?;

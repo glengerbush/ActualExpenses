@@ -15,16 +15,10 @@ pub fn validate(rule: &Rule) -> Result<(), Error> {
     for c in &rule.conditions {
         super::conditions::validate(c)?;
     }
-    if !super::actions::requirements(rule).is_empty() {
-        return Err(Error::new(
-            axum::http::StatusCode::UNPROCESSABLE_ENTITY,
-            "rule_requirements",
-            "This rule retains template or formula actions that need expression evaluation support",
-        ));
-    }
     for a in &rule.actions {
         super::actions::validate(a)?;
     }
+    super::expressions::validate(rule)?;
     Ok(())
 }
 fn score(rule: &Rule) -> i32 {
@@ -64,6 +58,7 @@ pub fn rank(rules: &mut [Rule]) {
     });
 }
 pub struct Work {
+    pub expressions: super::expressions::Budget,
     pub remaining: usize,
     pub regex: crate::register_regex::Budget,
     pub compiled: std::collections::BTreeMap<
@@ -74,6 +69,7 @@ pub struct Work {
 impl Default for Work {
     fn default() -> Self {
         Self {
+            expressions: Default::default(),
             remaining: 2_000_000,
             regex: crate::register_regex::replacement_budget(),
             compiled: std::collections::BTreeMap::new(),
@@ -128,7 +124,26 @@ impl Runner {
         input: &Value,
         account_override: Option<bool>,
     ) -> Result<(Value, Vec<String>), Error> {
+        self.evaluate_context(db, b, input, account_override, false)
+    }
+    pub fn evaluate_stored(
+        &mut self,
+        db: &Connection,
+        b: &str,
+        input: &Value,
+    ) -> Result<(Value, Vec<String>), Error> {
+        self.evaluate_context(db, b, input, None, true)
+    }
+    fn evaluate_context(
+        &mut self,
+        db: &Connection,
+        b: &str,
+        input: &Value,
+        account_override: Option<bool>,
+        stored: bool,
+    ) -> Result<(Value, Vec<String>), Error> {
         let mut row = input.clone();
+        let mut expressions = None;
         let mut matched = vec![];
         let account_off = if let Some(id) = input["account_id"].as_str() {
             db.query_row(
@@ -180,7 +195,21 @@ impl Runner {
             }
             if matches || forced {
                 matched.push(rule.id.clone());
-                row = super::actions::apply(db, b, &row, rule)?;
+                if expressions.is_none() && rule.actions.iter().any(super::expressions::calculated)
+                {
+                    expressions = Some(super::expressions::Context::new(db, b, input, stored)?);
+                }
+                if let Some(context) = expressions.as_mut() {
+                    context.begin_rule(db, b, &row)?;
+                }
+                row = super::actions::apply(
+                    db,
+                    b,
+                    &row,
+                    rule,
+                    expressions.as_mut(),
+                    &mut self.work.expressions,
+                )?;
             }
         }
         Ok((row, matched))

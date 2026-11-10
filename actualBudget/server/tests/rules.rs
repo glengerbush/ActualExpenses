@@ -687,7 +687,7 @@ fn genuine_schema16_upgrade_retains_history_and_replay_while_archive_rotates_own
         .unwrap()
         .json::<Value>()
         .unwrap();
-    assert_eq!(upload["data"]["report"]["schema_version"], 22, "{upload}");
+    assert_eq!(upload["data"]["report"]["schema_version"], 26, "{upload}");
     let activate = target.post(
         &format!(
             "{root}/restores/{}/activate",
@@ -773,7 +773,7 @@ fn genuine_rule_import_and_current_native_restore_keep_execution_and_simple_asso
         .unwrap()
         .json::<Value>()
         .unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 22, "{stage}");
+    assert_eq!(stage["data"]["report"]["schema_version"], 26, "{stage}");
     let name = s.get(&root).json::<Value>().unwrap()["data"]["name"].clone();
     let r = t.post(
         &format!(
@@ -1297,11 +1297,11 @@ fn rules_contract_cancellation_lookup_and_field_clocks_keep_original_intent() {
         .json::<Value>()
         .unwrap();
     assert_eq!(associated["data"].as_array().unwrap().len(), 1);
-    // Schedule actions are supported and exercised in schedules.rs; templates remain gated.
+    // Saved expressions are accepted even when their editor opt-in is disabled.
     let action =
         json!({"op":"set","field":"notes","value":"","options":{"template":"{{payee_name}}"}});
-    let r=s.post(&format!("{root}/rules"),"blocked42",json!({"id":F,"stage":null,"conditionsOp":"and","conditions":[],"actions":[action],"snapshot":cursor(&s,&root)}));
-    assert_eq!(r.status(), 422, "{}", r.text().unwrap());
+    let r=s.post(&format!("{root}/rules"),"template42",json!({"id":F,"stage":null,"conditionsOp":"and","conditions":[],"actions":[action],"snapshot":cursor(&s,&root)}));
+    assert_eq!(r.status(), 201, "{}", r.text().unwrap());
 }
 
 #[test]

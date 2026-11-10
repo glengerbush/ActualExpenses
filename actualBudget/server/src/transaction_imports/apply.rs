@@ -77,6 +77,7 @@ pub(super) fn patch(
         sync::Mutation::Split(
             id.into(),
             crate::splits::Change {
+                clear_parent_references: false,
                 snapshot: sync::cursor(db, b)?,
                 action: crate::splits::Action::Replace,
                 children,

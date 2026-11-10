@@ -301,6 +301,77 @@ try {
     ).data;
   const before = await ledger(),
     cases = [];
+  const contextCases = process.argv.includes("--context");
+  if (contextCases) {
+    definitions.length = 0;
+    const rows = before.filter(
+      (r) => r.account === ids.checking && !r.is_parent && !r.is_child,
+    );
+    assert.ok(rows.length);
+    for (const [i, row] of rows.entries())
+      definitions.push({
+        name: `existing-row running balance ${i}`,
+        changes: row,
+        actions: [formula("notes", "=balance/100")],
+      });
+    for (const order of [null, -1, 0, 0.5, 1, 100000])
+      definitions.push({
+        name: `same-day boundary ${order}`,
+        changes: { date: rows[0].date, sort_order: order },
+        actions: [formula("notes", "=balance/100")],
+      });
+    definitions.push(
+      {
+        name: "later action reads calculated payee name",
+        actions: [
+          template("payee_name", "Merchant {{amount}}"),
+          formula("notes", '=CONCATENATE(payee_name,"|",payee)'),
+        ],
+      },
+      {
+        name: "original date survives action changes",
+        changes: rows[0],
+        actions: [
+          { op: "set", field: "date", value: "2099-01-01" },
+          formula("notes", "=balance/100"),
+        ],
+      },
+      {
+        name: "original account survives action changes",
+        actions: [
+          { op: "set", field: "account", value: ids.savings },
+          formula("notes", '=CONCATENATE(account_name,"|",balance/100)'),
+        ],
+      },
+      {
+        name: "original category alias survives action changes",
+        actions: [
+          { op: "set", field: "category", value: null },
+          formula("notes", '=CONCATENATE(category_name,"|",category_group)'),
+        ],
+      },
+      {
+        name: "split original payee context",
+        actions: [
+          {
+            op: "set-split-amount",
+            value: null,
+            options: {
+              splitIndex: 1,
+              method: "formula",
+              formula: "=parent_amount/200",
+            },
+          },
+          set("notes", { splitIndex: 1, formula: "=parent_payee" }),
+          {
+            op: "set-split-amount",
+            value: null,
+            options: { splitIndex: 2, method: "remainder" },
+          },
+        ],
+      },
+    );
+  }
   function normalized(value) {
     if (Array.isArray(value)) return value.map(normalized);
     if (!value || typeof value !== "object") return value;
@@ -359,7 +430,12 @@ try {
     seed: { filename: "reports-source-26.10.zip", sha256: sha(seed) },
     cases,
   };
-  const file = new URL("rule-expressions-source.json", root);
+  const file = new URL(
+    contextCases
+      ? "rule-expression-context-source.json"
+      : "rule-expressions-source.json",
+    root,
+  );
   if (check) assert.deepEqual(result, JSON.parse(await readFile(file)));
   else
     await writeFile(file, JSON.stringify(result, null, 2) + "\n", {

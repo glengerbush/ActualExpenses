@@ -65,6 +65,10 @@ pub enum Action {
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Change {
+    // The source rule writer stores references only on allocations. Internal
+    // composition flag: never accepted from or serialized into public payloads.
+    #[serde(skip)]
+    pub clear_parent_references: bool,
     pub snapshot: String,
     #[serde(default)]
     pub action: Action,
@@ -610,6 +614,9 @@ pub fn apply(
                 "UPDATE transactions SET is_parent=1 WHERE budget_id=?1 AND id=?2",
                 params![budget, id],
             )?;
+            if input.clear_parent_references {
+                db.execute("UPDATE transactions SET category_id=NULL,payee_id=NULL WHERE budget_id=?1 AND id=?2",params![budget,id])?;
+            }
         }
         Action::Recombine => {
             remove_many(

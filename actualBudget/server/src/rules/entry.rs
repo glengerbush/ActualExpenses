@@ -112,7 +112,7 @@ pub(super) fn peer_rules(
     runner: &mut engine::Runner,
 ) -> Result<(), Error> {
     let before = crate::ledger::get(db, b, id)?;
-    let (after, _) = runner.evaluate(db, b, &before)?;
+    let (after, _) = runner.evaluate_stored(db, b, &before)?;
     let notes = after["notes"].as_str().unwrap_or("");
     if notes.chars().count() > 10000 {
         return Err(Error::invalid("Rule notes exceed10000 characters"));

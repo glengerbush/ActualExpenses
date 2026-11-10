@@ -7,11 +7,28 @@ pub(crate) fn template_actions(
     rule: &Rule,
 ) -> Result<serde_json::Value, crate::error::Error> {
     engine::validate(rule)?;
-    actions::apply(db, b, row, rule)
+    let mut context = rule
+        .actions
+        .iter()
+        .any(expressions::calculated)
+        .then(|| expressions::Context::new(db, b, row, false))
+        .transpose()?;
+    if let Some(context) = context.as_mut() {
+        context.begin_rule(db, b, row)?;
+    }
+    actions::apply(
+        db,
+        b,
+        row,
+        rule,
+        context.as_mut(),
+        &mut expressions::Budget::default(),
+    )
 }
 mod conditions;
 mod engine;
 mod entry;
+mod expressions;
 mod import;
 pub mod learning;
 mod plan;

@@ -20,6 +20,8 @@ const SOURCE: &str = include_str!("vendor/hyperformula-3.5.0.min.js");
 const FUNCTIONS: &str = include_str!("vendor/custom-functions.js");
 const LANGUAGE: &str = include_str!("vendor/enUS-3.5.0.json");
 static COMPILED: OnceLock<Vec<u8>> = OnceLock::new();
+static RULES_COMPILED: OnceLock<Vec<u8>> = OnceLock::new();
+const RULE_ACTIONS: &str = include_str!("../rules/vendor/rule-actions.js");
 fn failure(ctx: &Ctx<'_>, error: rquickjs::Error) -> String {
     if error.is_exception() {
         ctx.catch()
@@ -38,15 +40,21 @@ fn runtime() -> Result<Runtime, String> {
     rt.set_interrupt_handler(Some(Box::new(move || Instant::now() > deadline)));
     Ok(rt)
 }
-fn bytecode() -> Result<&'static [u8], Error> {
-    if let Some(bytes) = COMPILED.get() {
+fn bytecode(rules: bool) -> Result<&'static [u8], Error> {
+    let cache = if rules { &RULES_COMPILED } else { &COMPILED };
+    if let Some(bytes) = cache.get() {
         return Ok(bytes);
     }
     let compile = || -> Result<Vec<u8>, String> {
         let rt = runtime()?;
         let context = Context::full(&rt).map_err(|e| e.to_string())?;
         context.with(|ctx| {
-            let module=Module::declare(ctx.clone(),"trusted-hyperformula",format!("var self=globalThis;{SOURCE};HyperFormula.HyperFormula.registerLanguage('enUS',{LANGUAGE});{FUNCTIONS};globalThis.ActualFormulaFunctions=ActualFormulaFunctions;HyperFormula.HyperFormula.registerFunctionPlugin(ActualFormulaFunctions.CustomFunctionsPlugin,ActualFormulaFunctions.customFunctionsTranslations);"))
+            let plugin = if rules {
+                format!("var ActualRuleLanguage={LANGUAGE};{RULE_ACTIONS};globalThis.ActualRuleActions=ActualRuleActions;")
+            } else {
+                format!("HyperFormula.HyperFormula.registerLanguage('enUS',{LANGUAGE});{FUNCTIONS};globalThis.ActualFormulaFunctions=ActualFormulaFunctions;HyperFormula.HyperFormula.registerFunctionPlugin(ActualFormulaFunctions.CustomFunctionsPlugin,ActualFormulaFunctions.customFunctionsTranslations);")
+            };
+            let module=Module::declare(ctx.clone(),"trusted-hyperformula",format!("var self=globalThis;{SOURCE};{plugin}"))
                 .map_err(|e|failure(&ctx,e))?;
             module.write(WriteOptions::default()).map_err(|e|failure(&ctx,e))
         })
@@ -56,8 +64,8 @@ fn bytecode() -> Result<&'static [u8], Error> {
     let bytes = compile().map_err(|_| {
         Error::invalid("Trusted formula engine could not initialize within its resource limits")
     })?;
-    let _ = COMPILED.set(bytes);
-    Ok(COMPILED.get().unwrap())
+    let _ = cache.set(bytes);
+    Ok(cache.get().unwrap())
 }
 const BOOTSTRAP: &str = r#"
 globalThis.Intl=Object.freeze({Collator:class {
@@ -88,9 +96,21 @@ const CLOCK: &str = r#"
 "#;
 pub fn evaluate(
     input: &Value,
+    prefetch: impl FnMut(&Value) -> Result<Value, Error>,
+) -> Result<Value, Error> {
+    execute(input, false, prefetch)
+}
+pub(crate) fn rule_actions(input: &Value) -> Result<Value, Error> {
+    execute(input, true, |_| {
+        unreachable!("Rules do not use report queries")
+    })
+}
+fn execute(
+    input: &Value,
+    rules: bool,
     mut prefetch: impl FnMut(&Value) -> Result<Value, Error>,
 ) -> Result<Value, Error> {
-    let compiled = bytecode()?;
+    let compiled = bytecode(rules)?;
     let rt = runtime().map_err(Error::invalid)?;
     let context = Context::full(&rt).map_err(|_| Error::invalid("Formula context unavailable"))?;
     context.with(|ctx| -> Result<Value, Error> {
@@ -186,6 +206,17 @@ pub fn evaluate(
             .map_err(Error::internal)?;
         ctx.eval::<(), _>(CLOCK)
             .map_err(|e| Error::invalid(failure(&ctx, e)))?;
+        ctx.eval::<(), _>(include_str!("preferences.js"))
+            .map_err(|e| Error::invalid(failure(&ctx, e)))?;
+        if rules {
+            let output: String = ctx
+                .eval(include_str!("../rules/evaluate.js"))
+                .map_err(|e| Error::invalid(failure(&ctx, e)))?;
+            if output.len() > 65536 {
+                return Err(Error::invalid("Calculated rule result exceeds64KiB"));
+            }
+            return serde_json::from_str(&output).map_err(Error::internal);
+        }
         let mut updates = json!({});
         for phase in 0..3 {
             ctx.globals()

@@ -214,7 +214,11 @@ pub fn evaluate(
                 }
             }
         }
-        let (mut after, matched) = runner.evaluate(db, b, input)?;
+        let (mut after, matched) = if direct {
+            runner.evaluate(db, b, input)?
+        } else {
+            runner.evaluate_stored(db, b, input)?
+        };
         if body["manual_entry"] == true {
             after = super::entry::protect(input, &after);
         }
@@ -320,6 +324,13 @@ pub(super) fn commit_with_work(
     command: Command<'_>,
 ) -> Result<(Value, engine::Work), Error> {
     let Command { created, work } = command;
+    // Source previews can contain fractional minor units. Refuse persistence
+    // before transfer arithmetic or any payee/ledger mutation; never truncate.
+    for entry in &entries {
+        if entry.after["deleted"] != true {
+            validate_draft(&entry.after)?;
+        }
+    }
     let mut peer_runner = engine::Runner::with_work(load(db, b)?, work);
     let mut created_peers = std::collections::BTreeSet::new();
     let members = crate::transfers::protection::members(
@@ -614,6 +625,7 @@ pub(super) fn commit_with_work(
             sync::Mutation::Split(
                 id.to_owned(),
                 crate::splits::Change {
+                    clear_parent_references: true,
                     snapshot: sync::cursor(db, b)?,
                     action: crate::splits::Action::Replace,
                     children,

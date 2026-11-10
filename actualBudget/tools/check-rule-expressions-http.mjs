@@ -5,7 +5,12 @@ import { randomUUID, createHash } from "node:crypto";
 import { startServer } from "../web/tests/server.mjs";
 const fixture = JSON.parse(
   await readFile(
-    new URL("../tests/fixtures/rule-expressions-source.json", import.meta.url),
+    new URL(
+      process.argv.includes("--context")
+        ? "../tests/fixtures/rule-expression-context-source.json"
+        : "../tests/fixtures/rule-expressions-source.json",
+      import.meta.url,
+    ),
   ),
 );
 const server = await startServer(),
@@ -58,6 +63,11 @@ function projection(row, source = false, payeeName = null) {
     (source ? row.subtransactions : row.children)?.map((c) =>
       projection(c, source),
     ) ?? [];
+  // Native previews use the persisted ledger shape. Source rules-run leaves
+  // empty child notes undefined and computes a display-only parent category;
+  // the independent rule-apply-actions fixture proves empty text/null on save.
+  value.notes ??= "";
+  if (value.children.length) value.category_id = null;
   return value;
 }
 try {

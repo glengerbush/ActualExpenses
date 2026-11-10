@@ -2,8 +2,9 @@
 
 Reference: Actual26.10.0, source commit
 `2bebdbaae0b701120a8cad9d56aafd64fa04c577`. Ticket41 accepted at `5e9cb42`.
-This checkpoint establishes source behavior and a reproducible action asset;
-native execution, contracts, UI and whole42 acceptance remain unfinished.
+The initial checkpoint established source behavior and a reproducible action
+asset. The current checkpoint adds native execution and guarded writes;
+UI, broader workflow qualification and whole42 acceptance remain unfinished.
 
 ## Running-source witnesses
 
@@ -73,7 +74,7 @@ The actual oracle bundles Handlebars4.7.9; tooling had resolved4.7.10. The direc
 tooling dependency and lockfile now pin4.7.9. Generation checks it against the
 oracle's embedded version, along with HyperFormula3.5.0. The browser compiler
 bundle needs no Node loader. Its MIT license is retained beside the asset.
-When wiring production execution, include this license in the runtime image.
+The runtime Dockerfile now includes this license beside the formula licenses.
 
 `check-rule-actions-bundle.mjs` compares28 applicable action/conversion/error
 cases against the independent engine observations in a fresh JavaScript VM
@@ -87,23 +88,86 @@ source cases and28 asset comparisons pass together in
 ## Native seam and remaining work
 
 `check-rule-expressions-http.mjs` exercises the existing public rule-preview
-endpoint. The first template case currently fails with422 `rule_requirements`,
-recorded in `/tmp/rule-expressions-http-red.log`; native support is still absent.
+endpoint. The initial template case failed with422 `rule_requirements`,
+recorded in `/tmp/rule-expressions-http-red.log`; native execution now passes it.
 The checker deliberately compares source conversions, errors and unchanged
 financial state. Its one non-financial `today` template adapts the captured date
 to the server's current UTC date; explicit transaction-date expectations remain
 unchanged.
 
-Next, integrate the asset into the existing bounded Rust-owned expression
-runtime and native rule engine. Preserve lazy original-transaction context,
-source running-balance ordering, parent/split semantics and command-wide work
-limits. Complete declaration/import validation, preview diagnostics, guarded
-persistence and idempotency, served contracts, opt-in editing, native recovery
-and real Android/import/schedule/manual workflows. Expand source cases for
-cross-rule ordering and running-balance boundaries. None of this is deferred
-to final qualification50–53.
+## Native execution checkpoint
 
-Root standards review: no remaining finding in this evidence/asset checkpoint.
-Root spec review: source semantics are evidenced;42 remains partial. No native
-execution or sandbox acceptance claim, full suite, container run, push, release
-or production deployment.
+The pinned Action bundle now runs inside the existing host-isolated QuickJS
+runtime. Report and rule modes compile/cache separate trusted plugins; they
+share preference formatting initialization without overwriting one another's
+plugin state. Each invocation retains the64MiB heap,512KiB stack and2-second
+interrupt, with256KiB input and64KiB output limits. Rule commands additionally
+account for10seconds of cumulative engine time. End-to-end limit/load
+qualification is still required; these are implementation bounds, not a
+whole-system resource acceptance claim.
+
+Native rule preparation maps original account/category/payee context, running
+balances and literal account lookups into source variables. Saved imported
+transactions recover original fractional/null ordering; hypothetical preview
+inputs keep their supplied ordering. Category groups refresh between rules,
+while the original category-name alias remains fixed. Later actions see a
+pending calculated payee name and the source `new` marker. Split actions retain
+the original parent's payee and literal parent text.
+
+Construction validates Handlebars through the source class. Runtime formula
+errors accumulate in transient `rule_errors`, while later actions execute.
+Native previews use empty child notes and null parent categories, matching the
+source's persisted representation instead of its temporary split display
+summary. Child amounts/references remain exact comparisons.
+
+Writes validate computed rows before integer arithmetic or financial mutation.
+Fractional minor units are refused atomically. The persisted split witness
+exposed an existing rule-writer discrepancy: references were retained on the
+parent instead of only its children. Rule composition now clears them inside
+the guarded split mutation, before version/history capture. The internal flag
+is not accepted from or serialized into public payloads. Ordinary split-editor
+behavior remains unchanged. The served contract describes calculated actions,
+transient diagnostics and preview-only noninteger results.
+
+`generate-rule-expressions-source.mjs --context` adds22 independent engine
+observations: existing-row/same-day running balances, changes to account/date/
+category within a rule, original split payee and a later action reading a new
+payee name. These caught actual ordering and preparation mismatches before
+correction. `rule-expression-context-source.json` retains the observations;
+the producer independently reproduces them with `--context --check`.
+
+`check-rule-expression-commits-http.mjs` imports the genuine saved-rule archive,
+checks retained definitions, writes through public rules/apply, compares raw
+financial results through public query, verifies unrelated persisted fields,
+and retries exact operations. The query seam avoids confusing a displayed
+parent summary with persisted references. Derived running balances may change
+after an earlier amount changes; unrelated stored fields/versions may not.
+
+Focused evidence:
+
+- `/tmp/rule-expressions-final-http.log`:40 original previews,22 context
+  previews and5 saved operations, including atomic refusals and exact retries.
+- `/tmp/rule-expressions-final-source.log`: independent source reproduction
+  and28 trusted-bundle comparisons.
+- `/tmp/rule-expressions-final-rust.log`:12 existing rule tests and13 split
+  tests pass. Two historical archive assertions now expect existing schema26;
+  the former template-capability refusal now expects successful construction.
+- `/tmp/rule-expressions-final-clippy.log`: warnings denied, pass.
+- `/tmp/rule-expressions-report-regression.log`: existing core and formatting
+  formula comparisons pass after sharing preference initialization.
+- `/tmp/rule-expressions-contract2.log`: served OpenAPI checks pass, including
+  fractional calculated previews/diagnostics and activation of the formerly
+  gated valid-template archive. The old409 expectation was obsolete.
+- `/tmp/rule-expressions-final-style.log`: changed JavaScript formatting passes;
+  Python contract checker compiles, Rust formatting and diff whitespace clean.
+
+Root standards review against `b0a9591`: shared preference setup, separate
+trusted plugin caches, data-only adapters and atomic mutation ordering checked.
+Root spec review:42 remains partial. Remaining work includes opt-in editing and
+visible diagnostics, old native/staged-import capability refresh and recovery,
+broader Android/import/schedule/manual/forecast flows, complete named-variable
+mapping (including stored source order and child fields), source-backed
+cross-rule and candidate-wide balance-prefetch timing, fractional split preview
+policy, and resource-limit/performance qualification. These remain42 work, not deferred
+acceptance items for50–53. No full suite, container qualification, push,
+release or production deployment in this checkpoint.

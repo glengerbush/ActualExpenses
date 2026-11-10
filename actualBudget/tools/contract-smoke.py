@@ -284,11 +284,12 @@ def main():
                   {"Idempotency-Key": "activate"}, 201)
             check(imports + "/actual", imports + "/actual", "POST", b"invalid zip",
                   {"Content-Type": "application/zip", "Idempotency-Key": "invalid-stage"}, 422)
-            blocked = check(imports + "/actual", imports + "/actual", "POST",
+            templated = check(imports + "/actual", imports + "/actual", "POST",
                             (project / "tests/fixtures/rules-template-requirement-26.10.0.zip").read_bytes(),
-                            {"Content-Type": "application/zip", "Idempotency-Key": "blocked-stage"}, 201)["data"]
-            check(imports + "/" + blocked["id"] + "/activate", imports + "/{id}/activate", "POST", {},
-                  {"Idempotency-Key": "blocked-activate"}, 409)
+                            {"Content-Type": "application/zip", "Idempotency-Key": "template-stage"}, 201)["data"]
+            assert templated["status"] == "ready"
+            check(imports + "/" + templated["id"] + "/activate", imports + "/{id}/activate", "POST", {},
+                  {"Idempotency-Key": "template-activate"}, 201)
 
             themes = "/api/v1/themes"
             check(themes + "/catalog", themes + "/catalog")
@@ -403,6 +404,12 @@ def main():
             snapshot=check(rr+"/rules",rt)["snapshot"]
             transaction={"id":re,"account_id":ra,"date":"2026-01-01","amount":-100,"payee_id":rp,"notes":"Manual"}
             check(rr+"/rules/preview",rt+"/preview","POST",{"snapshot":snapshot,"transaction":transaction,"manual_entry":True})
+            calculated = {**rule, "actions": [
+                {"op":"set","field":"amount","value":0,"options":{"template":"-12.5 pounds"}},
+                {"op":"set","field":"notes","value":"","options":{"formula":"=1/0"}}]}
+            calculation = check(rr+"/rules/preview",rt+"/preview","POST",{
+                "snapshot":snapshot,"transaction":transaction,"rule":calculated})["data"]["transactions"][0]["after"]
+            assert calculation["amount"] == -12.5 and len(calculation["rule_errors"]) == 1
             check(rr+"/rules/transactions",rt+"/transactions","POST",{**transaction,"snapshot":snapshot},{"Idempotency-Key":"automatic-entry"},201)
             snapshot=check(rr+"/rules",rt)["snapshot"]
             check(rr+"/rules/preview",rt+"/preview","POST",{"snapshot":snapshot,"ids":[re]})

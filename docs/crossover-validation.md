@@ -48,3 +48,21 @@ native calculation, UI and whole38 acceptance remain open.
 - `/tmp/crossover38-native-core.log` PASS one focused existing Java17 companion-module plain-HTTP consumer of the genuine source projection, repeat-cache and unchanged expense view. Reused installed JDK/SDK; no broad Android/device/container rerun. `/tmp/crossover38-backend-build.log` and `/tmp/crossover38-clippy.log` all-target warnings-denied PASS. Only owned Rust files and the newly added Kotlin method formatted; unrelated vendored/Kotlin bytes preserved.
 
 Backend/source checkpoint is reviewable independently. UI, complete saved-range/default-selection resolution, delivered command/capability, browser recovery/preferences/privacy/reflow proof and final whole38 acceptance remain pending. No push/release/deployment.
+
+## Root backend review and composition
+
+2026-11-10:602143f reviewed against the unchanged complete source handler and
+ticket38 contract. Selected-account first-month balances, later deltas, duplicate
+selection semantics, exact signed history, source mean/median/Hampel, monthly
+contribution/growth order, rounding,600-month cutoff, complete-month years,
+nonfinite refusal and revision-bound cache were checked. No remaining backend
+standards/spec finding. Source review above is reused.
+
+Composed with corrected GoCardless financial capture atf496b35: build PASS
+`/tmp/bank-crossover-compose-build.log`; ten source/public outcomes (nine exact
+finite graphs and explicit nonfinite refusal), cache/bounds/readonly state PASS
+`/tmp/bank-crossover-compose-api.log`. Served schemas, native25 duplicate/restore,
+settings/clocks/epoch and native tracking±MAX boundaries PASS
+`/tmp/bank-crossover-compose-native.log`. Focused companion plain-HTTP consumer
+PASS `/tmp/bank-crossover-compose-native-core.log`:1 test,0 skipped/errors/failures.
+UI and whole38 acceptance remain open; no unchanged broad suite repeated.

@@ -1,6 +1,6 @@
 # GoCardless29 validation — WIP
 
-## Root financial checkpoint review (open correction)
+## Root financial checkpoint review (correction closed below)
 
 2026-11-10:2c28e9c reviewed independently from unimplemented bank families,
 paging, renewal continuity and UI. Default/ING normalization feeds the existing
@@ -50,8 +50,27 @@ rows/IDs remain literal and unchanged; only new metadata UUIDs normalize.
 Transport responses reuse previously reviewed source normalization. No native
 replacement supplies expected financial values. Renewal runtime remains open.
 
+Root closure2026-11-10:618af44 captures balance/opening need from the original
+snapshot, settings and link revision. Metadata discovery, existing/custom/none
+transaction refresh avoid balances; automatic empty opening requires them.
+Unknown provider balance projects null; existing amount/date remain unchanged.
+SimpleFIN's transport behavior is unchanged. Composedf496b35 build PASS;
+`/tmp/bank-crossover-compose-bank.log` PASS five whole-source graphs/82 served
+shapes, including the unavailable-balance regression. No remaining finding in
+this reviewed checkpoint; full29 provider/renewal/UI/native gates remain open.
 
-Ticket29 is not accepted. Custody and genuine24 preservation are reviewed; the five-case default/ING financial checkpoint has the open balance-need correction above. Other bank families, paged discovery, renewal continuity, provider conversion, UI/native integration and final qualification remain pending. Earlier sections retain their historical checkpoint scope. SimpleFIN28 and notes24 behavior are retained; no real provider/account calls, setup, deployment or broad suite run.
+The immutable24 fixture's scheduled backup became due since its earlier check.
+The old consumer failed only because startup correctly changed auto_due/last_auto
+(`/tmp/bank-crossover-compose-upgrade.log`). The consumer now verifies a public
+automatic recovery point created after that deadline, its downloadable bytes,
+size and SHA, then permits only those two operational metadata changes. All
+financial/reference/HLC/history/receipt/bank comparisons remain exact; input
+fixtures and runtime are unchanged. Both genuine24 database/native paths PASS
+`/tmp/bank-crossover-compose-upgrade-fixed.log`. This is a fixture-aging harness
+correction, not a product migration failure.
+
+
+Ticket29 is not accepted. Custody, genuine24 preservation and the corrected five-case default/ING financial checkpoint are reviewed. Other bank families, paged discovery, renewal continuity, provider conversion, UI/native integration and final qualification remain pending. Earlier sections retain their historical checkpoint scope. SimpleFIN28 and notes24 behavior are retained; no real provider/account calls, setup, deployment or broad suite run.
 
 ## Source reference
 

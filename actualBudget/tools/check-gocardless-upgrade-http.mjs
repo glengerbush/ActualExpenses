@@ -115,7 +115,44 @@ for (const mode of ["database", "archive"]) {
         old,
         "DDL migration preserves all public banking clocks/cursor/metadata",
       );
-      assert.deepEqual(await call(root), fixture.snapshot.budget);
+      const actualBudget = await call(root),
+        expectedBudget = structuredClone(fixture.snapshot.budget);
+      // The immutable fixture's dirty deadline eventually becomes due. Startup
+      // may create its automatic recovery point without changing budget data.
+      if (actualBudget.data.last_auto !== expectedBudget.data.last_auto) {
+        const due = expectedBudget.data.auto_due,
+          completed = actualBudget.data.last_auto;
+        assert.ok(Number.isInteger(due) && Number.isInteger(completed));
+        assert.ok(
+          completed >= due && completed <= Math.floor(Date.now() / 1000),
+        );
+        assert.equal(actualBudget.data.auto_due, null);
+        const points = (await call(root + "/backups")).data;
+        const point = points.find(
+          (p) =>
+            p.kind === "automatic" &&
+            Date.parse(p.created_at) / 1000 >= due &&
+            Math.floor(Date.parse(p.created_at) / 1000) <= completed,
+        );
+        assert.ok(
+          point,
+          "A completed due backup must have a public recovery point",
+        );
+        assert.equal(point.budget_id, fixture.budget_id);
+        const downloaded = await fetch(
+          api + root + "/backups/" + point.id + "/download",
+        );
+        assert.equal(downloaded.status, 200);
+        const bytes = Buffer.from(await downloaded.arrayBuffer());
+        assert.equal(bytes.length, point.bytes);
+        assert.equal(
+          createHash("sha256").update(bytes).digest("hex"),
+          point.archive_sha256,
+        );
+        expectedBudget.data.auto_due = null;
+        expectedBudget.data.last_auto = completed;
+      }
+      assert.deepEqual(actualBudget, expectedBudget);
       assert.deepEqual(
         await call(root + "/history", undefined, {
           "X-Actual-History-Owner": fixture.owner,

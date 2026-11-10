@@ -958,3 +958,33 @@ pub(crate) fn export_ids(
     }
     Ok(ids)
 }
+
+/// Reports share the validated register predicate language, while deliberately
+/// owning their own account/split/period inclusion rules.
+pub(crate) fn report_predicate(
+    db: &Connection,
+    budget: &str,
+    filter: Filter,
+    values: &mut Vec<SqlValue>,
+) -> Result<String, Error> {
+    let query = Query {
+        filter,
+        ..Query::default()
+    };
+    let query = canonical_query(db, budget, &query)?;
+    query.sql(values, None)
+}
+
+/// Reuse register predicates outside the register with fresh per-request work
+/// accounting and typed matching failures, including SQL callback failures.
+pub(crate) fn with_report_predicates<T>(
+    db: &Connection,
+    work: impl FnOnce() -> Result<T, Error>,
+) -> Result<T, Error> {
+    let matcher = install_functions(db)?;
+    let result = work();
+    if let Some(error) = matcher.error() {
+        return Err(error);
+    }
+    result
+}

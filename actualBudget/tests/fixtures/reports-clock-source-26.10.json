@@ -1,0 +1,520 @@
+{
+  "oracle": "@actual-app/api@26.10.0 + @actual-app/sync-server@26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "page": "25c99c71-0665-4d87-8672-083bf4c22cac",
+  "report": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+  "widget": "efda26bc-56fb-4769-ab42-f8d851bbc2bb",
+  "clocks": [
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "balance_type",
+      "timestamp": "2026-11-09T12:00:01.000Z-000A-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "conditions",
+      "timestamp": "2026-11-09T12:00:01.000Z-0013-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "conditions_op",
+      "timestamp": "2026-11-09T12:00:01.000Z-0014-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "date_range",
+      "timestamp": "2026-11-09T12:00:01.000Z-0005-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "date_static",
+      "timestamp": "2026-11-09T12:00:01.000Z-0004-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "end_date",
+      "timestamp": "2026-11-09T12:00:01.000Z-0003-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "graph_type",
+      "timestamp": "2026-11-09T12:00:01.000Z-0012-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "group_by",
+      "timestamp": "2026-11-09T12:00:01.000Z-0007-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "include_current",
+      "timestamp": "2026-11-09T12:00:01.000Z-0011-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "interval",
+      "timestamp": "2026-11-09T12:00:01.000Z-0009-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "mode",
+      "timestamp": "2026-11-09T12:00:01.000Z-0006-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "name",
+      "timestamp": "2026-11-09T12:00:01.000Z-0001-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "show_empty",
+      "timestamp": "2026-11-09T12:00:01.000Z-000B-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "show_hidden",
+      "timestamp": "2026-11-09T12:00:01.000Z-000D-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "show_offbudget",
+      "timestamp": "2026-11-09T12:00:01.000Z-000C-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "show_trend_lines",
+      "timestamp": "2026-11-09T12:00:01.000Z-0010-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "show_uncategorized",
+      "timestamp": "2026-11-09T12:00:01.000Z-000E-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "sort_by",
+      "timestamp": "2026-11-09T12:00:01.000Z-0008-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "start_date",
+      "timestamp": "2026-11-09T12:00:01.000Z-0002-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "custom_reports",
+      "row": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+      "column": "trim_intervals",
+      "timestamp": "2026-11-09T12:00:01.000Z-000F-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "dashboard",
+      "row": "efda26bc-56fb-4769-ab42-f8d851bbc2bb",
+      "column": "dashboard_page_id",
+      "timestamp": "2026-11-09T12:00:01.000Z-001B-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "dashboard",
+      "row": "efda26bc-56fb-4769-ab42-f8d851bbc2bb",
+      "column": "height",
+      "timestamp": "2026-11-09T12:00:01.000Z-0019-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "dashboard",
+      "row": "efda26bc-56fb-4769-ab42-f8d851bbc2bb",
+      "column": "meta",
+      "timestamp": "2026-11-09T12:00:01.000Z-001A-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "dashboard",
+      "row": "efda26bc-56fb-4769-ab42-f8d851bbc2bb",
+      "column": "type",
+      "timestamp": "2026-11-09T12:00:01.000Z-0015-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "dashboard",
+      "row": "efda26bc-56fb-4769-ab42-f8d851bbc2bb",
+      "column": "width",
+      "timestamp": "2026-11-09T12:00:01.000Z-0018-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "dashboard",
+      "row": "efda26bc-56fb-4769-ab42-f8d851bbc2bb",
+      "column": "x",
+      "timestamp": "2026-11-09T12:00:01.000Z-0016-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "dashboard",
+      "row": "efda26bc-56fb-4769-ab42-f8d851bbc2bb",
+      "column": "y",
+      "timestamp": "2026-11-09T12:00:01.000Z-0017-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "dashboard_pages",
+      "row": "25c99c71-0665-4d87-8672-083bf4c22cac",
+      "column": "name",
+      "timestamp": "2026-11-09T12:00:01.000Z-0000-b15dd74dfe48643a"
+    },
+    {
+      "dataset": "dashboard_pages",
+      "row": "25c99c71-0665-4d87-8672-083bf4c22cac",
+      "column": "name",
+      "timestamp": "2026-11-09T12:00:02.000Z-0000-b15dd74dfe48643a"
+    }
+  ],
+  "documents": {
+    "dashboard_pages": [
+      {
+        "id": "d2ee0d78-d7e7-429d-829d-43b32c15f54c",
+        "name": "Main",
+        "tombstone": false
+      },
+      {
+        "id": "25c99c71-0665-4d87-8672-083bf4c22cac",
+        "name": "Newer source field ordering",
+        "tombstone": false
+      }
+    ],
+    "dashboard": [
+      {
+        "id": "dbed45bb-aa2e-4940-a558-97502f80d66c",
+        "dashboard_page_id": "d2ee0d78-d7e7-429d-829d-43b32c15f54c",
+        "type": "summary-card",
+        "width": 3,
+        "height": 2,
+        "x": 0,
+        "y": 0,
+        "meta": {
+          "name": "Total Income (YTD)",
+          "content": "{\"type\":\"sum\",\"fontSize\":20}",
+          "timeFrame": {
+            "start": "2024-01-01",
+            "end": "2024-12-31",
+            "mode": "yearToDate"
+          },
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "gt",
+              "value": 0
+            },
+            {
+              "field": "account",
+              "op": "onBudget",
+              "value": ""
+            },
+            {
+              "field": "transfer",
+              "op": "is",
+              "value": false
+            }
+          ],
+          "conditionsOp": "and"
+        },
+        "tombstone": false
+      },
+      {
+        "id": "6f9fb411-98da-4eca-b836-21b8052c74ac",
+        "dashboard_page_id": "d2ee0d78-d7e7-429d-829d-43b32c15f54c",
+        "type": "summary-card",
+        "width": 3,
+        "height": 2,
+        "x": 3,
+        "y": 0,
+        "meta": {
+          "name": "Total Expenses (YTD)",
+          "content": "{\"type\":\"sum\",\"fontSize\":20}",
+          "timeFrame": {
+            "start": "2024-01-01",
+            "end": "2024-12-31",
+            "mode": "yearToDate"
+          },
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "lt",
+              "value": 0
+            },
+            {
+              "field": "account",
+              "op": "onBudget",
+              "value": ""
+            },
+            {
+              "field": "transfer",
+              "op": "is",
+              "value": false
+            }
+          ],
+          "conditionsOp": "and"
+        },
+        "tombstone": false
+      },
+      {
+        "id": "632ca277-6915-48a3-8c04-935c16754331",
+        "dashboard_page_id": "d2ee0d78-d7e7-429d-829d-43b32c15f54c",
+        "type": "summary-card",
+        "width": 3,
+        "height": 2,
+        "x": 6,
+        "y": 0,
+        "meta": {
+          "name": "Avg Per Month",
+          "content": "{\"type\":\"avgPerMonth\",\"fontSize\":20}",
+          "timeFrame": {
+            "start": "2024-01-01",
+            "end": "2024-12-31",
+            "mode": "yearToDate"
+          },
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "lt",
+              "value": 0
+            },
+            {
+              "field": "account",
+              "op": "onBudget",
+              "value": ""
+            },
+            {
+              "field": "transfer",
+              "op": "is",
+              "value": false
+            }
+          ],
+          "conditionsOp": "and"
+        },
+        "tombstone": false
+      },
+      {
+        "id": "3bbe505b-be35-4f94-81d5-c2314925f82d",
+        "dashboard_page_id": "d2ee0d78-d7e7-429d-829d-43b32c15f54c",
+        "type": "summary-card",
+        "width": 3,
+        "height": 2,
+        "x": 9,
+        "y": 0,
+        "meta": {
+          "name": "Avg Per Transaction",
+          "content": "{\"type\":\"avgPerTransact\",\"fontSize\":20}",
+          "timeFrame": {
+            "start": "2024-01-01",
+            "end": "2024-12-31",
+            "mode": "yearToDate"
+          },
+          "conditions": [
+            {
+              "field": "amount",
+              "op": "lt",
+              "value": 0
+            },
+            {
+              "field": "account",
+              "op": "onBudget",
+              "value": ""
+            },
+            {
+              "field": "transfer",
+              "op": "is",
+              "value": false
+            }
+          ],
+          "conditionsOp": "and"
+        },
+        "tombstone": false
+      },
+      {
+        "id": "3f22fa83-b416-4b39-afb2-deff39813997",
+        "dashboard_page_id": "d2ee0d78-d7e7-429d-829d-43b32c15f54c",
+        "type": "net-worth-card",
+        "width": 6,
+        "height": 2,
+        "x": 0,
+        "y": 2,
+        "meta": null,
+        "tombstone": false
+      },
+      {
+        "id": "6082396e-61ff-4d83-8f51-c463c52ec620",
+        "dashboard_page_id": "d2ee0d78-d7e7-429d-829d-43b32c15f54c",
+        "type": "cash-flow-card",
+        "width": 6,
+        "height": 2,
+        "x": 6,
+        "y": 2,
+        "meta": null,
+        "tombstone": false
+      },
+      {
+        "id": "88d36492-6132-4683-a004-a9a528cf6acb",
+        "dashboard_page_id": "d2ee0d78-d7e7-429d-829d-43b32c15f54c",
+        "type": "spending-card",
+        "width": 4,
+        "height": 2,
+        "x": 0,
+        "y": 5,
+        "meta": {
+          "name": "This Month",
+          "mode": "single-month"
+        },
+        "tombstone": false
+      },
+      {
+        "id": "65c68b3c-ccf9-48f0-9d1d-dfbe26bef61e",
+        "dashboard_page_id": "d2ee0d78-d7e7-429d-829d-43b32c15f54c",
+        "type": "spending-card",
+        "width": 4,
+        "height": 2,
+        "x": 4,
+        "y": 5,
+        "meta": {
+          "name": "Budget Overview",
+          "mode": "budget"
+        },
+        "tombstone": false
+      },
+      {
+        "id": "d15738f9-f178-48d5-8ae4-dfe39668c5ac",
+        "dashboard_page_id": "d2ee0d78-d7e7-429d-829d-43b32c15f54c",
+        "type": "spending-card",
+        "width": 4,
+        "height": 2,
+        "x": 8,
+        "y": 5,
+        "meta": {
+          "name": "3-Month Average",
+          "mode": "average"
+        },
+        "tombstone": false
+      },
+      {
+        "id": "a56b4340-aaab-46e9-8607-468101ef473c",
+        "dashboard_page_id": "d2ee0d78-d7e7-429d-829d-43b32c15f54c",
+        "type": "calendar-card",
+        "width": 8,
+        "height": 4,
+        "x": 0,
+        "y": 8,
+        "meta": {
+          "name": "Transaction Calendar",
+          "timeFrame": {
+            "start": "2024-01-01",
+            "end": "2024-03-31",
+            "mode": "sliding-window"
+          },
+          "conditions": [
+            {
+              "field": "transfer",
+              "op": "is",
+              "value": false
+            }
+          ],
+          "conditionsOp": "and"
+        },
+        "tombstone": false
+      },
+      {
+        "id": "143ed8a6-db8a-4ec4-98b1-c2a830a3a1ef",
+        "dashboard_page_id": "d2ee0d78-d7e7-429d-829d-43b32c15f54c",
+        "type": "summary-card",
+        "width": 4,
+        "height": 2,
+        "x": 8,
+        "y": 8,
+        "meta": {
+          "name": "Recent Net Worth Change",
+          "content": "{\"type\":\"sum\",\"fontSize\":32}",
+          "timeFrame": {
+            "start": "2024-01-01",
+            "end": "2024-03-31",
+            "mode": "sliding-window"
+          },
+          "conditions": [],
+          "conditionsOp": "and"
+        },
+        "tombstone": false
+      },
+      {
+        "id": "8d2fa4e4-7872-475f-b8a8-13fc8fb13f08",
+        "dashboard_page_id": "d2ee0d78-d7e7-429d-829d-43b32c15f54c",
+        "type": "markdown-card",
+        "width": 4,
+        "height": 2,
+        "x": 8,
+        "y": 10,
+        "meta": {
+          "content": "## Dashboard Tips\n\nYou can add new widgets or edit existing widgets by using the buttons at the top of the page. Choose a widget type and customize it to fit your needs.\n\n**Moving cards:** Drag any card by its header to reposition it.\n\n**Deleting cards:** Click the three-dot menu on any card and select \"Remove\"."
+        },
+        "tombstone": false
+      },
+      {
+        "id": "efda26bc-56fb-4769-ab42-f8d851bbc2bb",
+        "dashboard_page_id": "25c99c71-0665-4d87-8672-083bf4c22cac",
+        "type": "summary-card",
+        "width": 6,
+        "height": 3,
+        "x": 0,
+        "y": 0,
+        "meta": {
+          "name": "Source summary",
+          "content": "{\"type\":\"sum\"}",
+          "timeFrame": {
+            "start": "2026-10",
+            "end": "2026-11",
+            "mode": "static"
+          }
+        },
+        "tombstone": false
+      }
+    ],
+    "custom_reports": [
+      {
+        "id": "095febd7-e5ab-4983-93b6-e5ab75192e0b",
+        "name": "Ordered source report",
+        "start_date": "2026-10",
+        "end_date": "2026-11",
+        "date_static": 1,
+        "date_range": "Last 6 months",
+        "mode": "total",
+        "group_by": "Category",
+        "sort_by": "desc",
+        "balance_type": "Payment",
+        "show_empty": 0,
+        "show_offbudget": 0,
+        "show_hidden": 1,
+        "show_uncategorized": 1,
+        "trim_intervals": 0,
+        "show_trend_lines": 0,
+        "include_current": 1,
+        "graph_type": "BarGraph",
+        "conditions": [],
+        "conditions_op": "and",
+        "metadata": null,
+        "interval": "Monthly",
+        "color_scheme": null,
+        "tombstone": false
+      }
+    ]
+  },
+  "archive": "reports-clock-source-26.10.zip",
+  "archive_sha256": "ce132bcdb62c2dcce9acd6d0b701cd84197a3662d830f1c4e959d77a97e6fb59"
+}

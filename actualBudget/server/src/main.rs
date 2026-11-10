@@ -23,13 +23,14 @@ mod register;
 mod register_recurrence;
 mod register_regex;
 mod register_settings;
+mod reports;
 mod rules;
 mod schedules;
 mod splits;
 mod store;
 mod themes;
-mod transfers;
 mod transaction_imports;
+mod transfers;
 use std::path::PathBuf;
 #[tokio::main(worker_threads = 2)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

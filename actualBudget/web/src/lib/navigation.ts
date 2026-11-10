@@ -11,6 +11,7 @@ export const rememberedViews = [
   "transaction-files",
   "rules",
   "schedules",
+  "reports",
   "settings",
 ] as const;
 export type RememberedView = (typeof rememberedViews)[number];

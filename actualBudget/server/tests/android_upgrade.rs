@@ -544,7 +544,7 @@ fn genuine_schema17_upgrade_and_portable_archive_keep_ranks_history_epochs_and_o
         .unwrap();
     assert_eq!(upload.status(), 201, "{}", upload.text().unwrap());
     let stage: Value = upload.json().unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 20);
+    assert_eq!(stage["data"]["report"]["schema_version"], 22);
     let activate = target.post(
         &format!(
             "{root}/restores/{}/activate",

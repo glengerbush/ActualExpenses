@@ -1,0 +1,814 @@
+{
+  "reference": "Actual 26.10.0 (pinned source tree)",
+  "source_path": "packages/sync-server/src/app-simplefin/app-simplefin.js",
+  "source_sha256": "088f4609b18bdd936a364afc66be5db0aac88d2f70b55040ec947f9f251039bc",
+  "executed_helper_tail_sha256": "414da33b0f545c8fdbeb88c71d061060b92b1a229e8232764635d42f4b59e1e1",
+  "scope": "Unchanged server helper tail with loopback-only transport. Does not qualify production TLS, limits, v2 structured errors or live access.",
+  "normalization": "Ordinary JSON serialization only: undefined helper properties are absent on the source HTTP wire; no financial or identity changes.",
+  "observations": [
+    {
+      "scenario": "normal",
+      "input": {
+        "errors": [],
+        "accounts": [
+          {
+            "id": "remote-A",
+            "name": "Synthetic checking",
+            "currency": "USD",
+            "balance": "100.50",
+            "available-balance": "90.25",
+            "balance-date": 1794225600,
+            "org": {
+              "id": "org-A",
+              "name": "Synthetic institution"
+            },
+            "transactions": [
+              {
+                "id": "booked-A",
+                "posted": 1793664000,
+                "transacted_at": 1793577600,
+                "amount": "-12.34",
+                "payee": "CAFE",
+                "description": "Bank #note"
+              },
+              {
+                "id": "pending-A",
+                "posted": 0,
+                "transacted_at": 1793750400,
+                "pending": true,
+                "amount": "-2.00",
+                "payee": "SHOP",
+                "description": "Pending"
+              }
+            ]
+          }
+        ]
+      },
+      "requests": [
+        {
+          "target": "primary",
+          "method": "GET",
+          "path": "/access/accounts?start-date=1793491200&end-date=1794268800&pending=1&account=remote-A",
+          "authorization": "Basic c3ludGhldGljOk5PVC1BLVJFQUwtU0VDUkVU"
+        }
+      ],
+      "result": {
+        "raw": {
+          "errors": {},
+          "accounts": [
+            {
+              "id": "remote-A",
+              "name": "Synthetic checking",
+              "currency": "USD",
+              "balance": "100.50",
+              "available-balance": "90.25",
+              "balance-date": 1794225600,
+              "org": {
+                "id": "org-A",
+                "name": "Synthetic institution"
+              },
+              "transactions": [
+                {
+                  "id": "booked-A",
+                  "posted": 1793664000,
+                  "transacted_at": 1793577600,
+                  "amount": "-12.34",
+                  "payee": "CAFE",
+                  "description": "Bank #note"
+                },
+                {
+                  "id": "pending-A",
+                  "posted": 0,
+                  "transacted_at": 1793750400,
+                  "pending": true,
+                  "amount": "-2.00",
+                  "payee": "SHOP",
+                  "description": "Pending"
+                }
+              ]
+            }
+          ],
+          "sferrors": [],
+          "hasError": false
+        },
+        "normalized": {
+          "balances": [
+            {
+              "balanceAmount": {
+                "amount": "100.50",
+                "currency": "USD"
+              },
+              "balanceType": "expected",
+              "referenceDate": "2026-11-09"
+            },
+            {
+              "balanceAmount": {
+                "amount": "100.50",
+                "currency": "USD"
+              },
+              "balanceType": "interimAvailable",
+              "referenceDate": "2026-11-09"
+            }
+          ],
+          "startingBalance": 10050,
+          "transactions": {
+            "all": [
+              {
+                "booked": false,
+                "sortOrder": 1793750400,
+                "date": "2026-11-04",
+                "payeeName": "SHOP",
+                "notes": "Pending",
+                "transactionAmount": {
+                  "amount": "-2.00",
+                  "currency": "USD"
+                },
+                "transactionId": "pending-A",
+                "transactedDate": "2026-11-04"
+              },
+              {
+                "booked": true,
+                "sortOrder": 1793664000,
+                "date": "2026-11-03",
+                "payeeName": "CAFE",
+                "notes": "Bank #note",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "USD"
+                },
+                "transactionId": "booked-A",
+                "transactedDate": "2026-11-02",
+                "postedDate": "2026-11-03"
+              }
+            ],
+            "booked": [
+              {
+                "booked": true,
+                "sortOrder": 1793664000,
+                "date": "2026-11-03",
+                "payeeName": "CAFE",
+                "notes": "Bank #note",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "USD"
+                },
+                "transactionId": "booked-A",
+                "transactedDate": "2026-11-02",
+                "postedDate": "2026-11-03"
+              }
+            ],
+            "pending": [
+              {
+                "booked": false,
+                "sortOrder": 1793750400,
+                "date": "2026-11-04",
+                "payeeName": "SHOP",
+                "notes": "Pending",
+                "transactionAmount": {
+                  "amount": "-2.00",
+                  "currency": "USD"
+                },
+                "transactionId": "pending-A",
+                "transactedDate": "2026-11-04"
+              }
+            ]
+          }
+        },
+        "errors": {},
+        "hasError": false
+      }
+    },
+    {
+      "scenario": "postedZero",
+      "input": {
+        "errors": [],
+        "accounts": [
+          {
+            "id": "remote-A",
+            "name": "Synthetic checking",
+            "currency": "USD",
+            "balance": "100.50",
+            "available-balance": "90.25",
+            "balance-date": 1794225600,
+            "org": {
+              "id": "org-A",
+              "name": "Synthetic institution"
+            },
+            "transactions": [
+              {
+                "id": "booked-A",
+                "posted": 1793664000,
+                "transacted_at": 1793577600,
+                "amount": "-12.34",
+                "payee": "CAFE",
+                "description": "Bank #note"
+              },
+              {
+                "id": "pending-A",
+                "posted": 0,
+                "transacted_at": 1793750400,
+                "pending": true,
+                "amount": "-2.00",
+                "payee": "SHOP",
+                "description": "Pending"
+              }
+            ]
+          }
+        ]
+      },
+      "requests": [
+        {
+          "target": "primary",
+          "method": "GET",
+          "path": "/access/accounts?start-date=1793491200&end-date=1794268800&pending=1&account=remote-A",
+          "authorization": "Basic c3ludGhldGljOk5PVC1BLVJFQUwtU0VDUkVU"
+        }
+      ],
+      "result": {
+        "raw": {
+          "errors": {},
+          "accounts": [
+            {
+              "id": "remote-A",
+              "name": "Synthetic checking",
+              "currency": "USD",
+              "balance": "100.50",
+              "available-balance": "90.25",
+              "balance-date": 1794225600,
+              "org": {
+                "id": "org-A",
+                "name": "Synthetic institution"
+              },
+              "transactions": [
+                {
+                  "id": "booked-A",
+                  "posted": 1793664000,
+                  "transacted_at": 1793577600,
+                  "amount": "-12.34",
+                  "payee": "CAFE",
+                  "description": "Bank #note"
+                },
+                {
+                  "id": "pending-A",
+                  "posted": 0,
+                  "transacted_at": 1793750400,
+                  "amount": "-2.00",
+                  "payee": "SHOP",
+                  "description": "Pending"
+                }
+              ]
+            }
+          ],
+          "sferrors": [],
+          "hasError": false
+        },
+        "normalized": {
+          "balances": [
+            {
+              "balanceAmount": {
+                "amount": "100.50",
+                "currency": "USD"
+              },
+              "balanceType": "expected",
+              "referenceDate": "2026-11-09"
+            },
+            {
+              "balanceAmount": {
+                "amount": "100.50",
+                "currency": "USD"
+              },
+              "balanceType": "interimAvailable",
+              "referenceDate": "2026-11-09"
+            }
+          ],
+          "startingBalance": 10050,
+          "transactions": {
+            "all": [
+              {
+                "booked": false,
+                "sortOrder": 1793750400,
+                "date": "2026-11-04",
+                "payeeName": "SHOP",
+                "notes": "Pending",
+                "transactionAmount": {
+                  "amount": "-2.00",
+                  "currency": "USD"
+                },
+                "transactionId": "pending-A",
+                "transactedDate": "2026-11-04"
+              },
+              {
+                "booked": true,
+                "sortOrder": 1793664000,
+                "date": "2026-11-03",
+                "payeeName": "CAFE",
+                "notes": "Bank #note",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "USD"
+                },
+                "transactionId": "booked-A",
+                "transactedDate": "2026-11-02",
+                "postedDate": "2026-11-03"
+              }
+            ],
+            "booked": [
+              {
+                "booked": true,
+                "sortOrder": 1793664000,
+                "date": "2026-11-03",
+                "payeeName": "CAFE",
+                "notes": "Bank #note",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "USD"
+                },
+                "transactionId": "booked-A",
+                "transactedDate": "2026-11-02",
+                "postedDate": "2026-11-03"
+              }
+            ],
+            "pending": [
+              {
+                "booked": false,
+                "sortOrder": 1793750400,
+                "date": "2026-11-04",
+                "payeeName": "SHOP",
+                "notes": "Pending",
+                "transactionAmount": {
+                  "amount": "-2.00",
+                  "currency": "USD"
+                },
+                "transactionId": "pending-A",
+                "transactedDate": "2026-11-04"
+              }
+            ]
+          }
+        },
+        "errors": {},
+        "hasError": false
+      }
+    },
+    {
+      "scenario": "attention",
+      "input": {
+        "errors": [],
+        "accounts": [
+          {
+            "id": "remote-A",
+            "name": "Synthetic checking",
+            "currency": "USD",
+            "balance": "100.50",
+            "available-balance": "90.25",
+            "balance-date": 1794225600,
+            "org": {
+              "id": "org-A",
+              "name": "Synthetic institution"
+            },
+            "transactions": [
+              {
+                "id": "booked-A",
+                "posted": 1793664000,
+                "transacted_at": 1793577600,
+                "amount": "-12.34",
+                "payee": "CAFE",
+                "description": "Bank #note"
+              },
+              {
+                "id": "pending-A",
+                "posted": 0,
+                "transacted_at": 1793750400,
+                "pending": true,
+                "amount": "-2.00",
+                "payee": "SHOP",
+                "description": "Pending"
+              }
+            ]
+          }
+        ]
+      },
+      "requests": [
+        {
+          "target": "primary",
+          "method": "GET",
+          "path": "/access/accounts?start-date=1793491200&end-date=1794268800&pending=1&account=remote-A",
+          "authorization": "Basic c3ludGhldGljOk5PVC1BLVJFQUwtU0VDUkVU"
+        }
+      ],
+      "result": {
+        "raw": {
+          "errors": {},
+          "accounts": [
+            {
+              "id": "remote-A",
+              "name": "Synthetic checking",
+              "currency": "USD",
+              "balance": "100.50",
+              "available-balance": "90.25",
+              "balance-date": 1794225600,
+              "org": {
+                "id": "org-A",
+                "name": "Synthetic institution"
+              },
+              "transactions": [
+                {
+                  "id": "booked-A",
+                  "posted": 1793664000,
+                  "transacted_at": 1793577600,
+                  "amount": "-12.34",
+                  "payee": "CAFE",
+                  "description": "Bank #note"
+                },
+                {
+                  "id": "pending-A",
+                  "posted": 0,
+                  "transacted_at": 1793750400,
+                  "pending": true,
+                  "amount": "-2.00",
+                  "payee": "SHOP",
+                  "description": "Pending"
+                }
+              ]
+            }
+          ],
+          "sferrors": [
+            "Connection to Synthetic institution may need attention"
+          ],
+          "hasError": false
+        },
+        "normalized": {
+          "balances": [
+            {
+              "balanceAmount": {
+                "amount": "100.50",
+                "currency": "USD"
+              },
+              "balanceType": "expected",
+              "referenceDate": "2026-11-09"
+            },
+            {
+              "balanceAmount": {
+                "amount": "100.50",
+                "currency": "USD"
+              },
+              "balanceType": "interimAvailable",
+              "referenceDate": "2026-11-09"
+            }
+          ],
+          "startingBalance": 10050,
+          "transactions": {
+            "all": [
+              {
+                "booked": false,
+                "sortOrder": 1793750400,
+                "date": "2026-11-04",
+                "payeeName": "SHOP",
+                "notes": "Pending",
+                "transactionAmount": {
+                  "amount": "-2.00",
+                  "currency": "USD"
+                },
+                "transactionId": "pending-A",
+                "transactedDate": "2026-11-04"
+              },
+              {
+                "booked": true,
+                "sortOrder": 1793664000,
+                "date": "2026-11-03",
+                "payeeName": "CAFE",
+                "notes": "Bank #note",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "USD"
+                },
+                "transactionId": "booked-A",
+                "transactedDate": "2026-11-02",
+                "postedDate": "2026-11-03"
+              }
+            ],
+            "booked": [
+              {
+                "booked": true,
+                "sortOrder": 1793664000,
+                "date": "2026-11-03",
+                "payeeName": "CAFE",
+                "notes": "Bank #note",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "USD"
+                },
+                "transactionId": "booked-A",
+                "transactedDate": "2026-11-02",
+                "postedDate": "2026-11-03"
+              }
+            ],
+            "pending": [
+              {
+                "booked": false,
+                "sortOrder": 1793750400,
+                "date": "2026-11-04",
+                "payeeName": "SHOP",
+                "notes": "Pending",
+                "transactionAmount": {
+                  "amount": "-2.00",
+                  "currency": "USD"
+                },
+                "transactionId": "pending-A",
+                "transactedDate": "2026-11-04"
+              }
+            ]
+          }
+        },
+        "errors": {
+          "remote-A": [
+            {
+              "error_type": "ACCOUNT_NEEDS_ATTENTION",
+              "error_code": "ACCOUNT_NEEDS_ATTENTION",
+              "reason": "The account needs your attention at <a href=\"https://bridge.simplefin.org/auth/login\">SimpleFIN</a>."
+            }
+          ]
+        },
+        "hasError": true
+      }
+    },
+    {
+      "scenario": "claim403",
+      "input": {
+        "errors": [],
+        "accounts": [
+          {
+            "id": "remote-A",
+            "name": "Synthetic checking",
+            "currency": "USD",
+            "balance": "100.50",
+            "available-balance": "90.25",
+            "balance-date": 1794225600,
+            "org": {
+              "id": "org-A",
+              "name": "Synthetic institution"
+            },
+            "transactions": [
+              {
+                "id": "booked-A",
+                "posted": 1793664000,
+                "transacted_at": 1793577600,
+                "amount": "-12.34",
+                "payee": "CAFE",
+                "description": "Bank #note"
+              },
+              {
+                "id": "pending-A",
+                "posted": 0,
+                "transacted_at": 1793750400,
+                "pending": true,
+                "amount": "-2.00",
+                "payee": "SHOP",
+                "description": "Pending"
+              }
+            ]
+          }
+        ]
+      },
+      "requests": [
+        {
+          "target": "primary",
+          "method": "POST",
+          "path": "/claim",
+          "authorization": null
+        }
+      ],
+      "result": {
+        "access": "Forbidden",
+        "invalid": true
+      }
+    },
+    {
+      "scenario": "claimRedirect",
+      "input": {
+        "errors": [],
+        "accounts": [
+          {
+            "id": "remote-A",
+            "name": "Synthetic checking",
+            "currency": "USD",
+            "balance": "100.50",
+            "available-balance": "90.25",
+            "balance-date": 1794225600,
+            "org": {
+              "id": "org-A",
+              "name": "Synthetic institution"
+            },
+            "transactions": [
+              {
+                "id": "booked-A",
+                "posted": 1793664000,
+                "transacted_at": 1793577600,
+                "amount": "-12.34",
+                "payee": "CAFE",
+                "description": "Bank #note"
+              },
+              {
+                "id": "pending-A",
+                "posted": 0,
+                "transacted_at": 1793750400,
+                "pending": true,
+                "amount": "-2.00",
+                "payee": "SHOP",
+                "description": "Pending"
+              }
+            ]
+          }
+        ]
+      },
+      "requests": [
+        {
+          "target": "primary",
+          "method": "POST",
+          "path": "/claim",
+          "authorization": null
+        }
+      ],
+      "result": {
+        "error": "SimpleFIN claim failed with HTTP 302"
+      }
+    },
+    {
+      "scenario": "crossOrigin",
+      "input": {
+        "errors": [],
+        "accounts": [
+          {
+            "id": "remote-A",
+            "name": "Synthetic checking",
+            "currency": "USD",
+            "balance": "100.50",
+            "available-balance": "90.25",
+            "balance-date": 1794225600,
+            "org": {
+              "id": "org-A",
+              "name": "Synthetic institution"
+            },
+            "transactions": [
+              {
+                "id": "booked-A",
+                "posted": 1793664000,
+                "transacted_at": 1793577600,
+                "amount": "-12.34",
+                "payee": "CAFE",
+                "description": "Bank #note"
+              },
+              {
+                "id": "pending-A",
+                "posted": 0,
+                "transacted_at": 1793750400,
+                "pending": true,
+                "amount": "-2.00",
+                "payee": "SHOP",
+                "description": "Pending"
+              }
+            ]
+          }
+        ]
+      },
+      "requests": [
+        {
+          "target": "primary",
+          "method": "GET",
+          "path": "/access/accounts?start-date=1793491200&end-date=1794268800&pending=1&account=remote-A",
+          "authorization": "Basic c3ludGhldGljOk5PVC1BLVJFQUwtU0VDUkVU"
+        },
+        {
+          "target": "secondary",
+          "method": "GET",
+          "path": "/accounts",
+          "authorization": null
+        }
+      ],
+      "result": {
+        "raw": {
+          "errors": {},
+          "accounts": [
+            {
+              "id": "remote-A",
+              "name": "Synthetic checking",
+              "currency": "USD",
+              "balance": "100.50",
+              "available-balance": "90.25",
+              "balance-date": 1794225600,
+              "org": {
+                "id": "org-A",
+                "name": "Synthetic institution"
+              },
+              "transactions": [
+                {
+                  "id": "booked-A",
+                  "posted": 1793664000,
+                  "transacted_at": 1793577600,
+                  "amount": "-12.34",
+                  "payee": "CAFE",
+                  "description": "Bank #note"
+                },
+                {
+                  "id": "pending-A",
+                  "posted": 0,
+                  "transacted_at": 1793750400,
+                  "pending": true,
+                  "amount": "-2.00",
+                  "payee": "SHOP",
+                  "description": "Pending"
+                }
+              ]
+            }
+          ],
+          "sferrors": [],
+          "hasError": false
+        },
+        "normalized": {
+          "balances": [
+            {
+              "balanceAmount": {
+                "amount": "100.50",
+                "currency": "USD"
+              },
+              "balanceType": "expected",
+              "referenceDate": "2026-11-09"
+            },
+            {
+              "balanceAmount": {
+                "amount": "100.50",
+                "currency": "USD"
+              },
+              "balanceType": "interimAvailable",
+              "referenceDate": "2026-11-09"
+            }
+          ],
+          "startingBalance": 10050,
+          "transactions": {
+            "all": [
+              {
+                "booked": false,
+                "sortOrder": 1793750400,
+                "date": "2026-11-04",
+                "payeeName": "SHOP",
+                "notes": "Pending",
+                "transactionAmount": {
+                  "amount": "-2.00",
+                  "currency": "USD"
+                },
+                "transactionId": "pending-A",
+                "transactedDate": "2026-11-04"
+              },
+              {
+                "booked": true,
+                "sortOrder": 1793664000,
+                "date": "2026-11-03",
+                "payeeName": "CAFE",
+                "notes": "Bank #note",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "USD"
+                },
+                "transactionId": "booked-A",
+                "transactedDate": "2026-11-02",
+                "postedDate": "2026-11-03"
+              }
+            ],
+            "booked": [
+              {
+                "booked": true,
+                "sortOrder": 1793664000,
+                "date": "2026-11-03",
+                "payeeName": "CAFE",
+                "notes": "Bank #note",
+                "transactionAmount": {
+                  "amount": "-12.34",
+                  "currency": "USD"
+                },
+                "transactionId": "booked-A",
+                "transactedDate": "2026-11-02",
+                "postedDate": "2026-11-03"
+              }
+            ],
+            "pending": [
+              {
+                "booked": false,
+                "sortOrder": 1793750400,
+                "date": "2026-11-04",
+                "payeeName": "SHOP",
+                "notes": "Pending",
+                "transactionAmount": {
+                  "amount": "-2.00",
+                  "currency": "USD"
+                },
+                "transactionId": "pending-A",
+                "transactedDate": "2026-11-04"
+              }
+            ]
+          }
+        },
+        "errors": {},
+        "hasError": false
+      }
+    }
+  ]
+}

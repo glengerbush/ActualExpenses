@@ -1,6 +1,7 @@
 mod accounts;
 mod android_upgrade;
 mod api;
+mod banking;
 mod budgeting;
 mod calculator;
 mod categories;
@@ -17,6 +18,7 @@ mod origin;
 mod payee_locations;
 mod payees_tags;
 mod preferences;
+mod public_query;
 mod reconciliation;
 mod recovery;
 mod register;

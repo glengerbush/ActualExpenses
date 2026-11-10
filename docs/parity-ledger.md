@@ -4,6 +4,10 @@ Baseline: Actual **26.10.0**, commit `2bebdbaae0b701120a8cad9d56aafd64fa04c577`.
 
 Each feature owner records a baseline source/function, independent fixture and expected public result, replacement test/evidence, and any explicit deviation. A ticket assignment below is not a claim of parity. Mark a story verified only once every assigned workflow is demonstrated. The approved seam is the running public API, exercised directly and through browser/Android workflows; lower seams are reserved for behavior that cannot adequately be tested there.
 
+User scope change2026-11-10: all external account connections are removed;
+see [manual-only scope](manual-only-scope.md). Original story IDs remain for
+traceability; explicit exceptions are not implementation-completion claims.
+
 ## Baseline evidence families
 
 | Family | Pinned source anchors | Fixture/observable result |
@@ -13,7 +17,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | Transactions, payees and categories | Core transactions/importers and category/payee code; web register tests | Exact signed amounts, dates, split/transfer totals and merge effects |
 | Tracking, envelope and automation | Core budget/spreadsheet/goal/cleanup code; budgeting guides | Month-boundary totals, income holds, rollover and allocation outcomes |
 | Rules and schedules | Core rules/schedules and associated tests | Ordering, matching, recurring occurrences and generated transactions |
-| File imports and bank providers | Core importers; sync-server provider integrations | Format-specific fixtures, deduplication and sanitized provider responses |
+| File imports and bank providers | Core importers; legacy linked-account migration | Manual formats/deduplication retained; provider connections removed by user2026-11-10 |
 | Reports, dashboards and formulas | Web reports and core queries/forecast/formula tests | Reference aggregate values, saved configurations and seeded forecasts |
 | Settings and accessible workflows | Web settings, preferences, themes and browser tests | Persisted preference semantics and observable browser behavior |
 | Android and offline expense capture | Released actualExpenses public expense-service integration and device tests | Interrupted request/restart cases with an independent Actual API oracle |
@@ -80,11 +84,11 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 55 | 25 | File imports and bank providers | [25: retained mapping/options, exact rounding, preview and durable failure recovery](transaction-import-validation.md) |
 | 56 | 25, 26 | File imports and bank providers | [25/26: IDs, source-ordered matching, status/deleted choices, rules once and repeat imports](transaction-import-validation.md) |
 | 57 | 08, 25 | File imports and bank providers | [08: native budget export](budget-lifecycle-validation.md); [25: source-backed CSV bytes/cells and canonical filtered export](transaction-import-validation.md) |
-| 58 | 28, 29, 30 | File imports and bank providers | Pending feature acceptance |
-| 59 | 31, 32 | File imports and bank providers | Pending feature acceptance |
-| 60 | 28, 29, 30, 31, 32 | File imports and bank providers | Pending feature acceptance |
-| 61 | 28, 29, 30, 31, 32 | File imports and bank providers | Pending feature acceptance |
-| 62 | 28, 29, 30, 31, 32 | File imports and bank providers | Pending feature acceptance |
+| 58 | 29 retirement | File imports and bank providers | Explicit user exception2026-11-10: SimpleFIN/GoCardless/Pluggy removed; retirement verification pending |
+| 59 | 29 retirement | File imports and bank providers | Explicit user exception2026-11-10: Enable Banking/Akahu removed; retirement verification pending |
+| 60 | 29 retirement | File imports and bank providers | Explicit user exception2026-11-10: external connection/refresh workflows removed; retirement verification pending |
+| 61 | 25, 26, 29 retirement | File imports and bank providers | Revised: retain manual-import preferences and historical identifiers; remove provider balances/mappings; retirement verification pending |
+| 62 | 29 retirement | File imports and bank providers | Revised: remove operational credentials/configuration, preserve original recovery artifacts; retirement verification pending |
 | 63 | 33 | Reports, dashboards and formulas | [33: named dashboards, persistent layout/settings, source clocks and native round trips](reports-validation.md) |
 | 64 | 33 | Reports, dashboards and formulas | [33: source-backed cash flow/net worth/spending, bounded aggregates and snapshot drilldowns](reports-validation.md) |
 | 65 | 33 | Reports, dashboards and formulas | [33: text, summary/calendar widgets and accessible exact-value tables](reports-validation.md) |
@@ -102,7 +106,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 77 | 43 | Settings and accessible workflows | [43: released language catalogs, device scope and retry](../actualBudget/web/docs/preferences-validation.md) |
 | 78 | 12, 45 | Settings and accessible workflows | [12: accepted remembered register views](register-query-validation.md); [45: privacy, navigation, command search, shortcuts and help](navigation-validation.md) |
 | 79 | 45 | Settings and accessible workflows | [45: optional fork-local notices, dismissal and opt-out without idle network checks](navigation-validation.md) |
-| 80 | 31, 32, 35, 36, 37, 39, 41, 42, 43 | Settings and accessible workflows | [43: preserved opt-in flags and currency gating](../actualBudget/web/docs/preferences-validation.md); remaining experimental features pending assigned tickets |
+| 80 | 35, 36, 37, 39, 41, 42, 43 | Settings and accessible workflows | [43: preserved opt-in flags and currency gating](../actualBudget/web/docs/preferences-validation.md); remaining retained experimental features pending assigned tickets; provider toggles explicitly removed2026-11-10 |
 | 81 | 49 | Settings and accessible workflows | [49: copied-data repair preview, guarded backup/apply and safe cache/connection recovery](recovery-validation.md) |
 | 82 | 03, 43, 49, 51 | Settings and accessible workflows | [03: retained forms and durable retry](register-validation.md); [43: settings/storage/connection recovery](../actualBudget/web/docs/preferences-validation.md); [49: retained recovery intent/cancellation](recovery-validation.md); whole-app qualification pending51 |
 | 83 | 07, 20 | Android and offline expense capture | [07: dated cache before network and unchanged-checkpoint efficiency](offline-web-validation.md); [20: bounded native cache and no legacy reread after atomic handoff](android-upgrade-validation.md) |
@@ -122,7 +126,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 97 | 20 | Android and offline expense capture | [20: allowed-idle zero HTTP/cache writes/jobs; LAN/Tailscale-address equivalence with emulator limits](android-upgrade-validation.md) |
 | 98 | 20, 50 | Android and offline expense capture | [20: both upgrade orders, exact source mapping, genuine released state and signed debug reinstall](android-upgrade-validation.md); full replacement qualification50 pending |
 | 99 | 47, 52 | Public API, deployment and resources | Pending feature acceptance |
-| 100 | 34, 47, 52 | Public API, deployment and resources | [34: bounded custom-report API/inspection](ynab-custom-integration-validation.md); general automation47 and final parity52 pending |
+| 100 | 34, 47, 52 | Public API, deployment and resources | [34: bounded custom-report API/inspection](ynab-custom-integration-validation.md); [47: public query/import/export/batch caller](public-query-validation.md); bank refresh explicitly removed2026-11-10; final parity52 pending |
 | 101 | 05, 51 | Public API, deployment and resources | [05: independent change cursor, 95-byte unchanged refresh and measured scaling](concurrency-validation.md); whole-system qualification pending 51 |
 | 102 | 02, 48, 53 | Public API, deployment and resources | [02: container persistence/replay](open-budget-validation.md); [48: signed image promotion and isolated registry rehearsal](release-validation.md); production cutover qualification pending 53 |
 | 103 | 01, 48, 53 | Public API, deployment and resources | [01: independent application layout](foundation-validation.md); [48: independent APK/container versions and release automation](release-validation.md); final deployment qualification pending 53 |

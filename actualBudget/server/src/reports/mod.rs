@@ -12,6 +12,7 @@ use axum::{
     http::{HeaderMap, StatusCode},
     routing::{get, post},
 };
+pub(crate) use query::{formula_range, formula_work, predicate as formula_predicate};
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -35,6 +36,7 @@ pub fn router() -> Router<Store> {
         .route("/api/v1/budgets/{budget}/reporting", get(read))
         .route("/api/v1/budgets/{budget}/reporting/commands", post(command))
         .route("/api/v1/budgets/{budget}/reports/query", post(query::read))
+        .merge(crate::formulas::router())
         .merge(query::forecast_router())
         .merge(query::analysis_router())
         .route(

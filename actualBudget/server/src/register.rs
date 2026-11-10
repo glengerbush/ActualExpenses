@@ -992,8 +992,16 @@ pub(crate) fn with_report_predicates<T>(
     db: &Connection,
     work: impl FnOnce() -> Result<T, Error>,
 ) -> Result<T, Error> {
+    with_report_matcher(db, |_| work())
+}
+/// Formula category extraction shares the same request regex budget as its SQL
+/// predicates; repeated helpers cannot reset the work allowance.
+pub(crate) fn with_report_matcher<T>(
+    db: &Connection,
+    work: impl FnOnce(&crate::register_regex::Budget) -> Result<T, Error>,
+) -> Result<T, Error> {
     let matcher = install_functions(db)?;
-    let result = work();
+    let result = work(&matcher);
     if let Some(error) = matcher.error() {
         return Err(error);
     }

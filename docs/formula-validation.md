@@ -59,3 +59,47 @@ production-hook observations establish envelope budget42.97/spent−15/goal1000/
 starting carry70/ending97.97 and tracking42.97/−15/1000/40/67.97.
 Generation and independent check passed in `/tmp/formula-budget-source.log` and
 `/tmp/formula-budget-source-check.log`; no previous forty observations changed.
+
+## Bounded evaluator checkpoint (partial41)
+
+Full trusted HyperFormula3.5.0, enUS dictionary and unchanged Actual custom
+functions execute inside Rust-owned QuickJS-ng/rquickjs0.13.0. The standalone
+Node producer is test tooling only; production serves no Node process or browser
+calculation engine. Bundled asset generation/check is reproducible and records
+source/artifact hashes; upstream GPLv3/MIT/Unicode licenses are retained.
+
+Every evaluation has fresh JS state and no filesystem, network, process or
+module-loader bindings. Only bounded ICU4X collation is exposed as a host
+function. Trusted bytecode is compiled/cached once per process; only successful
+initialization is cached, so contention cannot poison subsequent requests.
+Limits:64MiB JS heap,512KiB stack,2s monotonic execution deadline;64KiB input,
+8192-byte expression,32 named queries/20 conditions,512 named text/numeric values;
+32 custom-function requests per family,20000 cumulative prefetched values,
+4MiB collation text work,32million shared SQLite VM steps and500000 cumulative
+budget/category calendar comparisons. Budget intervals permit240 months and
+1000 selected IDs. Refusal never truncates values or returns a fake zero.
+
+Both discovery passes and final evaluation match the production ordering.
+Initial speculative budget requests are discarded after query extraction, as
+in the source. Query/count/account sums use exact live-leaf predicates and
+minor-unit totals before the source's display-unit conversion; categories and
+budget data reuse authoritative existing financial tables/calculation paths.
+The budget helper adds scoped goal inclusion and a shared work counter without
+changing existing unscoped budget/report outputs. Register matching also shares
+one regex budget across all formula SQL/extraction passes.
+
+Current public source40 plus budget10 comparisons/guards pass:
+`/tmp/formula-core-http-green.log`, `/tmp/formula-core-budget-http-green.log`.
+Asset reproduction passes `/tmp/formula-runtime-assets-check.log`; bin Clippy
+`-D warnings` passes `/tmp/formula-core-clippy.log`. The large supported matrix
+probe fails safely under the configured runtime bounds, retains the upstream
+secondary null-error diagnostic with actionable range-size guidance, and then
+successfully evaluates a fresh SUM and the original source NAME error. See
+`/tmp/formula-limits-http-first.log` (unhelpful diagnostic red) and
+`/tmp/formula-limits-http-green.log` (recovery green). No custom unsafe allocator
+or guessed OOM classification was added; the stock enforced allocator remains.
+
+Checkpoint exclusions: preferences/volatile evaluation-time integration, card
+and named-query editing/rendering/import flows, served contracts, representative
+companion checks and all42 rule/template integration are still unfinished.
+No whole-ticket or release qualification is claimed here.

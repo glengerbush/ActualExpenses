@@ -8,6 +8,7 @@ mod categories;
 mod companion;
 mod concurrency;
 mod error;
+mod formulas;
 mod history;
 mod imports;
 mod ledger;

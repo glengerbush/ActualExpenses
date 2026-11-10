@@ -175,6 +175,32 @@ fn scoped_view(
     count: usize,
     scope: Option<&std::collections::BTreeSet<String>>,
 ) -> Result<Value, Error> {
+    scoped_view_inner(db, b, start, count, scope, false, None)
+}
+pub(crate) fn formula_cells(
+    db: &Connection,
+    b: &str,
+    start: &str,
+    count: usize,
+    categories: &std::collections::BTreeSet<String>,
+    work: &mut usize,
+) -> Result<Value, Error> {
+    if count.saturating_mul(categories.len().max(1)) > 20000 {
+        return Err(Error::invalid(
+            "Formula budget queries exceed20000 category/month cells",
+        ));
+    }
+    scoped_view_inner(db, b, start, count, Some(categories), true, Some(work))
+}
+fn scoped_view_inner(
+    db: &Connection,
+    b: &str,
+    start: &str,
+    count: usize,
+    scope: Option<&std::collections::BTreeSet<String>>,
+    include_goals: bool,
+    work: Option<&mut usize>,
+) -> Result<Value, Error> {
     crate::store::require_budget(db, b)?;
     let start = month(start)?;
     if !(1..=if scope.is_some() { 20000 } else { 12 }).contains(&count) {
@@ -266,7 +292,7 @@ fn scoped_view(
         }
     }
     let mut cells = BTreeMap::new();
-    let goal_columns = if scope.is_some() {
+    let goal_columns = if scope.is_some() && !include_goals {
         "NULL,NULL"
     } else {
         "goal,long_goal"
@@ -354,6 +380,10 @@ fn scoped_view(
         return Err(Error::invalid(
             "Budget range exceeds calculation work limit",
         ));
+    }
+    if let Some(remaining) = work {
+        let used = (end - earliest + 1) as usize * categories.len().max(1);
+        *remaining=remaining.checked_sub(used).ok_or_else(||Error::invalid("Formula cumulative budget work limit reached; select fewer categories or shorter history"))?;
     }
     let mut previous = BTreeMap::<String, Previous>::new();
     let mut prior_to = 0i128;

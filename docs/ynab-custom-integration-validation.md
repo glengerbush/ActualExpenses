@@ -48,6 +48,27 @@ YNAB4/source-learning checkpoint `e71bafd` passed consolidated Standards/Spec
 review with no findings. It is not joined yet: nYNAB, failure/restart/native,
 contracts and interface remain27 work before the complete slice is integrated.
 
+Root reviewed nYNAB corrective/recovery delta `c2d98cd..630e4a6`: Standards and
+Spec pass within that checkpoint. Two concrete P2 findings are closed: absent
+starting-payee identity no longer aliases a null payee; blank schedule names
+remain null and nonempty names use exact-case source collision semantics.
+Five independent source cases cover income identity and22 unnamed/trim/case
+schedules. Recurrence pattern discriminants remain in the public comparison.
+Actual-only historical enrichment now excludes authoritative YNAB stage formats;
+duplicate provenance identifies its format and native archives retain linked
+upload receipts. Root inspected source, consumer assertions and passing logs
+for both-format restart, duplicate, same-budget/fresh-server restore, original
+bytes/receipts and malformed-input atomicity. Existing Actual archive regression
+also passes. Remaining27 UI/contracts/companion qualification is not implied by
+this bounded review; see `ynab-import-validation.md` in its pending branch.
+
+Bank28 private-custody/claim checkpoint `510128b..00cf0a1` also passed bounded
+root review: secret hashes in generic receipts, private credential exclusion,
+durable claim intent before remote work, conservative one-use uncertainty,
+generation/epoch fences and bounded HTTPS transport. It remains unmerged and
+partial: financial/link/settings/replacement, genuine schema22 migration,
+native lifecycle, interface and full contracts still require qualification.
+
 ## Remaining gates
 
 - Complete and review27 before joining its public import/API/UI/native slice.

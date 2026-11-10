@@ -1,5 +1,14 @@
 //! Rules own parsing/order/evaluation; guarded ledger seams own financial writes.
 mod actions;
+pub(crate) fn template_actions(
+    db: &rusqlite::Connection,
+    b: &str,
+    row: &serde_json::Value,
+    rule: &Rule,
+) -> Result<serde_json::Value, crate::error::Error> {
+    engine::validate(rule)?;
+    actions::apply(db, b, row, rule)
+}
 mod conditions;
 mod engine;
 mod entry;

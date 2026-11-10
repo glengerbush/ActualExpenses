@@ -21,7 +21,7 @@ fn cell_id(method: &str, m: &str, category: &str) -> String {
 }
 // Every writer runs inside the receipt transaction. Refusing any stale field
 // rolls back the complete action, including earlier move/copy destinations.
-fn guard_field(
+pub(super) fn guard_field(
     db: &Connection,
     b: &str,
     entity: &str,
@@ -37,12 +37,18 @@ fn guard_field(
     }
     Ok(())
 }
-fn ensure_cell(db: &Connection, b: &str, kind: &str, m: &str, c: &str) -> Result<String, Error> {
+pub(super) fn ensure_cell(
+    db: &Connection,
+    b: &str,
+    kind: &str,
+    m: &str,
+    c: &str,
+) -> Result<String, Error> {
     let id = cell_id(kind, m, c);
     db.execute("INSERT INTO budget_cells(budget_id,id,method,month,category_id) VALUES(?1,?2,?3,?4,?5) ON CONFLICT(budget_id,id) DO UPDATE SET tombstone=0",params![b,id,kind,m,c])?;
     Ok(id)
 }
-fn put(
+pub(super) fn put(
     db: &Connection,
     b: &str,
     kind: &str,

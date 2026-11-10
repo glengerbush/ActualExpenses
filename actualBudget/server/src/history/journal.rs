@@ -19,6 +19,8 @@ const TABLES: &[&str] = &[
     "budget_cells",
     "budget_months",
     "budget_settings",
+    "budget_automations",
+    "budget_cleanup_groups",
     "rules",
     "rule_settings",
     "schedules",

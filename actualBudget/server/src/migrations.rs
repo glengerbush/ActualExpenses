@@ -23,6 +23,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("migrations/017_rules.sql"),
     include_str!("migrations/018_android_upgrade.sql"),
     include_str!("migrations/019_schedules.sql"),
+    include_str!("migrations/020_budget_automations.sql"),
 ];
 pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     crate::android_upgrade::order::configure(db)?;
@@ -42,6 +43,9 @@ pub fn apply(db: &mut Connection, directory: &Path) -> Result<(), Error> {
     let tx = db.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     for (index, sql) in MIGRATIONS.iter().enumerate().skip(version as usize) {
         tx.execute_batch(sql)?;
+        if index == 19 {
+            crate::budgeting::templates::enrich(&tx, None)?;
+        }
         if index == 18 {
             crate::schedules::enrich(&tx, None)?;
         }

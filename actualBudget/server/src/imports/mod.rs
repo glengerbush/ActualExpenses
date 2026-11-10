@@ -167,6 +167,7 @@ async fn activate(
             let (_,current)=conversion::inspect(&original)?;
             if converted["schedules_version"] != 1 {converted["schedules"]=current["schedules"].clone();converted["schedules_version"]=json!(1);}
             if converted["rules_version"] != 1 {converted["rules"]=current["rules"].clone();converted["rules_version"]=json!(1);}
+            if converted["automations_version"] != 1 {converted["automations"]=current["automations"].clone();converted["automations_version"]=json!(1);}
             if converted["budgeting_version"] != 1 {converted["budgeting"]=current["budgeting"].clone();converted["budgeting_version"]=json!(1);}
             if converted.get("register_settings").is_none() { converted["register_settings"]=current["register_settings"].clone(); }
             if converted.get("account_groups").is_none() {

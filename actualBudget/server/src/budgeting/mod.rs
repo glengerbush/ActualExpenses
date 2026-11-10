@@ -1,6 +1,7 @@
 //! Monthly planning derives from live on-budget leaf transactions. Plans for both
 //! methods persist independently; no cached financial result becomes authority.
 mod actions;
+pub(crate) mod templates;
 pub use actions::category_deleted;
 mod import;
 use crate::{concurrency as sync, error::Error, models::MAX_MONEY, store::Store};
@@ -24,6 +25,26 @@ pub fn router() -> Router<Store> {
             get(read).post(actions::mutate),
         )
         .route("/api/v1/budgets/{budget}/budget/transactions", get(detail))
+        .route(
+            "/api/v1/budgets/{budget}/budget/templates",
+            get(templates::read),
+        )
+        .route(
+            "/api/v1/budgets/{budget}/budget/templates/parse",
+            axum::routing::post(templates::parse_notes),
+        )
+        .route(
+            "/api/v1/budgets/{budget}/budget/templates/preview",
+            axum::routing::post(templates::preview),
+        )
+        .route(
+            "/api/v1/budgets/{budget}/budget/templates/projection",
+            axum::routing::post(templates::projection),
+        )
+        .route(
+            "/api/v1/budgets/{budget}/budget/templates/commands",
+            axum::routing::post(templates::mutate),
+        )
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -346,7 +367,7 @@ pub fn record(db: &Connection, b: &str, entity: &str, id: &str) -> Result<Value,
     let value = match entity {
         "budget_cells" => db.query_row("SELECT method,month,category_id,amount,carryover,goal,long_goal,tombstone FROM budget_cells WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":id,"method":r.get::<_,String>(0)?,"month":r.get::<_,String>(1)?,"category_id":r.get::<_,String>(2)?,"amount":r.get::<_,i64>(3)?,"carryover":r.get::<_,bool>(4)?,"goal":r.get::<_,Option<String>>(5)?,"long_goal":r.get::<_,Option<String>>(6)?,"deleted":r.get::<_,bool>(7)?})))?,
         "budget_months" => db.query_row("SELECT buffered,notes,tombstone FROM budget_months WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":id,"buffered":r.get::<_,i64>(0)?,"notes":r.get::<_,String>(1)?,"deleted":r.get::<_,bool>(2)?})))?,
-        "budget_settings" => db.query_row("SELECT method FROM budget_settings WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":id,"method":r.get::<_,String>(0)?,"deleted":false})))?,
+        "budget_settings" => db.query_row("SELECT method,template_currency FROM budget_settings WHERE budget_id=?1 AND id=?2",params![b,id],|r|Ok(json!({"id":id,"method":r.get::<_,String>(0)?,"template_currency":r.get::<_,Option<String>>(1)?,"deleted":false})))?,
         _ => return Err(Error::internal("Unknown planning change entity")),
     };
     Ok(value)

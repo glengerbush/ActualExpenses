@@ -281,6 +281,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
     let mut counts = Map::new();
     let mut requirements = Vec::new();
     const LOADED: &[&str] = &[
+        "cleanup_groups",
         "account_groups",
         "accounts",
         "transactions",
@@ -363,6 +364,7 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             source.insert(table.clone(), json!(rows(&db, table)?));
         }
         if ![
+            "cleanup_groups",
             "account_groups",
             "accounts",
             "transactions",
@@ -564,20 +566,6 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             return Err(invalid("Category refers to a missing group"));
         }
         validate_name(text(row, "name")?).map_err(|_| invalid("Invalid source category name"))?;
-        let unsupported = !row["goal_def"].is_null()
-            || !row["cleanup_def"].is_null()
-            || (!row["template_settings"].is_null()
-                && row["template_settings"]
-                    .as_str()
-                    .and_then(|s| serde_json::from_str::<Value>(s).ok())
-                    != Some(json!({"source":"notes"})));
-        requirement(
-            &mut requirements,
-            "category_configuration",
-            usize::from(unsupported),
-            true,
-            "Goals or templates require their converter",
-        );
         let notes = array(&source, "notes")
             .iter()
             .find(|n| n["id"] == id)
@@ -864,6 +852,10 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
     converted["preferences"] = prefs["shared"].clone();
     for (key, _) in prefs["unmapped"]["synced"].as_object().unwrap() {
         if key != "budgetType"
+            && !(key == "defaultCurrencyCode"
+                && prefs["unmapped"]["synced"][key]
+                    .as_str()
+                    .is_some_and(|s| s.len() <= 32))
             && key != "learn-categories"
             && !crate::register_settings::imported_preference(key)
         {
@@ -918,6 +910,8 @@ pub fn inspect(bytes: &[u8]) -> Result<(Value, Value), Error> {
             .cloned(),
     );
     converted["budgeting"] = crate::budgeting::convert_actual(&source)?;
+    converted["automations"] = crate::budgeting::templates::convert(&source)?;
+    converted["automations_version"] = json!(1);
     converted["budgeting_version"] = json!(1);
     converted["clocks"] = json!(clocks.into_values().collect::<Vec<_>>());
     converted["balances"] = json!(balances);
@@ -991,10 +985,12 @@ pub fn install(db: &Connection, budget: &str, data: &Value) -> Result<(), Error>
         )?;
     }
     crate::budgeting::install_actual(db, budget, &data["budgeting"])?;
+    crate::budgeting::templates::install(db, budget, &data["automations"])?;
     crate::rules::install_actual(db, budget, &data["rules"])?;
     crate::schedules::install_actual(db, budget, &data["schedules"])?;
     for row in array(data, "clocks") {
         crate::budgeting::import_clock(db, budget, &data["budgeting"], row)?;
+        crate::budgeting::templates::clock(db, budget, row)?;
         crate::rules::import_clock(db, budget, row)?;
         crate::schedules::import_clock(db, budget, &data["schedules"], row)?;
         let dataset = row["dataset"].as_str().unwrap();

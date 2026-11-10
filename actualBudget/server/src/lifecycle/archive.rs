@@ -29,6 +29,8 @@ pub const TABLES: &[&str] = &[
     "budget_cells",
     "budget_months",
     "budget_settings",
+    "budget_automations",
+    "budget_cleanup_groups",
     "rules",
     "rule_settings",
     "schedules",
@@ -85,6 +87,7 @@ pub struct Validated {
     pub legacy_budgeting: bool,
     pub legacy_rules: bool,
     pub legacy_schedules: bool,
+    pub legacy_automations: bool,
     pub state: BudgetArchive,
     pub blobs: BTreeMap<String, Vec<u8>>,
 }
@@ -157,7 +160,7 @@ pub fn capture(db: &Connection, budget: &str) -> Result<Vec<u8>, Error> {
     let body = serde_json::to_vec(&state).map_err(Error::internal)?;
     let mut entries = BTreeMap::from([("budget.json".to_owned(), body)]);
     entries.extend(blobs);
-    let manifest = json!({"format":"actualBudget","version":1,"schema_version":19,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
+    let manifest = json!({"format":"actualBudget","version":1,"schema_version":20,"budget_id":budget,"entries":entries.iter().map(|(name,bytes)|(name.clone(),json!({"sha256":hash(bytes),"bytes":bytes.len()}))).collect::<serde_json::Map<_,_>>()});
     if entries.len() + 1 > 1000
         || entries.values().map(Vec::len).sum::<usize>() + manifest.to_string().len() > MAX_EXPANDED
     {
@@ -233,7 +236,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     .map_err(|_| invalid("Invalid manifest"))?;
     if manifest["format"] != "actualBudget"
         || manifest["version"] != 1
-        || !matches!(manifest["schema_version"].as_u64(), Some(6..=19))
+        || !matches!(manifest["schema_version"].as_u64(), Some(6..=20))
     {
         return Err(invalid("Unsupported actualBudget archive version"));
     }
@@ -595,6 +598,47 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
             );
         }
     }
+    if manifest["schema_version"].as_u64().is_some_and(|v| v < 20) {
+        let settings = state
+            .tables
+            .get_mut("budget_settings")
+            .ok_or_else(|| invalid("Missing budget method settings"))?;
+        if settings.columns.iter().any(|c| c == "template_currency") {
+            return Err(invalid("Unexpected legacy template currency"));
+        }
+        settings.columns.push("template_currency".into());
+        for row in &mut settings.rows {
+            row.push(Value::Null);
+        }
+        for (name, columns) in [
+            (
+                "budget_automations",
+                vec![
+                    "budget_id",
+                    "id",
+                    "goal_def",
+                    "cleanup_def",
+                    "template_settings",
+                    "tombstone",
+                ],
+            ),
+            (
+                "budget_cleanup_groups",
+                vec!["budget_id", "id", "name", "tombstone"],
+            ),
+        ] {
+            if state.tables.contains_key(name) {
+                return Err(invalid("Unexpected legacy automation domain"));
+            }
+            state.tables.insert(
+                name.into(),
+                Table {
+                    columns: columns.into_iter().map(str::to_owned).collect(),
+                    rows: vec![],
+                },
+            );
+        }
+    }
     if state.budget["id"] != manifest["budget_id"] {
         return Err(invalid("Budget identity differs from manifest"));
     }
@@ -678,6 +722,7 @@ pub fn validate(bytes: &[u8]) -> Result<Validated, Error> {
     let mut validated = Validated {
         state,
         blobs,
+        legacy_automations: manifest["schema_version"].as_u64().is_some_and(|v| v < 20),
         legacy_schedules: manifest["schema_version"].as_u64().is_some_and(|v| v < 19),
         legacy_rules: manifest["schema_version"].as_u64().is_some_and(|v| v < 17),
         legacy_budgeting: manifest["schema_version"].as_u64().is_some_and(|v| v < 16),
@@ -910,6 +955,9 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
     crate::register_settings::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
     if archive.legacy_category_metadata {
         crate::categories::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
+    }
+    if archive.legacy_automations {
+        crate::budgeting::templates::enrich(db, archive.state.budget["id"].as_str())?;
     }
     if archive.legacy_schedules {
         crate::schedules::enrich(db, archive.state.budget["id"].as_str())?;

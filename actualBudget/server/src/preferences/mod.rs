@@ -151,6 +151,26 @@ pub fn apply_changes(
         }
     }
     normalize_currency(&mut values);
+    if changes.contains_key("currency_code")
+        || changes
+            .get("experimental")
+            .is_some_and(|flags| flags.get("currency").is_some())
+    {
+        let clock = crate::concurrency::clock(db, budget, None)?;
+        db.execute(
+            "UPDATE budget_settings SET template_currency=?2 WHERE budget_id=?1",
+            params![budget, values["currency_code"].as_str().unwrap_or("")],
+        )?;
+        crate::concurrency::seed_field_version(
+            db,
+            budget,
+            "budget_settings",
+            "method",
+            "template_currency",
+            &clock,
+        )?;
+        crate::concurrency::mark(db, budget, "budget_settings", "method")?;
+    }
     let revision = revision
         .checked_add(1)
         .ok_or_else(|| Error::internal("Preference revision exhausted"))?;

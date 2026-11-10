@@ -762,6 +762,9 @@ pub fn read_changes(
             "rule_settings" => {
                 json!({"id":"learning","enabled":crate::rules::learning::enabled(db,budget)?,"deleted":false})
             }
+            "budget_automations" | "budget_cleanup_groups" => {
+                crate::budgeting::templates::record(db, budget, &entity, &id)?
+            }
             "budget_cells" | "budget_months" | "budget_settings" => {
                 crate::budgeting::record(db, budget, &entity, &id)?
             }

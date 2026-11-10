@@ -440,10 +440,12 @@ let clock=sync::clock(db,&b,proposed.as_deref())?;
 let mut updated=vec![];
 let mut added=vec![];
 let mut ignored=vec![];
+let mut created_payees=BTreeSet::new();
 
  for choice in choices{if !selected.insert(choice.row){return Err(Error::invalid("A source row was selected twice"));
 }let row=reviewed.get(&choice.row).copied().ok_or_else(||Error::invalid("Unknown source row"))?;
-let transaction=&row["transaction"];
+let mut transaction=row["transaction"].clone();
+if transaction["new_payee"]["id"].as_str().is_some_and(|id|created_payees.contains(id)){transaction.as_object_mut().unwrap().remove("new_payee");}
 if choice.action=="skip"||transaction["deleted"]==true{continue;
 }
 if choice.action=="merge"{let target=choice.match_id.as_deref().ok_or_else(||Error::invalid("A merge requires its reviewed match"))?;
@@ -460,9 +462,11 @@ if before["cleared"]!=true&&transaction["cleared"]==true{patch.insert("cleared".
 if patch.get("payee_id").is_some() && transaction["new_payee"].is_object(){patch.insert("payee_id".into(),Value::Null);patch.insert("new_payee".into(),transaction["new_payee"].clone());}
 for field in patch.keys().filter(|field|field.as_str()!="new_payee"){guard(db,&b,"transactions",target,field,&clock)?;
 }
+let creating_payee=patch.get("new_payee").and_then(|p|p["id"].as_str()).map(str::to_owned);
 if !patch.is_empty(){let response=sync::execute(db,&b,Some(&clock),false,epoch.as_deref(),sync::Mutation::Patch(target.into(),Value::Object(patch)))?;
 if response["response_status"].as_u64().unwrap_or(500)>=400{return Err(Error::conflict("The matched transaction requires review before import"));
-}updated.push(target.to_owned());
+}if let Some(id)=creating_payee{created_payees.insert(id);}
+updated.push(target.to_owned());
 }
 if before["imported_payee"]!=transaction["imported_payee"]{guard(db,&b,"transactions",target,"imported_payee",&clock)?;
 db.execute("UPDATE transactions SET imported_payee=?3 WHERE budget_id=?1 AND id=?2",params![b,target,transaction["imported_payee"].as_str()])?;
@@ -476,6 +480,7 @@ let runner=crate::rules::import_runner(db,&b,work)?;
 let result=crate::rules::save_import(db,&b,transaction.clone(),matched,&clock,epoch.as_deref(),runner)?;
 work=result.0;
 if result.1{
+if let Some(id)=transaction["new_payee"]["id"].as_str(){created_payees.insert(id.to_owned());}
 if !transaction["imported_payee"].is_null(){db.execute("UPDATE transactions SET imported_payee=?3 WHERE budget_id=?1 AND id=?2",params![b,new_id,transaction["imported_payee"].as_str()])?;sync::seed_field_version(db,&b,"transactions",&new_id,"imported_payee",&clock)?;}
 added.push(new_id);
 }

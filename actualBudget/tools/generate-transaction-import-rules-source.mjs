@@ -10,13 +10,13 @@ globalThis.Date=class extends NativeDate{constructor(...args){super(...(args.len
 const require=createRequire(new URL('../../actualExpenses/tools/compatibility/package.json',import.meta.url));
 const api=require('@actual-app/api');
 assert.equal(JSON.parse(await readFile(require.resolve('@actual-app/api').replace(/dist\/index\.js$/,'package.json'),'utf8')).version,'26.10.0');
-const directory=await mkdtemp(tmpdir()+'/transaction-import-rules-'),check=process.argv.includes('--check');
+const directory=await mkdtemp(tmpdir()+'/transaction-import-rules-'),check=process.argv.includes('--check'),extend=process.argv.includes('--extend');
 const fixture=new URL('../tests/fixtures/transaction-import-rules-source.json',import.meta.url);
 const plain=value=>JSON.parse(JSON.stringify(value)),hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 try{
   const engine=await api.init({dataDir:directory});
   const observations=[];
-  for(const [index,name] of ['new-payee','matched-new-payee','rules-before-match','rules-split'].entries()){
+  for(const [index,name] of ['new-payee','matched-new-payee','rules-before-match','rules-split','new-payee-two'].entries()){
     const ids={manual:`25280000-0000-4000-8000-${String(index+1).padStart(12,'0')}`};
     await api.runImport(name,async()=>{
       ids.account=await api.createAccount({name:'Checking'},0);
@@ -52,10 +52,12 @@ try{
     const before=await snapshot();
     for(const [key,value] of Object.entries(settings))assert.equal(before.preferences[key],value);
     const archiveName=`transaction-import-${name}-26.10.zip`,archivePath=new URL('../tests/fixtures/'+archiveName,import.meta.url);
-    const archive=check?await readFile(archivePath):await api.exportBudget();
-    if(!check)await writeFile(archivePath,archive,{flag:'wx'});
+    const retained=check||extend&&index<4;
+    const archive=retained?await readFile(archivePath):await api.exportBudget();
+    if(!retained)await writeFile(archivePath,archive,{flag:'wx'});
     const payee_name=name.includes('new-payee')?'BRAND NEW SHOP':'Cafe';
     const input={accountId:ids.account,transactions:[{date:'2026-11-09',amount:-1234,payee_name,imported_payee:payee_name,notes:'Bank note',cleared:true}],opts:{reimportDeleted:false}};
+    if(name==='new-payee-two')input.transactions.push({...input.transactions[0],date:'2026-11-10',amount:-5678,notes:'Second purchase'});
     const preview=plain(await engine.send('transactions-import',{...input,isPreview:true}));
     assert.deepEqual(await snapshot(),before,'Preview may propose new payees or split rules but writes nothing');
     const first=plain(await engine.send('transactions-import',{...input,isPreview:false})),after=await snapshot();
@@ -85,6 +87,7 @@ try{
     return walk(value);
   }
   if(check)assert.deepEqual(stable(output),stable(JSON.parse(await readFile(fixture,'utf8'))));
+  else if(extend){const previous=JSON.parse(await readFile(fixture,'utf8'));assert.deepEqual(stable({...output,cases:output.cases.slice(0,previous.cases.length)}),stable(previous));output.cases.splice(0,previous.cases.length,...previous.cases);await writeFile(fixture,JSON.stringify(output,null,2)+'\n');}
   else await writeFile(fixture,JSON.stringify(output,null,2)+'\n',{flag:'wx'});
-  console.log('PASS four genuine import/payee/rules/settings observations');
+  console.log('PASS five genuine import/payee/rules/settings observations');
 }finally{await api.shutdown();await rm(directory,{recursive:true,force:true});globalThis.Date=NativeDate;}

@@ -18,7 +18,7 @@ try{for(const item of fixture.cases){
  const root=`/budgets/${staged.budget_id}`,account=item.ids.account;
  const before=await call(root+'/transactions');
  assert.deepEqual(shape(before.data,(await call(root+'/payees')).data,(await call(root+'/categories')).data,false),shape(item.before.transactions,item.before.payees,item.before.categories,true));
- const csv='Date,Payee,Amount,Memo\n2026-11-09,'+item.input.transactions[0].payee_name+',-12.34,Bank note\n';
+ const csv='Date,Payee,Amount,Memo\n'+item.input.transactions.map(row=>[row.date,row.payee_name,(row.amount/100).toFixed(2),row.notes].join(',')).join('\n')+'\n';
  const file=await fetch(`${api}${root}/accounts/${account}/transaction-imports?filename=bank.csv`,{method:'POST',headers:{'Idempotency-Key':randomUUID()},body:csv});assert.equal(file.status,201);const path=root+'/transaction-imports/'+(await file.json()).data.id;
  let firstIds;
  for(const [round,expected] of [item.after,item.repeated].entries()){

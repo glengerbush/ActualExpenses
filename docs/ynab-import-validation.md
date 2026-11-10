@@ -67,3 +67,28 @@ remain available unchanged for review and cleanup.
   UI, plain HTTP/browser recovery and responsive/privacy/keyboard renders.
 - Consolidated review and one integrated qualification after the vertical slice
   is complete. Do not mark ticket27 accepted from the initial oracle alone.
+
+## First YNAB4 public financial slice
+
+The running-HTTP tracer consumes the independent YNAB4 observation and compares
+all imported financial rows, account balances, multiplicity, parent/peer edges,
+historical category allocations/carry and every selected budget summary field.
+Staging creates no active budget, original bytes remain exact, upload receipts
+repeat exactly, and repeated activation cannot reinstall history or advance the
+budget checkpoint. Initial unavailable-route405 is retained in
+`/tmp/ynab-http-first-red.log`; the built implementation passes
+`/tmp/ynab4-checkpoint-final-http.log`. An intermediate consumer assumed the
+budget view exposed categories directly; adapting it to the existing
+`data.months[month]` contract corrected the harness, not financial expectations.
+A stale-binary run after a failed compile is not used as checkpoint evidence.
+
+The source adapter emits canonical rows into the existing validation/install
+pipeline. A report-owned `source_format` discriminant avoids trusting arbitrary
+Actual metadata fields. Source hashes, original IDs/mapping and entity versions
+stay in retained provenance; YNAB versions are never minted into HLCs. ZIP paths,
+duplicate names, encryption, device knowledge and expanded byte/row limits are
+validated. Source-specific reference lookups are indexed. Shared Actual import
+regressions12 pass `/tmp/ynab4-existing-imports.log` using a fresh local test
+build. This is a financial checkpoint, not ticket acceptance: generated learned
+defaults still need a source-backed join, and nYNAB, full failure/restart/archive
+coverage, contracts and interface remain in progress.

@@ -336,7 +336,10 @@ fn currency_upgrade_case(name: &str, native: bool) {
             .client
             .patch(format!("{}{root}/preferences", server.url))
             .header("Idempotency-Key", "resolve-ambiguous-currency")
-            .header("X-Actual-Budget-Epoch", before["data"]["epoch"].as_str().unwrap())
+            .header(
+                "X-Actual-Budget-Epoch",
+                before["data"]["epoch"].as_str().unwrap(),
+            )
             .json(&json!({"experimental":null}))
             .send()
             .unwrap();

@@ -1,7 +1,7 @@
 # Budget templates and automations — verification in progress
 
-Tickets23/24 remain open. Backend checkpoint `f211ff5` implements23; browser work,
-cleanup execution and migration workflows are still being completed. This record
+Tickets23/24 remain open. Backend and browser checkpoint23 and cleanup execution
+have focused verification; visual configuration and migration remain in progress. This record
 does not claim integrated acceptance, release readiness or production deployment.
 
 ## Independent source evidence
@@ -38,9 +38,12 @@ Independent `--check` runs compare observations while excluding regenerated IDs.
   rendering. These are recorded source differences, not a claim of lossless
   migration.
 
-The first four sets passed independent provenance review, including archive
+All five sets passed independent provenance review, including archive
 digests, integrity, raw notes, definitions, complete ledgers and seed cells.
-The visual set is awaiting its consolidated review.
+`2712430` adds eight independently checked visual observations: goal-only plus
+standalone cap, and refill without a cap, in both methods and both sources.
+All four new UI/rendered-note pairs differ. The complete visual set is48 states,
+24 pairs, with six observed differences; migration must refuse these conversions.
 
 ## Genuine previous-version state
 
@@ -69,6 +72,17 @@ Earlier red runs remain recorded. They caught the cleanup-table support
 whitelist and native report version omissions. A test initially compared restored
 operational schedule cursors directly; that harness comparison was corrected.
 
+Seven additional genuine schema19 currency histories cover untouched JPY,
+explicit USD, display disable, unrelated preference edits, two explicit reset
+paths, and ambiguous history created through public backup/restore branches.
+Fourteen database/native cases plus one current-version reset case pass across
+`/tmp/budget-currency-upgrade-green.log`, `/tmp/budget-currency-reset-green.log`
+and `/tmp/budget-currency-ambiguous-http.log`. Together with the two original
+upgrade cases this is17 distinct tests. Older receipts and ledgers remain exact.
+Ambiguous provenance refuses calculation without changes until an explicit
+Settings choice. Genuine fixture provenance and the bounded lineage resolver,
+including explicit-null reset handling, passed consolidated review.
+
 ## Focused runtime evidence
 
 - `/tmp/budget-templates-projection-first.log`:51 fresh financial cases pass,
@@ -83,25 +97,40 @@ operational schedule cursors directly; that harness comparison was corrected.
 - `/tmp/budget-templates-history-first.log`: owned definition/allocation undo and
   redo, exact receipts, older/equal-clock refusal and newer-edit undo protection.
 - `/tmp/budget-cleanup-http-red.log`: first cleanup consumer correctly fails at
-  unsupported preview action. Its import, original definitions and seed checks
-  pass; cleanup execution is not yet accepted.
+  unsupported preview action. `/tmp/budget-cleanup-http-final.log` passes44
+  source cases and one new-pool preview/cancel/undo/redo guard. Deterministic
+  preview creates no writes; owned cleanup applies exactly once. Backend and
+  contracts at `9b9c376` passed consolidated review.
 - `/tmp/budget-visual-http-first.log`:40 visual/source-note states pass, including
   effective imported definitions, exact previews/applied cells, unchanged notes
   and ledgers, and receipt replay after restart. This tests independent states;
   it does not substitute for the pending interactive migration workflow.
+- `/tmp/budget-visual-edge-http-green.log`: eight additional visual cases pass
+  after `7652eb9` fixes goal-only cap and uncapped refill handling. The first run
+  had four passing rendered-note cases and four failing UI cases. The unchanged
+  original40 are reused. Source fixtures, consumer and fixes passed review.
+- `/tmp/budget-templates-browser-final23.log`: goal-template UI passes including
+  exact preview, durable lost-200-ack replay, retained review and quota failures.
+  Desktop/mobile, large-text and dark captures were reviewed with Impeccable.
+  A small source-authority copy correction is pending its focused assertion.
+- `/tmp/budget-automation-native-first.log`: Android preserves expenses and
+  pending delivery across automation, pool and settings events, advances its
+  cursor and makes no idle cache writes. Regression passed independent review.
 - `/tmp/budget-templates-contract-second.log`: served OpenAPI validates real
   template parse, read, preview, projection, configure and apply responses along
   with existing contract workflows. The additional change-feed schemas pass in
   `/tmp/budget-templates-contract-feed-corrected.log`; the first harness request
   omitted the required cursor and remains recorded as a failed run.
+- `/tmp/budget-cleanup-contract-first.log`: real cleanup preview/commit and feed
+  responses satisfy served schemas.
 
 Public test consumers received independent review. Cleanup's44 cases check exact
 warnings/counts, goal null/zero distinctions, two executions and restart receipts.
-The new visual consumer awaits independent review.
+The visual consumer also passed independent review.
 
 ## Remaining acceptance
 
-Complete reviewed UI and cleanup/migration behavior, resolve consolidated review,
+Complete reviewed visual UI and migration behavior, resolve consolidated review,
 then run one integrated batch qualification. Reuse valid unchanged source and
 test evidence; rerun affected checks after corrections. No version bump, push,
 release, live deployment or live-volume mutation is authorized for this rewrite.

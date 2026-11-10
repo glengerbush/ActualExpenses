@@ -18544,7 +18544,7 @@
     },
     "/api/v1/budgets/{budget}/budget/templates/commands": {
       "post": {
-        "description": "Atomic owned command. Apply/overwrite exact plans; configure switches effective notes/UI definitions while retaining original notes. Capture snapshot, epoch, original edit clock, owner, key and body before send. Exact receipts replay before current preconditions; cancellation fences unknown operations, and receipt-only lookup never executes. Financial and configuration effects join one undo group; validation or stale state refuses all writes. Cleanup atomically persists note-derived pool definitions and month allocations, preserving source ordering, rounding and warnings. It does not change transactions.",
+        "description": "Atomic owned command. Apply/overwrite exact plans; configure switches effective notes/UI definitions while retaining original notes. Capture snapshot, epoch, original edit clock, owner, key and body before send. Exact receipts replay before current preconditions; cancellation fences unknown operations, and receipt-only lookup never executes. Financial and configuration effects join one undo group; validation or stale state refuses all writes. Cleanup atomically persists note-derived pool definitions and month allocations, preserving source ordering, rounding and warnings. It does not change transactions. Migrate recomputes compatibility against the captured snapshot and original edit clock; commits only definition/source changes, retaining current financial cells. Incompatible migration refuses all changes.",
         "parameters": [
           {
             "name": "budget",
@@ -18767,6 +18767,140 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/BudgetTemplateCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/budget/templates/migration-preview": {
+      "post": {
+        "description": "Read-only source migration proposal at the exact snapshot. Preserve ordinary prose while replacing inactive directives. Compare full forced monthly application and retained semantics; incompatible conversions report actionable issues and cannot be committed. Before/after cells are hypothetical; preview never writes.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found; receipt-only lookup also returns operation_uncommitted when no matching operation identity is stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Existing identity or idempotency payload conflict; terminal operation_canceled means the operation was fenced before saving",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MutationConflict"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 65536 bytes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Operation failed; no partial commit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted; pending work retained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetTemplateMigrationPreview"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetTemplateMigrationRequest"
               }
             }
           }
@@ -25509,6 +25643,43 @@
                 "type": "string"
               }
             }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "month",
+              "snapshot",
+              "category_id",
+              "target_source"
+            ],
+            "properties": {
+              "month": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+              },
+              "snapshot": {
+                "type": "string"
+              },
+              "category_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "target_source": {
+                "enum": [
+                  "ui",
+                  "notes"
+                ]
+              },
+              "notes": {
+                "type": "string",
+                "description": "Optional reviewed replacement notes. The server rechecks semantic equivalence before committing."
+              },
+              "action": {
+                "const": "migrate"
+              }
+            }
           }
         ]
       },
@@ -25599,6 +25770,197 @@
           "sinkCount": {
             "type": "integer",
             "minimum": 0
+          }
+        }
+      },
+      "BudgetTemplateMigrationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "month",
+          "snapshot",
+          "category_id",
+          "target_source"
+        ],
+        "properties": {
+          "month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "category_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "target_source": {
+            "enum": [
+              "ui",
+              "notes"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional reviewed replacement notes. The server rechecks semantic equivalence before committing."
+          }
+        }
+      },
+      "BudgetTemplateMigrationPreview": {
+        "type": "object",
+        "required": [
+          "category_id",
+          "current_source",
+          "target_source",
+          "notes",
+          "rendered_directives",
+          "templates",
+          "cleanup",
+          "pools",
+          "compatible",
+          "issues",
+          "before",
+          "after",
+          "snapshot",
+          "epoch",
+          "method"
+        ],
+        "properties": {
+          "category_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "current_source": {
+            "enum": [
+              "ui",
+              "notes"
+            ]
+          },
+          "target_source": {
+            "enum": [
+              "ui",
+              "notes"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          },
+          "rendered_directives": {
+            "type": "string"
+          },
+          "templates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BudgetTemplate"
+            }
+          },
+          "cleanup": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "pools": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "compatible": {
+            "type": "boolean"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "before": {
+            "type": "object",
+            "required": [
+              "budgeted",
+              "goal",
+              "long_goal"
+            ],
+            "properties": {
+              "budgeted": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "goal": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "long_goal": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            }
+          },
+          "after": {
+            "type": "object",
+            "required": [
+              "budgeted",
+              "goal",
+              "long_goal"
+            ],
+            "properties": {
+              "budgeted": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "goal": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "long_goal": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            }
+          },
+          "snapshot": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "envelope",
+              "tracking"
+            ]
           }
         }
       }

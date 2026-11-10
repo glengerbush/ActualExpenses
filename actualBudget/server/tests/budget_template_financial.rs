@@ -1160,6 +1160,324 @@ mod cleanup {
     }
 }
 
+fn run_visual_migration(name: &str) {
+    let oracle: Value = serde_json::from_str(include_str!(
+        "../../tests/fixtures/budget-visual-automations.json"
+    ))
+    .unwrap();
+    let cases = oracle["cases"].as_array().unwrap();
+    let case = cases.iter().find(|c| c["name"] == name).unwrap();
+    let ui = case["mode"] == "ui";
+    let paired_name = if ui {
+        format!("{}-rendered-notes", name.strip_suffix("-ui").unwrap())
+    } else {
+        name.to_owned()
+    };
+    let target = cases.iter().find(|c| c["name"] == paired_name).unwrap();
+    // These are independent source observations, including six genuinely
+    // different UI -> rendered-notes outcomes. No replacement oracle is used.
+    let compatible = !ui || case["result"] == target["result"];
+    let bytes = std::fs::read(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../tests/fixtures/budget-visual-automations")
+            .join(case["archive"]["filename"].as_str().unwrap()),
+    )
+    .unwrap();
+    assert_eq!(
+        format!("{:x}", Sha256::digest(&bytes)),
+        case["archive"]["sha256"]
+    );
+    let server = Server::start(tempfile::tempdir().unwrap());
+    let stage: Value = server
+        .client
+        .post(format!("{}/api/v1/imports/actual", server.url))
+        .header("Content-Type", "application/zip")
+        .header("Idempotency-Key", "migration-source")
+        .body(bytes)
+        .send()
+        .unwrap()
+        .error_for_status()
+        .unwrap()
+        .json()
+        .unwrap();
+    assert_eq!(stage["data"]["status"], "ready");
+    let activated = server.post(
+        &format!(
+            "/api/v1/imports/{}/activate",
+            stage["data"]["id"].as_str().unwrap()
+        ),
+        "activate-migration",
+        &json!({}),
+        None,
+    );
+    assert_eq!(activated.status(), 201, "{}", activated.text().unwrap());
+    let root = format!(
+        "/api/v1/budgets/{}",
+        stage["data"]["budget_id"].as_str().unwrap()
+    );
+    let original = assert_source_ledger(&server, &root, case);
+    let checkpoint = server.get(&format!("{root}/checkpoint"));
+    let epoch = checkpoint["data"]["epoch"].as_str().unwrap();
+    let definition_path = format!("{root}/budget/templates?month=2026-11");
+    let definitions = server.get(&definition_path);
+    let target_source = if ui { "notes" } else { "ui" };
+    let mut body = json!({
+        "month":case["month"], "snapshot":checkpoint["data"]["snapshot"],
+        "category_id":case["ids"]["A"], "target_source":target_source
+    });
+    let response = server.post(
+        &format!("{root}/budget/templates/migration-preview"),
+        "migration-preview",
+        &body,
+        None,
+    );
+    assert_eq!(
+        response.status(),
+        200,
+        "{name}: {}",
+        response.text().unwrap()
+    );
+    let preview: Value = response.json().unwrap();
+    assert_eq!(
+        preview["data"]["compatible"], compatible,
+        "{name}: {preview}"
+    );
+    assert_eq!(
+        preview["data"]["current_source"],
+        if ui { "ui" } else { "notes" }
+    );
+    assert_eq!(preview["data"]["target_source"], target_source);
+    for (key, source) in [("before", case), ("after", target)] {
+        let expected = &source["result"]["categories"]["A"];
+        assert_eq!(
+            preview["data"][key]["budgeted"], expected["budget"],
+            "{name} {key}"
+        );
+        assert_eq!(
+            preview["data"][key]["goal"], expected["goal"],
+            "{name} {key}"
+        );
+        assert_eq!(
+            preview["data"][key]["long_goal"], expected["long-goal"],
+            "{name} {key}"
+        );
+    }
+    assert_eq!(server.get(&format!("{root}/checkpoint")), checkpoint);
+    assert_eq!(server.get(&definition_path), definitions);
+    assert_eq!(assert_source_ledger(&server, &root, case), original);
+    let proposed_notes = preview["data"]["notes"].as_str().unwrap();
+    assert!(
+        proposed_notes.starts_with("Original description"),
+        "{name}: {proposed_notes}"
+    );
+    if ui {
+        assert!(
+            !proposed_notes.contains("#template 999"),
+            "stale inactive notes must be replaced"
+        );
+    } else {
+        assert_eq!(proposed_notes, case["configuration"]["notes"]["A"]);
+    }
+    body["action"] = json!("migrate");
+    let response = server.post(
+        &format!("{root}/budget/templates/commands"),
+        "commit-migration",
+        &body,
+        Some(epoch),
+    );
+    if !compatible {
+        assert!(!preview["data"]["issues"].as_array().unwrap().is_empty());
+        assert_eq!(
+            response.status(),
+            400,
+            "{name}: {}",
+            response.text().unwrap()
+        );
+        assert_eq!(server.get(&definition_path), definitions);
+        assert_eq!(server.get(&format!("{root}/checkpoint")), checkpoint);
+        assert_eq!(assert_source_ledger(&server, &root, case), original);
+        assert_budget(&server, &root, case, &case["seed"]);
+        return;
+    }
+    assert_eq!(
+        response.status(),
+        200,
+        "{name}: {}",
+        response.text().unwrap()
+    );
+    let receipt: Value = response.json().unwrap();
+    let current = server.get(&definition_path);
+    let category = current["data"]["categories"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["id"] == case["ids"]["A"])
+        .unwrap();
+    assert_eq!(category["source"], target_source);
+    assert_eq!(category["notes"], proposed_notes);
+    // Configuration-only migration does not apply allocations or change money.
+    // Notes were independently checked against the preview and retained prose.
+    let mut migrated_case = case.clone();
+    migrated_case["configuration"]["notes"]["A"] = json!(proposed_notes);
+    assert_budget(&server, &root, &migrated_case, &case["seed"]);
+    assert_eq!(assert_source_ledger(&server, &root, case), original);
+    let committed = server.get(&format!("{root}/checkpoint"));
+    let server = server.restart();
+    let replay = server.post(
+        &format!("{root}/budget/templates/commands"),
+        "commit-migration",
+        &body,
+        Some(epoch),
+    );
+    assert_eq!(replay.status(), 200);
+    assert_eq!(replay.json::<Value>().unwrap(), receipt);
+    assert_eq!(server.get(&format!("{root}/checkpoint")), committed);
+    let applied = server.post(
+        &format!("{root}/budget/templates/commands"), "apply-migrated",
+        &json!({"action":"overwrite","month":case["month"],"snapshot":committed["data"]["snapshot"]}),
+        Some(epoch),
+    );
+    assert_eq!(applied.status(), 200, "{name}: {}", applied.text().unwrap());
+    assert_budget(&server, &root, &migrated_case, &case["result"]);
+    assert_eq!(assert_source_ledger(&server, &root, case), original);
+}
+
+mod migration {
+    use super::run_visual_migration;
+    macro_rules! pair {
+        ($ui:ident, $notes:ident, $name:literal) => {
+            #[test]
+            fn $ui() {
+                run_visual_migration(concat!($name, "-ui"));
+            }
+            #[test]
+            fn $notes() {
+                run_visual_migration(concat!($name, "-rendered-notes"));
+            }
+        };
+    }
+    pair!(
+        envelope_fixed_with_standalone_cap_ui,
+        envelope_fixed_with_standalone_cap_notes,
+        "envelope-fixed-with-standalone-cap"
+    );
+    pair!(
+        tracking_fixed_with_standalone_cap_ui,
+        tracking_fixed_with_standalone_cap_notes,
+        "tracking-fixed-with-standalone-cap"
+    );
+    pair!(
+        envelope_refill_with_standalone_cap_ui,
+        envelope_refill_with_standalone_cap_notes,
+        "envelope-refill-with-standalone-cap"
+    );
+    pair!(
+        tracking_refill_with_standalone_cap_ui,
+        tracking_refill_with_standalone_cap_notes,
+        "tracking-refill-with-standalone-cap"
+    );
+    pair!(
+        envelope_held_weekly_cap_ui,
+        envelope_held_weekly_cap_notes,
+        "envelope-held-weekly-cap"
+    );
+    pair!(
+        tracking_held_weekly_cap_ui,
+        tracking_held_weekly_cap_notes,
+        "tracking-held-weekly-cap"
+    );
+    pair!(
+        envelope_fixed_plus_long_goal_ui,
+        envelope_fixed_plus_long_goal_notes,
+        "envelope-fixed-plus-long-goal"
+    );
+    pair!(
+        tracking_fixed_plus_long_goal_ui,
+        tracking_fixed_plus_long_goal_notes,
+        "tracking-fixed-plus-long-goal"
+    );
+    pair!(
+        envelope_save_target_ui,
+        envelope_save_target_notes,
+        "envelope-save-target"
+    );
+    pair!(
+        tracking_save_target_ui,
+        tracking_save_target_notes,
+        "tracking-save-target"
+    );
+    pair!(
+        envelope_spend_target_ui,
+        envelope_spend_target_notes,
+        "envelope-spend-target"
+    );
+    pair!(
+        tracking_spend_target_ui,
+        tracking_spend_target_notes,
+        "tracking-spend-target"
+    );
+    pair!(
+        envelope_history_adjusted_ui,
+        envelope_history_adjusted_notes,
+        "envelope-history-adjusted"
+    );
+    pair!(
+        tracking_history_adjusted_ui,
+        tracking_history_adjusted_notes,
+        "tracking-history-adjusted"
+    );
+    pair!(
+        envelope_income_category_id_ui,
+        envelope_income_category_id_notes,
+        "envelope-income-category-id"
+    );
+    pair!(
+        tracking_income_category_id_ui,
+        tracking_income_category_id_notes,
+        "tracking-income-category-id"
+    );
+    pair!(
+        envelope_schedule_id_and_adjustment_ui,
+        envelope_schedule_id_and_adjustment_notes,
+        "envelope-schedule-id-and-adjustment"
+    );
+    pair!(
+        tracking_schedule_id_and_adjustment_ui,
+        tracking_schedule_id_and_adjustment_notes,
+        "tracking-schedule-id-and-adjustment"
+    );
+    pair!(
+        envelope_weighted_remainder_cap_ui,
+        envelope_weighted_remainder_cap_notes,
+        "envelope-weighted-remainder-cap"
+    );
+    pair!(
+        tracking_weighted_remainder_cap_ui,
+        tracking_weighted_remainder_cap_notes,
+        "tracking-weighted-remainder-cap"
+    );
+    pair!(
+        envelope_goal_only_cap_ui,
+        envelope_goal_only_cap_notes,
+        "envelope-goal-only-cap"
+    );
+    pair!(
+        tracking_goal_only_cap_ui,
+        tracking_goal_only_cap_notes,
+        "tracking-goal-only-cap"
+    );
+    pair!(
+        envelope_orphan_refill_ui,
+        envelope_orphan_refill_notes,
+        "envelope-orphan-refill"
+    );
+    pair!(
+        tracking_orphan_refill_ui,
+        tracking_orphan_refill_notes,
+        "tracking-orphan-refill"
+    );
+}
+
 mod visual {
     use super::run_visual_case;
     #[test]

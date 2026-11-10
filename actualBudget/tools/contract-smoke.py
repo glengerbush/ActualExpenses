@@ -670,6 +670,18 @@ def main():
             check(template_path + "/preview", template_contract + "/preview", "POST", cleanup)
             check(template_path + "/commands", template_contract + "/commands", "POST", cleanup,
                   {"Idempotency-Key": "cleanup-apply"})
+            for target_source in ["notes", "ui"]:
+                current = check(template_path + "?month=2026-11", template_contract)["data"]
+                migration = {"month": "2026-11", "snapshot": current["snapshot"],
+                             "category_id": template_category, "target_source": target_source}
+                proposal = check(template_path + "/migration-preview", template_contract + "/migration-preview",
+                                 "POST", migration)["data"]
+                assert proposal["compatible"], proposal
+                check(template_path + "/commands", template_contract + "/commands", "POST",
+                      {**migration, "action": "migrate"},
+                      {"Idempotency-Key": "migrate-to-" + target_source})
+            check(template_path + "/migration-preview", template_contract + "/migration-preview", "POST",
+                  {"month": "2026-11"}, expected=400)
             check(template_root + "/changes?cursor=" + template_cursor, budgets + "/{budget}/changes")
             print("PASS: served OpenAPI schemas validate real success, validation, conflict, origin and missing-resource responses")
         finally:

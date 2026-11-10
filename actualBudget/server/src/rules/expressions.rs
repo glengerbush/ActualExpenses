@@ -60,6 +60,7 @@ pub struct Context {
     helpers: Value,
     balances: std::collections::BTreeMap<String, i64>,
     balance: Option<i64>,
+    children: std::collections::BTreeMap<String, Value>,
 }
 pub(super) fn payee_name(db: &Connection, b: &str, id: &str) -> Result<Option<String>, Error> {
     // Actual's raw transfer payee name is empty. Account names are a display
@@ -120,6 +121,14 @@ impl Context {
             helpers["imported_id"] = json!(imported);
             helpers["raw_synced_data"] = json!(raw);
         }
+        let mut children = std::collections::BTreeMap::new();
+        if stored && original["is_parent"] == true {
+            let mut query=db.prepare("SELECT t.id,CASE WHEN o.id IS NULL THEN t.sort_order ELSE o.source_order END,m.imported_id,m.raw_synced_data FROM transactions t LEFT JOIN android_upgrade_order o ON o.budget_id=t.budget_id AND o.id=t.id LEFT JOIN transaction_import_metadata m ON m.budget_id=t.budget_id AND m.id=t.id AND m.tombstone=0 WHERE t.budget_id=?1 AND t.parent_id=?2 AND t.tombstone=0")?;
+            for row in query.query_map(params![b,original["id"].as_str()],|r|Ok((r.get::<_,String>(0)?,json!({"sort_order":r.get::<_,Option<f64>>(1)?,"imported_id":r.get::<_,Option<String>>(2)?,"raw_synced_data":r.get::<_,Option<String>>(3)?}))))? {
+                let (id, metadata)=row?;
+                children.insert(id,metadata);
+            }
+        }
         Ok(Self {
             stored,
             input: input(crate::preferences::stored_preferences(db, b)?),
@@ -127,10 +136,18 @@ impl Context {
             helpers,
             balances: Default::default(),
             balance: None,
+            children,
         })
     }
     pub fn original_order(&self) -> Option<f64> {
         self.original["sort_order"].as_f64()
+    }
+    pub fn child_order(&self, row: &Value) -> Option<f64> {
+        row["id"]
+            .as_str()
+            .and_then(|id| self.children.get(id))
+            .unwrap_or(row)["sort_order"]
+            .as_f64()
     }
     pub fn begin_rule(
         &mut self,
@@ -245,7 +262,18 @@ impl Context {
         parent: Option<&Value>,
         budget: &mut Budget,
     ) -> Result<(), Error> {
-        let mut transaction = source_row(row, self.stored && parent.is_none());
+        let child_metadata = row["id"].as_str().and_then(|id| self.children.get(id));
+        let mut transaction = source_row(
+            row,
+            self.stored && (parent.is_none() || child_metadata.is_some()),
+        );
+        if parent.is_some()
+            && let Some(metadata) = child_metadata
+        {
+            for (key, value) in metadata.as_object().unwrap() {
+                transaction[key] = value.clone();
+            }
+        }
         if self.stored && parent.is_none() {
             transaction["sort_order"] = self.original["sort_order"].clone();
         }

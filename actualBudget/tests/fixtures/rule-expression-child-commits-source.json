@@ -1,0 +1,436 @@
+{
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "archive": {
+    "filename": "rule-expression-children-saved-26.10.zip",
+    "sha256": "9019e6f9c0c7245a801bd5c0c13c7d18c61ecfffcf16a0b16e69b0e09bc2d261"
+  },
+  "subject": "33340000-0000-4000-8000-000000000008",
+  "rules": [],
+  "conditions": [
+    {
+      "field": "account",
+      "op": "is",
+      "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+    }
+  ],
+  "cases": [
+    {
+      "name": "existing child explicit payee name remains visible",
+      "actions": [
+        {
+          "op": "set",
+          "field": "payee_name",
+          "value": "Market",
+          "options": {
+            "splitIndex": 1
+          }
+        },
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "splitIndex": 1,
+            "formula": "=payee_name"
+          }
+        }
+      ],
+      "before": [
+        {
+          "id": "33340000-0000-4000-8000-000000000008",
+          "parent": false,
+          "amount": -1500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": null,
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": true,
+          "is_child": false
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -1000,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        }
+      ],
+      "after": [
+        {
+          "id": "33340000-0000-4000-8000-000000000008",
+          "parent": false,
+          "amount": -1500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": null,
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": true,
+          "is_child": false
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -1000,
+          "notes": "Market",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "existing child stored fields",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "splitIndex": 1,
+            "template": "{{sort_order}}|{{is_parent}}|{{is_child}}|{{imported_id}}|{{raw_synced_data}}|{{tombstone}}|{{starting_balance_flag}}|{{notes}}|{{payee_name}}"
+          }
+        }
+      ],
+      "before": [
+        {
+          "id": "33340000-0000-4000-8000-000000000008",
+          "parent": false,
+          "amount": -1500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": null,
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": true,
+          "is_child": false
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -1000,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        }
+      ],
+      "after": [
+        {
+          "id": "33340000-0000-4000-8000-000000000008",
+          "parent": false,
+          "amount": -1500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": null,
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": true,
+          "is_child": false
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -1000,
+          "notes": "-1|false|true|child-source-reference|{\"memo\":\"historical child\"}|false|false||",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "existing child formula fields",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "splitIndex": 1,
+            "formula": "=CONCATENATE(sort_order,\"|\",IFERROR(is_parent,\"missing\"),\"|\",is_child,\"|\",IFERROR(imported_id,\"missing\"),\"|\",IFERROR(raw_synced_data,\"missing\"),\"|\",IFERROR(tombstone,\"missing\"),\"|\",starting_balance_flag)"
+          }
+        }
+      ],
+      "before": [
+        {
+          "id": "33340000-0000-4000-8000-000000000008",
+          "parent": false,
+          "amount": -1500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": null,
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": true,
+          "is_child": false
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -1000,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        }
+      ],
+      "after": [
+        {
+          "id": "33340000-0000-4000-8000-000000000008",
+          "parent": false,
+          "amount": -1500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": null,
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": true,
+          "is_child": false
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -1000,
+          "notes": "-1|FALSE|TRUE|child-source-reference|{\"memo\":\"historical child\"}|FALSE|FALSE",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "new child after existing children",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": 0,
+          "options": {
+            "splitIndex": 2,
+            "method": "fixed-amount"
+          }
+        },
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "splitIndex": 2,
+            "formula": "=CONCATENATE(sort_order,\"|\",IFERROR(is_parent,\"missing\"),\"|\",is_child,\"|\",IFERROR(imported_id,\"missing\"),\"|\",IFERROR(raw_synced_data,\"missing\"),\"|\",IFERROR(tombstone,\"missing\"),\"|\",starting_balance_flag)"
+          }
+        }
+      ],
+      "before": [
+        {
+          "id": "33340000-0000-4000-8000-000000000008",
+          "parent": false,
+          "amount": -1500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": null,
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": true,
+          "is_child": false
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -1000,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        }
+      ],
+      "after": [
+        {
+          "id": "33340000-0000-4000-8000-000000000008",
+          "parent": false,
+          "amount": -1500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": null,
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": true,
+          "is_child": false
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -1000,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": -500,
+          "notes": "",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        },
+        {
+          "id": "generated-child",
+          "parent": true,
+          "amount": 0,
+          "notes": "-2|missing|TRUE|missing|missing|missing|FALSE",
+          "date": "2026-11-07",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": null,
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": true,
+          "is_parent": false,
+          "is_child": true
+        }
+      ],
+      "error": null
+    }
+  ]
+}

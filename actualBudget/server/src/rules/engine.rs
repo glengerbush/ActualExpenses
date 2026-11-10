@@ -153,6 +153,13 @@ impl Runner {
         stored: bool,
     ) -> Result<(Value, Vec<String>), Error> {
         let mut row = input.clone();
+        if stored && let Some(children) = row.get_mut("children").and_then(Value::as_array_mut) {
+            // Stored child views carry display names; source child rows do not.
+            // Strip once before the chain so explicit later name actions survive.
+            for child in children {
+                child.as_object_mut().unwrap().remove("payee_name");
+            }
+        }
         if let Some(id) = input["payee_id"].as_str()
             && let Some(name) = super::expressions::payee_name(db, b, id)?
         {

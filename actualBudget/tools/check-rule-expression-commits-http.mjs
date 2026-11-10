@@ -6,9 +6,11 @@ import { startServer } from "../web/tests/server.mjs";
 const fixture = JSON.parse(
   await readFile(
     new URL(
-      process.argv.includes("--splits")
-        ? "../tests/fixtures/rule-expression-split-commits-source.json"
-        : "../tests/fixtures/rule-expression-commits-source.json",
+      process.argv.includes("--children")
+        ? "../tests/fixtures/rule-expression-child-commits-source.json"
+        : process.argv.includes("--splits")
+          ? "../tests/fixtures/rule-expression-split-commits-source.json"
+          : "../tests/fixtures/rule-expression-commits-source.json",
       import.meta.url,
     ),
   ),
@@ -99,7 +101,7 @@ for (const test of fixture.cases) {
                 value: "42420000-0000-4000-8000-000000009999",
               },
             ]
-          : fixture.rules[0].conditions,
+          : (fixture.conditions ?? fixture.rules[0].conditions),
       actions: test.actions,
     };
     const created = await call(root + "/rules", {

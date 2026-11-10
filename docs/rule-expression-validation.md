@@ -425,3 +425,47 @@ independent; manual/Android protection remains distinct from explicit applicatio
 42 remains open for existing-child metadata/context, nonfinite split diagnostics
 and cumulative evaluation/resource/performance qualification. No push/deployment
 or additional acceptance claim.
+
+## Existing split-child context checkpoint
+
+Four independently reproduced persisted operations now cover existing children:
+literal payee-name assignment followed by a formula, stored variables through
+templates and formulas, and a new child appended after existing children. A
+genuine source archive adds historical `imported_id` and `raw_synced_data` through
+`transactions-batch-update`, then verifies them by AQL before export. No SQLite
+state is manufactured. Original child order, null/absent variables and original
+parent references are observed from the real pinned engine.
+
+Initial native failures are `/tmp/rule-expression-children-red.log` and
+`/tmp/rule-expression-children-name-red.log`: child order used native display
+ordering, stored child metadata/flags were missing, display payee names leaked
+into child context, explicit later names could disappear, and applying a split
+rule cleared an already-split parent's payee. Corrections preserve the existing
+parent's references while retaining new-split behavior; fetch all child source
+metadata in one query; use original child order when appending; and remove display
+names once before the stored rule chain, preserving explicit subsequent actions.
+The write plan applies the same distinction as preview.
+
+Final source/API checks pass in `/tmp/rule-expression-children-source-check3.log`
+and `/tmp/rule-expression-children-final.log`. Each public operation checks exact
+persisted parent/child values, unchanged unrelated rows and idempotent replay.
+The new archive/expectations join the maintained source and API expression suites
+using `--children`; prior committed fixtures remain unchanged.
+
+Focused regression evidence:13 rule and13 split tests
+(`/tmp/rule-expression-children-rust.log`), eight calculated schedule scenarios
+(`/tmp/rule-expression-children-schedule.log`), both calculated budget-template
+methods (`/tmp/rule-expression-children-template.log`), six new-child/fractional
+write cases (`/tmp/rule-expression-children-new-regression.log`) and11 split/live
+preview cases (`/tmp/rule-expression-children-preview-regression.log`) pass.
+Warnings-denied Rust and changed-file formatting pass. Final root review against
+`a5e4ad5` removed per-action child preparation in favor of one preparation before
+the chain, avoiding loss of earlier actions' names. Metadata remains private to
+evaluation and financial fields still pass exact write validation.
+
+42 remains open for nonfinite split projection semantics and cumulative resource
+and performance qualification. Audit found that JavaScript time is shared by a
+normal rule command, but context SQL work is not included and schedule-based
+budget-template calls currently start independent expression budgets. These must
+be addressed and tested as42 work. No additional acceptance boxes closed, push or
+deployment.

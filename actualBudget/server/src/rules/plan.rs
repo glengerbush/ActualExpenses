@@ -639,11 +639,13 @@ pub(super) fn commit_with_work(
             }
             let mut fields = patch(&entry.before, &entry.after);
             fields.as_object_mut().unwrap().remove("category_id");
-            fields.as_object_mut().unwrap().remove("payee_id");
+            if entry.before["is_parent"] != true {
+                fields.as_object_mut().unwrap().remove("payee_id");
+            }
             sync::Mutation::Split(
                 id.to_owned(),
                 crate::splits::Change {
-                    clear_parent_references: true,
+                    clear_parent_references: entry.before["is_parent"] != true,
                     snapshot: sync::cursor(db, b)?,
                     action: crate::splits::Action::Replace,
                     children,

@@ -25,6 +25,7 @@ const require = createRequire(
 const root = new URL("../tests/fixtures/", import.meta.url),
   check = process.argv.includes("--check"),
   splitCases = process.argv.includes("--splits"),
+  childCases = process.argv.includes("--children"),
   sha = (b) => createHash("sha256").update(b).digest("hex");
 const source = JSON.parse(
     await readFile(
@@ -37,25 +38,109 @@ const source = JSON.parse(
     ),
   ),
   directory = await mkdtemp(tmpdir() + "/rule-expression-commits-");
-const subject = "42420000-0000-4000-8000-000000000099",
-  filename = "rule-expressions-saved-26.10.zip";
-const definitions = splitCases
-  ? source.cases.filter(
-      (c) =>
-        c.name.startsWith("fractional") ||
-        c.name === "generated child variables",
-    )
-  : [
-      "formula amount units",
-      "template numeric prefix",
-      "formula string numeric prefix",
-      "formula failure keeps later actions",
-      "split parent context",
-    ].map((name) => source.cases.find((c) => c.name === name));
+const subject = childCases
+    ? "33340000-0000-4000-8000-000000000008"
+    : "42420000-0000-4000-8000-000000000099",
+  filename = childCases
+    ? "rule-expression-children-saved-26.10.zip"
+    : "rule-expressions-saved-26.10.zip";
+const childNotes = (splitIndex, options) => ({
+  op: "set",
+  field: "notes",
+  value: "",
+  options: { splitIndex, ...options },
+});
+const definitions = childCases
+  ? [
+      {
+        name: "existing child explicit payee name remains visible",
+        actions: [
+          {
+            op: "set",
+            field: "payee_name",
+            value: "Market",
+            options: { splitIndex: 1 },
+          },
+          childNotes(1, { formula: "=payee_name" }),
+        ],
+      },
+      {
+        name: "existing child stored fields",
+        actions: [
+          childNotes(1, {
+            template:
+              "{{sort_order}}|{{is_parent}}|{{is_child}}|{{imported_id}}|{{raw_synced_data}}|{{tombstone}}|{{starting_balance_flag}}|{{notes}}|{{payee_name}}",
+          }),
+        ],
+      },
+      {
+        name: "existing child formula fields",
+        actions: [
+          childNotes(1, {
+            formula:
+              '=CONCATENATE(sort_order,"|",IFERROR(is_parent,"missing"),"|",is_child,"|",IFERROR(imported_id,"missing"),"|",IFERROR(raw_synced_data,"missing"),"|",IFERROR(tombstone,"missing"),"|",starting_balance_flag)',
+          }),
+        ],
+      },
+      {
+        name: "new child after existing children",
+        actions: [
+          {
+            op: "set-split-amount",
+            value: 0,
+            options: { splitIndex: 2, method: "fixed-amount" },
+          },
+          childNotes(2, {
+            formula:
+              '=CONCATENATE(sort_order,"|",IFERROR(is_parent,"missing"),"|",is_child,"|",IFERROR(imported_id,"missing"),"|",IFERROR(raw_synced_data,"missing"),"|",IFERROR(tombstone,"missing"),"|",starting_balance_flag)',
+          }),
+        ],
+      },
+    ].map((test) => ({ ...test, transaction: source.cases[0].transaction }))
+  : splitCases
+    ? source.cases.filter(
+        (c) =>
+          c.name.startsWith("fractional") ||
+          c.name === "generated child variables",
+      )
+    : [
+        "formula amount units",
+        "template numeric prefix",
+        "formula string numeric prefix",
+        "formula failure keeps later actions",
+        "split parent context",
+      ].map((name) => source.cases.find((c) => c.name === name));
 try {
   const engine = await api.init({ dataDir: directory });
   let bytes;
-  if (check || splitCases) bytes = await readFile(new URL(filename, root));
+  if (childCases && !check) {
+    const seed = await readFile(new URL(source.seed.filename, root));
+    assert.equal(sha(seed), source.seed.sha256);
+    await api.importBudget(seed, { filename: source.seed.filename });
+    const metadata = {
+      id: "33340000-0000-4000-8000-000000000010",
+      imported_id: "child-source-reference",
+      raw_synced_data: '{"memo":"historical child"}',
+    };
+    await engine.send("transactions-batch-update", {
+      updated: [metadata],
+      learnCategories: false,
+    });
+    const saved = (
+      await api.aqlQuery(
+        api
+          .q("transactions")
+          .options({ splits: "all" })
+          .filter({ id: metadata.id })
+          .select("*"),
+      )
+    ).data[0];
+    for (const key of ["imported_id", "raw_synced_data"])
+      assert.equal(saved[key], metadata[key]);
+    bytes = await api.exportBudget();
+    await writeFile(new URL(filename, root), bytes, { flag: "wx" });
+  } else if (check || splitCases)
+    bytes = await readFile(new URL(filename, root));
   else {
     bytes = await readFile(new URL(source.seed.filename, root));
     assert.equal(sha(bytes), source.seed.sha256);
@@ -153,12 +238,25 @@ try {
     archive: { filename, sha256: sha(bytes) },
     subject,
     rules: savedRules,
+    ...(childCases
+      ? {
+          conditions: [
+            {
+              field: "account",
+              op: "is",
+              value: source.cases[0].transaction.account,
+            },
+          ],
+        }
+      : {}),
     cases,
   };
   const file = new URL(
-    splitCases
-      ? "rule-expression-split-commits-source.json"
-      : "rule-expression-commits-source.json",
+    childCases
+      ? "rule-expression-child-commits-source.json"
+      : splitCases
+        ? "rule-expression-split-commits-source.json"
+        : "rule-expression-commits-source.json",
     root,
   );
   if (check) assert.deepEqual(result, JSON.parse(await readFile(file)));

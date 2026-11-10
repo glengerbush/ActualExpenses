@@ -315,7 +315,9 @@ pub fn apply(
     });
     let original_payee = row["payee_id"].clone();
     let parent_context = row.clone();
-    row["payee_id"] = Value::Null;
+    if row["is_parent"] != true {
+        row["payee_id"] = Value::Null;
+    }
     for a in &child_actions {
         let index = a["options"]["splitIndex"].as_u64().unwrap() as usize;
         while children.len() <= index {
@@ -333,7 +335,12 @@ pub fn apply(
             ]);
             let order = children
                 .last()
-                .and_then(|c| c["sort_order"].as_f64())
+                .and_then(|c| {
+                    expressions
+                        .as_deref()
+                        .map(|context| context.child_order(c))
+                        .unwrap_or_else(|| c["sort_order"].as_f64())
+                })
                 .unwrap_or(0.0)
                 - 1.0;
             children.push(child(&row, payee, id, order));

@@ -1,0 +1,935 @@
+{
+  "oracle": "@actual-app/api26.10 actual q/aqlQuery over reviewed genuine archives",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-01T12:00:00Z",
+  "engine_entry_sha256": "fdfed936dac6ba6dc411bac27f94237a90c8cb0ea047a5d9d0d8a5d21ea9aa56",
+  "sets": [
+    {
+      "id": "types",
+      "archive": {
+        "filename": "transaction-export-base-26.10.zip",
+        "sha256": "21b1b822a1c2676fcabeae288a0156013b9f4ccf89130eac8ede991a00adc2fd"
+      },
+      "financial": [
+        {
+          "id": "25300000-0000-4000-8000-000000000001",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "amount": -1234,
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "notes": "=SUM(A1:A2)",
+          "date": "2026-11-09",
+          "imported_id": null,
+          "error": null,
+          "imported_payee": null,
+          "starting_balance_flag": false,
+          "transfer_id": null,
+          "sort_order": 1794225600000,
+          "cleared": true,
+          "reconciled": false,
+          "tombstone": false,
+          "schedule": null,
+          "raw_synced_data": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000002",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "amount": 500,
+          "payee": "cf8e8de4-01b2-4b13-8847-bb2003a4505b",
+          "notes": "first line\nsecond \"line\"",
+          "date": "2026-11-08",
+          "imported_id": null,
+          "error": null,
+          "imported_payee": null,
+          "starting_balance_flag": false,
+          "transfer_id": null,
+          "sort_order": 1794225598976,
+          "cleared": true,
+          "reconciled": true,
+          "tombstone": false,
+          "schedule": null,
+          "raw_synced_data": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000003",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "category": null,
+          "amount": 0,
+          "payee": null,
+          "notes": "\t=literal",
+          "date": "2026-11-07",
+          "imported_id": null,
+          "error": null,
+          "imported_payee": null,
+          "starting_balance_flag": false,
+          "transfer_id": null,
+          "sort_order": 1794225597952,
+          "cleared": false,
+          "reconciled": false,
+          "tombstone": false,
+          "schedule": null,
+          "raw_synced_data": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000004",
+          "is_parent": true,
+          "is_child": false,
+          "parent_id": null,
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "category": null,
+          "amount": -101,
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "notes": "Parent, note",
+          "date": "2026-11-06",
+          "imported_id": null,
+          "error": null,
+          "imported_payee": null,
+          "starting_balance_flag": false,
+          "transfer_id": null,
+          "sort_order": 1794225596928,
+          "cleared": true,
+          "reconciled": false,
+          "tombstone": false,
+          "schedule": null,
+          "raw_synced_data": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000005",
+          "is_parent": false,
+          "is_child": true,
+          "parent_id": "25300000-0000-4000-8000-000000000004",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "amount": -40,
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "notes": "first allocation",
+          "date": "2026-11-06",
+          "imported_id": null,
+          "error": null,
+          "imported_payee": null,
+          "starting_balance_flag": false,
+          "transfer_id": null,
+          "sort_order": 0,
+          "cleared": true,
+          "reconciled": false,
+          "tombstone": false,
+          "schedule": null,
+          "raw_synced_data": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000006",
+          "is_parent": false,
+          "is_child": true,
+          "parent_id": "25300000-0000-4000-8000-000000000004",
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "category": "ceda7a7f-fc7e-4913-9799-7d52e3e42f1f",
+          "amount": -61,
+          "payee": "47e20204-61e8-485b-9e33-98721816eed1",
+          "notes": "@second allocation",
+          "date": "2026-11-06",
+          "imported_id": null,
+          "error": null,
+          "imported_payee": null,
+          "starting_balance_flag": false,
+          "transfer_id": null,
+          "sort_order": -1,
+          "cleared": true,
+          "reconciled": false,
+          "tombstone": false,
+          "schedule": null,
+          "raw_synced_data": null
+        },
+        {
+          "id": "25300000-0000-4000-8000-000000000007",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+          "category": "6b7e4f01-1f93-4dff-9033-6a9915519035",
+          "amount": -200,
+          "payee": "c2ffa73e-8563-4b34-aeaf-341aee8bf2a8",
+          "notes": "\rTransfer note",
+          "date": "2026-11-05",
+          "imported_id": null,
+          "error": null,
+          "imported_payee": null,
+          "starting_balance_flag": false,
+          "transfer_id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "sort_order": 1794225600000,
+          "cleared": true,
+          "reconciled": false,
+          "tombstone": false,
+          "schedule": null,
+          "raw_synced_data": null
+        },
+        {
+          "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa",
+          "is_parent": false,
+          "is_child": false,
+          "parent_id": null,
+          "account": "0920450a-b9e3-48a6-9b96-89f9d32717fe",
+          "category": null,
+          "amount": 200,
+          "payee": "860a4868-6b4c-404f-8c0c-770bd733cd72",
+          "notes": "\rTransfer note",
+          "date": "2026-11-05",
+          "imported_id": null,
+          "error": null,
+          "imported_payee": null,
+          "starting_balance_flag": false,
+          "transfer_id": "25300000-0000-4000-8000-000000000007",
+          "sort_order": 1794225600000,
+          "cleared": false,
+          "reconciled": false,
+          "tombstone": false,
+          "schedule": null,
+          "raw_synced_data": null
+        }
+      ],
+      "cases": [
+        {
+          "id": "month-literal",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [],
+            "selectExpressions": [
+              {
+                "month": {
+                  "$month": "2026-11-05"
+                }
+              }
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": 1,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [
+            {
+              "month": "2026-11",
+              "id": "25300000-0000-4000-8000-000000000001"
+            }
+          ]
+        },
+        {
+          "id": "year-literal",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [],
+            "selectExpressions": [
+              {
+                "year": {
+                  "$year": "2026"
+                }
+              }
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": 1,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [
+            {
+              "year": "2026",
+              "id": "25300000-0000-4000-8000-000000000001"
+            }
+          ]
+        },
+        {
+          "id": "month-notes",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [],
+            "selectExpressions": [
+              {
+                "month": {
+                  "$month": "$notes"
+                }
+              }
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": 1,
+            "offset": null,
+            "table": "transactions"
+          },
+          "error": {
+            "type": "Error",
+            "message": "Bad date-month format: v_transactions_internal_alive.notes\n\nExpression stack:\n  {\"$month\":\"$notes\"}\n  select({\"month\":{\"$month\":\"$notes\"}})"
+          }
+        },
+        {
+          "id": "month-invalid-literal",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [],
+            "selectExpressions": [
+              {
+                "month": {
+                  "$month": "wrong"
+                }
+              }
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": 1,
+            "offset": null,
+            "table": "transactions"
+          },
+          "error": {
+            "type": "Error",
+            "message": "Bad date-month format: wrong\n\nExpression stack:\n  {\"$month\":\"wrong\"}\n  select({\"month\":{\"$month\":\"wrong\"}})"
+          }
+        },
+        {
+          "id": "date-year",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "date": "2026"
+              }
+            ],
+            "selectExpressions": [
+              "id"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "error": {
+            "type": "Error",
+            "message": "Bad date format: 2026\n\nExpression stack:\n  {\"date\":{\"$eq\":\"2026\"}}\n  filter({\"date\":\"2026\"})"
+          }
+        },
+        {
+          "id": "date-month",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "date": "2026-11"
+              }
+            ],
+            "selectExpressions": [
+              "id"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "error": {
+            "type": "Error",
+            "message": "Bad date format: 2026-11\n\nExpression stack:\n  {\"date\":{\"$eq\":\"2026-11\"}}\n  filter({\"date\":\"2026-11\"})"
+          }
+        },
+        {
+          "id": "date-day",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "date": "2026-11-05"
+              }
+            ],
+            "selectExpressions": [
+              "id"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [
+            {
+              "id": "25300000-0000-4000-8000-000000000007"
+            },
+            {
+              "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa"
+            }
+          ]
+        },
+        {
+          "id": "date-month-gte",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "date": {
+                  "$gte": "2026-11"
+                }
+              }
+            ],
+            "selectExpressions": [
+              "id"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "error": {
+            "type": "Error",
+            "message": "Bad date format: 2026-11\n\nExpression stack:\n  {\"date\":{\"$gte\":\"2026-11\"}}\n  filter({\"date\":{\"$gte\":\"2026-11\"}})"
+          }
+        },
+        {
+          "id": "date-invalid",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "date": "2026-13-40"
+              }
+            ],
+            "selectExpressions": [
+              "id"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": []
+        },
+        {
+          "id": "date-number",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "date": 20261105
+              }
+            ],
+            "selectExpressions": [
+              "id"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "error": {
+            "type": "Error",
+            "message": "Can't cast integer to date\n\nExpression stack:\n  {\"date\":{\"$eq\":20261105}}\n  filter({\"date\":20261105})"
+          }
+        },
+        {
+          "id": "boolean-null",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "cleared": null
+              }
+            ],
+            "selectExpressions": [
+              "id"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [
+            {
+              "id": "25300000-0000-4000-8000-000000000003"
+            },
+            {
+              "id": "fb6f3831-ddc5-48c2-924a-ae03c082eaaa"
+            }
+          ]
+        },
+        {
+          "id": "boolean-ne-null",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "cleared": {
+                  "$ne": null
+                }
+              }
+            ],
+            "selectExpressions": [
+              "id"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [
+            {
+              "id": "25300000-0000-4000-8000-000000000001"
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000002"
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000005"
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000006"
+            },
+            {
+              "id": "25300000-0000-4000-8000-000000000007"
+            }
+          ]
+        },
+        {
+          "id": "boolean-zero",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "cleared": 0
+              }
+            ],
+            "selectExpressions": [
+              "id"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "error": {
+            "type": "Error",
+            "message": "Can't convert integer to boolean\n\nExpression stack:\n  {\"cleared\":{\"$eq\":0}}\n  filter({\"cleared\":0})"
+          }
+        },
+        {
+          "id": "boolean-text",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "cleared": "false"
+              }
+            ],
+            "selectExpressions": [
+              "id"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "error": {
+            "type": "Error",
+            "message": "Can't convert string to boolean\n\nExpression stack:\n  {\"cleared\":{\"$eq\":\"false\"}}\n  filter({\"cleared\":\"false\"})"
+          }
+        },
+        {
+          "id": "id-number",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "id": 1
+              }
+            ],
+            "selectExpressions": [
+              "id"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "error": {
+            "type": "Error",
+            "message": "Can't convert integer to id\n\nExpression stack:\n  {\"id\":{\"$eq\":1}}\n  filter({\"id\":1})"
+          }
+        },
+        {
+          "id": "amount-string",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "amount": "1234"
+              }
+            ],
+            "selectExpressions": [
+              "id"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "error": {
+            "type": "Error",
+            "message": "Can't convert string to integer\n\nExpression stack:\n  {\"amount\":{\"$eq\":\"1234\"}}\n  filter({\"amount\":\"1234\"})"
+          }
+        },
+        {
+          "id": "lower-id",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [],
+            "selectExpressions": [
+              {
+                "text": {
+                  "$lower": "$id"
+                }
+              }
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "error": {
+            "type": "Error",
+            "message": "Can't convert id to string\n\nExpression stack:\n  {\"$lower\":\"$id\"}\n  select({\"text\":{\"$lower\":\"$id\"}})"
+          }
+        },
+        {
+          "id": "lower-date",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [],
+            "selectExpressions": [
+              {
+                "text": {
+                  "$lower": "$date"
+                }
+              }
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "error": {
+            "type": "Error",
+            "message": "Can't convert date to string\n\nExpression stack:\n  {\"$lower\":\"$date\"}\n  select({\"text\":{\"$lower\":\"$date\"}})"
+          }
+        },
+        {
+          "id": "substr-number",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [],
+            "selectExpressions": [
+              {
+                "text": {
+                  "$substr": [
+                    "$amount",
+                    1,
+                    2
+                  ]
+                }
+              }
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "error": {
+            "type": "Error",
+            "message": "Can't convert integer to string\n\nExpression stack:\n  {\"$substr\":[\"$amount\",1,2]}\n  select({\"text\":{\"$substr\":[\"$amount\",1,2]}})"
+          }
+        },
+        {
+          "id": "scalar-aggregate",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [],
+            "selectExpressions": [
+              {
+                "result": {
+                  "$abs": {
+                    "$sum": "$amount"
+                  }
+                }
+              }
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [],
+            "calculation": true,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": 835
+        },
+        {
+          "id": "group-order-aggregate",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [],
+            "selectExpressions": [
+              "account",
+              {
+                "total": {
+                  "$sum": "$amount"
+                }
+              }
+            ],
+            "groupExpressions": [
+              "account"
+            ],
+            "orderExpressions": [
+              {
+                "$sum": "$amount"
+              }
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": [
+            {
+              "account": "f0501cb5-e909-4ab1-9e85-1f69bac5ab6e",
+              "total": -1035
+            },
+            {
+              "account": "0920450a-b9e3-48a6-9b96-89f9d32717fe",
+              "total": 200
+            }
+          ]
+        },
+        {
+          "id": "date-membership",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "date": {
+                  "$oneof": [
+                    "2026-11",
+                    "2026-11-05"
+                  ]
+                }
+              }
+            ],
+            "selectExpressions": [
+              "id"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": []
+        },
+        {
+          "id": "boolean-membership",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "cleared": {
+                  "$oneof": [
+                    null,
+                    true
+                  ]
+                }
+              }
+            ],
+            "selectExpressions": [
+              "id"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "data": []
+        },
+        {
+          "id": "boolean-like",
+          "query": {
+            "tableOptions": {},
+            "filterExpressions": [
+              {
+                "cleared": {
+                  "$like": "true"
+                }
+              }
+            ],
+            "selectExpressions": [
+              "id"
+            ],
+            "groupExpressions": [],
+            "orderExpressions": [
+              "id"
+            ],
+            "calculation": false,
+            "rawMode": false,
+            "withDead": false,
+            "validateRefs": true,
+            "limit": null,
+            "offset": null,
+            "table": "transactions"
+          },
+          "error": {
+            "type": "Error",
+            "message": "Can't convert boolean to string\n\nExpression stack:\n  {\"cleared\":{\"$like\":\"true\"}}\n  filter({\"cleared\":{\"$like\":\"true\"}})"
+          }
+        }
+      ]
+    }
+  ]
+}

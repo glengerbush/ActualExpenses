@@ -1,4 +1,5 @@
 //! Validated read-only automation queries. Data never becomes SQL identifiers.
+mod resources;
 use crate::{error::Error, store::Store};
 use axum::{
     Json, Router,
@@ -103,7 +104,7 @@ pub fn router() -> Router<Store> {
 }
 async fn capabilities() -> Json<Value> {
     Json(
-        json!({"data":{"version":1,"tables":["transactions","notes"],"splits":["inline","grouped","all","none"],"max_rows":100000,"max_page":1000,"max_depth":8,"max_nodes":256}}),
+        json!({"data":{"version":1,"tables":["transactions","accounts","account_groups","payees","categories","category_groups","rules","schedules","notes","budget_cells"],"resource_profiles":resources::catalog(),"splits":["inline","grouped","all","none"],"max_rows":100000,"max_page":1000,"max_depth":8,"max_nodes":256,"max_bound_values":500,"max_reference_depth":4,"max_emitted_rows":10000,"max_emitted_values":100000,"max_response_bytes":4194304,"max_work_steps":2000000,"max_text_work_bytes":67108864,"functions":["$sum","$count","$sumOver","$substr","$lower","$neg","$abs","$idiv","$id","$day","$month","$year","$condition","$nocase","$literal"],"operators":["$eq","$ne","$lt","$lte","$gt","$gte","$oneof","$like","$notlike","$regexp"],"boolean_operators":["$and","$or"],"pagination":"Supply the original snapshot for every continuation to refuse intervening edits. Without snapshot, each page is a new read."}}),
     )
 }
 async fn query(
@@ -131,6 +132,9 @@ enum Kind {
     Integer,
     Boolean,
     Json,
+    Date,
+    Month,
+    Year,
 }
 #[derive(Clone)]
 struct Expr {
@@ -154,6 +158,7 @@ struct Compiler<'a> {
     values: Vec<SqlValue>,
     orders: String,
     nodes: usize,
+    order_aggregate: bool,
 }
 const JOINS: &str = "FROM transactions t JOIN accounts a ON a.budget_id=t.budget_id AND a.id=t.account_id LEFT JOIN payees p ON p.budget_id=t.budget_id AND p.id=t.payee_id AND p.tombstone=0 LEFT JOIN accounts y ON y.budget_id=p.budget_id AND y.id=p.transfer_account_id LEFT JOIN categories c ON c.budget_id=t.budget_id AND c.id=t.category_id AND c.tombstone=0 LEFT JOIN category_groups g ON g.budget_id=c.budget_id AND g.id=c.group_id AND g.tombstone=0";
 fn quote(name: &str) -> Result<String, Error> {
@@ -203,6 +208,9 @@ impl Compiler<'_> {
             };
         }
 
+        if self.q.table != "transactions" {
+            return resources::field(&self.q.table, name, self.q.validate_refs);
+        }
         let (sql, kind) = match name {
             "id" => ("t.id", Kind::Id),
             "account" => ("t.account_id", Kind::Id),
@@ -223,7 +231,7 @@ impl Compiler<'_> {
                 Kind::Id,
             ),
             "amount" => ("t.amount", Kind::Money),
-            "date" => ("t.date", Kind::Text),
+            "date" => ("t.date", Kind::Date),
             "notes" => ("t.notes", Kind::Text),
             "is_parent" => ("t.is_parent", Kind::Boolean),
             "is_child" => ("(t.parent_id IS NOT NULL)", Kind::Boolean),
@@ -235,6 +243,18 @@ impl Compiler<'_> {
             "tombstone" => ("t.tombstone", Kind::Boolean),
             "error" => ("NULL", Kind::Json),
             "imported_payee" => ("t.imported_payee", Kind::Text),
+            "imported_id" => (
+                "(SELECT im.imported_id FROM transaction_import_metadata im WHERE im.budget_id=t.budget_id AND im.id=t.id AND im.tombstone=0)",
+                Kind::Text,
+            ),
+            "raw_synced_data" => (
+                "(SELECT im.raw_synced_data FROM transaction_import_metadata im WHERE im.budget_id=t.budget_id AND im.id=t.id AND im.tombstone=0)",
+                Kind::Json,
+            ),
+            "schedule" => (
+                "(SELECT sl.schedule_id FROM schedule_links sl JOIN schedules qs ON qs.budget_id=sl.budget_id AND qs.id=sl.schedule_id AND qs.tombstone=0 WHERE sl.budget_id=t.budget_id AND sl.id=t.id AND sl.tombstone=0)",
+                Kind::Id,
+            ),
             "account.name" => ("a.name", Kind::Text),
             "account.offbudget" => ("a.off_budget", Kind::Boolean),
             "account.closed" => ("a.closed", Kind::Boolean),
@@ -246,7 +266,20 @@ impl Compiler<'_> {
             "category.group.name" => ("g.name", Kind::Text),
             "category.group.hidden" => ("g.hidden", Kind::Boolean),
             "category.group.is_income" => ("g.is_income", Kind::Boolean),
-            _ => return Err(invalid(format!("Unknown transactions field: {name}"))),
+            _ => {
+                if let Some((head, path)) = name.split_once('.') {
+                    let resource = match head {
+                        "account" => Some(("accounts", "a")),
+                        "payee" => Some(("payees", "p")),
+                        "category" => Some(("categories", "c")),
+                        _ => None,
+                    };
+                    if let Some((table, alias)) = resource {
+                        return resources::resolve(table, alias, path, self.q.validate_refs, 0);
+                    }
+                }
+                return Err(invalid(format!("Unknown transactions field: {name}")));
+            }
         };
         Ok(Expr::new(sql, kind))
     }
@@ -299,11 +332,42 @@ impl Compiler<'_> {
             if !required.contains(&n) {
                 return Err(invalid(format!("Wrong argument count for {name}")));
             }
-            if values.iter().any(|e| e.aggregate || e.window) {
+            if matches!(name.as_str(), "$sum" | "$sumOver" | "$count")
+                && values.iter().any(|e| e.aggregate || e.window)
+            {
                 return Err(invalid("Nested aggregate expressions are not supported"));
             }
             let e = &values[0];
+            if matches!(name.as_str(), "$day" | "$month" | "$year") && values[0].kind == Kind::Text
+            {
+                let literal = args[0]
+                    .as_str()
+                    .filter(|s| !s.starts_with('$'))
+                    .or_else(|| args[0].get("$literal").and_then(Value::as_str))
+                    .ok_or_else(|| {
+                        invalid("Calendar conversion requires a date field or literal date")
+                    })?;
+                let lengths: &[usize] = match name.as_str() {
+                    "$day" => &[10],
+                    "$month" => &[7, 10],
+                    _ => &[4, 7, 10],
+                };
+                if !lengths.contains(&literal.len())
+                    || literal.bytes().enumerate().any(|(i, c)| {
+                        if i == 4 || i == 7 {
+                            c != b'-'
+                        } else {
+                            !c.is_ascii_digit()
+                        }
+                    })
+                {
+                    return Err(invalid("Calendar literal has incorrect date format"));
+                }
+            }
+
             let mut result = Expr::new("", e.kind);
+            result.aggregate = values.iter().any(|e| e.aggregate);
+            result.window = values.iter().any(|e| e.window);
             result.sql = match name.as_str() {
                 "$sum" | "$sumOver" => {
                     if !matches!(e.kind, Kind::Money | Kind::Integer) {
@@ -340,10 +404,16 @@ impl Compiler<'_> {
                     }
                 }
                 "$lower" => {
+                    if e.kind != Kind::Text {
+                        return Err(invalid("Lower requires text"));
+                    }
                     result.kind = Kind::Text;
                     format!("query_lower({})", e.sql)
                 }
                 "$substr" => {
+                    if e.kind != Kind::Text || values[1..].iter().any(|e| e.kind != Kind::Integer) {
+                        return Err(invalid("Substring requires text and integer positions"));
+                    }
                     result.kind = Kind::Text;
                     format!(
                         "substr({})",
@@ -355,15 +425,36 @@ impl Compiler<'_> {
                     )
                 }
                 "$year" | "$month" => {
-                    result.kind = Kind::Text;
+                    if !matches!(e.kind, Kind::Date | Kind::Month | Kind::Text)
+                        && !(name == "$year" && e.kind == Kind::Year)
+                    {
+                        return Err(invalid("Calendar functions require dates"));
+                    }
+                    result.kind = if name == "$year" {
+                        Kind::Year
+                    } else {
+                        Kind::Month
+                    };
                     format!(
                         "substr({},1,{})",
                         e.sql,
                         if name == "$year" { 4 } else { 7 }
                     )
                 }
-                "$day" | "$id" => e.sql.clone(),
-                "$nocase" => format!("({} COLLATE NOCASE)", e.sql),
+                "$day" => {
+                    if !matches!(e.kind, Kind::Date | Kind::Text) {
+                        return Err(invalid("Day requires a calendar date"));
+                    }
+                    result.kind = Kind::Date;
+                    e.sql.clone()
+                }
+                "$id" => e.sql.clone(),
+                "$nocase" => {
+                    if e.kind != Kind::Text {
+                        return Err(invalid("Nocase requires text"));
+                    }
+                    format!("({} COLLATE NOCASE)", e.sql)
+                }
                 _ => return Err(invalid(format!("Unknown query function: {name}"))),
             };
             return Ok(result);
@@ -452,6 +543,18 @@ impl Compiler<'_> {
         } else {
             ("$eq", value)
         };
+        if left.kind == Kind::Json && !right.is_null() {
+            return Err(invalid(
+                "Structured JSON supports null checks only; use typed feature routes for structured predicates",
+            ));
+        }
+        if right.is_null() && left.kind == Kind::Boolean {
+            return match op {
+                "$eq" => Ok(format!("{}=0", left.sql)),
+                "$ne" => Ok(format!("({}!=0 OR {} IS NULL)", left.sql, left.sql)),
+                _ => Err(invalid("Null supports equality/inequality only")),
+            };
+        }
         if right.is_null() {
             return match op {
                 "$eq" => Ok(format!("{} IS NULL", left.sql)),
@@ -465,15 +568,35 @@ impl Compiler<'_> {
                 .ok_or_else(|| invalid("Membership needs an array"))?;
             let values = a
                 .iter()
-                .map(|v| self.bind(v))
+                .map(|v| {
+                    let text = match v {
+                        Value::String(s) => s.clone(),
+                        Value::Null => "null".into(),
+                        Value::Bool(b) => b.to_string(),
+                        Value::Number(n) => n.to_string(),
+                        _ => return Err(invalid("Membership requires scalar values")),
+                    };
+                    self.bind(&json!(text))
+                })
                 .collect::<Result<Vec<_>, _>>()?;
             return Ok(if values.is_empty() {
                 "0".into()
             } else {
-                format!("{} IN({})", left.sql, values.join(","))
+                format!(
+                    "{} IN({})",
+                    if left.kind == Kind::Date {
+                        format!("replace({},'-','')", left.sql)
+                    } else {
+                        left.sql.clone()
+                    },
+                    values.join(",")
+                )
             });
         }
         if matches!(op, "$like" | "$notlike" | "$regexp") {
+            if left.kind != Kind::Text {
+                return Err(invalid("Pattern predicates require text"));
+            }
             let pattern = right
                 .as_str()
                 .ok_or_else(|| invalid("Pattern must be text"))?;
@@ -516,8 +639,43 @@ impl Compiler<'_> {
             "$gte" => ">=",
             _ => return Err(invalid(format!("Unknown query operator: {op}"))),
         };
-        if left.kind == Kind::Money && right.as_i64().is_none() {
-            return Err(invalid("Amount predicates require exact minor units"));
+        match left.kind {
+            Kind::Money | Kind::Integer if right.as_i64().is_none() => {
+                return Err(invalid("Numeric predicates require exact integers"));
+            }
+            Kind::Boolean if !right.is_boolean() => {
+                return Err(invalid("Boolean predicates require boolean literals"));
+            }
+            Kind::Text | Kind::Id if !right.is_string() => {
+                return Err(invalid("Text/ID predicates require text literals"));
+            }
+            Kind::Json => {
+                return Err(invalid(
+                    "Structured JSON supports null checks only; query its typed feature route for structured predicates",
+                ));
+            }
+            Kind::Date | Kind::Month | Kind::Year => {
+                let text = right
+                    .as_str()
+                    .ok_or_else(|| invalid("Calendar predicates require text dates"))?;
+                let len = match left.kind {
+                    Kind::Date => 10,
+                    Kind::Month => 7,
+                    _ => 4,
+                };
+                if text.len() != len
+                    || text.bytes().enumerate().any(|(i, c)| {
+                        if i == 4 || i == 7 {
+                            c != b'-'
+                        } else {
+                            !c.is_ascii_digit()
+                        }
+                    })
+                {
+                    return Err(invalid("Calendar literal has incorrect date granularity"));
+                }
+            }
+            _ => {}
         }
         let parameter = self.bind(right)?;
         Ok(if op == "$ne" {
@@ -549,14 +707,15 @@ impl Compiler<'_> {
                     "asc",
                 )
             };
-            if expr.window || expr.aggregate {
+            if expr.window || expr.kind == Kind::Json {
                 return Err(invalid(
-                    "Order expressions require row-level scalar functions",
+                    "Order expressions cannot use windows or structured JSON",
                 ));
             }
+            self.order_aggregate |= expr.aggregate;
             terms.push(format!("{} {direction}", expr.sql));
         }
-        if terms.is_empty() && self.q.table == "notes" {
+        if terms.is_empty() && self.q.table != "transactions" {
             return Ok("t.id ASC".into());
         }
         if terms.is_empty() {
@@ -644,7 +803,7 @@ fn run(
 ) -> Result<Value, Error> {
     crate::store::require_budget(db, b)?;
     crate::concurrency::check_snapshot(db, b, q.snapshot.as_deref())?;
-    if q.version != 1 || !["transactions", "notes"].contains(&q.table.as_str()) {
+    if q.version != 1 || !resources::supported(&q.table) {
         return Err(invalid("Unsupported query version/table"));
     }
     if q.limit == 0
@@ -659,15 +818,18 @@ fn run(
         ));
     }
     let joins = if q.table == "notes" {
-        crate::notes::QUERY_FROM
+        crate::notes::QUERY_FROM.to_owned()
+    } else if q.table == "transactions" {
+        JOINS.to_owned()
     } else {
-        JOINS
+        resources::from(&q.table)?
     };
     let mut c = Compiler {
         q,
         values: vec![SqlValue::Text(b.into())],
         orders: String::new(),
         nodes: 0,
+        order_aggregate: false,
     };
     c.orders = c.order()?;
     if q.calculation && q.select.len() != 1 {
@@ -680,6 +842,22 @@ fn run(
     } else {
         q.select.clone()
     };
+    let selection = selection
+        .into_iter()
+        .flat_map(|v| {
+            if v.as_str() == Some("*") {
+                resources::names(&q.table)
+                    .into_iter()
+                    .map(|s| json!(s))
+                    .collect::<Vec<_>>()
+            } else {
+                vec![v]
+            }
+        })
+        .collect::<Vec<_>>();
+    if selection.len() > 32 {
+        return Err(invalid("Expanded selection exceeds32 fields"));
+    }
     for v in selection {
         let (name, expr) = if let Some(field) = v.as_str() {
             (field.to_owned(), c.field(field)?)
@@ -698,6 +876,11 @@ fn run(
         projected.push((name, alias, expr));
     }
     let aggregate = projected.iter().any(|(_, _, e)| e.aggregate) || !q.group_by.is_empty();
+    if c.order_aggregate && !aggregate {
+        return Err(invalid(
+            "Aggregate ordering requires an aggregate/grouped query",
+        ));
+    }
     let filters = q
         .filter
         .iter()
@@ -723,7 +906,7 @@ fn run(
     } else {
         format!(
             "{base} AND ({filter}) AND {}",
-            if q.table == "notes" {
+            if q.table != "transactions" {
                 "1"
             } else {
                 match q.splits {
@@ -745,7 +928,10 @@ fn run(
             }
         })
         .collect::<Result<Vec<_>, _>>()?;
-    if groups.iter().any(|e| e.aggregate || e.window) {
+    if groups
+        .iter()
+        .any(|e| e.aggregate || e.window || e.kind == Kind::Json)
+    {
         return Err(invalid(
             "Group expressions require row-level scalar functions",
         ));

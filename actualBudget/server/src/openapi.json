@@ -19165,12 +19165,18 @@
             }
           },
           "400": {
-            "description": "Invalid request; no financial mutation",
+            "description": "Invalid request; no financial mutation. Missing or malformed filename query extraction may return plain text; domain validation returns the JSON error envelope.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Failed to deserialize query string: missing field `filename`"
               }
             }
           },
@@ -19478,7 +19484,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Read-only source parser. When omitted, options.has_header_row and options.import_notes default to false on this raw parse route; review/preview/commit options instead default both to true. Raw parser errors are returned as a successful JSON envelope with empty transactions and errors, without format."
       }
     },
     "/api/v1/budgets/{budget}/transaction-imports/{id}/preview": {

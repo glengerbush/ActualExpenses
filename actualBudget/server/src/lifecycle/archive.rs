@@ -1020,6 +1020,7 @@ pub fn install_tables(db: &Connection, archive: &Validated) -> Result<(), Error>
     if archive.legacy_notes {
         crate::notes::enrich(db, archive.state.budget["id"].as_str())?;
     }
+    crate::banking::import::enrich(db, archive.state.budget["id"].as_str())?;
     if archive.legacy_category_metadata {
         crate::categories::enrich_legacy_imports(db, archive.state.budget["id"].as_str())?;
     }

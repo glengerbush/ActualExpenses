@@ -1,6 +1,7 @@
 //! Provider-neutral connection custody and SimpleFIN lifecycle. Only nonsecret
 //! metadata crosses client, receipt, change-feed and portable archive boundaries.
 mod financial;
+pub(crate) mod import;
 mod linking;
 mod normalize;
 mod records;

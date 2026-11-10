@@ -33,7 +33,7 @@ fn decimal(value: &Value, key: &str, required: bool) -> Result<Option<String>, E
     }
     Ok(Some(s))
 }
-fn identity(connection: &str, remote_connection: &str, remote: &str) -> String {
+pub(super) fn identity(connection: &str, remote_connection: &str, remote: &str) -> String {
     let mut h = Sha256::new();
     for s in ["simplefin-remote-v1", connection, remote_connection, remote] {
         h.update((s.len() as u64).to_be_bytes());

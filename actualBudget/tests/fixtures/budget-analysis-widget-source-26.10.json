@@ -1,0 +1,226 @@
+{
+  "oracle": "Saved26.10 widget settings/range through unchanged frontend projection/exporter and real engine",
+  "clock": "2026-11-09T12:00:00Z",
+  "cases": [
+    {
+      "method": "envelope",
+      "archive_sha256": "b5b36e46929ebbfb3effcf393c6615995ad16402363d78e7ee7b88e5f87320f3",
+      "widget": {
+        "id": "2a5fd585-d36f-4b2e-85fc-1faaf5e4a7ad",
+        "dashboard_page_id": "b5132fac-c088-4f69-96cb-362d66f908cc",
+        "type": "budget-analysis-card",
+        "width": 12,
+        "height": 4,
+        "x": 0,
+        "y": 12,
+        "meta": {
+          "name": "Saved budget analysis",
+          "timeFrame": {
+            "start": "2026-10",
+            "end": "2027-03",
+            "mode": "static"
+          },
+          "interval": "Monthly",
+          "graphType": "Line",
+          "showBalance": false,
+          "balanceOnly": true,
+          "showHiddenCategories": true,
+          "conditions": [
+            {
+              "field": "category_group",
+              "op": "contains",
+              "value": "Expenses"
+            }
+          ],
+          "conditionsOp": "and"
+        },
+        "tombstone": false
+      },
+      "options": {
+        "startDate": "2026-10-01",
+        "endDate": "2027-03-31",
+        "conditions": [
+          {
+            "field": "category_group",
+            "op": "contains",
+            "value": "Expenses"
+          }
+        ],
+        "conditionsOp": "and",
+        "showHiddenCategories": true
+      },
+      "result": {
+        "intervalData": [
+          {
+            "date": "2026-10",
+            "budgeted": 1200,
+            "spent": -1000,
+            "balance": 3200,
+            "overspendingAdjustment": 0
+          },
+          {
+            "date": "2026-11",
+            "budgeted": 1700,
+            "spent": -6500,
+            "balance": -1600,
+            "overspendingAdjustment": 0
+          },
+          {
+            "date": "2026-12",
+            "budgeted": 1200,
+            "spent": -2500,
+            "balance": -1300,
+            "overspendingAdjustment": 1600
+          },
+          {
+            "date": "2027-01",
+            "budgeted": 0,
+            "spent": 125,
+            "balance": 125,
+            "overspendingAdjustment": 1300
+          },
+          {
+            "date": "2027-02",
+            "budgeted": 0,
+            "spent": 0,
+            "balance": 125,
+            "overspendingAdjustment": 0
+          },
+          {
+            "date": "2027-03",
+            "budgeted": 0,
+            "spent": 0,
+            "balance": 125,
+            "overspendingAdjustment": 0
+          }
+        ],
+        "startDate": "2026-10-01",
+        "endDate": "2027-03-31",
+        "totalBudgeted": 4100,
+        "totalSpent": -9875,
+        "totalOverspendingAdjustment": 2900,
+        "finalOverspendingAdjustment": 0
+      },
+      "csv": "Month,Budgeted,Spent,Overspending Adjustment,Balance\n2026-10,12,-10,0,32\n2026-11,17,-65,0,-16\n2026-12,12,-25,16,-13\n2027-01,0,1.25,13,1.25\n2027-02,0,0,0,1.25\n2027-03,0,0,0,1.25\n",
+      "source_files": {
+        "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+        "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+        "packages/desktop-client/src/components/reports/reportRanges.ts": "82ce4574b3814dcdde05d2d7a91a09e37f9a80ea3beb9c63467f45d62aaf339b",
+        "packages/desktop-client/src/components/reports/spreadsheets/budget-analysis-spreadsheet.ts": "5ceea0b1007d774f2d824ffcaa52aa1f3cc6ef4be084f07bf8f57e73b79850be",
+        "packages/desktop-client/src/components/reports/spreadsheets/budget-analysis-export.ts": "c6f59dae5c4f1c87a01a67ffee6c926073c7abccfbfe094dc70f9d2436355533",
+        "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+        "packages/loot-core/src/shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419"
+      }
+    },
+    {
+      "method": "tracking",
+      "archive_sha256": "1d720d793c446c80f461a2afb989190e4a7eec153a228046511b1e4581390ef6",
+      "widget": {
+        "id": "354ea619-2a51-4333-8d0b-b2cc8d10b656",
+        "dashboard_page_id": "b5132fac-c088-4f69-96cb-362d66f908cc",
+        "type": "budget-analysis-card",
+        "width": 12,
+        "height": 4,
+        "x": 0,
+        "y": 12,
+        "meta": {
+          "name": "Saved budget analysis",
+          "timeFrame": {
+            "start": "2026-10",
+            "end": "2027-03",
+            "mode": "static"
+          },
+          "interval": "Monthly",
+          "graphType": "Line",
+          "showBalance": false,
+          "balanceOnly": true,
+          "showHiddenCategories": true,
+          "conditions": [
+            {
+              "field": "category_group",
+              "op": "contains",
+              "value": "Expenses"
+            }
+          ],
+          "conditionsOp": "and"
+        },
+        "tombstone": false
+      },
+      "options": {
+        "startDate": "2026-10-01",
+        "endDate": "2027-03-31",
+        "conditions": [
+          {
+            "field": "category_group",
+            "op": "contains",
+            "value": "Expenses"
+          }
+        ],
+        "conditionsOp": "and",
+        "showHiddenCategories": true
+      },
+      "result": {
+        "intervalData": [
+          {
+            "date": "2026-10",
+            "budgeted": 1200,
+            "spent": -1000,
+            "balance": 3200,
+            "overspendingAdjustment": 0
+          },
+          {
+            "date": "2026-11",
+            "budgeted": 1700,
+            "spent": -6500,
+            "balance": -4600,
+            "overspendingAdjustment": 0
+          },
+          {
+            "date": "2026-12",
+            "budgeted": 1200,
+            "spent": -2500,
+            "balance": -2300,
+            "overspendingAdjustment": 4600
+          },
+          {
+            "date": "2027-01",
+            "budgeted": 0,
+            "spent": 125,
+            "balance": 125,
+            "overspendingAdjustment": 2500
+          },
+          {
+            "date": "2027-02",
+            "budgeted": 0,
+            "spent": 0,
+            "balance": -1075,
+            "overspendingAdjustment": 0
+          },
+          {
+            "date": "2027-03",
+            "budgeted": 0,
+            "spent": 0,
+            "balance": -1200,
+            "overspendingAdjustment": 0
+          }
+        ],
+        "startDate": "2026-10-01",
+        "endDate": "2027-03-31",
+        "totalBudgeted": 4100,
+        "totalSpent": -9875,
+        "totalOverspendingAdjustment": 7100,
+        "finalOverspendingAdjustment": 0
+      },
+      "csv": "Month,Budgeted,Spent,Overspending Adjustment,Balance\n2026-10,12,-10,0,32\n2026-11,17,-65,0,-46\n2026-12,12,-25,46,-23\n2027-01,0,1.25,25,1.25\n2027-02,0,0,0,-10.75\n2027-03,0,0,0,-12\n",
+      "source_files": {
+        "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+        "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+        "packages/desktop-client/src/components/reports/reportRanges.ts": "82ce4574b3814dcdde05d2d7a91a09e37f9a80ea3beb9c63467f45d62aaf339b",
+        "packages/desktop-client/src/components/reports/spreadsheets/budget-analysis-spreadsheet.ts": "5ceea0b1007d774f2d824ffcaa52aa1f3cc6ef4be084f07bf8f57e73b79850be",
+        "packages/desktop-client/src/components/reports/spreadsheets/budget-analysis-export.ts": "c6f59dae5c4f1c87a01a67ffee6c926073c7abccfbfe094dc70f9d2436355533",
+        "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+        "packages/loot-core/src/shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419"
+      }
+    }
+  ]
+}

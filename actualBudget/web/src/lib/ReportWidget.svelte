@@ -13,6 +13,7 @@
     type ReportQuery,
     type Projection,
   } from "./reports";
+  import BudgetAnalysisWidget from "./BudgetAnalysisWidget.svelte";
   import ForecastWidget from "./ForecastWidget.svelte";
   import MarkdownNotes from "./MarkdownNotes.svelte";
   import ReportResult from "./ReportResult.svelte";
@@ -48,6 +49,7 @@
               "summary-card": t("Summary"),
               "calendar-card": t("Transaction calendar"),
               "balance-forecast-card": t("Balance forecast"),
+              "budget-analysis-card": t("Budget Analysis"),
               "markdown-card": t("Text"),
               "custom-report": String(
                 report?.config.name || t("Saved custom report"),
@@ -205,6 +207,12 @@
       <MarkdownNotes text={String(meta.content || "")} />
     </div>
   {:else if type === "balance-forecast-card"}<ForecastWidget
+      {budgetId}
+      {document}
+      {epoch}
+      {disconnected}
+    />
+  {:else if type === "budget-analysis-card"}<BudgetAnalysisWidget
       {budgetId}
       {document}
       {epoch}

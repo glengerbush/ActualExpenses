@@ -206,3 +206,29 @@ typed400, preserving graph/checkpoint (/tmp/query-unicode-text-budget-green.log)
 BinClippy-Dwarnings PASS /tmp/query-unicode-epoch-clippy.log. No broad domain suite
 repeated. Known-note row-presence markers/registry, atomic batch, caller/contracts
 and maintained integration commands remain47 work, not accepted completion.
+
+## Root notes/Unicode composition review
+
+2026-11-10: Reviewed `3b5926f` plus `22cf0bb`. Closed captured-epoch and
+month-note revival findings; exact unowned retry now rejects changed epochs,
+and stale revival checks the undo tombstone generation. Source51 Unicode
+evidence and cumulative text-work guard reviewed without another domain-suite
+rerun. Known-note presence/registry and remaining47 scope are still active.
+
+Composed with35 and bank financial checkpoint790779e. Conflicts resolved by
+retaining both capability sets and both bank/notes change-feed arms; history
+tracks both note and bank-origin changes. Combined build PASS
+`/tmp/bank-notes-compose-build.log`. Running notes/receipt/history/native checks
+PASS `/tmp/bank-notes-compose-notes.log`; genuine foundation23→24 database,
+blocked-stage, original receipt/history and native restore PASS
+`/tmp/bank-notes-compose-upgrade.log`. Forecast native24 and reporting genuine
+21→24/native24 round trips PASS `/tmp/bank-notes-compose-{forecast,reporting}-native.log`.
+Maintained native consumers now assert actual current24 exports; genuine21/23
+input fixtures remain untouched. Earlier native22 observations remain earlier
+evidence, not relabeled24 runs.
+
+Preserved richer pre-notes schema23 executable for future bank upgrade work:
+`.scratch/actualbudget-schema23-8aae0cf-server`, SHA256
+`96d679629e9ac4ad1097dfd1baae13a8416ea3f2b54e43980db17b50991bd9b0`.
+It includes financial28+35+47reads, unlike the earlier foundation-only23 fixture;
+no completed bank migration/UI or full47 qualification is claimed.

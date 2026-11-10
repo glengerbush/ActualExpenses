@@ -27,12 +27,12 @@ with tempfile.TemporaryDirectory(prefix='forecast-native-') as directory:
   backup=call(root+'/backups',{'label':'Before forecast native round trip'},headers,201);data=call(root+'/backups/'+backup['data']['id']+'/download')
   def portable(bytes):
    with zipfile.ZipFile(io.BytesIO(bytes)) as contents:
-    assert json.loads(contents.read('manifest.json'))['schema_version']==22;return json.loads(contents.read('budget.json'))
+    assert json.loads(contents.read('manifest.json'))['schema_version']==24;return json.loads(contents.read('budget.json'))
   original=portable(data)
   def report_clocks(value):
    table=value['tables']['field_versions'];return [dict(zip(table['columns'],row)) for row in table['rows'] if dict(zip(table['columns'],row))['entity']=='reporting_documents']
   duplicate=str(uuid.uuid4());call(root+'/duplicate',{'id':duplicate,'name':'Forecast native duplicate'},headers,201);assert call('/budgets/'+duplicate+'/reporting')['data']['documents']==state['documents'];check(call('/budgets/'+duplicate+'/reports/forecast',query))
   call(root+'/backups/'+backup['data']['id']+'/restore',{'confirm_name':original['budget']['name']},headers);restored=call(root+'/reporting')['data'];assert restored['epoch']!=state['epoch'];assert restored['documents']==state['documents'];after=call(root+'/reports/forecast',query);check(after);assert after['data']['cache']['hit']==False;assert after['data']['epoch']==restored['epoch'];assert after['data']['result']==before['data']['result']
   current_headers={'X-Actual-Budget-Epoch':restored['epoch']};second=call(root+'/backups',{'label':'After forecast restore'},current_headers,201);current=portable(call(root+'/backups/'+second['data']['id']+'/download'));assert report_clocks(current)==report_clocks(original)
-  print('PASS forecast served schemas, source opt-in/config, native22 duplicate/restore, retained reporting clocks and epoch-bound cache invalidation')
+  print('PASS forecast served schemas, source opt-in/config, native24 duplicate/restore, retained reporting clocks and epoch-bound cache invalidation')
  finally:process.terminate();process.wait(timeout=15)

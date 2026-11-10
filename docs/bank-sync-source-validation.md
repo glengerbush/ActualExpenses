@@ -1,6 +1,6 @@
 # Bank28 core source checkpoint
 
-Preparation only, branch `codex/bank28-source`, accepted basea5c784c. No replacement runtime/UI, provider credentials, real bank/account, claim or external network call. Root review precedes use by28.
+Preparation only, branch `codex/bank28-source`, accepted basea5c784c. No replacement runtime/UI, provider credentials, real bank/account, claim or external network call. Root reviewed checkpoint `510128b` on2026-11-10: genuine handler/transport boundary, generated-ID normalization, exact repeat identities and stated limits pass. Independent root read-only audit reconfirmed all six ZIP hashes/integrity/original pre-link transaction IDs and amounts, plus exact repeated financial graphs. Ready for28 to consume; no28 acceptance.
 
 `node actualBudget/tools/generate-bank-sync-source.mjs [--check]` executes installed pinned `@actual-app/api@26.10.0`, source commit2bebdbaae0b701120a8cad9d56aafd64fa04c577. JSON records package bundle SHA, original source hashes, frozen UTC2026-11-09, full synthetic input, transport requests/responses, exact transactions (including raw_synced_data/IDs/status/rank/edges), frontend accounts, payees, categories, preferences and link/refresh/repeat results.
 

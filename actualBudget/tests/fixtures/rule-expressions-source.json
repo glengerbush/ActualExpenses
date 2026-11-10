@@ -1,0 +1,2710 @@
+{
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "seed": {
+    "filename": "reports-source-26.10.zip",
+    "sha256": "8b54cf9bc377ecd3d608382995efb5c7445c748f849bc971ce70a1610f1ed250"
+  },
+  "cases": [
+    {
+      "name": "template transaction fields",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "template": "{{payee_name}}|{{amount}}|{{date}}|{{imported_payee}}|{{cleared}}|{{today}}"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000100",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "template": "{{payee_name}}|{{amount}}|{{date}}|{{imported_payee}}|{{cleared}}|{{today}}"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "Market|-1234|2026-11-09|Corner Store|false|2026-11-09",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "template unescaped text",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "template": "{{notes}} / {{{imported_payee}}}"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000101",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "template": "{{notes}} / {{{imported_payee}}}"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x> / Corner Store",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "template helpers",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "template": "{{#if cleared}}yes{{else}}no{{/if}}|{{#with _account}}{{name}}{{/with}}|{{lookup this 'imported_payee'}}"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000102",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "template": "{{#if cleared}}yes{{else}}no{{/if}}|{{#with _account}}{{name}}{{/with}}|{{lookup this 'imported_payee'}}"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "no|checking|Corner Store",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "template numeric prefix",
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": 0,
+          "options": {
+            "template": "-12.5 pounds"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000103",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "amount",
+            "value": 0,
+            "options": {
+              "template": "-12.5 pounds"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -12.5,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "template invalid number becomes zero",
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": 0,
+          "options": {
+            "template": "not a number"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000104",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "amount",
+            "value": 0,
+            "options": {
+              "template": "not a number"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": 0,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "template true boolean",
+      "actions": [
+        {
+          "op": "set",
+          "field": "cleared",
+          "value": false,
+          "options": {
+            "template": "true"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000105",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "cleared",
+            "value": false,
+            "options": {
+              "template": "true"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": true,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "template uppercase boolean",
+      "actions": [
+        {
+          "op": "set",
+          "field": "cleared",
+          "value": false,
+          "options": {
+            "template": "TRUE"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000106",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "cleared",
+            "value": false,
+            "options": {
+              "template": "TRUE"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "template valid date",
+      "actions": [
+        {
+          "op": "set",
+          "field": "date",
+          "value": "2026-11-09",
+          "options": {
+            "template": "2026-12-25"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000107",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "date",
+            "value": "2026-11-09",
+            "options": {
+              "template": "2026-12-25"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-12-25",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "template invalid date marker",
+      "actions": [
+        {
+          "op": "set",
+          "field": "date",
+          "value": "2026-11-09",
+          "options": {
+            "template": "bad date"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000108",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "date",
+            "value": "2026-11-09",
+            "options": {
+              "template": "bad date"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "9999-12-31",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "template malformed",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "template": "{{#if amount}}unterminated"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000109",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "template": "{{#if amount}}unterminated"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": null,
+      "error": {
+        "conditionErrors": null,
+        "actionErrors": [
+          "invalid-template"
+        ]
+      },
+      "payee_name": null
+    },
+    {
+      "name": "template missing helper",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "template": "{{missingHelper notes}}"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000110",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "template": "{{missingHelper notes}}"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": null,
+      "error": {
+        "conditionErrors": null,
+        "actionErrors": [
+          "invalid-template"
+        ]
+      },
+      "payee_name": null
+    },
+    {
+      "name": "template missing property",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "template": "before {{missing}} after"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000111",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "template": "before {{missing}} after"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "before  after",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "template prototype denied",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "template": "{{__proto__}}|{{constructor}}|{{lookup this 'constructor'}}"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000112",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "template": "{{__proto__}}|{{constructor}}|{{lookup this 'constructor'}}"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "||",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula amount units",
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": 0,
+          "options": {
+            "formula": "=amount/100+1"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000113",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "amount",
+            "value": 0,
+            "options": {
+              "formula": "=amount/100+1"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1134,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula numeric notes conversion",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=SUM(1,2.345)"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000114",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=SUM(1,2.345)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "335",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula string numeric prefix",
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": 0,
+          "options": {
+            "formula": "=\"12.5 pounds\""
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000115",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "amount",
+            "value": 0,
+            "options": {
+              "formula": "=\"12.5 pounds\""
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": 12.5,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula string invalid number",
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": 0,
+          "options": {
+            "formula": "=\"not a number\""
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000116",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "amount",
+            "value": 0,
+            "options": {
+              "formula": "=\"not a number\""
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": [
+          "Formula for \"amount\" must produce a numeric value. Got: \"not a number\""
+        ]
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula boolean",
+      "actions": [
+        {
+          "op": "set",
+          "field": "cleared",
+          "value": false,
+          "options": {
+            "formula": "=TRUE()"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000117",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "cleared",
+            "value": false,
+            "options": {
+              "formula": "=TRUE()"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": true,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula boolean text case",
+      "actions": [
+        {
+          "op": "set",
+          "field": "cleared",
+          "value": false,
+          "options": {
+            "formula": "=\"TRUE\""
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000118",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "cleared",
+            "value": false,
+            "options": {
+              "formula": "=\"TRUE\""
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": true,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula date string",
+      "actions": [
+        {
+          "op": "set",
+          "field": "date",
+          "value": "2026-11-09",
+          "options": {
+            "formula": "=\"2026-12-25\""
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000119",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "date",
+            "value": "2026-11-09",
+            "options": {
+              "formula": "=\"2026-12-25\""
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-12-25",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula date invalid",
+      "actions": [
+        {
+          "op": "set",
+          "field": "date",
+          "value": "2026-11-09",
+          "options": {
+            "formula": "=\"bad date\""
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000120",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "date",
+            "value": "2026-11-09",
+            "options": {
+              "formula": "=\"bad date\""
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": [
+          "Formula for \"date\" must produce a valid date. Got: \"bad date\""
+        ]
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula context aliases",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=CONCATENATE(account_name,\"|\",category_name,\"|\",payee_name,\"|\",imported_payee)"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000121",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=CONCATENATE(account_name,\"|\",category_name,\"|\",payee_name,\"|\",imported_payee)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "checking|food|Market|Corner Store",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula missing equals",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "SUM(1,2)"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000122",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "SUM(1,2)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": [
+          "Error executing formula for \"notes\": Formula must start with ="
+        ]
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula unknown name",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=UNKNOWN_FIELD+1"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000123",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=UNKNOWN_FIELD+1"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": [
+          "Error executing formula for \"notes\": Formula error: Named expression UNKNOWN_FIELD not recognized."
+        ]
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula divide zero",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=1/0"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000124",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=1/0"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": [
+          "Error executing formula for \"notes\": Formula error: "
+        ]
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula wins over template",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=\"formula\"",
+            "template": "template"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000125",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=\"formula\"",
+              "template": "template"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "formula",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula id field unchanged",
+      "actions": [
+        {
+          "op": "set",
+          "field": "category",
+          "value": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "options": {
+            "formula": "=\"different\""
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000126",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "category",
+            "value": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "options": {
+              "formula": "=\"different\""
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula formatting",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=FORMATCURRENCY(amount/100)"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000127",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=FORMATCURRENCY(amount/100)"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "-$12.34",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "balance template",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "template": "balance={{balance}} / amount={{amount}}"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000128",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "template": "balance={{balance}} / amount={{amount}}"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "balance=10600 / amount=-1234",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "balance variable",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=balance/100"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000129",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=balance/100"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "10600",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "balance literal account",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=BALANCE_OF(\"8a58ef5d-b19e-42f5-aeac-e4e02f18fc85\")"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000130",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=BALANCE_OF(\"8a58ef5d-b19e-42f5-aeac-e4e02f18fc85\")"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "500000",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "balance missing account",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=BALANCE_OF(\"missing account\")"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000131",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=BALANCE_OF(\"missing account\")"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "0",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "ordered mixed actions",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "template": "first {{notes}}"
+          }
+        },
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=CONCATENATE(notes,\" / second\")"
+          }
+        },
+        {
+          "op": "append-notes",
+          "value": " / final"
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000132",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "template": "first {{notes}}"
+            }
+          },
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=CONCATENATE(notes,\" / second\")"
+            }
+          },
+          {
+            "op": "append-notes",
+            "value": " / final"
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "first expression café <x> / second / final",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "formula payee name",
+      "actions": [
+        {
+          "op": "set",
+          "field": "payee_name",
+          "value": "",
+          "options": {
+            "formula": "=\"Expression merchant\""
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000133",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "payee_name",
+            "value": "",
+            "options": {
+              "formula": "=\"Expression merchant\""
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "generated-payee",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": "Expression merchant"
+    },
+    {
+      "name": "template payee name",
+      "actions": [
+        {
+          "op": "set",
+          "field": "payee_name",
+          "value": "",
+          "options": {
+            "template": "Template merchant {{amount}}"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000134",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "payee_name",
+            "value": "",
+            "options": {
+              "template": "Template merchant {{amount}}"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "generated-payee",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "error": null,
+      "payee_name": "Template merchant -1234"
+    },
+    {
+      "name": "formula failure keeps later actions",
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=1/0"
+          }
+        },
+        {
+          "op": "append-notes",
+          "value": " / still runs"
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000135",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=1/0"
+            }
+          },
+          {
+            "op": "append-notes",
+            "value": " / still runs"
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x> / still runs",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": [
+          "Error executing formula for \"notes\": Formula error: "
+        ]
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "disabled flags retain existing formulas",
+      "disabled": true,
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "formula": "=\"still runs\""
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000136",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "formula": "=\"still runs\""
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "still runs",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "_ruleErrors": []
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "split parent context",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=parent_amount/200"
+          }
+        },
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "splitIndex": 1,
+            "formula": "=CONCATENATE(parent_notes,\"|\",parent_imported_payee,\"|\",parent_account)"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000137",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 1,
+              "method": "formula",
+              "formula": "=parent_amount/200"
+            }
+          },
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "splitIndex": 1,
+              "formula": "=CONCATENATE(parent_notes,\"|\",parent_imported_payee,\"|\",parent_account)"
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 2,
+              "method": "remainder"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": null,
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "is_parent": true,
+        "subtransactions": [
+          {
+            "amount": -617,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -2,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-0",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null,
+            "_ruleErrors": [],
+            "notes": "expression café <x>|Corner Store|79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          },
+          {
+            "amount": -617,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -3,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-1",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null
+          }
+        ],
+        "error": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "split parent text stays literal",
+      "changes": {
+        "notes": "=1+2",
+        "imported_payee": "123.50"
+      },
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=parent_amount/200"
+          }
+        },
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "splitIndex": 1,
+            "formula": "=CONCATENATE(parent_notes,\"|\",parent_imported_payee)"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000138",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 1,
+              "method": "formula",
+              "formula": "=parent_amount/200"
+            }
+          },
+          {
+            "op": "set",
+            "field": "notes",
+            "value": "",
+            "options": {
+              "splitIndex": 1,
+              "formula": "=CONCATENATE(parent_notes,\"|\",parent_imported_payee)"
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 2,
+              "method": "remainder"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "=1+2",
+        "cleared": false,
+        "imported_payee": "123.50",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": null,
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "=1+2",
+        "cleared": false,
+        "imported_payee": "123.50",
+        "sort_order": null,
+        "is_parent": true,
+        "subtransactions": [
+          {
+            "amount": -617,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -2,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-0",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null,
+            "_ruleErrors": [],
+            "notes": "=1+2|123.50"
+          },
+          {
+            "amount": -617,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -3,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-1",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null
+          }
+        ],
+        "error": null
+      },
+      "error": null,
+      "payee_name": null
+    },
+    {
+      "name": "split invalid formula keeps remainder",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=1/0"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "rule": {
+        "id": "42420000-0000-4000-8000-000000000139",
+        "stage": null,
+        "conditionsOp": "and",
+        "conditions": [
+          {
+            "field": "account",
+            "op": "is",
+            "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857"
+          }
+        ],
+        "actions": [
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 1,
+              "method": "formula",
+              "formula": "=1/0"
+            }
+          },
+          {
+            "op": "set-split-amount",
+            "value": null,
+            "options": {
+              "splitIndex": 2,
+              "method": "remainder"
+            }
+          }
+        ]
+      },
+      "transaction": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null
+      },
+      "output": {
+        "id": "42420000-0000-4000-8000-000000000001",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "payee": null,
+        "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+        "date": "2026-11-09",
+        "amount": -1234,
+        "notes": "expression café <x>",
+        "cleared": false,
+        "imported_payee": "Corner Store",
+        "sort_order": null,
+        "is_parent": true,
+        "subtransactions": [
+          {
+            "amount": 0,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -2,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-0",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null,
+            "_ruleErrors": [
+              "Error executing formula for split amount: Formula error: "
+            ]
+          },
+          {
+            "amount": -1234,
+            "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+            "sort_order": -3,
+            "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+            "id": "generated-child-1",
+            "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+            "date": "2026-11-09",
+            "cleared": false,
+            "reconciled": null,
+            "starting_balance_flag": null,
+            "is_child": true,
+            "parent_id": "42420000-0000-4000-8000-000000000001",
+            "error": null
+          }
+        ],
+        "error": null
+      },
+      "error": null,
+      "payee_name": null
+    }
+  ]
+}

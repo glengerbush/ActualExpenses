@@ -1,0 +1,21 @@
+{
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "actual_engine_sha256": "fdfed936dac6ba6dc411bac27f94237a90c8cb0ea047a5d9d0d8a5d21ea9aa56",
+  "hyperformula": "3.5.0",
+  "handlebars": "4.7.9",
+  "source_hashes": {
+    "server/rules/rule-utils.ts": "975ac1ac4e1ef8a31a0e17bcd8f80b7af8ae4ece2a02583ee25dbab72bf64d6d",
+    "shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419",
+    "server/rules/action.ts": "12cbd130c59634b2f711a7068c05e9de4dcef5dd71efe3601c3d64ad2bb68976",
+    "shared/formulas/customFunctions.ts": "7ef1b4bff4d5efae961b96fcdf308f5e7745748339ca9d9a700d05d63bfa8558",
+    "shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+    "shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+    "shared/rules.ts": "c15da6a851c58e8d4578ceccd6dd121ef85de3c69e9b280c91b97d3d067232df",
+    "server/errors.ts": "0399324ff98730cd9a59aba97eee09dfd257677053551ed4528ecafe1258d1f7",
+    "shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153"
+  },
+  "entry_sha256": "95d6672c3fadd6de9e32e9fa0712aefcf6a80251efe31a0b9af55c1ce4188f31",
+  "asset_sha256": "cd512d423f2b731a12b201e3e9a97237f19cd18094d8ad56cde0ebd1b9d2a0a8",
+  "handlebars_asset_sha256": "b942e021f95685bc22345b93929849f28e2f95e2e6d0aba63c4651fefc26e185",
+  "license_sha256": "e1955f622a2386195a4b67a1f30b9e88fde5cfb3fa95da46afdc4093bb9d0c5c"
+}

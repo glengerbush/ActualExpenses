@@ -29,7 +29,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 4 | 02, 08, 43 | Budget files, backups and migration | [02: remembered selection/drafts](open-budget-validation.md); [43: preferences](../actualBudget/web/docs/preferences-validation.md); [08: budget management](budget-lifecycle-validation.md) |
 | 5 | 04, 50 | Budget files, backups and migration | [04: staged ordinary-ledger import with retained source/IDs](import-validation.md); complete migration qualification pending 50 |
 | 6 | 08, 50 | Budget files, backups and migration | [08: portable native archives and staged restore](budget-lifecycle-validation.md); complete migration qualification pending50 |
-| 7 | 27 | Budget files, backups and migration | Pending feature acceptance |
+| 7 | 27 | Budget files, backups and migration | [27: genuine YNAB4/nYNAB financial cases, sparse carry, source differences and recovery](ynab-import-validation.md); [integrated acceptance](ynab-custom-integration-validation.md) |
 | 8 | 08 | Budget files, backups and migration | [08: automatic/manual/pre-upgrade recovery and fault-safe restore](budget-lifecycle-validation.md) |
 | 9 | 04, 08, 50 | Budget files, backups and migration | [04: retained/rejected source validation](import-validation.md); [08: checksummed archive validation and pre-action recovery](budget-lifecycle-validation.md); complete migration qualification pending50 |
 | 10 | 02, 09 | Accounts and reconciliation | [02: on/off-budget creation and opening balances](open-budget-validation.md); [09: organization, closure and notes](0910-validation.md) |
@@ -88,9 +88,9 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 63 | 33 | Reports, dashboards and formulas | [33: named dashboards, persistent layout/settings, source clocks and native round trips](reports-validation.md) |
 | 64 | 33 | Reports, dashboards and formulas | [33: source-backed cash flow/net worth/spending, bounded aggregates and snapshot drilldowns](reports-validation.md) |
 | 65 | 33 | Reports, dashboards and formulas | [33: text, summary/calendar widgets and accessible exact-value tables](reports-validation.md) |
-| 66 | 34 | Reports, dashboards and formulas | Pending feature acceptance |
-| 67 | 33, 34 | Reports, dashboards and formulas | [33: dashboard dates, conditions and account/category inclusion](reports-validation.md); custom-report34 acceptance pending |
-| 68 | 34 | Reports, dashboards and formulas | Pending feature acceptance |
+| 66 | 34 | Reports, dashboards and formulas | [34: saved custom reports, five renderers and exact projections](reports-validation.md); [integrated acceptance](ynab-custom-integration-validation.md) |
+| 67 | 33, 34 | Reports, dashboards and formulas | [33/34: dashboard/custom dates, conditions and account/category inclusion](reports-validation.md); [integrated acceptance](ynab-custom-integration-validation.md) |
+| 68 | 34 | Reports, dashboards and formulas | [34: modes, nested grouping, bounded exact details and saved state](reports-validation.md); [integrated acceptance](ynab-custom-integration-validation.md) |
 | 69 | 38 | Reports, dashboards and formulas | Pending feature acceptance |
 | 70 | 35, 36, 37 | Reports, dashboards and formulas | Pending feature acceptance |
 | 71 | 39, 40 | Reports, dashboards and formulas | Pending feature acceptance |
@@ -122,7 +122,7 @@ Each feature owner records a baseline source/function, independent fixture and e
 | 97 | 20 | Android and offline expense capture | [20: allowed-idle zero HTTP/cache writes/jobs; LAN/Tailscale-address equivalence with emulator limits](android-upgrade-validation.md) |
 | 98 | 20, 50 | Android and offline expense capture | [20: both upgrade orders, exact source mapping, genuine released state and signed debug reinstall](android-upgrade-validation.md); full replacement qualification50 pending |
 | 99 | 47, 52 | Public API, deployment and resources | Pending feature acceptance |
-| 100 | 34, 47, 52 | Public API, deployment and resources | Pending feature acceptance |
+| 100 | 34, 47, 52 | Public API, deployment and resources | [34: bounded custom-report API/inspection](ynab-custom-integration-validation.md); general automation47 and final parity52 pending |
 | 101 | 05, 51 | Public API, deployment and resources | [05: independent change cursor, 95-byte unchanged refresh and measured scaling](concurrency-validation.md); whole-system qualification pending 51 |
 | 102 | 02, 48, 53 | Public API, deployment and resources | [02: container persistence/replay](open-budget-validation.md); [48: signed image promotion and isolated registry rehearsal](release-validation.md); production cutover qualification pending 53 |
 | 103 | 01, 48, 53 | Public API, deployment and resources | [01: independent application layout](foundation-validation.md); [48: independent APK/container versions and release automation](release-validation.md); final deployment qualification pending 53 |

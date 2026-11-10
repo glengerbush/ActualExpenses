@@ -1,10 +1,11 @@
-# YNAB and custom-report integration — pending
+# YNAB and custom-report integration — accepted locally
 
-Integration branch `codex/integrate-ynab-custom`, initial reviewed custom-report
-head `84e5e08`, followed by reviewed locale correction `055e79e`. Accepted main
-remains `a5c784c`; no34 acceptance, push, release
-or deployment. Ticket27 is still independently implementing;35 has its own
-worktree and is not included. Combine final qualification where possible.
+Accepted2026-11-10: frozen production composition `0a284f2`, followed by reviewed
+test-only fixture isolation `0f21abb`. Includes custom reports through locale
+correction `055e79e` and complete YNAB migration `bbfa627`. Tickets27 and34 are
+complete. No push, version bump, release or deployment.35 and28 remain separate;
+47 started from this reviewed composition and now consumes28's frozen schema23
+foundation for its independently reserved schema24 work.
 
 ##34 review and merge
 
@@ -78,9 +79,85 @@ cleanup and late-response fencing with a public delayed-provider witness.
 Other reviewed metadata/transport changes have no actionable findings; this
 checkpoint remains pending that correction and is not joined here.
 
-## Remaining gates
+The cancellation finding is closed in `7f71f2a`: deletion shares the canceled
+receipt transaction, and late capture probes that receipt before writing bytes.
+Root reviewed code and the true public capacity red/green: four canceled held
+near16MiB responses no longer prevent the next2MiB capture, canceled outcomes
+remain exact, metadata/ledger stay unchanged and requests still count to quota.
+Known captured error codes are preserved, without claiming a separate
+interrupted-error restart witness. A second byte-bound issue is corrected in
+`f45aaa1`: both SQLite sums count UTF-8 blob bytes rather than TEXT characters.
+This narrow correction is reviewed; fresh foundation build/runtime and Clippy
+pass at `5489ac1` (`/tmp/bank28-foundation-{green,clippy}.log`). Root also reviewed
+that foundation's final23 DDL and portable metadata registry. It is not whole28
+acceptance and is not joined to this production composition.
 
-- Complete and review27 before joining its public import/API/UI/native slice.
-- Qualify the frozen composition; reuse unchanged prior acceptance evidence.
-- Record exact checks, limitations and disposable resource cleanup before
-  fast-forwarding main and closing notes. No new acceptance claimed here.
+## Final27 review and composition
+
+Root reviewed final interface/contracts/companion changes and the bounded
+YNAB4 sparse-carry correction through `bbfa627`. The source importer propagates
+carry flags through its current-month-plus12 horizon; missing months now retain
+zero-amount carry cells with explicit resets and100000 cell/work limits. Two
+genuine SDK executions of labeled synthetic inputs expose gap/reset behavior;
+all nine public cases pass. No source formula is copied into expected outputs.
+
+Standards/Spec/Impeccable review has no unresolved27 findings. Root inspected
+mobile and dark enlarged-text renders, saved format/filename/operation behavior,
+visible source-model differences, privacy-aware balances, typed API contracts
+and companion offline delivery assertions. Existing Actual import behavior,
+retained originals and schema22 remain covered. Source-specific limitations are
+visible; no physical-device test or full offline budgeting claim is made.
+
+Merge conflicts were limited to capability and browser-command lists. Both
+intents are retained:105 paths with every parent operation definition unchanged,
+both capability sets and68 maintained browser commands. The six YNAB source
+checks remain wired into release verification. Svelte check, format, build and
+merged App autofixer pass. Broad Rust, native and container checks are running;
+their results are not yet acceptance evidence.
+
+## Integrated qualification
+
+- Full Rust:454 passed,0 failed/ignored,36 targets;
+  `/tmp/ynab-custom-full-rust.log`. Bin Clippy with warnings denied and build
+  pass in `/tmp/ynab-custom-{clippy,build}.log`.
+- Web check0 errors/warnings, formatting, build and merged App autofixer pass;
+  `/tmp/ynab-custom-web-{check,format,build}.log` and
+  `/tmp/ynab-custom-app-autofix.log`. Existing bundle-size advisory remains.
+- Served OpenAPI consumer passes, including both import formats;
+  `/tmp/ynab-custom-contract.log`.
+- Native integration:44 passed plus one initially skipped because root supplied
+  the prior binary under an incorrect environment name. Corrected
+  `ACTUALBUDGET_PRE_UPGRADE_BINARY` and reran only that case:1 passed,0 skipped.
+  Thus all45 cases pass across the two runs, not one uninterrupted45-case run.
+  Logs `/tmp/ynab-custom-full-native.log` and
+  `/tmp/ynab-custom-native-upgrade.log`; original/focused XML preserved in
+  `.scratch/qualification-ynab-custom/`.
+- Production container batch:66/68 commands passed in
+  `/tmp/ynab-custom-container.log`. Both failures were shared-server fixture
+  contamination: reports-api renamed the original dashboard before the custom
+  browser duplicated it; prior YNAB consumers had already activated its original
+  files. Product behavior and financial expectations were correct.
+- Test-only isolation `0f21abb` adds unique ZIP comments or JSON whitespace.
+  Every ZIP member and complete parsed JSON were independently checked unchanged.
+  All original first-commit/lost-ACK/hash/download/financial assertions remain.
+  Existing importer worker independently reviewed the narrow diff: Standards
+  and Spec pass, no findings. Same-container sequence reports-api → custom
+  browser → YNAB browser twice passes4/4 in
+  `/tmp/ynab-custom-scoped-container.log`. All68 maintained commands are covered
+  across recorded runs; no claim of an uninterrupted68/68 batch.
+
+The final scoped container also passes plain HTTP/no-login assets, exact opening
+balance, persistence and receipt replay after replacement. Image
+`sha256:ddacf20346d5c27096e392eb5cfab983fbdcba26ec54e68761bfebafa1d7e8fb`,
+139904307 bytes, user10001:10001. Both runners removed their disposable containers
+and volumes; root removed the retained scoped image alias/image. Render artifacts
+are retained under `.scratch/qualification-ynab-custom/`; YNAB captures also remain
+in `actualBudget/web/test-results/ynab/`. No new physical-device, live-provider or
+resource-efficiency claim; unchanged earlier device evidence remains valid and51
+owns whole-system measurements.
+
+Immutable genuine22 executable for later upgrades:
+`.scratch/actualbudget-schema22-0a284f2-server`, mode0555,
+SHA256 `fa0146112b54a00ab78f5b7b1c9d4363256efb25c45aff49356a3b45b22172e0`.
+Earlier immutable executables remain untouched. No unresolved27/34 review or
+qualification gate remains.

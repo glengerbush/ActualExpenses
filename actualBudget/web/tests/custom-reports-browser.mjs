@@ -3,6 +3,7 @@ import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile } from "node:fs/promises";
 import { startServer } from "./server.mjs";
+import { isolatedImportBytes } from "./import-fixture.mjs";
 const server = await startServer();
 let browser;
 try {
@@ -40,10 +41,10 @@ try {
       },
       { path, body, headers, key: randomUUID() },
     );
-  const bytes = (
+  const bytes = isolatedImportBytes(
     await readFile(
       new URL("../../tests/fixtures/reports-source-26.10.zip", import.meta.url),
-    )
+    ),
   ).toString("base64");
   const imported = await page.evaluate(
     async ({ bytes, key }) => {

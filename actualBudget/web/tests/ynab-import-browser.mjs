@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile, mkdir } from "node:fs/promises";
 import { createHash, randomUUID } from "node:crypto";
 import { startServer } from "./server.mjs";
+import { isolatedImportBytes } from "./import-fixture.mjs";
 const server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1",
   artifacts = new URL("../test-results/ynab/", import.meta.url);
@@ -45,8 +46,11 @@ try {
     ).toBeVisible();
     await page.getByLabel("Budget file format").selectOption(kind);
     const name = kind === "nynab" ? "nynab-demo.json" : "ynab4-demo.zip",
-      bytes = await readFile(
-        new URL("../../tests/fixtures/ynab/" + name, import.meta.url),
+      bytes = isolatedImportBytes(
+        await readFile(
+          new URL("../../tests/fixtures/ynab/" + name, import.meta.url),
+        ),
+        kind === "nynab" ? "json" : "zip",
       );
     await page
       .getByLabel(kind === "nynab" ? "nYNAB JSON export" : "YNAB4 ZIP export", {

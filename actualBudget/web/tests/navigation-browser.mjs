@@ -262,6 +262,97 @@ try {
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+  // Recovery spans budgets after the chooser clears the active preference.
+  // Exercise both a private budget and a different, unmasked budget's rows.
+  await context.setOffline(false);
+  const otherBudget = randomUUID(),
+    otherAccount = randomUUID();
+  await api("/budgets", {
+    id: otherBudget,
+    name: "Other recovery budget",
+    budget_type: "tracking",
+  });
+  await api(`/budgets/${otherBudget}/accounts`, {
+    id: otherAccount,
+    name: "Other recovery account",
+    opening_balance: 0,
+    opening_date: "2026-11-09",
+    off_budget: false,
+  });
+  await page.getByRole("button", { name: "All budgets", exact: true }).click();
+  await page
+    .getByRole("button", { name: /Other recovery budget.*Open/ })
+    .click();
+  await page
+    .getByRole("button", { name: "Other recovery account", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Other recovery account", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveAttribute("aria-pressed", "false");
+  async function pending(amount, notes) {
+    await page
+      .getByRole("button", { name: "Add transaction", exact: true })
+      .click();
+    await page.getByLabel("Amount", { exact: true }).fill(amount);
+    await page.getByLabel("Notes", { exact: true }).fill(notes);
+    await page
+      .getByRole("button", { name: "Save transaction", exact: true })
+      .click();
+    await expect(page.getByTestId("pending-expenses")).toContainText(notes);
+  }
+  await context.setOffline(true);
+  await pending("4.56", "Other budget pending");
+  await page.getByRole("button", { name: "All budgets", exact: true }).click();
+  await page.getByRole("button", { name: /Navigation fixture.*Open/ }).click();
+  await page.getByRole("button", { name: "Everyday", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await pending("12.34", "Private budget pending");
+  await page.getByRole("button", { name: "All budgets", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Your budgets", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Review pending expenses", exact: true })
+    .click();
+  const recovery = page.getByTestId("pending-expenses");
+  await expect(recovery.locator("article")).toHaveCount(2);
+  await expect(recovery).toContainText("Private budget pending");
+  await expect(recovery).toContainText("Other budget pending");
+  await expect(recovery.locator(".amount").nth(0)).toContainText("••••");
+  await expect(recovery.locator(".amount").nth(1)).toContainText("••••");
+  await expect(recovery).not.toContainText("-12.34");
+  await expect(recovery).not.toContainText("-4.56");
+  const privateRow = recovery
+    .locator("article")
+    .filter({ hasText: "Private budget pending" });
+  const otherRow = recovery
+    .locator("article")
+    .filter({ hasText: "Other budget pending" });
+  await privateRow
+    .getByRole("button", { name: "Show amount", exact: true })
+    .click();
+  await expect(privateRow.locator(".amount")).toContainText("-12.34");
+  await expect(otherRow.locator(".amount")).toContainText("••••");
+  await privateRow
+    .getByRole("button", { name: "Hide amount", exact: true })
+    .click();
+  await expect(privateRow.locator(".amount")).toContainText("••••");
+  await otherRow
+    .getByRole("button", { name: "Show amount", exact: true })
+    .click();
+  await expect(otherRow.locator(".amount")).toContainText("-4.56");
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Review pending expenses", exact: true })
+    .click();
+  await expect(recovery.locator(".amount").nth(0)).toContainText("••••");
+  await expect(recovery.locator(".amount").nth(1)).toContainText("••••");
+
   expect(errors).toEqual([]);
   console.log(
     "navigation browser: privacy, keyboard search/focus, remembered views, notices, mobile/offline help passed",

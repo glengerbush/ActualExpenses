@@ -33,3 +33,9 @@ Navigation exposed a cache race: a newly mounted register could replace confirme
 - Rendered desktop1280×900 and mobile390×844 inspected; no horizontal overflow, native focus/scrollable help retained. Test screenshots in worktree `actualBudget/web/artifacts/navigation-{desktop,mobile}.png`.
 
 Limits: privacy is display masking, not access control; names/dates/notes/exports remain visible. Mobile editable fields follow upstream's reveal behavior. Navigation commands respect current editor guards; finish/close an editor before changing destination. No full offline budgeting, app login, native navigation rewrite or remote release feed. Broader integrated qualification remains with root.
+
+## Consolidated review fix
+
+Spec P2: global pending recovery previously formatted each amount using the active budget's privacy, which clears at the chooser and cannot represent mixed-budget rows. Recovery now masks every row initially, independent of active/cache preferences. Each row has an explicit Show/Hide amount control; reveal is local to that mounted view, preserves the row's captured number format and remains available for deleted/missing/offline budgets. Closing/reopening resets reveals. No retry/cancellation or outbox data changes.
+
+Public regression reproduces private-budget → chooser → recovery disclosure with two different-budget pending rows; checks initial masking of both, independent per-row reveal/hide and reset on reopening while offline. Red observed `-12.34` exposed; focused navigation browser green after fix. Only changed-fix Svelte/check/build/format validation repeated; broader previous evidence remains valid.

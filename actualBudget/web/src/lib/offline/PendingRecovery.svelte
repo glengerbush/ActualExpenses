@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { errorMessage } from "../api";
-  import { formatSavedAmount } from "../money";
+  import { formatAmountInput } from "../money";
   import { t } from "../i18n.svelte";
   import { readCatalog } from "./cache";
   import { entries, receipts, retryEntry, type OutboxEntry } from "./outbox";
@@ -10,6 +10,7 @@
   let { onclose }: { onclose: () => void } = $props();
   let items = $state.raw<OutboxEntry[]>([]);
   let names = $state.raw<Record<string, string>>({});
+  let revealed = $state<Record<string, boolean>>({});
   let loading = $state(true);
   let error = $state("");
   let notice = $state("");
@@ -82,6 +83,11 @@
       "Saved work remains available here even when its budget was deleted or is missing from the server.",
     )}
   </p>
+  <p class="hint">
+    {t(
+      "Amounts are hidden in this view across budgets. Show an individual amount to review it, including when its budget is unavailable.",
+    )}
+  </p>
   {#if error}<div role="alert">
       <p class="error">{error}</p>
       <button onclick={() => void refresh()}
@@ -100,7 +106,12 @@
             <span class="budget-id">{item.budgetId}</span>
           </p>
           <p class="amount">
-            {formatSavedAmount(item.row.amount, item.format)} ·
+            <span id={`pending-amount-${item.key}`}
+              >{revealed[item.key]
+                ? formatAmountInput(item.row.amount, item.format)
+                : "••••"}</span
+            >
+            ·
             <time datetime={item.row.date}>{item.row.date}</time>
           </p>
           {#if item.row.notes}<p class="notes">{item.row.notes}</p>{/if}
@@ -111,6 +122,14 @@
                 : t("Saved on this device. Waiting to sync."))}
           </p>
           <div class="actions">
+            <button
+              type="button"
+              aria-expanded={!!revealed[item.key]}
+              aria-controls={`pending-amount-${item.key}`}
+              onclick={() => {
+                revealed[item.key] = !revealed[item.key];
+              }}>{t(revealed[item.key] ? "Hide amount" : "Show amount")}</button
+            >
             <button onclick={() => void retry(item)} disabled={busy}
               >{t("Retry pending expense")}</button
             >

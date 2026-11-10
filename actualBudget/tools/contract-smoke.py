@@ -84,6 +84,18 @@ def main():
             account = {"id": account_id, "name": "Cash", "opening_balance": 12345, "opening_date": "2026-10-15"}
             check(accounts, account_template, "POST", account, {"Idempotency-Key": "account"}, 201)
             check(accounts, account_template)
+            recovery_path = f"{budgets}/{budget_id}/recovery"
+            recovery_template = budgets + "/{budget}/recovery"
+            recovery = check(recovery_path, recovery_template)["data"]
+            assert recovery["can_apply"] is False and recovery["backup_restorable"] is True
+            repair = {"preview_token": recovery["preview_token"], "snapshot": recovery["snapshot"], "confirm_name": budget["name"]}
+            repair_headers = {"Idempotency-Key": "recovery-contract", "X-Actual-Budget-Epoch": recovery["epoch"]}
+            check(recovery_path, recovery_template, "POST", repair, repair_headers, 409)
+            cancelled = check(recovery_path, recovery_template, "POST", repair,
+                              {**repair_headers, "X-Actual-Cancel-If-Uncommitted": "true"}, 409)
+            assert cancelled["error"]["code"] == "operation_canceled"
+            assert check(recovery_path, recovery_template, "POST", repair, repair_headers, 409) == cancelled
+            assert check(recovery_path, recovery_template)["data"] == recovery
             check(f"{budgets}/{uuid.uuid4()}/accounts", account_template, expected=404)
             check(f"{budgets}/{budget_id}/transactions?account_id={account_id}", budgets + "/{budget}/transactions")
             reconcile_path = accounts + "/" + account_id + "/reconciliation"

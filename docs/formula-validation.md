@@ -136,6 +136,8 @@ Optional `evaluated_at` is an RFC3339 instant with the caller's UTC offset; omit
 
 Focused verification: `/tmp/formula-edges-root-green.log`21/21; `/tmp/formula-preferences-root-core.log`40/40; `/tmp/formula-preferences-root-budget.log`10/10; clock6/6 =77 source comparisons, with exact financial/string/date equality and only the original predeclared statistical tolerances. Public checks preserve financial records/checkpoints, reject stale snapshots, distinguish oversized regex refusal from malformed-pattern nonmatch, and verify subsequent evaluations recover. Rust build/Clippy warnings-denied and reproducible assets pass (`/tmp/formula-preferences-root-{build,clippy,assets-check}.log`). Root consolidated standards/spec review found no remaining issue in this checkpoint.
 
+Checkpoint55c03ac also passes the large-matrix refusal and fresh-context recovery check (`/tmp/formula-preferences-root-limits.log`). No poisoned runtime after a bounded failure.
+
 Still partial41: card/query UI, named-query editing, import/native/served-contract/Android integration and complete feature acceptance remain open. Missing preference values currently adopt the accepted native preference conversion defaults; before41 acceptance, compare formula formatting when original optional preferences are absent and address any mismatch. No broad suite, push, release or deployment.
 
 ## Root runtime review and composition

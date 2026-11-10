@@ -1,6 +1,6 @@
 # Schedules and matching qualification
 
-Tickets21/22 cover spec stories48–53. Acceptance is **pending** final web22 review and integrated qualification. This record distinguishes completed evidence from remaining work; it is not a production-cutover approval.
+Tickets21/22 cover spec stories48–53. Acceptance is **pending** integrated production qualification. Code, source provenance and UI reviews pass through `87b9fdc`. This record distinguishes completed evidence from remaining work; it is not a production-cutover approval.
 
 ## Independent reference evidence
 
@@ -42,13 +42,16 @@ Web21 provides recurrence editing, posting/skipping/deletion, linked-rule naviga
 
 Android schedule requests run only during foreground work and stay outside the expense outbox/count/projection. Background work remains pending expense additions/edits/deletions. Known schedule refusals do not spin or block expense capture. [Native qualification](schedules-native-validation.md) records production-composable API36 phone, dark large-text and tablet renders, explicit retry/cancel and independent review. Those renders do not establish MainActivity system-bar, TalkBack or physical-device behavior.
 
-Web22 matching/discovery/conversion and final integrated browser results remain pending.
+Web22 (`be6ba1c`, corrected by `87b9fdc`) adds discovery and matching with exact selected-payment review,30-row pages and500-row selection limit. Public browser evidence covers read-only suggestions, creation linking three existing payments without changing money,41-row cross-page selection, linking/unlinking and stale-snapshot refusal retaining explicit retry/cancel. Future conversion covers new/inline/existing/transfer drafts, write-free preview, retained drafts, horizon feedback, immutable retries and proof-based cancellation. The lost-acknowledgement test verifies forwarded201, the committed schedule and reserved-original-ID409 **before** retrying, then checks exact original request identity. Logs: `/tmp/schedules22-selection-green.log`, `/tmp/schedules22-ack-proof-green.log`.
+
+Review found and closed two P2s: editing conditions removed transaction IDs but retained misleading captured-selection feedback; `87b9fdc` clears IDs, rows and the old promise, explicitly requires rematching, and preserves that cleared state across reload. The other finding strengthened the lost-acknowledgement harness's commit proof; no runtime recovery correction was required. Original failing logs remain available. Standards/Spec and Impeccable now pass; desktop/390px/200% light/dark captures show readable controls and no material clipping. Svelte check/build/autofix pass, with only an unchanged local nonreactive-Set suggestion outside the changed logic.
 
 ## Integrated verification
 
 - Initial complete serial HTTP run: `/tmp/schedules2122-full-http.log`. New schedule tests passed; older tests contained current-schema18 expectations and an obsolete unsupported-schedule-rule gate. Test-only `7534c33` updates current outputs to19 and retains the formula/template gate. Original fixtures, financial assertions and receipts are unchanged; independent review passed.
 - Affected HTTP groups: `/tmp/schedules2122-qualification-fixes.log` —82 pass, zero failures/skips. Together with the initial run, all223 distinct HTTP cases have passing evidence; this is combined coverage, not one uninterrupted passing run.
 - Full native API class:42 pass, zero failures/errors/skips; fresh debug APK and lint pass. `/tmp/schedules2122-native-qualification.log`; JUnit XML confirms the count. The genuine pre-upgrade schema17 binary was configured, including the app-first upgrade scenario. Unchanged legacy-protocol tests are not counted as rerun here.
-- Final production-container/browser qualification and final UI22 review: pending. The reviewed `container-smoke.py --browser --keep-going` runs each package command once, records all failures and fails overall if any group fails; it does not retry or hide failures.
+- Final all-target Clippy passes with `-D warnings`: `/tmp/schedules2122-final-clippy.log`.
+- Final production-container/browser qualification: pending. The reviewed `container-smoke.py --browser --keep-going` runs each package command once, records all failures and fails overall if any group fails; it does not retry or hide failures. The initial image freezes `be6ba1c`; the final two changed browser groups will also run against a freshly built `87b9fdc` image. This avoids repeating unchanged qualification after the review correction.
 
 All work uses disposable budgets/containers/volumes. No production data, signing setup, version, release or deployment changed. Ticket51 still owns measured whole-system resource qualification; these functional bounds are not a universal latency or power claim.

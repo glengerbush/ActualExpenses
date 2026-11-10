@@ -677,7 +677,8 @@ fn run_visual_case(name: &str) {
         }
     }
     assert_eq!(
-        effective, case["effective"],
+        effective,
+        case.get("effective").cloned().unwrap_or_else(|| json!([])),
         "{name} effective imported definition"
     );
     let checkpoint = server.get(&format!("{root}/checkpoint"));
@@ -1320,5 +1321,41 @@ mod visual {
     #[test]
     fn tracking_weighted_remainder_cap_rendered_notes() {
         run_visual_case("tracking-weighted-remainder-cap-rendered-notes");
+    }
+}
+
+mod visual_edge_cases {
+    use super::run_visual_case;
+    #[test]
+    fn envelope_goal_only_cap_ui() {
+        run_visual_case("envelope-goal-only-cap-ui");
+    }
+    #[test]
+    fn envelope_goal_only_cap_rendered_notes() {
+        run_visual_case("envelope-goal-only-cap-rendered-notes");
+    }
+    #[test]
+    fn envelope_orphan_refill_ui() {
+        run_visual_case("envelope-orphan-refill-ui");
+    }
+    #[test]
+    fn envelope_orphan_refill_rendered_notes() {
+        run_visual_case("envelope-orphan-refill-rendered-notes");
+    }
+    #[test]
+    fn tracking_goal_only_cap_ui() {
+        run_visual_case("tracking-goal-only-cap-ui");
+    }
+    #[test]
+    fn tracking_goal_only_cap_rendered_notes() {
+        run_visual_case("tracking-goal-only-cap-rendered-notes");
+    }
+    #[test]
+    fn tracking_orphan_refill_ui() {
+        run_visual_case("tracking-orphan-refill-ui");
+    }
+    #[test]
+    fn tracking_orphan_refill_rendered_notes() {
+        run_visual_case("tracking-orphan-refill-rendered-notes");
     }
 }

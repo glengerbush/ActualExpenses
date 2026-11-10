@@ -6418,6 +6418,1186 @@
         "filename": "tracking-weighted-remainder-cap-rendered-notes.zip",
         "sha256": "bf72e4ff5d98cf290c75bfc27379d9dc2e357502767b11cb697d420a7973a354"
       }
+    },
+    {
+      "name": "envelope-goal-only-cap-ui",
+      "method": "envelope",
+      "mode": "ui",
+      "month": "2026-11",
+      "ids": {
+        "Checking": "39a8a7a5-2c4c-4ae5-a098-8efac1327daf",
+        "Plans": "5211a704-e27e-444b-8c45-d8c3199844d4",
+        "A": "2f902eb9-5cba-4a9e-96f4-5c21704e69cf",
+        "B": "2e8266a7-6e97-4d56-9f5d-278055efb254",
+        "C": "bc206a85-f2f9-4561-9f97-541421c87632",
+        "Salary": "adc7946b-25a1-44ff-ab3b-6af9eed5edbb"
+      },
+      "configuration": {
+        "notes": {
+          "A": "Original description\n#template 999"
+        }
+      },
+      "templates": [
+        {
+          "type": "limit",
+          "directive": "template",
+          "priority": null,
+          "amount": 50,
+          "period": "monthly",
+          "hold": false
+        },
+        {
+          "type": "goal",
+          "directive": "goal",
+          "amount": 1000
+        }
+      ],
+      "rendered": "#template 0 up to 50\n#goal 1000",
+      "effective": [
+        {
+          "type": "limit",
+          "directive": "template",
+          "priority": null,
+          "amount": 50,
+          "period": "monthly",
+          "hold": false
+        },
+        {
+          "type": "goal",
+          "directive": "goal",
+          "amount": 1000
+        }
+      ],
+      "seed": {
+        "categories": {
+          "A": {
+            "budget": 2222,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 4722
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": null,
+            "goal": null,
+            "long-goal": null,
+            "leftover": null
+          }
+        },
+        "available": 187778
+      },
+      "ledger": [
+        {
+          "id": "24250000-0000-4000-8000-000000000001",
+          "date": "2026-10-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 0",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000002",
+          "date": "2026-11-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 1",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000003",
+          "date": "2026-10-02",
+          "amount": -6000,
+          "category": "A",
+          "notes": "Seed 2",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000004",
+          "date": "2026-11-02",
+          "amount": -1500,
+          "category": "A",
+          "notes": "Seed 3",
+          "cleared": true,
+          "reconciled": false
+        }
+      ],
+      "notification": {
+        "type": "message",
+        "message": "templates-applied",
+        "count": 1
+      },
+      "result": {
+        "categories": {
+          "A": {
+            "budget": 2222,
+            "goal": 100000,
+            "long-goal": 1,
+            "leftover": 4722
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": null,
+            "goal": null,
+            "long-goal": null,
+            "leftover": null
+          }
+        },
+        "available": 187778
+      },
+      "roundtrip_equal": null,
+      "archive": {
+        "filename": "envelope-goal-only-cap-ui.zip",
+        "sha256": "3f84d58e9af35528ea513378d5e171d1afc7ea6fbcfbc06ad0a8b43d8634e9df"
+      }
+    },
+    {
+      "name": "envelope-goal-only-cap-rendered-notes",
+      "method": "envelope",
+      "mode": "rendered-notes",
+      "month": "2026-11",
+      "ids": {
+        "Checking": "8af50ebe-fa28-455a-9989-fbf2c4cebb6f",
+        "Plans": "61052952-a6af-4444-b9d4-850214a33597",
+        "A": "5c1d8e4f-845b-4578-bdb8-596a1df6c4b5",
+        "B": "cf96d049-2683-4590-93cc-0d86adaed567",
+        "C": "e728b654-7b3a-4c21-8932-001f5a91b07e",
+        "Salary": "f1ada08f-2691-4646-ae92-64b360a4cd3b"
+      },
+      "configuration": {
+        "notes": {
+          "A": "Original description\n#template 0 up to 50\n#goal 1000"
+        }
+      },
+      "templates": [
+        {
+          "type": "limit",
+          "directive": "template",
+          "priority": null,
+          "amount": 50,
+          "period": "monthly",
+          "hold": false
+        },
+        {
+          "type": "goal",
+          "directive": "goal",
+          "amount": 1000
+        }
+      ],
+      "rendered": "#template 0 up to 50\n#goal 1000",
+      "effective": [
+        {
+          "type": "simple",
+          "monthly": 0,
+          "limit": {
+            "amount": 50,
+            "hold": null,
+            "period": "monthly",
+            "start": null
+          },
+          "priority": 0,
+          "directive": "template",
+          "description": "Original description"
+        },
+        {
+          "type": "goal",
+          "amount": 1000,
+          "priority": null,
+          "directive": "goal"
+        }
+      ],
+      "seed": {
+        "categories": {
+          "A": {
+            "budget": 2222,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 4722
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": null,
+            "goal": null,
+            "long-goal": null,
+            "leftover": null
+          }
+        },
+        "available": 187778
+      },
+      "ledger": [
+        {
+          "id": "24250000-0000-4000-8000-000000000001",
+          "date": "2026-10-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 0",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000002",
+          "date": "2026-11-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 1",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000003",
+          "date": "2026-10-02",
+          "amount": -6000,
+          "category": "A",
+          "notes": "Seed 2",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000004",
+          "date": "2026-11-02",
+          "amount": -1500,
+          "category": "A",
+          "notes": "Seed 3",
+          "cleared": true,
+          "reconciled": false
+        }
+      ],
+      "notification": {
+        "type": "message",
+        "message": "templates-applied",
+        "count": 1
+      },
+      "result": {
+        "categories": {
+          "A": {
+            "budget": 0,
+            "goal": 100000,
+            "long-goal": 1,
+            "leftover": 2500
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": null,
+            "goal": null,
+            "long-goal": null,
+            "leftover": null
+          }
+        },
+        "available": 190000
+      },
+      "roundtrip_equal": false,
+      "archive": {
+        "filename": "envelope-goal-only-cap-rendered-notes.zip",
+        "sha256": "d22c50f4e3c122addc8646aa648adc3d088ed955f07a1cd120350a2af67bfb72"
+      }
+    },
+    {
+      "name": "tracking-goal-only-cap-ui",
+      "method": "tracking",
+      "mode": "ui",
+      "month": "2026-11",
+      "ids": {
+        "Checking": "f1c3fc7e-54ec-4b0a-934a-38c453f5623c",
+        "Plans": "5ff31d96-95a5-4edb-9b84-e15af7a209d5",
+        "A": "80927620-206d-4f79-bf6a-1bf8fa114f03",
+        "B": "95f8affa-eccd-4b49-9ab1-3189336bc5d2",
+        "C": "83bca06d-bfd6-4614-aa90-4cbecff1e9ab",
+        "Salary": "5c9e2eef-e1ae-4eab-ab7c-f9fda8c8e2e1"
+      },
+      "configuration": {
+        "notes": {
+          "A": "Original description\n#template 999"
+        }
+      },
+      "templates": [
+        {
+          "type": "limit",
+          "directive": "template",
+          "priority": null,
+          "amount": 50,
+          "period": "monthly",
+          "hold": false
+        },
+        {
+          "type": "goal",
+          "directive": "goal",
+          "amount": 1000
+        }
+      ],
+      "rendered": "#template 0 up to 50\n#goal 1000",
+      "effective": [
+        {
+          "type": "limit",
+          "directive": "template",
+          "priority": null,
+          "amount": 50,
+          "period": "monthly",
+          "hold": false
+        },
+        {
+          "type": "goal",
+          "directive": "goal",
+          "amount": 1000
+        }
+      ],
+      "seed": {
+        "categories": {
+          "A": {
+            "budget": 2222,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 4722
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": -100000
+          }
+        },
+        "available": -2222
+      },
+      "ledger": [
+        {
+          "id": "24250000-0000-4000-8000-000000000001",
+          "date": "2026-10-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 0",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000002",
+          "date": "2026-11-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 1",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000003",
+          "date": "2026-10-02",
+          "amount": -6000,
+          "category": "A",
+          "notes": "Seed 2",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000004",
+          "date": "2026-11-02",
+          "amount": -1500,
+          "category": "A",
+          "notes": "Seed 3",
+          "cleared": true,
+          "reconciled": false
+        }
+      ],
+      "notification": {
+        "type": "message",
+        "message": "templates-applied",
+        "count": 1
+      },
+      "result": {
+        "categories": {
+          "A": {
+            "budget": 2222,
+            "goal": 100000,
+            "long-goal": 1,
+            "leftover": 4722
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": -100000
+          }
+        },
+        "available": -2222
+      },
+      "roundtrip_equal": null,
+      "archive": {
+        "filename": "tracking-goal-only-cap-ui.zip",
+        "sha256": "a6697927ed46380f6378c65e09d20c1d717d528a9138a653010224ed0f7a3a4b"
+      }
+    },
+    {
+      "name": "tracking-goal-only-cap-rendered-notes",
+      "method": "tracking",
+      "mode": "rendered-notes",
+      "month": "2026-11",
+      "ids": {
+        "Checking": "8a42a109-1e07-46e6-b66f-60d47189e144",
+        "Plans": "b209ed51-34cc-4d8e-adcc-cf501ef69beb",
+        "A": "e5c8e53f-1c9c-4251-a7dc-a3d72b51b194",
+        "B": "eab0957d-f03e-4758-ad4b-6d1eddfe4925",
+        "C": "535a8786-e16f-4810-84e8-be07745decda",
+        "Salary": "9771476c-09c7-4a60-9f98-8bf1574c9041"
+      },
+      "configuration": {
+        "notes": {
+          "A": "Original description\n#template 0 up to 50\n#goal 1000"
+        }
+      },
+      "templates": [
+        {
+          "type": "limit",
+          "directive": "template",
+          "priority": null,
+          "amount": 50,
+          "period": "monthly",
+          "hold": false
+        },
+        {
+          "type": "goal",
+          "directive": "goal",
+          "amount": 1000
+        }
+      ],
+      "rendered": "#template 0 up to 50\n#goal 1000",
+      "effective": [
+        {
+          "type": "simple",
+          "monthly": 0,
+          "limit": {
+            "amount": 50,
+            "hold": null,
+            "period": "monthly",
+            "start": null
+          },
+          "priority": 0,
+          "directive": "template",
+          "description": "Original description"
+        },
+        {
+          "type": "goal",
+          "amount": 1000,
+          "priority": null,
+          "directive": "goal"
+        }
+      ],
+      "seed": {
+        "categories": {
+          "A": {
+            "budget": 2222,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 4722
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": -100000
+          }
+        },
+        "available": -2222
+      },
+      "ledger": [
+        {
+          "id": "24250000-0000-4000-8000-000000000001",
+          "date": "2026-10-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 0",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000002",
+          "date": "2026-11-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 1",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000003",
+          "date": "2026-10-02",
+          "amount": -6000,
+          "category": "A",
+          "notes": "Seed 2",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000004",
+          "date": "2026-11-02",
+          "amount": -1500,
+          "category": "A",
+          "notes": "Seed 3",
+          "cleared": true,
+          "reconciled": false
+        }
+      ],
+      "notification": {
+        "type": "message",
+        "message": "templates-applied",
+        "count": 1
+      },
+      "result": {
+        "categories": {
+          "A": {
+            "budget": 0,
+            "goal": 100000,
+            "long-goal": 1,
+            "leftover": 2500
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": -100000
+          }
+        },
+        "available": 0
+      },
+      "roundtrip_equal": false,
+      "archive": {
+        "filename": "tracking-goal-only-cap-rendered-notes.zip",
+        "sha256": "c85b01a355f543711f65c709a299c44f240e8623cb713f4b39ced7ef5d4eb4ca"
+      }
+    },
+    {
+      "name": "envelope-orphan-refill-ui",
+      "method": "envelope",
+      "mode": "ui",
+      "month": "2026-11",
+      "ids": {
+        "Checking": "1fc793ac-a937-48d6-9084-16636f2000f2",
+        "Plans": "2dba6f46-fe36-4590-b5ed-bfaea75a1df2",
+        "A": "ecb4d874-706a-44d4-a3b4-4c51a6f3e488",
+        "B": "c2a10151-b164-4108-aabb-e4b3d7c9e93a",
+        "C": "d6861d57-61ca-4eb6-97eb-67a8991876c3",
+        "Salary": "18946ce1-3c8a-4a67-903e-ff05e7b88898"
+      },
+      "configuration": {
+        "notes": {
+          "A": "Original description\n#template 999"
+        }
+      },
+      "templates": [
+        {
+          "type": "refill",
+          "directive": "template",
+          "priority": 0
+        }
+      ],
+      "rendered": "",
+      "effective": [
+        {
+          "type": "refill",
+          "directive": "template",
+          "priority": 0
+        }
+      ],
+      "seed": {
+        "categories": {
+          "A": {
+            "budget": 2222,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 4722
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": null,
+            "goal": null,
+            "long-goal": null,
+            "leftover": null
+          }
+        },
+        "available": 187778
+      },
+      "ledger": [
+        {
+          "id": "24250000-0000-4000-8000-000000000001",
+          "date": "2026-10-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 0",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000002",
+          "date": "2026-11-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 1",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000003",
+          "date": "2026-10-02",
+          "amount": -6000,
+          "category": "A",
+          "notes": "Seed 2",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000004",
+          "date": "2026-11-02",
+          "amount": -1500,
+          "category": "A",
+          "notes": "Seed 3",
+          "cleared": true,
+          "reconciled": false
+        }
+      ],
+      "notification": {
+        "type": "message",
+        "message": "templates-applied",
+        "count": 1
+      },
+      "result": {
+        "categories": {
+          "A": {
+            "budget": -4000,
+            "goal": -4000,
+            "long-goal": null,
+            "leftover": -1500
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": null,
+            "goal": null,
+            "long-goal": null,
+            "leftover": null
+          }
+        },
+        "available": 194000
+      },
+      "roundtrip_equal": null,
+      "archive": {
+        "filename": "envelope-orphan-refill-ui.zip",
+        "sha256": "aa26c6358aadc71828f1d78e8b3618727be5b15fa26223540b47d61c2c8ce7bd"
+      }
+    },
+    {
+      "name": "envelope-orphan-refill-rendered-notes",
+      "method": "envelope",
+      "mode": "rendered-notes",
+      "month": "2026-11",
+      "ids": {
+        "Checking": "3c8a5b11-97a0-4f91-b76a-27c0072c8f2f",
+        "Plans": "5b4daf61-6038-4501-b06e-a27ad576b646",
+        "A": "ff5e9b85-884e-482b-8e93-a99ba11781a2",
+        "B": "703efa45-b143-46b0-b39a-f6637b8817da",
+        "C": "47bf4dac-5374-4924-96fe-2327b89c6b26",
+        "Salary": "a6b28e11-b9c2-46e1-8266-5c03b77c7f02"
+      },
+      "configuration": {
+        "notes": {
+          "A": "Original description\n"
+        }
+      },
+      "templates": [
+        {
+          "type": "refill",
+          "directive": "template",
+          "priority": 0
+        }
+      ],
+      "rendered": "",
+      "seed": {
+        "categories": {
+          "A": {
+            "budget": 2222,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 4722
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": null,
+            "goal": null,
+            "long-goal": null,
+            "leftover": null
+          }
+        },
+        "available": 187778
+      },
+      "ledger": [
+        {
+          "id": "24250000-0000-4000-8000-000000000001",
+          "date": "2026-10-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 0",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000002",
+          "date": "2026-11-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 1",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000003",
+          "date": "2026-10-02",
+          "amount": -6000,
+          "category": "A",
+          "notes": "Seed 2",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000004",
+          "date": "2026-11-02",
+          "amount": -1500,
+          "category": "A",
+          "notes": "Seed 3",
+          "cleared": true,
+          "reconciled": false
+        }
+      ],
+      "notification": {
+        "type": "message",
+        "message": "templates-up-to-date"
+      },
+      "result": {
+        "categories": {
+          "A": {
+            "budget": 2222,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 4722
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": null,
+            "goal": null,
+            "long-goal": null,
+            "leftover": null
+          }
+        },
+        "available": 187778
+      },
+      "roundtrip_equal": false,
+      "archive": {
+        "filename": "envelope-orphan-refill-rendered-notes.zip",
+        "sha256": "cd19ca247e2599f2b918c360e72deabc31d05aad0e177aca63ca8a75f5449a8a"
+      }
+    },
+    {
+      "name": "tracking-orphan-refill-ui",
+      "method": "tracking",
+      "mode": "ui",
+      "month": "2026-11",
+      "ids": {
+        "Checking": "efb88e0f-e01f-478f-8ec8-e71cfacf939d",
+        "Plans": "35e6f1df-ae41-48e9-9fd5-bdfa62e922b5",
+        "A": "d7a06756-b78b-4424-a98e-cf3075f44a7f",
+        "B": "0d2e7def-9d4e-471a-b466-3f24d156f054",
+        "C": "49edb1da-e61f-42a2-b481-5156dbee843f",
+        "Salary": "92fa4e2e-70c8-402e-a13d-f593981723c9"
+      },
+      "configuration": {
+        "notes": {
+          "A": "Original description\n#template 999"
+        }
+      },
+      "templates": [
+        {
+          "type": "refill",
+          "directive": "template",
+          "priority": 0
+        }
+      ],
+      "rendered": "",
+      "effective": [
+        {
+          "type": "refill",
+          "directive": "template",
+          "priority": 0
+        }
+      ],
+      "seed": {
+        "categories": {
+          "A": {
+            "budget": 2222,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 4722
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": -100000
+          }
+        },
+        "available": -2222
+      },
+      "ledger": [
+        {
+          "id": "24250000-0000-4000-8000-000000000001",
+          "date": "2026-10-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 0",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000002",
+          "date": "2026-11-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 1",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000003",
+          "date": "2026-10-02",
+          "amount": -6000,
+          "category": "A",
+          "notes": "Seed 2",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000004",
+          "date": "2026-11-02",
+          "amount": -1500,
+          "category": "A",
+          "notes": "Seed 3",
+          "cleared": true,
+          "reconciled": false
+        }
+      ],
+      "notification": {
+        "type": "message",
+        "message": "templates-applied",
+        "count": 1
+      },
+      "result": {
+        "categories": {
+          "A": {
+            "budget": -4000,
+            "goal": -4000,
+            "long-goal": null,
+            "leftover": -1500
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": -100000
+          }
+        },
+        "available": 4000
+      },
+      "roundtrip_equal": null,
+      "archive": {
+        "filename": "tracking-orphan-refill-ui.zip",
+        "sha256": "a20330f854cdaf5f821c351a055faccef1d7ec33b12f8c4093a50b6598b8983d"
+      }
+    },
+    {
+      "name": "tracking-orphan-refill-rendered-notes",
+      "method": "tracking",
+      "mode": "rendered-notes",
+      "month": "2026-11",
+      "ids": {
+        "Checking": "86f41b8f-d37b-4872-96ff-68fd9dbb424d",
+        "Plans": "c0675aca-16bc-4955-92cc-e6067e0b52a7",
+        "A": "af5a4bc0-54cc-41bc-b5d6-c812537e43f1",
+        "B": "cfbd0314-2579-4f90-be67-e716bc285cc2",
+        "C": "e1633c00-42b5-4148-b854-93155d81e090",
+        "Salary": "c74e969b-c792-43b5-be00-d82768c04ed3"
+      },
+      "configuration": {
+        "notes": {
+          "A": "Original description\n"
+        }
+      },
+      "templates": [
+        {
+          "type": "refill",
+          "directive": "template",
+          "priority": 0
+        }
+      ],
+      "rendered": "",
+      "seed": {
+        "categories": {
+          "A": {
+            "budget": 2222,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 4722
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": -100000
+          }
+        },
+        "available": -2222
+      },
+      "ledger": [
+        {
+          "id": "24250000-0000-4000-8000-000000000001",
+          "date": "2026-10-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 0",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000002",
+          "date": "2026-11-01",
+          "amount": 100000,
+          "category": "Salary",
+          "notes": "Seed 1",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000003",
+          "date": "2026-10-02",
+          "amount": -6000,
+          "category": "A",
+          "notes": "Seed 2",
+          "cleared": true,
+          "reconciled": false
+        },
+        {
+          "id": "24250000-0000-4000-8000-000000000004",
+          "date": "2026-11-02",
+          "amount": -1500,
+          "category": "A",
+          "notes": "Seed 3",
+          "cleared": true,
+          "reconciled": false
+        }
+      ],
+      "notification": {
+        "type": "message",
+        "message": "templates-up-to-date"
+      },
+      "result": {
+        "categories": {
+          "A": {
+            "budget": 2222,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 4722
+          },
+          "B": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "C": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": 0
+          },
+          "Salary": {
+            "budget": 0,
+            "goal": null,
+            "long-goal": null,
+            "leftover": -100000
+          }
+        },
+        "available": -2222
+      },
+      "roundtrip_equal": false,
+      "archive": {
+        "filename": "tracking-orphan-refill-rendered-notes.zip",
+        "sha256": "e523ed2d5988406bbf4e6de708fa33baa392e40ed9f34ee1916b2a3404bfb497"
+      }
     }
   ]
 }

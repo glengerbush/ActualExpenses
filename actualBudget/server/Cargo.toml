@@ -26,6 +26,8 @@ roxmltree = "=0.21.2"
 rquickjs = { version = "=0.13.0", default-features = false, features = ["std"] }
 icu_collator = "=2.1.1"
 icu_locale = "=2.1.1"
+icu_decimal = "=2.1.1"
+writeable = "=0.6.4"
 
 [dev-dependencies]
 base64 = "=0.22.1"

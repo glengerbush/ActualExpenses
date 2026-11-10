@@ -162,6 +162,58 @@ The theme/change-feed checkpoint below resolves more of this list. Remaining41 a
 
 Root consolidated standards/spec review from4e1db87: no unresolved finding in this checkpoint;41 remains partial for the formatting and final coverage listed above. Existing77 financial/string/date reference outcomes remain valid and were not regenerated. No full-suite/container qualification, push, release or live deployment in this checkpoint.
 
+## Missing formatting preferences and currency migration — 2026-11-10
+
+The importer now preserves absent/null `numberFormat` and
+`currencySymbolPosition` internally. Public preferences retain their complete
+default-valued contract; unrelated PATCHes preserve absence and explicit writes
+override it, including writes equal to displayed defaults. Native backups,
+duplicates and restores retain that distinction. Existing explicit native values
+are not guessed or rewritten. Locale pattern selection uses ICU4X decimal parts
+only when needed; unchanged trusted Actual functions format formula values.
+
+Two append-only source producers record78 new observations:66 across19 locales
+and EUR/CHF/JPY defaults, plus12 preference-edit/null observations. Both execute
+the unchanged production hook and real Actual preference/export/reload flows,
+check original financial rows and retain source/archive hashes. Independent
+`--check` passes in `/tmp/formula-formatting-source-check.log` and
+`/tmp/formula-formatting-edits-check.log`. The old server failed the first Catalan
+case (`1,234.57` versus source `1.234,57`), retained in
+`/tmp/formula-formatting-red.log`.
+
+Verification:
+
+- `/tmp/formula-formatting-final.log`: all66 new public formula outcomes pass,
+  with unchanged financial rows and checkpoints. Earlier40 core,21 edge and10
+  budget cases passed this change; unchanged clock witnesses are reused.
+- `/tmp/formula-formatting-recovery-final.log`: source null/absent import,
+  unrelated and explicit preference edits, served preference schema, native
+  backup/duplicate/restore and unchanged financial rows pass. Null import first
+  failed as unsupported, then passed after the source-compatible conversion fix.
+- `/tmp/formula-formatting-preferences4.log`:17 genuine schema19/native19 upgrade
+  cases and6 preference cases pass. Frozen financial values and immutable
+  receipts remain exact. Expectations account explicitly for schema24 note
+  identities, schema26 retired flags and their change-feed entries; original
+  fixtures were not regenerated. The checks exposed and fixed retired flags
+  confusing pre20 currency provenance. Only comparison copies normalize removed
+  flags/defaults; ambiguous histories still require explicit currency review.
+- `/tmp/formula-formatting-browser-green.log`: browser language changes use the
+  exact source formatting result; unrelated settings saves preserve fallback;
+  disabling formulas stops evaluation and retains saved work/financial rows.
+  No browser exceptions or HTTP5xx. Initial disabled assertion expected a masked
+  output, corrected to assert the actual absent output plus disabled controls.
+- Warnings-denied Clippy, Rust formatting and changed-file Prettier checks pass.
+  Source/API/native/browser scripts are included in existing package commands.
+
+Root standards review from `a3e8a02`: no unresolved finding in this checkpoint.
+Spec review: formula-function fallback and recovery are covered;41 remains open.
+Final source inspection found a separate numeric-card display question:
+`FormulaResult.tsx` formats numeric values through source `useFormat`, whereas
+native `FormulaWidget.svelte` uses public default-filled `formatAmount` settings.
+Verify absent-preference locale/currency rendering with a genuine source display
+witness and fix any mismatch before accepting41. Do not defer it to50–53.
+No whole-suite/container run, push, release or deployment in this checkpoint.
+
 ## Root runtime review and composition
 
 Reviewed065c94d and79e6ba9 against pinned production prefetch/evaluation code;

@@ -43,6 +43,9 @@ pub fn convert_actual(input: &Value) -> Result<Value, Error> {
             _ => None,
         };
         if let Some(mapped) = mapped {
+            if value.is_null() && ["number_format", "currency_symbol_position"].contains(&mapped) {
+                continue;
+            }
             let converted = match mapped {
                 "sync_transfer_date" | "hide_fraction" | "currency_space" | "privacy_mode" => {
                     match value {

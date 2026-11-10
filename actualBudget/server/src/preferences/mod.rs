@@ -107,12 +107,17 @@ pub(crate) fn normalize_currency(values: &mut Value) {
     }
 }
 pub(crate) fn remove_retired_features(values: &mut Value) {
-    if let Some(flags) = values["experimental"].as_object_mut() {
+    if let Some(flags) = values
+        .get_mut("experimental")
+        .and_then(Value::as_object_mut)
+    {
         flags.remove("enableBanking");
         flags.remove("akahuBankSync");
     }
 }
-pub fn get_preferences(db: &Connection, budget: &str) -> Result<Value, Error> {
+/// Storage preserves absence for source formula locale/currency fallbacks.
+/// Public settings continue to expose complete, usable interface defaults.
+pub(crate) fn stored_preferences(db: &Connection, budget: &str) -> Result<Value, Error> {
     store::require_budget(db, budget)?;
     let existing: Option<(String, i64)> = db
         .query_row(
@@ -126,19 +131,43 @@ pub fn get_preferences(db: &Connection, budget: &str) -> Result<Value, Error> {
             serde_json::from_str::<Value>(&settings).map_err(Error::internal)?,
             revision,
         ),
-        None => (defaults(), 0),
+        None => {
+            let mut values = defaults();
+            values.as_object_mut().unwrap().remove("number_format");
+            values
+                .as_object_mut()
+                .unwrap()
+                .remove("currency_symbol_position");
+            (values, 0)
+        }
     };
+    if !values.is_object() {
+        return Err(Error::invalid("Invalid stored preferences"));
+    }
     remove_retired_features(&mut values);
     normalize_currency(&mut values);
     values["revision"] = json!(revision);
     Ok(values)
+}
+pub(crate) fn display_defaults(mut values: Value) -> Value {
+    for (key, value) in defaults().as_object().unwrap() {
+        values
+            .as_object_mut()
+            .unwrap()
+            .entry(key.clone())
+            .or_insert_with(|| value.clone());
+    }
+    values
+}
+pub fn get_preferences(db: &Connection, budget: &str) -> Result<Value, Error> {
+    Ok(display_defaults(stored_preferences(db, budget)?))
 }
 pub fn apply_changes(
     db: &Connection,
     budget: &str,
     changes: &Map<String, Value>,
 ) -> Result<Value, Error> {
-    let mut values = get_preferences(db, budget)?;
+    let mut values = stored_preferences(db, budget)?;
     let revision = values["revision"]
         .as_i64()
         .ok_or_else(|| Error::internal("Invalid preference revision"))?;
@@ -193,7 +222,7 @@ pub fn apply_changes(
         .ok_or_else(|| Error::internal("Preference revision exhausted"))?;
     db.execute("INSERT INTO budget_preferences(budget_id,settings,revision) VALUES(?1,?2,?3) ON CONFLICT(budget_id) DO UPDATE SET settings=excluded.settings,revision=excluded.revision",params![budget,values.to_string(),revision])?;
     values["revision"] = json!(revision);
-    Ok(values)
+    Ok(display_defaults(values))
 }
 async fn read(
     State(store): State<Store>,

@@ -1,5 +1,6 @@
 //! Server-owned spreadsheet expressions and their bounded financial context.
 mod context;
+mod formatting;
 mod runtime;
 use crate::{
     concurrency,
@@ -102,12 +103,17 @@ async fn read(
         let snapshot=concurrency::cursor(&tx,&b)?;
         if input.snapshot!=snapshot{return Err(Error::conflict("Formula snapshot changed; refresh before evaluating"));}
         let today=chrono::NaiveDate::parse_from_str(&input.as_of,"%Y-%m-%d").map_err(Error::internal)?;
-        let preferences=crate::preferences::get_preferences(&tx,&b)?;
+        let preferences=crate::preferences::stored_preferences(&tx,&b)?;
+        let locale=input.locale.as_deref().map(str::trim).filter(|s|!s.is_empty()).unwrap_or("en-US");
+        let locale_format=if preferences["number_format"].is_null()
+            && (preferences["experimental"]["currency"]!=true || preferences["currency_code"].as_str().unwrap_or("").is_empty()) {
+            formatting::locale_format(locale)?
+        } else {"comma-dot"};
         let output=crate::reports::formula_work(&tx,||crate::register::with_report_matcher(&tx,|matcher|{
             let mut context=context::Context{db:&tx,budget:&b,queries:&input.queries,today,work:500000,prefetch_values:0,matcher};
-            runtime::evaluate(&json!({"formula":input.formula,"named_expressions":input.named_expressions,"as_of":input.as_of,"local_clock_ms":local_clock_ms,"preferences":preferences,"locale":input.locale.as_deref().unwrap_or("en-US")}),|requests|context.prefetch(requests))
+            runtime::evaluate(&json!({"formula":input.formula,"named_expressions":input.named_expressions,"as_of":input.as_of,"local_clock_ms":local_clock_ms,"preferences":preferences,"locale":locale,"locale_format":locale_format}),|requests|context.prefetch(requests))
         }))?;
-        Ok(json!({"output":output,"snapshot":snapshot,"as_of":input.as_of,"evaluated_at":evaluated_at.to_rfc3339(),"locale":input.locale.as_deref().unwrap_or("en-US")}))
+        Ok(json!({"output":output,"snapshot":snapshot,"as_of":input.as_of,"evaluated_at":evaluated_at.to_rfc3339(),"locale":locale}))
     }).await?;
     Ok(Json(json!({"data":result})))
 }

@@ -8,6 +8,11 @@ struct Receipt {
     changes: Value,
     response: Value,
 }
+fn comparable_preferences(value: Value) -> Value {
+    let mut value = crate::preferences::display_defaults(value);
+    crate::preferences::remove_retired_features(&mut value);
+    value
+}
 pub(super) fn resolve(
     db: &Connection,
     b: &str,
@@ -20,9 +25,10 @@ pub(super) fn resolve(
         [b],
         |r| Ok((r.get(0)?, r.get(1)?)),
     )?;
-    let mut current: Value = serde_json::from_str(&settings).map_err(Error::internal)?;
+    let mut current =
+        comparable_preferences(serde_json::from_str(&settings).map_err(Error::internal)?);
     current["revision"] = json!(revision);
-    let mut initial = base.clone();
+    let mut initial = comparable_preferences(base.clone());
     initial["revision"] = json!(0);
     if revision == 0 {
         return Ok((raw.into(), current != initial));
@@ -67,7 +73,7 @@ pub(super) fn resolve(
     }
     let mut by_revision = BTreeMap::<i64, Vec<Receipt>>::new();
     for (payload, response) in receipts {
-        let Ok(changes) = serde_json::from_str::<Value>(&payload) else {
+        let Ok(mut changes) = serde_json::from_str::<Value>(&payload) else {
             continue;
         };
         let Ok(response) = serde_json::from_str::<Value>(&response) else {
@@ -76,6 +82,10 @@ pub(super) fn resolve(
         let Some(n) = response["revision"].as_i64() else {
             continue;
         };
+        // Removed bank flags cannot change calculator currency provenance.
+        // Normalize only proof copies; original receipts remain immutable.
+        crate::preferences::remove_retired_features(&mut changes);
+        let response = comparable_preferences(response);
         if n > 0 && n <= revision {
             by_revision
                 .entry(n)

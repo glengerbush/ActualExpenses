@@ -841,6 +841,17 @@ pub(super) fn convert_loaded(
     }
     let prefs = preferences::convert_actual(&json!({"synced":synced}))?;
     converted["preferences"] = prefs["shared"].clone();
+    for (source, target) in [
+        ("numberFormat", "number_format"),
+        ("currencySymbolPosition", "currency_symbol_position"),
+    ] {
+        if synced.get(source).is_none_or(Value::is_null) {
+            converted["preferences"]
+                .as_object_mut()
+                .unwrap()
+                .remove(target);
+        }
+    }
     for (key, _) in prefs["unmapped"]["synced"].as_object().unwrap() {
         if key != "budgetType"
             && !(key == "defaultCurrencyCode"

@@ -5,18 +5,21 @@ import { randomUUID, createHash } from "node:crypto";
 import { startServer } from "../web/tests/server.mjs";
 import { cloneImportedTemplate } from "../web/tests/import-template.mjs";
 const edges = process.argv.includes("--edges"),
+  formatting = process.argv.includes("--formatting"),
   budget = process.argv.includes("--budget"),
   fixture = JSON.parse(
     await readFile(
       new URL(
         "../tests/fixtures/" +
-          (process.argv.includes("--clock")
-            ? "formula-clock-source.json"
-            : edges
-              ? "formula-edges-source.json"
-              : budget
-                ? "formula-budget-source.json"
-                : "formula-source.json"),
+          (formatting
+            ? "formula-formatting-source.json"
+            : process.argv.includes("--clock")
+              ? "formula-clock-source.json"
+              : edges
+                ? "formula-edges-source.json"
+                : budget
+                  ? "formula-budget-source.json"
+                  : "formula-source.json"),
         import.meta.url,
       ),
     ),
@@ -181,7 +184,7 @@ async function check(archive, observations) {
   );
 }
 try {
-  if (budget || edges) {
+  if (budget || edges || formatting) {
     const scenario = process.argv
       .find((a) => a.startsWith("--scenario="))
       ?.slice(11);

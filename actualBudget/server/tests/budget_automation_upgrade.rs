@@ -98,9 +98,31 @@ fn persisted_schedules(mut view: Value, restored: bool) -> Value {
     view
 }
 
+fn advance_snapshot(view: &mut Value, changes: u64) {
+    let object = if view.get("snapshot").is_some() {
+        view
+    } else {
+        &mut view["data"]
+    };
+    let snapshot = object["snapshot"].as_str().unwrap();
+    let boundary = snapshot.len() - 16;
+    let sequence = u64::from_str_radix(&snapshot[boundary..], 16).unwrap();
+    object["snapshot"] = json!(format!(
+        "{}{:016x}",
+        &snapshot[..boundary],
+        sequence + changes
+    ));
+}
+
 #[test]
 fn genuine_schema19_keeps_goal_cells_notes_schedules_history_and_original_receipts() {
-    let f: Value = serde_json::from_slice(&fixture("budget-automation-schema19.json")).unwrap();
+    let mut f: Value = serde_json::from_slice(&fixture("budget-automation-schema19.json")).unwrap();
+    // Schema24 adds identities for the category/month notes; schema26 retires
+    // bank preferences. Only these three change-feed entries are new. Frozen
+    // financial expectations and original idempotency receipts stay exact.
+    for view in ["register", "plan", "schedules", "checkpoint"] {
+        advance_snapshot(&mut f[view], 3);
+    }
     let data = tempfile::tempdir().unwrap();
     std::fs::write(
         data.path().join("actualbudget.sqlite3"),
@@ -222,7 +244,7 @@ fn genuine_schema19_native_backup_restores_goals_notes_and_schedule_with_new_epo
         .unwrap();
     assert_eq!(uploaded.status(), 201, "{}", uploaded.text().unwrap());
     let stage: Value = uploaded.json().unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 22);
+    assert_eq!(stage["data"]["report"]["schema_version"], 26);
     let activated = server
         .client
         .post(format!(
@@ -298,9 +320,19 @@ fn currency_upgrade_case(name: &str, native: bool) {
             .unwrap();
         assert_eq!(response.status(), 200, "{}", response.text().unwrap());
     }
+    let mut expected_preferences = f["preferences"].clone();
+    let flags = expected_preferences["data"]["experimental"]
+        .as_object_mut()
+        .unwrap();
+    flags.remove("enableBanking");
+    flags.remove("akahuBankSync");
+    if !native {
+        expected_preferences["data"]["revision"] =
+            json!(f["preferences"]["data"]["revision"].as_u64().unwrap() + 1);
+    }
     assert_eq!(
         server.get(&format!("{root}/preferences")),
-        f["preferences"],
+        expected_preferences,
         "legacy current preferences survive"
     );
     if !native {
@@ -315,7 +347,13 @@ fn currency_upgrade_case(name: &str, native: bool) {
             assert_eq!(replay.status(), 200);
             assert_eq!(replay.json::<Value>().unwrap(), receipt["result"]);
         }
-        assert_eq!(server.get(&format!("{root}/checkpoint")), f["checkpoint"]);
+        let mut expected_checkpoint = f["checkpoint"].clone();
+        // One category note identity plus retired bank preferences.
+        advance_snapshot(&mut expected_checkpoint, 2);
+        assert_eq!(
+            server.get(&format!("{root}/checkpoint")),
+            expected_checkpoint
+        );
     }
     let register = server.get(&format!("{root}/transactions"));
     if name == "ambiguous" {

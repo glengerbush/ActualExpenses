@@ -1,0 +1,208 @@
+{
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "seed": {
+    "filename": "formula-formatting-eur-26.10.zip",
+    "sha256": "b02a64e0798664435fc510ad27dc3934897e7b30bca78d931791c5e648112a55"
+  },
+  "initial": [
+    {
+      "name": "en-US-number",
+      "formula": "=FORMATNUMBER(1234.567)",
+      "locale": "en-US",
+      "output": {
+        "result": "1.234,57",
+        "error": null
+      }
+    },
+    {
+      "name": "en-US-currency",
+      "formula": "=FORMATCURRENCY(-1234.567)",
+      "locale": "en-US",
+      "output": {
+        "result": "-1.234,57€",
+        "error": null
+      }
+    },
+    {
+      "name": "en-US-explicit-decimals",
+      "formula": "=FORMATNUMBER(1234.567,3)",
+      "locale": "en-US",
+      "output": {
+        "result": "1.234,567",
+        "error": null
+      }
+    }
+  ],
+  "steps": [
+    {
+      "name": "unrelated",
+      "source": {
+        "dateFormat": "yyyy-MM-dd",
+        "flags.formulaMode": "true"
+      },
+      "changes": {
+        "date_format": "yyyy-MM-dd",
+        "experimental": {
+          "formulaMode": true
+        }
+      },
+      "observations": [
+        {
+          "name": "en-US-number",
+          "formula": "=FORMATNUMBER(1234.567)",
+          "locale": "en-US",
+          "output": {
+            "result": "1.234,57",
+            "error": null
+          }
+        },
+        {
+          "name": "en-US-currency",
+          "formula": "=FORMATCURRENCY(-1234.567)",
+          "locale": "en-US",
+          "output": {
+            "result": "-1.234,57€",
+            "error": null
+          }
+        },
+        {
+          "name": "en-US-explicit-decimals",
+          "formula": "=FORMATNUMBER(1234.567,3)",
+          "locale": "en-US",
+          "output": {
+            "result": "1.234,567",
+            "error": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "explicit",
+      "source": {
+        "numberFormat": "apostrophe-dot",
+        "currencySymbolPosition": "before"
+      },
+      "changes": {
+        "number_format": "apostrophe-dot",
+        "currency_symbol_position": "before"
+      },
+      "observations": [
+        {
+          "name": "en-US-number",
+          "formula": "=FORMATNUMBER(1234.567)",
+          "locale": "en-US",
+          "output": {
+            "result": "1’234.57",
+            "error": null
+          }
+        },
+        {
+          "name": "en-US-currency",
+          "formula": "=FORMATCURRENCY(-1234.567)",
+          "locale": "en-US",
+          "output": {
+            "result": "-€1’234.57",
+            "error": null
+          }
+        },
+        {
+          "name": "en-US-explicit-decimals",
+          "formula": "=FORMATNUMBER(1234.567,3)",
+          "locale": "en-US",
+          "output": {
+            "result": "1’234.567",
+            "error": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "explicit-default",
+      "source": {
+        "numberFormat": "comma-dot",
+        "currencySymbolPosition": "after"
+      },
+      "changes": {
+        "number_format": "comma-dot",
+        "currency_symbol_position": "after"
+      },
+      "observations": [
+        {
+          "name": "en-US-number",
+          "formula": "=FORMATNUMBER(1234.567)",
+          "locale": "en-US",
+          "output": {
+            "result": "1,234.57",
+            "error": null
+          }
+        },
+        {
+          "name": "en-US-currency",
+          "formula": "=FORMATCURRENCY(-1234.567)",
+          "locale": "en-US",
+          "output": {
+            "result": "-1,234.57€",
+            "error": null
+          }
+        },
+        {
+          "name": "en-US-explicit-decimals",
+          "formula": "=FORMATNUMBER(1234.567,3)",
+          "locale": "en-US",
+          "output": {
+            "result": "1,234.567",
+            "error": null
+          }
+        }
+      ]
+    }
+  ],
+  "null_case": {
+    "archive": {
+      "filename": "formula-formatting-null-26.10.zip",
+      "sha256": "db8c8ccba8428d3b181834cf1270c8d62902d8b3bb754adb58c84481ae16482c"
+    },
+    "observations": [
+      {
+        "name": "en-US-number",
+        "formula": "=FORMATNUMBER(1234.567)",
+        "locale": "en-US",
+        "output": {
+          "result": "1.234,57",
+          "error": null
+        }
+      },
+      {
+        "name": "en-US-currency",
+        "formula": "=FORMATCURRENCY(-1234.567)",
+        "locale": "en-US",
+        "output": {
+          "result": "-1.234,57€",
+          "error": null
+        }
+      },
+      {
+        "name": "en-US-explicit-decimals",
+        "formula": "=FORMATNUMBER(1234.567,3)",
+        "locale": "en-US",
+        "output": {
+          "result": "1.234,567",
+          "error": null
+        }
+      }
+    ]
+  },
+  "source_hashes": {
+    "packages/desktop-client/src/hooks/useFormulaExecution.ts": "8dd26fd03722245ed6cceed9028ecd6779ad70711b143c2d4ea3092d6659eb2f",
+    "packages/loot-core/src/shared/formulas/customFunctions.ts": "7ef1b4bff4d5efae961b96fcdf308f5e7745748339ca9d9a700d05d63bfa8558",
+    "packages/loot-core/src/shared/currencies.ts": "0776cac56c78612190a28e8d1ef73023e2564301a8d3f059b91080421bfc5419",
+    "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+    "packages/loot-core/src/shared/months.ts": "2bec8ac7beca3a9f4bae07d7da1e12ef140c239d481059bf4b9b97617a8fe0a3",
+    "packages/loot-core/src/shared/memoize.ts": "f539db7c6fc5b826350840431726a0323d34ae6a032740a835c3469b2a302153",
+    "packages/loot-core/src/shared/query.ts": "e4b93dea21ab9d73af8eeffcee818935c00c9a10427549a643ac133be0dfc685",
+    "packages/desktop-client/src/components/formula/queryTimeFrame.ts": "8d43a56d140a4e9e02eba12c30b7cc5f1337facb3e155d48f6fe69829b99b715",
+    "packages/desktop-client/src/components/reports/reportRanges.ts": "82ce4574b3814dcdde05d2d7a91a09e37f9a80ea3beb9c63467f45d62aaf339b",
+    "packages/desktop-client/src/util/bootstrapHyperFormula.ts": "36243cfd8735ea08cb1fca38dc215e4c9aac6d759fe86eb73f54dda91689373a"
+  }
+}

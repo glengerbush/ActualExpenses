@@ -1,6 +1,7 @@
+import type { DateFormat } from "./preferences/types";
 import type { AmountFormat } from "./money";
 import type { PendingMutation } from "./register-api";
-import { numberFormats } from "./preferences/types";
+import { numberFormats, dateFormats } from "./preferences/types";
 import { validClock } from "./edit-clock";
 export type TemplateDefinition = {
   id: string;
@@ -39,13 +40,48 @@ export type TemplatePlan = {
     clear_goal: boolean;
     per_template: number[];
   }[];
+  notification?: { type: string; message: string };
   errors: { id: string; name: string; error: string }[];
   snapshot: string;
   epoch: string;
 };
+export type MigrationPreview = {
+  pools?: { id: string; name: string }[];
+  category_id: string;
+  category_name: string;
+  current_source: string;
+  target_source: string;
+  old_notes: string;
+  notes: string;
+  rendered_directives: string;
+  templates: Record<string, unknown>[];
+  cleanup: Record<string, unknown>[];
+  compatible: boolean;
+  issues: string[];
+  before: { budgeted: number; goal: number | null; long_goal: number | null };
+  after: { budgeted: number; goal: number | null; long_goal: number | null };
+  snapshot: string;
+  epoch: string;
+  method: string;
+};
 export type AutomationDraft = {
   version: 1;
-  mode: "notes" | "apply" | "overwrite";
+  mode:
+    | "notes"
+    | "apply"
+    | "overwrite"
+    | "configure"
+    | "migrate"
+    | "pool"
+    | "cleanup";
+  dateFormat?: DateFormat;
+  migration?: MigrationPreview | null;
+  projection?: {
+    budgeted: number;
+    goal: number | null;
+    long_goal: number | null;
+    errors: unknown[];
+  } | null;
   month: string;
   method: "tracking" | "envelope";
   epoch: string;
@@ -63,6 +99,11 @@ export const automationKey = (budget: string) =>
 export function readAutomationDraft(budget: string): AutomationDraft | null {
   const raw = localStorage.getItem(automationKey(budget));
   if (raw === null) return null;
+  const records = (value: unknown) =>
+    Array.isArray(value) &&
+    value.every(
+      (row) => row !== null && typeof row === "object" && !Array.isArray(row),
+    );
   let d: AutomationDraft;
   try {
     d = JSON.parse(raw);
@@ -73,7 +114,15 @@ export function readAutomationDraft(budget: string): AutomationDraft | null {
   }
   if (
     d?.version !== 1 ||
-    !["notes", "apply", "overwrite"].includes(d.mode) ||
+    ![
+      "notes",
+      "apply",
+      "overwrite",
+      "configure",
+      "migrate",
+      "pool",
+      "cleanup",
+    ].includes(d.mode) ||
     !["tracking", "envelope"].includes(d.method) ||
     !/^\d{4}-\d{2}$/.test(d.month) ||
     !/^[0-9a-f]{32}$/.test(d.epoch) ||
@@ -83,6 +132,26 @@ export function readAutomationDraft(budget: string): AutomationDraft | null {
     !d.format ||
     !numberFormats.includes(d.format.number_format) ||
     ![0, 2].includes(d.format.decimal_places) ||
+    (d.dateFormat !== undefined && !dateFormats.includes(d.dateFormat)) ||
+    (d.mode === "configure" &&
+      (!records(d.body.templates) ||
+        !records(d.body.cleanup) ||
+        typeof d.body.category_id !== "string")) ||
+    (d.mode === "pool" && typeof d.body.name !== "string") ||
+    (d.mode === "migrate" &&
+      (typeof d.body.category_id !== "string" ||
+        !["notes", "ui"].includes(String(d.body.target_source)))) ||
+    (d.migration &&
+      (typeof d.migration.compatible !== "boolean" ||
+        !Array.isArray(d.migration.issues) ||
+        !records(d.migration.templates) ||
+        !d.migration.before ||
+        !d.migration.after ||
+        !Number.isSafeInteger(d.migration.before.budgeted) ||
+        !Number.isSafeInteger(d.migration.after.budgeted))) ||
+    (d.projection &&
+      (!Array.isArray(d.projection.errors) ||
+        !Number.isSafeInteger(d.projection.budgeted))) ||
     (d.goalInput !== undefined && typeof d.goalInput !== "string") ||
     (d.preview &&
       (!Array.isArray(d.preview.categories) ||

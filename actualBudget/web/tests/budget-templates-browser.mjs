@@ -4,7 +4,12 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { startServer } from "./server.mjs";
 const server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1") + "/api/v1";
-async function call(path, body, method = body === undefined ? "GET" : "POST") {
+async function call(
+  path,
+  body,
+  method = body === undefined ? "GET" : "POST",
+  full = false,
+) {
   const r = await fetch(api + path, {
     method,
     headers: {
@@ -14,7 +19,8 @@ async function call(path, body, method = body === undefined ? "GET" : "POST") {
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   expect(r.ok, await r.clone().text()).toBe(true);
-  return (await r.json()).data;
+  const result = await r.json();
+  return full ? result : result.data;
 }
 let browser, page;
 try {
@@ -59,7 +65,7 @@ try {
     { experimental: { goalTemplatesEnabled: true } },
     "PATCH",
   );
-  const financial = await call(root + "/transactions");
+  const financial = await call(root + "/transactions", undefined, "GET", true);
   browser = await chromium.launch({
     executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
     args: [
@@ -173,7 +179,10 @@ try {
   const row = page.locator("table tbody tr").filter({ hasText: "Repairs" });
   await expect(row).toContainText("Goal: 100.00");
   await expect(row).toContainText("27.01 to goal");
-  const after = await call(root + "/transactions");
+  const after = await call(root + "/transactions", undefined, "GET", true);
+  expect(Array.isArray(financial.data)).toBe(true);
+  expect(financial.data.length).toBeGreaterThan(0);
+  expect(financial.balances).toBeDefined();
   expect(after.data).toEqual(financial.data);
   expect(after.balances).toEqual(financial.balances);
   await page
@@ -260,11 +269,9 @@ try {
     .getByRole("button", { name: "Refresh template definitions", exact: true })
     .click();
   await expect(page.locator(".budget-templates [role=alert]")).toHaveCount(0);
-  const salaryDefinition = page
-    .locator(".definitions>li")
-    .filter({
-      has: page.getByRole("checkbox", { name: "Select Salary", exact: true }),
-    });
+  const salaryDefinition = page.locator(".definitions>li").filter({
+    has: page.getByRole("checkbox", { name: "Select Salary", exact: true }),
+  });
   await expect(salaryDefinition).toContainText(
     "Income targets apply in Tracking budgets",
   );

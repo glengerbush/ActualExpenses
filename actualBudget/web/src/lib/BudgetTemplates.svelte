@@ -1,4 +1,9 @@
 <script lang="ts">
+  import { prepareVisualBody } from "./visual-automations";
+  import TemplateEditor from "./TemplateEditor.svelte";
+  import CleanupEditor from "./CleanupEditor.svelte";
+  import { preferences } from "./preferences.svelte";
+  import type { SchedulePage } from "./schedules";
   import { onMount } from "svelte";
   import { request, errorMessage, uuid } from "./api";
   import { mutate, requestCancellation } from "./register-api";
@@ -8,7 +13,13 @@
     nextEditClock,
     resetCorrectedClock,
   } from "./edit-clock";
-  import { captureAmountFormat, formatAmount, parseAmount } from "./money";
+  import {
+    captureAmountFormat,
+    formatAmount,
+    formatAmountInput,
+    parseAmount,
+    type AmountFormat,
+  } from "./money";
   import type { PlanView } from "./planning";
   import {
     automationKey,
@@ -17,6 +28,7 @@
     type DefinitionPage,
     type TemplateDefinition,
     type TemplatePlan,
+    type MigrationPreview,
   } from "./budget-automations";
   let {
     budgetId,
@@ -43,8 +55,31 @@
       templates: Record<string, unknown>[];
       errors: { line: string; error: string }[];
     } | null>(null);
+  let schedules = $state.raw<{ id: string; name: string }[]>([]),
+    nextScheduleOffset = $state<number | null>(0);
+  function money(amount: number, format?: AmountFormat) {
+    return format ? formatAmountInput(amount, format) : formatAmount(amount);
+  }
   let checkpoint: string | null = null;
   const enabled = $derived(data?.experimental.goalTemplatesEnabled === true);
+  const visualEnabled = $derived(
+    data?.experimental.goalTemplatesUIEnabled === true,
+  );
+  const invalidVisual = $derived.by(() => {
+    if (draft?.mode !== "configure" || draft.pending) return "";
+    try {
+      prepareVisualBody(draft.body, draft.format);
+      return "";
+    } catch (e) {
+      return errorMessage(e);
+    }
+  });
+  function issueText(issue: unknown) {
+    return issue && typeof issue === "object" && "error" in issue
+      ? String(issue.error)
+      : String(issue);
+  }
+
   function save(next: AutomationDraft | null) {
     try {
       if (localStorage.getItem(automationKey(budgetId)) !== checkpoint)
@@ -220,8 +255,12 @@
       busy = false;
     }
   }
-  async function preview(mode: "apply" | "overwrite", ids?: string[]) {
-    if (!data || draft || busy || disconnected || !enabled) return;
+  async function preview(
+    mode: "apply" | "overwrite" | "cleanup",
+    ids?: string[],
+  ) {
+    if (!data || draft || busy || disconnected || !(enabled || visualEnabled))
+      return;
     busy = true;
     error = "";
     notice = "";
@@ -248,7 +287,9 @@
       const requestBody = {
         month: data.month,
         snapshot: data.snapshot,
-        force: mode === "overwrite",
+        ...(mode === "cleanup"
+          ? { action: "cleanup" }
+          : { force: mode === "overwrite" }),
         ...(ids ? { category_ids: [...ids] } : {}),
       };
       const result = (
@@ -262,6 +303,160 @@
           "The budget generation changed. Keep this review and reopen the current plan.",
         );
       save({ ...structuredClone(draft!), preview: result });
+    } catch (e) {
+      error = errorMessage(e);
+    } finally {
+      busy = false;
+    }
+  }
+  function openCommand(
+    mode: "configure" | "migrate" | "pool",
+    row?: TemplateDefinition,
+  ) {
+    if (!data || draft || busy || !visualEnabled) return;
+    try {
+      const body: Record<string, unknown> =
+        mode === "configure"
+          ? {
+              action: "configure",
+              snapshot: data.snapshot,
+              category_id: row!.id,
+              source: "ui",
+              templates: structuredClone(row!.templates),
+              cleanup: structuredClone(row!.cleanup),
+            }
+          : mode === "migrate"
+            ? {
+                action: "migrate",
+                month: data.month,
+                snapshot: data.snapshot,
+                category_id: row!.id,
+                target_source: row!.source === "ui" ? "notes" : "ui",
+              }
+            : { action: "pool", snapshot: data.snapshot, name: "" };
+      save({
+        version: 1,
+        mode,
+        month: data.month,
+        method: data.method,
+        epoch: data.epoch,
+        snapshot: data.snapshot,
+        body,
+        categoryName: row?.name,
+        originalNotes: row?.notes,
+        dateFormat: preferences.shared.date_format,
+        format: captureAmountFormat(),
+        preview: null,
+        pending: null,
+        migration: null,
+        projection: null,
+      });
+      error = "";
+      notice = "";
+      schedules = [];
+      nextScheduleOffset = 0;
+      if (mode === "migrate") void migrationPreview();
+    } catch (e) {
+      error = errorMessage(e);
+    }
+  }
+  function commandField(key: string, value: unknown) {
+    if (!draft || draft.pending || busy) return;
+    try {
+      save({
+        ...structuredClone(draft),
+        body: { ...draft.body, [key]: value },
+        migration: null,
+        projection: null,
+      });
+      error = "";
+      notice = "";
+    } catch (e) {
+      error = errorMessage(e);
+    }
+  }
+  async function loadScheduleChoices() {
+    if (!draft || busy || disconnected || nextScheduleOffset === null) return;
+    busy = true;
+    error = "";
+    try {
+      const page = (
+        await request<{ data: SchedulePage }>(
+          `/budgets/${budgetId}/schedules?limit=100&offset=${nextScheduleOffset}&snapshot=${encodeURIComponent(draft.snapshot)}`,
+        )
+      ).data;
+      if (page.epoch !== draft.epoch || page.snapshot !== draft.snapshot)
+        throw new Error(
+          "The budget changed. Keep this draft and review it against the current budget.",
+        );
+      schedules = [
+        ...schedules,
+        ...page.schedules.map((s) => ({
+          id: s.id,
+          name: s.name ?? "Unnamed schedule",
+        })),
+      ];
+      nextScheduleOffset = page.next_offset;
+    } catch (e) {
+      error = errorMessage(e);
+    } finally {
+      busy = false;
+    }
+  }
+  async function migrationPreview() {
+    if (
+      !draft ||
+      draft.mode !== "migrate" ||
+      draft.pending ||
+      busy ||
+      disconnected
+    )
+      return;
+    busy = true;
+    error = "";
+    try {
+      const { action, ...body } = draft.body;
+      const result = (
+        await request<{ data: MigrationPreview }>(
+          `/budgets/${budgetId}/budget/templates/migration-preview`,
+          body,
+        )
+      ).data;
+      if (result.snapshot !== draft.snapshot || result.epoch !== draft.epoch)
+        throw new Error(
+          "The captured budget changed; retain these fields and reopen migration.",
+        );
+      save({ ...structuredClone(draft), migration: result });
+    } catch (e) {
+      error = errorMessage(e);
+    } finally {
+      busy = false;
+    }
+  }
+  async function project() {
+    if (
+      !draft ||
+      draft.mode !== "configure" ||
+      draft.pending ||
+      busy ||
+      disconnected
+    )
+      return;
+    busy = true;
+    error = "";
+    try {
+      const result = (
+        await request<{ data: NonNullable<AutomationDraft["projection"]> }>(
+          `/budgets/${budgetId}/budget/templates/projection`,
+          {
+            month: draft.month,
+            snapshot: draft.snapshot,
+            category_id: draft.body.category_id,
+            templates: prepareVisualBody(draft.body, draft.format).templates,
+          },
+        )
+      ).data;
+      save({ ...structuredClone(draft), projection: result });
     } catch (e) {
       error = errorMessage(e);
     } finally {
@@ -284,16 +479,28 @@
             "This budget was restored. Keep these fields and explicitly review the current generation before preparing another change.",
           );
         if (
-          draft.mode !== "notes" &&
+          ["apply", "overwrite", "cleanup"].includes(draft.mode) &&
           (!draft.preview || draft.preview.errors.length)
         )
           throw new Error(
             "Resolve template errors before applying this captured plan.",
           );
+        if (draft.mode === "migrate" && !draft.migration?.compatible)
+          throw new Error("Review a compatible migration before saving.");
+        if (
+          ["configure", "migrate", "pool"].includes(draft.mode) &&
+          !visualEnabled
+        )
+          throw new Error(
+            "Enable visual budget automations before preparing this change.",
+          );
         const pending = {
           path: `/budgets/${budgetId}/budget${draft.mode === "notes" ? "" : "/templates/commands"}`,
           method: "POST" as const,
-          body: structuredClone(draft.body),
+          body:
+            draft.mode === "configure"
+              ? prepareVisualBody(draft.body, draft.format)
+              : structuredClone(draft.body),
           key: uuid(),
           edit_clock: nextEditClock(),
           budgetEpoch: draft.epoch,
@@ -403,7 +610,7 @@
     <button onclick={retryStorage} disabled={busy}
       >Retry saving retained template work</button
     >{/if}
-  {#if !enabled && !draft?.pending}<p role="status">
+  {#if !enabled && !visualEnabled && !draft?.pending}<p role="status">
       Goal templates are experimental. Enable Goal templates in Settings →
       Experimental features to apply them. Existing notes and targets remain
       retained.
@@ -415,13 +622,21 @@
       <h3 id="template-draft-title">
         {draft.mode === "notes"
           ? `${draft.categoryName} template notes`
-          : "Captured template allocation"}
+          : draft.mode === "configure"
+            ? `${draft.categoryName} visual automation`
+            : draft.mode === "migrate"
+              ? `${draft.categoryName} source migration`
+              : draft.mode === "pool"
+                ? "Named cleanup pool"
+                : draft.mode === "cleanup"
+                  ? "Captured month-end cleanup"
+                  : "Captured template allocation"}
       </h3>
       <p>
         {draft.month} · {draft.method === "tracking" ? "Tracking" : "Envelope"} ·
         This review keeps the plan and budgeting method you opened.
       </p>
-      {#if draft.mode !== "notes"}<p>
+      {#if ["apply", "overwrite"].includes(draft.mode)}<p>
           Scope: {Array.isArray(draft.body.category_ids)
             ? `${draft.body.category_ids.length} explicitly selected categories`
             : "All eligible categories"} · {draft.mode === "overwrite"
@@ -470,11 +685,158 @@
                   : ""}
               </li>{:else}<li>No template or goal directives found.</li>{/each}
           </ul>{/if}
+      {:else if draft.mode === "configure"}
+        <p>
+          Visual definitions are authoritative. Saving changes rules only;
+          preview and apply allocations separately. Original notes remain
+          retained.
+        </p>
+        {#if invalidVisual}<p class="error" role="alert">
+            {invalidVisual}
+          </p>{/if}
+        <TemplateEditor
+          rows={(draft.body.templates ?? []) as Record<string, unknown>[]}
+          month={draft.month}
+          income={(data?.categories ?? []).filter((c) => c.is_income)}
+          {schedules}
+          dateFormat={draft.dateFormat ?? "yyyy-MM-dd"}
+          format={draft.format}
+          disabled={busy || !!draft.pending}
+          onchange={(rows) => commandField("templates", rows)}
+        />
+        <button
+          onclick={loadScheduleChoices}
+          disabled={busy ||
+            disconnected ||
+            !!draft.pending ||
+            nextScheduleOffset === null}
+          >{schedules.length
+            ? "Load more schedule choices"
+            : "Load schedule choices"}</button
+        >
+        <CleanupEditor
+          rows={(draft.body.cleanup ?? []) as Record<string, unknown>[]}
+          pools={data?.pools ?? []}
+          disabled={busy || !!draft.pending}
+          onchange={(rows) => commandField("cleanup", rows)}
+        />
+        <button
+          onclick={project}
+          disabled={busy || disconnected || !!draft.pending}
+          >Preview category demand</button
+        >
+        {#if draft.projection}<p>
+            Unclamped category demand: {money(
+              draft.projection.budgeted,
+              draft.format,
+            )}. {draft.projection.goal === null
+              ? "No target"
+              : `Target: ${money(draft.projection.goal, draft.format)}`}.
+            Full-plan application considers priorities and available funds.
+          </p>
+          {#if draft.projection.errors.length}<p class="error">
+              {draft.projection.errors.map(issueText).join("; ")}
+            </p>{/if}{/if}
+      {:else if draft.mode === "pool"}<label
+          >Pool name<input
+            maxlength="120"
+            value={String(draft.body.name ?? "")}
+            disabled={busy || !!draft.pending}
+            oninput={(e) => commandField("name", e.currentTarget.value)}
+          /></label
+        >
+        <p>
+          Pool names are matched without case distinctions. Reusing a name
+          preserves its identity; creating a pool does not allocate money.
+        </p>
+      {:else if draft.mode === "migrate"}
+        <p>
+          This changes the authoritative representation only. Allocations and
+          recorded expenses stay unchanged. Incompatible rules or indicators
+          must be edited separately.
+        </p>
+        <details>
+          <summary>Original retained notes</summary>
+          <p class="saved-notes">{draft.originalNotes || "No notes"}</p>
+        </details>
+        {#if draft.body.target_source === "notes"}<label
+            >Proposed notes<textarea
+              rows="10"
+              value={String(draft.body.notes ?? draft.migration?.notes ?? "")}
+              disabled={busy || !!draft.pending}
+              oninput={(e) => commandField("notes", e.currentTarget.value)}
+            ></textarea></label
+          >
+          <p>
+            Ordinary prose is retained. Inactive directive lines are replaced so
+            stale rules are not reactivated.
+          </p>{/if}
+        <button
+          onclick={migrationPreview}
+          disabled={busy || disconnected || !!draft.pending}
+          >Review source migration</button
+        >
+        {#if draft.migration}<p>
+            Source: {draft.migration.current_source} → {draft.migration
+              .target_source}. {draft.migration.compatible
+              ? "Rules and goal indicators are preserved."
+              : "Migration needs repair."}
+          </p>
+          <ul>
+            {#each draft.migration.issues as issue, index (index)}<li
+                class="error"
+              >
+                {issue}
+              </li>{/each}
+          </ul>
+          <p>
+            Full-plan check for {draft.month}: {money(
+              draft.migration.before.budgeted,
+              draft.format,
+            )} → {money(draft.migration.after.budgeted, draft.format)}. Goal: {draft
+              .migration.before.goal === null
+              ? "None"
+              : money(draft.migration.before.goal, draft.format)} → {draft
+              .migration.after.goal === null
+              ? "None"
+              : money(draft.migration.after.goal, draft.format)}.
+          </p>
+          <details>
+            <summary>Proposed typed definitions</summary><TemplateEditor
+              rows={draft.migration.templates}
+              month={draft.month}
+              income={(data?.categories ?? []).filter((c) => c.is_income)}
+              {schedules}
+              dateFormat={draft.dateFormat ?? "yyyy-MM-dd"}
+              format={draft.format}
+              disabled={true}
+              onchange={() => {}}
+            /><CleanupEditor
+              rows={draft.migration.cleanup}
+              pools={draft.migration.pools ?? data?.pools ?? []}
+              disabled={true}
+              onchange={() => {}}
+            />
+          </details>
+          <ul>
+            {#each draft.migration.templates as rule, index (index)}<li>
+                {String(rule.type)}{rule.description
+                  ? ` · ${rule.description}`
+                  : ""}
+              </li>{:else}<li>No allocation rules.</li>{/each}
+          </ul>{/if}
       {:else if draft.preview}<section
           class="template-preview"
           aria-labelledby="template-preview-title"
         >
-          <h4 id="template-preview-title">Proposed allocations and targets</h4>
+          <h4 id="template-preview-title">
+            {draft.mode === "cleanup"
+              ? "Proposed month-end cleanup"
+              : "Proposed allocations and targets"}
+          </h4>
+          {#if draft.preview.notification}<p role="status">
+              {draft.preview.notification.message}
+            </p>{/if}
           {#if draft.preview.errors.length}<ul class="error" role="alert">
               {#each draft.preview.errors as issue, index (index)}<li>
                   {issue.name}: {issue.error}
@@ -497,11 +859,11 @@
               ><tbody
                 >{#each draft.preview.categories.filter((row) => row.applies || row.clear_goal) as row (row.id)}<tr
                     ><th scope="row">{row.name}</th><td
-                      >{formatAmount(row.before_budgeted)}</td
-                    ><td>{formatAmount(row.budgeted)}</td><td
+                      >{money(row.before_budgeted)}</td
+                    ><td>{money(row.budgeted)}</td><td
                       >{row.goal === null
                         ? "No target"
-                        : formatAmount(row.goal)}{row.long_goal === 1
+                        : money(row.goal)}{row.long_goal === 1
                         ? " · Savings goal"
                         : " · Monthly demand"}</td
                     ></tr
@@ -535,11 +897,21 @@
               disconnected ||
               broken ||
               storageBlocked ||
-              (draft.mode !== "notes" &&
-                (!draft.preview || !!draft.preview.errors.length))}
+              (["apply", "overwrite", "cleanup"].includes(draft.mode) &&
+                (!draft.preview || !!draft.preview.errors.length)) ||
+              (draft.mode === "migrate" && !draft.migration?.compatible) ||
+              !!invalidVisual}
             >{draft.mode === "notes"
               ? "Save template notes"
-              : "Apply captured templates"}</button
+              : draft.mode === "configure"
+                ? "Save visual automation"
+                : draft.mode === "migrate"
+                  ? "Save source migration"
+                  : draft.mode === "pool"
+                    ? "Save cleanup pool"
+                    : draft.mode === "cleanup"
+                      ? "Apply captured cleanup"
+                      : "Apply captured templates"}</button
           ><button onclick={discard} disabled={busy}
             >Discard template review</button
           >{/if}
@@ -565,21 +937,39 @@
         >Refresh template definitions</button
       ><button
         onclick={() => preview("apply")}
-        disabled={busy || !!draft || disconnected || !enabled}
-        >Preview unallocated templates</button
+        disabled={busy ||
+          !!draft ||
+          disconnected ||
+          !(enabled || visualEnabled)}>Preview unallocated templates</button
       ><button
         onclick={() => preview("overwrite")}
-        disabled={busy || !!draft || disconnected || !enabled}
-        >Preview overwrite all templates</button
+        disabled={busy ||
+          !!draft ||
+          disconnected ||
+          !(enabled || visualEnabled)}>Preview overwrite all templates</button
       ><button
         onclick={() => preview("overwrite", selected)}
         disabled={busy ||
           !!draft ||
           disconnected ||
-          !enabled ||
+          !(enabled || visualEnabled) ||
           !selected.length}>Preview selected templates</button
       >
     </div>
+    {#if visualEnabled}<div class="toolbar">
+        <button
+          onclick={() => openCommand("pool")}
+          disabled={busy || !!draft || disconnected}
+          >Create named cleanup pool</button
+        ><button
+          onclick={() => preview("cleanup")}
+          disabled={busy || !!draft || disconnected}
+          >Preview month-end cleanup</button
+        >
+      </div>{:else}<p>
+        Enable Visual budget automations in Experimental features to edit visual
+        rules and cleanup pools.
+      </p>{/if}
     <p>
       {data.month} · {selected.length} selected. All-category application excludes
       hidden categories and groups; explicit selection can include them. A preview
@@ -635,6 +1025,23 @@
             </ul>
           </details>
           <div class="toolbar">
+            {#if visualEnabled}<button
+                onclick={() =>
+                  openCommand(
+                    row.source === "ui" ? "configure" : "migrate",
+                    row,
+                  )}
+                disabled={busy || !!draft || disconnected}
+                aria-label={`${row.source === "ui" ? "Edit" : "Migrate"} ${row.name} visual automation`}
+                >{row.source === "ui"
+                  ? "Edit visual automation"
+                  : "Move to visual definitions"}</button
+              >{#if row.source === "ui"}<button
+                  onclick={() => openCommand("migrate", row)}
+                  disabled={busy || !!draft || disconnected}
+                  aria-label={`Move ${row.name} automation to notes`}
+                  >Move definitions to notes</button
+                >{/if}{/if}
             <button
               onclick={() => editNotes(row)}
               disabled={busy || !!draft}

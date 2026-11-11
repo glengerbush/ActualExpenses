@@ -236,14 +236,33 @@ jobs:
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '24'
-      - name: Install pinned compiler and browser test dependencies
+      - name: Install pinned compiler and test dependencies
         run: |
           rustup toolchain install 1.99.1 --profile minimal --component rustfmt --component clippy
           npm ci --prefix actualBudget/web
           npm ci --prefix actualExpenses/tools/compatibility
-          cd actualBudget/web
-          npx playwright install --with-deps chromium
-          node --input-type=module -e 'import {chromium} from "@playwright/test"; import {appendFileSync} from "node:fs"; appendFileSync(process.env.GITHUB_ENV, `CHROMIUM_PATH=${chromium.executablePath()}\n`)'
+      - name: Install and verify pinned Chromium
+        working-directory: actualBudget/web
+        run: |
+          # Hosted Ubuntu already supplies Chromium's shared libraries. Avoid an
+          # apt refresh for optional font packages; a real launch verifies them.
+          npx playwright install chromium
+          node --input-type=module <<'JS'
+          import { chromium } from '@playwright/test';
+          import { appendFileSync } from 'node:fs';
+          const executablePath = chromium.executablePath();
+          const browser = await chromium.launch({ executablePath, headless: true });
+          try {
+            const page = await browser.newPage();
+            await page.setContent('<p>actualBudget browser qualification</p>');
+            if (await page.locator('p').innerText() !== 'actualBudget browser qualification') {
+              throw new Error('Chromium failed its launch check');
+            }
+          } finally {
+            await browser.close();
+          }
+          appendFileSync(process.env.GITHUB_ENV, `CHROMIUM_PATH=${executablePath}\n`);
+          JS
       - name: Check public API, financial reference and web build
         run: |
           cargo fmt --manifest-path actualBudget/server/Cargo.toml -- --check

@@ -31,11 +31,11 @@ traceability; explicit exceptions are not implementation-completion claims.
 | 2 | 02, 52 | Budget files, backups and migration | [02: no app credentials, sessions or identity flows in replacement](open-budget-validation.md); Android transition/final audit pending |
 | 3 | 02, 08 | Budget files, backups and migration | [02: create/select](open-budget-validation.md); [08: rename/close/delete/duplicate with independent identity](budget-lifecycle-validation.md) |
 | 4 | 02, 08, 43 | Budget files, backups and migration | [02: remembered selection/drafts](open-budget-validation.md); [43: preferences](../actualBudget/web/docs/preferences-validation.md); [08: budget management](budget-lifecycle-validation.md) |
-| 5 | 04, 50 | Budget files, backups and migration | [04: staged ordinary-ledger import with retained source/IDs](import-validation.md); complete migration qualification pending 50 |
-| 6 | 08, 50 | Budget files, backups and migration | [08: portable native archives and staged restore](budget-lifecycle-validation.md); complete migration qualification pending50 |
+| 5 | 04, 50 | Budget files, backups and migration | [04: staged ordinary-ledger import with retained source/IDs](import-validation.md); [50: four genuine complete/empty/large/deleted-history migrations](complete-migration-validation.md) |
+| 6 | 08, 50 | Budget files, backups and migration | [08: portable native archives and staged restore](budget-lifecycle-validation.md); [50: complete installation backup/restore reconciliation](complete-migration-validation.md) |
 | 7 | 27 | Budget files, backups and migration | [27: genuine YNAB4/nYNAB financial cases, sparse carry, source differences and recovery](ynab-import-validation.md); [integrated acceptance](ynab-custom-integration-validation.md) |
 | 8 | 08 | Budget files, backups and migration | [08: automatic/manual/pre-upgrade recovery and fault-safe restore](budget-lifecycle-validation.md) |
-| 9 | 04, 08, 50 | Budget files, backups and migration | [04: retained/rejected source validation](import-validation.md); [08: checksummed archive validation and pre-action recovery](budget-lifecycle-validation.md); complete migration qualification pending50 |
+| 9 | 04, 08, 50 | Budget files, backups and migration | [04: retained/rejected source validation](import-validation.md); [08: checksummed archive validation and pre-action recovery](budget-lifecycle-validation.md); [50: installation validation, corrupt/encrypted/ambiguous inputs and retained originals](complete-migration-validation.md) |
 | 10 | 02, 09 | Accounts and reconciliation | [02: on/off-budget creation and opening balances](open-budget-validation.md); [09: organization, closure and notes](0910-validation.md) |
 | 11 | 09 | Accounts and reconciliation | [09: grouping/order, closed visibility, deletion and native recovery](0910-validation.md) |
 | 12 | 03, 09, 12 | Accounts and reconciliation | [03: exact account and running balances](register-validation.md); [09: organization](0910-validation.md); [12: accepted register customization and filtered totals](register-query-validation.md) |
@@ -67,13 +67,13 @@ traceability; explicit exceptions are not implementation-completion claims.
 | 38 | 17, 18 | Tracking, envelope and automation | [17/18: multi-month navigation, copying and year boundaries](budgeting-validation.md) |
 | 39 | 15, 18 | Tracking, envelope and automation | [15: transfer categorization](transfers-validation.md); [18: credit debt/refunds, split leaves and on/off-budget accounting](budgeting-validation.md) |
 | 40 | 10, 17, 18 | Tracking, envelope and automation | [10: category history/notes](0910-validation.md); [17/18: monthly details/notes and exact actual drilldowns](budgeting-validation.md) |
-| 41 | 23 | Tracking, envelope and automation | Pending feature acceptance |
-| 42 | 23, 24 | Tracking, envelope and automation | Pending feature acceptance |
-| 43 | 24 | Tracking, envelope and automation | Pending feature acceptance |
+| 41 | 23 | Tracking, envelope and automation | [23: pinned note grammar, priorities, targets, progress and migration](budget-automation-validation.md) |
+| 42 | 23, 24 | Tracking, envelope and automation | [23/24: independent allocations for both methods, visual definitions, schedules/history/percentages/caps/remainders](budget-automation-validation.md) |
+| 43 | 24 | Tracking, envelope and automation | [24: selective/all application, adjustments, cleanup pools/weights, atomic recovery](budget-automation-validation.md) |
 | 44 | 19 | Rules and schedules | [19: pinned ordering/conditions/actions, atomic entry/application and retained imported rules; explicit invariant exceptions](rules-validation.md) |
 | 45 | 19 | Rules and schedules | [19: complete change previews, bounded account/ID selection, protected graphs and immutable retry](rules-validation.md) |
 | 46 | 19 | Rules and schedules | [19: payee renaming, opt-in learning, global/per-payee controls and replay without retraining](rules-validation.md) |
-| 47 | 42 | Rules and schedules | Pending feature acceptance |
+| 47 | 42 | Rules and schedules | [42: pinned calculated actions/splits, templates, real import/schedule/forecast/Android workflows, safe errors and recovery](rule-expression-validation.md) |
 | 48 | 21 | Rules and schedules | [21: income/expense/transfer schedules, calendar previews and durable posting](schedules-validation.md) |
 | 49 | 21 | Rules and schedules | [21: pinned recurrence, month-day/end/weekend and horizon behavior](schedules-validation.md) |
 | 50 | 22 | Rules and schedules | [22: exact/approximate/ranged matching, atomic links and concurrent catch-up/import retries](schedules-validation.md) |
@@ -96,17 +96,17 @@ traceability; explicit exceptions are not implementation-completion claims.
 | 67 | 33, 34 | Reports, dashboards and formulas | [33/34: dashboard/custom dates, conditions and account/category inclusion](reports-validation.md); [integrated acceptance](ynab-custom-integration-validation.md) |
 | 68 | 34 | Reports, dashboards and formulas | [34: modes, nested grouping, bounded exact details and saved state](reports-validation.md); [integrated acceptance](ynab-custom-integration-validation.md) |
 | 69 | 38 | Reports, dashboards and formulas | [38: exact source crossover projections, editable assumptions, saved settings, accessible chart/table and recovery](crossover-validation.md) |
-| 70 | 35, 36, 37 | Reports, dashboards and formulas | Pending feature acceptance |
-| 71 | 39, 40 | Reports, dashboards and formulas | Pending feature acceptance |
-| 72 | 41 | Reports, dashboards and formulas | Pending feature acceptance |
-| 73 | 33, 35, 36, 37, 38, 39, 40, 41 | Reports, dashboards and formulas | [33: recorded-entry labels and bounds](reports-validation.md); [35: forecasts](forecast-validation.md); [36: budget analysis](budget-analysis-validation.md); [37: Sankey](sankey-validation.md); [38: crossover assumptions and data view](crossover-validation.md);39–41 pending |
+| 70 | 35, 36, 37 | Reports, dashboards and formulas | [35: schedule/tracking forecasts](forecast-validation.md); [36: budget analysis and exact details](budget-analysis-validation.md); [37: source Spent/Budgeted Sankey and drilldown](sankey-validation.md) |
+| 71 | 39, 40 | Reports, dashboards and formulas | [39/40: pinned Monte Carlo strategies/rules, saved plans, cash flows, charts and exact individual runs](monte-carlo-validation.md) |
+| 72 | 41 | Reports, dashboards and formulas | [41: pinned formulas, exact formatting/errors, saved cards, preferences and recovery](formula-validation.md) |
+| 73 | 33, 35, 36, 37, 38, 39, 40, 41 | Reports, dashboards and formulas | [33: recorded-entry labels and bounds](reports-validation.md); [35: forecasts](forecast-validation.md); [36: budget analysis](budget-analysis-validation.md); [37: Sankey](sankey-validation.md); [38: crossover assumptions and data view](crossover-validation.md); [39/40: simulated cash flows and run inspection](monte-carlo-validation.md); [41: calculated cards and explicit errors](formula-validation.md) |
 | 74 | 43, 51 | Settings and accessible workflows | [43: accessible responsive preference controls](../actualBudget/web/docs/preferences-validation.md); whole-app qualification pending 51 |
 | 75 | 43, 51 | Settings and accessible workflows | [43: number/date/currency/decimal/week-start controls](../actualBudget/web/docs/preferences-validation.md); whole-app qualification pending 51 |
 | 76 | 43, 44 | Settings and accessible workflows | [43: built-in appearance](../actualBudget/web/docs/preferences-validation.md); [44: catalog/custom themes, source preservation and recovery](../actualBudget/web/docs/custom-theme-contract.md) |
 | 77 | 43 | Settings and accessible workflows | [43: released language catalogs, device scope and retry](../actualBudget/web/docs/preferences-validation.md) |
 | 78 | 12, 45 | Settings and accessible workflows | [12: accepted remembered register views](register-query-validation.md); [45: privacy, navigation, command search, shortcuts and help](navigation-validation.md) |
 | 79 | 45 | Settings and accessible workflows | [45: optional fork-local notices, dismissal and opt-out without idle network checks](navigation-validation.md) |
-| 80 | 35, 36, 37, 39, 41, 42, 43 | Settings and accessible workflows | [43: preserved opt-in flags and currency gating](../actualBudget/web/docs/preferences-validation.md); remaining retained experimental features pending assigned tickets; provider toggles explicitly removed2026-11-10 |
+| 80 | 35, 36, 37, 39, 41, 42, 43 | Settings and accessible workflows | [43: preserved opt-in flags and currency gating](../actualBudget/web/docs/preferences-validation.md); [35](forecast-validation.md), [36](budget-analysis-validation.md), [37](sankey-validation.md), [39/40](monte-carlo-validation.md), [41](formula-validation.md), [42](rule-expression-validation.md): working retained experimental capabilities; provider toggles explicitly removed2026-11-10 |
 | 81 | 49 | Settings and accessible workflows | [49: copied-data repair preview, guarded backup/apply and safe cache/connection recovery](recovery-validation.md) |
 | 82 | 03, 43, 49, 51 | Settings and accessible workflows | [03: retained forms and durable retry](register-validation.md); [43: settings/storage/connection recovery](../actualBudget/web/docs/preferences-validation.md); [49: retained recovery intent/cancellation](recovery-validation.md); whole-app qualification pending51 |
 | 83 | 07, 20 | Android and offline expense capture | [07: dated cache before network and unchanged-checkpoint efficiency](offline-web-validation.md); [20: bounded native cache and no legacy reread after atomic handoff](android-upgrade-validation.md) |
@@ -124,16 +124,16 @@ traceability; explicit exceptions are not implementation-completion claims.
 | 95 | 06, 14, 15 | Android and offline expense capture | [14/15: split/transfer exclusion and real native incremental eligibility](1314151646-validation.md) |
 | 96 | 20 | Android and offline expense capture | [20: pending-only delivery, OS-denied background and foreground recovery](android-upgrade-validation.md) |
 | 97 | 20 | Android and offline expense capture | [20: allowed-idle zero HTTP/cache writes/jobs; LAN/Tailscale-address equivalence with emulator limits](android-upgrade-validation.md) |
-| 98 | 20, 50 | Android and offline expense capture | [20: both upgrade orders, exact source mapping, genuine released state and signed debug reinstall](android-upgrade-validation.md); full replacement qualification50 pending |
-| 99 | 47, 52 | Public API, deployment and resources | Pending feature acceptance |
+| 98 | 20, 50 | Android and offline expense capture | [20: both upgrade orders, exact source mapping, genuine released state and signed debug reinstall](android-upgrade-validation.md); [50: released-state/current-APK upgrade and financial reconciliation](complete-migration-validation.md) |
+| 99 | 47, 52 | Public API, deployment and resources | [47: running external caller, machine-readable API and67 SDK/18 query-resource mapping](public-query-validation.md); final audit52 pending |
 | 100 | 34, 47, 52 | Public API, deployment and resources | [34: bounded custom-report API/inspection](ynab-custom-integration-validation.md); [47: public query/import/export/batch caller](public-query-validation.md); bank refresh explicitly removed2026-11-10; final parity52 pending |
 | 101 | 05, 51 | Public API, deployment and resources | [05: independent change cursor, 95-byte unchanged refresh and measured scaling](concurrency-validation.md); whole-system qualification pending 51 |
 | 102 | 02, 48, 53 | Public API, deployment and resources | [02: container persistence/replay](open-budget-validation.md); [48: signed image promotion and isolated registry rehearsal](release-validation.md); production cutover qualification pending 53 |
 | 103 | 01, 48, 53 | Public API, deployment and resources | [01: independent application layout](foundation-validation.md); [48: independent APK/container versions and release automation](release-validation.md); final deployment qualification pending 53 |
 | 104 | 01, 48, 53 | Public API, deployment and resources | [01: original Android identity preserved](foundation-validation.md); [48: original APK signer and container signature verified](release-validation.md); final deployment qualification pending 53 |
 | 105 | 48, 53 | Public API, deployment and resources | [48: manual image pull/restart release path, no automatic deployment](release-validation.md); full cutover rehearsal pending 53 |
-| 106 | 04, 08, 50, 53 | Public API, deployment and resources | [04: staged conversion](import-validation.md); [08: archives/recovery/rollback faults](budget-lifecycle-validation.md); complete migration/cutover qualification pending50/53 |
-| 107 | 51 | Public API, deployment and resources | Pending feature acceptance |
+| 106 | 04, 08, 50, 53 | Public API, deployment and resources | [04: staged conversion](import-validation.md); [08: archives/recovery/rollback faults](budget-lifecycle-validation.md); [50: complete migration/companion recovery](complete-migration-validation.md); cutover qualification53 pending |
+| 107 | 51 | Public API, deployment and resources | [51: partial production opening/expense/report/idle comparison and explicit resource tradeoffs](resource-qualification.md); remaining whole-system qualification pending51 |
 
 ## Foundation evidence
 

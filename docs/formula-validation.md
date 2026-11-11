@@ -1,6 +1,8 @@
-# Formula cards accepted; calculated rule actions pending
+# Formula cards — ticket41 accepted
 
-Ticket41 accepted locally2026-11-10;42 remains open. Reference commit
+Ticket41 accepted locally2026-11-10. Calculated rule actions42 are accepted
+separately in [their final audit](rule-expression-validation.md). Earlier
+checkpoints below are historical. Reference commit
 `2bebdbaae0b701120a8cad9d56aafd64fa04c577`, Actual API26.10.0,
 installed/pinned HyperFormula3.5.0.
 

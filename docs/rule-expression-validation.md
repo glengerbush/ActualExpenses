@@ -1,11 +1,11 @@
-# Calculated rule actions — ticket42 in progress
+# Calculated rule actions — ticket42 accepted
 
 Reference: Actual26.10.0, source commit
 `2bebdbaae0b701120a8cad9d56aafd64fa04c577`. Ticket41 accepted at `5e9cb42`.
-The initial checkpoint established source behavior and a reproducible action
-asset. Subsequent checkpoints add native execution, guarded writes, expression
-editing and source-backed context timing. Broader workflow qualification and
-whole42 acceptance remain unfinished.
+Accepted2026-11-10 after implementation through `fdc2f39` and consolidated root
+standards/spec review. Earlier checkpoint limitations below are historical;
+the final acceptance audit records their resolution. Whole-system qualification
+remains with50–53 and is not claimed here.
 
 ## Running-source witnesses
 
@@ -592,3 +592,21 @@ Root standards/spec review against `2a6080a` checked internal-number boundaries,
 write validation, stored/new-child distinctions, source evidence and error-state
 rendering. Ticket42 remains open for final consolidated qualification; this is a
 local checkpoint, not publication or deployment.
+
+## Final ticket42 acceptance audit
+
+| Requirement | Current implementation and observed evidence |
+| --- | --- |
+| Templates, formulas, variables, conversions and errors | Pinned Action asset in the bounded native runtime;40 original,22 context,19 chain,12 execution and10 nonfinite public previews;28 independent asset comparisons. Earlier and nonfinite financial fixtures match without unexplained differences. |
+| Imported expressions and recovery | Genuine schema26 fixture upgrades to27; staged capabilities refresh, malformed originals remain downloadable, source receipts replay, native export/duplicate/restore and restart pass on `fdc2f39` (`/tmp/rule42-final-recovery.log`). |
+| Ordering, splits, atomicity and idempotency | Five original, six split, four existing-child and seven nonfinite persisted source/API comparisons, with original receipts and untouched unrelated rows.13 rule/13 split tests pass. Generated versus stored child behavior is source-backed. |
+| Bounded execution | Hostless64MiB/1MiB/2s runtime, shared10s calculation allowance and scoped32million SQL-step guard. Genuine60000-row context refusal/recovery and template cumulative-work checks pass; formula memory refusal recovers. No unrestricted host commands. |
+| Real workflows | Five calculated file-import fixtures,12 forecast scenarios, eight scheduled postings and both budget-template methods match source.195 template financial cases pass. Manual entry and real Android service tests preserve offline/manual writes, refresh and retries. Invalid import/template amounts have explicit safe failure paths. |
+| Complete public contract | Existing versioned rule and schedule APIs, migration27, persisted expression definitions and strict write validation. Final served OpenAPI smoke on `fdc2f39` passes (`/tmp/rule42-final-contract.log`, via `uv run --with jsonschema==4.23.0`). |
+| UI and opt-in | Existing Svelte editor exposes templates/formulas and split formulas, preserves drafts on reload, respects experimental visibility without disabling saved rules, shows errors and prevents invalid writes. Impeccable/Svelte review and plain-HTTP keyboard/privacy/390px/200% text checks pass; nonfinite mobile image inspected. |
+
+Reviewed current call sites, write boundaries, source capture/reproduction and
+existing evidence rather than repeating unchanged broad suites. Standards review:
+no unresolved finding. Spec review: all42 criteria met; no deferred feature gap.
+Full integrated release/container/resource qualification remains50–53. No push,
+version bump, publication or production cutover.

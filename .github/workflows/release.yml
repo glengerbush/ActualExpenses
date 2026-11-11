@@ -318,7 +318,7 @@ jobs:
         run: |
           docker build --tag "$LOCAL_IMAGE" --file actualBudget/Dockerfile --label "org.opencontainers.image.revision=$GITHUB_SHA" --label "org.opencontainers.image.version=$VERSION" --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" actualBudget
       - name: Verify real container persistence and browser workflows
-        run: python3 actualBudget/tools/container-smoke.py --image "$LOCAL_IMAGE" --browser
+        run: python3 actualBudget/tools/container-smoke.py --image "$LOCAL_IMAGE" --browser --keep-going
       - name: Review publication dry run
         run: python3 tools/publish.py actualBudget --before "$BEFORE" --head "$GITHUB_SHA" --channel "$CHANNEL" --repository "$GITHUB_REPOSITORY" --image "$LOCAL_IMAGE" --directory dist/actualBudget
       - name: Log into GHCR only for an eligible publication

@@ -167,6 +167,25 @@ try {
   await expect(
     page.getByRole("button", { name: "Retry saved split", exact: true }),
   ).toBeVisible();
+  // The pending button appears before dispatch. Reload only after the injected
+  // lost acknowledgement, otherwise the first actual request may be the retry.
+  await expect
+    .poll(
+      () =>
+        responses.some(
+          (response) =>
+            response.phase === "manual-commit" && response.status === 200,
+        ),
+      { timeout: 30000 },
+    )
+    .toBe(true);
+  await expect(page.getByRole("alert")).toContainText(
+    "Cannot reach the server",
+  );
+  await expect(
+    page.getByRole("button", { name: "Retry saved split", exact: true }),
+  ).toBeEnabled();
+  expect(attempts).toHaveLength(1);
   await page.reload();
   await page
     .getByRole("button", { name: "Retry saved split", exact: true })

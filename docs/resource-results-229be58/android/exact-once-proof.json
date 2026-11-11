@@ -1,0 +1,98 @@
+[
+  {
+    "case": "empty",
+    "budget_id": "8d49d041-9841-4246-9c41-c4c8bfea3fc5",
+    "distinct_transactions": [
+      "04f14a81-adc8-4814-af81-72ab25197930",
+      "05b0c8e7-d5a3-407c-9917-a679dba6a48f",
+      "49101e83-1157-461d-98a9-f09538d2e735",
+      "5190eb7b-b849-44e7-918f-4c0b054c0fed",
+      "577e3244-5f0d-4a47-832f-420c5cbcb582",
+      "5dda9483-f53b-4d06-b567-43d19d891be0",
+      "69a18869-6bec-4702-908d-b516d72b69eb",
+      "77ff9c81-59d7-4386-b139-cdf4d14ce458",
+      "856111bf-7399-433b-83c5-288dfffdb0a7",
+      "8685016d-8745-4ae5-8faa-2f5679181863",
+      "8b97dd17-ac84-4ec7-9f34-13136e6438ba",
+      "b0c09988-6b2e-4512-a382-6deb6b5b4fb9",
+      "ca351ebb-557b-4c13-821d-044f7e3f8056",
+      "d96fd216-7d13-4c22-bb83-860f0dcb26f1",
+      "da2108a8-14af-40b3-84d5-0b63c1189835",
+      "dd7e1eed-23b2-4972-a1ee-1140e7c3bd36",
+      "e9894f62-3628-45c3-b2f0-92f2ab9257ed",
+      "eeb0792a-69e2-4740-90d2-5275e79b6a23",
+      "f6471e69-dae2-44d2-9213-7a9c0819a705",
+      "f893ef32-78d2-40e9-8e60-6036b563eeb0"
+    ],
+    "exactly_one_per_expected_payee": true,
+    "balances": {
+      "cleared": -8540,
+      "total": -8540,
+      "uncleared": 0
+    }
+  },
+  {
+    "case": "typical",
+    "budget_id": "86a4feff-0b57-4c2f-932e-878b68f0d511",
+    "distinct_transactions": [
+      "08718326-7027-4648-98f8-a9a64f00d996",
+      "2e0ec692-945a-48dc-ba37-e0dd7d1362bb",
+      "38411d57-7a47-4316-9aff-3c3029414439",
+      "40071aee-d32d-48e1-a4e3-e75aeb89509b",
+      "461b189d-925f-408d-b41c-af3f615312f0",
+      "4f44bf47-f385-451e-9654-011613d86518",
+      "5034b700-2610-4a1a-9574-159ea09571d9",
+      "64e99c57-16a4-408b-8f08-f9df353ba931",
+      "65a8692d-e42c-4150-acf0-78541fe59ddd",
+      "6edbe24e-c0c7-4080-8e59-c624f86fd543",
+      "7466b3e1-d1f4-42e7-bfa0-f9fd0cca435d",
+      "75719c07-caae-44a8-9862-e9f87d05407a",
+      "9beb7863-b08a-44e4-988e-eda397b5ba7d",
+      "a5cdf62a-272c-46a3-9366-a8250ad5df08",
+      "afcd7dfa-251b-450f-8eb0-c39107653657",
+      "dedd24f4-d522-4382-82fc-6e91aa99e7d9",
+      "e24ead1d-76a1-4c6b-bf9e-9abeff68ccb6",
+      "e4c619f7-b7a4-453f-85b2-39276309ac92",
+      "e796b051-062e-48c2-90be-62efd1daf16b",
+      "eecdd81c-d676-4335-811e-b36332fda132"
+    ],
+    "exactly_one_per_expected_payee": true,
+    "balances": {
+      "cleared": -416328,
+      "total": -416328,
+      "uncleared": 0
+    }
+  },
+  {
+    "case": "large",
+    "budget_id": "e7ab4e3a-4b43-47df-b2a1-21ae84c165eb",
+    "distinct_transactions": [
+      "140b1251-b521-4482-979c-05cfadd80d8d",
+      "1893f1a0-dd5a-4ad4-bef7-68f45d896dd3",
+      "1b40046b-76a7-4dba-85e8-a714c06bbbf4",
+      "1b5e679e-89c4-4254-8665-d67fbe8a972f",
+      "2e18d9fc-f043-4d06-8842-7fd5350e306c",
+      "44418249-f919-4cfc-8a6b-3439c8f51b8d",
+      "4c1121aa-454f-464b-98ac-6ec0306d1223",
+      "5d4e7d07-2c2a-4357-8fa7-99951fe7d0f2",
+      "637606db-3b7f-4635-bbf8-0b6137d4b2c9",
+      "6691e786-2fe4-4910-a40e-067596e1170c",
+      "8edcf365-6831-49b6-8e96-68c7c416f685",
+      "93eace9e-7171-477b-a89e-81755a553865",
+      "a8445435-acfe-4d5d-ac69-e634e0ad92fe",
+      "b08248ea-3852-453d-b80a-355aca20a5f2",
+      "ce7a1678-7941-429b-ade0-2fbbda3eac22",
+      "cfdf7131-259b-4357-97b7-266144b31121",
+      "d247acfa-cdd6-4159-8277-839274f1bed3",
+      "d72b4c4c-9e6c-451e-bac0-cd96432edb35",
+      "dcb6d02c-b260-4189-87c6-1af40a38a87f",
+      "dd4eddaf-8486-43b2-92b7-67723136bc21"
+    ],
+    "exactly_one_per_expected_payee": true,
+    "balances": {
+      "cleared": -33749661,
+      "total": -50411329,
+      "uncleared": -16661668
+    }
+  }
+]

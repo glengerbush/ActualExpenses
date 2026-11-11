@@ -34,3 +34,45 @@ pub(super) fn run<T>(db: &Connection, read: impl FnOnce() -> Result<T, Error>) -
         result
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // The real production work bound, without an oversized financial fixture or
+    // a test-only server setting. Public analysis behavior is covered separately.
+    #[test]
+    fn exhausted_read_releases_connection_for_later_work() {
+        let db = Connection::open_in_memory().unwrap();
+        db.execute_batch("CREATE TABLE saved(value INTEGER); INSERT INTO saved VALUES(42)")
+            .unwrap();
+        // This finite read exceeds 32 million VM instructions. Its independent
+        // result also verifies that recovery can perform equally expensive work.
+        let expensive = || -> Result<i64, Error> {
+            Ok(db.query_row(
+                "WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<2000000) SELECT sum(x) FROM n",
+                [],
+                |r| r.get(0),
+            )?)
+        };
+        let error = run(&db, expensive).unwrap_err();
+        assert_eq!(error.status, StatusCode::BAD_REQUEST);
+        assert_eq!(error.code, "analysis_work_limit");
+        assert_eq!(expensive().unwrap(), 2_000_001_000_000);
+        assert_eq!(
+            run(&db, || Ok(db.query_row(
+                "SELECT value FROM saved",
+                [],
+                |r| r.get::<_, i64>(0)
+            )?))
+            .unwrap(),
+            42
+        );
+        db.execute("INSERT INTO saved VALUES(7)", []).unwrap();
+        assert_eq!(
+            db.query_row("SELECT sum(value) FROM saved", [], |r| r.get::<_, i64>(0))
+                .unwrap(),
+            49
+        );
+    }
+}

@@ -3,8 +3,8 @@
 Ticket51 is **not accepted**. This note records the production browser comparison
 and its limits. Opening, expense and report distributions are recorded below.
 Large graph/history and saved-snapshot recovery observations are also recorded.
-Analysis guard exhaustion/recovery, Android resource observations and the consolidated accessibility audit
-remain outstanding. Existing functional evidence is not relabeled as performance
+Native Android observations are also recorded. The Android baseline comparison
+and consolidated accessibility audit remain outstanding. Existing functional evidence is not relabeled as performance
 evidence. Nothing here authorizes release or production cutover.
 
 ## Measured boundary
@@ -538,5 +538,157 @@ the supported delete/sparse-split paths and confirms the failure names the secon
 transaction. All80 final operations and their state assertions pass. Root review,
 syntax/format and diff checks pass; no production code changed.
 
-The remaining51 gates are analysis-guard exhaustion/recovery, Android resource
-observations, background/due-schedule checks and the consolidated UI audit.
+The remaining51 gates are the Android baseline comparison and consolidated UI
+audit. Native resource/idle observations and the due-schedule cross-check follow.
+
+## Analysis work-limit recovery
+
+The focused SQLite test `exhausted_read_releases_connection_for_later_work`
+exercises the unchanged production32million VM-step guard with a finite recursive
+read. It returns400 `analysis_work_limit`. The same connection then completes
+the identical read without the scoped guard, returning the independently known
+sum1…2000000 =2000001000000; a subsequent guarded read and ordinary write also
+succeed. The original saved value remains42 and the later insert produces49.
+This verifies interruption, hook cleanup and connection reuse without changing
+the production limit, adding a configuration override or generating millions of
+financial records.
+
+This is explicitly a **lower-seam numeric resource-bound check**, not a claim
+that an HTTP analysis request exhausted the limit. Public analysis results,
+cache behavior and unchanged financial state remain covered by
+`budget-analysis-api.mjs` and `budget-analysis-large-api.mjs`. The direct test
+isolates the work bound and cleanup that realistic bounded financial fixtures
+cannot adequately exercise. Command:
+
+```sh
+cargo test --manifest-path actualBudget/server/Cargo.toml \
+  --bin actualbudget-server exhausted_read_releases_connection_for_later_work \
+  -- --nocapture
+```
+
+Passed,1 test,4.61s in the debug test build. No latency benchmark or product
+behavior change is claimed; the production image remains `229be58`.
+
+## Android measurement boundary
+
+`check-android-resources.py` drives opt-in `ResourceDeviceTest` on the disposable
+API36 emulator. It selects fresh public duplicates of the same empty/typical/large
+fixtures, using the current debug APK, real MainActivity/Compose controls,
+encrypted state store and HTTP adapter. No physical or user device is involved.
+The local forwarding proxy records request counts, body sizes and server-facing
+response latency without recording request bodies or credentials.
+
+Each case performs20 unchanged refreshes,20 background/foreground transitions
+and20 acknowledged4.27 expenses, then35s foreground idle and35s background idle.
+Every refresh/transition must preserve the encrypted cache byte-for-byte. Both
+idle windows must preserve that cache and have zero supported UID RX/TX counter
+growth. The host independently verifies all20 distinct purchases, cleared flags
+and the exact8540-minor-unit balance change through the public API. This measures
+warm foregrounding, not Android process-cold startup.
+
+Counters distinguish action elapsed time, process CPU, end-of-window PSS, UID
+network bytes, physical process I/O and syscall write bytes. PSS collection and
+test activity contribute overhead; Compose instrumentation runs inside the
+measured process. These are **instrumented emulator costs**, not phone response
+times, production-build CPU estimates or a baseline Android comparison. Request
+latency from the proxy is separate from the much longer UI-test action timings.
+Measurement JSON is buffered until teardown so writing the report does not
+create writes inside later observations. Idle physical writes may still occur
+outside the unchanged financial cache; they are retained, not attributed to a
+component without evidence. A single35s idle observation has no latency
+distribution even if the generic summary repeats it in both quantile fields.
+
+Earlier pilots were excluded: proxy connection cleanup used an unsupported
+Python context manager; the cache probe initially named the old legacy file;
+the UI probe initially checked pending-count before acknowledgement; and the
+successful fourth device pilot exposed host-side external-storage retrieval
+permissions. Final instrumentation waits for pending-count zero and reads the
+native cache; host retrieval uses adb's permitted external-storage access.
+No product correction is claimed for these harness failures.
+
+The first large-case run also stopped when its newly backdated purchase was
+outside the visible viewport. The corrected probe reveals the pinned row before
+asserting its rendered presence; that reveal is included in large-case action
+timing. Another large run completed all20 purchases but caught687 received and364
+sent bytes at the idle boundary, consistent with its final due-schedule request;
+the retained proxy trace contains no subsequent recurring request. Final large
+qualification records a separate settlement phase, requiring two consecutive
+quiet one-second UID-counter intervals, with a ten-second bound, before beginning
+idle. Earlier small-case idle checks already passed without that settlement.
+These differing measurement details are retained explicitly; the distributions
+are not an isolated estimate of dataset size alone. Expense counters end at the
+tested UI outcome, and a trailing schedule request can fall outside that window.
+The earlier failed captures remain under `.scratch/qualification51-android-*`.
+
+Due-schedule behavior is cross-checked against the current52-test native HTTP
+qualification in [complete migration](complete-migration-validation.md), rather
+than rerunning an unchanged suite during measurements. The recorded tests include
+`foreground schedules post once while pending delivery mode never runs schedules`,
+`scheduled foreground lost ack retains separate original command through restart and background refresh`,
+and `overdue scheduled work holds for review without spinning or blocking ordinary pending expenses`.
+`ExpensesApplication` schedules only one-time work while expense changes are
+pending; its worker calls `refresh(foreground=false)`. Foreground analysis of due
+schedules remains enabled in these device runs. Earlier OS-denied/background
+recovery and permitted-idle evidence remains explicitly in
+[Android upgrade validation](android-upgrade-validation.md); these resource runs
+do not claim a new OS-denial experiment. The browser idle observations above kept
+automatic backups enabled; their functional recovery remains covered by08/50.
+
+### Recorded native Android results
+
+[Summary, APK identities, financial proofs and raw-file hashes](resource-results-229be58/android/summary.json).
+Compressed observations and request traces beside it cover all three cases.
+There are187 accepted observations:180 repeated workflow measurements, six idle
+windows and the large-case settlement window. All60 purchases are independently
+confirmed exactly once, cleared, with each account balance decreasing8540 minor
+units and its uncleared balance unchanged. Failed pilots are not pooled into the
+quantiles. Empty/typical use the first successful batch; large uses its final
+corrected batch. Both instrumentation APK hashes are recorded; the product APK
+is identical, SHA256 `d787863977c639ab9ee30f8742de7d9b1f1ec944a378b91fa8521eeb905f679f`.
+
+[Final public readback](resource-results-229be58/android/exact-once-proof.json)
+additionally checks one row per expected payee and60 distinct transaction IDs;
+the maintained harness includes those same per-purchase assertions.
+
+All cells below are p50/p95 milliseconds. UI values include instrumentation;
+server values measure only the forwarding proxy's server-facing HTTP exchange.
+
+| Case | Unchanged refresh | Warm foreground | Expense UI outcome | Server expense POST |
+| --- | ---: | ---: | ---: | ---: |
+| empty |2918/2934|3920/3949|7118/7460|18.2/22.8|
+| typical |2924/2957|3927/3961|7128/7413|18.2/19.9|
+| large |2928/2960|3900/3977|7143/7545|94.9/97.7|
+
+Median unchanged-refresh UID traffic is3687 received/1321 sent bytes for all three
+sizes. The largest companion response bodies are11419/11647/12874 bytes; the
+large ledger is not downloaded in full by these workflows. Median expense PSS is
+about116/118/117MiB; median measured process CPU is4118/4066/4260ms, including
+Compose instrumentation. Full p50/p95 CPU, PSS, network and I/O counters are in
+the summary. Do not interpret these UI/CPU numbers as actual phone latency or
+compare them directly with the production browser measurements.
+
+Every idle window has zero UID RX/TX growth and unchanged encrypted cache.
+Foreground idle still records143360/86016/20480 physical process-write bytes;
+background idle records zero in all three. Those other writes are not attributed
+to a component. Final large settlement took3006ms and retained603 received/80
+sent bytes separately. The final emulator scheduler dump reported zero running
+background jobs for the app; this is a point-in-time observation, not an OS-wide
+guarantee. Emulator network status reported zero configured min/max latency and
+speed values; the installed product/test APK hashes match the recorded artifacts.
+The owned emulator and proxy stopped after qualification. No user device changed.
+
+Reproduce with built/installed debug and instrumentation APKs on a disposable
+API36 emulator, using the browser fixture lab:
+
+```sh
+python3 actualBudget/tools/check-android-resources.py \
+  .scratch/qualification51-final NEW_OUTPUT_DIRECTORY \
+  --adb /path/to/android-sdk/platform-tools/adb --serial emulator-5556 --samples 20
+```
+
+Use `--case large` to select one fixture.
+The harness refuses an existing output directory and accepts only emulator serials
+and the local disposable server. Final compile, Python syntax, Rust formatting,
+artifact-checksum and patch checks pass. These observations complete the native
+measurement slice, not51: baseline Android comparison and consolidated UI audit
+remain open, followed by52/53 acceptance.

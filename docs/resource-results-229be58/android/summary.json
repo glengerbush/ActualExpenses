@@ -1,0 +1,1075 @@
+{
+  "protocol": "Native-only instrumented Android observations; see docs/resource-qualification.md for boundaries and excluded pilots. Quantiles use nearest rank.",
+  "runs": {
+    "empty-typical": {
+      "image": "sha256:e400473e4eaa0b079edc496196e9996549bb5dde2e44113be3faf828ec51a22e",
+      "samples": 20,
+      "protocol": "API36 emulator, current debug APK and Compose instrumentation; process CPU/PSS, UID network and process I/O. Instrumentation/measurement overhead included. Native-only Android observation, not a baseline Android comparison or phone battery measurement.",
+      "device": "google/sdk_gphone64_x86_64/emu64xa:16/BE2A.250530.026.D1/13818094:user/release-keys",
+      "screen": "Physical size: 1080x2400",
+      "density": "Physical density: 420",
+      "font_scale": "1.0",
+      "instrumentation_sha256": "2d71017cb123726d00ba65ad4cde059e7874548f90119d2cdbee4adb51b54910",
+      "apk_sha256": "d787863977c639ab9ee30f8742de7d9b1f1ec944a378b91fa8521eeb905f679f"
+    },
+    "large-settled": {
+      "image": "sha256:e400473e4eaa0b079edc496196e9996549bb5dde2e44113be3faf828ec51a22e",
+      "samples": 20,
+      "protocol": "API36 emulator, current debug APK and Compose instrumentation; process CPU/PSS, UID network and process I/O. Instrumentation/measurement overhead included. Native-only Android observation, not a baseline Android comparison or phone battery measurement.",
+      "device": "google/sdk_gphone64_x86_64/emu64xa:16/BE2A.250530.026.D1/13818094:user/release-keys",
+      "screen": "Physical size: 1080x2400",
+      "density": "Physical density: 420",
+      "font_scale": "1.0",
+      "instrumentation_sha256": "5826004ce9f29e3f36c9238db25944acb4a634e07eaccbdbf2076239323ca2fd",
+      "apk_sha256": "d787863977c639ab9ee30f8742de7d9b1f1ec944a378b91fa8521eeb905f679f"
+    }
+  },
+  "cases": [
+    {
+      "name": "empty",
+      "budget_id": "8d49d041-9841-4246-9c41-c4c8bfea3fc5",
+      "transactions": 0,
+      "source_archive_sha256": "894f254a8423554b31a20066ed5035d474f2c9a4ebe049eb231e9d33fbbcb468",
+      "phases": {
+        "background_idle": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 35000,
+              "p95": 35000
+            },
+            "elapsed_ms": {
+              "p50": 35037,
+              "p95": 35037
+            },
+            "process_cpu_ms": {
+              "p50": 101,
+              "p95": 101
+            },
+            "pss_kib": {
+              "p50": 116317,
+              "p95": 116317
+            },
+            "uid_rx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "uid_tx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "syscall_write_bytes": {
+              "p50": 38,
+              "p95": 38
+            }
+          }
+        },
+        "expense_acknowledgement": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 7118,
+              "p95": 7460
+            },
+            "elapsed_ms": {
+              "p50": 7154,
+              "p95": 7494
+            },
+            "process_cpu_ms": {
+              "p50": 4118,
+              "p95": 4335
+            },
+            "pss_kib": {
+              "p50": 118616,
+              "p95": 122110
+            },
+            "uid_rx_bytes": {
+              "p50": 20550,
+              "p95": 21166
+            },
+            "uid_tx_bytes": {
+              "p50": 4095,
+              "p95": 4215
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 204800,
+              "p95": 282624
+            },
+            "syscall_write_bytes": {
+              "p50": 808314,
+              "p95": 893665
+            }
+          }
+        },
+        "foreground_idle": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 35000,
+              "p95": 35000
+            },
+            "elapsed_ms": {
+              "p50": 35037,
+              "p95": 35037
+            },
+            "process_cpu_ms": {
+              "p50": 144,
+              "p95": 144
+            },
+            "pss_kib": {
+              "p50": 120741,
+              "p95": 120741
+            },
+            "uid_rx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "uid_tx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 143360,
+              "p95": 143360
+            },
+            "syscall_write_bytes": {
+              "p50": 138326,
+              "p95": 138326
+            }
+          }
+        },
+        "unchanged_refresh": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 2918,
+              "p95": 2934
+            },
+            "elapsed_ms": {
+              "p50": 2960,
+              "p95": 2978
+            },
+            "process_cpu_ms": {
+              "p50": 1747,
+              "p95": 1797
+            },
+            "pss_kib": {
+              "p50": 112222,
+              "p95": 113665
+            },
+            "uid_rx_bytes": {
+              "p50": 3687,
+              "p95": 3687
+            },
+            "uid_tx_bytes": {
+              "p50": 1321,
+              "p95": 1321
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "syscall_write_bytes": {
+              "p50": 648865,
+              "p95": 669719
+            }
+          }
+        },
+        "warm_foreground": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 3920,
+              "p95": 3949
+            },
+            "elapsed_ms": {
+              "p50": 3959,
+              "p95": 3985
+            },
+            "process_cpu_ms": {
+              "p50": 1444,
+              "p95": 1551
+            },
+            "pss_kib": {
+              "p50": 111236,
+              "p95": 112913
+            },
+            "uid_rx_bytes": {
+              "p50": 3687,
+              "p95": 3687
+            },
+            "uid_tx_bytes": {
+              "p50": 1321,
+              "p95": 1321
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 16384
+            },
+            "syscall_write_bytes": {
+              "p50": 69473,
+              "p95": 82263
+            }
+          }
+        }
+      },
+      "financial_proof": {
+        "added_rows": 20,
+        "before": {
+          "cleared": 0,
+          "total": 0,
+          "uncleared": 0
+        },
+        "after": {
+          "cleared": -8540,
+          "total": -8540,
+          "uncleared": 0
+        }
+      },
+      "run": "empty-typical",
+      "files": {
+        "empty.json.gz": {
+          "sha256": "e1ec40346d3fb0063558dfb0f8efa1dd809e2ae4e81ff98fb5f07991da1d2e36",
+          "uncompressed_sha256": "2989c8575034ae1f709df51bef76247bf52e6520f4b7e93483fa8a27eb0c3395"
+        },
+        "empty-requests.json.gz": {
+          "sha256": "2dc201748b5a7f510b837b46abbc992dd7c30f1cc3f1a0d52b32e36fae261c0c",
+          "uncompressed_sha256": "fc2da8304839b76462662e9c75b730692f19527ec3dff8c802f7c860444d9438"
+        }
+      },
+      "requests": {
+        "GET /api/v1/info": {
+          "count": 63,
+          "elapsed_ms": {
+            "p50": 2.8848648071289062,
+            "p95": 5.764245986938477
+          },
+          "max_response_body_bytes": 1833
+        },
+        "GET /api/v1/budgets": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 3.3135414123535156,
+            "p95": 3.3135414123535156
+          },
+          "max_response_body_bytes": 3396
+        },
+        "GET /api/v1/budgets/:budget/checkpoint": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 3.172636032104492,
+            "p95": 3.172636032104492
+          },
+          "max_response_body_bytes": 132
+        },
+        "GET /api/v1/budgets/:budget/accounts": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 2.846956253051758,
+            "p95": 2.846956253051758
+          },
+          "max_response_body_bytes": 458
+        },
+        "GET /api/v1/budgets/:budget/payees": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 2.967357635498047,
+            "p95": 2.967357635498047
+          },
+          "max_response_body_bytes": 30
+        },
+        "GET /api/v1/budgets/:budget/categories": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 3.742694854736328,
+            "p95": 3.742694854736328
+          },
+          "max_response_body_bytes": 550
+        },
+        "GET /api/v1/budgets/:budget/rules/associations": {
+          "count": 21,
+          "elapsed_ms": {
+            "p50": 2.9778480529785156,
+            "p95": 3.4465789794921875
+          },
+          "max_response_body_bytes": 142
+        },
+        "GET /api/v1/budgets/:budget/preferences": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 3.1197071075439453,
+            "p95": 3.1197071075439453
+          },
+          "max_response_body_bytes": 511
+        },
+        "GET /api/v1/budgets/:budget/changes": {
+          "count": 83,
+          "elapsed_ms": {
+            "p50": 2.917766571044922,
+            "p95": 4.35948371887207
+          },
+          "max_response_body_bytes": 2212
+        },
+        "GET /api/v1/budgets/:budget/companion": {
+          "count": 21,
+          "elapsed_ms": {
+            "p50": 7.382631301879883,
+            "p95": 9.700775146484375
+          },
+          "max_response_body_bytes": 11419
+        },
+        "GET /api/v1/budgets/:budget/schedules/due": {
+          "count": 61,
+          "elapsed_ms": {
+            "p50": 3.1273365020751953,
+            "p95": 3.920316696166992
+          },
+          "max_response_body_bytes": 171
+        },
+        "POST /api/v1/budgets/:budget/transactions": {
+          "count": 20,
+          "elapsed_ms": {
+            "p50": 18.235445022583008,
+            "p95": 22.833585739135742
+          },
+          "max_response_body_bytes": 1273
+        }
+      }
+    },
+    {
+      "name": "typical",
+      "budget_id": "86a4feff-0b57-4c2f-932e-878b68f0d511",
+      "transactions": 48,
+      "source_archive_sha256": "718ce38aea766252958fd53d04211179c5fd3a28924f803e83b41a290c9dd621",
+      "phases": {
+        "background_idle": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 35001,
+              "p95": 35001
+            },
+            "elapsed_ms": {
+              "p50": 35038,
+              "p95": 35038
+            },
+            "process_cpu_ms": {
+              "p50": 71,
+              "p95": 71
+            },
+            "pss_kib": {
+              "p50": 118013,
+              "p95": 118013
+            },
+            "uid_rx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "uid_tx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "syscall_write_bytes": {
+              "p50": 38,
+              "p95": 38
+            }
+          }
+        },
+        "expense_acknowledgement": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 7128,
+              "p95": 7413
+            },
+            "elapsed_ms": {
+              "p50": 7165,
+              "p95": 7448
+            },
+            "process_cpu_ms": {
+              "p50": 4066,
+              "p95": 4951
+            },
+            "pss_kib": {
+              "p50": 120968,
+              "p95": 125196
+            },
+            "uid_rx_bytes": {
+              "p50": 21140,
+              "p95": 21831
+            },
+            "uid_tx_bytes": {
+              "p50": 4177,
+              "p95": 4541
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 4096
+            },
+            "storage_write_bytes": {
+              "p50": 229376,
+              "p95": 368640
+            },
+            "syscall_write_bytes": {
+              "p50": 828457,
+              "p95": 1187189
+            }
+          }
+        },
+        "foreground_idle": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 35000,
+              "p95": 35000
+            },
+            "elapsed_ms": {
+              "p50": 35037,
+              "p95": 35037
+            },
+            "process_cpu_ms": {
+              "p50": 121,
+              "p95": 121
+            },
+            "pss_kib": {
+              "p50": 120409,
+              "p95": 120409
+            },
+            "uid_rx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "uid_tx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 86016,
+              "p95": 86016
+            },
+            "syscall_write_bytes": {
+              "p50": 89935,
+              "p95": 89935
+            }
+          }
+        },
+        "unchanged_refresh": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 2924,
+              "p95": 2957
+            },
+            "elapsed_ms": {
+              "p50": 2961,
+              "p95": 2993
+            },
+            "process_cpu_ms": {
+              "p50": 1963,
+              "p95": 2042
+            },
+            "pss_kib": {
+              "p50": 113714,
+              "p95": 118015
+            },
+            "uid_rx_bytes": {
+              "p50": 3687,
+              "p95": 3687
+            },
+            "uid_tx_bytes": {
+              "p50": 1321,
+              "p95": 1361
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 16384
+            },
+            "syscall_write_bytes": {
+              "p50": 1214992,
+              "p95": 1276416
+            }
+          }
+        },
+        "warm_foreground": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 3927,
+              "p95": 3961
+            },
+            "elapsed_ms": {
+              "p50": 3963,
+              "p95": 3999
+            },
+            "process_cpu_ms": {
+              "p50": 1521,
+              "p95": 1623
+            },
+            "pss_kib": {
+              "p50": 116150,
+              "p95": 118177
+            },
+            "uid_rx_bytes": {
+              "p50": 3687,
+              "p95": 3687
+            },
+            "uid_tx_bytes": {
+              "p50": 1321,
+              "p95": 1321
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 16384
+            },
+            "syscall_write_bytes": {
+              "p50": 124641,
+              "p95": 147124
+            }
+          }
+        }
+      },
+      "financial_proof": {
+        "added_rows": 20,
+        "before": {
+          "cleared": -407788,
+          "total": -407788,
+          "uncleared": 0
+        },
+        "after": {
+          "cleared": -416328,
+          "total": -416328,
+          "uncleared": 0
+        }
+      },
+      "run": "empty-typical",
+      "files": {
+        "typical.json.gz": {
+          "sha256": "af3bfc9f979757c63f33be485d4bf37936324b7227d324540f5bc0443e7b881d",
+          "uncompressed_sha256": "937227e0e60a4d44ccd0ab93ea63b1ecc09fbecb399b93266668220bfef8e856"
+        },
+        "typical-requests.json.gz": {
+          "sha256": "83cd9263fb27f0a6a44d696fdbc7572acd155de34ce1c14d696a8b53deb29eba",
+          "uncompressed_sha256": "870330dfff55ff38e2a6380f784798947c74f26825ab8e3af49287f08235d10c"
+        }
+      },
+      "requests": {
+        "GET /api/v1/info": {
+          "count": 63,
+          "elapsed_ms": {
+            "p50": 2.968311309814453,
+            "p95": 6.305217742919922
+          },
+          "max_response_body_bytes": 1833
+        },
+        "GET /api/v1/budgets": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 3.130197525024414,
+            "p95": 3.130197525024414
+          },
+          "max_response_body_bytes": 3636
+        },
+        "GET /api/v1/budgets/:budget/checkpoint": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 6.498813629150391,
+            "p95": 6.498813629150391
+          },
+          "max_response_body_bytes": 132
+        },
+        "GET /api/v1/budgets/:budget/accounts": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 3.462076187133789,
+            "p95": 3.462076187133789
+          },
+          "max_response_body_bytes": 1357
+        },
+        "GET /api/v1/budgets/:budget/payees": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 3.6144256591796875,
+            "p95": 3.6144256591796875
+          },
+          "max_response_body_bytes": 721
+        },
+        "GET /api/v1/budgets/:budget/categories": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 4.230499267578125,
+            "p95": 4.230499267578125
+          },
+          "max_response_body_bytes": 2483
+        },
+        "GET /api/v1/budgets/:budget/rules/associations": {
+          "count": 21,
+          "elapsed_ms": {
+            "p50": 3.045320510864258,
+            "p95": 3.6547183990478516
+          },
+          "max_response_body_bytes": 142
+        },
+        "GET /api/v1/budgets/:budget/preferences": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 2.9850006103515625,
+            "p95": 2.9850006103515625
+          },
+          "max_response_body_bytes": 510
+        },
+        "GET /api/v1/budgets/:budget/changes": {
+          "count": 83,
+          "elapsed_ms": {
+            "p50": 2.7923583984375,
+            "p95": 4.445791244506836
+          },
+          "max_response_body_bytes": 2015
+        },
+        "GET /api/v1/budgets/:budget/companion": {
+          "count": 21,
+          "elapsed_ms": {
+            "p50": 7.6541900634765625,
+            "p95": 9.488344192504883
+          },
+          "max_response_body_bytes": 11647
+        },
+        "GET /api/v1/budgets/:budget/schedules/due": {
+          "count": 60,
+          "elapsed_ms": {
+            "p50": 3.2758712768554688,
+            "p95": 4.110097885131836
+          },
+          "max_response_body_bytes": 171
+        },
+        "POST /api/v1/budgets/:budget/transactions": {
+          "count": 20,
+          "elapsed_ms": {
+            "p50": 18.230676651000977,
+            "p95": 19.926786422729492
+          },
+          "max_response_body_bytes": 1275
+        }
+      }
+    },
+    {
+      "name": "large",
+      "budget_id": "e7ab4e3a-4b43-47df-b2a1-21ae84c165eb",
+      "transactions": 10048,
+      "source_archive_sha256": "0f9e8b8f01c7aa5bed01663f2ed6e3eea28ecd0249cd9d9cedcefc930b6cb0a5",
+      "phases": {
+        "background_idle": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 35000,
+              "p95": 35000
+            },
+            "elapsed_ms": {
+              "p50": 35038,
+              "p95": 35038
+            },
+            "process_cpu_ms": {
+              "p50": 40,
+              "p95": 40
+            },
+            "pss_kib": {
+              "p50": 118195,
+              "p95": 118195
+            },
+            "uid_rx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "uid_tx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "syscall_write_bytes": {
+              "p50": 179,
+              "p95": 179
+            }
+          }
+        },
+        "expense_acknowledgement": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 7143,
+              "p95": 7545
+            },
+            "elapsed_ms": {
+              "p50": 7181,
+              "p95": 7579
+            },
+            "process_cpu_ms": {
+              "p50": 4260,
+              "p95": 4690
+            },
+            "pss_kib": {
+              "p50": 119593,
+              "p95": 121678
+            },
+            "uid_rx_bytes": {
+              "p50": 22464,
+              "p95": 22468
+            },
+            "uid_tx_bytes": {
+              "p50": 4214,
+              "p95": 4215
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 4096
+            },
+            "storage_write_bytes": {
+              "p50": 212992,
+              "p95": 450560
+            },
+            "syscall_write_bytes": {
+              "p50": 910833,
+              "p95": 1069885
+            }
+          }
+        },
+        "foreground_idle": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 35000,
+              "p95": 35000
+            },
+            "elapsed_ms": {
+              "p50": 35032,
+              "p95": 35032
+            },
+            "process_cpu_ms": {
+              "p50": 66,
+              "p95": 66
+            },
+            "pss_kib": {
+              "p50": 118373,
+              "p95": 118373
+            },
+            "uid_rx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "uid_tx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 20480,
+              "p95": 20480
+            },
+            "syscall_write_bytes": {
+              "p50": 18314,
+              "p95": 18314
+            }
+          }
+        },
+        "settlement": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 3006,
+              "p95": 3006
+            },
+            "elapsed_ms": {
+              "p50": 3041,
+              "p95": 3041
+            },
+            "process_cpu_ms": {
+              "p50": 38,
+              "p95": 38
+            },
+            "pss_kib": {
+              "p50": 117905,
+              "p95": 117905
+            },
+            "uid_rx_bytes": {
+              "p50": 603,
+              "p95": 603
+            },
+            "uid_tx_bytes": {
+              "p50": 80,
+              "p95": 80
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "syscall_write_bytes": {
+              "p50": 0,
+              "p95": 0
+            }
+          }
+        },
+        "unchanged_refresh": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 2928,
+              "p95": 2960
+            },
+            "elapsed_ms": {
+              "p50": 2969,
+              "p95": 2994
+            },
+            "process_cpu_ms": {
+              "p50": 1966,
+              "p95": 2029
+            },
+            "pss_kib": {
+              "p50": 115782,
+              "p95": 117273
+            },
+            "uid_rx_bytes": {
+              "p50": 3687,
+              "p95": 3687
+            },
+            "uid_tx_bytes": {
+              "p50": 1321,
+              "p95": 1361
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 16384
+            },
+            "syscall_write_bytes": {
+              "p50": 1219234,
+              "p95": 1256242
+            }
+          }
+        },
+        "warm_foreground": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 3900,
+              "p95": 3977
+            },
+            "elapsed_ms": {
+              "p50": 3942,
+              "p95": 4016
+            },
+            "process_cpu_ms": {
+              "p50": 1506,
+              "p95": 1589
+            },
+            "pss_kib": {
+              "p50": 114192,
+              "p95": 115813
+            },
+            "uid_rx_bytes": {
+              "p50": 3687,
+              "p95": 3687
+            },
+            "uid_tx_bytes": {
+              "p50": 1321,
+              "p95": 1361
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 16384
+            },
+            "syscall_write_bytes": {
+              "p50": 121478,
+              "p95": 133684
+            }
+          }
+        }
+      },
+      "financial_proof": {
+        "added_rows": 20,
+        "before": {
+          "cleared": -33741121,
+          "total": -50402789,
+          "uncleared": -16661668
+        },
+        "after": {
+          "cleared": -33749661,
+          "total": -50411329,
+          "uncleared": -16661668
+        }
+      },
+      "run": "large-settled",
+      "files": {
+        "large.json.gz": {
+          "sha256": "6051aee757b59146c82567d539226af270f161c3a7b2ddfae7991986489c97fd",
+          "uncompressed_sha256": "a6143f561f1d382d70927c8758ae2ffe4e2ddf6c0e364ca12cb32f4d78c29beb"
+        },
+        "large-requests.json.gz": {
+          "sha256": "b6d10ad04d008edae80a72d6e25f255715af72e44a8f28a5ca4909327b84ede2",
+          "uncompressed_sha256": "aab191a2d75f4d139d8245054e33b88fd2874ae62772bcc01866e93376632af0"
+        }
+      },
+      "requests": {
+        "GET /api/v1/info": {
+          "count": 63,
+          "elapsed_ms": {
+            "p50": 2.9261112213134766,
+            "p95": 6.885766983032227
+          },
+          "max_response_body_bytes": 1833
+        },
+        "GET /api/v1/budgets": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 7.918357849121094,
+            "p95": 7.918357849121094
+          },
+          "max_response_body_bytes": 4350
+        },
+        "GET /api/v1/budgets/:budget/checkpoint": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 2.991914749145508,
+            "p95": 2.991914749145508
+          },
+          "max_response_body_bytes": 132
+        },
+        "GET /api/v1/budgets/:budget/accounts": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 3.940582275390625,
+            "p95": 3.940582275390625
+          },
+          "max_response_body_bytes": 1359
+        },
+        "GET /api/v1/budgets/:budget/payees": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 73.93121719360352,
+            "p95": 73.93121719360352
+          },
+          "max_response_body_bytes": 724
+        },
+        "GET /api/v1/budgets/:budget/categories": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 6.001949310302734,
+            "p95": 6.001949310302734
+          },
+          "max_response_body_bytes": 2483
+        },
+        "GET /api/v1/budgets/:budget/rules/associations": {
+          "count": 21,
+          "elapsed_ms": {
+            "p50": 2.906322479248047,
+            "p95": 3.5026073455810547
+          },
+          "max_response_body_bytes": 142
+        },
+        "GET /api/v1/budgets/:budget/preferences": {
+          "count": 1,
+          "elapsed_ms": {
+            "p50": 2.568960189819336,
+            "p95": 2.568960189819336
+          },
+          "max_response_body_bytes": 510
+        },
+        "GET /api/v1/budgets/:budget/changes": {
+          "count": 83,
+          "elapsed_ms": {
+            "p50": 2.7146339416503906,
+            "p95": 21.40331268310547
+          },
+          "max_response_body_bytes": 2016
+        },
+        "GET /api/v1/budgets/:budget/companion": {
+          "count": 21,
+          "elapsed_ms": {
+            "p50": 8.247852325439453,
+            "p95": 10.714292526245117
+          },
+          "max_response_body_bytes": 12874
+        },
+        "GET /api/v1/budgets/:budget/schedules/due": {
+          "count": 62,
+          "elapsed_ms": {
+            "p50": 3.171682357788086,
+            "p95": 3.83758544921875
+          },
+          "max_response_body_bytes": 171
+        },
+        "POST /api/v1/budgets/:budget/transactions": {
+          "count": 20,
+          "elapsed_ms": {
+            "p50": 94.89822387695312,
+            "p95": 97.71966934204102
+          },
+          "max_response_body_bytes": 1276
+        }
+      }
+    }
+  ]
+}

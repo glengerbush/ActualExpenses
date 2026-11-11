@@ -2,7 +2,7 @@
 use serde_json::Value;
 use std::collections::VecDeque;
 #[derive(Default)]
-pub(super) struct Cache {
+pub(crate) struct Cache {
     entries: VecDeque<(String, Value, usize)>,
     bytes: usize,
 }

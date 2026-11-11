@@ -12,6 +12,7 @@ use axum::{
     http::{HeaderMap, StatusCode},
     routing::{get, post},
 };
+pub(crate) use query::revision_cache::Cache as ReportCache;
 pub(crate) use query::{formula_range, formula_work, predicate as formula_predicate};
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::{Deserialize, Serialize};
@@ -41,6 +42,7 @@ pub fn router() -> Router<Store> {
         .merge(query::analysis_router())
         .merge(query::sankey_router())
         .merge(query::crossover_router())
+        .merge(crate::monte_carlo::router())
         .route(
             "/api/v1/budgets/{budget}/reports/drilldown",
             post(query::drilldown),

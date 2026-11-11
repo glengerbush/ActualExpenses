@@ -4,7 +4,7 @@ pub(super) use crossover::router as crossover_router;
 mod sankey;
 pub(super) use sankey::router as sankey_router;
 mod forecast;
-mod revision_cache;
+pub(crate) mod revision_cache;
 mod sql_work;
 use super::*;
 mod custom;

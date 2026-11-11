@@ -274,11 +274,15 @@ jobs:
           node actualBudget/tools/check-rule-expressions-http.mjs --nonfinite
           node actualBudget/tools/check-rule-expression-commits-http.mjs --nonfinite
           node actualBudget/tools/check-rule-nonfinite-workflows-http.mjs
+          npm --prefix actualBudget/web run test:monte-carlo-source
+          node actualBudget/tools/check-monte-carlo-http.mjs --all
+          node actualBudget/tools/check-monte-carlo-workflows-http.mjs --limits
           node actualBudget/tools/check-formula-http.mjs --limits
           python3 actualBudget/tools/generate-v5-receipts.py --check
           python3 -m venv "$RUNNER_TEMP/contract-check"
           "$RUNNER_TEMP/contract-check/bin/pip" install jsonschema==4.23.0
           "$RUNNER_TEMP/contract-check/bin/python" actualBudget/tools/contract-smoke.py
+          "$RUNNER_TEMP/contract-check/bin/python" actualBudget/tools/check-monte-carlo-contract.py
       - name: Build the exact image that will be qualified and published
         run: |
           docker build --tag "$LOCAL_IMAGE" --file actualBudget/Dockerfile --label "org.opencontainers.image.revision=$GITHUB_SHA" --label "org.opencontainers.image.version=$VERSION" --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" actualBudget

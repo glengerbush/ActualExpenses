@@ -1,0 +1,1593 @@
+{
+  "paths": {
+    "/api/v1/budgets/{budget}/reports/monte-carlo": {
+      "post": {
+        "description": "Experimental opt-in; read-only seeded planning. Input64KiB,256 entries per collection; source1000\u201310000 random runs and1\u2013100 years (historical replay uses98 starts). One global worker,64MiB runtime heap,1MiB stack,20s execution interruption,8MiB output. Captures linked balances/epoch/snapshot before computing outside SQLite. Cache8 entries/16MiB keyed by resolved inputs and epoch; no financial writes. Cancel using the client-generated request_id; requests and statuses are ephemeral. Financial summaries are estimates, not guaranteed outcomes.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonteCarloRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid plan or resource bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget or active request missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Feature disabled, duplicate active request or simulation cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Simulation worker busy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Calculation unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Captured simulation and assumptions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonteCarloResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/reports/monte-carlo/{request_id}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "description": "Read a currently active request;404 after completion or cancellation finishes.",
+        "responses": {
+          "400": {
+            "description": "Invalid plan or resource bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget or active request missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Feature disabled, duplicate active request or simulation cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Simulation worker busy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Calculation unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Active request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "request_id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                        },
+                        "status": {
+                          "enum": [
+                            "running",
+                            "cancelling"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "request_id",
+                        "status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          }
+        ],
+        "description": "Interrupt active calculation. The original POST returns409 simulation_cancelled. No financial mutation or durable cancellation record is created.",
+        "responses": {
+          "400": {
+            "description": "Invalid plan or resource bound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Browser origin rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Budget or active request missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Feature disabled, duplicate active request or simulation cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Budget deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Simulation worker busy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Calculation unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Cancellation requested",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "request_id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                        },
+                        "cancellation_requested": {
+                          "const": true
+                        }
+                      },
+                      "required": [
+                        "request_id",
+                        "cancellation_requested"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "MonteCarloPot": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096
+          },
+          "startingBalance": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "allocationPreset": {
+            "enum": [
+              "equity-100",
+              "equity-80",
+              "equity-60",
+              "equity-40",
+              "cash",
+              "custom-mix",
+              "custom",
+              null
+            ]
+          },
+          "allocationStocks": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "allocationBonds": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "allocationCash": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "expectedReturnMean": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "returnStdDev": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "accessAge": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "accountId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096
+          },
+          "withdrawalTaxRate": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "taxableFraction": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "annualFeeFixed": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "feeAdjustsWithInflation": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "annualFeeRate": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "isSurplus": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "required": []
+      },
+      "MonteCarloIncome": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096
+          },
+          "fromAge": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "toAge": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "annualAmount": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "adjustsWithInflation": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "taxRate": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "taxableFraction": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": []
+      },
+      "MonteCarloContribution": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096
+          },
+          "potId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096
+          },
+          "fromAge": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "toAge": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "annualAmount": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "adjustsWithInflation": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "sourceIncomeStreamId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096
+          },
+          "beforeTax": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "required": []
+      },
+      "MonteCarloPhase": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096
+          },
+          "fromAge": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "annualWithdrawal": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": []
+      },
+      "MonteCarloTaxBand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096
+          },
+          "from": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "rate": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": []
+      },
+      "MonteCarloWithdrawalRule": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "enum": [
+              "none",
+              "guardrails",
+              "ratcheting",
+              "floor-ceiling",
+              "boundaries",
+              null
+            ]
+          },
+          "prosperityTriggerPct": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "prosperityIncreasePct": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "preservationTriggerPct": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "preservationCutPct": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "balanceThresholdMultiple": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "consecutiveYears": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "ratchetIncreasePct": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "floorPct": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "ceilingPct": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "upperRateThreshold": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "upperCutPct": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "lowerRateThreshold": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "lowerIncreasePct": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": []
+      },
+      "MonteCarloPlan": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096
+          },
+          "pots": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MonteCarloPot"
+                },
+                "maxItems": 256
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "withdrawalStrategy": {
+            "enum": [
+              "proportional",
+              "sequential",
+              "best-performer",
+              "target-mix",
+              null
+            ]
+          },
+          "returnModel": {
+            "enum": [
+              "normal",
+              "historical-bootstrap",
+              "historical-sequence",
+              null
+            ]
+          },
+          "withdrawalRule": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MonteCarloWithdrawalRule"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "minimumSpending": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "spendingPhases": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MonteCarloPhase"
+                },
+                "maxItems": 256
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contributions": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MonteCarloContribution"
+                },
+                "maxItems": 256
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "incomeStreams": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MonteCarloIncome"
+                },
+                "maxItems": 256
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "inflationMean": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "inflationStdDev": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "taxModel": {
+            "enum": [
+              "flat",
+              "bands",
+              null
+            ]
+          },
+          "taxBands": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MonteCarloTaxBand"
+                },
+                "maxItems": 256
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currentAge": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "targetAge": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "simulationCount": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": []
+      },
+      "MonteCarloRunDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "year": {
+            "type": "number"
+          },
+          "startBalance": {
+            "type": "number"
+          },
+          "withdrawal": {
+            "type": "number"
+          },
+          "plannedSpending": {
+            "type": "number"
+          },
+          "spent": {
+            "type": "number"
+          },
+          "growth": {
+            "type": "number"
+          },
+          "endBalance": {
+            "type": "number"
+          },
+          "income": {
+            "type": "number"
+          },
+          "incomeTax": {
+            "type": "number"
+          },
+          "unspentIncome": {
+            "type": "number"
+          },
+          "surplusSaved": {
+            "type": "number"
+          },
+          "contributions": {
+            "type": "number"
+          },
+          "taxPaid": {
+            "type": "number"
+          },
+          "feesPaid": {
+            "type": "number"
+          },
+          "inaccessibleBalance": {
+            "type": "number"
+          },
+          "potBalances": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 256
+          },
+          "potStartBalances": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 256
+          },
+          "incomeAmounts": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 256
+          },
+          "potContributions": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 256
+          },
+          "contributionAmounts": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 256
+          },
+          "potWithdrawals": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 256
+          },
+          "potTaxes": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 256
+          },
+          "potTaxables": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 256
+          },
+          "potFees": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 256
+          },
+          "potReturns": {
+            "type": "array",
+            "items": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "maxItems": 256
+          },
+          "inflation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "minimumApplied": {
+            "type": "boolean"
+          },
+          "afterDepletion": {
+            "type": "boolean"
+          },
+          "ruleExplanation": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "anchor"
+                  },
+                  "rate": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "rate"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "floor-ceiling"
+                  },
+                  "rate": {
+                    "type": "number"
+                  },
+                  "unclamped": {
+                    "type": "number"
+                  },
+                  "floor": {
+                    "type": "number"
+                  },
+                  "ceiling": {
+                    "type": "number"
+                  },
+                  "applied": {
+                    "enum": [
+                      "floor",
+                      "ceiling",
+                      "rate"
+                    ]
+                  }
+                },
+                "required": [
+                  "kind",
+                  "rate",
+                  "unclamped",
+                  "floor",
+                  "ceiling",
+                  "applied"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "factor"
+                  },
+                  "rule": {
+                    "enum": [
+                      "guardrails",
+                      "ratcheting",
+                      "boundaries"
+                    ]
+                  },
+                  "factor": {
+                    "type": "number"
+                  },
+                  "planned": {
+                    "type": "number"
+                  },
+                  "adjusted": {
+                    "type": "number"
+                  },
+                  "currentRate": {
+                    "type": "number"
+                  },
+                  "referenceRate": {
+                    "type": "number"
+                  },
+                  "ratchetStreak": {
+                    "type": "number"
+                  },
+                  "action": {
+                    "enum": [
+                      "cut",
+                      "raise",
+                      "none"
+                    ]
+                  }
+                },
+                "required": [
+                  "kind",
+                  "rule",
+                  "factor",
+                  "planned",
+                  "adjusted",
+                  "action"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "year",
+          "startBalance",
+          "withdrawal",
+          "plannedSpending",
+          "spent",
+          "growth",
+          "endBalance",
+          "income",
+          "incomeTax",
+          "unspentIncome",
+          "surplusSaved",
+          "contributions",
+          "taxPaid",
+          "feesPaid",
+          "potBalances",
+          "potStartBalances",
+          "incomeAmounts",
+          "potContributions",
+          "contributionAmounts",
+          "potWithdrawals",
+          "potTaxes",
+          "potTaxables",
+          "potFees",
+          "potReturns",
+          "inflation"
+        ]
+      },
+      "MonteCarloResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "successRate": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "percentileBands": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "year": {
+                  "type": "integer"
+                },
+                "p5": {
+                  "type": "integer"
+                },
+                "p10": {
+                  "type": "integer"
+                },
+                "p25": {
+                  "type": "integer"
+                },
+                "p30": {
+                  "type": "integer"
+                },
+                "p50": {
+                  "type": "integer"
+                },
+                "p70": {
+                  "type": "integer"
+                },
+                "p75": {
+                  "type": "integer"
+                },
+                "p90": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "year",
+                "p5",
+                "p10",
+                "p25",
+                "p30",
+                "p50",
+                "p70",
+                "p75",
+                "p90"
+              ]
+            },
+            "maxItems": 101
+          },
+          "depletionHistogram": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "year": {
+                  "type": "integer"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "year",
+                "count"
+              ]
+            },
+            "maxItems": 100
+          },
+          "depletionProbabilityByYear": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 101
+          },
+          "medianEndingBalance": {
+            "type": "integer"
+          },
+          "medianTotalWithdrawn": {
+            "type": "integer"
+          },
+          "medianDepletionYear": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "earliestDepletionYear": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "latestDepletionYear": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "worstRunPath": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 101
+          },
+          "endingBalances": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 10000
+          },
+          "depletionYearBySimulation": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 10000
+          },
+          "totalWithdrawnBySimulation": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 10000
+          },
+          "runDetail": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonteCarloRunDetail"
+            },
+            "maxItems": 100
+          },
+          "simulationCount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000
+          },
+          "horizonYears": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "successRate",
+          "percentileBands",
+          "depletionHistogram",
+          "depletionProbabilityByYear",
+          "medianEndingBalance",
+          "medianTotalWithdrawn",
+          "medianDepletionYear",
+          "earliestDepletionYear",
+          "latestDepletionYear",
+          "worstRunPath",
+          "endingBalances",
+          "depletionYearBySimulation",
+          "totalWithdrawnBySimulation",
+          "simulationCount",
+          "horizonYears"
+        ]
+      },
+      "MonteCarloRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": 1
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MonteCarloPlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295,
+            "default": 1234
+          },
+          "captureRunDetail": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 9999
+          },
+          "deflateToTodaysMoney": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "version",
+          "request_id",
+          "config"
+        ]
+      },
+      "MonteCarloResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "config": {
+                "$ref": "#/components/schemas/MonteCarloPlan"
+              },
+              "result": {
+                "$ref": "#/components/schemas/MonteCarloResult"
+              },
+              "snapshot": {
+                "type": "string"
+              },
+              "epoch": {
+                "type": "string"
+              },
+              "recorded": {
+                "const": false
+              },
+              "cache": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "hit": {
+                    "type": "boolean"
+                  },
+                  "input_revision": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "hit",
+                  "input_revision"
+                ]
+              },
+              "warnings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "const": "account_unavailable"
+                    },
+                    "pot_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "pot_id",
+                    "message"
+                  ]
+                },
+                "maxItems": 256
+              },
+              "assumptions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 20
+              }
+            },
+            "required": [
+              "config",
+              "result",
+              "snapshot",
+              "epoch",
+              "recorded",
+              "cache",
+              "warnings",
+              "assumptions"
+            ]
+          }
+        },
+        "required": [
+          "data"
+        ]
+      }
+    }
+  }
+}

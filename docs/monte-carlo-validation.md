@@ -2,8 +2,9 @@
 
 Pinned Actual26.10.0 source commit:
 `2bebdbaae0b701120a8cad9d56aafd64fa04c577`. Ticket39 started after42 acceptance
-at `c1cbac2`. This checkpoint establishes independent source inputs/results and
-runtime feasibility; the application feature is not implemented or accepted yet.
+at `c1cbac2`. Source fixtures and the native calculation API are implemented;
+saved-plan workflow/migration qualification and the interface remain unfinished.
+Neither39 nor40 is accepted yet.
 
 ## Source contract
 
@@ -87,10 +88,65 @@ the engine choice if whole-system resource qualification finds a regression.
 
 ## Remaining feature delivery
 
-39 still requires the versioned API and contract, bounded execution/cancellation,
-saved-plan editing and migration/capability handling, opt-in labeled UI with
-assumptions/errors and summary/distributions, real API/browser verification and
-review. Preserve linked-account live balance/fallback semantics and exact saved
+39 still requires saved-plan editing and migration qualification, opt-in labeled
+UI with assumptions/errors and summary/distributions, browser verification and
+final review. Preserve linked-account live balance/fallback semantics and exact saved
 metadata.40 adds all remaining strategies/rules, charts/cash flows and accessible
 individual-run inspection. Existing reporting-document storage is a reuse
 candidate, not proof these workflows already work. No acceptance criteria closed.
+
+## Native calculation API checkpoint
+
+`POST /api/v1/budgets/{budget}/reports/monte-carlo` accepts version1, a client UUID
+`request_id`, source plan metadata, a32-bit seed, optional captured-run index and
+today's-money display flag. The read-only result contains normalized configuration,
+the complete simulation result, captured epoch/snapshot, cache information,
+warnings and assumptions. `GET`/`DELETE` on the request-ID child path inspect or
+cancel active work. Completed requests disappear; these are ephemeral read jobs,
+not durable mutation receipts. Duplicate active IDs refuse409; concurrent work
+refuses429 without queue growth. Feature opt-in is checked before result/cache use.
+
+The unchanged25KiB source asset executes in a fresh bounded QuickJS context.
+Trusted bytecode is cached; JSON plan fields never become code. No Node process,
+network/filesystem API or host callback is present.64MiB heap,1MiB stack and20s
+interrupt limits apply; plan input is64KiB with at most256 entries per collection,
+and response construction refuses more than8MiB. The router admits one worker.
+Captured balances/default inputs are read in a short transaction; computation
+runs on a blocking worker after releasing SQLite. Request drop/cancellation sets
+the interrupt flag and releases the worker when it stops.
+
+Resolved account balances, budget identity/epoch and all calculation options form
+the cache key. Cache limits are8 entries/16MiB including keys. Linked balances
+clamp to zero; unavailable links retain saved values with an explicit warning.
+Ledger changes affecting a linked balance invalidate the result, while unchanged
+inputs reuse it. Cache responses carry the current captured snapshot. No ledger,
+plan, history or receipt is written by a calculation. The existing container's
+Actual/QuickJS license files cover this asset; the generator verifies the exact
+Actual license against its shipped copy and records its hash.
+
+Public evidence:
+
+- `/tmp/monte-carlo-http-red.log`: missing endpoint404 before implementation.
+- `/tmp/monte-carlo-http-all.log`: all22 independently captured source results
+  match through HTTP, including normalized inputs, detailed financial/distribution
+  output, exact integer results, documented fractional tolerance, cache reuse and
+  unchanged ledger/checkpoint.
+- `/tmp/monte-carlo-workflows-final.log`: opt-in, malformed inputs, collection
+  bounds, active duplicate/concurrency refusal, budget-scoped request lookup,
+  actual cancellation, concurrent ledger writes, linked-balance refresh/fallback,
+  cache invalidation and safe recovery.
+- `/tmp/monte-carlo-limits.log`: an oversized128-pot/10000-run/100-year calculation
+  refuses within25s, preserves ledger/checkpoint and permits a fresh calculation.
+  This proves bounded refusal, not support for that workload or measured RSS.
+- `/tmp/monte-api-contract.log`: the served contract validates real success/cache
+  and structured error responses; all22 source result shapes, including conditional
+  cash-flow fields, validate. The generated fragment equals the served aggregate.
+- `/tmp/monte-api-clippy.log`: warnings-denied Clippy; Rust/JS formatting, asset and
+  contract reproduction, and existing public SDK-map static coverage pass.
+
+Maintained commands: `npm --prefix actualBudget/web run test:monte-carlo-source`
+and `npm --prefix actualBudget/web run test:monte-carlo-api`. Release qualification
+runs these source/API/resource/contract checks. Root review against `f0513a5`
+checked source fidelity, budget isolation, cancellation/permit ownership, SQL-lock
+lifetime, cache inputs, input validation and contract coverage. No unresolved
+native-API finding; whole39 still needs the saved-plan and UI work listed above.

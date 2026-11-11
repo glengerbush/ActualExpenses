@@ -4,7 +4,7 @@ status: accepted
 
 # Centralize financial operations behind a lightweight web application
 
-Use a static Svelte 5/TypeScript frontend, Rust/Axum backend and authoritative SQLite storage for actualBudget. The user prioritizes resource efficiency and does not need full offline budgeting; clients retain cached views and a durable expense outbox instead of replicating the budgeting engine. Remove application login, identities and permissions for the trusted-device deployment, while preserving external bank-provider authorization. Future desktop work may reuse the web application through Tauri and remains deferred.
+Use a static Svelte 5/TypeScript frontend, Rust/Axum backend and authoritative SQLite storage for actualBudget. The user prioritizes resource efficiency and does not need full offline budgeting; clients retain cached views and a durable expense outbox instead of replicating the budgeting engine. Remove application login, identities and permissions for the trusted-device deployment. The2026-11-10 manual-only decision also removes external bank connections and provider authorization; manual imports, internal rules/schedules and the application API remain. Future desktop work may reuse the web application through Tauri and remains deferred.
 
 This requires porting the financial engine, not merely replacing React and Express. Preserve Actual 26.10.0's observable financial functionality, including useful experimental features, except the explicitly removed authentication, full offline operation, encryption and desktop support. Resource improvements require measurement rather than assumptions about framework choice.
 

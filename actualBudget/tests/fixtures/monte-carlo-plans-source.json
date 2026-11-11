@@ -1,0 +1,273 @@
+{
+  "source_version": "26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "seed_sha256": "cf80604a58d5598d5582c1767b6ae0fe84d7d8b830a01c09e8242c30db5fbab8",
+  "archive_sha256": "e95a86cca2f931b95285b1fd85c810612329a4d1d93395c99e1d356f9f17be64",
+  "ledger_sha256": "c5afaa82636ec95e3ddca64858a9fa5050199d370f7b0a63dde236cf333ca0d1",
+  "ids": {
+    "checking": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+    "savings": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+    "brokerage": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+    "closed": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+    "expenses": "cdf3e63a-4372-452e-b0ae-893efa976265",
+    "income": "e29b4019-d83b-48be-98a9-7ace287b2869",
+    "hiddenGroup": "987dfc68-5882-472c-87b6-40a282c4d269",
+    "food": "18c4cef2-d782-4544-a460-7c04c275a581",
+    "hidden": "a7c125cf-236e-4d94-8e4c-8b2cdf69569b",
+    "empty": "84afd06e-255f-4246-bd00-89965986f788",
+    "hiddenGroupCategory": "42250427-aac5-4179-b77d-247994a381a2",
+    "salary": "95610153-0d9b-4abd-b817-bdc32291a737",
+    "market": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+    "employer": "aca47852-d5a7-42e9-acf3-76a971bc33e2",
+    "opening_checking": "408303c0-0847-4d57-b20e-f9b28c5dd356",
+    "opening_savings": "2ad76720-caac-4d46-b5bb-c22f6c9c206b",
+    "opening_brokerage": "109a70d2-dc2e-4f20-badb-65679fd50ebe",
+    "opening_closed": "aa395631-b99f-4674-9e8a-16027484b063",
+    "dashboard": "b5132fac-c088-4f69-96cb-362d66f908cc",
+    "report": "a43bb312-a25e-4da9-bd9c-9688d5194cc3",
+    "incomeGroupExpense": "7bb57499-bc1e-4e53-b4cd-c0b81574ebf7",
+    "investment": "3076d7dc-590c-475c-bbfc-51e5fbd1eb86",
+    "zero": "2d0d5b02-942d-483b-a6f5-6e86d6d5bce5",
+    "crossoverExpense": "742cfc4f-7129-4968-80e6-78a8b1210600"
+  },
+  "experimental_enabled": false,
+  "widgets": [
+    {
+      "id": "22562514-3ad9-4f26-b54c-da8e3d4329ce",
+      "dashboard_page_id": "b5132fac-c088-4f69-96cb-362d66f908cc",
+      "type": "monte-carlo-card",
+      "width": 12,
+      "height": 6,
+      "x": 0,
+      "y": 48,
+      "meta": {
+        "pots": [
+          {
+            "id": "investments",
+            "name": "",
+            "startingBalance": 50000000,
+            "allocationPreset": "equity-60",
+            "allocationStocks": 0.6,
+            "allocationBonds": 0.4,
+            "allocationCash": 0,
+            "expectedReturnMean": 0.06,
+            "returnStdDev": 0.1,
+            "accessAge": null,
+            "accountId": "3076d7dc-590c-475c-bbfc-51e5fbd1eb86",
+            "withdrawalTaxRate": 0,
+            "taxableFraction": 0.75,
+            "annualFeeFixed": 0,
+            "feeAdjustsWithInflation": false,
+            "annualFeeRate": 0,
+            "isSurplus": false
+          }
+        ],
+        "currentAge": 60,
+        "targetAge": 80,
+        "simulationCount": 1000,
+        "inflationMean": 0.025,
+        "inflationStdDev": 0,
+        "spendingPhases": [
+          {
+            "id": "phase-now",
+            "name": "Spending",
+            "fromAge": null,
+            "annualWithdrawal": 2000000
+          }
+        ],
+        "taxModel": "bands",
+        "taxBands": [
+          {
+            "id": "free",
+            "from": 0,
+            "rate": 0
+          },
+          {
+            "id": "basic",
+            "from": 1250000,
+            "rate": 0.2
+          },
+          {
+            "id": "higher",
+            "from": 5000000,
+            "rate": 0.4
+          }
+        ],
+        "incomeStreams": [
+          {
+            "id": "salary",
+            "name": "",
+            "fromAge": null,
+            "toAge": 64,
+            "annualAmount": 6000000,
+            "adjustsWithInflation": true,
+            "taxRate": 0,
+            "taxableFraction": 1
+          }
+        ],
+        "contributions": [
+          {
+            "id": "salary-sacrifice",
+            "name": "",
+            "potId": "investments",
+            "fromAge": null,
+            "toAge": null,
+            "annualAmount": 2000000,
+            "adjustsWithInflation": true,
+            "sourceIncomeStreamId": "salary",
+            "beforeTax": true
+          }
+        ],
+        "name": "progressive-tax-before-tax-contributions"
+      },
+      "tombstone": false
+    },
+    {
+      "id": "6b8fbc77-3123-4b13-a8ba-90930fbae1ed",
+      "dashboard_page_id": "b5132fac-c088-4f69-96cb-362d66f908cc",
+      "type": "monte-carlo-card",
+      "width": 12,
+      "height": 6,
+      "x": 0,
+      "y": 36,
+      "meta": null,
+      "tombstone": false
+    },
+    {
+      "id": "bb626743-adf8-4a7a-a9cc-8913c2b60de8",
+      "dashboard_page_id": "b5132fac-c088-4f69-96cb-362d66f908cc",
+      "type": "monte-carlo-card",
+      "width": 12,
+      "height": 6,
+      "x": 0,
+      "y": 42,
+      "meta": {
+        "pots": [
+          {
+            "id": "legacy",
+            "startingBalance": 30000000
+          }
+        ],
+        "name": "legacy-single-pot-no-surplus"
+      },
+      "tombstone": false
+    },
+    {
+      "id": "f2da3bf8-bd31-47f2-acbf-5ed5d2b090a6",
+      "dashboard_page_id": "b5132fac-c088-4f69-96cb-362d66f908cc",
+      "type": "monte-carlo-card",
+      "width": 12,
+      "height": 6,
+      "x": 0,
+      "y": 54,
+      "meta": {
+        "pots": [
+          {
+            "id": "mixed",
+            "name": "",
+            "startingBalance": 50000000,
+            "allocationPreset": "custom-mix",
+            "allocationStocks": 0.5,
+            "allocationBonds": 0.3,
+            "allocationCash": 0.2,
+            "expectedReturnMean": 0.06,
+            "returnStdDev": 0.1,
+            "accessAge": null,
+            "accountId": null,
+            "withdrawalTaxRate": 0,
+            "taxableFraction": 1,
+            "annualFeeFixed": 0,
+            "feeAdjustsWithInflation": false,
+            "annualFeeRate": 0,
+            "isSurplus": false
+          },
+          {
+            "id": "cash",
+            "name": "",
+            "startingBalance": 5000000,
+            "allocationPreset": "cash",
+            "allocationStocks": 0.6,
+            "allocationBonds": 0.4,
+            "allocationCash": 0,
+            "expectedReturnMean": 0.06,
+            "returnStdDev": 0.1,
+            "accessAge": null,
+            "accountId": null,
+            "withdrawalTaxRate": 0,
+            "taxableFraction": 1,
+            "annualFeeFixed": 0,
+            "feeAdjustsWithInflation": false,
+            "annualFeeRate": 0,
+            "isSurplus": false
+          }
+        ],
+        "currentAge": 60,
+        "targetAge": 80,
+        "simulationCount": 1000,
+        "inflationMean": 0.025,
+        "inflationStdDev": 0,
+        "spendingPhases": [
+          {
+            "id": "phase-now",
+            "name": "Spending",
+            "fromAge": null,
+            "annualWithdrawal": 2000000
+          }
+        ],
+        "returnModel": "historical-bootstrap",
+        "name": "historical-bootstrap-mixes"
+      },
+      "tombstone": false
+    }
+  ],
+  "accounts": [
+    {
+      "id": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+      "name": "brokerage",
+      "offbudget": true,
+      "closed": false,
+      "balance_current": null,
+      "account_group_id": null
+    },
+    {
+      "id": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+      "name": "checking",
+      "offbudget": false,
+      "closed": false,
+      "balance_current": null,
+      "account_group_id": null
+    },
+    {
+      "id": "3076d7dc-590c-475c-bbfc-51e5fbd1eb86",
+      "name": "Crossover investment",
+      "offbudget": true,
+      "closed": false,
+      "balance_current": null,
+      "account_group_id": null
+    },
+    {
+      "id": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+      "name": "savings",
+      "offbudget": false,
+      "closed": false,
+      "balance_current": null,
+      "account_group_id": null
+    },
+    {
+      "id": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+      "name": "closed",
+      "offbudget": false,
+      "closed": true,
+      "balance_current": null,
+      "account_group_id": null
+    },
+    {
+      "id": "2d0d5b02-942d-483b-a6f5-6e86d6d5bce5",
+      "name": "Crossover zero start",
+      "offbudget": false,
+      "closed": false,
+      "balance_current": null,
+      "account_group_id": null
+    }
+  ]
+}

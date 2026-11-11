@@ -6,7 +6,7 @@ import { startServer } from "../web/tests/server.mjs";
 const source = JSON.parse(
   await readFile(
     new URL(
-      "../tests/fixtures/monte-carlo-baseline-source.json",
+      `../tests/fixtures/monte-carlo-${process.argv.includes("--strategies") ? "strategies" : "baseline"}-source.json`,
       import.meta.url,
     ),
   ),
@@ -64,9 +64,10 @@ try {
   );
   const before = await call(root + "/transactions"),
     checkpoint = await call(root + "/checkpoint");
-  const cases = process.argv.includes("--all")
-    ? source.cases
-    : source.cases.filter((test) => test.name === "baseline-proportional");
+  const cases =
+    process.argv.includes("--all") || process.argv.includes("--strategies")
+      ? source.cases
+      : source.cases.filter((test) => test.name === "baseline-proportional");
   for (const test of cases) {
     const request = {
       version: 1,

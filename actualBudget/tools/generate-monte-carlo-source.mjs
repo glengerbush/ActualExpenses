@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { readFile, writeFile } from "node:fs/promises";
 import { sourceRuntime } from "./reports-source-runtime.mjs";
+import { strategyCases } from "./monte-carlo-strategy-cases.mjs";
 
 const runtime = sourceRuntime();
 const source = runtime.load("reports/monte-carlo/monteCarloSimulation");
@@ -256,36 +257,87 @@ const definitions = [
     },
   },
 ];
-const cases = definitions.map(({ name, meta, options = {} }) => {
-  const config = source.monteCarloConfigFromMeta(meta);
-  const params = {
-    ...config,
-    horizonYears: source.getMonteCarloHorizonYears(config),
-    seed: 1234,
-    captureRunDetail: 0,
-    ...options,
-  };
-  return plain({
-    name,
-    meta: meta ?? null,
-    options: { seed: 1234, captureRunDetail: 0, ...options },
-    config,
-    result: source.runMonteCarloSimulation(params),
-  });
-});
-assert.notDeepEqual(
-  cases[2].result.endingBalances,
-  cases[3].result.endingBalances,
+const strategies = process.argv.includes("--strategies");
+const cases = (strategies ? strategyCases(source) : definitions).map(
+  ({ name, meta, options = {} }) => {
+    const config = source.monteCarloConfigFromMeta(meta);
+    const params = {
+      ...config,
+      horizonYears: source.getMonteCarloHorizonYears(config),
+      seed: 1234,
+      captureRunDetail: 0,
+      ...options,
+    };
+    return plain({
+      name,
+      meta: meta ?? null,
+      options: { seed: 1234, captureRunDetail: 0, ...options },
+      config,
+      result: source.runMonteCarloSimulation(params),
+    });
+  },
 );
-assert.equal(
-  cases.find((c) => c.name === "income-covers-empty-pot").result.successRate,
-  1,
-);
-assert.equal(
-  cases.find((c) => c.name === "bridge-depletes-before-access").result
-    .successRate,
-  0,
-);
+if (!strategies) {
+  assert.notDeepEqual(
+    cases[2].result.endingBalances,
+    cases[3].result.endingBalances,
+  );
+  assert.equal(
+    cases.find((c) => c.name === "income-covers-empty-pot").result.successRate,
+    1,
+  );
+  assert.equal(
+    cases.find((c) => c.name === "bridge-depletes-before-access").result
+      .successRate,
+    0,
+  );
+} else {
+  const detail = (name) => cases.find((c) => c.name === name).result.runDetail;
+  for (const type of ["guardrails", "boundaries"]) {
+    assert.ok(
+      detail(`${type}-rising`).some(
+        (row) => row.ruleExplanation?.action === "raise",
+      ),
+    );
+    assert.ok(
+      detail(`${type}-falling`).some(
+        (row) => row.ruleExplanation?.action === "cut",
+      ),
+    );
+  }
+  assert.ok(
+    detail("ratcheting-rising").some(
+      (row) => row.ruleExplanation?.action === "raise",
+    ),
+  );
+  assert.ok(
+    !detail("ratcheting-falling").some(
+      (row) => row.ruleExplanation?.action === "raise",
+    ),
+  );
+  for (const [direction, bound] of [
+    ["rising", "ceiling"],
+    ["falling", "floor"],
+  ])
+    assert.ok(
+      detail(`floor-ceiling-${direction}`).some(
+        (row) => row.ruleExplanation?.applied === bound,
+      ),
+    );
+  assert.ok(
+    detail("boundaries-minimum-floor").some((row) => row.minimumApplied),
+  );
+  assert.equal(
+    cases.find((c) => c.name === "floor-ceiling-historical-sequence").result
+      .simulationCount,
+    98,
+  );
+  for (const name of ["sequential", "best-performer", "target-mix"])
+    assert.notDeepEqual(
+      cases[0].result.endingBalances,
+      cases.find((c) => c.name === `strategy-${name}`).result.endingBalances,
+    );
+}
 const output = {
   source_version: "26.10.0",
   source_commit: "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
@@ -295,7 +347,7 @@ const output = {
   cases,
 };
 const file = new URL(
-  "../tests/fixtures/monte-carlo-baseline-source.json",
+  `../tests/fixtures/monte-carlo-${strategies ? "strategies" : "baseline"}-source.json`,
   import.meta.url,
 );
 if (process.argv.includes("--check"))

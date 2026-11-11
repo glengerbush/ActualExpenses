@@ -4,7 +4,8 @@ Pinned Actual26.10.0 source commit:
 `2bebdbaae0b701120a8cad9d56aafd64fa04c577`. Ticket39 started after42 acceptance
 at `c1cbac2`. Ticket39's baseline is accepted2026-11-10 after public API,
 saved-plan recovery and browser qualification. Ticket40 retains the remaining
-withdrawal strategies/rules, charts, cash flows and individual-run exploration.
+charts, cash flows and individual-run exploration. Its strategy/rule selection
+and qualification slice is delivered below;40 is not yet accepted.
 
 ## Source contract
 
@@ -24,7 +25,8 @@ minimum spending; stochastic inflation and today's-money presentation;
 historical bootstrap/sequence; valid/incomplete custom asset mixes; empty
 collections and minimum/maximum count/horizon clamps. Historical inputs retain
 the pinned US1928–2025 series and its source caveats. Additional withdrawal
-rules/strategies and broader run exploration remain40 work.
+rules/strategies are qualified by the additional40 fixtures below; broader run
+exploration remains open.
 
 The saved-plan generator uses the actual engine's dashboard and preference
 commands, then exports/reloads a genuine archive. Four plans preserve null/new
@@ -88,10 +90,9 @@ the engine choice if whole-system resource qualification finds a regression.
 
 ## Remaining feature delivery
 
-40 adds selection and qualification of all remaining strategies/rules,
-portfolio/cash-flow charts and accessible individual-run inspection. Existing
-advanced settings remain preserved and execute through the source engine; that
-does not establish completion of40's controls, fixtures or inspection workflow.
+40 still needs portfolio/cash-flow charts and accessible individual-run inspection.
+Strategy/rule selection and source qualification are delivered; this does not
+establish completion of the inspection workflow or the whole ticket.
 
 ## Native calculation API checkpoint
 
@@ -240,3 +241,50 @@ upgrade/regression qualification remains50, not a missing Monte Carlo feature.
 Root consolidated standards/spec review against `ad9a000`: no unresolved39
 finding after the fixes above. Whole replacement qualification remains50–53;
 additional Monte Carlo strategies/inspection remain40. No push or deployment.
+
+## 40 checkpoint — withdrawal strategy controls and fixtures
+
+Baseline `71a1b4b`;2026-11-10. The editor now offers all four withdrawal orders,
+pot reordering, and all five rule choices. Guardrails, ratcheting, floor/ceiling
+and boundaries expose every source parameter with the source UI limits, including
+1–10× balance thresholds,1–30 consecutive years and the200% ceiling allowance.
+Changing rules preserves inactive settings. Minimum-spending help states that it
+applies only to active rules and positive planned spending. Rules and strategy
+help describe accessible pots, prior-year performance and starting target mixes.
+
+`generate-monte-carlo-source.mjs --strategies` creates a separate immutable oracle:
+15 independent source runs exercise all withdrawal orders, rising/falling markets,
+cuts/raises, ratchet streaks, floor/ceiling clamps, locked pots, zero-spending
+phases, minimum spending, today's-money cash flows, historical sequences and
+nonzero captured-run indices. Explicit assertions ensure the intended branches
+actually execute and alternative orders produce different distributions.
+The existing22-case fixture reproduces unchanged. The running public API matches
+all15 complete results and returns cache hits for repeated identical inputs.
+The served result schema validates every additional conditional explanation.
+
+`generate-monte-carlo-plans-source.mjs --strategies` creates four genuine Actual
+saved widgets with every rule parameter and all four withdrawal orders. Public
+import preserves all fields; edits, immutable retries, stale-write rejection,
+process restart and native backup/delete/restore preserve settings and financial
+history. The first recovery test changed only a cut parameter in a rising-market
+fixture, which correctly left financial results unchanged; it now also changes
+the prosperity raise, proving the saved change affects a branch the fixture uses.
+
+`monte-carlo-strategies-browser.mjs` failed first on the missing strategy control.
+It now verifies choices, pot ordering, every parameter, rule-switch preservation,
+reload, invalid31-year refusal, no calculation while editing, exact seeded output
+and a390px editor. The baseline browser workflow remains a regression gate.
+Maintained npm and release checks include these additions; no simulation-engine,
+API or Android protocol changes were needed.
+
+Evidence: `/tmp/monte-strategies-http.log`,
+`/tmp/monte-strategy-plans-http.log`, `/tmp/monte-strategies-contract.log`,
+`/tmp/monte-strategies-browser.log`, `/tmp/monte-strategies-baseline-browser.log`,
+`/tmp/monte-strategies-check.log`, `/tmp/monte-strategies-build.log`,
+`/tmp/monte-strategies-autofix.log`; screenshots under
+`actualBudget/web/test-results/monte-carlo/strategies-*.png`.
+
+Root consolidated standards/spec review covers changes since `71a1b4b`.
+No unresolved finding in this delivered slice.40 remains open for charts,
+cash-flow explanations, individual-run selection and its caching/offline workflow.
+No full-suite/container repeat, push or deployment is claimed.

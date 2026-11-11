@@ -7,13 +7,15 @@ import { startServer } from "../web/tests/server.mjs";
 
 // Restart coverage must own its isolated process and data directory.
 assert.ok(!process.env.ACTUALBUDGET_TEST_URL, "This check owns its server");
+const strategies = process.argv.includes("--strategies");
+const prefix = strategies ? "monte-carlo-strategy-plans" : "monte-carlo-plans";
 const fixture = JSON.parse(
   await readFile(
-    new URL("../tests/fixtures/monte-carlo-plans-source.json", import.meta.url),
+    new URL(`../tests/fixtures/${prefix}-source.json`, import.meta.url),
   ),
 );
 const archive = await readFile(
-  new URL("../tests/fixtures/monte-carlo-plans-26.10.zip", import.meta.url),
+  new URL(`../tests/fixtures/${prefix}-26.10.zip`, import.meta.url),
 );
 assert.equal(
   createHash("sha256").update(archive).digest("hex"),
@@ -136,16 +138,23 @@ try {
 
   // Change rich inputs together; retry and restart must preserve exactly one write.
   const rich = plans.find((d) =>
-    d.config.meta?.name?.startsWith("progressive"),
+    d.config.meta?.name?.startsWith(strategies ? "guardrails" : "progressive"),
   );
   assert.ok(rich);
   const edited = structuredClone(rich);
   edited.config.meta.name = "Saved household plan";
-  edited.config.meta.incomeStreams[0].annualAmount += 10000;
-  edited.config.meta.contributions[0].annualAmount += 5000;
-  edited.config.meta.spendingPhases[0].annualWithdrawal += 2000;
-  edited.config.meta.taxBands[1].rate = 0.21;
-  edited.config.meta.pots[0].annualFeeFixed = 1500;
+  if (strategies) {
+    edited.config.meta.withdrawalStrategy = "target-mix";
+    edited.config.meta.withdrawalRule.preservationCutPct = 0.17;
+    edited.config.meta.withdrawalRule.prosperityIncreasePct = 0.11;
+    edited.config.meta.minimumSpending = 1_000_000;
+  } else {
+    edited.config.meta.incomeStreams[0].annualAmount += 10000;
+    edited.config.meta.contributions[0].annualAmount += 5000;
+    edited.config.meta.spendingPhases[0].annualWithdrawal += 2000;
+    edited.config.meta.taxBands[1].rate = 0.21;
+    edited.config.meta.pots[0].annualFeeFixed = 1500;
+  }
   const command = { writes: [edited] };
   const headers = { ...epochHeaders, "Idempotency-Key": randomUUID() };
   const saved = await call(root + "/reporting/commands", command, { headers });

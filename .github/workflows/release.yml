@@ -276,8 +276,10 @@ jobs:
           node actualBudget/tools/check-rule-nonfinite-workflows-http.mjs
           npm --prefix actualBudget/web run test:monte-carlo-source
           node actualBudget/tools/check-monte-carlo-http.mjs --all
+          node actualBudget/tools/check-monte-carlo-http.mjs --strategies
           node actualBudget/tools/check-monte-carlo-workflows-http.mjs --limits
           node actualBudget/tools/check-monte-carlo-plans-http.mjs
+          node actualBudget/tools/check-monte-carlo-plans-http.mjs --strategies
           node actualBudget/tools/check-formula-http.mjs --limits
           python3 actualBudget/tools/generate-v5-receipts.py --check
           python3 -m venv "$RUNNER_TEMP/contract-check"

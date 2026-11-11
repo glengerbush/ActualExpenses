@@ -84,6 +84,7 @@ export const planFields: Field[] = [
     label: "Minimum annual spending",
     kind: "money",
     min: 0,
+    hint: "Applies only with a withdrawal rule and positive planned spending. Income counts toward this floor; it rises with inflation.",
   },
   {
     key: "taxModel",
@@ -95,6 +96,92 @@ export const planFields: Field[] = [
     ],
   },
 ];
+export const strategyField: Field = {
+  key: "withdrawalStrategy",
+  label: "Withdrawal strategy",
+  kind: "select",
+  choices: [
+    ["proportional", "Split proportionally across pots"],
+    ["sequential", "Drain pots in order"],
+    ["best-performer", "Spend from the best performer first"],
+    ["target-mix", "Keep pots at their target mix"],
+  ],
+};
+export const strategyHints: Record<string, string> = {
+  proportional:
+    "Withdraw from accessible pots in proportion to their current balances.",
+  sequential:
+    "Drain accessible pots in the order listed below. Use Move earlier or Move later to change that order.",
+  "best-performer":
+    "Spend from the pot with the highest return last year first. The first year uses the listed pot order.",
+  "target-mix":
+    "Withdraw from pots above their share of the starting balance mix to bring them back toward that mix. Locked pots are skipped until available.",
+};
+export const ruleField: Field = {
+  key: "type",
+  label: "Withdrawal rule",
+  kind: "select",
+  choices: [
+    ["none", "None (fixed withdrawals)"],
+    ["guardrails", "Guardrails (Guyton-Klinger)"],
+    ["ratcheting", "Ratcheting (Kitces)"],
+    ["floor-ceiling", "Floor and ceiling (Bengen)"],
+    ["boundaries", "Boundaries"],
+  ],
+};
+const percent = (key: string, label: string, max = 100): Field => ({
+  key,
+  label,
+  kind: "percent",
+  min: 0,
+  max,
+});
+export const ruleFields: Record<string, Field[]> = {
+  guardrails: [
+    percent("preservationTriggerPct", "Capital preservation trigger (%)"),
+    percent("preservationCutPct", "Capital preservation cut (%)"),
+    percent("prosperityTriggerPct", "Capital prosperity trigger (%)"),
+    percent("prosperityIncreasePct", "Capital prosperity raise (%)"),
+  ],
+  ratcheting: [
+    {
+      key: "balanceThresholdMultiple",
+      label: "Balance threshold multiple",
+      min: 1,
+      max: 10,
+      step: 0.1,
+    },
+    {
+      key: "consecutiveYears",
+      label: "Years in a row",
+      min: 1,
+      max: 30,
+      step: 1,
+    },
+    percent("ratchetIncreasePct", "Ratchet raise (%)"),
+  ],
+  "floor-ceiling": [
+    percent("floorPct", "Floor below planned amount (%)"),
+    percent("ceilingPct", "Ceiling above planned amount (%)", 200),
+  ],
+  boundaries: [
+    percent("upperRateThreshold", "Upper withdrawal rate threshold (%)"),
+    percent("upperCutPct", "Cut when above the upper threshold (%)"),
+    percent("lowerRateThreshold", "Lower withdrawal rate threshold (%)"),
+    percent("lowerIncreasePct", "Raise when below the lower threshold (%)"),
+  ],
+};
+export const ruleHints: Record<string, string> = {
+  none: "Use planned spending, adjusted for inflation.",
+  guardrails:
+    "Cut withdrawals when the rate rises above the planned rate by the preservation trigger. Raise them when it falls below by the prosperity trigger. Deliberate spending-phase changes do not count as drift.",
+  ratcheting:
+    "Raise withdrawals after the accessible balance stays above the starting balance multiple for the chosen number of consecutive years.",
+  "floor-ceiling":
+    "Anchor the withdrawal rate in the first spending year. Apply that rate to the accessible balance, limited by the floor and ceiling around planned spending.",
+  boundaries:
+    "Cut withdrawals above the upper rate threshold; raise them below the lower rate threshold.",
+};
 export const fields: Record<Collection, Field[]> = {
   pots: [
     { key: "name", label: "Pot name", kind: "text" },

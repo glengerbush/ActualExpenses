@@ -12,15 +12,22 @@ const require = createRequire(
 );
 const api = require("@actual-app/api");
 const root = new URL("../tests/fixtures/", import.meta.url);
-const file = new URL("monte-carlo-plans-source.json", root);
-const archive = new URL("monte-carlo-plans-26.10.zip", root);
+const strategies = process.argv.includes("--strategies");
+const prefix = strategies ? "monte-carlo-strategy-plans" : "monte-carlo-plans";
+const file = new URL(`${prefix}-source.json`, root);
+const archive = new URL(`${prefix}-26.10.zip`, root);
 const check = process.argv.includes("--check");
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const seed = JSON.parse(
   await readFile(new URL("crossover-source-26.10.json", root)),
 );
 const scenarios = JSON.parse(
-  await readFile(new URL("monte-carlo-baseline-source.json", root)),
+  await readFile(
+    new URL(
+      `monte-carlo-${strategies ? "strategies" : "baseline"}-source.json`,
+      root,
+    ),
+  ),
 );
 const prior = check ? JSON.parse(await readFile(file)) : null;
 const directory = await mkdtemp(tmpdir() + "/monte-carlo-plans-source-");
@@ -39,18 +46,32 @@ try {
     ).data;
   const before = await ledger();
   if (!check) {
-    const names = [
-      "new-plan-defaults",
-      "legacy-single-pot-no-surplus",
-      "progressive-tax-before-tax-contributions",
-      "historical-bootstrap-mixes",
-    ];
+    const names = strategies
+      ? [
+          "guardrails-rising",
+          "ratcheting-rising",
+          "floor-ceiling-rising",
+          "boundaries-rising",
+        ]
+      : [
+          "new-plan-defaults",
+          "legacy-single-pot-no-surplus",
+          "progressive-tax-before-tax-contributions",
+          "historical-bootstrap-mixes",
+        ];
     for (const [i, name] of names.entries()) {
       const selected = scenarios.cases.find((test) => test.name === name);
       const meta =
         selected.meta === null ? null : structuredClone(selected.meta);
       if (meta) {
         meta.name = name;
+        if (strategies)
+          meta.withdrawalStrategy = [
+            "proportional",
+            "sequential",
+            "best-performer",
+            "target-mix",
+          ][i];
         if (name.startsWith("progressive"))
           meta.pots[0].accountId = seed.ids.investment;
       }
@@ -106,7 +127,7 @@ try {
       flag: "wx",
     });
   console.log(
-    "PASS four genuine saved plans, account link, disabled opt-in, archive reload and unchanged ledger",
+    "PASS four genuine saved plans, exact metadata, disabled opt-in, archive reload and unchanged ledger",
   );
 } finally {
   await api.shutdown();

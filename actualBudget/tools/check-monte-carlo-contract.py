@@ -47,6 +47,8 @@ with tempfile.TemporaryDirectory(prefix='monte-contract-') as directory:
         source = json.loads((root / 'tests/fixtures/monte-carlo-baseline-source.json').read_text())
         # Independent source shapes include conditional cash-flow fields absent from the simple live plan.
         for case in source['cases']: component('Result', case['result'])
+        strategies = json.loads((root / 'tests/fixtures/monte-carlo-strategies-source.json').read_text())
+        for case in strategies['cases']: component('Result', case['result'])
         test = next(case for case in source['cases'] if case['name'] == 'baseline-proportional')
         body = dict(version=1, request_id=str(uuid.uuid4()), config=test['meta'], **test['options'])
         component('Request', body)

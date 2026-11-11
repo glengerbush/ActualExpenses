@@ -5,6 +5,11 @@
     fields,
     planFields,
     planInputs,
+    strategyField,
+    strategyHints,
+    ruleField,
+    ruleFields,
+    ruleHints,
     type Collection,
     type Field,
     type PlanEntry,
@@ -60,6 +65,14 @@
               ? createMonteCarloSpendingPhase(id, plan.currentAge)
               : createMonteCarloTaxBand(id);
     onchange({ [collection]: [...plan[collection], row] });
+  }
+  function movePot(id: string, offset: number) {
+    const pots = [...plan.pots];
+    const from = pots.findIndex((pot) => pot.id === id),
+      to = from + offset;
+    if (from < 0 || to < 0 || to >= pots.length) return;
+    [pots[from], pots[to]] = [pots[to], pots[from]];
+    onchange({ pots });
   }
   function update(
     collection: Collection,
@@ -170,11 +183,51 @@
         />
       </div>{/each}
   </div>
-  <p>
-    {t("Withdrawals use the saved strategy:")}
-    {String(plan.withdrawalStrategy)}. {t("Withdrawal rule:")}
-    {String(plan.withdrawalRule.type)}.
-  </p>
+  <fieldset>
+    <legend>{t("Withdrawals")}</legend>
+    <div class="fields">
+      <div>
+        <MonteCarloInput
+          field={{
+            ...strategyField,
+            hint: strategyHints[String(plan.withdrawalStrategy)],
+          }}
+          value={plan.withdrawalStrategy}
+          onchange={(value) => onchange({ withdrawalStrategy: value })}
+        />
+      </div>
+      <div>
+        <MonteCarloInput
+          field={{
+            ...ruleField,
+            hint: ruleHints[String(plan.withdrawalRule.type)],
+          }}
+          value={plan.withdrawalRule.type}
+          onchange={(value) =>
+            onchange({
+              withdrawalRule: { ...plan.withdrawalRule, type: value },
+            })}
+        />
+      </div>
+      {#each ruleFields[String(plan.withdrawalRule.type)] ?? [] as field (field.key)}
+        <div>
+          <MonteCarloInput
+            {field}
+            value={plan.withdrawalRule[field.key]}
+            onchange={(value) =>
+              onchange({
+                withdrawalRule: { ...plan.withdrawalRule, [field.key]: value },
+              })}
+          />
+        </div>
+      {/each}
+    </div>
+    {#if plan.withdrawalRule.type !== "none"}<p>
+        {t(
+          "Rules adjust each scenario independently using accessible pots only. Locked pots count from the moment they unlock. Zero-spending years do not trigger adjustments.",
+        )}
+      </p>{/if}
+  </fieldset>
   {#each sections as [collection, title, addLabel] (collection)}
     {#if collection !== "taxBands" || plan.taxModel === "bands"}
       <details bind:open={expanded[collection]}>
@@ -223,6 +276,22 @@
                   />
                 </div>{/each}
             </div>
+            {#if collection === "pots" && plan.pots.length > 1}
+              <div class="pot-order">
+                <button
+                  type="button"
+                  disabled={index === 0}
+                  onclick={() => movePot(row.id, -1)}
+                  >{t("Move")} {t(title)} {index + 1} {t("earlier")}</button
+                >
+                <button
+                  type="button"
+                  disabled={index === plan.pots.length - 1}
+                  onclick={() => movePot(row.id, 1)}
+                  >{t("Move")} {t(title)} {index + 1} {t("later")}</button
+                >
+              </div>
+            {/if}
             {#if collection === "pots" && plan.returnModel !== "normal" && !getPotAssetWeights(row)}<p
                 role="status"
               >
@@ -285,6 +354,11 @@
   }
   fieldset button {
     margin-top: 1rem;
+  }
+  .pot-order {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
   p {
     max-width: 70ch;

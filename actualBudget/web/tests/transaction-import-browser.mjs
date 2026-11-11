@@ -334,7 +334,7 @@ try {
   );
   await page.getByRole("button", { name: "Discard unsubmitted draft" }).click();
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Download account CSV" }).click();
+  await page.getByRole("button", { name: "Download transaction CSV" }).click();
   expect((await downloadPromise).suggestedFilename()).toBe("transactions.csv");
   await mkdir(new URL("../test-results/transaction-import/", import.meta.url), {
     recursive: true,

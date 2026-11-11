@@ -64,7 +64,7 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(server.url);
   await page.getByRole("button", { name: /Recovery browser.*Open/ }).click();
-  await expect(page.locator("td.amount").first()).toHaveText("99.99");
+  await expect(page.getByTestId("register-total")).toHaveText("99.99");
   await page
     .getByRole("button", { name: "Recovery tools", exact: true })
     .click();
@@ -216,7 +216,7 @@ try {
     page.getByRole("link", { name: "Download pre-repair backup", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Done", exact: true }).click();
-  await expect(page.locator("td.amount").first()).toHaveText("10.00");
+  await expect(page.getByTestId("register-total")).toHaveText("10.00");
   // Explicit HTTP fault injection: a stale cursor is rejected, then bootstrap
   // must recover real current references without changing pending-work identity.
   await expect(
@@ -247,14 +247,13 @@ try {
     .getByRole("button", { name: "Reconnect and refresh", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Accounts", exact: true }),
+    page.getByRole("heading", { name: "Transaction history", exact: true }),
   ).toBeVisible();
   await expect.poll(() => cursorRejected).toBe(true);
   await expect(
     page.getByRole("button", { name: "Refresh transactions", exact: true }),
   ).toBeEnabled();
 
-  await page.getByRole("button", { name: "Spending", exact: true }).click();
   await context.route("**/api/v1/**", (route) => route.abort());
   await page.evaluate(() => dispatchEvent(new Event("offline")));
   await page

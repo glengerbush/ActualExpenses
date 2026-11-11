@@ -76,7 +76,7 @@ try {
   await expect(
     page
       .getByRole("dialog")
-      .getByRole("button", { name: "Account: Spending", exact: true }),
+      .getByRole("button", { name: "Transaction history", exact: true }),
   ).toBeVisible();
   await page.keyboard.press("Escape");
   const sort = page.getByRole("combobox", { name: "Sort by", exact: true });

@@ -122,7 +122,7 @@
           notice = draft.pending
             ? "Recovered the original import request. Retry or cancel safely."
             : "Recovered your file and mapping. Parse and preview before importing.";
-        } else accountId = accounts.find((a) => !a.closed)?.id ?? "";
+        } else accountId = accounts.find((a) => !a.closed && !a.off_budget)?.id ?? "";
       } catch (e) {
         error = errorMessage(e);
       } finally {
@@ -498,7 +498,6 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           snapshot: current.snapshot,
-          ...(accountId ? { account_id: accountId } : {}),
           layout,
         }),
         signal: AbortSignal.timeout(15000),
@@ -529,7 +528,6 @@
     ["payee_name", "Payee"],
     ["payee_id", "Payee reference"],
     ["category_id", "Category"],
-    ["account_id", "Account"],
     ["notes", "Notes"],
     ["cleared", "Cleared"],
     ["reconciled", "Reconciled"],
@@ -574,14 +572,6 @@
       >Retry saving file options</button
     >{/if}
   {#if loading}<p>Loading saved import…</p>{:else}
-    <label
-      >Import account<select bind:value={accountId} disabled={busy || !!draft}
-        ><option value="">Choose an account</option
-        >{#each accounts as a (a.id)}<option value={a.id}
-            >{a.name}{a.closed ? " (closed)" : ""}</option
-          >{/each}</select
-      ></label
-    >
     {#if draft?.pending}<section aria-label="Pending file import">
         <h2>Original import pending</h2>
         <p>
@@ -909,7 +899,7 @@
           ><option value="detailed">Detailed, with split allocations</option
           ><option value="standard">Standard, with split totals</option></select
         ></label
-      ><button onclick={download} disabled={busy}>Download account CSV</button>
+      ><button onclick={download} disabled={busy}>Download transaction CSV</button>
     </section>
   {/if}
 </section>

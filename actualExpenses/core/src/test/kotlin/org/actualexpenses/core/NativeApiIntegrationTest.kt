@@ -19,6 +19,66 @@ import org.actualexpenses.core.protocol.HttpTransport
 import org.junit.jupiter.api.Test
 
 class NativeApiIntegrationTest {
+    @Test
+    fun `budget selection prepares a password free ledger without account selection`() {
+        Server().use { server ->
+            val budget = UUID.randomUUID().toString()
+            server.post("/budgets", """{"id":"$budget","name":"New manual budget"}""")
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.chooseBudget(budget)
+            assertNotNull(app.state().expenseContext)
+            val id = app.saveExpense(ExpenseDraft("1.23", notes = "No account setup"))
+            app.refresh()
+            assertEquals(0, app.state().pendingCount)
+            val restarted = ApiExpenseService(store)
+            restarted.refresh()
+            assertEquals(id, restarted.state().expenses.single().id)
+            repeat(12) { number ->
+                server.post("/budgets/$budget/transactions", """{"id":"${UUID.randomUUID()}","account_id":"${restarted.state().selectedAccountId}","amount":-100,"date":"2026-10-${(number + 1).toString().padStart(2, '0')}"}""")
+            }
+            restarted.refresh()
+            restarted.markOffline()
+            val backdated = restarted.saveExpense(ExpenseDraft("2.34", date = "2000-01-01", notes = "Keep visible"))
+            restarted.refresh()
+            val reopened = ApiExpenseService(store)
+            reopened.refresh()
+            assertEquals(11, reopened.state().expenses.size)
+            assertEquals(backdated, reopened.state().expenses.last().id)
+        }
+    }
+
+    @Test
+    fun `unified recent expenses edit and delete original legacy destinations after reconnect`() {
+        Server().use { server ->
+            val other = UUID.randomUUID().toString()
+            server.post("/budgets/${server.budget}/accounts", """{"id":"$other","name":"Legacy","opening_balance":0,"opening_date":"2026-01-01"}""")
+            val first = UUID.randomUUID().toString()
+            val second = UUID.randomUUID().toString()
+            server.post("/budgets/${server.budget}/transactions", """{"id":"$first","account_id":"${server.account}","amount":-100,"date":"2026-01-01"}""")
+            server.post("/budgets/${server.budget}/transactions", """{"id":"$second","account_id":"$other","amount":-200,"date":"2026-01-02"}""")
+            server.post("/budgets/${server.budget}/transactions", """{"id":"${UUID.randomUUID()}","account_id":"$other","amount":200,"date":"2026-01-02"}""")
+            server.post("/budgets/${server.budget}/accounts/$other/close", "{}", 200)
+            val store = MemoryStore()
+            val app = ApiExpenseService(store)
+            app.connect(server.url)
+            app.chooseBudget(server.budget)
+            assertEquals(setOf(first, second), app.state().expenses.map { it.id }.toSet())
+            val edit = app.beginEdit(second)
+            assertEquals(other, edit.context!!.accountId)
+            app.markOffline()
+            app.saveExpense(edit.original!!.copy(notes = "Kept across reconnect"), edit)
+            val restarted = ApiExpenseService(store)
+            restarted.refresh()
+            assertEquals(0, restarted.state().pendingCount)
+            assertEquals("Kept across reconnect", restarted.state().expenses.single { it.id == second }.notes)
+            assertEquals(other, restarted.state().expenses.single { it.id == second }.accountId)
+            restarted.deleteExpense(restarted.beginEdit(second))
+            restarted.refresh()
+            assertEquals(listOf(first), restarted.state().expenses.map { it.id })
+        }
+    }
     private class MemoryStore(var raw: String? = null) : StateStore {
         var writes = 0
         var reads = 0

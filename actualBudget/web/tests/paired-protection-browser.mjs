@@ -77,11 +77,10 @@ try {
     .locator(".budget-list button")
     .filter({ hasText: "Paired protection" })
     .click();
-  await page.getByRole("button", { name: "Cash", exact: true }).click();
   await page
     .locator(".register-table tbody tr")
     .filter({ hasText: "Settled transfer" })
-    .first()
+    .filter({ has: page.getByRole("button", { name: /^Edit -/ }) })
     .getByRole("button", { name: /^Edit / })
     .click();
   const confirmation = page.getByLabel(
@@ -158,7 +157,7 @@ try {
   await page
     .locator(".register-table tbody tr")
     .filter({ hasText: "Settled transfer" })
-    .first()
+    .filter({ has: page.getByRole("button", { name: /^Edit -/ }) })
     .getByRole("button", { name: /^Edit / })
     .click();
   await page.setViewportSize({ width: 390, height: 844 });

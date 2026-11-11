@@ -53,9 +53,9 @@ try {
   await page.reload();
   await page.getByRole("button", { name: /Navigation fixture.*Open/ }).click();
   await expect(
-    page.getByRole("heading", { name: "Accounts", exact: true }),
+    page.getByRole("heading", { name: "Transaction history", exact: true }),
   ).toBeVisible();
-  await expect(page.locator("td.amount").first()).toHaveText("1,234.56");
+  await expect(page.getByTestId("register-total")).toHaveText("1,234.56");
   await page.route(`**/api/v1/budgets/${id}/preferences`, async (route) => {
     if (route.request().method() === "PATCH")
       await route.fulfill({
@@ -71,14 +71,16 @@ try {
   await expect(
     page.getByRole("alert").filter({ hasText: "Retry the action" }),
   ).toBeVisible();
-  await expect(page.locator("td.amount").first()).toHaveText("1,234.56");
+  await expect(page.getByTestId("register-total")).toHaveText("1,234.56");
   await page.unroute(`**/api/v1/budgets/${id}/preferences`);
   await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
-  await expect(page.locator("td.amount").first()).toHaveText("••••");
-  await page.getByRole("button", { name: "Add account", exact: true }).click();
-  const amountInput = page.getByLabel("Opening balance", { exact: true });
+  await expect(page.getByTestId("register-total")).toHaveText("••••");
+  await page
+    .getByRole("button", { name: "Add transaction", exact: true })
+    .click();
+  const amountInput = page.getByLabel("Amount", { exact: true });
   await amountInput.fill("345.67");
-  await page.getByLabel("Account name").focus();
+  await page.getByLabel("Notes", { exact: true }).focus();
   await page.mouse.move(0, 0);
   expect(
     await page.evaluate(
@@ -95,7 +97,7 @@ try {
     "font-family",
     '"Redacted Script", sans-serif',
   );
-  await page.getByLabel("Account name").focus();
+  await page.getByLabel("Notes", { exact: true }).focus();
   await amountInput.hover();
   await expect(amountInput).not.toHaveCSS(
     "font-family",
@@ -107,27 +109,28 @@ try {
     held.push(route);
   });
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.getByRole("button", { name: "Budget", exact: true }).click();
+  await page.getByRole("button", { name: "Transaction history", exact: true }).click();
   await expect.poll(() => held.length).toBeGreaterThan(0);
-  await expect(page.locator("td.amount").first()).toHaveText("••••");
+  await expect(page.getByTestId("register-total")).toHaveText("••••");
   for (const route of held) await route.continue();
   await page.unroute(`**/api/v1/budgets/${id}/checkpoint`);
   await page.reload();
-  await expect(page.locator("td.amount").first()).toHaveText("••••");
+  await expect(page.getByTestId("register-total")).toHaveText("••••");
 
   await page.keyboard.press("Control+k");
   const search = page.getByRole("searchbox", { name: "Search commands" });
   await expect(search).toBeFocused();
-  await search.fill("Everyday");
+  await search.fill("Transaction history");
   await page.keyboard.press("Enter");
   await expect(
-    page.getByRole("heading", { name: "Everyday", exact: true }),
+    page.getByRole("heading", { name: "Transaction history", exact: true }),
   ).toBeVisible();
   await page.keyboard.press("Control+k");
-  await search.fill("All");
-  await page.keyboard.press("ArrowDown");
+  await search.fill("Transaction history");
   await page.keyboard.press("Enter");
   await expect(
-    page.getByRole("heading", { name: "Accounts", exact: true }),
+    page.getByRole("heading", { name: "Transaction history", exact: true }),
   ).toBeVisible();
   await page.keyboard.press("?");
   await expect(
@@ -142,8 +145,8 @@ try {
   ).toBeVisible();
   await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
   await expect(
-    page.locator(".account-navigation .nav-amount").first(),
-  ).toHaveText("1,234.56");
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveAttribute("aria-pressed", "false");
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "Settings", exact: true }),
@@ -153,8 +156,8 @@ try {
   ).toHaveAttribute("aria-pressed", "false");
   await page.getByRole("button", { name: "Privacy mode", exact: true }).click();
   await expect(
-    page.locator(".account-navigation .nav-amount").first(),
-  ).toHaveText("••••");
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
   let preferenceReads = 0,
     refreshRoute;
   await page.route(`**/api/v1/budgets/${id}/preferences?*`, async (route) => {
@@ -167,8 +170,8 @@ try {
     .click();
   await expect.poll(() => !!refreshRoute).toBe(true);
   await expect(
-    page.locator(".account-navigation .nav-amount").first(),
-  ).toHaveText("••••");
+    page.getByRole("button", { name: "Privacy mode", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
   await refreshRoute.continue();
   await page.unroute(`**/api/v1/budgets/${id}/preferences?*`);
   await expect(
@@ -228,10 +231,10 @@ try {
   await page
     .getByRole("button", { name: "Search commands", exact: true })
     .click();
-  await search.fill("Everyday");
+  await search.fill("Transaction history");
   await page.keyboard.press("Enter");
   await expect(
-    page.getByRole("heading", { name: "Everyday", exact: true }),
+    page.getByRole("heading", { name: "Transaction history", exact: true }),
   ).toBeVisible();
   await expect(page.locator(".amount").first()).toContainText("••••");
   await context.setOffline(true);
@@ -283,11 +286,8 @@ try {
   await page
     .getByRole("button", { name: /Other recovery budget.*Open/ })
     .click();
-  await page
-    .getByRole("button", { name: "Other recovery account", exact: true })
-    .click();
   await expect(
-    page.getByRole("heading", { name: "Other recovery account", exact: true }),
+    page.getByRole("heading", { name: "Transaction history", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Privacy mode", exact: true }),
@@ -307,7 +307,9 @@ try {
   await pending("4.56", "Other budget pending");
   await page.getByRole("button", { name: "All budgets", exact: true }).click();
   await page.getByRole("button", { name: /Navigation fixture.*Open/ }).click();
-  await page.getByRole("button", { name: "Everyday", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "Privacy mode", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");

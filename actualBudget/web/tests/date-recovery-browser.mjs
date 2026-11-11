@@ -97,55 +97,6 @@ try {
       budget,
     );
     await page.reload();
-    await page
-      .getByRole("button", { name: "Add account", exact: true })
-      .click();
-    await page
-      .getByLabel("Account name", { exact: true })
-      .fill("Restored opening");
-    await page.getByLabel("Opening balance", { exact: true }).fill("10");
-    await page.getByLabel("Opening date", { exact: true }).fill("");
-    await page
-      .getByLabel("Opening date", { exact: true })
-      .pressSequentially(raw);
-    await expect(page.getByLabel("Opening date", { exact: true })).toHaveValue(
-      raw,
-    );
-    await write(
-      `/budgets/${budget}/preferences`,
-      { date_format: format === "MM/dd/yyyy" ? "dd/MM/yyyy" : "MM/dd/yyyy" },
-      "PATCH",
-    );
-    await page.reload();
-    const accountAttempts = await loseFirstAck(`/budgets/${budget}/accounts`);
-    // Direct save: restored date never receives focus, blur, or Enter.
-    await page
-      .getByRole("button", { name: "Create account", exact: true })
-      .click();
-    await retryAfterYearChange("Retry creation", accountAttempts);
-    await expect(
-      page.getByRole("button", { name: "Add transaction", exact: true }),
-    ).toBeEnabled();
-    const accounts = (
-      await (await fetch(api + `/api/v1/budgets/${budget}/accounts`)).json()
-    ).data;
-    expect(accounts).toHaveLength(1);
-    const account = accounts[0].id;
-    const opening = (
-      await (
-        await fetch(
-          api + `/api/v1/budgets/${budget}/transactions?account_id=${account}`,
-        )
-      ).json()
-    ).data;
-    expect(opening).toHaveLength(1);
-    expect(opening[0].date).toBe(expected);
-    await write(
-      `/budgets/${budget}/preferences`,
-      { date_format: format },
-      "PATCH",
-    );
-    await page.reload();
     await expect(page.getByLabel("Show through date")).toHaveAttribute(
       "placeholder",
       format.toUpperCase(),
@@ -175,20 +126,16 @@ try {
       page.getByRole("button", { name: "Add transaction", exact: true }),
     ).toBeEnabled();
     const transactions = (
-      await (
-        await fetch(
-          api + `/api/v1/budgets/${budget}/transactions?account_id=${account}`,
-        )
-      ).json()
+      await (await fetch(api + `/api/v1/budgets/${budget}/transactions`)).json()
     ).data;
-    expect(transactions).toHaveLength(2);
+    expect(transactions).toHaveLength(1);
     expect(transactions.find((t) => t.notes === "Recovered date").date).toBe(
       expected,
     );
     await context.close();
   }
   console.log(
-    "PASS eight restored raw date saves with captured formats; lost acknowledgements preserve account/transaction payloads across year changes",
+    "PASS four restored transaction dates with captured formats; lost acknowledgements preserve payloads across year changes",
   );
 } finally {
   await browser?.close();

@@ -88,6 +88,99 @@ impl Drop for Server {
 }
 
 #[test]
+fn unified_history_prepares_one_destination_and_keeps_legacy_entries() {
+    let server = Server::start();
+    let budget = uuid::Uuid::new_v4().to_string();
+    assert_eq!(
+        server
+            .post(
+                "/api/v1/budgets",
+                "unified",
+                json!({"id":budget,"name":"Manual"})
+            )
+            .status(),
+        201
+    );
+    let path = format!("/api/v1/budgets/{budget}/ledger");
+    let ledger = server
+        .post(&path, "first", json!({}))
+        .json::<Value>()
+        .unwrap()["data"]
+        .clone();
+    let again = server
+        .post(&path, "retry", json!({}))
+        .json::<Value>()
+        .unwrap()["data"]
+        .clone();
+    assert_eq!(ledger["id"], again["id"]);
+    let accounts = server
+        .get(&format!("/api/v1/budgets/{budget}/accounts"))
+        .json::<Value>()
+        .unwrap();
+    assert_eq!(accounts["data"].as_array().unwrap().len(), 1);
+    let legacy = uuid::Uuid::new_v4().to_string();
+    assert_eq!(server.post(&format!("/api/v1/budgets/{budget}/accounts"), "legacy", json!({"id":legacy,"name":"Imported","opening_balance":0,"opening_date":"2026-01-01"})).status(), 201);
+    let mut ids = vec![];
+    for number in 0..12 {
+        let id = uuid::Uuid::new_v4().to_string();
+        let account = if number % 2 == 0 {
+            ledger["id"].as_str().unwrap()
+        } else {
+            &legacy
+        };
+        assert_eq!(server.post(&format!("/api/v1/budgets/{budget}/transactions"), &format!("row-{number}"), json!({"id":id,"account_id":account,"amount":-123,"date":format!("2026-01-{:02}",number+1)})).status(), 201);
+        ids.push(id);
+    }
+    let view = server
+        .get(&format!(
+            "/api/v1/budgets/{budget}/companion?retain={}",
+            ids[0]
+        ))
+        .json::<Value>()
+        .unwrap()["data"]
+        .clone();
+    assert_eq!(view["recent"].as_array().unwrap().len(), 10);
+    assert_eq!(view["recent"][0]["id"], ids[11]);
+    assert_eq!(view["retained"][0]["id"], ids[0]);
+    assert!(
+        view["recent"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|row| row["account_id"] == legacy)
+    );
+    assert_eq!(
+        server
+            .get(&format!("/api/v1/budgets/{budget}/transactions"))
+            .json::<Value>()
+            .unwrap()["data"]
+            .as_array()
+            .unwrap()
+            .len(),
+        12
+    );
+    let server = server.restart();
+    assert_eq!(
+        server
+            .post(&path, "after-restart", json!({}))
+            .json::<Value>()
+            .unwrap()["data"]["id"],
+        ledger["id"]
+    );
+    assert_eq!(
+        server
+            .client
+            .post(format!("{}{path}", server.url))
+            .header("X-Actual-Budget-Epoch", "00000000000000000000000000000000")
+            .json(&json!({}))
+            .send()
+            .unwrap()
+            .status(),
+        409
+    );
+}
+
+#[test]
 fn companion_returns_ten_expenses_and_requested_older_entries_at_one_checkpoint() {
     let server = Server::start();
     let budget = uuid::Uuid::new_v4().to_string();

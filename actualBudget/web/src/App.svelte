@@ -23,21 +23,19 @@
     type Account,
     type AccountGroup,
   } from "./lib/api";
-  import { formatAmount } from "./lib/money";
   import { readDraft } from "./lib/drafts";
   import BudgetForm from "./lib/BudgetForm.svelte";
   import AccountForm from "./lib/AccountForm.svelte";
-  import AccountView from "./lib/AccountView.svelte";
   import AccountManagement from "./lib/AccountManagement.svelte";
   import ReferenceManagement from "./lib/ReferenceManagement.svelte";
   import { readReferenceDraft } from "./lib/reference-actions";
-  import AccountNavigation from "./lib/AccountNavigation.svelte";
   import { readAccountDraft, sortedAccounts } from "./lib/account-actions";
   import BudgetPlan from "./lib/BudgetPlan.svelte";
   import { readImport } from "./lib/transaction-import-storage";
   import TransactionImport from "./lib/TransactionImport.svelte";
   import Rules from "./lib/Rules.svelte";
   import Schedules from "./lib/Schedules.svelte";
+  import ScheduleUpcoming from "./lib/ScheduleUpcoming.svelte";
   import { schedulesKey } from "./lib/schedules";
   import {
     foregroundSchedules,
@@ -110,7 +108,7 @@
   let retry = $state<() => Promise<void>>(initialize);
   // Register only delivered destinations. Availability shares the sidebar's edit guards.
   let commands = $derived.by((): NavigationCommand[] => {
-    const locked = !!form || loading;
+    const locked = loading;
     const result: NavigationCommand[] = [
       {
         id: "recovery",
@@ -167,18 +165,6 @@
       return result;
     }
     result.push(
-      {
-        id: "organize",
-        label: t("Organize accounts"),
-        disabled: locked || disconnected || !compatible,
-        run: () => showForm("organize"),
-      },
-      {
-        id: "account",
-        label: t("Add account"),
-        disabled: locked || disconnected || !compatible,
-        run: () => showForm("account"),
-      },
       {
         id: "manage",
         label: t("Manage budget"),
@@ -292,8 +278,8 @@
       ["settings", "Settings", false],
     ] as const;
     result.push({
-      id: "accounts",
-      label: t("All accounts"),
+      id: "transactions",
+      label: t("Transaction history"),
       disabled: locked,
       run: () => selectAccount(null),
     });
@@ -307,14 +293,6 @@
           rulesPayee = "";
           return showForm(id);
         },
-      });
-    for (const value of accounts)
-      result.push({
-        id: `account:${value.id}`,
-        label: `Account: ${value.name}${value.closed ? " (closed)" : ""}`,
-        keywords: "register transactions",
-        disabled: locked,
-        run: () => selectAccount(value),
       });
     return result;
   });
@@ -401,7 +379,7 @@
       if (cached) {
         accounts = sortedAccounts(cached.accounts);
         accountGroups = cached.account_groups ?? [];
-        account = accounts.find((item) => item.id === accountId) ?? null;
+        account = null;
         preferences.useCachedBudget(
           value.id,
           cached.preferences,
@@ -411,7 +389,7 @@
         cachedAt = cached.savedAt;
         loading = false;
       }
-      saveSelection(value.id, account?.id ?? accountId);
+      saveSelection(value.id);
       if (localStorage.getItem(schedulesKey(value.id)) !== null)
         form = "schedules";
       if (localStorage.getItem(rulesKey(value.id)) !== null) form = "rules";
@@ -473,7 +451,7 @@
       if (generation !== navigation) return;
       accounts = sortedAccounts(fresh.accounts);
       accountGroups = fresh.account_groups ?? [];
-      account = accounts.find((item) => item.id === accountId) ?? null;
+      account = null;
       preferences.useCachedBudget(
         value.id,
         fresh.preferences,
@@ -482,7 +460,7 @@
       );
       cachedAt = fresh.savedAt;
       budget = { ...value, epoch: fresh.epoch };
-      saveSelection(value.id, account?.id);
+      saveSelection(value.id);
     } catch (e) {
       if (generation === navigation) {
         error = errorMessage(e);
@@ -541,8 +519,8 @@
     navigation++;
     form = null;
     if (budget) rememberView(budget.id, null);
-    account = value;
-    saveSelection(budget!.id, value?.id);
+    account = null;
+    saveSelection(budget!.id);
     await focusContent();
   }
   async function showForm(
@@ -653,7 +631,7 @@
     />
 
     {#if budget}
-      <button class="quiet" onclick={showBudgets} disabled={!!form || loading}
+      <button class="quiet" onclick={showBudgets} disabled={loading}
         >{t("All budgets")}</button
       >
       <div class="budget-name">{budget.name}</div>
@@ -662,69 +640,73 @@
           ? t("Tracking budget")
           : t("Envelope budget")}
       </p>
-      {#key budget.id}<AccountNavigation
-          budgetId={budget.id}
-          {accounts}
-          groups={accountGroups}
-          selectedId={account?.id ?? null}
-          disabled={!!form || loading}
-          onselect={selectAccount}
-        />{/key}
+      <nav aria-label={t("Views")}>
+      <button class:current={!form} aria-current={!form ? "page" : undefined}
+        onclick={() => selectAccount(null)} disabled={loading}>{t("Transaction history")}</button>
 
       <button
+        class:current={form === "planning"} aria-current={form === "planning" ? "page" : undefined}
         onclick={() => showForm("planning")}
-        disabled={!!form || loading || !compatible}>{t("Budget")}</button
+        disabled={loading || !compatible}>{t("Budget")}</button
       >
       <button
+        class:current={form === "categories"} aria-current={form === "categories" ? "page" : undefined}
         onclick={() => showForm("categories")}
-        disabled={!!form || loading || disconnected}>{t("Categories")}</button
+        disabled={loading || disconnected}>{t("Categories")}</button
       >
       <button
+        class:current={form === "references"} aria-current={form === "references" ? "page" : undefined}
         onclick={() => showForm("references")}
-        disabled={!!form || loading || disconnected || !compatible}
+        disabled={loading || disconnected || !compatible}
         >{t("Payees and tags")}</button
       >
       <button
+        class:current={form === "transaction-files"} aria-current={form === "transaction-files" ? "page" : undefined}
         onclick={() => showForm("transaction-files")}
-        disabled={!!form || loading || !compatible}>Transaction files</button
+        disabled={loading || !compatible}>Transaction files</button
       >
       <button
         onclick={() => {
           rulesPayee = "";
           void showForm("rules");
         }}
-        disabled={!!form || loading || !compatible}>{t("Rules")}</button
+        disabled={loading || !compatible}>{t("Rules")}</button
       >
       <button
+        class:current={form === "schedules"} aria-current={form === "schedules" ? "page" : undefined}
         onclick={() => showForm("schedules")}
-        disabled={!!form || loading || !compatible}>{t("Schedules")}</button
+        disabled={loading || !compatible}>{t("Schedules")}</button
       >
       <button
+        class:current={form === "reports"} aria-current={form === "reports" ? "page" : undefined}
         onclick={() => showForm("reports")}
-        disabled={!!form || loading || !compatible}
+        disabled={loading || !compatible}
         >{t("Dashboards and reports")}</button
       >
       <button
         class={{ current: form === "settings" }}
         aria-current={form === "settings" ? "page" : undefined}
         onclick={() => showForm("settings")}
-        disabled={(!!form && form !== "settings") || loading}
+        disabled={loading}
         >{t("Settings")}</button
       >
       <button
         onclick={() => budget && manage(budget)}
-        disabled={!!form || loading || disconnected || !compatible}
+        disabled={loading || disconnected || !compatible}
         >{t("Manage budget")}</button
       >
+      </nav>
     {:else}<p class="muted sidebar-description">
-        {t("Your accounts, together.")}
+        {t("Your transactions, together.")}
       </p>{/if}
-    <button onclick={() => showForm("recovery")} disabled={!!form || loading}
+    <nav aria-label={t("Recovery")}>
+    <button onclick={() => showForm("recovery")} disabled={loading}
       >Recovery tools</button
     >
-    <button onclick={() => showForm("pending")} disabled={!!form || loading}
+    <button onclick={() => showForm("pending")} disabled={loading}
       >{t("Review pending expenses")}</button
     >
+    </nav>
   </aside>
   <main
     id="main"
@@ -942,10 +924,10 @@
             </li>{/each}
         </ul>
       {:else}<div class="empty-state">
-          <h2>{t("A place for your accounts")}</h2>
+          <h2>{t("A place for your transactions")}</h2>
           <p>
             {t(
-              "Create your first budget, then add an account with its opening balance.",
+              "Create your first budget, then record your transactions.",
             )}
           </p>
         </div>{/if}
@@ -986,70 +968,14 @@
           onchanged={refreshAccounts}
         />
       {/key}
-    {:else if account}<AccountView
-        {account}
-        budgetId={budget.id}
-        onchanged={refreshAccounts}
-        onorganize={() => showForm("organize")}
-        onschedules={() => showForm("schedules")}
-      />
     {:else}
-      <div class="page-heading">
-        <div>
-          <h1>{t("Accounts")}</h1>
-          <p class="muted">{budget.name}</p>
-        </div>
-        <button
-          onclick={() => showForm("organize")}
-          disabled={disconnected || !compatible}
-          >{t("Organize accounts")}</button
-        >
-        <button
-          class="primary"
-          onclick={() => showForm("account")}
-          disabled={disconnected || !compatible}>{t("Add account")}</button
-        >
-      </div>
-      {#if accounts.length}<div class="table-wrap">
-          <table>
-            <caption class="visually-hidden"
-              >{t("Accounts and current balances")}</caption
-            ><thead
-              ><tr
-                ><th>{t("Account")}</th><th>{t("Type")}</th><th class="amount"
-                  >{t("Balance")}</th
-                ></tr
-              ></thead
-            ><tbody
-              >{#each accounts as item (item.id)}<tr
-                  ><td
-                    ><button
-                      class="text-button"
-                      onclick={() => selectAccount(item)}
-                      >{item.name}{item.closed
-                        ? " — " + t("Closed")
-                        : ""}</button
-                    ></td
-                  ><td class="muted"
-                    >{item.off_budget ? t("Off budget") : t("On budget")}</td
-                  ><td class="amount">{formatAmount(item.balance)}</td></tr
-                >{/each}</tbody
-            >
-          </table>
-        </div>
-      {:else}<div class="empty-state">
-          <h2>{t("Add your first account")}</h2>
-          <p>
-            {t(
-              "Start with an everyday spending account, savings, or a credit card. Enter its current balance to begin.",
-            )}
-          </p>
-        </div>{/if}
+      <div class="page-heading"><div><h1>{t("Transaction history")}</h1><p class="muted">{budget.name}</p></div></div>
       {#key budget.id + ":all"}<Register
           budgetId={budget.id}
           accountId={null}
           onchanged={refreshAccounts}
         />{/key}
+      {#key budget.id + ":" + cachedAt}<ScheduleUpcoming budgetId={budget.id} onmanage={() => showForm("schedules")} />{/key}
     {/if}
   </main>
 </div>

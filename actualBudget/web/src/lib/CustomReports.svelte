@@ -484,7 +484,7 @@
             >{t("Group report by")}<select
               value={String(config.group_by || "Category")}
               onchange={(e) => field("group_by", e.currentTarget.value)}
-              >{#each [["Category", "Category"], ["Group", "Category group"], ["CategoryGroup", "Category group and category"], ["Payee", "Payee"], ["Account", "Account"], ["Interval", "Interval"]] as group (group[0])}<option
+              >{#each [["Category", "Category"], ["Group", "Category group"], ["CategoryGroup", "Category group and category"], ["Payee", "Payee"], ["Interval", "Interval"]] as group (group[0])}<option
                   value={group[0]}
                   disabled={config.balance_type === "Budgeted" &&
                     ["Payee", "Account"].includes(group[0])}

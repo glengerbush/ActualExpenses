@@ -168,7 +168,7 @@
     >Set field {index + 1}<select
       value={action.field}
       onchange={(e) => field(e.currentTarget.value)}
-      >{#each Object.entries(fields) as [value, label] (value)}<option {value}
+      >{#each Object.entries(fields).filter(([name]) => name !== "account" || action.field === "account") as [value, label] (value)}<option {value}
           >{label}</option
         >{/each}</select
     ></label

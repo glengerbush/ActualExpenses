@@ -4,6 +4,8 @@ Status: Approved and implemented on 2026-10-16. See [validation evidence and rem
 
 The original published issue is no longer in the tracker; this document preserves its implemented requirements. The [actualBudget web rewrite spec](</home/ggg/Documents/pileOfNotes/ActualExpenses/Issues/ActualBudget Web Rewrite Spec.md>) governs the future server/API transition and removes application login. Authentication and native-protocol references below describe the released Android baseline, not the replacement architecture.
 
+Current workflow (2026-11-11): server address → choose budget → expenses. No password or account selection. The [unified-history decision](adr/0006-unified-transaction-history.md) supersedes account-selection requirements below; they remain as the historical baseline.
+
 ## Confirmed scope
 
 - Android companion app for recording expenses at the point of purchase in Actual Budget.

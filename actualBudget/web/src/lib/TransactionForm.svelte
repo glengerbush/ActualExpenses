@@ -1042,18 +1042,6 @@
           >{/if}
         <div class="entry-pair">
           <div>
-            <label for="transaction-account">{t("Account")}</label><select
-              id="transaction-account"
-              bind:value={
-                () => draft!.fields.account_id, (v) => update("account_id", v)
-              }
-              required
-              >{#each accounts as account (account.id)}<option
-                  value={account.id}>{account.name}</option
-                >{/each}</select
-            >
-          </div>
-          <div>
             <DateInput
               id="transaction-date"
               label={t("Date")}

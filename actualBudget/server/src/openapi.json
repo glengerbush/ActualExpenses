@@ -3646,11 +3646,12 @@
           {
             "name": "account_id",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
               "format": "uuid"
-            }
+            },
+            "description": "Optional legacy account filter. Omit for the unified budget-wide recent expense view."
           },
           {
             "name": "retain",
@@ -22792,6 +22793,40 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/budgets/{budget}/ledger": {
+      "post": {
+        "summary": "Prepare the unified transaction history",
+        "description": "Naturally idempotent. Reuses the first open on-budget destination, or creates one with zero balance. Historical transaction IDs, balances and account references are retained. No login required.",
+        "parameters": [
+          {
+            "name": "budget",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Actual-Budget-Epoch",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required after a budget restore; clients should always send the current epoch."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Internal destination for new transactions. Repeated requests return the same destination while it remains available."
+          },
+          "409": {
+            "description": "Budget epoch changed; refresh before retrying."
           }
         }
       }

@@ -5,9 +5,9 @@
   import type { SchedulePage } from "./schedules";
   let {
     budgetId,
-    accountId,
+    accountId = null,
     onmanage,
-  }: { budgetId: string; accountId: string; onmanage: () => void } = $props();
+  }: { budgetId: string; accountId?: string | null; onmanage: () => void } = $props();
   let view = $state.raw<SchedulePage | null>(null),
     error = $state("");
   let previews = $derived(
@@ -22,7 +22,7 @@
   onMount(() => {
     let active = true;
     request<{ data: SchedulePage }>(
-      `/budgets/${budgetId}/schedules?account_id=${accountId}&limit=50`,
+      `/budgets/${budgetId}/schedules?limit=50${accountId ? "&account_id=" + accountId : ""}`,
     )
       .then((result) => {
         if (active) view = result.data;
@@ -44,7 +44,7 @@
       <button onclick={onmanage}>Manage schedules</button>
     </div>
     <p>
-      Forecast only. These entries are excluded from account balances until
+      Forecast only. These entries are excluded from balances until
       posted.
     </p>
     {#if error}<p role="status">

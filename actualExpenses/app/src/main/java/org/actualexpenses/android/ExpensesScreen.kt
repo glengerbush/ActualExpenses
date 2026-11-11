@@ -46,8 +46,8 @@ import com.google.gson.Gson
 /*
  THESIS: Record a purchase, then return to a compact expense register. No dashboard.
  OWN-WORLD: Native Material 3, quiet surfaces, system type, restrained green action.
- STORY: Account context, delivery state, recent purchases, one Add expense action.
- FIRST VIEWPORT: Top account switch, compact sync state, full-width register, bottom FAB.
+ STORY: Budget context, delivery state, recent purchases, one Add expense action.
+ FIRST VIEWPORT: Top budget switch, compact sync state, full-width register, bottom FAB.
  FORM: Brief-pinned minimal native Android Operate; seed 5ae1515c is subordinate to it.
  FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
 */
@@ -71,9 +71,6 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
         ExpenseEditor(state, editorId?.takeUnless { it == "new" }, original, editorContext, editorSession, actions, snackbar) { editorId = null }
         return
     }
-    BackHandler(state.screen == Screen.ACCOUNTS && state.selectedAccount != null) {
-        state.selectedAccount?.let { actions.chooseAccount(it.id) }
-    }
     BackHandler(state.screen == Screen.BUDGETS) { actions.showServer() }
     BackHandler(state.screen == Screen.SERVER && state.canCancelConnection) { actions.cancelConnection() }
     Scaffold(
@@ -81,10 +78,10 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
             TopAppBar(
                 title = {
                     if (state.screen == Screen.EXPENSES) {
-                        TextButton(onClick = actions::showAccounts) {
-                            Text(state.selectedAccount?.name ?: "Account", style = MaterialTheme.typography.titleLarge,
+                        TextButton(onClick = actions::showBudgets, enabled = !state.busy && state.pendingCount == 0 && !state.scheduledWorkPending) {
+                            Text(state.selectedBudget?.name ?: "Expenses", style = MaterialTheme.typography.titleLarge,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                            Icon(Icons.Outlined.ArrowDropDown, contentDescription = "Choose account")
+                            Icon(Icons.Outlined.ArrowDropDown, contentDescription = "Choose budget")
                         }
                     } else Text("ActualExpenses")
                 },
@@ -93,9 +90,6 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to expenses")
                     }
                     else if (state.screen == Screen.BUDGETS) IconButton(onClick = actions::showServer) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to server selection") }
-                    else if (state.screen == Screen.ACCOUNTS && state.selectedAccount != null) IconButton(onClick = { actions.chooseAccount(state.selectedAccount.id) }) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back to expenses")
-                    }
                 },
                 actions = {
                     if (state.screen != Screen.SERVER && state.screen != Screen.RECOVERY) {
@@ -107,7 +101,7 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
             )
         },
         floatingActionButton = {
-            if (state.screen == Screen.EXPENSES) ExtendedFloatingActionButton(
+            if (state.screen == Screen.EXPENSES && state.expenseContext != null) ExtendedFloatingActionButton(
                 modifier = Modifier.semantics { contentDescription = "Add expense" },
                 onClick = { editorContext=Gson().toJson(state.expenseContext);editorSession=null;editorId = "new" },
                 icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
@@ -128,7 +122,6 @@ fun ExpensesScreen(state: ExpenseUiState, actions: ExpenseUiActions) {
                     Screen.SERVER -> ServerSelection(state, actions)
                     Screen.RECOVERY -> LegacyRecovery(state, actions)
                     Screen.BUDGETS -> Choices("Choose a budget", "Use one budget on this phone.", "No budgets yet. Create or import one in actualBudget, then refresh this list.", state.budgets, state.busy, actions::chooseBudget, "Change server", actions::showServer, state.pendingCount==0&&!state.scheduledWorkPending)
-                    Screen.ACCOUNTS -> Choices("Choose an account", "Where should expenses go?", "No open accounts. Add or reopen an account in actualBudget, then refresh this list.", state.accounts, state.busy, actions::chooseAccount, "Change budget", actions::showBudgets, state.pendingCount==0&&!state.scheduledWorkPending)
                     Screen.EXPENSES -> ExpenseList(state,actions) { row -> actions.beginEdit(row.id) { session -> editorContext=Gson().toJson(session.context);editorSession=Gson().toJson(session);editorId = row.id } }
                 }
             }
@@ -289,7 +282,7 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
     val original = editSession?.original
     val currency = rememberSaveable(key) { capturedContext?.currency ?: state.currency }
     val decimalPlaces = rememberSaveable(key) { capturedContext?.decimalPlaces ?: state.decimalPlaces }
-    val accountName = rememberSaveable(key) {state.selectedAccount?.name.orEmpty()}
+    val budgetName = rememberSaveable(key) {state.selectedBudget?.name.orEmpty()}
 
     val operationId = rememberSaveable(key) { UUID.randomUUID().toString() }
     var amount by rememberSaveable(key) { mutableStateOf(original?.amount ?: existing?.let { BigDecimal.valueOf(it.amountMinor).abs().movePointLeft(decimalPlaces).toPlainString() } ?: "") }
@@ -326,7 +319,7 @@ private fun ExpenseEditor(state: ExpenseUiState, transactionId: String?, existin
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
             Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().verticalScroll(rememberScrollState()).imePadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(accountName, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(budgetName, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedTextField(amount, { amount = it }, label = { Text(if (currency.isBlank()) "Amount" else "Amount ($currency)") },
                     textStyle = MaterialTheme.typography.headlineMedium, singleLine = true, enabled = !saving, isError = submitted && !valid,
                     supportingText = { if (submitted && !valid) Text(validation.exceptionOrNull()?.message ?: "Enter a valid expense amount.") },

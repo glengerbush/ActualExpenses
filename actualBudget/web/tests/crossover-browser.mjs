@@ -209,17 +209,6 @@ try {
   await expect
     .poll(async () =>
       editor
-        .getByRole("listbox", { name: "Income accounts", exact: true })
-        .evaluate((select) =>
-          Array.from(select.selectedOptions)
-            .map((option) => option.value)
-            .sort(),
-        ),
-    )
-    .toEqual([...source.widgets[0].meta.incomeAccountIds].sort());
-  await expect
-    .poll(async () =>
-      editor
         .getByRole("listbox", { name: "Expenses categories", exact: true })
         .evaluate((select) =>
           Array.from(select.selectedOptions)
@@ -281,16 +270,6 @@ try {
   await save();
   await sourceRows("historical-growth");
   await edit();
-  await editor
-    .getByRole("listbox", { name: "Income accounts", exact: true })
-    .selectOption([]);
-  await save();
-  await expect(widget).toContainText("Select at least one account");
-  await expect(table.locator("tbody tr")).toHaveCount(0);
-  await edit();
-  await editor
-    .getByRole("listbox", { name: "Income accounts", exact: true })
-    .selectOption(source.widgets[0].meta.incomeAccountIds);
   await editor
     .getByRole("checkbox", {
       name: "Use custom growth projections",
@@ -520,17 +499,6 @@ try {
   await expect(
     editor.getByRole("option", { name: "Hampel-Filter-Median", exact: true }),
   ).toHaveCount(1);
-  await expect
-    .poll(async () =>
-      editor
-        .getByRole("listbox", { name: "Einnahmekonten", exact: true })
-        .evaluate((select) =>
-          Array.from(select.selectedOptions)
-            .map((option) => option.value)
-            .sort(),
-        ),
-    )
-    .toEqual([...source.widgets[0].meta.incomeAccountIds].sort());
   await editor.screenshot({
     path: new URL("../artifacts/crossover-german-editor.png", import.meta.url)
       .pathname,

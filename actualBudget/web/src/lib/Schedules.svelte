@@ -207,7 +207,7 @@
             {
               field: "account",
               op: "is",
-              value: accounts.find((a) => !a.closed)?.id ?? null,
+              value: accounts.find((a) => !a.closed && !a.off_budget)?.id ?? null,
             },
             { field: "amount", op: "is", value: -100 },
           ],
@@ -640,10 +640,10 @@
             >{/if}
           <h3>Conditions</h3>
           <p>
-            Include one date, one account and an amount. Negative amounts are
+            Include one date and an amount. Negative amounts are
             payments; positive amounts are income.
           </p>
-          {#each conditions as condition, index (index)}<div class="condition">
+          {#each conditions as condition, index (index)}{#if condition.field !== "account"}<div class="condition">
               <label
                 >Condition field {index + 1}<select
                   value={condition.field}
@@ -665,7 +665,7 @@
                           : c,
                       ),
                     )}
-                  >{#each ["date", "account", "payee", "amount", "category", "notes"] as name (name)}<option
+                  >{#each ["date", "payee", "amount", "category", "notes"] as name (name)}<option
                       value={name}>{name}</option
                     >{/each}</select
                 ></label
@@ -717,14 +717,14 @@
                     conditions.filter((_, i) => i !== index),
                   )}>Remove condition {index + 1}</button
               >
-            </div>{/each}<button
+            </div>{/if}{/each}<button
             onclick={() =>
               field("conditions", [
                 ...conditions,
                 { field: "payee", op: "is", value: null },
               ])}>{t("Add condition")}</button
           >
-          <label
+          {#if draft.body.transfer_account_id}<label
             >Transfer destination<select
               value={String(draft.body.transfer_account_id ?? "")}
               onchange={(e) =>
@@ -738,6 +738,7 @@
                 >{/each}</select
             ></label
           >
+          {/if}
           {#if draft.body.action === "create"}<button
               onclick={() => matchPayments()}
               disabled={busy}>Match existing payments</button
@@ -912,19 +913,6 @@
         >
       </div>
     </section>{/if}
-  <label class="account-filter"
-    >Show account<select
-      bind:value={filter}
-      onchange={() => {
-        offset = 0;
-        void refresh();
-      }}
-      disabled={busy}
-      ><option value="">{t("All accounts")}</option
-      >{#each accounts as a (a.id)}<option value={a.id}>{a.name}</option
-        >{/each}</select
-    ></label
-  >
   {#if view}<div class="schedule-list">
       {#each view.schedules as row (row.id)}<article>
           <div>
@@ -934,8 +922,7 @@
                 "Unnamed schedule"}
             </h2>
             <p>
-              {accounts.find((a) => a.id === row.account_id)?.name ??
-                "Account unavailable"} · {row.next_date ?? "No next date"} · {row.status}
+              {row.next_date ?? "No next date"} · {row.status}
               · {row.posts_transaction ? "Automatic" : "Manual"}
             </p>
             {#if typeof row.amount === "number"}<p class="amount">
@@ -1101,9 +1088,6 @@
   input {
     max-width: 100%;
     min-width: 0;
-  }
-  .account-filter {
-    max-width: 25rem;
   }
   @media (max-width: 40rem) {
     header {

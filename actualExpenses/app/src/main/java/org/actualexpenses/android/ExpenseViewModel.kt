@@ -20,7 +20,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     private var refreshJob: Job? = null
     private var recoveredPending = false
     val state = combine(graph.state, selection, busy, localError) { state, selection, busy, error ->
-        state.toUi(selection == Screen.ACCOUNTS, busy, error).let { if (selection != null && !state.legacyRecovery) it.copy(screen = selection) else it }
+        state.toUi(busy, error).let { if (selection != null && !state.legacyRecovery) it.copy(screen = selection) else it }
     }.combine(graph.loading) { state, loading -> state.copy(busy = state.busy || loading) }
         .combine(graph.fatalError) { state, fatal -> state.copy(error = fatal ?: state.error, busy = state.busy || fatal != null) }
         .combine(saveState) { state, operation -> state.copy(savingOperationId = operation.saving, completedOperationId = operation.completed) }
@@ -42,10 +42,14 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         graph.schedulePending()
         if (graph.state.value.budgetId != null) withContext(Dispatchers.Main) { refresh() }
     }
-    override fun chooseBudget(id: String) = task { graph.access { it.chooseBudget(id) }; selection.value = if(graph.state.value.selectedAccountId==null) Screen.ACCOUNTS else null; if(graph.state.value.pendingCount > 0) { graph.schedulePending(); withContext(Dispatchers.Main) { refresh() } } }
-    override fun chooseAccount(id: String) = task { graph.access { it.chooseAccount(id) }; selection.value = null; graph.refresh() }
+    override fun chooseBudget(id: String) = task {
+        graph.access { it.chooseBudget(id) }
+        selection.value = null
+        graph.schedulePending()
+        // Budget selection replaces account selection as the foreground entry.
+        withContext(Dispatchers.Main) { refresh() }
+    }
     override fun showBudgets() = task {graph.access{it.refreshBudgets()};selection.value=Screen.BUDGETS}
-    override fun showAccounts() { selection.value = Screen.ACCOUNTS }
     override fun showServer() { selection.value = Screen.SERVER }
     override fun cancelConnection() { selection.value = null }
     override fun retryScheduledWork()=task{graph.access{it.retryScheduledWork()}}
@@ -98,17 +102,15 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch(Dispatchers.IO) { runCatching { graph.access { it.dismissNotice() } } }
     }
 
-    private fun AppState.toUi(chooseAccount: Boolean, busy: Boolean, localError: String?): ExpenseUiState = ExpenseUiState(
+    private fun AppState.toUi(busy: Boolean, localError: String?): ExpenseUiState = ExpenseUiState(
         screen = when {
             legacyRecovery -> Screen.RECOVERY
             budgetId == null && !serverSelected -> Screen.SERVER
             budgetId == null -> Screen.BUDGETS
-            selectedAccountId == null || chooseAccount -> Screen.ACCOUNTS
             else -> Screen.EXPENSES
         }, server = server,
         budgets = budgets.map { Choice(it.fileId, it.name) },
-        accounts = accounts.map { Choice(it.id, it.name) },
-        selectedAccount = accounts.find { it.id == selectedAccountId }?.let { Choice(it.id, it.name) },
+        selectedBudget = budgets.find { it.fileId == budgetId }?.let { Choice(it.fileId, it.name) },
         expenses = expenses.map { ExpenseRow(it.id, it.amountMinor, LocalDate.parse(it.date), it.payee, it.categoryId, it.category, it.notes, it.pending, it.pendingDeletion, it.editable) },
         payees = payees.map { Choice(it.id, it.name) }, categories = categories.map { Choice(it.id, it.name) },
         associations = payeeCategoryAssociations, currency = currency, decimalPlaces = decimalPlaces,

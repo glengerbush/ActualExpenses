@@ -479,12 +479,6 @@
         <legend>{t("Transaction")}</legend>
         <div class="split-fields">
           <label
-            >{t("Account")}<select bind:value={draft.fields.account_id}
-              >{#each accounts as a (a.id)}<option value={a.id}>{a.name}</option
-                >{/each}</select
-            ></label
-          >
-          <label
             >{t("Total amount")}<input
               bind:value={draft.fields.amount}
               inputmode="decimal"
@@ -579,7 +573,7 @@
                 required
               /></label
             >
-            <label
+            {#if child.transfer_account_id}<label
               >Transfer to<select
                 aria-label={`Split ${index + 1} transfer to`}
                 value={child.transfer_account_id ?? ""}
@@ -592,7 +586,7 @@
                 {/each}
               </select></label
             >
-            <label
+            {/if}<label
               >{t("Payee")}<select
                 disabled={!!child.transfer_account_id}
                 aria-label={`Split ${index + 1} payee`}

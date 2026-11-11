@@ -50,11 +50,14 @@ try {
     const button = page.getByRole("button", {
       name: new RegExp(name + ".*Open"),
     });
-    const manual = page.getByRole("heading", { name: "Accounts", exact: true });
+    const manual = page.getByRole("heading", {
+      name: "Transaction history",
+      exact: true,
+    });
     await expect(button.or(manual)).toBeVisible();
     if (await button.isVisible()) await button.click();
     await expect(
-      page.getByRole("heading", { name: "Accounts", exact: true }),
+      page.getByRole("heading", { name: "Transaction history", exact: true }),
     ).toBeVisible();
   }
   await open();
@@ -98,7 +101,7 @@ try {
   );
   await open();
   await expect(
-    page.getByRole("button", { name: "Manual checking", exact: true }),
+    page.getByRole("button", { name: "Transaction history", exact: true }),
   ).toBeVisible();
   await expect(page.locator("td.amount").first()).toHaveText("123.45");
   await page.keyboard.press("Control+k");

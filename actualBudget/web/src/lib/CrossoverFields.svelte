@@ -124,47 +124,6 @@
     ><input
       type="checkbox"
       disabled={busy || !!error}
-      checked={meta.incomeAccountIds == null}
-      onchange={(e) =>
-        onchange({
-          incomeAccountIds: e.currentTarget.checked
-            ? undefined
-            : accounts.map((a) => a.id),
-        })}
-    />{t("All accounts")}</label
-  >
-  <label
-    >{t("Income accounts")}<select
-      multiple
-      disabled={busy || !!error}
-      value={selectedAccounts}
-      onchange={(e) =>
-        onchange({
-          incomeAccountIds: Array.from(e.currentTarget.selectedOptions).map(
-            (o) => o.value,
-          ),
-        })}
-    >
-      {#each accounts as account (account.id)}<option value={account.id}
-          >{account.name}{account.closed
-            ? " · " + t("Closed")
-            : ""}{account.off_budget ? " · " + t("Off budget") : ""}</option
-        >{/each}
-      {#each selectedAccounts.filter((id) => !accounts.some((a) => a.id === id)) as id (id)}<option
-          value={id}
-          >{t("Unavailable account (reference preserved)")} {id}</option
-        >{/each}
-    </select></label
-  >
-  <p>
-    {t(
-      "Closed and off-budget accounts can be included. An empty account selection produces no estimate.",
-    )}
-  </p>
-  <label class="check"
-    ><input
-      type="checkbox"
-      disabled={busy || !!error}
       checked={meta.expenseCategoryIds === undefined}
       onchange={(e) =>
         onchange({

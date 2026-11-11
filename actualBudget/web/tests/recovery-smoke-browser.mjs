@@ -76,12 +76,9 @@ try {
     .getByRole("button", { name: "Reconnect and refresh", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Accounts", exact: true }),
+    page.getByRole("heading", { name: "Transaction history", exact: true }),
   ).toBeVisible();
-  await expect(page.locator("td.amount").first()).toHaveText("10.00");
-  await page
-    .getByRole("button", { name: "Qualification spending", exact: true })
-    .click();
+  await expect(page.getByTestId("register-total")).toHaveText("10.00");
   await expect(
     page.getByRole("button", { name: "Refresh transactions", exact: true }),
   ).toBeEnabled();
@@ -139,9 +136,9 @@ try {
     .getByRole("button", { name: "Confirm cache reset", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Accounts", exact: true }),
+    page.getByRole("heading", { name: "Transaction history", exact: true }),
   ).toBeVisible();
-  await expect(page.locator("td.amount").first()).toHaveText("8.77");
+  await expect(page.getByTestId("register-total")).toHaveText("8.77");
   expect(errors).toEqual([]);
   console.log(
     `PASS recovery qualification on ${server.url}: healthy preview, reconnect, cache reset and restarted outbox single delivery`,

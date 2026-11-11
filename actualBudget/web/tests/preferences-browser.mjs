@@ -49,13 +49,14 @@ try {
     ),
   );
   const amounts = [...new Set(fixture.cases.map((c) => c.amount))];
+  const destination = (await api(`/budgets/${budget}/ledger`, {})).data.id;
   for (const amount of amounts)
-    await api(`/budgets/${budget}/accounts`, {
+    await api(`/budgets/${budget}/transactions`, {
       id: randomUUID(),
-      name: `Amount ${amount}`,
-      opening_balance: amount,
-      opening_date: "2026-11-08",
-      off_budget: false,
+      account_id: destination,
+      amount,
+      notes: `Amount ${amount}`,
+      date: "2026-11-08",
     });
   await page.evaluate(
     (budget) =>
@@ -80,7 +81,7 @@ try {
     );
     await page.reload();
     await expect(
-      page.getByRole("heading", { name: "Accounts", exact: true }),
+      page.getByRole("heading", { name: "Transaction history", exact: true }),
     ).toBeVisible();
     for (const expected of fixture.cases.filter(
       (c) =>
@@ -89,12 +90,9 @@ try {
         c.decimal_places === sample.decimal_places,
     )) {
       const row = page.locator("tbody tr").filter({
-        has: page.getByRole("button", {
-          name: `Amount ${expected.amount}`,
-          exact: true,
-        }),
+        has: page.getByText(`Amount ${expected.amount}`, { exact: true }),
       });
-      await expect(row.locator("td.amount")).toHaveText(
+      await expect(row.locator("td.amount").first()).toHaveText(
         expected.expected + (sample.decimal_places === 0 ? "¥" : ""),
       );
     }
@@ -119,9 +117,9 @@ try {
     page
       .locator("tbody tr")
       .filter({
-        has: page.getByRole("button", { name: "Amount 150", exact: true }),
+        has: page.getByText("Amount 150", { exact: true }),
       })
-      .locator("td.amount"),
+      .locator("td.amount").first(),
   ).toHaveText("\u202a¥\u202c150");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByText("Experimental features", { exact: true }).click();
@@ -140,9 +138,9 @@ try {
     page
       .locator("tbody tr")
       .filter({
-        has: page.getByRole("button", { name: "Amount 150", exact: true }),
+        has: page.getByText("Amount 150", { exact: true }),
       })
-      .locator("td.amount"),
+      .locator("td.amount").first(),
   ).toHaveText("2");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByText("Experimental features", { exact: true }).click();
@@ -193,23 +191,27 @@ try {
     page.getByRole("status").filter({ hasText: "Shared preferences saved." }),
   ).toHaveText("Shared preferences saved.");
   await page.getByRole("button", { name: "Done", exact: true }).click();
-  await page.getByRole("button", { name: "Add account", exact: true }).click();
-  await page.getByLabel("Opening date").fill("08/11/2026");
-  await page.getByRole("button", { name: "Choose date" }).click();
+  await page
+    .getByRole("button", { name: "Add transaction", exact: true })
+    .click();
+  await page.getByLabel("Date", { exact: true }).fill("08/11/2026");
+  await page.getByRole("region", { name: "Add transaction", exact: true }).getByRole("button", { name: "Choose date", exact: true }).click();
   await expect(page.getByRole("columnheader").first()).toHaveText("Mon");
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("Enter");
-  await expect(page.getByLabel("Opening date")).toHaveValue("09/11/2026");
-  await page.getByLabel("Account name").fill("Locale entered");
-  await page.getByLabel("Opening balance", { exact: true }).fill("1.234,56");
+  await expect(page.getByLabel("Date", { exact: true })).toHaveValue(
+    "09/11/2026",
+  );
+  await page.getByLabel("Notes", { exact: true }).fill("Locale entered");
+  await page.getByLabel("Amount", { exact: true }).fill("1.234,56");
   await page
-    .getByRole("button", { name: "Create account", exact: true })
+    .getByRole("button", { name: "Save transaction", exact: true })
     .click();
-  await expect(page.getByTestId("account-balance")).toHaveText("1.234,56");
+  await expect(page.getByText("Locale entered", { exact: true })).toBeVisible();
   const saved = (
-    await api(`/budgets/${budget}/accounts`, undefined, "GET")
-  ).data.find((a) => a.name === "Locale entered");
-  expect(saved.balance).toBe(123456);
+    await api(`/budgets/${budget}/transactions`, undefined, "GET")
+  ).data.find((row) => row.notes === "Locale entered");
+  expect(saved.amount).toBe(-123456);
   console.log(
     "PASS themes/system changes, shipped French catalog, localized entry and week-start keyboard calendar",
   );
@@ -325,101 +327,6 @@ try {
   });
   await page.unroute("**/preferences**");
   await page.getByRole("button", { name: "Discard changes" }).click();
-  // Original account body remains retryable after reload even if preferences are unavailable.
-  await api(
-    `/budgets/${budget}/preferences`,
-    { currency_code: "JPY", experimental: { currency: true } },
-    "PATCH",
-  );
-  await page.reload();
-  await page.getByRole("button", { name: "All accounts", exact: true }).click();
-  await page.getByRole("button", { name: "Add account", exact: true }).click();
-  await page.getByLabel("Account name").fill("Recover without preferences");
-  await page.getByLabel("Opening balance", { exact: true }).fill("1234");
-  let accountWrites = [];
-  let loseAccount = true;
-  await page.route(`**/api/v1/budgets/${budget}/accounts`, async (route) => {
-    if (route.request().method() !== "POST") return route.continue();
-    accountWrites.push({
-      body: route.request().postData(),
-      key: route.request().headers()["idempotency-key"],
-    });
-    if (loseAccount) {
-      loseAccount = false;
-      const url = new URL(route.request().url());
-      const host = url.host;
-      url.hostname = "127.0.0.1";
-      await route.fetch({
-        url: url.href,
-        headers: { ...route.request().headers(), host },
-      });
-      return route.abort();
-    }
-    return route.continue();
-  });
-  await page
-    .getByRole("button", { name: "Create account", exact: true })
-    .click();
-  await expect(
-    page.getByRole("button", { name: "Retry creation" }),
-  ).toBeVisible();
-  await api(
-    `/budgets/${budget}/preferences`,
-    { experimental: { currency: false } },
-    "PATCH",
-  );
-  await page.evaluate(
-    (budget) =>
-      localStorage.removeItem(`actualBudget.preferencesCache.v1.${budget}`),
-    budget,
-  );
-  await page.evaluate(
-    (budget) =>
-      new Promise((resolve, reject) => {
-        const open = indexedDB.open("actualBudget.offline.v1", 1);
-        open.onsuccess = () => {
-          const db = open.result;
-          const tx = db.transaction("cache", "readwrite");
-          tx.objectStore("cache").delete(`budget:${budget}`);
-          tx.oncomplete = () => {
-            db.close();
-            resolve();
-          };
-          tx.onerror = () => reject(tx.error);
-        };
-      }),
-    budget,
-  );
-  await page.route("**/preferences**", (route) => route.abort());
-  await page.reload();
-  await expect(
-    page.getByRole("button", { name: "Retry creation" }),
-  ).toBeVisible();
-  await expect(page.getByLabel("Account name")).toHaveValue(
-    "Recover without preferences",
-  );
-  expect(accountWrites.length).toBe(1);
-  await page.getByRole("button", { name: "Retry creation" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Display preferences are unavailable" }),
-  ).toBeVisible();
-  expect(accountWrites.length).toBe(2);
-  expect(accountWrites[1]).toEqual(accountWrites[0]);
-  expect(JSON.parse(accountWrites[0].body).opening_balance).toBe(1234);
-  await expect(
-    page.getByRole("button", { name: "Retry preferences" }),
-  ).toBeVisible();
-  await page.screenshot({
-    path: "test-results/preferences-recovery.png",
-    fullPage: true,
-  });
-  await page.unroute("**/preferences**");
-  await page.unroute(`**/api/v1/budgets/${budget}/accounts`);
-  await page.getByRole("button", { name: "Retry preferences" }).click();
-  await expect(page.getByTestId("account-balance")).toHaveText("12,34");
-  console.log(
-    "PASS storage failure prevents PATCH and original account body retries without cached preferences",
-  );
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.setViewportSize({ width: 320, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });

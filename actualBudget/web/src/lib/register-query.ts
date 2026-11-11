@@ -39,7 +39,6 @@ export const columnLabels: Record<string, string> = {
 };
 export const defaultColumns = [
   "date",
-  "account",
   "payee",
   "notes",
   "category",

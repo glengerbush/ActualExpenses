@@ -363,7 +363,7 @@ try {
     .getByRole("button", { name: "Retry saved restore", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Accounts", exact: true }),
+    page.getByRole("heading", { name: "Transaction history", exact: true }),
   ).toBeVisible();
   expect((await call(`/budgets/${budget.id}`)).generation).toBe(2);
   expect(activations).toHaveLength(2);

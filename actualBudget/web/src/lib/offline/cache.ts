@@ -27,6 +27,7 @@ export interface BudgetCache {
   origin: string;
   budgetId: string;
   accounts: Account[];
+  ledgerAccountId?: string;
   account_groups?: AccountGroup[];
   payees: Reference[];
   categories: Reference[];
@@ -155,10 +156,28 @@ async function saveBudget(value: BudgetCache): Promise<BudgetCache> {
   }
 }
 async function refreshBudgetData(id: string): Promise<BudgetCache> {
+  const { data: initial } = await request<{ data: { epoch: string } }>(
+    `/budgets/${id}/checkpoint`,
+  );
+  const { data: ledger } = await request<{ data: Account }>(
+    `/budgets/${id}/ledger`,
+    {},
+    undefined,
+    "POST",
+    undefined,
+    false,
+    initial.epoch,
+  );
   for (let attempt = 0; attempt < 3; attempt++) {
     const { data: checkpoint } = await request<{
       data: { snapshot: string; epoch: string; generation: number };
     }>(`/budgets/${id}/checkpoint`);
+    if (checkpoint.epoch !== initial.epoch)
+      throw new RequestError(
+        "This budget was restored while preparing transaction history. Reopen the budget to refresh it; saved work is retained.",
+        false,
+        "budget_restored",
+      );
     const cached = await readBudget(id).catch(() => null);
     if (
       cached?.account_groups &&
@@ -166,7 +185,9 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
       cached.snapshot === checkpoint.snapshot
     ) {
       setReachable(true);
-      return cached;
+      return cached.ledgerAccountId === ledger.id
+        ? cached
+        : await saveBudget({ ...cached, ledgerAccountId: ledger.id });
     }
     if (
       cached?.account_groups &&
@@ -174,7 +195,7 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
       cached.epoch === checkpoint.epoch
     ) {
       try {
-        const next = structuredClone(cached);
+        const next = { ...structuredClone(cached), ledgerAccountId: ledger.id };
         let complete = false;
         for (let pages = 0; pages < 100; pages++) {
           const page = await changes(id, next.snapshot);
@@ -262,6 +283,7 @@ async function refreshBudgetData(id: string): Promise<BudgetCache> {
         origin: location.origin,
         budgetId: id,
         accounts,
+        ledgerAccountId: ledger.id,
         account_groups,
         payees,
         categories,

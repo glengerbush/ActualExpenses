@@ -396,7 +396,7 @@
   </div>
   {#if selected.some((row) => row.parent_id)}<p class="hint">
       Split entries are selected individually. Duplicating any child copies its
-      whole split once. Change account, date or status by selecting the parent.
+      whole split once. Change date or status by selecting the parent.
     </p>{/if}
   {#if mergeReview}
     <section aria-label="Duplicate merge review">
@@ -465,7 +465,7 @@
             >{t("Notes")}</option
           ><option value="date">{t("Date")}</option><option value="amount"
             >{t("Amount")}</option
-          ><option value="account_id">{t("Account")}</option><option
+          ><option
             value="payee_id">{t("Payee")}</option
           ><option value="category_id">{t("Category")}</option>
         </select>

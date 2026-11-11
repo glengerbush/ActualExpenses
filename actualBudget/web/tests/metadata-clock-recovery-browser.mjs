@@ -35,12 +35,7 @@ try {
   await mkdir(new URL("../test-results/", import.meta.url), {
     recursive: true,
   });
-  for (const kind of [
-    "account",
-    "account-group",
-    "category",
-    "category-group",
-  ]) {
+  for (const kind of ["category", "category-group"]) {
     const budget = randomUUID(),
       account = randomUUID(),
       name = `Clock recovery ${kind}`;

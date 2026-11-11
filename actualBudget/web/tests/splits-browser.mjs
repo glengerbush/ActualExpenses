@@ -65,7 +65,6 @@ try {
     .locator(".budget-list button")
     .filter({ hasText: "Split household" })
     .click();
-  await page.getByRole("button", { name: "Checking", exact: true }).click();
   await page
     .getByRole("button", { name: "Split transaction", exact: true })
     .click();
@@ -248,10 +247,6 @@ try {
   await page.getByRole("button", { name: "Edit splits", exact: true }).click();
   await mkdir("../../.scratch/ticket14-visuals", { recursive: true });
   await page.getByLabel("Split 1 amount", { exact: true }).focus();
-  await page.keyboard.press("Tab");
-  await expect(
-    page.getByLabel("Split 1 transfer to", { exact: true }),
-  ).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByLabel("Split 1 payee", { exact: true })).toBeFocused();
   await page.screenshot({

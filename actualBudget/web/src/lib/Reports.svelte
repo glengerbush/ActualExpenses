@@ -898,34 +898,6 @@
                         value={interval}>{t(interval)}</option
                       >{/each}</select
                   ></label
-                ><label
-                  >{t("Net worth view")}<select
-                    value={String(meta.mode || "trend")}
-                    onchange={(e) => metadata("mode", e.currentTarget.value)}
-                    ><option value="trend">{t("Trend")}</option><option
-                      value="stacked">{t("Stacked accounts")}</option
-                    ></select
-                  ></label
-                ><label
-                  >{t("Account breakdown")}<select
-                    multiple
-                    value={Array.isArray(meta.accounts)
-                      ? (meta.accounts as string[])
-                      : accounts.map((a) => a.id)}
-                    onchange={(e) =>
-                      metadata(
-                        "accounts",
-                        Array.from(e.currentTarget.selectedOptions).map(
-                          (o) => o.value,
-                        ),
-                      )}
-                    >{#each accounts as account (account.id)}<option
-                        value={account.id}
-                        >{account.name}{account.off_budget
-                          ? t(" (off budget)")
-                          : ""}</option
-                      >{/each}</select
-                  ></label
                 >
               {:else if editor.config.type === "cash-flow-card"}<label
                   class="check"

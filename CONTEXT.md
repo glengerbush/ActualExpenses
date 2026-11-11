@@ -5,7 +5,7 @@ Two applications sharing a budget: focused expense tracking and full budgeting.
 ## Language
 
 **actualExpenses**:
-The Android companion for recording and managing expenses in a selected account. Its scope is expense tracking.
+The Android companion for recording and managing expenses in a selected budget. Its scope is expense tracking.
 
 **actualBudget**:
 The full web application for managing budgets, including features beyond expense tracking. A desktop application is deferred.
@@ -15,14 +15,14 @@ An independent financial dataset containing accounts, transactions, categories a
 _Avoid_: Account
 
 **Account**:
-An account within an Actual budget, such as Spending, whose transactions the user records and reviews.
+An internal compatibility reference retained for imported history and queued operations. Users work with one transaction history per budget; new transactions receive an automatic destination. Account creation, selection and transfers between accounts are no longer product workflows.
 _Avoid_: Login account, user identity
 
 **Transaction**:
-A financial entry belonging to an account. ActualExpenses lets the user add and edit these entries.
+A financial entry in the budget-wide history. Existing internal account references remain intact. ActualExpenses lets the user add and edit these entries.
 
 **Expense**:
-An ordinary money-out transaction in the selected account. ActualExpenses shows only unreconciled expenses, excluding transfers and split transactions.
+An ordinary money-out transaction in the selected budget. ActualExpenses shows only unreconciled expenses, excluding transfers and split transactions.
 
 **Payee**:
 The person or business receiving an expense payment. It may be selected from existing payees or named when recording an expense.

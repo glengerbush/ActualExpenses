@@ -186,7 +186,7 @@
   let extraBalances = $state(true);
   let visibleColumns = $state<string[]>([...defaultColumns]);
   let appliedColumns = $derived(
-    visibleColumns.filter((column) => column !== "account" || !accountId),
+    visibleColumns.filter((column) => column !== "account"),
   );
   async function applyRegisterQuery(
     query: RegisterQuery,
@@ -310,6 +310,7 @@
     selectionRows.filter((row) => selectedIds.includes(row.id)),
   );
   let accounts = $state.raw<Account[]>([]);
+  let ledgerAccountId = $state<string | null>(null);
   let payees = $state.raw<Reference[]>([]);
   let categories = $state.raw<Reference[]>([]);
   let loading = $state(true);
@@ -385,6 +386,7 @@
       }
       if (cachedBudget) {
         accounts = cachedBudget.accounts;
+        ledgerAccountId = cachedBudget.ledgerAccountId ?? null;
         payees = cachedBudget.payees;
         categories = cachedBudget.categories;
         preferences.useCachedBudget(
@@ -417,6 +419,7 @@
       register = page;
       filterDate = page.as_of ?? "";
       accounts = referenceData.accounts;
+      ledgerAccountId = referenceData.ledgerAccountId ?? null;
       payees = referenceData.payees;
       categories = referenceData.categories;
       preferences.useCachedBudget(
@@ -775,27 +778,11 @@
         !!pending ||
         showForm ||
         splitActive ||
-        accounts.length === 0 ||
+        !ledgerAccountId ||
         !!recoveryError ||
         !preferences.hasUsableShared ||
         !viewMatchesEpoch ||
         !compatible}>{t("Add transaction")}</button
-    >
-    <button
-      onclick={() => openTransfer("create")}
-      disabled={bulkActive ||
-        disconnected ||
-        loading ||
-        busy ||
-        showForm ||
-        splitActive ||
-        !!pending ||
-        !!recoveryError ||
-        !preferences.hasUsableShared ||
-        !viewMatchesEpoch ||
-        !compatible ||
-        accounts.filter((a) => !a.closed && !a.deleted).length < 2}
-      >Move money</button
     >
     {#if accountId}<button
         onclick={() => openTransfer("close")}
@@ -1039,7 +1026,7 @@
         {categories}
         mode={transferMode}
         initial={editing}
-        defaultAccountId={accountId}
+        defaultAccountId={ledgerAccountId ?? accountId}
         onschedule={scheduleFuture}
         oncomplete={(message) => void changed(message)}
         oncancel={() => {
@@ -1057,7 +1044,7 @@
         initial={editing}
         {queued}
         {disconnected}
-        defaultAccountId={accountId}
+        defaultAccountId={ledgerAccountId ?? accountId}
         onschedule={scheduleFuture}
         oncomplete={(_transaction, message) => void changed(message)}
         oncancel={() => {
@@ -1286,17 +1273,7 @@
                   hidden={!!row.parent_id}
                   aria-label={`${t("Delete")} ${description(row)}`}
                   >{t("Delete")}</button
-                >{#if !row.transfer_id && !row.starting_balance && !row.is_parent && !row.parent_id}<button
-                    onclick={() => openTransfer("link", row)}
-                    disabled={disconnected ||
-                      loading ||
-                      busy ||
-                      showForm ||
-                      splitActive ||
-                      bulkActive ||
-                      !!pending ||
-                      !!recoveryError}>Link transfer</button
-                  >{/if}</td
+                ></td
               >
             </tr>
             {#if deleting?.id === row.id}<tr class="delete-confirmation"
@@ -1328,7 +1305,7 @@
         ? !isDefaultQuery(confirmedQuery)
           ? "No transactions match these filters."
           : t("No transactions yet. Add an income or expense to begin.")
-        : t("Create an account before recording transactions.")}
+        : t("Connect to prepare this budget for recording transactions.")}
     </p>{/if}
 </section>
 

@@ -43,88 +43,23 @@ try {
     budget,
   );
   await page.reload();
-  await page.getByRole("button", { name: "Add account", exact: true }).click();
-  await page
-    .getByLabel("Account name", { exact: true })
-    .fill("Pending account");
-  const original = await page.evaluate(
-    (budget) =>
-      JSON.parse(
-        localStorage.getItem("actualBudget.creation.v1.account." + budget),
-      ),
-    budget,
+  const firstEpoch = (
+    await (await fetch(api + "/api/v1" + root + "/checkpoint")).json()
+  ).data.epoch;
+  await write(
+    root + `/backups/${point.id}/restore`,
+    { confirm_name: "Generation recovery" },
+    "POST",
+    firstEpoch,
   );
-  expect(original.budget_epoch).toMatch(/^[a-f0-9]{32}$/);
-  await write(root + `/backups/${point.id}/restore`, {
-    confirm_name: "Generation recovery",
-  });
-  await page
-    .getByRole("button", { name: "Create account", exact: true })
-    .click();
-  await expect(
-    page.getByText("This budget was restored.", { exact: false }).first(),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Review current budget", exact: true })
-    .click();
-  await expect(
-    page.getByText("Current accounts: none.", { exact: true }),
-  ).toBeVisible();
-  await mkdir(new URL("../test-results/", import.meta.url), {
-    recursive: true,
-  });
-  await page.setViewportSize({ width: 320, height: 800 });
-  await page.addStyleTag({ content: "html {font-size:200%}" });
-  expect(
-    await page.evaluate(() => document.documentElement.scrollWidth),
-  ).toBeLessThanOrEqual(320);
-  await page.screenshot({
-    path: fileURLToPath(
-      new URL(
-        "../test-results/account-generation-recovery.png",
-        import.meta.url,
-      ),
-    ),
-    fullPage: true,
-  });
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await page.addStyleTag({ content: "html {font-size:100%}" });
-  await page
-    .getByRole("button", { name: "Reapply as a new account", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Create account", exact: true })
-    .click();
-  await expect(
-    page.getByRole("button", { name: "Add transaction", exact: true }),
-  ).toBeEnabled();
-  const accounts = (
-    await (await fetch(api + "/api/v1" + root + "/accounts")).json()
-  ).data;
-  expect(accounts).toHaveLength(1);
-  expect(accounts[0].name).toBe("Pending account");
-  expect(accounts[0].id).not.toBe(original.draft_id);
-  const firstEpoch = original.budget_epoch;
-  const oldBody = {
-    id: original.draft_id,
-    name: "Pending account",
-    opening_balance: 0,
-    opening_date: original.fields.date,
-    notes: "",
-    off_budget: false,
-  };
   async function delayedAccount() {
-    return fetch(api + "/api/v1" + root + "/accounts", {
+    return fetch(api + "/api/v1" + root + "/ledger", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Idempotency-Key": original.draft_id,
-        "X-Actual-Budget-Epoch": firstEpoch,
-      },
-      body: JSON.stringify(oldBody),
+      headers: { "X-Actual-Budget-Epoch": firstEpoch },
     });
   }
   expect((await delayedAccount()).status).toBe(409);
+  await page.reload();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.locator("#number-format").selectOption("dot-comma");
   const settings = await page.evaluate(
@@ -172,7 +107,7 @@ try {
   ).data;
   expect(current.number_format).toBe("dot-comma");
   console.log(
-    "Budget epoch browser: account draft captured before restore; review/reapply fresh identity passed",
+    "Budget epoch browser: stale ledger preparation rejected; settings review/reapply passed",
   );
 } finally {
   await browser?.close();

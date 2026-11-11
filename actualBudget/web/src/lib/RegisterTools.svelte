@@ -121,7 +121,7 @@
       const view = result.data.settings.views[scope()];
       if (view && !preserveDraft) {
         query = structuredClone(view.query);
-        columns = [...view.columns];
+        columns = view.columns.filter((column) => column !== "account");
         extraBalances = view.show_extra_balances ?? true;
       }
       if (apply && view && !preserveDraft)
@@ -237,7 +237,7 @@
       const view = response.data.settings.views[scope()];
       if (view) {
         query = structuredClone(view.query);
-        columns = [...view.columns];
+        columns = view.columns.filter((column) => column !== "account");
         extraBalances = view.show_extra_balances ?? true;
         await onapply(
           $state.snapshot(query),
@@ -321,18 +321,6 @@
       void apply();
     }}
   >
-    {#if !accountId}<label
-        >Account scope<select
-          bind:value={query.account_scope}
-          disabled={busy || locked || disconnected || !!pending}
-          onchange={changeScope}
-          ><option value="all">{t("All accounts")}</option><option
-            value="onbudget">{t("On budget")}</option
-          ><option value="offbudget">{t("Off budget")}</option><option
-            value="closed">{t("Closed accounts")}</option
-          ><option value="uncategorized">{t("Uncategorized")}</option></select
-        ></label
-      >{/if}
     <label
       >Search transactions<input
         type="search"
@@ -349,7 +337,7 @@
           >{t("Amount")}</option
         ><option value="payee">{t("Payee")}</option><option value="category"
           >{t("Category")}</option
-        ><option value="account">{t("Account")}</option><option value="notes"
+        ><option value="notes"
           >{t("Notes")}</option
         ><option value="cleared">{t("Cleared")}</option><option
           value="reconciled">{t("Reconciled")}</option
@@ -405,7 +393,7 @@
             >Field {index + 1}<select
               bind:value={condition.field}
               onchange={() => changeField(condition)}
-              >{#each ["notes", "amount", "date", "cleared", "reconciled", "account", "payee", "category", "category_group", "account_name", "payee_name", "category_name", "category_group_name", "transfer", "parent"] as field (field)}<option
+              >{#each ["notes", "amount", "date", "cleared", "reconciled", "payee", "category", "category_group", "payee_name", "category_name", "category_group_name", "transfer", "parent"] as field (field)}<option
                   value={field}>{field.replaceAll("_", " ")}</option
                 >{/each}</select
             ></label
@@ -478,7 +466,7 @@
     <fieldset disabled={busy || locked || disconnected || !!pending}>
       <legend>Columns</legend>
       <div class="columns">
-        {#each Object.entries(columnLabels) as [id, label] (id)}<label
+        {#each Object.entries(columnLabels).filter(([key]) => key !== "account") as [id, label] (id)}<label
             class="check"
             ><input
               type="checkbox"

@@ -278,19 +278,13 @@ try {
   expect(
     (await call(`/budgets/${budget}/transactions/${existing}`)).data.notes,
   ).toBe("Newer remote future note");
-  // New transfer drafts preserve the source, destination and original identity.
-  await page.getByRole("button", { name: "Move money", exact: true }).click();
-  await page
-    .getByLabel("To account", { exact: true })
-    .selectOption(destination);
-  await page.getByLabel("Amount", { exact: true }).fill("-5.00");
+  // A new expense draft preserves its original identity during schedule conversion.
+  await page.getByRole("button", { name: "Add transaction", exact: true }).click();
+  await page.getByLabel("Amount", { exact: true }).fill("5.00");
   await page.getByLabel("Date", { exact: true }).fill(inputDate);
   await page
-    .getByRole("button", { name: "Schedule future transfer", exact: true })
+    .getByRole("button", { name: "Schedule future transaction", exact: true })
     .click();
-  await expect(page.locator(".conversion")).toContainText(
-    "Transfer destination: Savings",
-  );
   await expect(
     page.getByRole("button", {
       name: "Confirm schedule conversion",
@@ -340,7 +334,7 @@ try {
   ).toHaveCount(0);
   expect(
     await page.evaluate(
-      (b) => localStorage.getItem(`actualBudget.transfers.v1.${b}`),
+      (b) => localStorage.getItem(`actualBudget.transaction.v1.${b}`),
       budget,
     ),
   ).toBeNull();
@@ -350,7 +344,7 @@ try {
   ).toHaveLength(2);
   expect(errors).toEqual([]);
   console.log(
-    "PASS future draft/existing/transfer conversion, write-free review, immutable lost-ACK and stale-snapshot cancellation recovery, original-ID reservation and responsive review",
+    "PASS future draft/existing conversion, write-free review, immutable lost-ACK and stale-snapshot cancellation recovery, original-ID reservation and responsive review",
   );
 } catch (e) {
   if (page) {

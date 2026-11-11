@@ -37,6 +37,8 @@ private data class NativeState(
     var budgetId: String? = null,
     var epoch: String = "",
     var accountId: String? = null,
+    var unifiedLedger: Boolean = false,
+    var ledgerInitialized: Boolean = false,
     var checkpoint: String? = null,
     var node: String = UUID.randomUUID().toString().replace("-", "").takeLast(16),
     var clock: String = ZERO_TIMESTAMP,
@@ -133,7 +135,7 @@ class ApiExpenseService(
         val account = saved.accountId
         val eligible =
             rows.values
-                .filter { eligible(it) && it.text("account_id") == account }
+                .filter { eligible(it) && (saved.unifiedLedger || it.text("account_id") == account) }
                 .sortedWith(
                     compareByDescending<JsonObject> { it.text("date") }
                         .thenByDescending { orderKey(it) }
@@ -143,14 +145,10 @@ class ApiExpenseService(
         val recent = eligible.take(10)
         val visible = recent.toMutableList()
         eligible.filter { it.text("id") in pendingIds && it !in visible }.forEach(visible::add)
-        eligible
-            .find {
-                it.text("id") == saved.retained[retentionKey(saved.budgetId, account)] &&
-                    it !in visible
-            }
-            ?.let(visible::add)
+        val retainedIds = retainedIds(saved, saved.budgetId, account)
+        eligible.filter { it.text("id") in retainedIds && it !in visible }.forEach(visible::add)
         saved.pending
-            .filter { it.deletes && it.accountId == account }
+            .filter { it.deletes && (saved.unifiedLedger || it.accountId == account) }
             .forEach { op ->
                 saved.rows[op.transactionId]
                     ?.takeIf { row -> visible.none { it.text("id") == row.text("id") } }
@@ -445,7 +443,7 @@ class ApiExpenseService(
             }
             require(saved.budgets.any { it.fileId == id }) { "Choose an available budget." }
         }
-        bootstrap(id, saved.rememberedAccounts[scopeKey(saved.server, id)])
+        bootstrap(id, saved.rememberedAccounts[scopeKey(saved.server, id)], unified = "unified_ledger" in capabilities)
         scheduleError=null
     }
 
@@ -453,6 +451,7 @@ class ApiExpenseService(
         ready()
         require(state().accounts.any { it.id == id }) { "Choose an open account." }
         val budget = saved.budgetId ?: error("Choose a budget first.")
+        change { it.unifiedLedger = false }
         if (saved.accounts[id]?.let(::availableAccount) != true) {
             require(saved.pending.any { it.accountId == id }) { "Choose an open account." }
             change {
@@ -483,12 +482,12 @@ class ApiExpenseService(
         return captureContext()
     }
 
-    private fun captureContext(): ExpenseContext {
+    private fun captureContext(accountId: String? = saved.accountId): ExpenseContext {
         val currency = saved.preferences.text("currency_code").orEmpty()
         return ExpenseContext(
             saved.server,
             saved.budgetId ?: error("Choose a budget first."),
-            saved.accountId ?: error("Choose an account first."),
+            accountId ?: error("Connect to prepare this budget."),
             saved.epoch,
             currency,
             if (currency in setOf("IRR", "JPY", "KRW")) 0 else 2,
@@ -501,7 +500,7 @@ class ApiExpenseService(
             context.apiFamily == "actualBudget-v1" &&
                 context.server == saved.server &&
                 context.budgetId == saved.budgetId &&
-                context.accountId == saved.accountId
+                (context.accountId == saved.accountId || (saved.unifiedLedger && saved.accounts.containsKey(context.accountId)))
         ) {
             "This form belongs to a different budget or account. Its values are retained; return to the original selection before saving."
         }
@@ -516,6 +515,10 @@ class ApiExpenseService(
 
     private fun retentionKey(budget: String?, account: String?) =
         "${scopeKey(saved.server,budget)}\u001f$account"
+
+    private fun retainedIds(state: NativeState, budget: String?, account: String?, unified: Boolean = state.unifiedLedger): Collection<String> =
+        if (unified) state.retained.filterKeys { it.startsWith(scopeKey(state.server, budget) + "\u001f") }.values
+        else listOfNotNull(state.retained[retentionKey(budget, account)])
 
     private fun clearCache(next: NativeState) {
         next.checkpoint = null
@@ -558,7 +561,7 @@ class ApiExpenseService(
                 expense.categoryId,
                 expense.notes,
             ),
-            captureContext(),
+            captureContext(expense.accountId),
         )
     }
 
@@ -566,9 +569,9 @@ class ApiExpenseService(
     fun saveExpense(draft: ExpenseDraft, edit: EditSession? = null): String {
         ready()
         val view = state()
-        val account = saved.accountId ?: error("Choose an account first.")
+        val account = edit?.context?.accountId ?: draft.context?.accountId ?: saved.accountId ?: error("Connect to prepare this budget.")
         val budget = saved.budgetId ?: error("Choose a budget first.")
-        require(saved.accounts[account]?.let(::availableAccount) == true) {
+        require(saved.accounts[account]?.let(::writableAccount) == true) {
             "This account is unavailable. Saved work is retained."
         }
         val context =
@@ -588,7 +591,7 @@ class ApiExpenseService(
         if (edit != null)
             require(
                 (edit.beganOnline || canEdit(id)) &&
-                    projected()[id]?.let { eligible(it) && it.text("account_id") == account } ==
+                    projected()[id]?.let { eligible(it) && (saved.unifiedLedger || it.text("account_id") == account) } ==
                         true
             ) {
                 "This expense cannot be edited here."
@@ -650,7 +653,10 @@ class ApiExpenseService(
                     createdOffline = edit == null && !online,
                 )
             next.clock = clock
-            if (edit == null) next.retained[retentionKey(budget, account)] = id
+            if (edit == null) {
+                if (next.unifiedLedger) next.retained.keys.removeAll { it.startsWith(scopeKey(next.server, budget) + "\u001f") }
+                next.retained[retentionKey(budget, account)] = id
+            }
         }
         return id
     }
@@ -694,7 +700,7 @@ class ApiExpenseService(
                 next.pending +=
                     NativeOperation(
                         transactionId = id,
-                        accountId = saved.accountId!!,
+                        accountId = edit.context!!.accountId,
                         method = "DELETE",
                         path = "/budgets/${next.budgetId}/transactions/$id",
                         clock = clock,
@@ -729,6 +735,8 @@ class ApiExpenseService(
             // Refresh reference availability before delivering captured work so known
             // closed or deleted accounts hold their expenses for explicit recovery.
             val budget = saved.budgetId!!
+            if (!saved.ledgerInitialized && "unified_ledger" in capabilities)
+                bootstrap(budget, saved.accountId, includeView = saved.pending.isEmpty(), unified = true)
             refreshBudget(api, budget, includeView = saved.pending.isEmpty())
             requirePendingAccounts()
             var delivered = false
@@ -999,7 +1007,8 @@ class ApiExpenseService(
     }
 
     private fun refreshBudget(api: BudgetApi, budget: String, includeView: Boolean = true) {
-        if (saved.checkpoint == null) bootstrap(budget, saved.accountId, includeView)
+        if (saved.checkpoint == null || (saved.unifiedLedger && saved.accounts[saved.accountId]?.let(::availableAccount) != true))
+            bootstrap(budget, saved.accountId, includeView)
         else
             try {
                 refreshChanges(api, budget, includeView)
@@ -1030,7 +1039,7 @@ class ApiExpenseService(
 
     private fun pendingAccountError(): String? =
         saved.pending
-            .firstOrNull { saved.accounts[it.accountId]?.let(::availableAccount) != true }
+            .firstOrNull { saved.accounts[it.accountId]?.let(::writableAccount) != true }
             ?.let { op ->
                 val account = saved.accounts[op.accountId]
                 val reason =
@@ -1092,8 +1101,12 @@ class ApiExpenseService(
         throw IllegalStateException("The budget is changing. Retry account selection.")
     }
 
-    private fun bootstrap(budget: String, account: String?, includeView: Boolean = true) {
+    private fun bootstrap(budget: String, account: String?, includeView: Boolean = true, unified: Boolean = saved.unifiedLedger) {
         val api = client()
+        val destination = if (unified) {
+            val epoch = api.request("/budgets/$budget/checkpoint").getAsJsonObject("data")["epoch"].asString
+            api.request("/budgets/$budget/ledger", "POST", "{}", epoch = epoch).getAsJsonObject("data")["id"].asString
+        } else account
         repeat(3) {
             try {
                 val checkpoint = api.request("/budgets/$budget/checkpoint").getAsJsonObject("data")
@@ -1109,11 +1122,11 @@ class ApiExpenseService(
                 val associations = associations(api, budget, snapshot)
                 val prefs =
                     api.request("/budgets/$budget/preferences?$suffix").getAsJsonObject("data")
-                val selected = account?.takeIf { id ->
+                val selected = destination?.takeIf { id ->
                     accounts.any { it.text("id") == id && availableAccount(it) }
                 }
                 val view =
-                    if (includeView) selected?.let { companion(api, budget, it, snapshot) }
+                    if (includeView) selected?.let { companion(api, budget, it, snapshot, unified) }
                     else null
                 change { next ->
                     require(
@@ -1126,6 +1139,8 @@ class ApiExpenseService(
                         next.recent.clear()
                     }
                     next.budgetId = budget
+                    next.unifiedLedger = unified
+                    next.ledgerInitialized = unified || next.ledgerInitialized
                     next.epoch = epoch
                     next.accountId =
                         selected
@@ -1249,20 +1264,21 @@ class ApiExpenseService(
         budget: String,
         account: String,
         snapshot: String,
+        unified: Boolean = saved.unifiedLedger,
     ): JsonObject {
         val retained =
             synchronized(this) {
                 (saved.pending
-                        .filter { it.accountId == account && it.budgetId == budget }
+                        .filter { (unified || it.accountId == account) && it.budgetId == budget }
                         .map { it.transactionId } +
-                        listOfNotNull(saved.retained[retentionKey(budget, account)]))
+                        retainedIds(saved, budget, account, unified))
                     .distinct()
             }
         require(retained.size <= 100) {
             "Deliver pending expenses before loading more than 100 retained entries."
         }
         return api.request(
-                "/budgets/$budget/companion?account_id=$account&retain=${BudgetApi.query(retained.joinToString(","))}&snapshot=${BudgetApi.query(snapshot)}"
+                "/budgets/$budget/companion?${if (unified) "" else "account_id=$account&"}retain=${BudgetApi.query(retained.joinToString(","))}&snapshot=${BudgetApi.query(snapshot)}"
             )
             .getAsJsonObject("data")
     }
@@ -1270,8 +1286,8 @@ class ApiExpenseService(
     private fun installView(next: NativeState, account: String, view: JsonObject) {
         val keep =
             next.pending.map { it.transactionId }.toSet() +
-                listOfNotNull(next.retained[retentionKey(next.budgetId, account)])
-        next.rows.entries.removeAll { it.value.text("account_id") == account && it.key !in keep }
+                retainedIds(next, next.budgetId, account)
+        next.rows.entries.removeAll { (next.unifiedLedger || it.value.text("account_id") == account) && it.key !in keep }
         view.getAsJsonArray("unavailable").forEach {
             if (it.asString !in next.pending.map { op -> op.transactionId })
                 next.rows.remove(it.asString)
@@ -1312,6 +1328,11 @@ class ApiExpenseService(
         } while (offset >= 0)
         return rows
     }
+
+    // Historical closed accounts are still editable in a unified history.
+    // Deleted destinations remain blocked so queued writes cannot resurrect them.
+    private fun writableAccount(row: JsonObject) =
+        row["deleted"]?.asBoolean != true && (saved.unifiedLedger || row["closed"]?.asBoolean != true)
 
     private fun availableAccount(row: JsonObject) =
         row["closed"]?.asBoolean != true && row["deleted"]?.asBoolean != true

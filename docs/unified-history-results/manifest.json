@@ -1,0 +1,166 @@
+{
+  "unified-history-browser": {
+    "file": "unified-history-browser.log.gz",
+    "sha256": "d92a3f2881c0b4404dc57f40fd2feb0d87305a6c29e941e507fe88a4134e8dbe"
+  },
+  "register": {
+    "file": "register.log.gz",
+    "sha256": "ea97f8030d68baccff8b2ce0dac016636bf1ddfb4c40cee3cf1d03486e08bf30"
+  },
+  "register-settings-browser": {
+    "file": "register-settings-browser.log.gz",
+    "sha256": "d616911825ba3a0cdb2ea173d454ed8b68bfa855f78c776fc3026fed6cdb6190"
+  },
+  "navigation-browser": {
+    "file": "navigation-browser.log.gz",
+    "sha256": "15f084f3d522dbc919ef61b51dd4f5ea973d1ec5ca5122130ba277163692c81f"
+  },
+  "preferences-browser": {
+    "file": "preferences-browser.log.gz",
+    "sha256": "ddc2a364ae11f762ed7195b03014012d52bcc9ee50e8f9d9df83a4f55b6c78fb"
+  },
+  "date-recovery-browser": {
+    "file": "date-recovery-browser.log.gz",
+    "sha256": "03984eca77b3af3e26db5ca89d3134c29fe63a381fa0d6e52e082715c57ca211"
+  },
+  "budget-epoch-browser": {
+    "file": "budget-epoch-browser.log.gz",
+    "sha256": "51d3d5c59630eacd5334410688b5e9524ed51b0452109f3cc4d3574101f27f92"
+  },
+  "metadata-clock-recovery-browser": {
+    "file": "metadata-clock-recovery-browser.log.gz",
+    "sha256": "2a0dbed10af984eb6d4e95363cd537d4aca024099acc77b7b717f1f524463d74"
+  },
+  "schedules-browser": {
+    "file": "schedules-browser.log.gz",
+    "sha256": "41748d838a15583b2f9746eab11bfde33a391376572e13d45d6a847bf4f1daf3"
+  },
+  "transaction-import-browser": {
+    "file": "transaction-import-browser.log.gz",
+    "sha256": "4726f5f57e23b66773796f37023aabff5a2c82aeaf4507c0dc296c626e4f4ad9"
+  },
+  "crossover-browser": {
+    "file": "crossover-browser.log.gz",
+    "sha256": "a3f6ccf4600f7d8f5ba90c362cfea41f5c38469105af15afaca2c5cb39424bc8"
+  },
+  "manual-only-browser": {
+    "file": "manual-only-browser.log.gz",
+    "sha256": "893baf2b38875aa0b3da0e3aefb7787e6621047953a364f46268796f2bd0df4c"
+  },
+  "offline-edit-race-browser": {
+    "file": "offline-edit-race-browser.log.gz",
+    "sha256": "b5a1e7ca51ac571c8821abc0d6b7fe3c15041738471724500bc5dd9a2bb311e5"
+  },
+  "register-recovery": {
+    "file": "register-recovery.log.gz",
+    "sha256": "b72efac6302cad3033950fff869950c453f5ec95e04f10145f527bfc5e346f5f"
+  },
+  "locale-controls-browser": {
+    "file": "locale-controls-browser.log.gz",
+    "sha256": "3d9fb2ea23583fd1071d09ec5bb5c9751af98d5d4b10ae0efc5bde47ee176f72"
+  },
+  "imports": {
+    "file": "imports.log.gz",
+    "sha256": "58a673d34a66ce61226f505886f118eacebec4b3edf5c9eb6a0ba9b1fb51629a"
+  },
+  "lifecycle-browser": {
+    "file": "lifecycle-browser.log.gz",
+    "sha256": "12df5bda182dcefbe58cc16266c48440d53a6002fbbea243f1fd9a711913061c"
+  },
+  "recovery-browser": {
+    "file": "recovery-browser.log.gz",
+    "sha256": "8e4215b4ca25a1a5d32ad73db24447eae9a2b3d48f33b750ac68d11077de6864"
+  },
+  "recovery-smoke-browser": {
+    "file": "recovery-smoke-browser.log.gz",
+    "sha256": "eb223164e9e8e3f9baeb417bd85259bf2c2512b49d9e9554c3294e5c24069398"
+  },
+  "splits-browser": {
+    "file": "splits-browser.log.gz",
+    "sha256": "b343428c97431ba3201360567a9b0bf708fe65c7b5e45d82adfe895184d0afff"
+  },
+  "reports-browser": {
+    "file": "reports-browser.log.gz",
+    "sha256": "4f3c24edbbd930edec3b17d06f59063e6c6caf72edbc26bc331c8511715e4e36"
+  },
+  "custom-reports-browser": {
+    "file": "custom-reports-browser.log.gz",
+    "sha256": "73f1e83b03dd8ee59bc91eb77e8502a0256031f5e5b1878723f256692740ba02"
+  },
+  "schedules-recovery-browser": {
+    "file": "schedules-recovery-browser.log.gz",
+    "sha256": "2ac5b07e912e1dc0ae75306be5c354a4a5382478234f4f62a0571af737ac0022"
+  },
+  "schedule-conversion-browser": {
+    "file": "schedule-conversion-browser.log.gz",
+    "sha256": "9677d50abe4a1a227c39a7bb42530149cd884381f50d5d861e322cf56aad3c17"
+  },
+  "paired-protection-browser": {
+    "file": "paired-protection-browser.log.gz",
+    "sha256": "a8241944c258f745a8200be014bacdec09dcf91c9782192a750ec09319364090"
+  },
+  "bulk-history-browser": {
+    "file": "bulk-history-browser.log.gz",
+    "sha256": "bb53a758632bd133ad8772df9d3173ad41506cb381ce1c2a8bf2dc30f1eee931"
+  },
+  "offline-browser": {
+    "file": "offline-browser.log.gz",
+    "sha256": "655c370f5fca43f0ded324ebe952dabbfb78b7362a0620cbd5085e96415cdde6"
+  },
+  "api-map": {
+    "file": "api-map.log.gz",
+    "sha256": "cfba365f2b6f1cfed8428e87b5749558223d543cf1f1709a6911af503394d44a"
+  },
+  "android-api-full": {
+    "file": "android-api-full.log.gz",
+    "sha256": "13e78fc50af0f08252407da812c7dcb9263b686e93e3e82fa1534e957fa73bdf"
+  },
+  "android-closed-history-corrected": {
+    "file": "android-closed-history-corrected.log.gz",
+    "sha256": "f5c1ca9be161e1ee616f8d367fc37bcf2985f3236425ab7c195ba384021a1ef5"
+  },
+  "android-retention": {
+    "file": "android-retention.log.gz",
+    "sha256": "f77c79c8c2d71ede1821d5884eb2718c9572cbec60df9b3d181362e3a5243636"
+  },
+  "android-ui-initial": {
+    "file": "android-ui-initial.log.gz",
+    "sha256": "d121037f214792d30d754881e8b24c41033babbe92e758c6f772f837adaf9d70"
+  },
+  "android-ui-corrected": {
+    "file": "android-ui-corrected.log.gz",
+    "sha256": "6a9e99a652857e14cf43eccc88b1a2a1bc31e750e5472016e6e79a2a2ec8091c"
+  },
+  "android-ui-dark-large": {
+    "file": "android-ui-dark-large.log.gz",
+    "sha256": "634a8fb760336ccfe84f02eee662f69d427acdd151b7012b82cc0aa62142ff31"
+  },
+  "svelte-autofixer": {
+    "file": "svelte-autofixer.log.gz",
+    "sha256": "d166b6a0f4c99eb8dac541050f0726f1a12dbf727c8b69d6954386c119af8761"
+  },
+  "svelte-upcoming": {
+    "file": "svelte-upcoming.log.gz",
+    "sha256": "1797a5028c7d8e36033d5709f9548e8ee9be525d51ac09b3378c8919023af4fb"
+  },
+  "production-build": {
+    "file": "production-build.log.gz",
+    "sha256": "4d8d044adfcdccd2739d762b4cafc71d7f09d485601b9195794d0e23192efb12"
+  },
+  "container-build": {
+    "file": "container-build.log.gz",
+    "sha256": "aa913c67a878a25c2cea28b5a8323532ae1462f0256083cb4601ca92598da74c"
+  },
+  "rust-companion": {
+    "file": "rust-companion.log.gz",
+    "sha256": "16618f4c09122b934b671266eb99de1380a4f782fc5370f822dc487df49b383c"
+  },
+  "android-prior-server-upgrade-lint": {
+    "file": "android-prior-server-upgrade-lint.log.gz",
+    "sha256": "df3536b3912c37f74d6eeea268b963c1f256690510781d70678fef19934e4b92"
+  },
+  "android-final-apk-lint": {
+    "file": "android-final-apk-lint.log.gz",
+    "sha256": "9652a76665eb117a803bdfc102b19afe492619c032eb4b7b42edeb38288f3901"
+  }
+}

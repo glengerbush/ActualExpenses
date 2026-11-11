@@ -181,7 +181,7 @@ try {
   await open(page);
   await page.getByRole("button", { name: "Retry saved activation" }).click();
   await expect(
-    page.getByRole("heading", { name: "Accounts", exact: true }),
+    page.getByRole("heading", { name: "Transaction history", exact: true }),
   ).toBeVisible();
   expect(activations).toHaveLength(2);
   expect(activations[1]).toEqual(activations[0]);
@@ -195,11 +195,8 @@ try {
   expect(
     activatedBudgets.filter((budget) => budget.id === staged.budget_id),
   ).toHaveLength(1);
-  await page
-    .getByRole("button", { name: /^Spending 314\.34/ })
-    .first()
-    .click();
-  await expect(page.getByTestId("register-total")).toHaveText("314.34");
+  // Source fixture: Spending 314.34 plus the other historical balance -50.00.
+  await expect(page.getByTestId("register-total")).toHaveText("264.34");
   await expect(
     page.getByText("Corrected expense", { exact: true }),
   ).toBeVisible();

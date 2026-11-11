@@ -21,7 +21,17 @@ class ExpenseWorkflowTest {
     @get:Rule val compose = createComposeRule()
     private val actions = RecordingActions()
     private val account = Choice("spending", "Spending")
-    private val state = ExpenseUiState(screen = Screen.EXPENSES, selectedAccount = account, accounts = listOf(account), online = true)
+    private val state = ExpenseUiState(screen = Screen.EXPENSES, selectedBudget = account, online = true, expenseContext = ExpenseContext("http://fixture", "budget", "spending", "00000000000000000000000000000000", "USD", 2, "comma-dot"))
+
+    @Test fun expenseHistoryUsesBudgetNavigationWithoutAccounts() {
+        compose.setContent { ActualExpensesTheme { ExpensesScreen(state, actions) } }
+        compose.onNodeWithContentDescription("Choose account").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Add expense").assertIsDisplayed()
+        val directory = File(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null), "review").apply { mkdirs() }
+        File(directory, "unified-history.png").outputStream().use { compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, it) }
+        compose.onNodeWithContentDescription("Choose budget").performClick()
+        compose.runOnIdle { assertTrue(actions.budgetSelection) }
+    }
 
     @Test fun rejectedSplitEditHasExplicitRecoveryOutsideExpenseList() {
         compose.setContent { ActualExpensesTheme { ExpensesScreen(state.copy(splitRecovery=true,pendingCount=1),actions) } }
@@ -120,7 +130,7 @@ class ExpenseWorkflowTest {
 
     @Test fun preservedLegacyWorkShowsRecoveryWithoutSetupOrExpenseActions() {
         compose.setContent { ActualExpensesTheme { ExpensesScreen(ExpenseUiState(screen=Screen.RECOVERY,recoveryMessage="Previous budget and pending changes are preserved. Keep app data intact."),actions) } }
-        compose.onNodeWithText("Saved work needs migration").assertExists()
+        compose.onNodeWithText("Recover saved expenses").assertExists()
         compose.onNodeWithText("Keep app data intact.",substring=true).assertExists()
         compose.onNodeWithText("Connect",substring=false).assertDoesNotExist()
         compose.onNodeWithContentDescription("Add expense").assertDoesNotExist()
@@ -191,9 +201,8 @@ class ExpenseWorkflowTest {
         var server: String? = null
         override fun connect(server: String) {this.server=server}
         override fun chooseBudget(id: String) = Unit
-        override fun chooseAccount(id: String) = Unit
-        override fun showBudgets() = Unit
-        override fun showAccounts() = Unit
+        var budgetSelection = false
+        override fun showBudgets() { budgetSelection = true }
         var retriedSchedules=false
         var cancelledSchedules=false
         override fun retryScheduledWork(){retriedSchedules=true}

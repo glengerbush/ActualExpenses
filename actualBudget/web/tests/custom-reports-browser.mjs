@@ -142,9 +142,7 @@ try {
   ).toHaveAttribute("value", "Category");
   await expect(
     germanGroup.getByRole("option", { name: "Konto", exact: true }),
-  ).toHaveAttribute("value", "Account");
-  await germanGroup.selectOption({ label: "Konto" });
-  await expect(germanGroup).toHaveValue("Account");
+  ).toHaveCount(0);
   await germanGroup.selectOption({ label: "Kategorie" });
   await page
     .getByRole("button", { name: "Preview report", exact: true })

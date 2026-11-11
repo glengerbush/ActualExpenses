@@ -1,0 +1,96 @@
+[
+  {
+    "name": "empty",
+    "archive_sha256": "0be31ee66756a80f79c27ebc5b887f5c8f03e04dd96d6a290ebb59a104111e29",
+    "source_archive_sha256": "894f254a8423554b31a20066ed5035d474f2c9a4ebe049eb231e9d33fbbcb468",
+    "ledger_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "transactions": 0,
+    "date_range": null,
+    "import_ms": 29.63522499999999,
+    "activation_ms": 21.53257099999996,
+    "balances": [
+      {
+        "id": "327e6c74-3c22-4a43-bba8-b665f355e025",
+        "balance": 0
+      }
+    ]
+  },
+  {
+    "name": "typical",
+    "archive_sha256": "57d3967bbe1679cfa9f98ce73f53bc355a1631b47fc5e3885600f8afc2febc65",
+    "source_archive_sha256": "718ce38aea766252958fd53d04211179c5fd3a28924f803e83b41a290c9dd621",
+    "ledger_sha256": "c5afaa82636ec95e3ddca64858a9fa5050199d370f7b0a63dde236cf333ca0d1",
+    "transactions": 48,
+    "date_range": [
+      "2025-11-12",
+      "2027-01-05"
+    ],
+    "import_ms": 19.284584999999993,
+    "activation_ms": 40.92582300000004,
+    "balances": [
+      {
+        "id": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "balance": -407788
+      },
+      {
+        "id": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+        "balance": 7000
+      },
+      {
+        "id": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+        "balance": 2000
+      },
+      {
+        "id": "2d0d5b02-942d-483b-a6f5-6e86d6d5bce5",
+        "balance": 200000
+      },
+      {
+        "id": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+        "balance": 101600
+      },
+      {
+        "id": "3076d7dc-590c-475c-bbfc-51e5fbd1eb86",
+        "balance": 1200000
+      }
+    ]
+  },
+  {
+    "name": "large",
+    "archive_sha256": "859ce7e5dcdafb6c81786ea9a736238e3294ac44c5f89aefc58939393936220d",
+    "source_archive_sha256": "0f9e8b8f01c7aa5bed01663f2ed6e3eea28ecd0249cd9d9cedcefc930b6cb0a5",
+    "ledger_sha256": "447d8bdf276795c1b4eaf8056b163ec6c57d826c9b0ae20fba247d945bb13326",
+    "transactions": 10048,
+    "date_range": [
+      "2017-01-01",
+      "2027-01-05"
+    ],
+    "import_ms": 689.9761880000001,
+    "activation_ms": 4476.172348,
+    "balances": [
+      {
+        "id": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "balance": -50402789
+      },
+      {
+        "id": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+        "balance": 7000
+      },
+      {
+        "id": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+        "balance": 2000
+      },
+      {
+        "id": "2d0d5b02-942d-483b-a6f5-6e86d6d5bce5",
+        "balance": 200000
+      },
+      {
+        "id": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+        "balance": 101600
+      },
+      {
+        "id": "3076d7dc-590c-475c-bbfc-51e5fbd1eb86",
+        "balance": 1200000
+      }
+    ]
+  }
+]

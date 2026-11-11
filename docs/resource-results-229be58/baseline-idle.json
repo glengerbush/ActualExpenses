@@ -1,0 +1,113 @@
+{
+  "variant": "baseline",
+  "budget": "large",
+  "archive_sha256": "859ce7e5dcdafb6c81786ea9a736238e3294ac44c5f89aefc58939393936220d",
+  "settle_seconds": 60,
+  "observation_seconds": 60,
+  "periods": [
+    {
+      "name": "settling",
+      "elapsed_ms": 60003.880062,
+      "server_memory_before": {
+        "time": "2026-11-11T03:09:16.625Z",
+        "anonymous_bytes": 266424320,
+        "file_bytes": 4096,
+        "cgroup_current_bytes": 275660800
+      },
+      "server_memory_after": {
+        "time": "2026-11-11T03:10:16.634Z",
+        "anonymous_bytes": 266424320,
+        "file_bytes": 4096,
+        "cgroup_current_bytes": 275623936
+      },
+      "origin_state_unchanged": true,
+      "origin_file_events": [
+        {
+          "elapsed_ms": 51420.027692999996,
+          "event": "change",
+          "path": "Default/Local Storage/leveldb/000003.log"
+        },
+        {
+          "elapsed_ms": 51420.105168,
+          "event": "change",
+          "path": "Default/Local Storage/leveldb/000003.log"
+        }
+      ],
+      "browser_profile_event_count": 156,
+      "browser_profile_changed_files": [
+        ".org.chromium.Chromium.Local State.4yIRQ9",
+        "Default/.org.chromium.Chromium.Preferences.R9cfMa",
+        "Default/.org.chromium.Chromium.Preferences.dCLEVY",
+        "Default/.org.chromium.Chromium.Preferences.opNHVO",
+        "Default/.org.chromium.Chromium.Secure Preferences.inugPk",
+        "Default/Cache/Cache_Data/33fe54b689e95ef3_0",
+        "Default/Cache/Cache_Data/index-dir/the-real-index",
+        "Default/Code Cache/js/index-dir/the-real-index",
+        "Default/Code Cache/wasm/index-dir/the-real-index",
+        "Default/Favicons",
+        "Default/Favicons-journal",
+        "Default/History",
+        "Default/History-journal",
+        "Default/Local Storage/leveldb/000003.log",
+        "Default/Preferences",
+        "Default/Secure Preferences",
+        "Default/Service Worker/CacheStorage/65d93f7ef3bc6e6b3d38e96c665ef45de864828b/9cdd0dd4-2e89-4e62-b5bb-e861fd8b389a/index-dir/the-real-index",
+        "Default/Service Worker/CacheStorage/65d93f7ef3bc6e6b3d38e96c665ef45de864828b/index.txt",
+        "Default/Service Worker/ScriptCache/index-dir/the-real-index",
+        "Default/Sessions/Session_13438840150533510",
+        "Default/Top Sites",
+        "Default/Top Sites-journal",
+        "Default/WebStorage/QuotaManager",
+        "Default/WebStorage/QuotaManager-journal",
+        "Default/shared_proto_db/000003.log",
+        "Local State",
+        "SingletonCookie",
+        "SingletonLock",
+        "component_crx_cache/.org.chromium.Chromium.metadata.json.PoWg9J",
+        "component_crx_cache/metadata.json",
+        "extensions_crx_cache/.org.chromium.Chromium.metadata.json.qZO7lY",
+        "extensions_crx_cache/metadata.json",
+        "segmentation_platform/ukm_db",
+        "segmentation_platform/ukm_db-wal"
+      ],
+      "requests": []
+    },
+    {
+      "name": "steady-idle",
+      "elapsed_ms": 60002.161565999995,
+      "server_memory_before": {
+        "time": "2026-11-11T03:10:17.666Z",
+        "anonymous_bytes": 266424320,
+        "file_bytes": 4096,
+        "cgroup_current_bytes": 275623936
+      },
+      "server_memory_after": {
+        "time": "2026-11-11T03:11:17.672Z",
+        "anonymous_bytes": 77414400,
+        "file_bytes": 4096,
+        "cgroup_current_bytes": 81022976
+      },
+      "origin_state_unchanged": true,
+      "origin_file_events": [],
+      "browser_profile_event_count": 31,
+      "browser_profile_changed_files": [
+        "BrowserMetrics-spare.pma",
+        "BrowserMetrics-spare.pma.tmp",
+        "Default/.org.chromium.Chromium.Preferences.qJo9xX",
+        "Default/WebStorage/QuotaManager",
+        "Default/WebStorage/QuotaManager-journal",
+        "Default/shared_proto_db/000003.log",
+        "SingletonCookie",
+        "SingletonLock",
+        "segmentation_platform/ukm_db-wal"
+      ],
+      "requests": []
+    }
+  ],
+  "before_browser": {
+    "time": "2026-11-11T03:09:07.782Z",
+    "anonymous_bytes": 241422336,
+    "file_bytes": 0,
+    "cgroup_current_bytes": 251125760
+  }
+}

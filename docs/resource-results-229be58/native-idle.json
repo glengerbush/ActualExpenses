@@ -1,0 +1,161 @@
+{
+  "variant": "native",
+  "budget": "large",
+  "archive_sha256": "859ce7e5dcdafb6c81786ea9a736238e3294ac44c5f89aefc58939393936220d",
+  "settle_seconds": 60,
+  "observation_seconds": 60,
+  "periods": [
+    {
+      "name": "settling",
+      "elapsed_ms": 60003.254724,
+      "server_memory_before": {
+        "time": "2026-11-11T03:11:20.964Z",
+        "anonymous_bytes": 6565888,
+        "file_bytes": 32768,
+        "cgroup_current_bytes": 7639040
+      },
+      "server_memory_after": {
+        "time": "2026-11-11T03:12:20.972Z",
+        "anonymous_bytes": 6471680,
+        "file_bytes": 32768,
+        "cgroup_current_bytes": 7053312
+      },
+      "origin_state_unchanged": true,
+      "origin_file_events": [
+        {
+          "elapsed_ms": 4027.1018449999997,
+          "event": "change",
+          "path": "Default/Local Storage/leveldb/000003.log"
+        },
+        {
+          "elapsed_ms": 4027.2956310000004,
+          "event": "change",
+          "path": "Default/Local Storage/leveldb/000003.log"
+        },
+        {
+          "elapsed_ms": 58270.639439,
+          "event": "change",
+          "path": "Default/Local Storage/leveldb/000003.log"
+        },
+        {
+          "elapsed_ms": 58270.811124,
+          "event": "change",
+          "path": "Default/Local Storage/leveldb/000003.log"
+        }
+      ],
+      "browser_profile_event_count": 287,
+      "browser_profile_changed_files": [
+        ".org.chromium.Chromium.Local State.OlavS0",
+        "Default/.org.chromium.Chromium.BookmarkMergedSurfaceOrdering.2f75r2",
+        "Default/.org.chromium.Chromium.Network Persistent State.HFu7QT",
+        "Default/.org.chromium.Chromium.Preferences.OMIDbx",
+        "Default/.org.chromium.Chromium.Preferences.f7DI3t",
+        "Default/.org.chromium.Chromium.Preferences.t4dNMi",
+        "Default/.org.chromium.Chromium.Secure Preferences.7eja78",
+        "Default/AutofillAiModelCache",
+        "Default/AutofillAiModelCache/LOCK",
+        "Default/AutofillAiModelCache/LOG",
+        "Default/AutofillStrikeDatabase",
+        "Default/AutofillStrikeDatabase/LOCK",
+        "Default/AutofillStrikeDatabase/LOG",
+        "Default/BookmarkMergedSurfaceOrdering",
+        "Default/BudgetDatabase",
+        "Default/BudgetDatabase/LOCK",
+        "Default/BudgetDatabase/LOG",
+        "Default/Cache/Cache_Data/9f7425c085ae6b28_0",
+        "Default/Cache/Cache_Data/a2804c30dca47941_0",
+        "Default/Cache/Cache_Data/a68b83d605657c94_0",
+        "Default/Cache/Cache_Data/todelete_9f7425c085ae6b28_0_1",
+        "Default/Cache/Cache_Data/todelete_a2804c30dca47941_0_1",
+        "Default/Cache/Cache_Data/todelete_a68b83d605657c94_0_1",
+        "Default/Code Cache/js/index-dir/the-real-index",
+        "Default/DIPS",
+        "Default/DIPS-journal",
+        "Default/DIPS-wal",
+        "Default/GCM Store",
+        "Default/GCM Store/000003.log",
+        "Default/GCM Store/CURRENT",
+        "Default/GCM Store/LOCK",
+        "Default/GCM Store/LOG",
+        "Default/GCM Store/MANIFEST-000001",
+        "Default/History",
+        "Default/History-journal",
+        "Default/Local Storage/leveldb/000003.log",
+        "Default/Network Action Predictor",
+        "Default/Network Action Predictor-journal",
+        "Default/Network Persistent State",
+        "Default/Preferences",
+        "Default/PreferredApps",
+        "Default/Secure Preferences",
+        "Default/Session Storage/000003.log",
+        "Default/Sessions/Session_13438840281723139",
+        "Default/Shortcuts",
+        "Default/Shortcuts-journal",
+        "Default/Top Sites",
+        "Default/Top Sites-journal",
+        "Default/Web Data",
+        "Default/Web Data-journal",
+        "Default/WebStorage/QuotaManager",
+        "Default/WebStorage/QuotaManager-journal",
+        "Default/blob_storage",
+        "Default/blob_storage/287f4cb2-083a-40a2-b9c1-5a0ddd1fec99",
+        "Default/heavy_ad_intervention_opt_out.db",
+        "Default/heavy_ad_intervention_opt_out.db-journal",
+        "Default/shared_proto_db/000003.log",
+        "Default/shared_proto_db/metadata/000003.log",
+        "Local State",
+        "SingletonCookie",
+        "SingletonLock",
+        "component_crx_cache/.org.chromium.Chromium.metadata.json.4tbrwN",
+        "component_crx_cache/metadata.json",
+        "extensions_crx_cache",
+        "extensions_crx_cache/.org.chromium.Chromium.metadata.json.TBKKUI",
+        "extensions_crx_cache/metadata.json",
+        "segmentation_platform/ukm_db",
+        "segmentation_platform/ukm_db-wal"
+      ],
+      "requests": []
+    },
+    {
+      "name": "steady-idle",
+      "elapsed_ms": 60001.334104999994,
+      "server_memory_before": {
+        "time": "2026-11-11T03:12:21.115Z",
+        "anonymous_bytes": 6471680,
+        "file_bytes": 32768,
+        "cgroup_current_bytes": 7053312
+      },
+      "server_memory_after": {
+        "time": "2026-11-11T03:13:21.120Z",
+        "anonymous_bytes": 7544832,
+        "file_bytes": 32768,
+        "cgroup_current_bytes": 8130560
+      },
+      "origin_state_unchanged": true,
+      "origin_file_events": [],
+      "browser_profile_event_count": 32,
+      "browser_profile_changed_files": [
+        "BrowserMetrics-spare.pma",
+        "BrowserMetrics-spare.pma.tmp",
+        "Default/.org.chromium.Chromium.Preferences.0aN5Qp",
+        "Default/Cache/Cache_Data/9f7425c085ae6b28_0",
+        "Default/Cache/Cache_Data/a2804c30dca47941_0",
+        "Default/Cache/Cache_Data/todelete_9f7425c085ae6b28_0_1",
+        "Default/Cache/Cache_Data/todelete_a2804c30dca47941_0_1",
+        "Default/WebStorage/QuotaManager",
+        "Default/WebStorage/QuotaManager-journal",
+        "Default/shared_proto_db/000003.log",
+        "SingletonCookie",
+        "SingletonLock",
+        "segmentation_platform/ukm_db-wal"
+      ],
+      "requests": []
+    }
+  ],
+  "before_browser": {
+    "time": "2026-11-11T03:11:18.943Z",
+    "anonymous_bytes": 2052096,
+    "file_bytes": 32768,
+    "cgroup_current_bytes": 2588672
+  }
+}

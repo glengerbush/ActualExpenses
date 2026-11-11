@@ -1,0 +1,61 @@
+[
+  {
+    "file_sha256": "159bac492bb129d90469906e600b4f23f4943aa3d09b82b6e93a45c94b80fcc6",
+    "retained_from": null,
+    "cases": [
+      {
+        "name": "empty",
+        "completed": {
+          "cold": 20,
+          "warm": 20,
+          "unchanged": 20,
+          "idle": true
+        },
+        "error": null
+      },
+      {
+        "name": "typical",
+        "completed": {
+          "cold": 1,
+          "warm": 0,
+          "unchanged": 0,
+          "idle": false
+        },
+        "error": "AssertionError [ERR_ASSERTION]: Unattributed request crossed a measurement boundary\n+ actual - expected\n\n+ [\n+   '/sync/sync'\n+ ]\n- []\n"
+      }
+    ],
+    "browser_snapshot": "- button \"Resource typical\":\n  - text: Resource typical\n  - img\n- button \"Unpin sidebar\":\n  - img\n- link \"Budget\":\n  - /url: /budget\n  - img\n  - text: Budget\n- link \"Reports\":\n  - /url: /reports\n  - img\n  - text: Reports\n- link \"Schedules\":\n  - /url: /schedules\n  - img\n  - text: Schedules\n- button \"More\":\n  - img\n  - text: More\n- link \"All accounts 11,008.12\":\n  - /url: /accounts\n- link \"On budget -2,007.88\":\n  - /url: /accounts/onbudget\n- link \"checking -4,077.88\":\n  - /url: /accounts/79a2f9e2-41b3-4f2b-a751-8937604f5857\n- link \"savings 70.00\":\n  - /url: /accounts/8a58ef5d-b19e-42f5-aeac-e4e02f18fc85\n- link \"Crossover zero start 2,000.00\":\n  - /url: /accounts/2d0d5b02-942d-483b-a6f5-6e86d6d5bce5\n- link \"Off budget 13,016.00\":\n  - /url: /accounts/offbudget\n- link \"brokerage 1,016.00\":\n  - /url: /accounts/1c1e03c6-7c75-4cd9-bee0-169482a0de26\n- link \"Crossover investment 12,000.00\":\n  - /url: /accounts/3076d7dc-590c-475c-bbfc-51e5fbd1eb86\n- button \"Closed accounts...\"\n- button \"Add account\":\n  - img\n  - text: Add account\n- button \"3 uncategorized transactions\"\n- button \"Enable privacy mode\":\n  - img\n- button \"Notifications\":\n  - img\n- button \"Server Sync\":\n  - img\n- button \"Server online\"\n- button \"Help\":\n  - img\n  - text: Help\n- alert:\n  - button \"Close\":\n    - img\n  - text: Welcome to Actual! New to Actual? Take a short tour to learn how budgeting works and find your way around.\n  - button \"Take the tour\"\n- text: checking\n- button \"View notes\":\n  - img\n- button \"Edit account name\":\n  - img\n- button \"-4,077.88\":\n  - text: \"-4,077.88\"\n  - img\n- button \"Import\":\n  - img\n  - text: Import\n- button \"Add New\":\n  - img\n  - text: Add New\n- button \"Filter\":\n  - img\n  - text: Filter\n- img\n- textbox \"Search\"\n- button \"Reconcile\":\n  - img\n- button \"Collapse split transactions\":\n  - img\n- button \"Account menu\":\n  - img\n- button \"Date\"\n- button \"Payee\"\n- button \"Notes\"\n- button \"Category\"\n- button \"Payment\"\n- button \"Deposit\"\n- button \"✓\"\n- text: 05/01/2027 Market Analysis category refund Food café ? % 1.25\n- img\n- text: 05/12/2026 Market Analysis overspending without carryover empty 25.00\n- img\n- text: 23/11/2026 Market Supported source expense-category/income-group membership Analysis expense in income group 2.13\n- img\n- text: 20/11/2026 Market Future dated recorded entry Food café ? % 8.00\n- img\n- text: 08/11/2026\n- button \"See transfer account\":\n  - img\n- text: savings Internal transfer Transfer 20.00\n- img\n- text: 08/11/2026\n- button \"See transfer account\":\n  - img\n- text: brokerage Boundary transfer Food café ? % 25.00\n- img\n- text: 07/11/2026\n- img\n- text: Market\n- img\n- text: Split 15.00\n- img\n- text: Market Food café ? % 5.00 Market hidden 10.00 06/11/2026 Market hiddenGroupCategory 4.00\n- img\n- text: 05/11/2026 Market hidden 7.00\n- img\n- text: 04/11/2026 Uncategorized Categorize 3.00\n- img\n- text: 03/11/2026 Market Refund Food café ? % 2.00\n- img\n- text: 02/11/2026 Market Food café ? % 12.00\n- img\n- text: 01/11/2026 Employer salary 100.00\n- img\n- text: 12/10/2026 Market Crossover historical expense 2026-10 Crossover expenses café 110.00\n- img\n- text: 02/10/2026 Market Previous period food Food café ? % 10.00\n- img\n- text: 01/10/2026 Starting Balance Starting Balances 100.00\n- img\n- text: 12/09/2026 Market Crossover historical expense 2026-09 Crossover expenses café 100.00\n- img\n- text: 12/08/2026 Market Crossover historical expense 2026-08 Crossover expenses café 90.00\n- img\n- text: 12/07/2026 Market Crossover historical expense 2026-07 Crossover expenses café 120.00\n- img\n- text: 12/06/2026 Market Crossover historical expense 2026-06 Crossover expenses café 110.00\n- img\n- text: 12/05/2026 Market Crossover historical expense 2026-05 Crossover expenses café 100.00\n- img\n- text: 12/04/2026 Market Crossover historical expense 2026-04 Crossover expenses café 3,000.00\n- img\n- text: 12/03/2026 Market Crossover historical expense 2026-03 Crossover expenses café 90.00\n- img\n- text: 12/02/2026 Market Crossover historical expense 2026-02 Crossover expenses café 100.00\n- img\n- text: 12/01/2026 Market Crossover historical expense 2026-01 Crossover expenses café 110.00\n- img\n- text: 12/12/2025 Market Crossover historical expense 2025-12 Crossover expenses café 120.00\n- img\n- text: 12/11/2025 Market Crossover historical expense 2025-11 Crossover expenses café 100.00\n- img"
+  },
+  {
+    "file_sha256": "0518af530765b1f17e089ccabe7c6b64ff3572194f7056c0ba171b23c23237ef",
+    "retained_from": {
+      "sha256": "159bac492bb129d90469906e600b4f23f4943aa3d09b82b6e93a45c94b80fcc6",
+      "cases": [
+        "empty"
+      ]
+    },
+    "cases": [
+      {
+        "name": "empty",
+        "completed": {
+          "cold": 20,
+          "warm": 20,
+          "unchanged": 20,
+          "idle": true
+        },
+        "error": null
+      },
+      {
+        "name": "typical",
+        "completed": {
+          "cold": 11,
+          "warm": 11,
+          "unchanged": 11,
+          "idle": false
+        },
+        "error": "TimeoutError: locator.press: Timeout 45000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('row', { name: 'Resource typical', exact: true })\u001b[22m\n"
+      }
+    ],
+    "browser_snapshot": "- img\n- dialog \"Modal dialog\":\n  - heading \"Fatal Error\" [level=1]\n  - text: There was a problem loading the app in this browser version.\n  - button \"Restart app\"\n  - text: Show Error"
+  }
+]

@@ -1,0 +1,2544 @@
+{
+  "scope": "Opening/unchanged/35s idle only; ticket51 remains incomplete",
+  "variants": {
+    "baseline": {
+      "count": 20,
+      "hardware": {
+        "hostname": "thinky",
+        "cpu": "13th Gen Intel(R) Core(TM) i7-1370P",
+        "cpus": 20,
+        "memory": 66972958720,
+        "kernel": "7.2.8-9-omarchy"
+      },
+      "browser": "155.0.8059.84",
+      "image": "sha256:24645e971da6bb1a1f953d6859e307a0b29be1e8b4130a35b3220c209b5b860c",
+      "profile": "production containers; fresh persistent browser profile for cold, same profile reload for warm; browser launch/auth setup excluded; OS page cache not cleared; distinct benchmark client addresses via trusted-proxy X-Forwarded-For, limiter remains enabled; DNS restricted to loopback (optional external news/update requests fail); per-client LAN cost, not single-IP load capacity or internet-connected cost",
+      "retained_from": {
+        "sha256": "0518af530765b1f17e089ccabe7c6b64ff3572194f7056c0ba171b23c23237ef",
+        "cases": [
+          {
+            "name": "empty",
+            "completed_profiles": 20
+          },
+          {
+            "name": "typical",
+            "completed_profiles": 11
+          }
+        ]
+      },
+      "raw_sha256": "289e709fec7b9fb43ed0ee6363227cd320276e52cd8aace7d8bbd8c4f6f46358",
+      "compressed_sha256": "3229e08aaa24b75930957e3597b18bdf7538888a51c28767d629ab5f97734fb3",
+      "cases": [
+        {
+          "name": "empty",
+          "archive_sha256": "0be31ee66756a80f79c27ebc5b887f5c8f03e04dd96d6a290ebb59a104111e29",
+          "prior_errors": [],
+          "phases": {
+            "cold": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 3842.975249999996,
+                "p95": 5062.068280000007
+              },
+              "settled_ms": {
+                "p50": 3842.9866909999982,
+                "p95": 5062.078804999997
+              },
+              "browser_cpu_ms": {
+                "p50": 13080,
+                "p95": 17280
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1520627712,
+                "p95": 1538924544
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 14,
+                "p50": 711735296,
+                "p95": 714181632
+              },
+              "server_cpu_ms": {
+                "p50": 530.0749999999989,
+                "p95": 742.1980000000003
+              },
+              "server_peak_memory_bytes": {
+                "p50": 101699584,
+                "p95": 102936576
+              },
+              "server_sent_bytes": {
+                "p50": 21830623,
+                "p95": 21832033
+              },
+              "server_received_bytes": {
+                "p50": 186931,
+                "p95": 189577
+              },
+              "observed_response_body_bytes": {
+                "p50": 21534233,
+                "p95": 21534233
+              },
+              "observed_requests": {
+                "p50": 261,
+                "p95": 261
+              },
+              "browser_write_bytes": {
+                "p50": 44138496,
+                "p95": 46604288
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/",
+                "/account/needs-bootstrap",
+                "/account/validate",
+                "/android-chrome-192x192.png",
+                "/android-chrome-512x512.png",
+                "/apple-touch-icon.png",
+                "/archived/android-chrome-192x192.png",
+                "/archived/android-chrome-512x512.png",
+                "/archived/apple-touch-icon.png",
+                "/archived/favicon-16x16.png",
+                "/archived/favicon-32x32.png",
+                "/archived/favicon.png",
+                "/archived/maskable-192x192.png",
+                "/archived/maskable-512x512.png",
+                "/archived/mstile-150x150.png",
+                "/data-file-index.txt",
+                "/data/default-db.sqlite",
+                "/data/migrations/1548957970627_remove-db-version.sql",
+                "/data/migrations/1550601598648_payees.sql",
+                "/data/migrations/1555786194328_remove_category_group_unique.sql",
+                "/data/migrations/1561751833510_indexes.sql",
+                "/data/migrations/1567699552727_budget.sql",
+                "/data/migrations/1582384163573_cleared.sql",
+                "/data/migrations/1597756566448_rules.sql",
+                "/data/migrations/1608652596043_parent_field.sql",
+                "/data/migrations/1608652596044_trans_views.sql",
+                "/data/migrations/1612625548236_optimize.sql",
+                "/data/migrations/1614782639336_trans_views2.sql",
+                "/data/migrations/1615745967948_meta.sql",
+                "/data/migrations/1616167010796_accounts_order.sql",
+                "/data/migrations/1618975177358_schedules.sql",
+                "/data/migrations/1632571489012_remove_cache.js",
+                "/data/migrations/1679728867040_rules_conditions.sql",
+                "/data/migrations/1681115033845_add_schedule_name.sql",
+                "/data/migrations/1682974838138_remove_payee_rules.sql",
+                "/data/migrations/1685007876842_add_category_hidden.sql",
+                "/data/migrations/1686139660866_remove_account_type.sql",
+                "/data/migrations/1688749527273_transaction_filters.sql",
+                "/data/migrations/1688841238000_add_account_type.sql",
+                "/data/migrations/1691233396000_add_schedule_next_date_tombstone.sql",
+                "/data/migrations/1694438752000_add_goal_targets.sql",
+                "/data/migrations/1697046240000_add_reconciled.sql",
+                "/data/migrations/1704572023730_add_account_sync_source.sql",
+                "/data/migrations/1704572023731_add_missing_goCardless_sync_source.sql",
+                "/data/migrations/1707267033000_reports.sql",
+                "/data/migrations/1712784523000_unhide_input_group.sql",
+                "/data/migrations/1716359441000_include_current.sql",
+                "/data/migrations/1720310586000_link_transfer_schedules.sql",
+                "/data/migrations/1720664867241_add_payee_favorite.sql",
+                "/data/migrations/1720665000000_goal_context.sql",
+                "/data/migrations/1722717601000_reports_move_selected_categories.js",
+                "/data/migrations/1722804019000_create_dashboard_table.js",
+                "/data/migrations/1723665565000_prefs.js",
+                "/data/migrations/1730744182000_fix_dashboard_table.sql",
+                "/data/migrations/1736640000000_custom_report_sorting.sql",
+                "/data/migrations/1737158400000_add_learn_categories_to_payees.sql",
+                "/data/migrations/1738491452000_sorting_rename.sql",
+                "/data/migrations/1739139550000_bank_sync_page.sql",
+                "/data/migrations/1740506588539_add_last_reconciled_at.sql",
+                "/data/migrations/1745425408000_update_budgetType_pref.sql",
+                "/data/migrations/1749799110000_add_tags.sql",
+                "/data/migrations/1749799110001_tags_tombstone.sql",
+                "/data/migrations/1754611200000_add_category_template_settings.sql",
+                "/data/migrations/1759260219000_add_trim_interval_report_setting.sql",
+                "/data/migrations/1759842823172_add_isGlobal_to_preferences.sql",
+                "/data/migrations/1762178745667_rename_csv_skip_lines_pref.sql",
+                "/data/migrations/1765518577215_multiple_dashboards.js",
+                "/data/migrations/1768872504000_add_payee_locations.sql",
+                "/data/migrations/1769000000000_add_custom_upcoming_length.sql",
+                "/data/migrations/1778510362740_add_cleanup_groups_and_def.sql",
+                "/data/migrations/1780099200000_add_show_trend_lines_report_setting.sql",
+                "/data/migrations/1780327681000_add_tags_hidden.sql",
+                "/data/migrations/1780606215000_add_bank_sync_status.sql",
+                "/data/migrations/1780606215001_add_performance_indexes.sql",
+                "/data/migrations/1783004650757_schedule_sort_order.sql",
+                "/data/migrations/1787013118115_add_account_groups.sql",
+                "/data/migrations/1788468782000_add_messages_pending.js",
+                "/favicon-16x16.png",
+                "/favicon-32x32.png",
+                "/favicon.ico",
+                "/index.html",
+                "/info",
+                "/kcab/kcab.worker.pcQK6t_7.js",
+                "/manifest.webmanifest",
+                "/maskable-192x192.png",
+                "/maskable-512x512.png",
+                "/mstile-150x150.png",
+                "/screenshot_narrow.png",
+                "/screenshot_wide.png",
+                "/site.webmanifest",
+                "/sql-wasm.wasm",
+                "/static/css/ReportRouter.Dly3Bzm_.css",
+                "/static/css/index.DaMJyE_v.css",
+                "/static/js/BackgroundImage.r32zxjfm.chunk.js",
+                "/static/js/DateSelect.CUrLh8AJ.chunk.js",
+                "/static/js/FormulaEditor.Dia3pECZ.chunk.js",
+                "/static/js/ManageRules.pZJ7b5mH.chunk.js",
+                "/static/js/NotesTagFormatter.D2DCNMaj.chunk.js",
+                "/static/js/PayeeRuleCountLabel.CPkSnHXq.chunk.js",
+                "/static/js/ReportRouter.KkTypOVC.chunk.js",
+                "/static/js/ScheduleEditForm.6l8J1jY1.chunk.js",
+                "/static/js/SchedulesTable.Bf2CekF2.chunk.js",
+                "/static/js/TourHost.DA-O2miP.chunk.js",
+                "/static/js/TourProvider.CfJcepGC.chunk.js",
+                "/static/js/TransactionEdit.rYfaq5rg.chunk.js",
+                "/static/js/TransactionList.DDWVq-0m.chunk.js",
+                "/static/js/TransactionList.DgsDTzqb.chunk.js",
+                "/static/js/Value.BKuAotBl.chunk.js",
+                "/static/js/bootstrapHyperFormula.IIhTcG2D.chunk.js",
+                "/static/js/browser-server.Bn9r7T7W.js",
+                "/static/js/ca.Chhgedur.chunk.js",
+                "/static/js/client.DX2Pd1vd.chunk.js",
+                "/static/js/columns.DphgAXLS.chunk.js",
+                "/static/js/de.lkublLKT.chunk.js",
+                "/static/js/en-GB.BG03r60l.chunk.js",
+                "/static/js/en.DffUqt3-.chunk.js",
+                "/static/js/es.7oXsCK0C.chunk.js",
+                "/static/js/fr.CStj6vNz.chunk.js",
+                "/static/js/index.C1M3OSSF.js",
+                "/static/js/indexeddb-main-thread-worker-e59fee74.B9D89_PE.chunk.js",
+                "/static/js/it.DrkF9rrp.chunk.js",
+                "/static/js/months.CGSICdiJ.chunk.js",
+                "/static/js/narrow.D0HuRdIO.chunk.js",
+                "/static/js/nb-NO.DuLar2Rp.chunk.js",
+                "/static/js/nl.CirDaWIC.chunk.js",
+                "/static/js/pl.DFuMNx_h.chunk.js",
+                "/static/js/pt-BR.SA2E9mLO.chunk.js",
+                "/static/js/ru.VUnucNky.chunk.js",
+                "/static/js/theme.DnSL1G56.chunk.js",
+                "/static/js/uk.D3ez2x9L.chunk.js",
+                "/static/js/useFormatList.D8BAjMRE.chunk.js",
+                "/static/js/useLocalPref.BdsIJkpF.chunk.js",
+                "/static/js/useReducedMotion.BvAUtRsj.chunk.js",
+                "/static/js/wide.CTbfUtl9.chunk.js",
+                "/static/js/workbox-window.prod.es5.D5AzH0Wa.chunk.js",
+                "/static/js/zh-Hans.CCSKeB4P.chunk.js",
+                "/static/js/zh-Hant.nQ9I434y.chunk.js",
+                "/static/media/inter-cyrillic-ext-wght-italic.B5xAaiFk.woff2",
+                "/static/media/inter-cyrillic-ext-wght-normal.BOeWTOD4.woff2",
+                "/static/media/inter-cyrillic-wght-italic.DzZdc28x.woff2",
+                "/static/media/inter-cyrillic-wght-normal.DqGufNeO.woff2",
+                "/static/media/inter-greek-ext-wght-italic.DcOpz6Lw.woff2",
+                "/static/media/inter-greek-ext-wght-normal.DlzME5K_.woff2",
+                "/static/media/inter-greek-wght-italic.CILZdfAp.woff2",
+                "/static/media/inter-greek-wght-normal.CkhJZR-_.woff2",
+                "/static/media/inter-latin-ext-wght-italic.0pjOp8NU.woff2",
+                "/static/media/inter-latin-ext-wght-normal.DO1Apj_S.woff2",
+                "/static/media/inter-latin-wght-italic.DpCbqKDY.woff2",
+                "/static/media/inter-latin-wght-normal.Dx4kXJAl.woff2",
+                "/static/media/inter-vietnamese-wght-italic.K3WlGtc8.woff2",
+                "/static/media/inter-vietnamese-wght-normal.CBcvBZtf.woff2",
+                "/static/media/redacted-script-latin-400-normal.DO_NTpDN.woff2",
+                "/static/media/redacted-script-latin-ext-400-normal.BsF1F2G5.woff2",
+                "/static/shared-browser-server-C7q_DhZs.js",
+                "/sw.js",
+                "/sync/download-user-file",
+                "/sync/get-user-file-info",
+                "/sync/list-user-files",
+                "/sync/sync",
+                "/workbox-2fbc6a65.js",
+                "http://127.0.0.1:32875/1741696f-7fad-4d2f-b71c-2e23a2ce5c29",
+                "http://127.0.0.1:32875/1e7059ef-de8b-4535-aab5-db311d06c836",
+                "http://127.0.0.1:32875/2420e255-dc7d-478b-aacc-9c9c798ad5bd",
+                "http://127.0.0.1:32875/25fcd2ae-2ba5-439c-8ec7-9687462902a0",
+                "http://127.0.0.1:32875/33603d59-a935-4a4d-a585-c62fb2bb45f4",
+                "http://127.0.0.1:32875/384beb11-06e3-4226-91c5-45d7f616a86b",
+                "http://127.0.0.1:32875/3ba4f8e3-ad18-4365-b4ff-74670d33e0bb",
+                "http://127.0.0.1:32875/3d5b5d7b-a275-4f8d-960f-126cdcfa124f",
+                "http://127.0.0.1:32875/419065e7-0f45-477e-ba0f-1f520ece3dfa",
+                "http://127.0.0.1:32875/7e7c175b-0173-401d-91ad-24982fa63292",
+                "http://127.0.0.1:32875/879bff5a-fb2f-417f-b63b-fd5554c76eba",
+                "http://127.0.0.1:32875/a7f5e2b5-d516-4eaf-9e36-9d52e31ff78f",
+                "http://127.0.0.1:32875/c18995d4-a83e-49f0-883f-c6013a6efa7d",
+                "http://127.0.0.1:32875/c516b381-7ca5-4fb5-b79a-dd808e647ab4",
+                "http://127.0.0.1:32875/d3a5c5a9-161f-4de8-ac85-54479a383b54",
+                "http://127.0.0.1:32875/d71d3653-4075-4566-8e7e-13dd36db8881",
+                "http://127.0.0.1:32875/dbe29db1-80b9-4cec-af38-235976d54c45",
+                "http://127.0.0.1:32875/f3c2d4aa-fcae-4c25-8b28-eb9be8e1009e",
+                "http://127.0.0.1:32875/f6cf4cd6-d4cf-487a-b246-a883fe420252",
+                "http://127.0.0.1:32875/fda62df6-3a97-4fad-8b0c-589c0a6614be"
+              ]
+            },
+            "warm": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 2260.5242159999907,
+                "p95": 2939.1172019999995
+              },
+              "settled_ms": {
+                "p50": 2264.367207000003,
+                "p95": 2939.1262129999996
+              },
+              "browser_cpu_ms": {
+                "p50": 6800,
+                "p95": 8900
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1543495680,
+                "p95": 1567404032
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 737403904,
+                "p95": 746096640
+              },
+              "server_cpu_ms": {
+                "p50": 21.313999999998487,
+                "p95": 26.64100000000326
+              },
+              "server_peak_memory_bytes": {
+                "p50": 99471360,
+                "p95": 101134336
+              },
+              "server_sent_bytes": {
+                "p50": 3094,
+                "p95": 4814
+              },
+              "server_received_bytes": {
+                "p50": 5232,
+                "p95": 7110
+              },
+              "observed_response_body_bytes": {
+                "p50": -64958,
+                "p95": -64958
+              },
+              "observed_requests": {
+                "p50": 102,
+                "p95": 102
+              },
+              "browser_write_bytes": {
+                "p50": 614400,
+                "p95": 712704
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/account/needs-bootstrap",
+                "/account/validate",
+                "/accounts/327e6c74-3c22-4a43-bba8-b665f355e025",
+                "/android-chrome-192x192.png",
+                "/data-file-index.txt",
+                "/data/default-db.sqlite",
+                "/data/migrations/1548957970627_remove-db-version.sql",
+                "/data/migrations/1550601598648_payees.sql",
+                "/data/migrations/1555786194328_remove_category_group_unique.sql",
+                "/data/migrations/1561751833510_indexes.sql",
+                "/data/migrations/1567699552727_budget.sql",
+                "/data/migrations/1582384163573_cleared.sql",
+                "/data/migrations/1597756566448_rules.sql",
+                "/data/migrations/1608652596043_parent_field.sql",
+                "/data/migrations/1608652596044_trans_views.sql",
+                "/data/migrations/1612625548236_optimize.sql",
+                "/data/migrations/1614782639336_trans_views2.sql",
+                "/data/migrations/1615745967948_meta.sql",
+                "/data/migrations/1616167010796_accounts_order.sql",
+                "/data/migrations/1618975177358_schedules.sql",
+                "/data/migrations/1632571489012_remove_cache.js",
+                "/data/migrations/1679728867040_rules_conditions.sql",
+                "/data/migrations/1681115033845_add_schedule_name.sql",
+                "/data/migrations/1682974838138_remove_payee_rules.sql",
+                "/data/migrations/1685007876842_add_category_hidden.sql",
+                "/data/migrations/1686139660866_remove_account_type.sql",
+                "/data/migrations/1688749527273_transaction_filters.sql",
+                "/data/migrations/1688841238000_add_account_type.sql",
+                "/data/migrations/1691233396000_add_schedule_next_date_tombstone.sql",
+                "/data/migrations/1694438752000_add_goal_targets.sql",
+                "/data/migrations/1697046240000_add_reconciled.sql",
+                "/data/migrations/1704572023730_add_account_sync_source.sql",
+                "/data/migrations/1704572023731_add_missing_goCardless_sync_source.sql",
+                "/data/migrations/1707267033000_reports.sql",
+                "/data/migrations/1712784523000_unhide_input_group.sql",
+                "/data/migrations/1716359441000_include_current.sql",
+                "/data/migrations/1720310586000_link_transfer_schedules.sql",
+                "/data/migrations/1720664867241_add_payee_favorite.sql",
+                "/data/migrations/1720665000000_goal_context.sql",
+                "/data/migrations/1722717601000_reports_move_selected_categories.js",
+                "/data/migrations/1722804019000_create_dashboard_table.js",
+                "/data/migrations/1723665565000_prefs.js",
+                "/data/migrations/1730744182000_fix_dashboard_table.sql",
+                "/data/migrations/1736640000000_custom_report_sorting.sql",
+                "/data/migrations/1737158400000_add_learn_categories_to_payees.sql",
+                "/data/migrations/1738491452000_sorting_rename.sql",
+                "/data/migrations/1739139550000_bank_sync_page.sql",
+                "/data/migrations/1740506588539_add_last_reconciled_at.sql",
+                "/data/migrations/1745425408000_update_budgetType_pref.sql",
+                "/data/migrations/1749799110000_add_tags.sql",
+                "/data/migrations/1749799110001_tags_tombstone.sql",
+                "/data/migrations/1754611200000_add_category_template_settings.sql",
+                "/data/migrations/1759260219000_add_trim_interval_report_setting.sql",
+                "/data/migrations/1759842823172_add_isGlobal_to_preferences.sql",
+                "/data/migrations/1762178745667_rename_csv_skip_lines_pref.sql",
+                "/data/migrations/1765518577215_multiple_dashboards.js",
+                "/data/migrations/1768872504000_add_payee_locations.sql",
+                "/data/migrations/1769000000000_add_custom_upcoming_length.sql",
+                "/data/migrations/1778510362740_add_cleanup_groups_and_def.sql",
+                "/data/migrations/1780099200000_add_show_trend_lines_report_setting.sql",
+                "/data/migrations/1780327681000_add_tags_hidden.sql",
+                "/data/migrations/1780606215000_add_bank_sync_status.sql",
+                "/data/migrations/1780606215001_add_performance_indexes.sql",
+                "/data/migrations/1783004650757_schedule_sort_order.sql",
+                "/data/migrations/1787013118115_add_account_groups.sql",
+                "/data/migrations/1788468782000_add_messages_pending.js",
+                "/info",
+                "/kcab/kcab.worker.pcQK6t_7.js",
+                "/site.webmanifest",
+                "/sql-wasm.wasm",
+                "/static/css/index.DaMJyE_v.css",
+                "/static/js/BackgroundImage.r32zxjfm.chunk.js",
+                "/static/js/DateSelect.CUrLh8AJ.chunk.js",
+                "/static/js/ManageRules.pZJ7b5mH.chunk.js",
+                "/static/js/NotesTagFormatter.D2DCNMaj.chunk.js",
+                "/static/js/PayeeRuleCountLabel.CPkSnHXq.chunk.js",
+                "/static/js/ScheduleEditForm.6l8J1jY1.chunk.js",
+                "/static/js/SchedulesTable.Bf2CekF2.chunk.js",
+                "/static/js/TourProvider.CfJcepGC.chunk.js",
+                "/static/js/TransactionEdit.rYfaq5rg.chunk.js",
+                "/static/js/TransactionList.DDWVq-0m.chunk.js",
+                "/static/js/Value.BKuAotBl.chunk.js",
+                "/static/js/browser-server.Bn9r7T7W.js",
+                "/static/js/client.DX2Pd1vd.chunk.js",
+                "/static/js/columns.DphgAXLS.chunk.js",
+                "/static/js/en.DffUqt3-.chunk.js",
+                "/static/js/index.C1M3OSSF.js",
+                "/static/js/indexeddb-main-thread-worker-e59fee74.B9D89_PE.chunk.js",
+                "/static/js/months.CGSICdiJ.chunk.js",
+                "/static/js/theme.DnSL1G56.chunk.js",
+                "/static/js/useFormatList.D8BAjMRE.chunk.js",
+                "/static/js/useLocalPref.BdsIJkpF.chunk.js",
+                "/static/js/useReducedMotion.BvAUtRsj.chunk.js",
+                "/static/js/wide.CTbfUtl9.chunk.js",
+                "/static/js/workbox-window.prod.es5.D5AzH0Wa.chunk.js",
+                "/static/media/inter-latin-wght-italic.DpCbqKDY.woff2",
+                "/static/media/inter-latin-wght-normal.Dx4kXJAl.woff2",
+                "/sync/list-user-files",
+                "/sync/sync",
+                "http://127.0.0.1:32875/16fe5fd1-011b-41c3-85d7-7f6808425a4f",
+                "http://127.0.0.1:32875/2474f085-720d-44e8-878f-b5e6dc69000a",
+                "http://127.0.0.1:32875/465c3cf7-83b6-4f22-a1eb-06ef2ff6a59a",
+                "http://127.0.0.1:32875/4b7e1b97-6361-475e-b41e-46b5a292ace5",
+                "http://127.0.0.1:32875/4ee26c2a-fe7b-4b1d-8eba-16c8ee16e492",
+                "http://127.0.0.1:32875/50efea77-c4e9-49ea-84ef-6278f5f06a68",
+                "http://127.0.0.1:32875/56869729-1cad-40a4-abef-f6264e7c69cc",
+                "http://127.0.0.1:32875/5d24c752-e040-4808-9467-b7bf27fdeeab",
+                "http://127.0.0.1:32875/690ac898-629c-4065-82ed-9515f0213aa9",
+                "http://127.0.0.1:32875/7cec7400-1dd3-4bee-bbca-f3882583abc0",
+                "http://127.0.0.1:32875/7fb9b5b4-d5ad-48d3-814a-c3b3f11d2c65",
+                "http://127.0.0.1:32875/86c7753d-2ace-461e-9c29-3dd3d5ea8541",
+                "http://127.0.0.1:32875/b364e269-64b5-43e7-bd85-d962285cb735",
+                "http://127.0.0.1:32875/b3c9b0d1-0f81-4647-9f20-0957754705b7",
+                "http://127.0.0.1:32875/b41a1455-1714-403a-be67-60b556cfb1e9",
+                "http://127.0.0.1:32875/c096cc7b-9925-4651-ba0f-6cb0cbb71383",
+                "http://127.0.0.1:32875/c165a5b6-d45a-4ca2-b25e-82096f43646e",
+                "http://127.0.0.1:32875/eb0c5c77-4c2a-4e8f-87cd-86273dcd2201",
+                "http://127.0.0.1:32875/eb339f04-39d3-4ef9-ba15-07da02dbac22",
+                "http://127.0.0.1:32875/f39d5c04-caeb-4ae0-916f-0163c863946b"
+              ]
+            },
+            "unchanged": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 88.82625799998641,
+                "p95": 114.13300599998911
+              },
+              "settled_ms": {
+                "p50": 257.49878799999715,
+                "p95": 375.3152620000001
+              },
+              "browser_cpu_ms": {
+                "p50": 210,
+                "p95": 280
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1532149760,
+                "p95": 1549172736
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 722151424,
+                "p95": 727264256
+              },
+              "server_cpu_ms": {
+                "p50": 4.144000000000233,
+                "p95": 7.390999999999622
+              },
+              "server_peak_memory_bytes": {
+                "p50": 99110912,
+                "p95": 100499456
+              },
+              "server_sent_bytes": {
+                "p50": 877,
+                "p95": 877
+              },
+              "server_received_bytes": {
+                "p50": 862,
+                "p95": 1232
+              },
+              "observed_response_body_bytes": {
+                "p50": 423,
+                "p95": 423
+              },
+              "observed_requests": {
+                "p50": 1,
+                "p95": 1
+              },
+              "browser_write_bytes": {
+                "p50": 0,
+                "p95": 86016
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/sync/sync"
+              ]
+            }
+          },
+          "idle": {
+            "duration_ms": 35001.99654599998,
+            "client": {
+              "cpu_ms": 1070,
+              "read_bytes": 0,
+              "write_bytes": 3092480,
+              "peak_rss_bytes": 1532522496,
+              "peak_pss_bytes": 722948096,
+              "unavailable_pss_processes": 0,
+              "unavailable_io_processes": 0
+            },
+            "server": {
+              "cpu_ms": 10.588999999999942,
+              "peak_memory_bytes": 100671488,
+              "memory_bytes": 99889152,
+              "network": {
+                "lo": {
+                  "rx_bytes": 0,
+                  "tx_bytes": 0
+                },
+                "eth0": {
+                  "rx_bytes": 6380,
+                  "tx_bytes": 3960
+                }
+              },
+              "io": {
+                "259:0": {
+                  "rbytes": 0,
+                  "wbytes": 0,
+                  "rios": 0,
+                  "wios": 0,
+                  "dbytes": 0,
+                  "dios": 0
+                },
+                "253:0": {
+                  "rbytes": 0,
+                  "wbytes": 0,
+                  "rios": 0,
+                  "wios": 0,
+                  "dbytes": 0,
+                  "dios": 0
+                }
+              }
+            },
+            "requests": [],
+            "inflight": [],
+            "failures": []
+          }
+        },
+        {
+          "name": "typical",
+          "archive_sha256": "57d3967bbe1679cfa9f98ce73f53bc355a1631b47fc5e3885600f8afc2febc65",
+          "prior_errors": [
+            {
+              "error": "TimeoutError: locator.press: Timeout 45000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('row', { name: 'Resource typical', exact: true })\u001b[22m\n",
+              "completed_profiles": 11
+            }
+          ],
+          "phases": {
+            "cold": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 3772.5157190000027,
+                "p95": 5219.607263999998
+              },
+              "settled_ms": {
+                "p50": 3772.533217999997,
+                "p95": 5219.625141000004
+              },
+              "browser_cpu_ms": {
+                "p50": 12960,
+                "p95": 19550
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1532493824,
+                "p95": 1552166912
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 16,
+                "p50": 713935872,
+                "p95": 729915392
+              },
+              "server_cpu_ms": {
+                "p50": 429.9569999999985,
+                "p95": 777.8919999999998
+              },
+              "server_peak_memory_bytes": {
+                "p50": 103002112,
+                "p95": 105619456
+              },
+              "server_sent_bytes": {
+                "p50": 21841223,
+                "p95": 21843185
+              },
+              "server_received_bytes": {
+                "p50": 185221,
+                "p95": 189566
+              },
+              "observed_response_body_bytes": {
+                "p50": 21545494,
+                "p95": 21545494
+              },
+              "observed_requests": {
+                "p50": 260,
+                "p95": 260
+              },
+              "browser_write_bytes": {
+                "p50": 44490752,
+                "p95": 46596096
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/",
+                "/account/needs-bootstrap",
+                "/account/validate",
+                "/android-chrome-192x192.png",
+                "/android-chrome-512x512.png",
+                "/apple-touch-icon.png",
+                "/archived/android-chrome-192x192.png",
+                "/archived/android-chrome-512x512.png",
+                "/archived/apple-touch-icon.png",
+                "/archived/favicon-16x16.png",
+                "/archived/favicon-32x32.png",
+                "/archived/favicon.png",
+                "/archived/maskable-192x192.png",
+                "/archived/maskable-512x512.png",
+                "/archived/mstile-150x150.png",
+                "/data-file-index.txt",
+                "/data/default-db.sqlite",
+                "/data/migrations/1548957970627_remove-db-version.sql",
+                "/data/migrations/1550601598648_payees.sql",
+                "/data/migrations/1555786194328_remove_category_group_unique.sql",
+                "/data/migrations/1561751833510_indexes.sql",
+                "/data/migrations/1567699552727_budget.sql",
+                "/data/migrations/1582384163573_cleared.sql",
+                "/data/migrations/1597756566448_rules.sql",
+                "/data/migrations/1608652596043_parent_field.sql",
+                "/data/migrations/1608652596044_trans_views.sql",
+                "/data/migrations/1612625548236_optimize.sql",
+                "/data/migrations/1614782639336_trans_views2.sql",
+                "/data/migrations/1615745967948_meta.sql",
+                "/data/migrations/1616167010796_accounts_order.sql",
+                "/data/migrations/1618975177358_schedules.sql",
+                "/data/migrations/1632571489012_remove_cache.js",
+                "/data/migrations/1679728867040_rules_conditions.sql",
+                "/data/migrations/1681115033845_add_schedule_name.sql",
+                "/data/migrations/1682974838138_remove_payee_rules.sql",
+                "/data/migrations/1685007876842_add_category_hidden.sql",
+                "/data/migrations/1686139660866_remove_account_type.sql",
+                "/data/migrations/1688749527273_transaction_filters.sql",
+                "/data/migrations/1688841238000_add_account_type.sql",
+                "/data/migrations/1691233396000_add_schedule_next_date_tombstone.sql",
+                "/data/migrations/1694438752000_add_goal_targets.sql",
+                "/data/migrations/1697046240000_add_reconciled.sql",
+                "/data/migrations/1704572023730_add_account_sync_source.sql",
+                "/data/migrations/1704572023731_add_missing_goCardless_sync_source.sql",
+                "/data/migrations/1707267033000_reports.sql",
+                "/data/migrations/1712784523000_unhide_input_group.sql",
+                "/data/migrations/1716359441000_include_current.sql",
+                "/data/migrations/1720310586000_link_transfer_schedules.sql",
+                "/data/migrations/1720664867241_add_payee_favorite.sql",
+                "/data/migrations/1720665000000_goal_context.sql",
+                "/data/migrations/1722717601000_reports_move_selected_categories.js",
+                "/data/migrations/1722804019000_create_dashboard_table.js",
+                "/data/migrations/1723665565000_prefs.js",
+                "/data/migrations/1730744182000_fix_dashboard_table.sql",
+                "/data/migrations/1736640000000_custom_report_sorting.sql",
+                "/data/migrations/1737158400000_add_learn_categories_to_payees.sql",
+                "/data/migrations/1738491452000_sorting_rename.sql",
+                "/data/migrations/1739139550000_bank_sync_page.sql",
+                "/data/migrations/1740506588539_add_last_reconciled_at.sql",
+                "/data/migrations/1745425408000_update_budgetType_pref.sql",
+                "/data/migrations/1749799110000_add_tags.sql",
+                "/data/migrations/1749799110001_tags_tombstone.sql",
+                "/data/migrations/1754611200000_add_category_template_settings.sql",
+                "/data/migrations/1759260219000_add_trim_interval_report_setting.sql",
+                "/data/migrations/1759842823172_add_isGlobal_to_preferences.sql",
+                "/data/migrations/1762178745667_rename_csv_skip_lines_pref.sql",
+                "/data/migrations/1765518577215_multiple_dashboards.js",
+                "/data/migrations/1768872504000_add_payee_locations.sql",
+                "/data/migrations/1769000000000_add_custom_upcoming_length.sql",
+                "/data/migrations/1778510362740_add_cleanup_groups_and_def.sql",
+                "/data/migrations/1780099200000_add_show_trend_lines_report_setting.sql",
+                "/data/migrations/1780327681000_add_tags_hidden.sql",
+                "/data/migrations/1780606215000_add_bank_sync_status.sql",
+                "/data/migrations/1780606215001_add_performance_indexes.sql",
+                "/data/migrations/1783004650757_schedule_sort_order.sql",
+                "/data/migrations/1787013118115_add_account_groups.sql",
+                "/data/migrations/1788468782000_add_messages_pending.js",
+                "/favicon-16x16.png",
+                "/favicon-32x32.png",
+                "/favicon.ico",
+                "/index.html",
+                "/info",
+                "/kcab/kcab.worker.pcQK6t_7.js",
+                "/manifest.webmanifest",
+                "/maskable-192x192.png",
+                "/maskable-512x512.png",
+                "/mstile-150x150.png",
+                "/screenshot_narrow.png",
+                "/screenshot_wide.png",
+                "/site.webmanifest",
+                "/sql-wasm.wasm",
+                "/static/css/ReportRouter.Dly3Bzm_.css",
+                "/static/css/index.DaMJyE_v.css",
+                "/static/js/BackgroundImage.r32zxjfm.chunk.js",
+                "/static/js/DateSelect.CUrLh8AJ.chunk.js",
+                "/static/js/FormulaEditor.Dia3pECZ.chunk.js",
+                "/static/js/ManageRules.pZJ7b5mH.chunk.js",
+                "/static/js/NotesTagFormatter.D2DCNMaj.chunk.js",
+                "/static/js/PayeeRuleCountLabel.CPkSnHXq.chunk.js",
+                "/static/js/ReportRouter.KkTypOVC.chunk.js",
+                "/static/js/ScheduleEditForm.6l8J1jY1.chunk.js",
+                "/static/js/SchedulesTable.Bf2CekF2.chunk.js",
+                "/static/js/TourHost.DA-O2miP.chunk.js",
+                "/static/js/TourProvider.CfJcepGC.chunk.js",
+                "/static/js/TransactionEdit.rYfaq5rg.chunk.js",
+                "/static/js/TransactionList.DDWVq-0m.chunk.js",
+                "/static/js/TransactionList.DgsDTzqb.chunk.js",
+                "/static/js/Value.BKuAotBl.chunk.js",
+                "/static/js/bootstrapHyperFormula.IIhTcG2D.chunk.js",
+                "/static/js/browser-server.Bn9r7T7W.js",
+                "/static/js/ca.Chhgedur.chunk.js",
+                "/static/js/client.DX2Pd1vd.chunk.js",
+                "/static/js/columns.DphgAXLS.chunk.js",
+                "/static/js/de.lkublLKT.chunk.js",
+                "/static/js/en-GB.BG03r60l.chunk.js",
+                "/static/js/en.DffUqt3-.chunk.js",
+                "/static/js/es.7oXsCK0C.chunk.js",
+                "/static/js/fr.CStj6vNz.chunk.js",
+                "/static/js/index.C1M3OSSF.js",
+                "/static/js/indexeddb-main-thread-worker-e59fee74.B9D89_PE.chunk.js",
+                "/static/js/it.DrkF9rrp.chunk.js",
+                "/static/js/months.CGSICdiJ.chunk.js",
+                "/static/js/narrow.D0HuRdIO.chunk.js",
+                "/static/js/nb-NO.DuLar2Rp.chunk.js",
+                "/static/js/nl.CirDaWIC.chunk.js",
+                "/static/js/pl.DFuMNx_h.chunk.js",
+                "/static/js/pt-BR.SA2E9mLO.chunk.js",
+                "/static/js/ru.VUnucNky.chunk.js",
+                "/static/js/theme.DnSL1G56.chunk.js",
+                "/static/js/uk.D3ez2x9L.chunk.js",
+                "/static/js/useFormatList.D8BAjMRE.chunk.js",
+                "/static/js/useLocalPref.BdsIJkpF.chunk.js",
+                "/static/js/useReducedMotion.BvAUtRsj.chunk.js",
+                "/static/js/wide.CTbfUtl9.chunk.js",
+                "/static/js/workbox-window.prod.es5.D5AzH0Wa.chunk.js",
+                "/static/js/zh-Hans.CCSKeB4P.chunk.js",
+                "/static/js/zh-Hant.nQ9I434y.chunk.js",
+                "/static/media/inter-cyrillic-ext-wght-italic.B5xAaiFk.woff2",
+                "/static/media/inter-cyrillic-ext-wght-normal.BOeWTOD4.woff2",
+                "/static/media/inter-cyrillic-wght-italic.DzZdc28x.woff2",
+                "/static/media/inter-cyrillic-wght-normal.DqGufNeO.woff2",
+                "/static/media/inter-greek-ext-wght-italic.DcOpz6Lw.woff2",
+                "/static/media/inter-greek-ext-wght-normal.DlzME5K_.woff2",
+                "/static/media/inter-greek-wght-italic.CILZdfAp.woff2",
+                "/static/media/inter-greek-wght-normal.CkhJZR-_.woff2",
+                "/static/media/inter-latin-ext-wght-italic.0pjOp8NU.woff2",
+                "/static/media/inter-latin-ext-wght-normal.DO1Apj_S.woff2",
+                "/static/media/inter-latin-wght-italic.DpCbqKDY.woff2",
+                "/static/media/inter-latin-wght-normal.Dx4kXJAl.woff2",
+                "/static/media/inter-vietnamese-wght-italic.K3WlGtc8.woff2",
+                "/static/media/inter-vietnamese-wght-normal.CBcvBZtf.woff2",
+                "/static/media/redacted-script-latin-400-normal.DO_NTpDN.woff2",
+                "/static/media/redacted-script-latin-ext-400-normal.BsF1F2G5.woff2",
+                "/static/shared-browser-server-C7q_DhZs.js",
+                "/sw.js",
+                "/sync/download-user-file",
+                "/sync/get-user-file-info",
+                "/sync/list-user-files",
+                "/sync/sync",
+                "/workbox-2fbc6a65.js",
+                "http://127.0.0.1:32875/01d519d4-f3f4-4c19-b821-acd6356e7a16",
+                "http://127.0.0.1:32875/1436e84b-850c-4892-9273-2797e0ae38f0",
+                "http://127.0.0.1:32875/185d6345-04f1-4116-bd42-0ea61c71f89b",
+                "http://127.0.0.1:32875/27bd7906-ac46-48ce-be5e-8640e9bcfb42",
+                "http://127.0.0.1:32875/2883cf75-5e1b-4566-8fe6-d6b89ca420cd",
+                "http://127.0.0.1:32875/2d692abc-dde5-49e2-9fab-c742b55462c7",
+                "http://127.0.0.1:32875/31fb6fca-17da-46b8-b31a-40c167d63e2b",
+                "http://127.0.0.1:32875/357a2ea3-304d-4564-af9f-2dbdc207ea3b",
+                "http://127.0.0.1:32875/38d16483-1db0-437d-a882-933893cbb7da",
+                "http://127.0.0.1:32875/4fb86902-59d1-4f77-860d-cb8b9748c4e8",
+                "http://127.0.0.1:32875/516b2a1f-fc54-4e63-b0ce-180c784bdc0d",
+                "http://127.0.0.1:32875/5a422ae6-6de2-4d89-9695-7d796ae3da85",
+                "http://127.0.0.1:32875/6efdc079-5b7d-4115-ae44-86164b09f9b3",
+                "http://127.0.0.1:32875/72732583-e73d-4d7b-8a3b-2e9de543a617",
+                "http://127.0.0.1:32875/79a3bbb4-6d80-4e91-b4a4-23572bcf2e41",
+                "http://127.0.0.1:32875/7da3feb3-b8d7-4b86-8db2-443a85127596",
+                "http://127.0.0.1:32875/815edd28-c51e-4651-b753-94978d5d9c6e",
+                "http://127.0.0.1:32875/af751287-4332-41d4-ae9a-8fbc6b6e5436",
+                "http://127.0.0.1:32875/b8a4c939-07fc-4016-83e0-72b2c087586f",
+                "http://127.0.0.1:32875/e8e63048-5ff3-4385-9a8a-24f1d96ac996"
+              ]
+            },
+            "warm": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 2486.801192,
+                "p95": 3162.8790789999985
+              },
+              "settled_ms": {
+                "p50": 2497.054852999998,
+                "p95": 3162.906434999997
+              },
+              "browser_cpu_ms": {
+                "p50": 8490,
+                "p95": 10330
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1600761856,
+                "p95": 1620889600
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 784007168,
+                "p95": 795365376
+              },
+              "server_cpu_ms": {
+                "p50": 19.247999999999593,
+                "p95": 30.179000000000087
+              },
+              "server_peak_memory_bytes": {
+                "p50": 100782080,
+                "p95": 103321600
+              },
+              "server_sent_bytes": {
+                "p50": 3347,
+                "p95": 4795
+              },
+              "server_received_bytes": {
+                "p50": 6220,
+                "p95": 7498
+              },
+              "observed_response_body_bytes": {
+                "p50": -65377,
+                "p95": -65377
+              },
+              "observed_requests": {
+                "p50": 102,
+                "p95": 102
+              },
+              "browser_write_bytes": {
+                "p50": 864256,
+                "p95": 1351680
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/account/needs-bootstrap",
+                "/account/validate",
+                "/accounts/79a2f9e2-41b3-4f2b-a751-8937604f5857",
+                "/android-chrome-192x192.png",
+                "/data-file-index.txt",
+                "/data/default-db.sqlite",
+                "/data/migrations/1548957970627_remove-db-version.sql",
+                "/data/migrations/1550601598648_payees.sql",
+                "/data/migrations/1555786194328_remove_category_group_unique.sql",
+                "/data/migrations/1561751833510_indexes.sql",
+                "/data/migrations/1567699552727_budget.sql",
+                "/data/migrations/1582384163573_cleared.sql",
+                "/data/migrations/1597756566448_rules.sql",
+                "/data/migrations/1608652596043_parent_field.sql",
+                "/data/migrations/1608652596044_trans_views.sql",
+                "/data/migrations/1612625548236_optimize.sql",
+                "/data/migrations/1614782639336_trans_views2.sql",
+                "/data/migrations/1615745967948_meta.sql",
+                "/data/migrations/1616167010796_accounts_order.sql",
+                "/data/migrations/1618975177358_schedules.sql",
+                "/data/migrations/1632571489012_remove_cache.js",
+                "/data/migrations/1679728867040_rules_conditions.sql",
+                "/data/migrations/1681115033845_add_schedule_name.sql",
+                "/data/migrations/1682974838138_remove_payee_rules.sql",
+                "/data/migrations/1685007876842_add_category_hidden.sql",
+                "/data/migrations/1686139660866_remove_account_type.sql",
+                "/data/migrations/1688749527273_transaction_filters.sql",
+                "/data/migrations/1688841238000_add_account_type.sql",
+                "/data/migrations/1691233396000_add_schedule_next_date_tombstone.sql",
+                "/data/migrations/1694438752000_add_goal_targets.sql",
+                "/data/migrations/1697046240000_add_reconciled.sql",
+                "/data/migrations/1704572023730_add_account_sync_source.sql",
+                "/data/migrations/1704572023731_add_missing_goCardless_sync_source.sql",
+                "/data/migrations/1707267033000_reports.sql",
+                "/data/migrations/1712784523000_unhide_input_group.sql",
+                "/data/migrations/1716359441000_include_current.sql",
+                "/data/migrations/1720310586000_link_transfer_schedules.sql",
+                "/data/migrations/1720664867241_add_payee_favorite.sql",
+                "/data/migrations/1720665000000_goal_context.sql",
+                "/data/migrations/1722717601000_reports_move_selected_categories.js",
+                "/data/migrations/1722804019000_create_dashboard_table.js",
+                "/data/migrations/1723665565000_prefs.js",
+                "/data/migrations/1730744182000_fix_dashboard_table.sql",
+                "/data/migrations/1736640000000_custom_report_sorting.sql",
+                "/data/migrations/1737158400000_add_learn_categories_to_payees.sql",
+                "/data/migrations/1738491452000_sorting_rename.sql",
+                "/data/migrations/1739139550000_bank_sync_page.sql",
+                "/data/migrations/1740506588539_add_last_reconciled_at.sql",
+                "/data/migrations/1745425408000_update_budgetType_pref.sql",
+                "/data/migrations/1749799110000_add_tags.sql",
+                "/data/migrations/1749799110001_tags_tombstone.sql",
+                "/data/migrations/1754611200000_add_category_template_settings.sql",
+                "/data/migrations/1759260219000_add_trim_interval_report_setting.sql",
+                "/data/migrations/1759842823172_add_isGlobal_to_preferences.sql",
+                "/data/migrations/1762178745667_rename_csv_skip_lines_pref.sql",
+                "/data/migrations/1765518577215_multiple_dashboards.js",
+                "/data/migrations/1768872504000_add_payee_locations.sql",
+                "/data/migrations/1769000000000_add_custom_upcoming_length.sql",
+                "/data/migrations/1778510362740_add_cleanup_groups_and_def.sql",
+                "/data/migrations/1780099200000_add_show_trend_lines_report_setting.sql",
+                "/data/migrations/1780327681000_add_tags_hidden.sql",
+                "/data/migrations/1780606215000_add_bank_sync_status.sql",
+                "/data/migrations/1780606215001_add_performance_indexes.sql",
+                "/data/migrations/1783004650757_schedule_sort_order.sql",
+                "/data/migrations/1787013118115_add_account_groups.sql",
+                "/data/migrations/1788468782000_add_messages_pending.js",
+                "/info",
+                "/kcab/kcab.worker.pcQK6t_7.js",
+                "/site.webmanifest",
+                "/sql-wasm.wasm",
+                "/static/css/index.DaMJyE_v.css",
+                "/static/js/BackgroundImage.r32zxjfm.chunk.js",
+                "/static/js/DateSelect.CUrLh8AJ.chunk.js",
+                "/static/js/ManageRules.pZJ7b5mH.chunk.js",
+                "/static/js/NotesTagFormatter.D2DCNMaj.chunk.js",
+                "/static/js/PayeeRuleCountLabel.CPkSnHXq.chunk.js",
+                "/static/js/ScheduleEditForm.6l8J1jY1.chunk.js",
+                "/static/js/SchedulesTable.Bf2CekF2.chunk.js",
+                "/static/js/TourProvider.CfJcepGC.chunk.js",
+                "/static/js/TransactionEdit.rYfaq5rg.chunk.js",
+                "/static/js/TransactionList.DDWVq-0m.chunk.js",
+                "/static/js/Value.BKuAotBl.chunk.js",
+                "/static/js/browser-server.Bn9r7T7W.js",
+                "/static/js/client.DX2Pd1vd.chunk.js",
+                "/static/js/columns.DphgAXLS.chunk.js",
+                "/static/js/en.DffUqt3-.chunk.js",
+                "/static/js/index.C1M3OSSF.js",
+                "/static/js/indexeddb-main-thread-worker-e59fee74.B9D89_PE.chunk.js",
+                "/static/js/months.CGSICdiJ.chunk.js",
+                "/static/js/theme.DnSL1G56.chunk.js",
+                "/static/js/useFormatList.D8BAjMRE.chunk.js",
+                "/static/js/useLocalPref.BdsIJkpF.chunk.js",
+                "/static/js/useReducedMotion.BvAUtRsj.chunk.js",
+                "/static/js/wide.CTbfUtl9.chunk.js",
+                "/static/js/workbox-window.prod.es5.D5AzH0Wa.chunk.js",
+                "/static/media/inter-latin-wght-italic.DpCbqKDY.woff2",
+                "/static/media/inter-latin-wght-normal.Dx4kXJAl.woff2",
+                "/sync/list-user-files",
+                "/sync/sync",
+                "http://127.0.0.1:32875/04c0914c-0423-46c7-b9e3-3ecd621caf7d",
+                "http://127.0.0.1:32875/0bc40712-491e-467d-9e48-2282fc26f456",
+                "http://127.0.0.1:32875/1eccc77c-7a65-4393-b167-692e25ddb027",
+                "http://127.0.0.1:32875/309dcb68-07bb-4628-9a9d-6b40aa38b8e8",
+                "http://127.0.0.1:32875/381c63c9-8eda-4e23-8379-0cfb14f1098b",
+                "http://127.0.0.1:32875/38935709-4ce0-425f-8b0a-79a79b0a0098",
+                "http://127.0.0.1:32875/3dbeb90f-d355-413a-a481-f4dbb67f8fdf",
+                "http://127.0.0.1:32875/43086a95-3476-44f6-a9b2-3ab6fbde2b6c",
+                "http://127.0.0.1:32875/62cdaa5a-dc66-431d-9677-71954265b7e5",
+                "http://127.0.0.1:32875/6313c2df-4a8f-4eb9-b832-9f81367b2edb",
+                "http://127.0.0.1:32875/779c726a-bb22-4cc3-8316-e9b475f34cac",
+                "http://127.0.0.1:32875/7ba36faf-ef8b-43f6-a2b5-d451332056bc",
+                "http://127.0.0.1:32875/833da262-d4cd-4313-9af6-f1ad2861a071",
+                "http://127.0.0.1:32875/85b90b57-1685-4598-ba44-90ccd64031c1",
+                "http://127.0.0.1:32875/a3b84478-77e7-44ae-a9e5-99120267cdfb",
+                "http://127.0.0.1:32875/c23416c3-3856-49c8-87bd-26a651d3ca7e",
+                "http://127.0.0.1:32875/cafb60fb-4218-4e10-9089-81848d1f94e4",
+                "http://127.0.0.1:32875/d6a08f06-599f-48fb-a5e9-35581e7a62c0",
+                "http://127.0.0.1:32875/e542c795-bfa3-43b7-9993-ce5db7b7e17f",
+                "http://127.0.0.1:32875/e9ceb9fa-1cd9-4b40-91ff-e2de3a8ac767"
+              ]
+            },
+            "unchanged": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 151.78156299999682,
+                "p95": 175.46710399999938
+              },
+              "settled_ms": {
+                "p50": 326.691417,
+                "p95": 434.44726799999626
+              },
+              "browser_cpu_ms": {
+                "p50": 440,
+                "p95": 740
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1612959744,
+                "p95": 1631526912
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 793334784,
+                "p95": 804324352
+              },
+              "server_cpu_ms": {
+                "p50": 3.6740000000027067,
+                "p95": 6.911000000000058
+              },
+              "server_peak_memory_bytes": {
+                "p50": 100458496,
+                "p95": 103309312
+              },
+              "server_sent_bytes": {
+                "p50": 454,
+                "p95": 1902
+              },
+              "server_received_bytes": {
+                "p50": 862,
+                "p95": 2171
+              },
+              "observed_response_body_bytes": {
+                "p50": 4,
+                "p95": 4
+              },
+              "observed_requests": {
+                "p50": 1,
+                "p95": 1
+              },
+              "browser_write_bytes": {
+                "p50": 0,
+                "p95": 2162688
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/sync/sync"
+              ]
+            }
+          },
+          "idle": {
+            "duration_ms": 35002.073603,
+            "client": {
+              "cpu_ms": 1300,
+              "read_bytes": 0,
+              "write_bytes": 2326528,
+              "peak_rss_bytes": 1633447936,
+              "peak_pss_bytes": 804308992,
+              "unavailable_pss_processes": 0,
+              "unavailable_io_processes": 0
+            },
+            "server": {
+              "cpu_ms": 8.763999999999214,
+              "peak_memory_bytes": 102825984,
+              "memory_bytes": 102543360,
+              "network": {
+                "lo": {
+                  "rx_bytes": 0,
+                  "tx_bytes": 0
+                },
+                "eth0": {
+                  "rx_bytes": 7623,
+                  "tx_bytes": 2530
+                }
+              },
+              "io": {
+                "259:0": {
+                  "rbytes": 0,
+                  "wbytes": 0,
+                  "rios": 0,
+                  "wios": 0,
+                  "dbytes": 0,
+                  "dios": 0
+                },
+                "253:0": {
+                  "rbytes": 0,
+                  "wbytes": 0,
+                  "rios": 0,
+                  "wios": 0,
+                  "dbytes": 0,
+                  "dios": 0
+                }
+              }
+            },
+            "requests": [],
+            "inflight": [],
+            "failures": []
+          }
+        },
+        {
+          "name": "large",
+          "archive_sha256": "859ce7e5dcdafb6c81786ea9a736238e3294ac44c5f89aefc58939393936220d",
+          "prior_errors": [],
+          "phases": {
+            "cold": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 7871.500053000011,
+                "p95": 9621.389583000011
+              },
+              "settled_ms": {
+                "p50": 7909.63964899999,
+                "p95": 9907.176371999958
+              },
+              "browser_cpu_ms": {
+                "p50": 20590,
+                "p95": 26240
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1699037184,
+                "p95": 1718697984
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 13,
+                "p50": 894223360,
+                "p95": 907999232
+              },
+              "server_cpu_ms": {
+                "p50": 664.0889999999999,
+                "p95": 839.0740000000005
+              },
+              "server_peak_memory_bytes": {
+                "p50": 173285376,
+                "p95": 214065152
+              },
+              "server_sent_bytes": {
+                "p50": 23798834,
+                "p95": 23801274
+              },
+              "server_received_bytes": {
+                "p50": 188643,
+                "p95": 193305
+              },
+              "observed_response_body_bytes": {
+                "p50": 23498724,
+                "p95": 23498724
+              },
+              "observed_requests": {
+                "p50": 261,
+                "p95": 261
+              },
+              "browser_write_bytes": {
+                "p50": 79605760,
+                "p95": 80285696
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/",
+                "/account/needs-bootstrap",
+                "/account/validate",
+                "/android-chrome-192x192.png",
+                "/android-chrome-512x512.png",
+                "/apple-touch-icon.png",
+                "/archived/android-chrome-192x192.png",
+                "/archived/android-chrome-512x512.png",
+                "/archived/apple-touch-icon.png",
+                "/archived/favicon-16x16.png",
+                "/archived/favicon-32x32.png",
+                "/archived/favicon.png",
+                "/archived/maskable-192x192.png",
+                "/archived/maskable-512x512.png",
+                "/archived/mstile-150x150.png",
+                "/data-file-index.txt",
+                "/data/default-db.sqlite",
+                "/data/migrations/1548957970627_remove-db-version.sql",
+                "/data/migrations/1550601598648_payees.sql",
+                "/data/migrations/1555786194328_remove_category_group_unique.sql",
+                "/data/migrations/1561751833510_indexes.sql",
+                "/data/migrations/1567699552727_budget.sql",
+                "/data/migrations/1582384163573_cleared.sql",
+                "/data/migrations/1597756566448_rules.sql",
+                "/data/migrations/1608652596043_parent_field.sql",
+                "/data/migrations/1608652596044_trans_views.sql",
+                "/data/migrations/1612625548236_optimize.sql",
+                "/data/migrations/1614782639336_trans_views2.sql",
+                "/data/migrations/1615745967948_meta.sql",
+                "/data/migrations/1616167010796_accounts_order.sql",
+                "/data/migrations/1618975177358_schedules.sql",
+                "/data/migrations/1632571489012_remove_cache.js",
+                "/data/migrations/1679728867040_rules_conditions.sql",
+                "/data/migrations/1681115033845_add_schedule_name.sql",
+                "/data/migrations/1682974838138_remove_payee_rules.sql",
+                "/data/migrations/1685007876842_add_category_hidden.sql",
+                "/data/migrations/1686139660866_remove_account_type.sql",
+                "/data/migrations/1688749527273_transaction_filters.sql",
+                "/data/migrations/1688841238000_add_account_type.sql",
+                "/data/migrations/1691233396000_add_schedule_next_date_tombstone.sql",
+                "/data/migrations/1694438752000_add_goal_targets.sql",
+                "/data/migrations/1697046240000_add_reconciled.sql",
+                "/data/migrations/1704572023730_add_account_sync_source.sql",
+                "/data/migrations/1704572023731_add_missing_goCardless_sync_source.sql",
+                "/data/migrations/1707267033000_reports.sql",
+                "/data/migrations/1712784523000_unhide_input_group.sql",
+                "/data/migrations/1716359441000_include_current.sql",
+                "/data/migrations/1720310586000_link_transfer_schedules.sql",
+                "/data/migrations/1720664867241_add_payee_favorite.sql",
+                "/data/migrations/1720665000000_goal_context.sql",
+                "/data/migrations/1722717601000_reports_move_selected_categories.js",
+                "/data/migrations/1722804019000_create_dashboard_table.js",
+                "/data/migrations/1723665565000_prefs.js",
+                "/data/migrations/1730744182000_fix_dashboard_table.sql",
+                "/data/migrations/1736640000000_custom_report_sorting.sql",
+                "/data/migrations/1737158400000_add_learn_categories_to_payees.sql",
+                "/data/migrations/1738491452000_sorting_rename.sql",
+                "/data/migrations/1739139550000_bank_sync_page.sql",
+                "/data/migrations/1740506588539_add_last_reconciled_at.sql",
+                "/data/migrations/1745425408000_update_budgetType_pref.sql",
+                "/data/migrations/1749799110000_add_tags.sql",
+                "/data/migrations/1749799110001_tags_tombstone.sql",
+                "/data/migrations/1754611200000_add_category_template_settings.sql",
+                "/data/migrations/1759260219000_add_trim_interval_report_setting.sql",
+                "/data/migrations/1759842823172_add_isGlobal_to_preferences.sql",
+                "/data/migrations/1762178745667_rename_csv_skip_lines_pref.sql",
+                "/data/migrations/1765518577215_multiple_dashboards.js",
+                "/data/migrations/1768872504000_add_payee_locations.sql",
+                "/data/migrations/1769000000000_add_custom_upcoming_length.sql",
+                "/data/migrations/1778510362740_add_cleanup_groups_and_def.sql",
+                "/data/migrations/1780099200000_add_show_trend_lines_report_setting.sql",
+                "/data/migrations/1780327681000_add_tags_hidden.sql",
+                "/data/migrations/1780606215000_add_bank_sync_status.sql",
+                "/data/migrations/1780606215001_add_performance_indexes.sql",
+                "/data/migrations/1783004650757_schedule_sort_order.sql",
+                "/data/migrations/1787013118115_add_account_groups.sql",
+                "/data/migrations/1788468782000_add_messages_pending.js",
+                "/favicon-16x16.png",
+                "/favicon-32x32.png",
+                "/favicon.ico",
+                "/index.html",
+                "/info",
+                "/kcab/kcab.worker.pcQK6t_7.js",
+                "/manifest.webmanifest",
+                "/maskable-192x192.png",
+                "/maskable-512x512.png",
+                "/mstile-150x150.png",
+                "/screenshot_narrow.png",
+                "/screenshot_wide.png",
+                "/site.webmanifest",
+                "/sql-wasm.wasm",
+                "/static/css/ReportRouter.Dly3Bzm_.css",
+                "/static/css/index.DaMJyE_v.css",
+                "/static/js/BackgroundImage.r32zxjfm.chunk.js",
+                "/static/js/DateSelect.CUrLh8AJ.chunk.js",
+                "/static/js/FormulaEditor.Dia3pECZ.chunk.js",
+                "/static/js/ManageRules.pZJ7b5mH.chunk.js",
+                "/static/js/NotesTagFormatter.D2DCNMaj.chunk.js",
+                "/static/js/PayeeRuleCountLabel.CPkSnHXq.chunk.js",
+                "/static/js/ReportRouter.KkTypOVC.chunk.js",
+                "/static/js/ScheduleEditForm.6l8J1jY1.chunk.js",
+                "/static/js/SchedulesTable.Bf2CekF2.chunk.js",
+                "/static/js/TourHost.DA-O2miP.chunk.js",
+                "/static/js/TourProvider.CfJcepGC.chunk.js",
+                "/static/js/TransactionEdit.rYfaq5rg.chunk.js",
+                "/static/js/TransactionList.DDWVq-0m.chunk.js",
+                "/static/js/TransactionList.DgsDTzqb.chunk.js",
+                "/static/js/Value.BKuAotBl.chunk.js",
+                "/static/js/bootstrapHyperFormula.IIhTcG2D.chunk.js",
+                "/static/js/browser-server.Bn9r7T7W.js",
+                "/static/js/ca.Chhgedur.chunk.js",
+                "/static/js/client.DX2Pd1vd.chunk.js",
+                "/static/js/columns.DphgAXLS.chunk.js",
+                "/static/js/de.lkublLKT.chunk.js",
+                "/static/js/en-GB.BG03r60l.chunk.js",
+                "/static/js/en.DffUqt3-.chunk.js",
+                "/static/js/es.7oXsCK0C.chunk.js",
+                "/static/js/fr.CStj6vNz.chunk.js",
+                "/static/js/index.C1M3OSSF.js",
+                "/static/js/indexeddb-main-thread-worker-e59fee74.B9D89_PE.chunk.js",
+                "/static/js/it.DrkF9rrp.chunk.js",
+                "/static/js/months.CGSICdiJ.chunk.js",
+                "/static/js/narrow.D0HuRdIO.chunk.js",
+                "/static/js/nb-NO.DuLar2Rp.chunk.js",
+                "/static/js/nl.CirDaWIC.chunk.js",
+                "/static/js/pl.DFuMNx_h.chunk.js",
+                "/static/js/pt-BR.SA2E9mLO.chunk.js",
+                "/static/js/ru.VUnucNky.chunk.js",
+                "/static/js/theme.DnSL1G56.chunk.js",
+                "/static/js/uk.D3ez2x9L.chunk.js",
+                "/static/js/useFormatList.D8BAjMRE.chunk.js",
+                "/static/js/useLocalPref.BdsIJkpF.chunk.js",
+                "/static/js/useReducedMotion.BvAUtRsj.chunk.js",
+                "/static/js/wide.CTbfUtl9.chunk.js",
+                "/static/js/workbox-window.prod.es5.D5AzH0Wa.chunk.js",
+                "/static/js/zh-Hans.CCSKeB4P.chunk.js",
+                "/static/js/zh-Hant.nQ9I434y.chunk.js",
+                "/static/media/inter-cyrillic-ext-wght-italic.B5xAaiFk.woff2",
+                "/static/media/inter-cyrillic-ext-wght-normal.BOeWTOD4.woff2",
+                "/static/media/inter-cyrillic-wght-italic.DzZdc28x.woff2",
+                "/static/media/inter-cyrillic-wght-normal.DqGufNeO.woff2",
+                "/static/media/inter-greek-ext-wght-italic.DcOpz6Lw.woff2",
+                "/static/media/inter-greek-ext-wght-normal.DlzME5K_.woff2",
+                "/static/media/inter-greek-wght-italic.CILZdfAp.woff2",
+                "/static/media/inter-greek-wght-normal.CkhJZR-_.woff2",
+                "/static/media/inter-latin-ext-wght-italic.0pjOp8NU.woff2",
+                "/static/media/inter-latin-ext-wght-normal.DO1Apj_S.woff2",
+                "/static/media/inter-latin-wght-italic.DpCbqKDY.woff2",
+                "/static/media/inter-latin-wght-normal.Dx4kXJAl.woff2",
+                "/static/media/inter-vietnamese-wght-italic.K3WlGtc8.woff2",
+                "/static/media/inter-vietnamese-wght-normal.CBcvBZtf.woff2",
+                "/static/media/redacted-script-latin-400-normal.DO_NTpDN.woff2",
+                "/static/media/redacted-script-latin-ext-400-normal.BsF1F2G5.woff2",
+                "/static/shared-browser-server-C7q_DhZs.js",
+                "/sw.js",
+                "/sync/download-user-file",
+                "/sync/get-user-file-info",
+                "/sync/list-user-files",
+                "/sync/sync",
+                "/workbox-2fbc6a65.js",
+                "http://127.0.0.1:32875/02010f6f-d704-4507-b8a4-0c430adfec2d",
+                "http://127.0.0.1:32875/040b6d9c-0623-4c8d-869d-43e251cfb88a",
+                "http://127.0.0.1:32875/10c2eb2c-fb79-4d14-9e73-b85308c1e925",
+                "http://127.0.0.1:32875/177cbdb9-9adc-409a-ad85-1deaad3d2b2e",
+                "http://127.0.0.1:32875/2589d2c7-c1fe-4e61-a1c4-2036fa20bb65",
+                "http://127.0.0.1:32875/35068132-5a3a-45e4-a8a7-159709b9af52",
+                "http://127.0.0.1:32875/36647966-eb03-44f3-af41-32be2e02e306",
+                "http://127.0.0.1:32875/3a9406ca-c979-45e3-b47d-597166ab43dc",
+                "http://127.0.0.1:32875/457b3c50-826b-4454-81f9-70d72cdd2613",
+                "http://127.0.0.1:32875/8de4a57e-dd0d-44d1-bb43-7b9669f46c02",
+                "http://127.0.0.1:32875/92cd6f36-e68a-4e19-a6df-f3a70af48ede",
+                "http://127.0.0.1:32875/a1f8f1b1-58bf-401e-86bd-92b5875745c3",
+                "http://127.0.0.1:32875/b02712b1-4f23-4cab-92ef-b10441084250",
+                "http://127.0.0.1:32875/b8bee7cc-2989-4a4d-ae39-8498bd46a22d",
+                "http://127.0.0.1:32875/c182fe2f-1f4a-487b-bfdb-f4ecffa44dd3",
+                "http://127.0.0.1:32875/c46ef09a-ae59-4269-a98f-e47914c39a38",
+                "http://127.0.0.1:32875/d05f7424-9376-4fea-8f8c-fa2f25376d6d",
+                "http://127.0.0.1:32875/ef514d21-81fa-4cb9-84ef-6c5f7aaa958a",
+                "http://127.0.0.1:32875/f0d44765-327a-4aca-a28e-87e6366f64a4",
+                "http://127.0.0.1:32875/fa602fcb-bba6-439d-809a-3e4ad4c07289"
+              ]
+            },
+            "warm": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 2487.416855999996,
+                "p95": 2854.4773679999926
+              },
+              "settled_ms": {
+                "p50": 2487.4307190000254,
+                "p95": 2854.4963500000013
+              },
+              "browser_cpu_ms": {
+                "p50": 7500,
+                "p95": 8830
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1711005696,
+                "p95": 1746350080
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 901727232,
+                "p95": 924075008
+              },
+              "server_cpu_ms": {
+                "p50": 12.247999999999593,
+                "p95": 17.3179999999993
+              },
+              "server_peak_memory_bytes": {
+                "p50": 171388928,
+                "p95": 213516288
+              },
+              "server_sent_bytes": {
+                "p50": 2918,
+                "p95": 3668
+              },
+              "server_received_bytes": {
+                "p50": 4211,
+                "p95": 5459
+              },
+              "observed_response_body_bytes": {
+                "p50": -65381,
+                "p95": -65381
+              },
+              "observed_requests": {
+                "p50": 99,
+                "p95": 99
+              },
+              "browser_write_bytes": {
+                "p50": 1200128,
+                "p95": 1568768
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/account/needs-bootstrap",
+                "/account/validate",
+                "/accounts/79a2f9e2-41b3-4f2b-a751-8937604f5857",
+                "/android-chrome-192x192.png",
+                "/data-file-index.txt",
+                "/data/default-db.sqlite",
+                "/data/migrations/1548957970627_remove-db-version.sql",
+                "/data/migrations/1550601598648_payees.sql",
+                "/data/migrations/1555786194328_remove_category_group_unique.sql",
+                "/data/migrations/1561751833510_indexes.sql",
+                "/data/migrations/1567699552727_budget.sql",
+                "/data/migrations/1582384163573_cleared.sql",
+                "/data/migrations/1597756566448_rules.sql",
+                "/data/migrations/1608652596043_parent_field.sql",
+                "/data/migrations/1608652596044_trans_views.sql",
+                "/data/migrations/1612625548236_optimize.sql",
+                "/data/migrations/1614782639336_trans_views2.sql",
+                "/data/migrations/1615745967948_meta.sql",
+                "/data/migrations/1616167010796_accounts_order.sql",
+                "/data/migrations/1618975177358_schedules.sql",
+                "/data/migrations/1632571489012_remove_cache.js",
+                "/data/migrations/1679728867040_rules_conditions.sql",
+                "/data/migrations/1681115033845_add_schedule_name.sql",
+                "/data/migrations/1682974838138_remove_payee_rules.sql",
+                "/data/migrations/1685007876842_add_category_hidden.sql",
+                "/data/migrations/1686139660866_remove_account_type.sql",
+                "/data/migrations/1688749527273_transaction_filters.sql",
+                "/data/migrations/1688841238000_add_account_type.sql",
+                "/data/migrations/1691233396000_add_schedule_next_date_tombstone.sql",
+                "/data/migrations/1694438752000_add_goal_targets.sql",
+                "/data/migrations/1697046240000_add_reconciled.sql",
+                "/data/migrations/1704572023730_add_account_sync_source.sql",
+                "/data/migrations/1704572023731_add_missing_goCardless_sync_source.sql",
+                "/data/migrations/1707267033000_reports.sql",
+                "/data/migrations/1712784523000_unhide_input_group.sql",
+                "/data/migrations/1716359441000_include_current.sql",
+                "/data/migrations/1720310586000_link_transfer_schedules.sql",
+                "/data/migrations/1720664867241_add_payee_favorite.sql",
+                "/data/migrations/1720665000000_goal_context.sql",
+                "/data/migrations/1722717601000_reports_move_selected_categories.js",
+                "/data/migrations/1722804019000_create_dashboard_table.js",
+                "/data/migrations/1723665565000_prefs.js",
+                "/data/migrations/1730744182000_fix_dashboard_table.sql",
+                "/data/migrations/1736640000000_custom_report_sorting.sql",
+                "/data/migrations/1737158400000_add_learn_categories_to_payees.sql",
+                "/data/migrations/1738491452000_sorting_rename.sql",
+                "/data/migrations/1739139550000_bank_sync_page.sql",
+                "/data/migrations/1740506588539_add_last_reconciled_at.sql",
+                "/data/migrations/1745425408000_update_budgetType_pref.sql",
+                "/data/migrations/1749799110000_add_tags.sql",
+                "/data/migrations/1749799110001_tags_tombstone.sql",
+                "/data/migrations/1754611200000_add_category_template_settings.sql",
+                "/data/migrations/1759260219000_add_trim_interval_report_setting.sql",
+                "/data/migrations/1759842823172_add_isGlobal_to_preferences.sql",
+                "/data/migrations/1762178745667_rename_csv_skip_lines_pref.sql",
+                "/data/migrations/1765518577215_multiple_dashboards.js",
+                "/data/migrations/1768872504000_add_payee_locations.sql",
+                "/data/migrations/1769000000000_add_custom_upcoming_length.sql",
+                "/data/migrations/1778510362740_add_cleanup_groups_and_def.sql",
+                "/data/migrations/1780099200000_add_show_trend_lines_report_setting.sql",
+                "/data/migrations/1780327681000_add_tags_hidden.sql",
+                "/data/migrations/1780606215000_add_bank_sync_status.sql",
+                "/data/migrations/1780606215001_add_performance_indexes.sql",
+                "/data/migrations/1783004650757_schedule_sort_order.sql",
+                "/data/migrations/1787013118115_add_account_groups.sql",
+                "/data/migrations/1788468782000_add_messages_pending.js",
+                "/info",
+                "/kcab/kcab.worker.pcQK6t_7.js",
+                "/site.webmanifest",
+                "/sql-wasm.wasm",
+                "/static/css/index.DaMJyE_v.css",
+                "/static/js/BackgroundImage.r32zxjfm.chunk.js",
+                "/static/js/DateSelect.CUrLh8AJ.chunk.js",
+                "/static/js/ManageRules.pZJ7b5mH.chunk.js",
+                "/static/js/NotesTagFormatter.D2DCNMaj.chunk.js",
+                "/static/js/PayeeRuleCountLabel.CPkSnHXq.chunk.js",
+                "/static/js/ScheduleEditForm.6l8J1jY1.chunk.js",
+                "/static/js/SchedulesTable.Bf2CekF2.chunk.js",
+                "/static/js/TourProvider.CfJcepGC.chunk.js",
+                "/static/js/TransactionEdit.rYfaq5rg.chunk.js",
+                "/static/js/TransactionList.DDWVq-0m.chunk.js",
+                "/static/js/Value.BKuAotBl.chunk.js",
+                "/static/js/browser-server.Bn9r7T7W.js",
+                "/static/js/client.DX2Pd1vd.chunk.js",
+                "/static/js/columns.DphgAXLS.chunk.js",
+                "/static/js/en.DffUqt3-.chunk.js",
+                "/static/js/index.C1M3OSSF.js",
+                "/static/js/indexeddb-main-thread-worker-e59fee74.B9D89_PE.chunk.js",
+                "/static/js/months.CGSICdiJ.chunk.js",
+                "/static/js/theme.DnSL1G56.chunk.js",
+                "/static/js/useFormatList.D8BAjMRE.chunk.js",
+                "/static/js/useLocalPref.BdsIJkpF.chunk.js",
+                "/static/js/useReducedMotion.BvAUtRsj.chunk.js",
+                "/static/js/wide.CTbfUtl9.chunk.js",
+                "/static/js/workbox-window.prod.es5.D5AzH0Wa.chunk.js",
+                "/static/media/inter-latin-wght-italic.DpCbqKDY.woff2",
+                "/static/media/inter-latin-wght-normal.Dx4kXJAl.woff2",
+                "/sync/list-user-files",
+                "/sync/sync",
+                "http://127.0.0.1:32875/013d58f7-b22b-4e17-96bb-0e17b36df8f0",
+                "http://127.0.0.1:32875/08cd5b35-bd65-4cb2-b694-5a7a1af9303f",
+                "http://127.0.0.1:32875/0f1766a5-9f84-465d-9ae3-ed74d362c2fd",
+                "http://127.0.0.1:32875/1c58495d-0ecd-4fde-86e5-bd2d40b7ecf7",
+                "http://127.0.0.1:32875/24a284c5-e125-41b7-9e4c-993a6a015ebe",
+                "http://127.0.0.1:32875/325f3b85-c6b9-473e-8142-618a83151ddd",
+                "http://127.0.0.1:32875/354ddaef-242e-4a89-8913-a76fcd3a67aa",
+                "http://127.0.0.1:32875/3d11a55a-2c27-4d88-9f3a-18b03a9dd634",
+                "http://127.0.0.1:32875/45f61554-864d-4100-8bd4-297081bd6bb5",
+                "http://127.0.0.1:32875/537329ad-2154-4b12-83fb-064a2295a4a9",
+                "http://127.0.0.1:32875/589f1be5-c875-4c4f-a9c6-a049e829ccab",
+                "http://127.0.0.1:32875/62668f70-09a3-4ed0-9c67-fe6f7703a3d3",
+                "http://127.0.0.1:32875/6def2109-d2f5-4878-b49c-a4e9fe14a791",
+                "http://127.0.0.1:32875/85c8a137-372f-440c-822a-faa0c0308dfe",
+                "http://127.0.0.1:32875/8e1626b4-1299-422d-848e-4391b3a08159",
+                "http://127.0.0.1:32875/acbdb548-26e2-438f-ade3-2ba8f8c9c0b7",
+                "http://127.0.0.1:32875/c59b9556-f0d6-400a-9a72-145a3f24d32f",
+                "http://127.0.0.1:32875/d670e7e7-1e79-46d9-b8de-62df6f877cfa",
+                "http://127.0.0.1:32875/d6bc087b-3bbc-40ae-b8e5-276a5c7d7eac",
+                "http://127.0.0.1:32875/eb3fea5b-ef5e-43ac-aa79-7176bd657d43"
+              ]
+            },
+            "unchanged": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 495.7669229999883,
+                "p95": 753.1478979999956
+              },
+              "settled_ms": {
+                "p50": 582.3115600000019,
+                "p95": 908.8229649999994
+              },
+              "browser_cpu_ms": {
+                "p50": 1650,
+                "p95": 2300
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1702125568,
+                "p95": 1717706752
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 882679808,
+                "p95": 894157824
+              },
+              "server_cpu_ms": {
+                "p50": 9.508999999998196,
+                "p95": 12.34100000000035
+              },
+              "server_peak_memory_bytes": {
+                "p50": 171139072,
+                "p95": 213274624
+              },
+              "server_sent_bytes": {
+                "p50": 1573,
+                "p95": 1787
+              },
+              "server_received_bytes": {
+                "p50": 2273,
+                "p95": 2920
+              },
+              "observed_response_body_bytes": {
+                "p50": 372,
+                "p95": 372
+              },
+              "observed_requests": {
+                "p50": 3,
+                "p95": 3
+              },
+              "browser_write_bytes": {
+                "p50": 282624,
+                "p95": 360448
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/account/validate",
+                "/sync/list-user-files",
+                "/sync/sync"
+              ]
+            }
+          },
+          "idle": {
+            "duration_ms": 35001.50717400003,
+            "client": {
+              "cpu_ms": 1470,
+              "read_bytes": 0,
+              "write_bytes": 1515520,
+              "peak_rss_bytes": 1637249024,
+              "peak_pss_bytes": 825023488,
+              "unavailable_pss_processes": 0,
+              "unavailable_io_processes": 0
+            },
+            "server": {
+              "cpu_ms": 6.3729999999995925,
+              "peak_memory_bytes": 239448064,
+              "memory_bytes": 238665728,
+              "network": {
+                "lo": {
+                  "rx_bytes": 0,
+                  "tx_bytes": 0
+                },
+                "eth0": {
+                  "rx_bytes": 2873,
+                  "tx_bytes": 2248
+                }
+              },
+              "io": {
+                "259:0": {
+                  "rbytes": 0,
+                  "wbytes": 0,
+                  "rios": 0,
+                  "wios": 0,
+                  "dbytes": 0,
+                  "dios": 0
+                },
+                "253:0": {
+                  "rbytes": 0,
+                  "wbytes": 0,
+                  "rios": 0,
+                  "wios": 0,
+                  "dbytes": 0,
+                  "dios": 0
+                }
+              }
+            },
+            "requests": [],
+            "inflight": [],
+            "failures": []
+          }
+        }
+      ]
+    },
+    "native": {
+      "count": 20,
+      "hardware": {
+        "hostname": "thinky",
+        "cpu": "13th Gen Intel(R) Core(TM) i7-1370P",
+        "cpus": 20,
+        "memory": 66972958720,
+        "kernel": "7.2.8-9-omarchy"
+      },
+      "browser": "155.0.8059.84",
+      "image": "sha256:e400473e4eaa0b079edc496196e9996549bb5dde2e44113be3faf828ec51a22e",
+      "profile": "production containers; fresh persistent browser profile for cold, same profile reload for warm; browser launch/auth setup excluded; OS page cache not cleared; distinct benchmark client addresses via trusted-proxy X-Forwarded-For, limiter remains enabled; DNS restricted to loopback (optional external news/update requests fail); per-client LAN cost, not single-IP load capacity or internet-connected cost",
+      "retained_from": null,
+      "raw_sha256": "a7a25ff87db4d7e2f9b88661a73c459ca3d84d3b3ab0d59998a4ac83d3e0b7d1",
+      "compressed_sha256": "20223045cdc69dc4e866088f06dd73d6df5e645bef124619a4cdbf26bc5534ab",
+      "cases": [
+        {
+          "name": "empty",
+          "archive_sha256": "0be31ee66756a80f79c27ebc5b887f5c8f03e04dd96d6a290ebb59a104111e29",
+          "prior_errors": [],
+          "phases": {
+            "cold": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 827.9628359999988,
+                "p95": 1200.1498569999967
+              },
+              "settled_ms": {
+                "p50": 963.8288579999999,
+                "p95": 1331.204485000002
+              },
+              "browser_cpu_ms": {
+                "p50": 1790,
+                "p95": 2550
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1053392896,
+                "p95": 1062584320
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 434633728,
+                "p95": 438051840
+              },
+              "server_cpu_ms": {
+                "p50": 25.142000000000735,
+                "p95": 31.462999999999738
+              },
+              "server_peak_memory_bytes": {
+                "p50": 285913088,
+                "p95": 286912512
+              },
+              "server_sent_bytes": {
+                "p50": 1202575,
+                "p95": 1202707
+              },
+              "server_received_bytes": {
+                "p50": 21294,
+                "p95": 21888
+              },
+              "observed_response_body_bytes": {
+                "p50": 1190790,
+                "p95": 1190790
+              },
+              "observed_requests": {
+                "p50": 25,
+                "p95": 25
+              },
+              "browser_write_bytes": {
+                "p50": 3252224,
+                "p95": 3502080
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/",
+                "/api/v1/budgets",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/account-groups",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/accounts",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/categories",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/checkpoint",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/history",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/payees",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/preferences",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/register-settings",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/rules/associations",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/schedules",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/schedules/due",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/transactions",
+                "/api/v1/info",
+                "/assets/index-CJN6_QQa.js",
+                "/assets/index-OJGTL95O.css"
+              ]
+            },
+            "warm": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 211.1295570000002,
+                "p95": 263.8298900000009
+              },
+              "settled_ms": {
+                "p50": 364.85129400000005,
+                "p95": 433.30274400000053
+              },
+              "browser_cpu_ms": {
+                "p50": 550,
+                "p95": 670
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1071316992,
+                "p95": 1087086592
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 449882112,
+                "p95": 456184832
+              },
+              "server_cpu_ms": {
+                "p50": 7.670999999999367,
+                "p95": 9.576000000000022
+              },
+              "server_peak_memory_bytes": {
+                "p50": 285462528,
+                "p95": 286134272
+              },
+              "server_sent_bytes": {
+                "p50": 9455,
+                "p95": 9974
+              },
+              "server_received_bytes": {
+                "p50": 7260,
+                "p95": 8066
+              },
+              "observed_response_body_bytes": {
+                "p50": 6137,
+                "p95": 6370
+              },
+              "observed_requests": {
+                "p50": 12,
+                "p95": 13
+              },
+              "browser_write_bytes": {
+                "p50": 884736,
+                "p95": 888832
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/checkpoint",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/history",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/register-settings",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/schedules",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/schedules/due",
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/transactions",
+                "/api/v1/info",
+                "/assets/index-CJN6_QQa.js",
+                "/assets/index-OJGTL95O.css"
+              ]
+            },
+            "unchanged": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 65.86785099999543,
+                "p95": 75.12493199999881
+              },
+              "settled_ms": {
+                "p50": 205.77613699999984,
+                "p95": 216.30223100000148
+              },
+              "browser_cpu_ms": {
+                "p50": 110,
+                "p95": 130
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1075195904,
+                "p95": 1087844352
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 450783232,
+                "p95": 456467456
+              },
+              "server_cpu_ms": {
+                "p50": 0.8010000000003856,
+                "p95": 1.0299999999997453
+              },
+              "server_peak_memory_bytes": {
+                "p50": 284958720,
+                "p95": 286113792
+              },
+              "server_sent_bytes": {
+                "p50": 380,
+                "p95": 380
+              },
+              "server_received_bytes": {
+                "p50": 743,
+                "p95": 1113
+              },
+              "observed_response_body_bytes": {
+                "p50": 95,
+                "p95": 95
+              },
+              "observed_requests": {
+                "p50": 1,
+                "p95": 1
+              },
+              "browser_write_bytes": {
+                "p50": 4096,
+                "p95": 28672
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/api/v1/budgets/83307149-c2a6-43a2-9dc3-d2b888445ff2/changes"
+              ]
+            }
+          },
+          "idle": {
+            "duration_ms": 35002.050127999995,
+            "client": {
+              "cpu_ms": 520,
+              "read_bytes": 0,
+              "write_bytes": 2777088,
+              "peak_rss_bytes": 1074589696,
+              "peak_pss_bytes": 452271104,
+              "unavailable_pss_processes": 0,
+              "unavailable_io_processes": 0
+            },
+            "server": {
+              "cpu_ms": 2.4989999999997963,
+              "peak_memory_bytes": 286113792,
+              "memory_bytes": 284385280,
+              "network": {
+                "lo": {
+                  "rx_bytes": 0,
+                  "tx_bytes": 0
+                },
+                "eth0": {
+                  "rx_bytes": 3820,
+                  "tx_bytes": 792
+                }
+              },
+              "io": {
+                "259:0": {
+                  "rbytes": 0,
+                  "wbytes": 0,
+                  "rios": 0,
+                  "wios": 0,
+                  "dbytes": 0,
+                  "dios": 0
+                },
+                "253:0": {
+                  "rbytes": 0,
+                  "wbytes": 0,
+                  "rios": 0,
+                  "wios": 0,
+                  "dbytes": 0,
+                  "dios": 0
+                }
+              }
+            },
+            "requests": [],
+            "inflight": [],
+            "failures": []
+          }
+        },
+        {
+          "name": "typical",
+          "archive_sha256": "57d3967bbe1679cfa9f98ce73f53bc355a1631b47fc5e3885600f8afc2febc65",
+          "prior_errors": [],
+          "phases": {
+            "cold": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 1044.3768529999943,
+                "p95": 1147.216075000004
+              },
+              "settled_ms": {
+                "p50": 1188.261897999997,
+                "p95": 1289.7229320000042
+              },
+              "browser_cpu_ms": {
+                "p50": 2150,
+                "p95": 2400
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1079758848,
+                "p95": 1094426624
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 461924352,
+                "p95": 465485824
+              },
+              "server_cpu_ms": {
+                "p50": 34.072000000000116,
+                "p95": 37.14800000000014
+              },
+              "server_peak_memory_bytes": {
+                "p50": 286748672,
+                "p95": 287318016
+              },
+              "server_sent_bytes": {
+                "p50": 1306535,
+                "p95": 1307079
+              },
+              "server_received_bytes": {
+                "p50": 21730,
+                "p95": 22306
+              },
+              "observed_response_body_bytes": {
+                "p50": 1294214,
+                "p95": 1294214
+              },
+              "observed_requests": {
+                "p50": 25,
+                "p95": 25
+              },
+              "browser_write_bytes": {
+                "p50": 3395584,
+                "p95": 3592192
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/",
+                "/api/v1/budgets",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/account-groups",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/accounts",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/categories",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/checkpoint",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/history",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/payees",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/preferences",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/register-settings",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/rules/associations",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/schedules",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/schedules/due",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/transactions",
+                "/api/v1/info",
+                "/assets/index-CJN6_QQa.js",
+                "/assets/index-OJGTL95O.css"
+              ]
+            },
+            "warm": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 334.2985719999997,
+                "p95": 393.118358000007
+              },
+              "settled_ms": {
+                "p50": 499.94335200000205,
+                "p95": 565.9233370000002
+              },
+              "browser_cpu_ms": {
+                "p50": 760,
+                "p95": 930
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1106870272,
+                "p95": 1119395840
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 482741248,
+                "p95": 488912896
+              },
+              "server_cpu_ms": {
+                "p50": 11.423999999999978,
+                "p95": 13.25500000000011
+              },
+              "server_peak_memory_bytes": {
+                "p50": 286224384,
+                "p95": 286810112
+              },
+              "server_sent_bytes": {
+                "p50": 47908,
+                "p95": 48048
+              },
+              "server_received_bytes": {
+                "p50": 7468,
+                "p95": 7696
+              },
+              "observed_response_body_bytes": {
+                "p50": 44390,
+                "p95": 44390
+              },
+              "observed_requests": {
+                "p50": 12,
+                "p95": 12
+              },
+              "browser_write_bytes": {
+                "p50": 905216,
+                "p95": 921600
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/checkpoint",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/history",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/register-settings",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/schedules",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/schedules/due",
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/transactions",
+                "/api/v1/info",
+                "/assets/index-CJN6_QQa.js",
+                "/assets/index-OJGTL95O.css"
+              ]
+            },
+            "unchanged": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 103.85529199999291,
+                "p95": 116.38558699999703
+              },
+              "settled_ms": {
+                "p50": 227.10513999999966,
+                "p95": 236.21111699999892
+              },
+              "browser_cpu_ms": {
+                "p50": 150,
+                "p95": 190
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1110429696,
+                "p95": 1121808384
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 485165056,
+                "p95": 491621376
+              },
+              "server_cpu_ms": {
+                "p50": 0.8059999999995853,
+                "p95": 1.0380000000004657
+              },
+              "server_peak_memory_bytes": {
+                "p50": 285745152,
+                "p95": 286625792
+              },
+              "server_sent_bytes": {
+                "p50": 380,
+                "p95": 380
+              },
+              "server_received_bytes": {
+                "p50": 743,
+                "p95": 1112
+              },
+              "observed_response_body_bytes": {
+                "p50": 95,
+                "p95": 95
+              },
+              "observed_requests": {
+                "p50": 1,
+                "p95": 1
+              },
+              "browser_write_bytes": {
+                "p50": 8192,
+                "p95": 28672
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/api/v1/budgets/0bd68e48-08ce-4185-aa6c-510b6d177506/changes"
+              ]
+            }
+          },
+          "idle": {
+            "duration_ms": 35000.80017100001,
+            "client": {
+              "cpu_ms": 490,
+              "read_bytes": 0,
+              "write_bytes": 3776512,
+              "peak_rss_bytes": 1108115456,
+              "peak_pss_bytes": 484718592,
+              "unavailable_pss_processes": 0,
+              "unavailable_io_processes": 0
+            },
+            "server": {
+              "cpu_ms": 2.2200000000002547,
+              "peak_memory_bytes": 286105600,
+              "memory_bytes": 284979200,
+              "network": {
+                "lo": {
+                  "rx_bytes": 0,
+                  "tx_bytes": 0
+                },
+                "eth0": {
+                  "rx_bytes": 4354,
+                  "tx_bytes": 792
+                }
+              },
+              "io": {
+                "259:0": {
+                  "rbytes": 0,
+                  "wbytes": 0,
+                  "rios": 0,
+                  "wios": 0,
+                  "dbytes": 0,
+                  "dios": 0
+                },
+                "253:0": {
+                  "rbytes": 0,
+                  "wbytes": 0,
+                  "rios": 0,
+                  "wios": 0,
+                  "dbytes": 0,
+                  "dios": 0
+                }
+              }
+            },
+            "requests": [],
+            "inflight": [],
+            "failures": []
+          }
+        },
+        {
+          "name": "large",
+          "archive_sha256": "859ce7e5dcdafb6c81786ea9a736238e3294ac44c5f89aefc58939393936220d",
+          "prior_errors": [],
+          "phases": {
+            "cold": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 1355.4809360000072,
+                "p95": 1544.2206390000065
+              },
+              "settled_ms": {
+                "p50": 1471.4437489999982,
+                "p95": 1607.2284229999932
+              },
+              "browser_cpu_ms": {
+                "p50": 2490,
+                "p95": 2770
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1105842176,
+                "p95": 1124655104
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 488984576,
+                "p95": 502060032
+              },
+              "server_cpu_ms": {
+                "p50": 130.54399999999987,
+                "p95": 186.27099999999882
+              },
+              "server_peak_memory_bytes": {
+                "p50": 287625216,
+                "p95": 288497664
+              },
+              "server_sent_bytes": {
+                "p50": 1455945,
+                "p95": 1456341
+              },
+              "server_received_bytes": {
+                "p50": 21415,
+                "p95": 22364
+              },
+              "observed_response_body_bytes": {
+                "p50": 1443142,
+                "p95": 1443292
+              },
+              "observed_requests": {
+                "p50": 24,
+                "p95": 25
+              },
+              "browser_write_bytes": {
+                "p50": 3244032,
+                "p95": 3469312
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/",
+                "/api/v1/budgets",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/account-groups",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/accounts",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/categories",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/checkpoint",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/history",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/payees",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/preferences",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/register-settings",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/rules/associations",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/schedules",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/schedules/due",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/transactions",
+                "/api/v1/info",
+                "/assets/index-CJN6_QQa.js",
+                "/assets/index-OJGTL95O.css"
+              ]
+            },
+            "warm": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 592.446729999996,
+                "p95": 648.283350999991
+              },
+              "settled_ms": {
+                "p50": 770.7647780000116,
+                "p95": 820.9141700000037
+              },
+              "browser_cpu_ms": {
+                "p50": 1140,
+                "p95": 1320
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1158782976,
+                "p95": 1166311424
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 531225600,
+                "p95": 537819136
+              },
+              "server_cpu_ms": {
+                "p50": 31.14100000000144,
+                "p95": 38.375
+              },
+              "server_peak_memory_bytes": {
+                "p50": 287096832,
+                "p95": 288276480
+              },
+              "server_sent_bytes": {
+                "p50": 134558,
+                "p95": 135020
+              },
+              "server_received_bytes": {
+                "p50": 7590,
+                "p95": 8612
+              },
+              "observed_response_body_bytes": {
+                "p50": 130907,
+                "p95": 130907
+              },
+              "observed_requests": {
+                "p50": 12,
+                "p95": 12
+              },
+              "browser_write_bytes": {
+                "p50": 913408,
+                "p95": 1077248
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/checkpoint",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/history",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/register-settings",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/schedules",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/schedules/due",
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/transactions",
+                "/api/v1/info",
+                "/assets/index-CJN6_QQa.js",
+                "/assets/index-OJGTL95O.css"
+              ]
+            },
+            "unchanged": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 183.62459399999352,
+                "p95": 194.10867299998063
+              },
+              "settled_ms": {
+                "p50": 258.9141159999999,
+                "p95": 272.6585759999871
+              },
+              "browser_cpu_ms": {
+                "p50": 260,
+                "p95": 370
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1157505024,
+                "p95": 1166311424
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 531225600,
+                "p95": 537336832
+              },
+              "server_cpu_ms": {
+                "p50": 0.8130000000001019,
+                "p95": 1.397000000000844
+              },
+              "server_peak_memory_bytes": {
+                "p50": 286445568,
+                "p95": 287358976
+              },
+              "server_sent_bytes": {
+                "p50": 380,
+                "p95": 380
+              },
+              "server_received_bytes": {
+                "p50": 743,
+                "p95": 948
+              },
+              "observed_response_body_bytes": {
+                "p50": 95,
+                "p95": 95
+              },
+              "observed_requests": {
+                "p50": 1,
+                "p95": 1
+              },
+              "browser_write_bytes": {
+                "p50": 4096,
+                "p95": 20480
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/api/v1/budgets/661a93ba-4c41-4dee-b871-3b98befceae7/changes"
+              ]
+            }
+          },
+          "idle": {
+            "duration_ms": 35001.68382499996,
+            "client": {
+              "cpu_ms": 630,
+              "read_bytes": 0,
+              "write_bytes": 4259840,
+              "peak_rss_bytes": 1132707840,
+              "peak_pss_bytes": 516297728,
+              "unavailable_pss_processes": 0,
+              "unavailable_io_processes": 0
+            },
+            "server": {
+              "cpu_ms": 2.610000000000582,
+              "peak_memory_bytes": 288063488,
+              "memory_bytes": 286466048,
+              "network": {
+                "lo": {
+                  "rx_bytes": 0,
+                  "tx_bytes": 0
+                },
+                "eth0": {
+                  "rx_bytes": 3890,
+                  "tx_bytes": 792
+                }
+              },
+              "io": {
+                "259:0": {
+                  "rbytes": 0,
+                  "wbytes": 0,
+                  "rios": 0,
+                  "wios": 0,
+                  "dbytes": 0,
+                  "dios": 0
+                },
+                "253:0": {
+                  "rbytes": 0,
+                  "wbytes": 0,
+                  "rios": 0,
+                  "wios": 0,
+                  "dbytes": 0,
+                  "dios": 0
+                }
+              }
+            },
+            "requests": [],
+            "inflight": [],
+            "failures": []
+          }
+        }
+      ]
+    }
+  }
+}

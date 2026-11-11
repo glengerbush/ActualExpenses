@@ -1,10 +1,10 @@
-# Resource qualification — in progress
+# Resource qualification
 
-Ticket51 is **not accepted**. This note records the production browser comparison
-and its limits. Opening, expense and report distributions are recorded below.
+Ticket51 qualification is complete with the explicit limits below. This note
+records the production browser comparison. Opening, expense and report distributions are recorded below.
 Large graph/history and saved-snapshot recovery observations are also recorded.
 Native and released-baseline Android observations are also recorded. The
-consolidated accessibility audit remains outstanding. Existing functional evidence is not relabeled as performance
+consolidated [accessibility/locale audit](ui-qualification.md) is complete. Existing functional evidence is not relabeled as performance
 evidence. Nothing here authorizes release or production cutover.
 
 ## Measured boundary

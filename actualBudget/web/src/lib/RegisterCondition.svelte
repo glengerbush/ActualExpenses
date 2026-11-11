@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import {
     captureAmountFormat,
     parseAmount,
@@ -143,10 +144,12 @@
 
 {#if ["cleared", "reconciled", "transfer", "parent"].includes(condition.field)}
   <label
-    >Value {index + 1}<select
+    >{t("Value")}
+    {index + 1}<select
       value={String(condition.value)}
       onchange={(e) => set(e.currentTarget.value === "true")}
-      ><option value="true">Yes</option><option value="false">No</option
+      ><option value="true">{t("Yes")}</option><option value="false"
+        >{t("No")}</option
       ></select
     ></label
   >
@@ -190,8 +193,8 @@
             },
           })}
         ><option value="either">Signed amount</option><option value="outflow"
-          >Payment</option
-        ><option value="inflow">Deposit</option></select
+          >{t("Payment")}</option
+        ><option value="inflow">{t("Deposit")}</option></select
       ></label
     >
   {/if}
@@ -203,9 +206,9 @@
         onchange={(e) => dateMode(e.currentTarget.value)}
         ><option value="day">Calendar day</option
         >{#if ["eq", "is"].includes(condition.op)}<option value="month"
-            >Month</option
-          ><option value="year">Year</option>{/if}<option value="recurring"
-          >Recurring dates</option
+            >{t("Month")}</option
+          ><option value="year">{t("Year")}</option>{/if}<option
+          value="recurring">Recurring dates</option
         ></select
       ></label
     >{/if}
@@ -227,7 +230,8 @@
       /></label
     >
     <label
-      >Every {index + 1}<input
+      >{t("Every")}
+      {index + 1}<input
         type="number"
         min="1"
         max="10000"
@@ -259,7 +263,8 @@
             setObject("endOccurrences", Number(e.currentTarget.value))}
         /></label
       >{:else if object.endMode === "on_date"}<label
-        >End date {index + 1}<input
+        >{t("End date")}
+        {index + 1}<input
           type="date"
           value={String(object.endDate ?? "")}
           oninput={(e) => setObject("endDate", e.currentTarget.value)}
@@ -341,7 +346,8 @@
       required
     />
   {:else}<label
-      >Date value {index + 1}<input
+      >{t("Date value")}
+      {index + 1}<input
         type={mode() === "month"
           ? "month"
           : mode() === "year"
@@ -354,7 +360,8 @@
 {:else if ["account", "payee", "category", "category_group"].includes(condition.field) && !["contains", "doesNotContain", "matches"].includes(condition.op)}
   {#if !["onBudget", "offBudget"].includes(condition.op)}
     <label
-      >Value {index + 1}<select
+      >{t("Value")}
+      {index + 1}<select
         multiple={["in", "not_in", "oneOf", "notOneOf"].includes(condition.op)}
         onchange={(e) => {
           const values = Array.from(
@@ -369,13 +376,15 @@
         }}
       >
         <option value="" selected={selectedIds.includes("")}
-          >{condition.field === "category"
-            ? "Uncategorized"
-            : condition.field === "payee"
-              ? "No payee"
-              : condition.field === "category_group"
-                ? "No category group"
-                : "No account"}</option
+          >{t(
+            condition.field === "category"
+              ? "Uncategorized"
+              : condition.field === "payee"
+                ? "No payee"
+                : condition.field === "category_group"
+                  ? "No category group"
+                  : "No account",
+          )}</option
         >
         {#each choices as row (row.id)}<option
             value={row.id}
@@ -393,7 +402,8 @@
   {/if}
 {:else if ["in", "not_in", "oneOf", "notOneOf"].includes(condition.op)}
   <label
-    >Values {index + 1}<textarea
+    >{t("Values")}
+    {index + 1}<textarea
       value={Array.isArray(condition.value)
         ? condition.value.join("\n")
         : String(condition.value)}
@@ -402,7 +412,8 @@
     ></label
   >
 {:else}<label
-    >Value {index + 1}<input
+    >{t("Value")}
+    {index + 1}<input
       value={typeof condition.value === "string" ? condition.value : ""}
       oninput={(e) => set(e.currentTarget.value)}
     /></label

@@ -1,0 +1,130 @@
+- link "Skip to content":
+  - /url: "#main"
+- complementary "Budget navigation":
+  - text: actualBudget
+  - group "Navigation tools":
+    - button "Search commands"
+    - button "Privacy mode"
+    - button "Help and releases"
+  - button "All budgets"
+  - text: Accessibility qualification
+  - paragraph: Tracking budget
+  - navigation "Konten":
+    - button "Alle Konten"
+    - paragraph: Innerhalb des Budgets
+    - button "Spending"
+  - button "Budget"
+  - button "Categories"
+  - button "Payees and tags"
+  - button "Transaction files"
+  - button "Rules"
+  - button "Schedules"
+  - button "Dashboards and reports"
+  - button "Einstellungen"
+  - button "Manage budget"
+  - button "Recovery tools"
+  - button "Review pending expenses"
+- main:
+  - status: Saved data from 11/11/2026, 6:35:19 AM.
+  - region "Spending":
+    - heading "Spending" [level=1]
+    - button "Organize accounts"
+    - paragraph: Innerhalb des Budgets
+  - region "Transactions":
+    - heading "Transactions" [level=2]
+    - button "Refresh transactions"
+    - button "Transaktion hinzufügen"
+    - button "Move money" [disabled]
+    - button "Transfer balance and close" [disabled]
+    - term: Saldo
+    - definition: 987,66
+    - term: Gebucht
+    - definition: 987,66
+    - term: Vorgemerkt
+    - definition: 0,00
+    - text: Show through date
+    - textbox "Show through date":
+      - /placeholder: DD.MM.YYYY
+    - button "Choose date"
+    - paragraph: "Format: DD.MM.YYYY"
+    - button "Anwenden"
+    - text: Includes future-dated entries.
+    - button "Undo"
+    - button "Redo" [disabled]
+    - button "Refresh history"
+    - region "Reconciliation":
+      - button "Reconcile account"
+    - region "Find transactions":
+      - text: Search transactions
+      - searchbox "Search transactions"
+      - text: Sort by
+      - combobox "Sort by":
+        - option "Date" [selected]
+        - option "Amount"
+        - option "Payee"
+        - option "Category"
+        - option "Account"
+        - option "Notes"
+        - option "Cleared"
+        - option "Reconciled"
+      - text: Order
+      - combobox "Order":
+        - option "Descending" [selected]
+        - option "Ascending"
+      - button "Find transactions"
+      - group: Filters and columns
+    - status: Expense synced.
+    - status: View saved on this device at 11/11/2026, 6:40:28 AM. Balances include confirmed transactions only.
+    - paragraph: Use Space to select a row; Shift-click selects a range. Selection applies to loaded rows only. Use Ctrl+Z to undo, Ctrl+Shift+Z to redo outside text fields.
+    - checkbox "Select all loaded entries"
+    - text: Select loaded entries
+    - region "Transaction table":
+      - table "Transactions sorted by date, descending":
+        - caption: Transactions sorted by date, descending
+        - rowgroup:
+          - row "Selection Datum Zahlungsempfänger Notizen Kategorie Betrag Status Running balance Aktionen":
+            - columnheader "Selection"
+            - columnheader "Datum"
+            - columnheader "Zahlungsempfänger"
+            - columnheader "Notizen"
+            - columnheader "Kategorie"
+            - columnheader "Betrag"
+            - columnheader "Status"
+            - columnheader "Running balance"
+            - columnheader "Aktionen"
+        - rowgroup:
+          - row "Select Select -12,34 · Kein Zahlungsempfänger · 11.11.2026 Select entry Datum 11.11.2026 Zahlungsempfänger Kein Zahlungsempfänger Notizen Screen-reader expense Kategorie Nicht kategorisiert Betrag -12,34 Status Gebucht Running balance 987,66 Bearbeiten -12,34 · Kein Zahlungsempfänger · 11.11.2026 Split transaction Duplizieren -12,34 · Kein Zahlungsempfänger · 11.11.2026 Löschen -12,34 · Kein Zahlungsempfänger · 11.11.2026 Link transfer":
+            - cell "Select Select -12,34 · Kein Zahlungsempfänger · 11.11.2026 Select entry":
+              - text: Select
+              - checkbox "Select -12,34 · Kein Zahlungsempfänger · 11.11.2026"
+              - text: Select entry
+            - cell "Datum 11.11.2026"
+            - cell "Zahlungsempfänger Kein Zahlungsempfänger"
+            - cell "Notizen Screen-reader expense"
+            - cell "Kategorie Nicht kategorisiert"
+            - cell "Betrag -12,34"
+            - cell "Status Gebucht"
+            - cell "Running balance 987,66"
+            - cell "Bearbeiten -12,34 · Kein Zahlungsempfänger · 11.11.2026 Split transaction Duplizieren -12,34 · Kein Zahlungsempfänger · 11.11.2026 Löschen -12,34 · Kein Zahlungsempfänger · 11.11.2026 Link transfer":
+              - button "Bearbeiten -12,34 · Kein Zahlungsempfänger · 11.11.2026": Bearbeiten
+              - button "Split transaction"
+              - button "Duplizieren -12,34 · Kein Zahlungsempfänger · 11.11.2026": Duplizieren
+              - button "Löschen -12,34 · Kein Zahlungsempfänger · 11.11.2026": Löschen
+              - button "Link transfer"
+          - row "Select Select 1.000,00 · Starting Balance · 11.11.2026 Select entry Datum 11.11.2026 Zahlungsempfänger Starting Balance Notizen Kategorie Starting Balances Betrag 1.000,00 Status Gebucht Running balance 1.000,00 Bearbeiten 1.000,00 · Starting Balance · 11.11.2026 Split transaction Duplizieren 1.000,00 · Starting Balance · 11.11.2026 Löschen 1.000,00 · Starting Balance · 11.11.2026":
+            - cell "Select Select 1.000,00 · Starting Balance · 11.11.2026 Select entry":
+              - text: Select
+              - checkbox "Select 1.000,00 · Starting Balance · 11.11.2026"
+              - text: Select entry
+            - cell "Datum 11.11.2026"
+            - cell "Zahlungsempfänger Starting Balance"
+            - cell "Notizen"
+            - cell "Kategorie Starting Balances"
+            - cell "Betrag 1.000,00"
+            - cell "Status Gebucht"
+            - cell "Running balance 1.000,00"
+            - cell "Bearbeiten 1.000,00 · Starting Balance · 11.11.2026 Split transaction Duplizieren 1.000,00 · Starting Balance · 11.11.2026 Löschen 1.000,00 · Starting Balance · 11.11.2026":
+              - button "Bearbeiten 1.000,00 · Starting Balance · 11.11.2026": Bearbeiten
+              - button "Split transaction" [disabled]
+              - button "Duplizieren 1.000,00 · Starting Balance · 11.11.2026": Duplizieren
+              - button "Löschen 1.000,00 · Starting Balance · 11.11.2026": Löschen

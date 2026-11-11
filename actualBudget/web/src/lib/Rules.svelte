@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { onMount } from "svelte";
   import { request, uuid, errorMessage, type Account } from "./api";
   import {
@@ -630,7 +631,7 @@
         later within each stage.
       </p>
     </div>
-    <button onclick={onclose} disabled={busy}>Close</button>
+    <button onclick={onclose} disabled={busy}>{t("Close")}</button>
   </header>
   {#if error}<p role="alert" class="error">{error}</p>{/if}{#if notice}<p
       role="status"
@@ -643,7 +644,7 @@
     ><button
       class="primary"
       onclick={() => edit()}
-      disabled={locked || !!draft || !view}>Create rule</button
+      disabled={locked || !!draft || !view}>{t("Create rule")}</button
     >
   </div>
   {#if draft?.pending}<section class="retained" aria-label="Saved rule request">
@@ -729,18 +730,18 @@
         }}
       >
         <fieldset disabled={locked}>
-          <legend>{draft.existing ? "Edit rule" : "Create rule"}</legend>
+          <legend>{t(draft.existing ? "Edit rule" : "Create rule")}</legend>
           <div class="builder">
             <label
-              >Stage<select
+              >{t("Stage")}<select
                 value={draft.rule.stage ?? ""}
                 onchange={(e) =>
                   changeRule({
                     stage: (e.currentTarget.value || null) as Rule["stage"],
                   })}
-                ><option value="pre">Pre</option><option value=""
-                  >Default</option
-                ><option value="post">Post</option></select
+                ><option value="pre">{t("Pre")}</option><option value=""
+                  >{t("Default")}</option
+                ><option value="post">{t("Post")}</option></select
               ></label
             ><label
               >Match conditions<select
@@ -817,10 +818,11 @@
               changeRule({
                 conditions: [...draft!.rule.conditions, newCondition()],
               })}
-            disabled={draft.rule.conditions.length >= 32}>Add condition</button
+            disabled={draft.rule.conditions.length >= 32}
+            >{t("Add condition")}</button
           >
           <p class="hint">A rule with no conditions never matches.</p>
-          <h3>Actions</h3>
+          <h3>{t("Actions")}</h3>
           {#each draft.rule.actions as action, index (index)}<div
               class="builder action"
             >
@@ -857,7 +859,7 @@
                   { op: "set", field: "category", value: null },
                 ],
               })}
-            disabled={draft.rule.actions.length >= 64}>Add action</button
+            disabled={draft.rule.actions.length >= 64}>{t("Add action")}</button
           >
           <div class="toolbar">
             <button class="primary">Save rule</button><button
@@ -874,7 +876,7 @@
           bind:value={accountFilter}
           disabled={locked}
           onchange={resetScope}
-          ><option value="">All accounts</option
+          ><option value="">{t("All accounts")}</option
           >{#each accounts as account (account.id)}<option value={account.id}
               >{account.name}</option
             >{/each}</select
@@ -953,11 +955,13 @@
                   }}
                 /><span
                   ><strong
-                    >{rule.stage === "pre"
-                      ? "Pre"
-                      : rule.stage === "post"
-                        ? "Post"
-                        : "Default"}</strong
+                    >{t(
+                      rule.stage === "pre"
+                        ? "Pre"
+                        : rule.stage === "post"
+                          ? "Post"
+                          : "Default",
+                    )}</strong
                   >
                   · {rule.conditions.length}
                   {rule.conditions.length === 1 ? "condition" : "conditions"} · {rule
@@ -1030,7 +1034,8 @@
                   )}{#if entry.before.notes}
                     · {entry.before.notes}{/if}</small
                 >
-                {#if entry.after.deleted}<strong>Delete transaction</strong
+                {#if entry.after.deleted}<strong
+                    >{t("Delete transaction")}</strong
                   >{/if}
                 {#if invalidAmounts(entry.after)}<strong
                     >Cannot save: amounts must be whole minor units.</strong
@@ -1082,7 +1087,8 @@
                   {#each allocations(entry.before, entry.after).slice(0, allocationLimit[entry.before.id] ?? 20) as allocation (allocation.id)}<li
                     >
                       <strong
-                        >Allocation {allocation.index + 1} · {allocation.before
+                        >{t("Allocation")}
+                        {allocation.index + 1} · {allocation.before
                           ? allocation.after
                             ? "Retained"
                             : "Removed"

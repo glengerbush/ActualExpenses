@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { onMount } from "svelte";
   import {
     request,
@@ -359,12 +360,12 @@
     <button
       onclick={() => prepare("undo")}
       disabled={!ready || !history?.undo}
-      title={history?.undo?.label}>Undo</button
+      title={history?.undo?.label}>{t("Undo")}</button
     >
     <button
       onclick={() => prepare("redo")}
       disabled={!ready || !history?.redo}
-      title={history?.redo?.label}>Redo</button
+      title={history?.redo?.label}>{t("Redo")}</button
     >
     <button onclick={refresh} disabled={disabled || busy || !!saved}
       >Refresh history</button
@@ -461,12 +462,12 @@
           onchange={fieldChanged}
         >
           <option value="cleared">Cleared status</option><option value="notes"
-            >Notes</option
-          ><option value="date">Date</option><option value="amount"
-            >Amount</option
-          ><option value="account_id">Account</option><option value="payee_id"
-            >Payee</option
-          ><option value="category_id">Category</option>
+            >{t("Notes")}</option
+          ><option value="date">{t("Date")}</option><option value="amount"
+            >{t("Amount")}</option
+          ><option value="account_id">{t("Account")}</option><option
+            value="payee_id">{t("Payee")}</option
+          ><option value="category_id">{t("Category")}</option>
         </select>
         {#if field === "date"}<DateInput
             id="bulk-date"
@@ -490,8 +491,8 @@
                 ><input type="checkbox" bind:checked={useRegex} /> Use regular expression</label
               >{/if}{/if}<label for="bulk-value">New value</label>
           {#if field === "cleared"}<select id="bulk-value" bind:value
-              ><option value="true">Cleared</option><option value="false"
-                >Uncleared</option
+              ><option value="true">{t("Cleared")}</option><option value="false"
+                >{t("Uncleared")}</option
               ></select
             >
           {:else if ["account_id", "payee_id", "category_id"].includes(field)}<select
@@ -500,11 +501,13 @@
               required={field === "account_id"}
             >
               <option value=""
-                >{field === "account_id"
-                  ? "Select account"
-                  : field === "payee_id"
-                    ? "No payee"
-                    : "Uncategorized"}</option
+                >{t(
+                  field === "account_id"
+                    ? "Select account"
+                    : field === "payee_id"
+                      ? "No payee"
+                      : "Uncategorized",
+                )}</option
               >
               {#each field === "account_id" ? accounts : field === "payee_id" ? payees : categories as item (item.id)}<option
                   value={item.id}>{item.name}</option

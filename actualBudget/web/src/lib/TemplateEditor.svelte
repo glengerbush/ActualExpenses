@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { visualNumber } from "./visual-automations";
   import type { AmountFormat } from "./money";
   import DateInput from "./DateInput.svelte";
@@ -160,7 +161,7 @@
     to a limit.
   </p>
   {#each rows as row, index (index)}<fieldset class="rule">
-      <legend>Rule {index + 1}</legend>
+      <legend>{t("Rule")} {index + 1}</legend>
       <div class="fields">
         <label
           >Rule type<select
@@ -182,7 +183,7 @@
           ></label
         >
         {#if !["goal", "limit", "remainder"].includes(String(row.type))}<label
-            >Priority<input
+            >{t("Priority")}<input
               type="text"
               inputmode="numeric"
               value={visualNumber(row.priority ?? 0, format)}
@@ -216,10 +217,10 @@
               value={String(get(row, "period.period"))}
               onchange={(e) =>
                 update(index, "period.period", e.currentTarget.value)}
-              ><option value="day">Days</option><option value="week"
-                >Weeks</option
-              ><option value="month">Months</option><option value="year"
-                >Years</option
+              ><option value="day">{t("Days")}</option><option value="week"
+                >{t("Weeks")}</option
+              ><option value="month">{t("Months")}</option><option value="year"
+                >{t("Years")}</option
               ></select
             ></label
           >{/if}
@@ -229,14 +230,14 @@
               value={row.annual === true ? "year" : "month"}
               onchange={(e) =>
                 update(index, "annual", e.currentTarget.value === "year")}
-              ><option value="month">Months</option><option value="year"
-                >Years</option
+              ><option value="month">{t("Months")}</option><option value="year"
+                >{t("Years")}</option
               ></select
             ></label
           >
           <p>Leave the repeat interval empty for a one-time target.</p>{/if}
         {#if row.type === "schedule"}<label
-            >Schedule<select
+            >{t("Schedule")}<select
               value={String(row.scheduleId ?? "")}
               onchange={(e) =>
                 update(index, "scheduleId", e.currentTarget.value)}
@@ -262,7 +263,7 @@
               value={String(row.category)}
               onchange={(e) => update(index, "category", e.currentTarget.value)}
               ><option value="all income">All income</option><option
-                value="available funds">Available funds</option
+                value="available funds">{t("Available funds")}</option
               >{#each income as category (category.id)}<option
                   value={category.id}>{category.name}</option
                 >{/each}</select
@@ -279,9 +280,9 @@
             >Limit period<select
               value={String(row.period ?? "monthly")}
               onchange={(e) => update(index, "period", e.currentTarget.value)}
-              ><option value="monthly">Monthly</option><option value="weekly"
-                >Weekly</option
-              ><option value="daily">Daily</option></select
+              ><option value="monthly">{t("Monthly")}</option><option
+                value="weekly">{t("Weekly")}</option
+              ><option value="daily">{t("Daily")}</option></select
             ></label
           ><label class="check"
             ><input
@@ -291,7 +292,7 @@
             />Hold a fixed limit</label
           >{/if}
         {#if row.type === "average" || row.type === "schedule"}<label
-            >Adjustment<input
+            >{t("Adjustment")}<input
               type="text"
               inputmode="decimal"
               step="any"
@@ -332,9 +333,9 @@
                   value={String(get(row, "limit.period") ?? "monthly")}
                   onchange={(e) =>
                     update(index, "limit.period", e.currentTarget.value)}
-                  ><option value="monthly">Monthly</option><option
-                    value="weekly">Weekly</option
-                  ><option value="daily">Daily</option></select
+                  ><option value="monthly">{t("Monthly")}</option><option
+                    value="weekly">{t("Weekly")}</option
+                  ><option value="daily">{t("Daily")}</option></select
                 ></label
               >{#if get(row, "limit.period") === "weekly"}<DateInput
                   id={`automation-${index}-limit-start`}
@@ -364,7 +365,7 @@
           </details>
         {/if}
         <label class="description"
-          >Description<textarea
+          >{t("Description")}<textarea
             rows="2"
             value={String(row.description ?? "")}
             oninput={(e) => update(index, "description", e.currentTarget.value)}

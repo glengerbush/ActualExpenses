@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { prepareVisualBody } from "./visual-automations";
   import TemplateEditor from "./TemplateEditor.svelte";
   import CleanupNotice from "./CleanupNotice.svelte";
@@ -612,7 +613,7 @@
 <section class="budget-templates" aria-labelledby="goal-template-title">
   <header>
     <div>
-      <h2 id="goal-template-title">Goal templates</h2>
+      <h2 id="goal-template-title">{t("Goal templates")}</h2>
       <p>
         Review saved directives and savings targets. Applied templates change
         the budget plan; confirmed expenses and account balances stay separate.
@@ -877,9 +878,8 @@
             <table>
               <thead
                 ><tr
-                  ><th>Category</th><th>Current plan</th><th>New plan</th><th
-                    >Goal or demand</th
-                  ></tr
+                  ><th>{t("Category")}</th><th>Current plan</th><th>New plan</th
+                  ><th>Goal or demand</th></tr
                 ></thead
               ><tbody
                 >{#each draft.preview.categories.filter((row) => row.applies || row.clear_goal) as row (row.id)}<tr

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { onMount } from "svelte";
   import { request, errorMessage, uuid, type Account } from "./api";
   import {
@@ -240,15 +241,15 @@
         p.transaction as Record<string, unknown>}
       <dl>
         <div>
-          <dt>Date</dt>
+          <dt>{t("Date")}</dt>
           <dd>{displayDate(String(row.date), intent.dateFormat)}</dd>
         </div>
         <div>
-          <dt>Amount</dt>
+          <dt>{t("Amount")}</dt>
           <dd>{amount(row.amount)}</dd>
         </div>
         <div>
-          <dt>Account</dt>
+          <dt>{t("Account")}</dt>
           <dd>
             {row.account_name ??
               accounts.find((a) => a.id === row.account_id)?.name ??
@@ -256,15 +257,15 @@
           </dd>
         </div>
         <div>
-          <dt>Payee</dt>
+          <dt>{t("Payee")}</dt>
           <dd>{sourceName(row, "payee")}</dd>
         </div>
         <div>
-          <dt>Category</dt>
+          <dt>{t("Category")}</dt>
           <dd>{sourceName(row, "category")}</dd>
         </div>
         <div>
-          <dt>Notes</dt>
+          <dt>{t("Notes")}</dt>
           <dd>{row.notes || "No notes"}</dd>
         </div>
       </dl>

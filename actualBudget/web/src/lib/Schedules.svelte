@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { onMount } from "svelte";
   import { request, errorMessage, uuid, type Account } from "./api";
   import {
@@ -544,13 +545,13 @@
 <section class="schedules" aria-labelledby="schedule-title">
   <header>
     <div>
-      <h1 id="schedule-title">Scheduled transactions</h1>
+      <h1 id="schedule-title">{t("Scheduled transactions")}</h1>
       <p>
         Plan recurring bills, income and transfers. Only confirmed entries
         affect account balances.
       </p>
     </div>
-    <button onclick={onclose}>Close</button>
+    <button onclick={onclose}>{t("Close")}</button>
   </header>
   {#if error}<p role="alert" class="error">{error}</p>{/if}{#if notice}<p
       role="status"
@@ -721,7 +722,7 @@
               field("conditions", [
                 ...conditions,
                 { field: "payee", op: "is", value: null },
-              ])}>Add condition</button
+              ])}>{t("Add condition")}</button
           >
           <label
             >Transfer destination<select
@@ -776,7 +777,7 @@
               field("actions", [
                 ...actions,
                 { op: "set", field: "category", value: null },
-              ])}>Add action</button
+              ])}>{t("Add action")}</button
           >
           <label
             >Upcoming preview<select
@@ -919,8 +920,8 @@
         void refresh();
       }}
       disabled={busy}
-      ><option value="">All accounts</option>{#each accounts as a (a.id)}<option
-          value={a.id}>{a.name}</option
+      ><option value="">{t("All accounts")}</option
+      >{#each accounts as a (a.id)}<option value={a.id}>{a.name}</option
         >{/each}</select
     ></label
   >
@@ -944,7 +945,8 @@
           <div class="toolbar">
             <button
               onclick={() => open("update", row)}
-              disabled={!!draft || busy}>Edit {row.name ?? "schedule"}</button
+              disabled={!!draft || busy}
+              >{t("Edit")} {row.name ?? "schedule"}</button
             ><button onclick={() => occurrences(row)} disabled={busy}
               >Occurrences</button
             ><button
@@ -965,7 +967,7 @@
                 disabled={!!draft || busy || !row.next_date}>Skip next</button
               >{/if}<button
               onclick={() => open("delete", row)}
-              disabled={!!draft || busy}>Delete</button
+              disabled={!!draft || busy}>{t("Delete")}</button
             >
           </div>
         </article>{:else}<p>

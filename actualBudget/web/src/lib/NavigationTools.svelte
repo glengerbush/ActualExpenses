@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { tick } from "svelte";
   import { preferences } from "./preferences.svelte";
   import { errorMessage, uuid } from "./api";
@@ -164,7 +165,7 @@
   {#if mode === "search"}
     <div class="page-heading">
       <h2 id="navigation-title">Go to…</h2>
-      <button onclick={close}>Close search</button>
+      <button onclick={close}>{t("Close search")}</button>
     </div>
     <label for="command-query">Search commands</label>
     <input
@@ -210,7 +211,7 @@
       <h2 id="navigation-title">actualBudget help</h2>
       <button onclick={close}>Close help</button>
     </div>
-    <h3>Keyboard shortcuts</h3>
+    <h3>{t("Keyboard shortcuts")}</h3>
     <dl>
       <dt>Ctrl / Cmd + K</dt>
       <dd>Search delivered views and accounts.</dd>

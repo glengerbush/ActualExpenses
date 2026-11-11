@@ -1,0 +1,84 @@
+{
+  "as_of": null,
+  "balances": {
+    "cleared": 98766,
+    "total": 98766,
+    "uncleared": 0
+  },
+  "data": [
+    {
+      "account_id": "c09d8179-916a-41e0-b0ad-72bbad91fbe7",
+      "account_name": "Spending",
+      "amount": -1234,
+      "category_group_name": null,
+      "category_id": null,
+      "category_is_income": null,
+      "category_name": null,
+      "cleared": true,
+      "date": "2026-11-11",
+      "field_versions": {
+        "account_id": "2026-11-11T06:34:57.797Z-0000-a540d26a619ff16f",
+        "amount": "2026-11-11T06:34:57.797Z-0000-a540d26a619ff16f",
+        "category_id": "2026-11-11T06:34:57.797Z-0000-a540d26a619ff16f",
+        "cleared": "2026-11-11T06:34:57.797Z-0000-a540d26a619ff16f",
+        "date": "2026-11-11T06:34:57.797Z-0000-a540d26a619ff16f",
+        "notes": "2026-11-11T06:34:57.797Z-0000-a540d26a619ff16f",
+        "payee_id": "2026-11-11T06:34:57.797Z-0000-a540d26a619ff16f",
+        "reconciled": "2026-11-11T06:34:57.797Z-0000-a540d26a619ff16f",
+        "starting_balance": "2026-11-11T06:34:57.797Z-0000-a540d26a619ff16f",
+        "tombstone": "2026-11-11T06:34:57.797Z-0000-a540d26a619ff16f"
+      },
+      "id": "30cfea38-c9d3-4388-b0ab-679648f81d40",
+      "imported_payee": null,
+      "notes": "Screen-reader expense",
+      "payee_id": null,
+      "payee_name": null,
+      "reconciled": false,
+      "retained_payee_id": null,
+      "running_balance": 98766,
+      "sort_order": 1,
+      "starting_balance": false
+    },
+    {
+      "account_id": "c09d8179-916a-41e0-b0ad-72bbad91fbe7",
+      "account_name": "Spending",
+      "amount": 100000,
+      "category_group_name": null,
+      "category_id": "7958bed2-9ba5-4072-b816-0b56407b33b9",
+      "category_is_income": true,
+      "category_name": "Starting Balances",
+      "cleared": true,
+      "date": "2026-11-11",
+      "field_versions": {
+        "account_id": "2026-11-11T06:34:35.058Z-0000-29ddf1f9fbd94548",
+        "amount": "2026-11-11T06:34:35.058Z-0000-29ddf1f9fbd94548",
+        "category_id": "2026-11-11T06:34:35.058Z-0000-29ddf1f9fbd94548",
+        "cleared": "2026-11-11T06:34:35.058Z-0000-29ddf1f9fbd94548",
+        "date": "2026-11-11T06:34:35.058Z-0000-29ddf1f9fbd94548",
+        "notes": "2026-11-11T06:34:35.058Z-0000-29ddf1f9fbd94548",
+        "payee_id": "2026-11-11T06:34:35.058Z-0000-29ddf1f9fbd94548",
+        "reconciled": "2026-11-11T06:34:35.058Z-0000-29ddf1f9fbd94548",
+        "starting_balance": "2026-11-11T06:34:35.058Z-0000-29ddf1f9fbd94548",
+        "tombstone": "2026-11-11T06:34:35.058Z-0000-29ddf1f9fbd94548"
+      },
+      "id": "9d053052-ff0e-40e7-b319-abcd047f8732",
+      "imported_payee": null,
+      "notes": "",
+      "payee_id": "b6319a6e-4262-45c2-9225-1e2b4eb8cdf9",
+      "payee_name": "Starting Balance",
+      "reconciled": false,
+      "retained_payee_id": "b6319a6e-4262-45c2-9225-1e2b4eb8cdf9",
+      "running_balance": 100000,
+      "sort_order": 0,
+      "starting_balance": true
+    }
+  ],
+  "filtered_balances": {
+    "cleared": 98766,
+    "total": 98766,
+    "uncleared": 0
+  },
+  "filtered_count": 2,
+  "next_offset": null,
+  "snapshot": "c1b9dc82fc24227805961688aaaa083499000000000000000c"
+}

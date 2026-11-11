@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import type { RuleAction } from "./rules";
   import type { Reference } from "./register-api";
   import { formatAmountInput, parseAmount, type AmountFormat } from "./money";
@@ -145,8 +146,9 @@
             : "Example: =amount/100+1 adds one currency unit."}</span
         >
       {:else}
-        Insert fields with double braces, for example {"{{payee_name}}"} or {"{{notes}}"}.
-        Amounts must produce whole minor units.
+        Insert fields with double braces, for example {"{{payee_name}}"}
+        {t("or")}
+        {"{{notes}}"}. Amounts must produce whole minor units.
       {/if}
     </div>
   </div>
@@ -179,7 +181,7 @@
         onchange={(e) => method(e.currentTarget.value)}
       >
         <option value="fixed">Fixed value</option>
-        {#if formulas}<option value="formula">Formula</option>{/if}
+        {#if formulas}<option value="formula">{t("Formula")}</option>{/if}
         {#if templates}<option value="template">Template</option>{/if}
       </select></label
     >
@@ -197,7 +199,7 @@
         onchange={(e) =>
           onchange({ ...action, value: e.currentTarget.value || null })}
         ><option value=""
-          >{action.field === "account" ? "Choose account" : "None"}</option
+          >{t(action.field === "account" ? "Choose account" : "None")}</option
         >{#each choices as row (row.id)}<option value={row.id}
             >{row.name}</option
           >{/each}{#if action.value && !choices.some((r) => r.id === action.value)}<option
@@ -211,7 +213,8 @@
         value={String(action.value)}
         onchange={(e) =>
           onchange({ ...action, value: e.currentTarget.value === "true" })}
-        ><option value="true">Yes</option><option value="false">No</option
+        ><option value="true">{t("Yes")}</option><option value="false"
+          >{t("No")}</option
         ></select
       ></label
     >
@@ -268,10 +271,10 @@
     >Allocation method {index + 1}<select
       value={action.options?.method}
       onchange={(e) => option("method", e.currentTarget.value)}
-      ><option value="fixed-amount">Fixed amount</option><option
-        value="fixed-percent">Percentage</option
+      ><option value="fixed-amount">{t("Fixed amount")}</option><option
+        value="fixed-percent">{t("Percentage")}</option
       ><option value="remainder">Remaining amount</option>{#if formulas}<option
-          value="formula">Formula</option
+          value="formula">{t("Formula")}</option
         >{/if}</select
     ></label
   >

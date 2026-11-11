@@ -1,0 +1,59 @@
+{
+  "contrast.json": {
+    "bytes": 2687,
+    "sha256": "702d37d3eb2d59f9963475cc2005f045a09c60af156ca0f1a6138a1e3c5a5361"
+  },
+  "expense-dark-mobile-viewport.png": {
+    "bytes": 42426,
+    "sha256": "70bab7430093b832e37535210b6890cce56debdc75af29bac79df8cdd641289c"
+  },
+  "expense-retry.aria.yml": {
+    "bytes": 5042,
+    "sha256": "0212823d3dfc84aa444633acc53a1e9bc3c1b01fb8b75bc1aed2760915706ecc"
+  },
+  "financial-readback.json": {
+    "bytes": 3163,
+    "sha256": "f1b6b1482a3d183247d16b8caffa4e4ed4a7d6f16db409bc3f5441f73d332497"
+  },
+  "german-mobile-after-fix.png": {
+    "bytes": 158054,
+    "sha256": "20a583adf765c78057d795bb91de55bebc5d358d7d5eba2f8b558d6289b65e4a"
+  },
+  "orca-debug.log.gz": {
+    "bytes": 325370,
+    "sha256": "ca522c0f7f7cc1a6abdbc9e60b72eb1b6d426cbff2453650214dd628190a142e",
+    "uncompressed_sha256": "cdd2eaf7a0a9dd06838aa4bed5547195893c218b9c1297e0be1c1c2afef9a282"
+  },
+  "orca-speech.txt": {
+    "bytes": 16945,
+    "sha256": "b446ca8aa17b47c551361c4be6322e1824234fe70fe58497718dd0210d9a7343"
+  },
+  "register-dark-actual-zoom-metrics.json": {
+    "bytes": 764,
+    "sha256": "39a767e2d6f631f8edf6cb5eb2f14fb838e1f4bfe6044f6bce81d3616b5e0885"
+  },
+  "register-dark-actual-zoom-viewport.png": {
+    "bytes": 65517,
+    "sha256": "562b9dee33d4b06b7443ac437c484b368b3dce20a3523376b2e9d024b7439d63"
+  },
+  "register-midnight-german-mobile.aria.yml": {
+    "bytes": 6381,
+    "sha256": "578b5ed2c9f57346d7773c09f56b876c4fce28b30548ac95e67605704cac42e7"
+  },
+  "report-exact-values.aria.yml": {
+    "bytes": 4859,
+    "sha256": "da2055be0b2a13cd5959d7522cbd6c70ef5b52e89ca3e289947ac9d170e848cf"
+  },
+  "report-mobile-reduced-motion.png": {
+    "bytes": 137834,
+    "sha256": "841414c941f066ec400bf578fa04ff956d8e4c45f9211240c85541268347cb1c"
+  },
+  "settings-dark-actual-zoom-metrics.json": {
+    "bytes": 756,
+    "sha256": "684fd7a76a6a356cbe085f94b22b537973960bf0aab1fc5e79eaf770bb4da674"
+  },
+  "settings-dark-actual-zoom-viewport.png": {
+    "bytes": 85227,
+    "sha256": "b6d9d60e88c960c14d47c4335485a15bf35c30e9fc6d742dd6322e094e257452"
+  }
+}

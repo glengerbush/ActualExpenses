@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { onMount } from "svelte";
   import BudgetTemplates from "./BudgetTemplates.svelte";
   import GoalProgress from "./GoalProgress.svelte";
@@ -362,7 +363,7 @@
 <section aria-labelledby="planning-title">
   <div class="page-heading">
     <div>
-      <h1 id="planning-title">Budget</h1>
+      <h1 id="planning-title">{t("Budget")}</h1>
       <p class="muted">
         {view?.method === "tracking"
           ? "Compare planned income and expenses with actuals."
@@ -379,7 +380,7 @@
         error = "";
       }}
       disabled={busy || loading || !!draft || showTemplates}
-      >Goal templates</button
+      >{t("Goal templates")}</button
     >
   </div>
   {#if showTemplates}<BudgetTemplates
@@ -395,7 +396,7 @@
   <div class="month-controls">
     <button
       onclick={() => shift(-1)}
-      disabled={busy || loading || showTemplates}>Previous month</button
+      disabled={busy || loading || showTemplates}>{t("Previous month")}</button
     ><label
       >Budget month<input
         type="month"
@@ -405,7 +406,7 @@
       /></label
     ><button
       onclick={() => shift(1)}
-      disabled={busy || loading || showTemplates}>Next month</button
+      disabled={busy || loading || showTemplates}>{t("Next month")}</button
     ><label
       >Months displayed<select
         bind:value={count}
@@ -443,7 +444,7 @@
           busy ||
           disconnected ||
           showTemplates}
-        >Undo{history.undo ? ` ${history.undo.label}` : ""}</button
+        >{t("Undo")}{history.undo ? ` ${history.undo.label}` : ""}</button
       ><button
         onclick={() => historyAction("redo")}
         disabled={!history.redo ||
@@ -451,7 +452,7 @@
           busy ||
           disconnected ||
           showTemplates}
-        >Redo{history.redo ? ` ${history.redo.label}` : ""}</button
+        >{t("Redo")}{history.redo ? ` ${history.redo.label}` : ""}</button
       ><button
         onclick={() => open("method", current)}
         disabled={!!draft || busy || disconnected || showTemplates}
@@ -483,7 +484,7 @@
                 )?.name ?? "Saved category"}
               </p>{/if}
             {#if amounts.includes(draft.action)}<label for="plan-amount"
-                >Amount</label
+                >{t("Amount")}</label
               >
               <div class="amount-entry">
                 <input
@@ -503,7 +504,7 @@
                 allocations add to the plan.
               </p>{/if}
             {#if ["move", "cover", "cover_overbudgeted"].includes(draft.action)}<label
-                for="plan-from">From</label
+                for="plan-from">{t("From")}</label
               ><select
                 id="plan-from"
                 value={draft.from}
@@ -642,7 +643,7 @@
               ><button
                 onclick={() => open("cover", m)}
                 disabled={!!draft || busy || disconnected || showTemplates}
-                >Cover overspending</button
+                >{t("Cover overspending")}</button
               ><button
                 onclick={() => open("cover_overbudgeted", m)}
                 disabled={!!draft || busy || disconnected || showTemplates}
@@ -673,11 +674,13 @@
                 >{title(m.month)} allocations and actuals</caption
               ><thead
                 ><tr
-                  ><th>Category</th><th class="amount"
+                  ><th>{t("Category")}</th><th class="amount"
                     >{view.method === "tracking" ? "Planned" : "Allocated"}</th
                   ><th class="amount">Actual</th><th class="amount"
-                    >{view.method === "tracking" ? "Remaining" : "Balance"}</th
-                  ><th>Actions</th></tr
+                    >{t(
+                      view.method === "tracking" ? "Remaining" : "Balance",
+                    )}</th
+                  ><th>{t("Actions")}</th></tr
                 ></thead
               ><tbody
                 >{#each m.categories.filter((c) => showHidden || (!c.hidden && !c.group_hidden)) as c (c.id)}<tr
@@ -718,7 +721,7 @@
                               disconnected ||
                               showTemplates}
                             aria-label={`Edit ${c.name} allocation for ${title(m.month)}`}
-                            >Edit</button
+                            >{t("Edit")}</button
                           ><button
                             onclick={() => open("copy_year", m, c)}
                             disabled={!!draft ||
@@ -751,7 +754,8 @@
                             busy ||
                             disconnected ||
                             showTemplates}
-                          aria-label={`Edit ${c.name} notes`}>Notes</button
+                          aria-label={`Edit ${c.name} notes`}
+                          >{t("Notes")}</button
                         >
                       </div></td
                     ></tr
@@ -788,9 +792,8 @@
         <table>
           <thead
             ><tr
-              ><th>Date</th><th>Account</th><th>Notes</th><th class="amount"
-                >Amount</th
-              ></tr
+              ><th>{t("Date")}</th><th>{t("Account")}</th><th>{t("Notes")}</th
+              ><th class="amount">{t("Amount")}</th></tr
             ></thead
           ><tbody
             >{#each detail.data as row (row.id)}<tr

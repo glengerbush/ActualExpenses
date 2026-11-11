@@ -114,20 +114,20 @@
     const result: NavigationCommand[] = [
       {
         id: "recovery",
-        label: "Recovery tools",
+        label: t("Recovery tools"),
         keywords: "repair recalculate reconnect cache reset",
         disabled: locked,
         run: () => showForm("recovery"),
       },
       {
         id: "budgets",
-        label: "All budgets",
+        label: t("All budgets"),
         disabled: locked,
         run: showBudgets,
       },
       {
         id: "pending",
-        label: "Review pending expenses",
+        label: t("Review pending expenses"),
         disabled: locked,
         run: () => showForm("pending"),
       },
@@ -147,7 +147,7 @@
       ] as const)
         result.push({
           id,
-          label,
+          label: t(label),
           disabled: locked || disconnected || !compatible,
           run: () => {
             if (id === "import") importSource = "actual";
@@ -156,7 +156,7 @@
         });
       result.push({
         id: "ynab-import",
-        label: "Import YNAB budget",
+        label: t("Import YNAB budget"),
         keywords: "YNAB4 nYNAB JSON migration",
         disabled: locked || disconnected || !compatible,
         run: () => {
@@ -169,26 +169,26 @@
     result.push(
       {
         id: "organize",
-        label: "Organize accounts",
+        label: t("Organize accounts"),
         disabled: locked || disconnected || !compatible,
         run: () => showForm("organize"),
       },
       {
         id: "account",
-        label: "Add account",
+        label: t("Add account"),
         disabled: locked || disconnected || !compatible,
         run: () => showForm("account"),
       },
       {
         id: "manage",
-        label: "Manage budget",
+        label: t("Manage budget"),
         disabled: locked || disconnected || !compatible,
         run: () => manage(budget!),
       },
     );
     result.push({
       id: "custom-reports",
-      label: "Custom reports",
+      label: t("Custom reports"),
       disabled: locked || !compatible,
       run: async () => {
         await writeValue(`view:reporting-tab:${budget!.id}`, "custom");
@@ -203,7 +203,7 @@
     )
       result.push({
         id: "balance-forecast",
-        label: "Balance forecast",
+        label: t("Balance forecast"),
         disabled: locked || !compatible,
         run: async () => {
           await writeValue(`view:reporting-tab:${budget!.id}`, "forecast");
@@ -218,7 +218,7 @@
     )
       result.push({
         id: "budget-analysis",
-        label: "Budget Analysis",
+        label: t("Budget Analysis"),
         disabled: locked || !compatible,
         run: async () => {
           await writeValue(`view:reporting-tab:${budget!.id}`, "analysis");
@@ -233,7 +233,7 @@
     )
       result.push({
         id: "sankey",
-        label: "Sankey",
+        label: t("Sankey"),
         disabled: locked || !compatible,
         run: async () => {
           await writeValue(`view:reporting-tab:${budget!.id}`, "sankey");
@@ -243,7 +243,7 @@
       });
     result.push({
       id: "crossover",
-      label: "Crossover Point",
+      label: t("Crossover Point"),
       disabled: locked || !compatible,
       run: async () => {
         await writeValue(`view:reporting-tab:${budget!.id}`, "crossover");
@@ -258,7 +258,7 @@
     )
       result.push({
         id: "formula",
-        label: "Formula",
+        label: t("Formula"),
         disabled: locked || !compatible,
         run: async () => {
           await writeValue(`view:reporting-tab:${budget!.id}`, "formula");
@@ -273,7 +273,7 @@
     )
       result.push({
         id: "monte-carlo",
-        label: "Monte Carlo",
+        label: t("Monte Carlo"),
         disabled: locked || !compatible,
         run: async () => {
           await writeValue(`view:reporting-tab:${budget!.id}`, "monte-carlo");
@@ -293,14 +293,14 @@
     ] as const;
     result.push({
       id: "accounts",
-      label: "All accounts",
+      label: t("All accounts"),
       disabled: locked,
       run: () => selectAccount(null),
     });
     for (const [id, label, requiresConnection] of views)
       result.push({
         id,
-        label,
+        label: t(label),
         disabled:
           locked || requiresConnection || (id !== "settings" && !compatible),
         run: () => {
@@ -673,7 +673,7 @@
 
       <button
         onclick={() => showForm("planning")}
-        disabled={!!form || loading || !compatible}>Budget</button
+        disabled={!!form || loading || !compatible}>{t("Budget")}</button
       >
       <button
         onclick={() => showForm("categories")}
@@ -693,11 +693,11 @@
           rulesPayee = "";
           void showForm("rules");
         }}
-        disabled={!!form || loading || !compatible}>Rules</button
+        disabled={!!form || loading || !compatible}>{t("Rules")}</button
       >
       <button
         onclick={() => showForm("schedules")}
-        disabled={!!form || loading || !compatible}>Schedules</button
+        disabled={!!form || loading || !compatible}>{t("Schedules")}</button
       >
       <button
         onclick={() => showForm("reports")}

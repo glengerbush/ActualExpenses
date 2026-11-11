@@ -1,0 +1,136 @@
+- link "Skip to content":
+  - /url: "#main"
+- complementary "Budget navigation":
+  - text: actualBudget
+  - group "Navigation tools":
+    - button "Search commands"
+    - button "Privacy mode"
+    - button "Help and releases"
+  - button "All budgets" [disabled]
+  - text: Accessibility qualification
+  - paragraph: Tracking budget
+  - navigation "Accounts":
+    - button "All accounts" [disabled]
+    - paragraph: On budget
+    - button "Spending 987,66" [disabled]
+  - button "Budget" [disabled]
+  - button "Categories" [disabled]
+  - button "Payees and tags" [disabled]
+  - button "Transaction files" [disabled]
+  - button "Rules" [disabled]
+  - button "Schedules" [disabled]
+  - button "Dashboards and reports" [disabled]
+  - button "Settings" [disabled]
+  - button "Manage budget" [disabled]
+  - button "Recovery tools" [disabled]
+  - button "Review pending expenses" [disabled]
+- main:
+  - status: Saved data from 11/11/2026, 6:35:19 AM.
+  - region "Dashboards and reports":
+    - heading "Dashboards and reports" [level=2]
+    - paragraph: Recorded history, saved views and transaction details.
+    - button "Close reports"
+    - navigation "Reporting views":
+      - button "Dashboards" [pressed]
+      - button "Custom reports"
+      - button "Crossover Point"
+    - status: Reporting change saved.
+    - text: Dashboard
+    - combobox "Dashboard":
+      - option "Accessible reports" [selected]
+    - button "New dashboard"
+    - button "Refresh dashboards"
+    - button "Rename dashboard"
+    - button "Duplicate dashboard"
+    - button "Delete dashboard" [disabled]
+    - button "Add widget"
+    - article "Recorded cash flow":
+      - heading "Recorded cash flow" [level=3]
+      - button "Edit Recorded cash flow"
+      - button "Remove Recorded cash flow"
+      - paragraph: Recorded entries · 2026-11-11
+      - img "Recorded history plot; exact values in table below"
+      - list:
+        - listitem: Income
+        - listitem: Expenses
+        - listitem: Transfers
+        - listitem: Balance
+      - group:
+        - text: Exact values
+        - region "Historical report values":
+          - table:
+            - rowgroup:
+              - row "Period Income Expenses Transfers Balance":
+                - columnheader "Period"
+                - columnheader "Income"
+                - columnheader "Expenses"
+                - columnheader "Transfers"
+                - columnheader "Balance"
+            - rowgroup:
+              - row "2026-11-01 0,00 0,00 0,00 0,00":
+                - rowheader "2026-11-01"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+              - row "2026-11-02 0,00 0,00 0,00 0,00":
+                - rowheader "2026-11-02"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+              - row "2026-11-03 0,00 0,00 0,00 0,00":
+                - rowheader "2026-11-03"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+              - row "2026-11-04 0,00 0,00 0,00 0,00":
+                - rowheader "2026-11-04"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+              - row "2026-11-05 0,00 0,00 0,00 0,00":
+                - rowheader "2026-11-05"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+              - row "2026-11-06 0,00 0,00 0,00 0,00":
+                - rowheader "2026-11-06"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+              - row "2026-11-07 0,00 0,00 0,00 0,00":
+                - rowheader "2026-11-07"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+              - row "2026-11-08 0,00 0,00 0,00 0,00":
+                - rowheader "2026-11-08"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+              - row "2026-11-09 0,00 0,00 0,00 0,00":
+                - rowheader "2026-11-09"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+              - row "2026-11-10 0,00 0,00 0,00 0,00":
+                - rowheader "2026-11-10"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+                - cell "0,00"
+              - row "2026-11-11 1.000,00 -12,34 0,00 987,66":
+                - rowheader "2026-11-11"
+                - cell "1.000,00"
+                - cell "-12,34"
+                - cell "0,00"
+                - cell "987,66"
+      - group: Inspect recorded entries

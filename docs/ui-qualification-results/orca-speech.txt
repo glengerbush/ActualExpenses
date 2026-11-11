@@ -1,0 +1,225 @@
+06:33:01.221524 - SPEECH OUTPUT: 'Screen reader on.'{'established': False}
+06:33:01.358673 - SPEECH OUTPUT: 'actualBudget - Chromium frame.'{'established': False}
+06:33:01.438576 - SPEECH OUTPUT: 'Skip to content link.'{'established': False}
+06:33:01.493391 - SPEECH OUTPUT: 'Loading.  Please wait.'{'established': False}
+06:33:01.500514 - SPEECH OUTPUT: 'Finished loading actualBudget.'{'established': False}
+06:33:01.506555 - SPEECH OUTPUT: 'Page has 3 landmarks, 1 heading, 1 unvisited link.'{'established': False}
+06:33:01.673695 - SPEECH OUTPUT: 'Saved data from 11/11/2026, 6:33:01 AM.'{'established': False}
+06:34:18.493258 - SPEECH OUTPUT: 'main content.'{'established': False}
+06:34:18.495307 - SPEECH OUTPUT: 'clickable.'{'established': False}
+06:34:24.961401 - SPEECH OUTPUT: 'actualBudget document web.'{'established': False}
+06:34:25.170662 - SPEECH OUTPUT: 'region Add account'{'established': False}
+06:34:25.172324 - SPEECH OUTPUT: 'form'{'established': False}
+06:34:25.173906 - SPEECH OUTPUT: 'Account type combo box collapsed'{'established': False}
+06:34:25.175659 - SPEECH OUTPUT: 'On budget.'{'established': False}
+06:34:25.177768 - SPEECH OUTPUT: 'Focus mode'{'established': False}
+06:34:35.110131 - SPEECH OUTPUT: 'Opening balance entry 1000.00 required.'{'established': False}
+06:34:35.112245 - SPEECH OUTPUT: 'Use a minus sign for money owed.'{'established': False}
+06:34:35.845501 - SPEECH OUTPUT: 'region Transactions'{'established': False}
+06:34:35.848547 - SPEECH OUTPUT: 'region Find transactions'{'established': False}
+06:34:35.850557 - SPEECH OUTPUT: 'form'{'established': False}
+06:34:35.852735 - SPEECH OUTPUT: 'Sort by combo box collapsed'{'established': False}
+06:34:35.854809 - SPEECH OUTPUT: 'Date.'{'established': False}
+06:34:36.032096 - SPEECH OUTPUT: 'leaving form.'{'established': False}
+06:34:36.034705 - SPEECH OUTPUT: 'leaving region.'{'established': False}
+06:34:36.037799 - SPEECH OUTPUT: 'region Add transaction'{'established': False}
+06:34:36.039702 - SPEECH OUTPUT: 'form'{'established': False}
+06:34:36.041519 - SPEECH OUTPUT: 'Account combo box collapsed'{'established': False}
+06:34:36.043060 - SPEECH OUTPUT: 'Spending.'{'established': False}
+06:34:36.075167 - SPEECH OUTPUT: 'Transaction type combo box collapsed'{'established': False}
+06:34:36.076268 - SPEECH OUTPUT: 'Expense.'{'established': False}
+06:34:36.104321 - SPEECH OUTPUT: 'Payee combo box collapsed'{'established': False}
+06:34:36.106016 - SPEECH OUTPUT: 'No payee.'{'established': False}
+06:34:36.137537 - SPEECH OUTPUT: 'Category combo box collapsed'{'established': False}
+06:34:36.139444 - SPEECH OUTPUT: 'Uncategorized.'{'established': False}
+06:34:36.188668 - SPEECH OUTPUT: 'Calculate push button.'{'established': False}
+06:34:36.192896 - SPEECH OUTPUT: 'Browse mode'{'established': False}
+06:34:57.693925 - SPEECH OUTPUT: 'Notes entry Screen-reader expense.'{'established': False}
+06:34:57.702161 - SPEECH OUTPUT: 'Focus mode'{'established': False}
+06:34:58.138100 - SPEECH OUTPUT: 'Disconnected. Saved data from 11/11/2026, 6:34:24 AM.'{'established': False}
+06:34:58.143518 - SPEECH OUTPUT: 'Disconnected. Cached view from 11/11/2026, 6:34:35 AM. Balances include confirmed transactions only.'{'established': False}
+06:34:58.240710 - SPEECH OUTPUT: 'Saved on this device. Waiting to sync.'{'established': False}
+06:34:58.248097 - SPEECH OUTPUT: 'Qualification temporary failure'{'established': False}
+06:35:19.747742 - SPEECH OUTPUT: 'region Pending expenses'{'established': False}
+06:35:19.750617 - SPEECH OUTPUT: 'Retry pending expense push button.'{'established': False}
+06:35:19.756911 - SPEECH OUTPUT: 'Browse mode'{'established': False}
+06:35:20.667285 - SPEECH OUTPUT: 'main content.'{'established': False}
+06:35:20.669372 - SPEECH OUTPUT: 'clickable.'{'established': False}
+06:35:39.735983 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:35:39.742903 - SPEECH OUTPUT: '0 ' {'established': False}
+06:35:39.757413 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:35:39.764069 - SPEECH OUTPUT: 'left shift ' {'established': False}
+06:35:39.768518 - SPEECH OUTPUT: 'plus ' {'established': False}
+06:35:39.815620 - SPEECH OUTPUT: 'alert.'{'established': False}
+06:35:39.842306 - SPEECH OUTPUT: 'notification 110%'{'established': False}
+06:35:39.849488 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:35:39.859070 - SPEECH OUTPUT: 'left shift ' {'established': False}
+06:35:39.865120 - SPEECH OUTPUT: 'plus ' {'established': False}
+06:35:39.885896 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:35:39.891688 - SPEECH OUTPUT: 'left shift ' {'established': False}
+06:35:39.905820 - SPEECH OUTPUT: 'notification Zoom: 125%'{'established': False}
+06:35:39.910665 - SPEECH OUTPUT: 'plus ' {'established': False}
+06:35:39.924427 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:35:39.930157 - SPEECH OUTPUT: 'left shift ' {'established': False}
+06:35:39.941614 - SPEECH OUTPUT: 'plus ' {'established': False}
+06:35:39.961877 - SPEECH OUTPUT: 'notification Zoom: 150%'{'established': False}
+06:35:39.973094 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:35:39.983423 - SPEECH OUTPUT: 'left shift ' {'established': False}
+06:35:39.993531 - SPEECH OUTPUT: 'plus ' {'established': False}
+06:35:40.014797 - SPEECH OUTPUT: 'notification Zoom: 175%'{'established': False}
+06:35:40.093377 - SPEECH OUTPUT: 'notification Zoom: 200%'{'established': False}
+06:36:39.581896 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:36:39.639650 - SPEECH OUTPUT: 'Skip to content link.'{'established': False}
+06:36:39.654050 - SPEECH OUTPUT: 't ' {'established': False}
+06:36:39.661611 - SPEECH OUTPUT: 'No more tables.'{'established': False}
+06:36:39.671116 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:36:39.680638 - SPEECH OUTPUT: 'left alt ' {'established': False}
+06:36:39.696879 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:36:39.702330 - SPEECH OUTPUT: 'left alt ' {'established': False}
+06:37:02.171816 - SPEECH OUTPUT: 'View saved on this device at 11/11/2026, 6:35:19 AM. Balances include confirmed transactions only.'{'established': False}
+06:37:02.176775 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:37:02.227585 - SPEECH OUTPUT: 'Skip to content.'{'established': False}
+06:37:02.244374 - SPEECH OUTPUT: 't ' {'established': False}
+06:37:02.257648 - SPEECH OUTPUT: 'Transactions sorted by date, descending'{'established': False}
+06:37:02.270817 - SPEECH OUTPUT: 'table with 3 rows 9 columns'{'established': False}
+06:37:02.342525 - SPEECH OUTPUT: 'Selection column header.'{'established': False}
+06:37:02.370881 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:37:02.383281 - SPEECH OUTPUT: 'left alt ' {'established': False}
+06:37:02.409118 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:37:02.416890 - SPEECH OUTPUT: 'left alt ' {'established': False}
+06:37:29.422024 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:37:29.428688 - SPEECH OUTPUT: '0 ' {'established': False}
+06:37:29.502102 - SPEECH OUTPUT: 'alert Zoom: 100%'{'established': False}
+06:37:29.836631 - SPEECH OUTPUT: 'notification Zoom: 100%'{'established': False}
+06:37:29.964970 - SPEECH OUTPUT: 'leaving table.'{'established': False}
+06:37:29.967437 - SPEECH OUTPUT: 'leaving region.'{'established': False}
+06:37:29.969048 - SPEECH OUTPUT: 'region Find transactions'{'established': False}
+06:37:29.970596 - SPEECH OUTPUT: 'form'{'established': False}
+06:37:29.972601 - SPEECH OUTPUT: 'Sort by combo box collapsed'{'established': False}
+06:37:29.973958 - SPEECH OUTPUT: 'Date.'{'established': False}
+06:37:29.988617 - SPEECH OUTPUT: 'Focus mode'{'established': False}
+06:37:30.875439 - SPEECH OUTPUT: 'region Einstellungen'{'established': False}
+06:37:30.879726 - SPEECH OUTPUT: 'region This device'{'established': False}
+06:37:30.883914 - SPEECH OUTPUT: 'Thema combo box collapsed'{'established': False}
+06:37:30.886286 - SPEECH OUTPUT: 'Midnight.'{'established': False}
+06:37:30.924796 - SPEECH OUTPUT: 'Dunkles Thema combo box collapsed'{'established': False}
+06:37:30.926979 - SPEECH OUTPUT: 'Dunkles Thema.'{'established': False}
+06:37:31.009798 - SPEECH OUTPUT: 'leaving region.'{'established': False}
+06:37:31.012112 - SPEECH OUTPUT: 'region This budget'{'established': False}
+06:37:31.013817 - SPEECH OUTPUT: 'form'{'established': False}
+06:37:31.015216 - SPEECH OUTPUT: 'Zahlen combo box collapsed'{'established': False}
+06:37:31.016972 - SPEECH OUTPUT: '1,000.33.'{'established': False}
+06:37:31.079708 - SPEECH OUTPUT: 'Datum combo box collapsed'{'established': False}
+06:37:31.080935 - SPEECH OUTPUT: 'MM/DD/YYYY.'{'established': False}
+06:37:31.120661 - SPEECH OUTPUT: 'Erster Tag der Woche combo box collapsed'{'established': False}
+06:37:31.122574 - SPEECH OUTPUT: 'Sonntag.'{'established': False}
+06:37:31.151745 - SPEECH OUTPUT: 'leaving form.'{'established': False}
+06:37:31.154131 - SPEECH OUTPUT: 'leaving region.'{'established': False}
+06:37:31.156564 - SPEECH OUTPUT: 'region This device'{'established': False}
+06:37:31.157736 - SPEECH OUTPUT: 'Thema combo box collapsed'{'established': False}
+06:37:31.158642 - SPEECH OUTPUT: 'Midnight.'{'established': False}
+06:37:31.220508 - SPEECH OUTPUT: 'Language combo box collapsed'{'established': False}
+06:37:31.223082 - SPEECH OUTPUT: 'Deutsch.'{'established': False}
+06:38:41.045781 - SPEECH OUTPUT: 'leaving region.'{'established': False}
+06:38:41.047208 - SPEECH OUTPUT: 'region This budget'{'established': False}
+06:38:41.048309 - SPEECH OUTPUT: 'form'{'established': False}
+06:38:41.048906 - SPEECH OUTPUT: 'Zahlen combo box collapsed'{'established': False}
+06:38:41.049510 - SPEECH OUTPUT: '1.000,33.'{'established': False}
+06:38:41.078262 - SPEECH OUTPUT: 'Datum combo box collapsed'{'established': False}
+06:38:41.079460 - SPEECH OUTPUT: 'DD.MM.YYYY.'{'established': False}
+06:39:04.142210 - SPEECH OUTPUT: 'main content.'{'established': False}
+06:39:04.144821 - SPEECH OUTPUT: 'clickable.'{'established': False}
+06:39:04.152871 - SPEECH OUTPUT: 'Browse mode'{'established': False}
+06:39:20.281271 - SPEECH OUTPUT: 'Recorded cash flow.'{'established': False}
+06:39:20.371754 - SPEECH OUTPUT: 'Dashboard combo box collapsed'{'established': False}
+06:39:20.372914 - SPEECH OUTPUT: 'Accessible reports.'{'established': False}
+06:39:20.375250 - SPEECH OUTPUT: 'Focus mode'{'established': False}
+06:39:28.258964 - SPEECH OUTPUT: 'article'{'established': False}
+06:39:28.260615 - SPEECH OUTPUT: 'Exact values toggle button collapsed.'{'established': False}
+06:39:28.340448 - SPEECH OUTPUT: 'expanded'{'established': False}
+06:39:33.652342 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:39:33.678442 - SPEECH OUTPUT: 't ' {'established': False}
+06:39:54.896104 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:39:54.921466 - SPEECH OUTPUT: 't ' {'established': False}
+06:39:54.934743 - SPEECH OUTPUT: 'left alt ' {'established': False}
+06:39:54.941077 - SPEECH OUTPUT: 'left shift ' {'established': False}
+06:39:54.974284 - SPEECH OUTPUT: 'left alt ' {'established': False}
+06:39:54.981081 - SPEECH OUTPUT: 'left shift ' {'established': False}
+06:40:28.987905 - SPEECH OUTPUT: '[OBJ]' {'established': False}
+06:40:47.698943 - SPEECH OUTPUT: 'Recovered your saved settings changes.'{'established': False}
+06:40:48.076944 - SPEECH OUTPUT: 'Browse mode'{'established': False}
+06:40:48.090885 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:40:48.147153 - SPEECH OUTPUT: 'Skip to content link.'{'established': False}
+06:40:48.170318 - SPEECH OUTPUT: 't ' {'established': False}
+06:40:48.196957 - SPEECH OUTPUT: 'table with 12 rows 5 columns'{'established': False}
+06:40:48.226333 - SPEECH OUTPUT: 'Period column header.'{'established': False}
+06:41:00.179763 - SPEECH OUTPUT: 'left alt ' {'established': False}
+06:41:00.280748 - SPEECH OUTPUT: 'left shift ' {'established': False}
+06:41:00.460947 - SPEECH OUTPUT: '987,66.'{'established': False}
+06:41:00.463035 - SPEECH OUTPUT: 'Row 12, column 5.'{'established': False}
+06:41:00.785205 - SPEECH OUTPUT: 'left alt ' {'established': False}
+06:41:00.886627 - SPEECH OUTPUT: 'left shift ' {'established': False}
+06:41:01.001250 - SPEECH OUTPUT: 'Transfers'[{'established': False}]
+06:41:01.046439 - SPEECH OUTPUT: '0,00.'{'established': False}
+06:41:01.049482 - SPEECH OUTPUT: 'Row 12, column 4.'{'established': False}
+06:41:42.669263 - SPEECH OUTPUT: 'region This device'{'established': False}
+06:41:42.670959 - SPEECH OUTPUT: 'Preferred dark theme combo box collapsed'{'established': False}
+06:41:42.672281 - SPEECH OUTPUT: 'Dark.'{'established': False}
+06:41:42.675537 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:41:42.712893 - SPEECH OUTPUT: 'Language combo box collapsed'{'established': False}
+06:41:42.714149 - SPEECH OUTPUT: 'English.'{'established': False}
+06:41:42.718777 - SPEECH OUTPUT: '0 ' {'established': False}
+06:41:42.755280 - SPEECH OUTPUT: 'leaving region.'{'established': False}
+06:41:42.757194 - SPEECH OUTPUT: 'region This budget'{'established': False}
+06:41:42.758535 - SPEECH OUTPUT: 'form'{'established': False}
+06:41:42.759579 - SPEECH OUTPUT: 'Numbers combo box collapsed'{'established': False}
+06:41:42.760270 - SPEECH OUTPUT: '1.000,33.'{'established': False}
+06:41:42.762514 - SPEECH OUTPUT: 'Focus mode'{'established': False}
+06:41:42.790010 - SPEECH OUTPUT: 'Dates combo box collapsed'{'established': False}
+06:41:42.790954 - SPEECH OUTPUT: 'DD.MM.YYYY.'{'established': False}
+06:41:42.817568 - SPEECH OUTPUT: 'First day of the week combo box collapsed'{'established': False}
+06:41:42.818856 - SPEECH OUTPUT: 'Sunday.'{'established': False}
+06:41:42.863533 - SPEECH OUTPUT: 'leaving form.'{'established': False}
+06:41:42.865891 - SPEECH OUTPUT: 'leaving region.'{'established': False}
+06:41:42.868234 - SPEECH OUTPUT: 'region This device'{'established': False}
+06:41:42.870037 - SPEECH OUTPUT: 'Theme combo box collapsed'{'established': False}
+06:41:42.872117 - SPEECH OUTPUT: 'Dark.'{'established': False}
+06:41:42.878868 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:41:42.920473 - SPEECH OUTPUT: 'left shift ' {'established': False}
+06:41:42.928666 - SPEECH OUTPUT: 'plus ' {'established': False}
+06:41:42.974396 - SPEECH OUTPUT: 'alert Zoom: 100%'{'established': False}
+06:41:42.994851 - SPEECH OUTPUT: 'notification Zoom: 100%'{'established': False}
+06:41:43.074677 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:41:43.123473 - SPEECH OUTPUT: 'left shift ' {'established': False}
+06:41:43.129796 - SPEECH OUTPUT: 'plus ' {'established': False}
+06:41:43.177578 - SPEECH OUTPUT: 'notification Zoom: 125%'{'established': False}
+06:41:43.278396 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:41:43.327373 - SPEECH OUTPUT: 'left shift ' {'established': False}
+06:41:43.334106 - SPEECH OUTPUT: 'plus ' {'established': False}
+06:41:43.365430 - SPEECH OUTPUT: 'notification Zoom: 150%'{'established': False}
+06:41:43.484702 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:41:43.535821 - SPEECH OUTPUT: 'left shift ' {'established': False}
+06:41:43.546086 - SPEECH OUTPUT: 'plus ' {'established': False}
+06:41:43.578886 - SPEECH OUTPUT: 'notification Zoom: 175%'{'established': False}
+06:41:43.687662 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:41:43.738607 - SPEECH OUTPUT: 'left shift ' {'established': False}
+06:41:43.749302 - SPEECH OUTPUT: 'plus ' {'established': False}
+06:41:43.796588 - SPEECH OUTPUT: 'notification Zoom: 200%'{'established': False}
+06:42:30.427098 - SPEECH OUTPUT: 'Light.'{'established': False}
+06:42:30.975153 - SPEECH OUTPUT: 'Transaction table region clickable.'{'established': False}
+06:42:30.984044 - SPEECH OUTPUT: 'Browse mode'{'established': False}
+06:42:30.991046 - SPEECH OUTPUT: 'Expense synced.'{'established': False}
+06:42:31.092991 - SPEECH OUTPUT: 'View saved on this device at 11/11/2026, 6:40:28 AM. Balances include confirmed transactions only.'{'established': False}
+06:43:25.379071 - SPEECH OUTPUT: 'left control ' {'established': False}
+06:43:25.385554 - SPEECH OUTPUT: '0 ' {'established': False}
+06:43:25.446561 - SPEECH OUTPUT: 'alert Zoom: 100%'{'established': False}
+06:43:25.556033 - SPEECH OUTPUT: 'notification Zoom: 100%'{'established': False}
+06:43:25.635218 - SPEECH OUTPUT: 'region Find transactions'{'established': False}
+06:43:25.637911 - SPEECH OUTPUT: 'form'{'established': False}
+06:43:25.641461 - SPEECH OUTPUT: 'Sort by combo box collapsed'{'established': False}
+06:43:25.643569 - SPEECH OUTPUT: 'Date.'{'established': False}
+06:43:25.649203 - SPEECH OUTPUT: 'Focus mode'{'established': False}
+06:45:26.880804 - SPEECH OUTPUT: 'main content.'{'established': False}
+06:45:26.882801 - SPEECH OUTPUT: 'clickable.'{'established': False}
+06:45:26.889473 - SPEECH OUTPUT: 'Browse mode'{'established': False}
+06:45:26.953460 - SPEECH OUTPUT: 'Recovered your saved settings changes.'{'established': False}

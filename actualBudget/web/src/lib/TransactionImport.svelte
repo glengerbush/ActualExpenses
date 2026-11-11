@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { onMount } from "svelte";
   import {
     request,
@@ -555,7 +556,8 @@
         before saving.
       </p>
     </div>
-    <button onclick={onclose} disabled={busy || saving > 0}>Close</button>
+    <button onclick={onclose} disabled={busy || saving > 0}>{t("Close")}</button
+    >
   </header>
   {#if error}<p role="alert">{error}</p>{/if}{#if notice}<p role="status">
       {notice}

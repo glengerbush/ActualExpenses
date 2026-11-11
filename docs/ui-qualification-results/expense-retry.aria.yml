@@ -1,0 +1,118 @@
+- link "Skip to content":
+  - /url: "#main"
+- complementary "Budget navigation":
+  - text: actualBudget
+  - group "Navigation tools":
+    - button "Search commands"
+    - button "Privacy mode" [disabled]
+    - button "Help and releases"
+  - button "All budgets"
+  - text: Accessibility qualification
+  - paragraph: Tracking budget
+  - navigation "Accounts":
+    - button "All accounts"
+    - paragraph: On budget
+    - button "Spending 1,000.00"
+  - button "Budget"
+  - button "Categories" [disabled]
+  - button "Payees and tags" [disabled]
+  - button "Transaction files"
+  - button "Rules"
+  - button "Schedules"
+  - button "Dashboards and reports"
+  - button "Settings"
+  - button "Manage budget" [disabled]
+  - button "Recovery tools"
+  - button "Review pending expenses"
+- main:
+  - alert: Qualification temporary failure
+  - status: Disconnected. Saved data from 11/11/2026, 6:34:24 AM.
+  - region "Spending":
+    - heading "Spending" [level=1]
+    - button "Organize accounts"
+    - paragraph: On budget
+  - region "Transactions":
+    - heading "Transactions" [level=2]
+    - button "Refresh transactions"
+    - button "Add transaction"
+    - button "Move money" [disabled]
+    - button "Transfer balance and close" [disabled]
+    - term: All-date balance
+    - definition: 1,000.00
+    - term: Cleared
+    - definition: 1,000.00
+    - term: Uncleared
+    - definition: "0.00"
+    - text: Show through date
+    - textbox "Show through date":
+      - /placeholder: MM/DD/YYYY
+    - button "Choose date"
+    - paragraph: "Format: MM/DD/YYYY"
+    - button "Apply" [disabled]
+    - text: Includes future-dated entries.
+    - button "Undo" [disabled]
+    - button "Redo" [disabled]
+    - button "Refresh history" [disabled]
+    - region "Reconciliation":
+      - button "Reconcile account" [disabled]
+    - region "Find transactions":
+      - text: Search transactions
+      - searchbox "Search transactions" [disabled]
+      - text: Sort by
+      - combobox "Sort by" [disabled]:
+        - option "Date" [selected]
+        - option "Amount"
+        - option "Payee"
+        - option "Category"
+        - option "Account"
+        - option "Notes"
+        - option "Cleared"
+        - option "Reconciled"
+      - text: Order
+      - combobox "Order" [disabled]:
+        - option "Descending" [selected]
+        - option "Ascending"
+      - button "Find transactions" [disabled]
+      - group: Filters and columns
+      - paragraph: Connect to search or change register settings.
+    - status: Saved on this device. Waiting to sync.
+    - status: Disconnected. Cached view from 11/11/2026, 6:34:35 AM. Balances include confirmed transactions only.
+    - region "Pending expenses":
+      - heading "Pending expenses" [level=3]
+      - paragraph: "-12.34 · 11/11/2026 · Screen-reader expense"
+      - status: Saved on this device. Waiting to sync.
+      - button "Retry pending expense"
+    - paragraph: Use Space to select a row; Shift-click selects a range. Selection applies to loaded rows only. Use Ctrl+Z to undo, Ctrl+Shift+Z to redo outside text fields.
+    - checkbox "Select all loaded entries" [disabled]
+    - text: Select loaded entries
+    - region "Transaction table":
+      - table "Transactions sorted by date, descending":
+        - caption: Transactions sorted by date, descending
+        - rowgroup:
+          - row "Selection Date Payee Notes Category Amount Status Running balance Actions":
+            - columnheader "Selection"
+            - columnheader "Date"
+            - columnheader "Payee"
+            - columnheader "Notes"
+            - columnheader "Category"
+            - columnheader "Amount"
+            - columnheader "Status"
+            - columnheader "Running balance"
+            - columnheader "Actions"
+        - rowgroup:
+          - row "Select 1,000.00 · Starting Balance · 11/11/2026 Select entry 11/11/2026 Starting Balance Starting Balances 1,000.00 Cleared 1,000.00 Edit 1,000.00 · Starting Balance · 11/11/2026 Split transaction Duplicate 1,000.00 · Starting Balance · 11/11/2026 Delete 1,000.00 · Starting Balance · 11/11/2026":
+            - cell "Select 1,000.00 · Starting Balance · 11/11/2026 Select entry":
+              - checkbox "Select 1,000.00 · Starting Balance · 11/11/2026" [disabled]
+              - text: Select entry
+            - cell "11/11/2026"
+            - cell "Starting Balance"
+            - cell
+            - cell "Starting Balances"
+            - cell "1,000.00"
+            - cell "Cleared"
+            - cell "1,000.00"
+            - cell "Edit 1,000.00 · Starting Balance · 11/11/2026 Split transaction Duplicate 1,000.00 · Starting Balance · 11/11/2026 Delete 1,000.00 · Starting Balance · 11/11/2026":
+              - button "Edit 1,000.00 · Starting Balance · 11/11/2026" [disabled]: Edit
+              - button "Split transaction" [disabled]
+              - button "Duplicate 1,000.00 · Starting Balance · 11/11/2026" [disabled]: Duplicate
+              - button "Delete 1,000.00 · Starting Balance · 11/11/2026" [disabled]: Delete

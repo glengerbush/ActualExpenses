@@ -500,11 +500,18 @@
         }}
       >
         <h2>
-          {draft.editing ? "Edit" : "Add"}
-          {kind === "payees" ? "payee" : "tag"}
+          {t(
+            kind === "payees"
+              ? draft.editing
+                ? "Edit payee"
+                : "Add payee"
+              : draft.editing
+                ? "Edit tag"
+                : "Add tag",
+          )}
         </h2>
         <label for="reference-name"
-          >{kind === "payees" ? "Payee name" : "Tag name"}</label
+          >{t(kind === "payees" ? "Payee name" : "Tag name")}</label
         ><input
           id="reference-name"
           value={draft.name}
@@ -531,11 +538,13 @@
             disabled={locked}
             maxlength="10000"></textarea>{/if}
         <button class="primary" disabled={locked}
-          >{draft.editing
-            ? "Save changes"
-            : kind === "payees"
-              ? "Add payee"
-              : "Add tag"}</button
+          >{t(
+            draft.editing
+              ? "Save changes"
+              : kind === "payees"
+                ? "Add payee"
+                : "Add tag",
+          )}</button
         >{#if draft.editing}<button
             type="button"
             onclick={() =>

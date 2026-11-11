@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import type { ConversionContext } from "./future-conversion";
   import { historyOwner } from "./history-owner";
   import { onMount, tick } from "svelte";
@@ -601,7 +602,7 @@
                 >
                 and close {source?.name}.
               </p>{:else}<div>
-                <label for="transfer-amount">Amount</label><input
+                <label for="transfer-amount">{t("Amount")}</label><input
                   id="transfer-amount"
                   value={draft.amount}
                   inputmode="decimal"
@@ -614,7 +615,7 @@
               </div>{/if}
             <DateInput
               id="transfer-date"
-              label="Date"
+              label={t("Date")}
               format={draft.dateFormat}
               bind:value={() => draft!.date, (value) => edit("date", value)}
               required
@@ -624,21 +625,21 @@
                   type="checkbox"
                   checked={draft.syncDate}
                   onchange={(e) => edit("syncDate", e.currentTarget.checked)}
-                />Sync both transfer dates</label
+                />{t("Sync both transfer dates")}</label
               >{/if}
             {#if !source?.off_budget && destination?.off_budget}<div>
-                <label for="transfer-category">Category</label><select
+                <label for="transfer-category">{t("Category")}</label><select
                   id="transfer-category"
                   value={draft.category}
                   onchange={(e) => edit("category", e.currentTarget.value)}
-                  ><option value="">Uncategorized</option
+                  ><option value="">{t("Uncategorized")}</option
                   >{#each categories.filter((c) => (!c.deleted && !c.hidden && !c.group_hidden) || c.id === draft?.category) as c (c.id)}<option
                       value={c.id}>{c.name}</option
                     >{/each}</select
                 >
               </div>{/if}
             {#if draft.mode !== "close"}<label class="notes"
-                >Notes<textarea
+                >{t("Notes")}<textarea
                   value={draft.notes}
                   maxlength="10000"
                   oninput={(e) => edit("notes", e.currentTarget.value)}

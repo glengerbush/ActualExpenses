@@ -122,7 +122,7 @@
     </select></label
   >
   <MonteCarloPlot
-    title="Portfolio performance"
+    title={t("Portfolio performance")}
     series={chart}
     ages={result.percentileBands.map(
       (row) => projection.config.currentAge + row.year,

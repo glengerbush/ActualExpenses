@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { references, type Reference } from "./register-api";
   import RegisterCondition from "./RegisterCondition.svelte";
   import { onMount } from "svelte";
@@ -325,11 +326,11 @@
           bind:value={query.account_scope}
           disabled={busy || locked || disconnected || !!pending}
           onchange={changeScope}
-          ><option value="all">All accounts</option><option value="onbudget"
-            >On budget</option
-          ><option value="offbudget">Off budget</option><option value="closed"
-            >Closed accounts</option
-          ><option value="uncategorized">Uncategorized</option></select
+          ><option value="all">{t("All accounts")}</option><option
+            value="onbudget">{t("On budget")}</option
+          ><option value="offbudget">{t("Off budget")}</option><option
+            value="closed">{t("Closed accounts")}</option
+          ><option value="uncategorized">{t("Uncategorized")}</option></select
         ></label
       >{/if}
     <label
@@ -344,13 +345,14 @@
       >Sort by<select
         bind:value={query.sort}
         disabled={busy || locked || disconnected || !!pending}
-        ><option value="date">Date</option><option value="amount">Amount</option
-        ><option value="payee">Payee</option><option value="category"
-          >Category</option
-        ><option value="account">Account</option><option value="notes"
-          >Notes</option
-        ><option value="cleared">Cleared</option><option value="reconciled"
-          >Reconciled</option
+        ><option value="date">{t("Date")}</option><option value="amount"
+          >{t("Amount")}</option
+        ><option value="payee">{t("Payee")}</option><option value="category"
+          >{t("Category")}</option
+        ><option value="account">{t("Account")}</option><option value="notes"
+          >{t("Notes")}</option
+        ><option value="cleared">{t("Cleared")}</option><option
+          value="reconciled">{t("Reconciled")}</option
         ></select
       ></label
     >
@@ -358,8 +360,8 @@
       >Order<select
         bind:value={query.direction}
         disabled={busy || locked || disconnected || !!pending}
-        ><option value="desc">Descending</option><option value="asc"
-          >Ascending</option
+        ><option value="desc">{t("Descending")}</option><option value="asc"
+          >{t("Ascending")}</option
         ></select
       ></label
     >
@@ -422,7 +424,8 @@
                 else if (Array.isArray(condition.value))
                   condition.value = condition.value[0] ?? null;
               }}
-              ><option value="eq">is</option><option value="ne">is not</option
+              ><option value="eq">{t("is")}</option><option value="ne"
+                >{t("is not")}</option
               >{#if ["amount", "date"].includes(condition.field)}<option
                   value="lt">less than / before</option
                 ><option value="lte">at most / through</option><option
@@ -435,17 +438,17 @@
                   value="in">is one of</option
                 ><option value="not_in">is not one of</option
                 >{#if condition.field === "account"}<option value="onBudget"
-                    >is on budget</option
-                  ><option value="offBudget">is off budget</option>{/if}
+                    >{t("is on budget")}</option
+                  ><option value="offBudget">{t("is off budget")}</option>{/if}
               {:else if !["cleared", "reconciled", "transfer", "parent"].includes(condition.field)}<option
-                  value="contains">contains</option
-                ><option value="not_contains">does not contain</option><option
-                  value="matches">matches regular expression</option
+                  value="contains">{t("contains")}</option
+                ><option value="not_contains">{t("does not contain")}</option
+                ><option value="matches">matches regular expression</option
                 ><option value="in">is one of</option><option value="not_in"
                   >is not one of</option
                 >{#if condition.field === "notes"}<option value="hasTags"
-                    >has all tags</option
-                  ><option value="hasAnyTag">has any tag</option
+                    >{t("has all tags")}</option
+                  ><option value="hasAnyTag">{t("has any tag")}</option
                   >{/if}{/if}</select
             ></label
           >
@@ -468,7 +471,8 @@
       <button
         type="button"
         onclick={addCondition}
-        disabled={query.filter.conditions.length >= 20}>Add condition</button
+        disabled={query.filter.conditions.length >= 20}
+        >{t("Add condition")}</button
       >
     </fieldset>
     <fieldset disabled={busy || locked || disconnected || !!pending}>
@@ -542,7 +546,10 @@
         ><button onclick={() => void save("update")} disabled={!selected}
           >Update saved filter</button
         ><label
-          >Filter name<input bind:value={filterName} maxlength="120" /></label
+          >{t("Filter name")}<input
+            bind:value={filterName}
+            maxlength="120"
+          /></label
         ><button
           onclick={() => void save("filter")}
           disabled={!filterName.trim()}>Save filter</button

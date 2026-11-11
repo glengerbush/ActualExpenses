@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   type Row = Record<string, unknown>;
   let {
     rows,
@@ -39,9 +40,9 @@
         >Cleanup role<select
           value={String(row.role)}
           onchange={(e) => role(index, e.currentTarget.value)}
-          ><option value="source">Source</option><option value="sink"
+          ><option value="source">{t("Source")}</option><option value="sink"
             >Sink</option
-          ><option value="overspend">Cover overspending</option></select
+          ><option value="overspend">{t("Cover overspending")}</option></select
         ></label
       ><label
         >Pool<select

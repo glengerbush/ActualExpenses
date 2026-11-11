@@ -257,11 +257,9 @@ try {
   await expect(page.locator(".preview-list")).not.toContainText(
     "$actualRuleNumber",
   );
-  await page
-    .locator(".preview-list")
-    .screenshot({
-      path: "test-results/rule-expressions/nonfinite-split-mobile.png",
-    });
+  await page.locator(".preview-list").screenshot({
+    path: "test-results/rule-expressions/nonfinite-split-mobile.png",
+  });
   await page.addStyleTag({ content: "html { font-size: 200%; }" });
   await splitFormula.scrollIntoViewIfNeeded();
   expect(

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "./i18n.svelte";
   import { onMount } from "svelte";
   import { errorMessage, RequestError, request, type Budget } from "./api";
   import { formatAmount } from "./money";
@@ -293,7 +294,8 @@
               >Current cached totals and recalculated ledger totals</caption
             ><thead
               ><tr
-                ><th>Account</th><th>Cached total</th><th>Recalculated total</th
+                ><th>{t("Account")}</th><th>Cached total</th><th
+                  >Recalculated total</th
                 ><th>Cached cleared / uncleared</th><th
                   >Recalculated cleared / uncleared</th
                 ></tr

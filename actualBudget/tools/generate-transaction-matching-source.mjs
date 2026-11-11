@@ -84,7 +84,9 @@ try{
         // Normalize only those ties, preserving meaningful date/rank ordering.
         if(rows.length&&rows.every(row=>row&&typeof row==='object'&&!Array.isArray(row)&&'sort_order'in row&&'date'in row)){
           const semantic=row=>JSON.stringify(Object.fromEntries(Object.entries(row).filter(([key])=>key!=='id')));
-          return rows.sort((a,b)=>b.date.localeCompare(a.date)||b.sort_order-a.sort_order||semantic(a).localeCompare(semantic(b)));
+          // Equal financial rows still carry their original cross-snapshot ID
+          // mapping. Break the last tie by that mapped ID, not random UUID order.
+          return rows.sort((a,b)=>b.date.localeCompare(a.date)||b.sort_order-a.sort_order||semantic(a).localeCompare(semantic(b))||a.id.localeCompare(b.id));
         }
         return rows;
       }

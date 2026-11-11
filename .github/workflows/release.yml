@@ -140,6 +140,13 @@ jobs:
         run: |
           rustup toolchain install 1.99.1 --profile minimal
           cargo build --locked --manifest-path actualBudget/server/Cargo.toml
+      - name: Build genuine prior server for app-first upgrade acceptance
+        run: |
+          # Provenance: actualBudget/tests/fixtures/android-schema17.json.
+          mkdir "$RUNNER_TEMP/actualbudget-prior"
+          git archive 3747e04fd0d2dce67014550ed30411ad4ac37b75 actualBudget/server | tar -x -C "$RUNNER_TEMP/actualbudget-prior"
+          CARGO_TARGET_DIR="$RUNNER_TEMP/actualbudget-prior-target" cargo build --locked --manifest-path "$RUNNER_TEMP/actualbudget-prior/actualBudget/server/Cargo.toml"
+          printf '%s\n' "ACTUALBUDGET_PRE_UPGRADE_BINARY=$RUNNER_TEMP/actualbudget-prior-target/debug/actualbudget-server" >> "$GITHUB_ENV"
       - name: Test both server transports and run Android lint
         working-directory: actualExpenses
         run: |

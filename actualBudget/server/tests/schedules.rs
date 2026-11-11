@@ -346,20 +346,43 @@ fn genuine_schema18_upgrade_keeps_ledger_history_receipts_and_refreshes_blocked_
     let b = f["metadata"]["id"].as_str().unwrap();
     let a = f["account"]["id"].as_str().unwrap();
     let root = format!("/api/v1/budgets/{b}");
+    let mut current = server
+        .get(&format!("{root}/transactions?account_id={a}&limit=1000"))
+        .json::<Value>()
+        .unwrap();
+    let mut original = f["register"].clone();
+    let old = original["snapshot"].as_str().unwrap().to_owned();
+    let fresh = current["snapshot"].as_str().unwrap().to_owned();
+    assert_eq!(&old[..34], &fresh[..34], "Upgrade retains the cursor epoch");
+    let changes = server
+        .get(&format!("{root}/changes?cursor={old}&limit=1000"))
+        .json::<Value>()
+        .unwrap();
+    assert_eq!(changes["has_more"], false);
+    assert_eq!(changes["next_cursor"], fresh);
+    let events = changes["data"].as_array().unwrap();
     assert_eq!(
-        server
-            .get(&format!("{root}/transactions?account_id={a}&limit=1000"))
-            .json::<Value>()
-            .unwrap(),
-        f["register"]
+        events.len(),
+        1,
+        "Only manual-only preference invalidation: {changes}"
     );
+    assert_eq!(events[0]["entity"], "preferences");
+    let flags = events[0]["data"]["experimental"].as_object().unwrap();
+    assert!(!flags.contains_key("enableBanking"));
+    assert!(!flags.contains_key("akahuBankSync"));
+    current.as_object_mut().unwrap().remove("snapshot");
+    original.as_object_mut().unwrap().remove("snapshot");
     assert_eq!(
-        server
-            .get(&format!("{root}/checkpoint"))
-            .json::<Value>()
-            .unwrap(),
-        f["checkpoint"]
+        current, original,
+        "All financial rows, fields, order and totals survive"
     );
+    let mut checkpoint = server
+        .get(&format!("{root}/checkpoint"))
+        .json::<Value>()
+        .unwrap();
+    assert_eq!(checkpoint["data"]["snapshot"], fresh);
+    checkpoint["data"]["snapshot"] = f["checkpoint"]["data"]["snapshot"].clone();
+    assert_eq!(checkpoint, f["checkpoint"]);
     let mut history = server.client.get(format!("{}{root}/history", server.url));
     for (k, v) in f["owner_headers"].as_object().unwrap() {
         history = history.header(k, v.as_str().unwrap());
@@ -417,7 +440,7 @@ fn genuine_schema18_upgrade_keeps_ledger_history_receipts_and_refreshes_blocked_
         .unwrap();
     assert_eq!(upload.status(), 201, "{}", upload.text().unwrap());
     let stage: Value = upload.json().unwrap();
-    assert_eq!(stage["data"]["report"]["schema_version"], 22);
+    assert_eq!(stage["data"]["report"]["schema_version"], 27);
     let response = target.post(
         &format!(
             "{root}/restores/{}/activate",

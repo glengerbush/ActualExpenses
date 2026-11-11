@@ -82,7 +82,7 @@ try {
   };
   await open();
   await page.getByRole("button", { name: "Create rule", exact: true }).click();
-  await page.getByLabel(/^Value 1/).selectOption(payee);
+  await page.getByLabel(/^Value\s+1/).selectOption(payee);
   await page.getByLabel(/^Set field 1/).selectOption("amount");
   await page
     .getByLabel("Value method 1", { exact: true })
@@ -200,7 +200,7 @@ try {
   await page.reload();
   await open();
   await page.getByRole("button", { name: "Create rule", exact: true }).click();
-  await page.getByLabel(/^Value 1/).selectOption(payee);
+  await page.getByLabel(/^Value\s+1/).selectOption(payee);
   await page.getByLabel(/^Action 1/).selectOption("set-split-amount");
   await page.getByLabel(/^Allocation method 1/).selectOption("formula");
   const splitFormula = page.getByLabel("Formula 1", { exact: true });

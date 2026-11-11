@@ -1,0 +1,9 @@
+{
+  "source": "Actual26.10.0 unchanged custom spreadsheet and deleteCategory",
+  "archive_sha256": "8b54cf9bc377ecd3d608382995efb5c7445c748f849bc971ce70a1610f1ed250",
+  "food": "18c4cef2-d782-4544-a460-7c04c275a581",
+  "replacement": "84afd06e-255f-4246-bd00-89965986f788",
+  "before": -6000,
+  "retired": 0,
+  "target": -6000
+}

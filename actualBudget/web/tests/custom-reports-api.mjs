@@ -251,7 +251,16 @@ try {
     ).result.totalTotals,
     17000,
   );
-  // Retired source category conditions follow the same public replacement mapping as registers.
+  // Pinned source keeps retired category predicates literal; mutation replacements
+  // must not silently retarget a saved report to a different category.
+  const retirement = JSON.parse(
+    await readFile(
+      new URL(
+        "../../tests/fixtures/custom-report-retirement-source-26.10.json",
+        import.meta.url,
+      ),
+    ),
+  );
   const current = await api(`/budgets/${b}/reporting`),
     epochHeaders = {
       "Idempotency-Key": randomUUID(),
@@ -265,15 +274,22 @@ try {
     "DELETE",
   );
   assert.equal(retired.status, 200, JSON.stringify(retired));
-  assert.equal(
-    (
-      await query({
-        ...payment,
-        conditions: [{ field: "category", op: "is", value: food.id }],
-      })
-    ).result.totalDebts,
-    -6000,
-  );
+  assert.equal(food.id, retirement.food);
+  assert.equal(replacement.id, retirement.replacement);
+  for (const [category, expected] of [
+    [food.id, retirement.retired],
+    [replacement.id, retirement.target],
+  ]) {
+    assert.equal(
+      (
+        await query({
+          ...payment,
+          conditions: [{ field: "category", op: "is", value: category }],
+        })
+      ).result.totalDebts,
+      expected,
+    );
+  }
   const report = current.data.documents.find((d) => d.kind === "custom_report"),
     edit = {
       writes: [

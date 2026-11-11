@@ -1,6 +1,6 @@
 # actualBudget
 
-The replacement web/server application uses a static Svelte 5 frontend, Rust/Axum and authoritative SQLite, with no application login. The current runtime creates/selects budgets and accounts, manages ledger transactions, retains display preferences, and captures expenses during temporary disconnection. Other rewrite features follow in later tickets; this is not yet a production cutover. See the [accepted architecture](../docs/adr/0005-server-authoritative-web-architecture.md) and [migration plan](../docs/fork-migration-plan.md).
+The replacement web/server application uses a static Svelte 5 frontend, Rust/Axum and authoritative SQLite, with no application login. It includes tracking/envelope budgets, transactions, rules, schedules, manual imports, reports, preferences and limited offline expense capture. The49 retained rewrite tickets passed [final acceptance](../docs/final-parity-audit.md). Nothing has been deployed by that acceptance; use the [manual Coolify runbook](../docs/coolify-replacement.md) for a separately authorized replacement. See the [architecture](../docs/adr/0005-server-authoritative-web-architecture.md) and [107-story evidence ledger](../docs/parity-ledger.md).
 
 ## Run locally
 

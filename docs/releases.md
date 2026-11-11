@@ -22,7 +22,7 @@ version in `package.json`/`package-lock.json` together. The planner rejects a mi
 There is no version bump in the release-automation change itself.
 
 `release-policy.json` records whether each application has passed production
-acceptance. **actualBudget remains false until final rewrite acceptance.** A version
+acceptance. **actualBudget passed [final rewrite acceptance](final-parity-audit.md).** A version
 bump while false can qualify the image but cannot publish a stable version or move
 `latest`. Changing this gate alone does not create a release. The coordinated
 Android adapter must also be gated if it requires an unavailable replacement server.

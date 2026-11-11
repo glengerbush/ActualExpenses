@@ -63,7 +63,7 @@ try {
     .getByRole("button", { name: "Create schedule", exact: true })
     .click();
   await page.getByLabel("Schedule name", { exact: true }).fill("Monthly rent");
-  await page.getByLabel(/^Value 2/).selectOption(account);
+  await page.getByLabel(/^Value\s+2/).selectOption(account);
   await page.getByLabel(/^Amount value 3/).fill("-12.34");
   await page
     .getByRole("button", { name: "Preview calendar", exact: true })

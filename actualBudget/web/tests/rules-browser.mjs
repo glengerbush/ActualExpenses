@@ -81,7 +81,7 @@ try {
     page.getByRole("heading", { name: "Rules and category learning" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Create rule", exact: true }).click();
-  await page.getByLabel(/^Value 1/).selectOption(shop);
+  await page.getByLabel(/^Value\s+1/).selectOption(shop);
   await page.getByLabel(/^Set value 1/).selectOption(food);
   await page.getByRole("button", { name: "Add action", exact: true }).click();
   await page.getByLabel(/^Action 2/).selectOption("append-notes");

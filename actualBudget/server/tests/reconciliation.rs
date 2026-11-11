@@ -722,7 +722,7 @@ fn split_reconciliation_proofs_filters_restart_and_portable_archive() {
         .body(bytes.to_vec())
         .send()
         .unwrap());
-    assert_eq!(staged["data"]["report"]["schema_version"], 22);
+    assert_eq!(staged["data"]["report"]["schema_version"], 27);
     ok(target.write(
         "POST",
         &format!(
@@ -808,7 +808,7 @@ fn genuine_schema11_upgrade_preserves_split_receipts_settings_and_retained_sourc
     assert!(
         events.iter().all(|r| matches!(
             r["entity"].as_str(),
-            Some("payees" | "rules" | "rule_settings")
+            Some("payees" | "rules" | "rule_settings" | "preferences")
         )),
         "{changes}"
     );
@@ -818,6 +818,15 @@ fn genuine_schema11_upgrade_preserves_split_receipts_settings_and_retained_sourc
             .filter(|r| r["entity"] == "payees")
             .all(|r| r["data"]["learn_categories"].is_boolean())
     );
+    // Manual-only migration invalidates cached preferences, never ledger fields.
+    let preferences: Vec<_> = events
+        .iter()
+        .filter(|r| r["entity"] == "preferences")
+        .collect();
+    assert_eq!(preferences.len(), 1);
+    let flags = preferences[0]["data"]["experimental"].as_object().unwrap();
+    assert!(!flags.contains_key("enableBanking"));
+    assert!(!flags.contains_key("akahuBankSync"));
     current.as_object_mut().unwrap().remove("snapshot");
     original.as_object_mut().unwrap().remove("snapshot");
     assert_eq!(
@@ -880,7 +889,7 @@ fn genuine_schema11_upgrade_preserves_split_receipts_settings_and_retained_sourc
         .body(include_bytes!("../../tests/fixtures/reconciliation-schema11.zip").to_vec())
         .send()
         .unwrap());
-    assert_eq!(staged["data"]["report"]["schema_version"], 22);
+    assert_eq!(staged["data"]["report"]["schema_version"], 27);
     ok(target.write(
         "POST",
         &format!(

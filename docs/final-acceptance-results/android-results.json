@@ -1,0 +1,44 @@
+[
+  {
+    "suite": "org.actualexpenses.core.StartupSyncTest",
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "org.actualexpenses.core.ExpenseAcceptanceTest",
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "org.actualexpenses.core.ExpenseDependencyTest",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "org.actualexpenses.core.protocol.ActualClientIntegrationTest",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "org.actualexpenses.core.ExpenseServiceIntegrationTest",
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "org.actualexpenses.core.NativeApiIntegrationTest",
+    "tests": 52,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+]

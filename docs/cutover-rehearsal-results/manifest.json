@@ -1,0 +1,26 @@
+{
+  "imported-browser.png": {
+    "bytes": 178024,
+    "sha256": "566cae5c1c1b306ddc6041d7c3035080676d02d2dc7af90ae21fab162c8642bb"
+  },
+  "native-post-cutover.zip": {
+    "bytes": 21976,
+    "sha256": "53a6b4238d90f443c8016b4b4ce7a13a538d1ed78f00d3814bedbf8262fc92a0"
+  },
+  "reconciled-source.zip": {
+    "bytes": 16913,
+    "sha256": "29c86908e58c73711f68c8d904d40b6859355a33323d85cf12e7d7f03268eb4b"
+  },
+  "result.json": {
+    "bytes": 8051,
+    "sha256": "ac1e61479a7a6b3559c0ed4c77c2983a8b43d607cb7b064e1e1fdf7553a90781"
+  },
+  "signature.json": {
+    "bytes": 823,
+    "sha256": "284f8d9d1812fe22f70d80467728dcc97641a215be9564ce0f44bfa05c64af8e"
+  },
+  "source-export.zip": {
+    "bytes": 14712,
+    "sha256": "a8da03356768c40a3eedba3decef42a36bdfbd6a9ddd8ea40ea20e3df99e0077"
+  }
+}

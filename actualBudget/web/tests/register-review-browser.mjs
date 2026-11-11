@@ -242,17 +242,17 @@ try {
       .getByRole("button", { name: "Add condition", exact: true })
       .click();
     await page.getByLabel(/^Operator 1/).selectOption("matches");
-    await page.getByLabel(/^Value 1/).fill("^(a+)+$");
+    await page.getByLabel(/^Value\s+1/).fill("^(a+)+$");
     await page
       .getByRole("button", { name: "Apply filters and columns" })
       .click();
     await expect(page.getByRole("alert")).toContainText("work limit reached");
-    await expect(page.getByLabel(/^Value 1/)).toHaveValue("^(a+)+$");
+    await expect(page.getByLabel(/^Value\s+1/)).toHaveValue("^(a+)+$");
     await expect(page.getByTestId("filtered-totals")).toContainText(
       "1 matching transaction",
     );
     await expect(page.locator(".register-table")).toContainText("Safe");
-    await page.getByLabel(/^Value 1/).fill("^safe$");
+    await page.getByLabel(/^Value\s+1/).fill("^safe$");
     await page
       .getByRole("button", { name: "Apply filters and columns" })
       .click();
@@ -355,11 +355,11 @@ try {
       .getByRole("combobox", { name: /^Saved filter/ })
       .selectOption({ label: "Identity" });
     await expect(page.getByLabel(/^Field 1/)).toHaveValue("account");
-    await expect(page.getByLabel(/^Value 1/)).toHaveValue(
+    await expect(page.getByLabel(/^Value\s+1/)).toHaveValue(
       "0165d0a7-99e2-4719-a102-c007b7a8daaa",
     );
     await expect(
-      page.getByLabel(/^Value 1/).locator("option:checked"),
+      page.getByLabel(/^Value\s+1/).locator("option:checked"),
     ).toHaveText("Spending");
     const groupA = randomUUID(),
       groupB = randomUUID(),
@@ -390,7 +390,7 @@ try {
       .getByRole("combobox", { name: /^Saved filter/ })
       .selectOption({ label: "Identity" });
     await page.getByLabel(/^Field 1/).selectOption("category");
-    const value = page.getByLabel(/^Value 1/);
+    const value = page.getByLabel(/^Value\s+1/);
     await expect(value.locator(`option[value="${catA}"]`)).toHaveText(
       "House / Food",
     );

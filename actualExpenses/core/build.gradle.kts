@@ -7,4 +7,11 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
     testImplementation("org.xerial:sqlite-jdbc:3.49.1.0")
 }
-tasks.test { useJUnitPlatform(); testLogging { events("passed", "skipped", "failed") } }
+tasks.test {
+    useJUnitPlatform()
+    // Fixture authoring is opt-in; ordinary acceptance must execute every selected test.
+    if (!providers.environmentVariable("ACTUAL_UPGRADE_FIXTURE_OUTPUT").isPresent) {
+        exclude("**/LegacyUpgradeFixtureGeneratorTest*")
+    }
+    testLogging { events("passed", "skipped", "failed") }
+}

@@ -1,8 +1,9 @@
-# Manual Coolify replacement — rehearsal pending
+# Manual Coolify replacement
 
 This operator checklist preserves the existing pull/restart workflow. It is not
-an authorization to switch production. Tickets51/52 and the copied-storage
-rehearsal in53 must pass first. No live configuration was inspected.
+an authorization to switch production. The copied-storage rehearsal below and
+[final consolidated acceptance52](final-parity-audit.md) pass. No live configuration was inspected
+and no replacement image has been published to GHCR by this work.
 
 ## Existing setup to verify
 
@@ -105,13 +106,52 @@ old image against a newer native database and assume it can downgrade it.
    until any later forward migration is complete; do not merge two independently
    modified installations by replacing one database file.
 
-## Rehearsal evidence still required
+## Completed disposable rehearsal — 2026-11-11
 
-- Exact copied-fixture volume/mount/port and permission checks.
-- Fresh build, signed APK/checksum verification and immutable-image identity.
-- Old export → new import → restart with independent financial comparison.
-- New post-switch addition/edit/deletion retained across rollback, with a verified
-  reconciliation into the restored old installation.
-- Matching old image/data restoration and a final operator handoff.
+`node actualBudget/tools/rehearse-coolify.mjs LOCAL_IMAGE NEW_OUTPUT_DIRECTORY`
+implements the recorded sequence using newly generated volume/container names.
+It refuses an existing output directory, uses only loopback port5006 and never
+opens an existing named data volume. Run with an unused local5006 port. The
+production volume's literal name is preserved for the operator; rehearsal names
+include `actualbudget-data` plus a unique prefix/suffix to avoid touching it.
 
-These are outstanding acceptance gates, not completed deployment claims.
+The fresh image built from runtime21d2bd9 has verified registry manifest digest
+`sha256:6948b8eb5e8bc2f7410f0f6e96b650004eec14e080671132748b509e085152af`,
+149030509 Docker-reported bytes and runtime user10001:10001. A temporary local
+registry served the image; Cosign3.1.4 signed and verified that digest plus the
+commit/version annotations. Wrong-commit verification failed; promotion and
+pull retained the same digest. The pulled image passed persistence/replay checks.
+Temporary signing keys, registry and its tags were removed. This verifies a local
+key signature, not GitHub OIDC issuance or remote GHCR publication.
+
+The cutover fixture used pinned Actual26.10.0 and a genuine export:100000 opening
+balance,−1000 and−2000 cleared purchases. After stopping the old image, complete
+volume copies had identical tar hashes. Only the replacement copy's ownership was
+changed to10001:10001. It mounted at `/data` and served `5006:5006`; source files
+alone correctly produced no native budgets until explicit import/activation.
+All three source rows matched after import and restart. The web app showed970.00
+on a plain-HTTP, non-secure hostname.
+
+Post-switch changes edited−1000 to−1500, deleted−2000 and added−345. The native
+archive and stopped volume were preserved before restoring the old image with
+its matching old-data copy. That restored installation first matched the original
+three rows exactly. Supported Actual operations then reconciled all three changes;
+an independent fresh source client confirmed exact IDs, dates, amounts, notes and
+cleared flags, three rows and98155 total. The pre-cutover backup and retained
+native copy stayed hash-identical throughout. All owned containers/volumes were
+removed after success; fixture exports and results remain archived.
+
+[Evidence manifest](cutover-rehearsal-results/manifest.json) includes both source
+exports, preserved native archive, browser capture, financial result and signature
+witness. These are disposable fixtures, not a backup of the user's installation.
+Broader complete-feature and Android lost-ack/reinstall/queued-work coverage comes
+from [50](complete-migration-validation.md) and [20](android-upgrade-validation.md).
+The original release APK's signer/checksum verification remains recorded in
+[48](release-validation.md); current Android qualification uses the test signer.
+Production APK signing/publication still uses the configured GitHub secrets.
+
+Before the real cutover, the operator must still verify live settings, obtain a
+published accepted image/APK as applicable, take the final write pause/exports/
+stopped-volume backup, and reconcile each actual device. The lab's digest is not
+a claim that a GHCR release exists. The historical hostname placeholder remains
+intentional; no dashboard URL or SSH access is required from this session.

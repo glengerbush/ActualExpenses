@@ -1,0 +1,24 @@
+{
+  "source": "21d2bd9",
+  "digest": "sha256:6948b8eb5e8bc2f7410f0f6e96b650004eec14e080671132748b509e085152af",
+  "verification": [
+    {
+      "critical": {
+        "identity": {
+          "docker-reference": "127.0.0.1:32884/actualbudget@sha256:6948b8eb5e8bc2f7410f0f6e96b650004eec14e080671132748b509e085152af"
+        },
+        "image": {
+          "docker-manifest-digest": "sha256:6948b8eb5e8bc2f7410f0f6e96b650004eec14e080671132748b509e085152af"
+        },
+        "type": "https://sigstore.dev/cosign/sign/v1"
+      },
+      "optional": {
+        "git_sha": "21d2bd9",
+        "version": "0.1.0"
+      }
+    }
+  ],
+  "wrong_commit_exit": 1,
+  "promoted_digest": "sha256:6948b8eb5e8bc2f7410f0f6e96b650004eec14e080671132748b509e085152af",
+  "method": "ephemeral local key; no remote OIDC or transparency-log claim"
+}

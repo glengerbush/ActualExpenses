@@ -81,7 +81,7 @@ try {
     .getByRole("button", { name: "Add condition", exact: true })
     .click();
   await page.getByLabel(/^Field 1/).selectOption("payee");
-  const value = page.getByLabel(/^Value 1/);
+  const value = page.getByLabel(/^Value\s+1/);
   await expect(
     value.locator(`option[value="${transferPayee.id}"]`),
   ).toHaveCount(1);

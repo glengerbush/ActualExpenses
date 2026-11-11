@@ -120,9 +120,11 @@ def browser_commands(project):
     """Read the existing simple command list; never reinterpret arbitrary shell code."""
     script = json.loads((project / "web/package.json").read_text())["scripts"]["test:browser"]
     commands = [shlex.split(part) for part in script.split(" && ")]
+    allowed_flags = {"--check", "--extended", "--prefix", "--metadata",
+                     "--history", "--budget-metadata", "--types"}
     for command in commands:
         if (len(command) not in (2, 3) or command[0] not in ("node", "python3")
-                or (len(command) == 3 and command[2] != "--check")
+                or (len(command) == 3 and command[2] not in allowed_flags)
                 or not (project / "web" / command[1]).resolve().is_relative_to(project.resolve())
                 or not (project / "web" / command[1]).is_file()):
             raise ValueError("Keep-going requires explicit node/python3 script commands; "

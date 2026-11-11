@@ -1,0 +1,284 @@
+[
+  {
+    "command": "cargo fmt --manifest-path actualBudget/server/Cargo.toml -- --check",
+    "exit_code": 0,
+    "seconds": 1.6,
+    "log": "01.log"
+  },
+  {
+    "command": "cargo clippy --locked --manifest-path actualBudget/server/Cargo.toml --all-targets -- -D warnings",
+    "exit_code": 0,
+    "seconds": 4.58,
+    "log": "02.log"
+  },
+  {
+    "command": "cargo test --locked --manifest-path actualBudget/server/Cargo.toml",
+    "exit_code": 101,
+    "seconds": 44.03,
+    "log": "03.log"
+  },
+  {
+    "command": "npm --prefix actualBudget/web run format:check",
+    "exit_code": 0,
+    "seconds": 27.53,
+    "log": "04.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-opening-balances.mjs --check",
+    "exit_code": 0,
+    "seconds": 1.17,
+    "log": "05.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-register.mjs --check",
+    "exit_code": 0,
+    "seconds": 0.81,
+    "log": "06.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-calculator.mjs --check",
+    "exit_code": 0,
+    "seconds": 0.63,
+    "log": "07.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-import-fixture.mjs --check",
+    "exit_code": 0,
+    "seconds": 1.16,
+    "log": "08.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-concurrency.mjs --check",
+    "exit_code": 0,
+    "seconds": 14.71,
+    "log": "09.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-account-lifecycle.mjs --check",
+    "exit_code": 0,
+    "seconds": 2.57,
+    "log": "10.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-transaction-import-source.mjs --check",
+    "exit_code": 0,
+    "seconds": 4.03,
+    "log": "11.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-transaction-parser-source.mjs --check",
+    "exit_code": 0,
+    "seconds": 1.61,
+    "log": "12.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-transaction-normalization-source.mjs --check",
+    "exit_code": 0,
+    "seconds": 2.23,
+    "log": "13.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-transaction-matching-source.mjs --check",
+    "exit_code": 0,
+    "seconds": 7.06,
+    "log": "14.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-transaction-import-rules-source.mjs --check",
+    "exit_code": 0,
+    "seconds": 2.5,
+    "log": "15.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-transaction-import-edges.mjs --check",
+    "exit_code": 0,
+    "seconds": 2.67,
+    "log": "16.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-transaction-merge-source.mjs --check",
+    "exit_code": 0,
+    "seconds": 4.48,
+    "log": "17.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-transaction-export-source.mjs --check",
+    "exit_code": 0,
+    "seconds": 0.64,
+    "log": "18.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-transaction-format-flows.mjs --check",
+    "exit_code": 0,
+    "seconds": 2.05,
+    "log": "19.log"
+  },
+  {
+    "command": "npm --prefix actualBudget/web run test:manual-retirement-api",
+    "exit_code": 0,
+    "seconds": 2.15,
+    "log": "20.log"
+  },
+  {
+    "command": "npm --prefix actualBudget/web run test:migration-source",
+    "exit_code": 0,
+    "seconds": 2.31,
+    "log": "21.log"
+  },
+  {
+    "command": "node actualBudget/tools/check-complete-migration-http.mjs",
+    "exit_code": 0,
+    "seconds": 171.23,
+    "log": "22.log"
+  },
+  {
+    "command": "npm --prefix actualBudget/web run test:ynab-source",
+    "exit_code": 0,
+    "seconds": 15.45,
+    "log": "23.log"
+  },
+  {
+    "command": "npm --prefix actualBudget/web run test:public-api-source",
+    "exit_code": 0,
+    "seconds": 10.53,
+    "log": "24.log"
+  },
+  {
+    "command": "npm --prefix actualBudget/web run test:public-api-upgrade",
+    "exit_code": 0,
+    "seconds": 1.62,
+    "log": "25.log"
+  },
+  {
+    "command": "npm --prefix actualBudget/web run test:rule-context-source",
+    "exit_code": 0,
+    "seconds": 0.99,
+    "log": "26.log"
+  },
+  {
+    "command": "npm --prefix actualBudget/web run test:rule-context-limits",
+    "exit_code": 0,
+    "seconds": 98.51,
+    "log": "27.log"
+  },
+  {
+    "command": "npm --prefix actualBudget/web run test:rule-template-limits",
+    "exit_code": 0,
+    "seconds": 13.11,
+    "log": "28.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-rule-expressions-source.mjs --execution --check",
+    "exit_code": 0,
+    "seconds": 0.78,
+    "log": "29.log"
+  },
+  {
+    "command": "node actualBudget/tools/check-rule-expressions-http.mjs --execution",
+    "exit_code": 0,
+    "seconds": 6.61,
+    "log": "30.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-rule-expressions-source.mjs --nonfinite --check",
+    "exit_code": 0,
+    "seconds": 0.64,
+    "log": "31.log"
+  },
+  {
+    "command": "node actualBudget/tools/generate-rule-expression-commits-source.mjs --nonfinite --check",
+    "exit_code": 0,
+    "seconds": 0.95,
+    "log": "32.log"
+  },
+  {
+    "command": "node actualBudget/tools/check-rule-expressions-http.mjs --nonfinite",
+    "exit_code": 0,
+    "seconds": 5.31,
+    "log": "33.log"
+  },
+  {
+    "command": "node actualBudget/tools/check-rule-expression-commits-http.mjs --nonfinite",
+    "exit_code": 0,
+    "seconds": 13.81,
+    "log": "34.log"
+  },
+  {
+    "command": "node actualBudget/tools/check-rule-nonfinite-workflows-http.mjs",
+    "exit_code": 0,
+    "seconds": 4.45,
+    "log": "35.log"
+  },
+  {
+    "command": "npm --prefix actualBudget/web run test:monte-carlo-source",
+    "exit_code": 0,
+    "seconds": 18.75,
+    "log": "36.log"
+  },
+  {
+    "command": "node actualBudget/tools/check-monte-carlo-http.mjs --all",
+    "exit_code": 0,
+    "seconds": 64.67,
+    "log": "37.log"
+  },
+  {
+    "command": "node actualBudget/tools/check-monte-carlo-http.mjs --strategies",
+    "exit_code": 0,
+    "seconds": 27.55,
+    "log": "38.log"
+  },
+  {
+    "command": "node actualBudget/tools/check-monte-carlo-workflows-http.mjs --limits",
+    "exit_code": 0,
+    "seconds": 21.15,
+    "log": "39.log"
+  },
+  {
+    "command": "node actualBudget/tools/check-monte-carlo-plans-http.mjs",
+    "exit_code": 0,
+    "seconds": 37.99,
+    "log": "40.log"
+  },
+  {
+    "command": "node actualBudget/tools/check-monte-carlo-plans-http.mjs --strategies",
+    "exit_code": 0,
+    "seconds": 19.36,
+    "log": "41.log"
+  },
+  {
+    "command": "node actualBudget/tools/check-formula-http.mjs --limits",
+    "exit_code": 0,
+    "seconds": 7.37,
+    "log": "42.log"
+  },
+  {
+    "command": "python3 actualBudget/tools/generate-v5-receipts.py --check",
+    "exit_code": 0,
+    "seconds": 0.87,
+    "log": "43.log"
+  },
+  {
+    "command": "uv run actualBudget/tools/contract-smoke.py",
+    "exit_code": 0,
+    "seconds": 9.34,
+    "log": "44.log"
+  },
+  {
+    "command": "uv run actualBudget/tools/check-monte-carlo-contract.py",
+    "exit_code": 0,
+    "seconds": 3.46,
+    "log": "45.log"
+  },
+  {
+    "command": "python3 -m unittest discover -s tools -p test_release.py -v",
+    "exit_code": 0,
+    "seconds": 18.95,
+    "log": "46.log"
+  },
+  {
+    "command": "python3 -m unittest discover -s actualExpenses/tools -p test_release.py -v",
+    "exit_code": 0,
+    "seconds": 6.31,
+    "log": "47.log"
+  }
+]

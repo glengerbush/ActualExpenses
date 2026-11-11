@@ -1,0 +1,258 @@
+{
+  "image": "actualbudget:final-21d2bd9",
+  "oldImage": "actualbudget/actual-server@sha256:24645e971da6bb1a1f953d6859e307a0b29be1e8b4130a35b3220c209b5b860c",
+  "port": "127.0.0.1:5006:5006",
+  "mount": "/data",
+  "checks": [
+    "matching stopped-volume copies",
+    "UID10001 write access",
+    "same port and /data mount",
+    "explicit staged import",
+    "all fixture rows and exact balances",
+    "restart persistence",
+    "plain-HTTP browser",
+    "preserved native archive and volume",
+    "matching old image/data rollback",
+    "addition/edit/deletion reconciliation",
+    "independent old-client readback",
+    "unchanged recovery copies"
+  ],
+  "nativeImageId": "sha256:6948b8eb5e8bc2f7410f0f6e96b650004eec14e080671132748b509e085152af",
+  "sourceExportSha256": "a8da03356768c40a3eedba3decef42a36bdfbd6a9ddd8ea40ea20e3df99e0077",
+  "before": [
+    {
+      "id": "160d9de8-8e1e-48da-ac9e-8dbaba6a1481",
+      "account": "29c4a5e3-a1b1-42ba-beba-34c95f7ce16a",
+      "date": "2026-11-02",
+      "amount": -2000,
+      "notes": "Delete after cutover",
+      "cleared": true
+    },
+    {
+      "id": "464882b5-3f26-4c93-9d8e-81d025e82958",
+      "account": "29c4a5e3-a1b1-42ba-beba-34c95f7ce16a",
+      "date": "2026-11-01",
+      "amount": -1000,
+      "notes": "Edit after cutover",
+      "cleared": true
+    },
+    {
+      "id": "bb08199c-3f38-465e-941b-43ed6b41d7ad",
+      "account": "29c4a5e3-a1b1-42ba-beba-34c95f7ce16a",
+      "date": "2026-11-11",
+      "amount": 100000,
+      "notes": "",
+      "cleared": true
+    }
+  ],
+  "stoppedVolumeSha256": "d8904943f06b91692f198c430092f0bf3654c019ca9029a95bbc79fb667976da",
+  "conversionReport": {
+    "accounts": [
+      {
+        "closed": false,
+        "group_id": null,
+        "id": "29c4a5e3-a1b1-42ba-beba-34c95f7ce16a",
+        "last_reconciled": null,
+        "name": "Spending",
+        "notes": "",
+        "off_budget": false,
+        "sort_order": 0,
+        "tombstone": false
+      }
+    ],
+    "archive_sha256": "a8da03356768c40a3eedba3decef42a36bdfbd6a9ddd8ea40ea20e3df99e0077",
+    "balances": [
+      {
+        "account_id": "29c4a5e3-a1b1-42ba-beba-34c95f7ce16a",
+        "cleared": 97000,
+        "total": 97000,
+        "uncleared": 0
+      }
+    ],
+    "checks": {
+      "converted_relationships": true,
+      "financial_totals": true,
+      "identifiers": true,
+      "sqlite_integrity": true
+    },
+    "counts": {
+      "__meta__": 1,
+      "__migrations__": 60,
+      "account_groups": 0,
+      "accounts": 1,
+      "banks": 0,
+      "categories": 2,
+      "category_groups": 1,
+      "category_mapping": 7,
+      "cleanup_groups": 0,
+      "created_budgets": 0,
+      "custom_reports": 0,
+      "dashboard": 12,
+      "dashboard_pages": 1,
+      "kvcache": 0,
+      "kvcache_key": 0,
+      "messages_clock": 1,
+      "messages_crdt": 32,
+      "messages_pending": 0,
+      "notes": 0,
+      "payee_locations": 0,
+      "payee_mapping": 2,
+      "payees": 2,
+      "pending_transactions": 0,
+      "preferences": 0,
+      "reflect_budgets": 0,
+      "rules": 0,
+      "schedules": 0,
+      "schedules_json_paths": 0,
+      "schedules_next_date": 0,
+      "sqlite_stat1": 4,
+      "sqlite_stat4": 31,
+      "tags": 0,
+      "transaction_filters": 0,
+      "transactions": 3,
+      "zero_budget_months": 0,
+      "zero_budgets": 0
+    },
+    "extra_archive_entries": [],
+    "preferences": {
+      "device": {
+        "language": "",
+        "preferred_dark_theme": "dark",
+        "theme": "system"
+      },
+      "shared": {
+        "currency_code": "",
+        "currency_space": false,
+        "currency_symbol_position": "before",
+        "date_format": "MM/dd/yyyy",
+        "experimental": {
+          "actionTemplating": false,
+          "balanceForecastReport": false,
+          "budgetAnalysisReport": false,
+          "currency": false,
+          "customThemes": false,
+          "formulaMode": false,
+          "goalTemplatesEnabled": false,
+          "goalTemplatesUIEnabled": false,
+          "mobileCalculator": false,
+          "monteCarloReport": false,
+          "newSidebarUI": false,
+          "sankeyReport": false
+        },
+        "first_day_of_week": 0,
+        "hide_fraction": false,
+        "number_format": "comma-dot"
+      },
+      "unmapped": {
+        "global": {},
+        "synced": {}
+      },
+      "warnings": []
+    },
+    "requirements": [
+      {
+        "blocking": false,
+        "count": 1,
+        "feature": "__meta__",
+        "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+      },
+      {
+        "blocking": false,
+        "count": 60,
+        "feature": "__migrations__",
+        "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+      },
+      {
+        "blocking": false,
+        "count": 7,
+        "feature": "category_mapping",
+        "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+      },
+      {
+        "blocking": false,
+        "count": 1,
+        "feature": "messages_clock",
+        "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+      },
+      {
+        "blocking": false,
+        "count": 32,
+        "feature": "messages_crdt",
+        "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+      },
+      {
+        "blocking": false,
+        "count": 2,
+        "feature": "payee_mapping",
+        "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+      },
+      {
+        "blocking": false,
+        "count": 4,
+        "feature": "sqlite_stat1",
+        "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+      },
+      {
+        "blocking": false,
+        "count": 31,
+        "feature": "sqlite_stat4",
+        "reason": "Original source records retained; feature metadata is not activated by this ledger converter"
+      },
+      {
+        "blocking": false,
+        "count": 1,
+        "feature": "transfer_payees",
+        "reason": "Transfer payee metadata preserved; excluded from ordinary payee selection"
+      },
+      {
+        "blocking": false,
+        "count": 5,
+        "feature": "unreferenced_category_alias",
+        "reason": "Obsolete source alias retained; converted transactions must still resolve to an existing category"
+      }
+    ],
+    "source": {
+      "budgetName": "Empty qualification",
+      "cloudFileId": "220bcdcb-a15c-4c67-a8ab-a4752dcb2b7a",
+      "encryptKeyId": null,
+      "groupId": "fc4e5333-4196-4b31-b74d-8be92e8b3027",
+      "id": "Empty-qualification-2462ac8",
+      "lastScheduleRun": "2026-11-11",
+      "lastSyncedTimestamp": "2026-11-11T07:10:00.865Z-000D-ada440626b4ab06b",
+      "lastUploaded": "2026-11-11",
+      "resetClock": true,
+      "userId": "b6a94b93-d2f8-46fe-821c-803d7f02f177"
+    },
+    "source_field_clock_count": 32,
+    "source_preferences": []
+  },
+  "after": [
+    {
+      "id": "2763a004-6e59-4ff0-b2e2-0aab98b895ff",
+      "account": "29c4a5e3-a1b1-42ba-beba-34c95f7ce16a",
+      "date": "2026-11-03",
+      "amount": -345,
+      "notes": "Added after cutover",
+      "cleared": true
+    },
+    {
+      "id": "464882b5-3f26-4c93-9d8e-81d025e82958",
+      "account": "29c4a5e3-a1b1-42ba-beba-34c95f7ce16a",
+      "date": "2026-11-01",
+      "amount": -1500,
+      "notes": "Edited after cutover",
+      "cleared": true
+    },
+    {
+      "id": "bb08199c-3f38-465e-941b-43ed6b41d7ad",
+      "account": "29c4a5e3-a1b1-42ba-beba-34c95f7ce16a",
+      "date": "2026-11-11",
+      "amount": 100000,
+      "notes": "",
+      "cleared": true
+    }
+  ],
+  "nativeArchiveSha256": "53a6b4238d90f443c8016b4b4ce7a13a538d1ed78f00d3814bedbf8262fc92a0",
+  "retainedNativeVolumeSha256": "b27fece421dca3ced46d40fbae888be6d5d89d7a71d060c7b6dcbdd481853a90",
+  "reconciledExportSha256": "29c86908e58c73711f68c8d904d40b6859355a33323d85cf12e7d7f03268eb4b"
+}

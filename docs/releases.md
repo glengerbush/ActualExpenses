@@ -112,7 +112,7 @@ registry credential in Coolify. **Pull latest and restart** then adopts the newe
 accepted stable image. Candidate tags do not affect that action. Use an immutable
 version/digest and its matching data backup for rollback; schema rollback and
 post-cutover writes require the [migration runbook](coolify-replacement.md),
-whose copied-storage rehearsal remains pending.
+which records the completed disposable rehearsal and the remaining live cutover steps.
 
 ## Reproduce automation checks
 

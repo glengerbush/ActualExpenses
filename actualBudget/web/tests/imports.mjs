@@ -2,6 +2,7 @@ import { chromium, expect } from "@playwright/test";
 import { readFile, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { startServer } from "./server.mjs";
 const server = await startServer(),
   api = server.url.replace("actualbudget.test", "127.0.0.1");
@@ -211,9 +212,31 @@ try {
   await page.unroute("**/api/v1/imports/actual");
   await page.getByRole("button", { name: "All budgets", exact: true }).click();
   await open(page);
-  await page
-    .getByLabel("Actual ZIP export")
-    .setInputFiles(`${fixtures}/rules-template-requirement-26.10.0.zip`);
+  // Template rules now convert. Unknown extra data must still block activation
+  // and remain available in the exact original download.
+  const unknownArchive = execFileSync(
+    "python3",
+    [
+      "-c",
+      `
+import sys,io,zipfile
+data=io.BytesIO(sys.stdin.buffer.read())
+with zipfile.ZipFile(data,'a') as archive:
+ archive.writestr('future-feature.json','{"unknown_feature":true}')
+sys.stdout.buffer.write(data.getvalue())
+`,
+    ],
+    {
+      input: await readFile(
+        `${fixtures}/rules-template-requirement-26.10.0.zip`,
+      ),
+    },
+  );
+  await page.getByLabel("Actual ZIP export").setInputFiles({
+    name: "unknown-feature.zip",
+    mimeType: "application/zip",
+    buffer: unknownArchive,
+  });
   await page
     .getByRole("button", { name: "Review archive", exact: true })
     .click();
@@ -228,7 +251,7 @@ try {
     .getAttribute("href");
   expect(
     Buffer.from(await (await fetch(`${api}${original}`)).arrayBuffer()).equals(
-      await readFile(`${fixtures}/rules-template-requirement-26.10.0.zip`),
+      unknownArchive,
     ),
   ).toBe(true);
   expect(byId(await read("/budgets"))).toEqual(activatedBudgets);

@@ -261,6 +261,8 @@ jobs:
           node actualBudget/tools/generate-transaction-export-source.mjs --check
           node actualBudget/tools/generate-transaction-format-flows.mjs --check
           npm --prefix actualBudget/web run test:manual-retirement-api
+          npm --prefix actualBudget/web run test:migration-source
+          node actualBudget/tools/check-complete-migration-http.mjs
           npm --prefix actualBudget/web run test:ynab-source
           npm --prefix actualBudget/web run test:public-api-source
           npm --prefix actualBudget/web run test:public-api-upgrade

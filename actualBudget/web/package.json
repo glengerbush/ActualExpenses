@@ -29,7 +29,9 @@
     "test:rule-expression-workflows-api": "node ../tools/check-transaction-import-rules-http.mjs --expressions && node tests/forecast-api.mjs --expressions",
     "test:monte-carlo-source": "node ../tools/generate-monte-carlo-source.mjs --check && node ../tools/generate-monte-carlo-plans-source.mjs --check && node ../tools/generate-monte-carlo-runtime.mjs --check && python3 ../tools/generate-monte-carlo-contract.py --check && node ../tools/generate-monte-carlo-runtime.mjs --web --check && node ../tools/generate-monte-carlo-source.mjs --strategies --check && node ../tools/generate-monte-carlo-plans-source.mjs --strategies --check",
     "test:monte-carlo-api": "node ../tools/check-monte-carlo-http.mjs --all && node ../tools/check-monte-carlo-workflows-http.mjs --limits && node ../tools/check-monte-carlo-plans-http.mjs && uv run ../tools/check-monte-carlo-contract.py && node ../tools/check-monte-carlo-http.mjs --strategies && node ../tools/check-monte-carlo-plans-http.mjs --strategies",
-    "test:monte-carlo-browser": "node tests/monte-carlo-browser.mjs && node tests/monte-carlo-strategies-browser.mjs && node tests/monte-carlo-inspection-browser.mjs"
+    "test:monte-carlo-browser": "node tests/monte-carlo-browser.mjs && node tests/monte-carlo-strategies-browser.mjs && node tests/monte-carlo-inspection-browser.mjs",
+    "test:migration-source": "node ../tools/generate-complete-migration-source.mjs --check",
+    "test:migration-api": "node ../tools/check-complete-migration-http.mjs && node ../tools/check-manual-source-http.mjs"
   },
   "dependencies": {
     "mdast-util-from-markdown": "2.1.0",

@@ -239,23 +239,20 @@ fn upload(server: &Server, key: &str, bytes: Vec<u8>) -> Response {
         .unwrap()
 }
 #[test]
-fn template_rule_is_retained_reported_and_cannot_activate() {
+fn template_rule_is_retained_and_activates_with_expression_support() {
     let server = Server::start();
     let bytes =
         include_bytes!("../../tests/fixtures/rules-template-requirement-26.10.0.zip").to_vec();
     let response = upload(&server, "rule", bytes.clone());
     assert_eq!(response.status(), 201);
     let stage: Value = response.json().unwrap();
-    assert_eq!(stage["data"]["status"], "blocked");
+    assert_eq!(stage["data"]["status"], "ready");
     assert!(
-        stage["data"]["report"]["requirements"]
+        !stage["data"]["report"]["requirements"]
             .as_array()
             .unwrap()
             .iter()
-            .any(|r| r["feature"] == "rules"
-                && r["blocking"] == true
-                && r["count"] == 1
-                && r["ticket"] == 42)
+            .any(|r| r["blocking"] == true)
     );
     let id = stage["data"]["id"].as_str().unwrap();
     let response = server.post(
@@ -263,11 +260,19 @@ fn template_rule_is_retained_reported_and_cannot_activate() {
         "activate",
         json!({}),
     );
-    assert_eq!(response.status(), 409);
-    assert_eq!(
-        response.json::<Value>().unwrap()["error"]["code"],
-        "import_requires_conversion"
-    );
+    assert_eq!(response.status(), 201);
+    let budget = stage["data"]["budget_id"].as_str().unwrap();
+    let rules = server
+        .get(&format!("/api/v1/budgets/{budget}/rules"))
+        .json::<Value>()
+        .unwrap();
+    let rule = rules["data"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["id"] == "19190000-0000-4000-8000-000000009942")
+        .unwrap();
+    assert_eq!(rule["actions"][0]["options"]["template"], "{{payee_name}}");
     let server = server.restart();
     assert_eq!(
         server
@@ -278,8 +283,11 @@ fn template_rule_is_retained_reported_and_cannot_activate() {
         bytes
     );
     assert_eq!(
-        server.get("/api/v1/budgets").json::<Value>().unwrap()["data"],
-        json!([])
+        server.get("/api/v1/budgets").json::<Value>().unwrap()["data"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
     );
     assert_eq!(
         upload(&server, "different-upload-key", bytes)

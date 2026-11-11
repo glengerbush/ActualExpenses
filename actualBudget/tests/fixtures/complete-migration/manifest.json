@@ -1,0 +1,257 @@
+{
+  "source_version": "26.10.0",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "cases": [
+    {
+      "name": "empty",
+      "archive_sha256": "894f254a8423554b31a20066ed5035d474f2c9a4ebe049eb231e9d33fbbcb468",
+      "source_counts": {
+        "__meta__": 1,
+        "__migrations__": 60,
+        "account_groups": 0,
+        "accounts": 0,
+        "banks": 0,
+        "categories": 2,
+        "category_groups": 1,
+        "category_mapping": 7,
+        "cleanup_groups": 0,
+        "created_budgets": 0,
+        "custom_reports": 0,
+        "dashboard": 12,
+        "dashboard_pages": 1,
+        "kvcache": 0,
+        "kvcache_key": 0,
+        "messages_clock": 1,
+        "messages_crdt": 0,
+        "messages_pending": 0,
+        "notes": 0,
+        "payee_locations": 0,
+        "payee_mapping": 0,
+        "payees": 0,
+        "pending_transactions": 0,
+        "preferences": 0,
+        "reflect_budgets": 0,
+        "rules": 0,
+        "schedules": 0,
+        "schedules_json_paths": 0,
+        "schedules_next_date": 0,
+        "sqlite_stat1": 4,
+        "sqlite_stat4": 31,
+        "tags": 0,
+        "transaction_filters": 0,
+        "transactions": 0,
+        "zero_budget_months": 0,
+        "zero_budgets": 0
+      },
+      "ledger_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "balances": []
+    },
+    {
+      "name": "complete",
+      "archive_sha256": "718ce38aea766252958fd53d04211179c5fd3a28924f803e83b41a290c9dd621",
+      "source_counts": {
+        "__meta__": 1,
+        "__migrations__": 60,
+        "account_groups": 1,
+        "accounts": 6,
+        "banks": 0,
+        "categories": 9,
+        "category_groups": 4,
+        "category_mapping": 14,
+        "cleanup_groups": 1,
+        "created_budgets": 0,
+        "custom_reports": 1,
+        "dashboard": 21,
+        "dashboard_pages": 2,
+        "kvcache": 0,
+        "kvcache_key": 0,
+        "messages_clock": 1,
+        "messages_crdt": 0,
+        "messages_pending": 0,
+        "notes": 2,
+        "payee_locations": 1,
+        "payee_mapping": 10,
+        "payees": 10,
+        "pending_transactions": 0,
+        "preferences": 5,
+        "reflect_budgets": 0,
+        "rules": 2,
+        "schedules": 1,
+        "schedules_json_paths": 1,
+        "schedules_next_date": 1,
+        "sqlite_stat1": 4,
+        "sqlite_stat4": 31,
+        "tags": 1,
+        "transaction_filters": 1,
+        "transactions": 49,
+        "zero_budget_months": 0,
+        "zero_budgets": 33
+      },
+      "ledger_sha256": "c5afaa82636ec95e3ddca64858a9fa5050199d370f7b0a63dde236cf333ca0d1",
+      "balances": [
+        {
+          "id": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+          "balance": 101600
+        },
+        {
+          "id": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "balance": -407788
+        },
+        {
+          "id": "3076d7dc-590c-475c-bbfc-51e5fbd1eb86",
+          "balance": 1200000
+        },
+        {
+          "id": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "balance": 7000
+        },
+        {
+          "id": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+          "balance": 2000
+        },
+        {
+          "id": "2d0d5b02-942d-483b-a6f5-6e86d6d5bce5",
+          "balance": 200000
+        }
+      ]
+    },
+    {
+      "name": "large",
+      "archive_sha256": "0f9e8b8f01c7aa5bed01663f2ed6e3eea28ecd0249cd9d9cedcefc930b6cb0a5",
+      "source_counts": {
+        "__meta__": 1,
+        "__migrations__": 60,
+        "account_groups": 1,
+        "accounts": 6,
+        "banks": 0,
+        "categories": 9,
+        "category_groups": 4,
+        "category_mapping": 14,
+        "cleanup_groups": 1,
+        "created_budgets": 0,
+        "custom_reports": 1,
+        "dashboard": 21,
+        "dashboard_pages": 2,
+        "kvcache": 0,
+        "kvcache_key": 0,
+        "messages_clock": 1,
+        "messages_crdt": 0,
+        "messages_pending": 0,
+        "notes": 2,
+        "payee_locations": 1,
+        "payee_mapping": 10,
+        "payees": 10,
+        "pending_transactions": 0,
+        "preferences": 5,
+        "reflect_budgets": 0,
+        "rules": 2,
+        "schedules": 1,
+        "schedules_json_paths": 1,
+        "schedules_next_date": 1,
+        "sqlite_stat1": 4,
+        "sqlite_stat4": 31,
+        "tags": 1,
+        "transaction_filters": 1,
+        "transactions": 10049,
+        "zero_budget_months": 0,
+        "zero_budgets": 33
+      },
+      "ledger_sha256": "4e67d1111da9eaa2c79c8765d39b7a0b82ed7c73e1084e907da77e63e71c6af4",
+      "balances": [
+        {
+          "id": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+          "balance": 101600
+        },
+        {
+          "id": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "balance": -50402789
+        },
+        {
+          "id": "3076d7dc-590c-475c-bbfc-51e5fbd1eb86",
+          "balance": 1200000
+        },
+        {
+          "id": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "balance": 7000
+        },
+        {
+          "id": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+          "balance": 2000
+        },
+        {
+          "id": "2d0d5b02-942d-483b-a6f5-6e86d6d5bce5",
+          "balance": 200000
+        }
+      ]
+    },
+    {
+      "name": "deleted-history",
+      "archive_sha256": "77a6835f6ea8d7e02ba4794bafe612a81dfc26b3a1d54b070ab49022ece18955",
+      "source_counts": {
+        "__meta__": 1,
+        "__migrations__": 60,
+        "account_groups": 1,
+        "accounts": 6,
+        "banks": 0,
+        "categories": 9,
+        "category_groups": 4,
+        "category_mapping": 14,
+        "cleanup_groups": 1,
+        "created_budgets": 0,
+        "custom_reports": 1,
+        "dashboard": 21,
+        "dashboard_pages": 2,
+        "kvcache": 0,
+        "kvcache_key": 0,
+        "messages_clock": 1,
+        "messages_crdt": 0,
+        "messages_pending": 0,
+        "notes": 2,
+        "payee_locations": 1,
+        "payee_mapping": 10,
+        "payees": 10,
+        "pending_transactions": 0,
+        "preferences": 5,
+        "reflect_budgets": 0,
+        "rules": 2,
+        "schedules": 1,
+        "schedules_json_paths": 1,
+        "schedules_next_date": 1,
+        "sqlite_stat1": 4,
+        "sqlite_stat4": 31,
+        "tags": 1,
+        "transaction_filters": 1,
+        "transactions": 10049,
+        "zero_budget_months": 0,
+        "zero_budgets": 33
+      },
+      "ledger_sha256": "c5afaa82636ec95e3ddca64858a9fa5050199d370f7b0a63dde236cf333ca0d1",
+      "balances": [
+        {
+          "id": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+          "balance": 101600
+        },
+        {
+          "id": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "balance": -407788
+        },
+        {
+          "id": "3076d7dc-590c-475c-bbfc-51e5fbd1eb86",
+          "balance": 1200000
+        },
+        {
+          "id": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+          "balance": 7000
+        },
+        {
+          "id": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+          "balance": 2000
+        },
+        {
+          "id": "2d0d5b02-942d-483b-a6f5-6e86d6d5bce5",
+          "balance": 200000
+        }
+      ]
+    }
+  ]
+}

@@ -243,6 +243,25 @@ try {
   await page.locator(".preview-list").screenshot({
     path: "test-results/rule-expressions/fractional-split-mobile.png",
   });
+  await splitFormula.fill('="Infinity"');
+  await page
+    .getByRole("button", { name: "Preview draft rule", exact: true })
+    .click();
+  await expect(page.locator(".preview-list")).toContainText("Invalid amount");
+  await expect(page.locator(".preview-list")).toContainText(
+    "Cannot save: amounts must be whole minor units.",
+  );
+  await expect(
+    page.locator(".preview-list input[type=checkbox]").first(),
+  ).toBeDisabled();
+  await expect(page.locator(".preview-list")).not.toContainText(
+    "$actualRuleNumber",
+  );
+  await page
+    .locator(".preview-list")
+    .screenshot({
+      path: "test-results/rule-expressions/nonfinite-split-mobile.png",
+    });
   await page.addStyleTag({ content: "html { font-size: 200%; }" });
   await splitFormula.scrollIntoViewIfNeeded();
   expect(

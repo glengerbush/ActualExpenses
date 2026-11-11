@@ -52,7 +52,7 @@ pub fn validate_body(body: &Value, applying: bool) -> Result<(), Error> {
     }
     Ok(())
 }
-fn validate_draft(row: &Value) -> Result<(), Error> {
+pub(crate) fn validate_draft(row: &Value) -> Result<(), Error> {
     let mut value = serde_json::Map::new();
     for key in [
         "id",
@@ -71,8 +71,10 @@ fn validate_draft(row: &Value) -> Result<(), Error> {
     if value.get("notes").is_none_or(Value::is_null) {
         value.insert("notes".into(), json!(""));
     }
-    let input: ledger::NewTransaction = serde_json::from_value(Value::Object(value))
-        .map_err(|_| Error::invalid("Invalid preview transaction fields"))?;
+    let input: ledger::NewTransaction =
+        serde_json::from_value(Value::Object(value)).map_err(|_| {
+            Error::invalid("Transaction fields must be valid and amounts must be exact minor units")
+        })?;
     input.validate()?;
     if let Some(children) = row.get("children") {
         let children = children
@@ -345,9 +347,7 @@ pub(super) fn commit_with_work(
     // Source previews can contain fractional minor units. Refuse persistence
     // before transfer arithmetic or any payee/ledger mutation; never truncate.
     for entry in &entries {
-        if entry.after["deleted"] != true {
-            validate_draft(&entry.after)?;
-        }
+        validate_draft(&entry.after)?;
     }
     let mut peer_runner = engine::Runner::with_work(load(db, b)?, work);
     let mut created_peers = std::collections::BTreeSet::new();

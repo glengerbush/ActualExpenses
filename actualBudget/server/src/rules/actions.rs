@@ -268,6 +268,7 @@ pub fn apply(
     rule: &Rule,
     mut expressions: Option<&mut super::expressions::Context>,
     work: &mut super::expressions::Budget,
+    retain_first: bool,
 ) -> Result<Value, Error> {
     let mut row = input.clone();
     for a in rule
@@ -298,6 +299,7 @@ pub fn apply(
     let retained_first = row["children"]
         .as_array()
         .and_then(|children| children.first())
+        .filter(|_| retain_first)
         .cloned();
     let mut children = row["children"].as_array().cloned().unwrap_or_else(|| {
         let order = expressions
@@ -420,7 +422,7 @@ pub fn apply(
         }
     }
     let balanced = if fractional {
-        Some(super::split_preview::total(&children)?) == row["amount"].as_f64()
+        Some(super::split_preview::total(&children)?) == super::numbers::read(&row["amount"])
     } else {
         let total = children
             .iter()
@@ -432,10 +434,9 @@ pub fn apply(
         Value::Null
     } else {
         json!({"type":"SplitTransactionError","version":1,
-            "difference":row["amount"].as_f64().unwrap() - super::split_preview::total(&children)?})
+            "difference":super::numbers::value(super::numbers::read(&row["amount"]).unwrap() - super::split_preview::total(&children)?)})
     };
     row["children"] = json!(children);
     row["is_parent"] = json!(true);
-    row["category_id"] = Value::Null;
     Ok(row)
 }

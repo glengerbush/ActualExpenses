@@ -258,8 +258,21 @@ impl Runner {
                     rule,
                     expressions.as_mut(),
                     &mut self.work.expressions,
+                    stored
+                        && row["children"]
+                            .as_array()
+                            .and_then(|c| c.first())
+                            .is_some_and(|first| {
+                                input["children"].as_array().is_some_and(|children| {
+                                    children.iter().any(|child| child["id"] == first["id"])
+                                })
+                            }),
                 )?;
             }
+        }
+        super::numbers::project(&mut row);
+        if row["is_parent"] == true {
+            row["category_id"] = Value::Null;
         }
         Ok((row, matched))
     }

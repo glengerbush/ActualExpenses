@@ -269,6 +269,11 @@ jobs:
           npm --prefix actualBudget/web run test:rule-template-limits
           node actualBudget/tools/generate-rule-expressions-source.mjs --execution --check
           node actualBudget/tools/check-rule-expressions-http.mjs --execution
+          node actualBudget/tools/generate-rule-expressions-source.mjs --nonfinite --check
+          node actualBudget/tools/generate-rule-expression-commits-source.mjs --nonfinite --check
+          node actualBudget/tools/check-rule-expressions-http.mjs --nonfinite
+          node actualBudget/tools/check-rule-expression-commits-http.mjs --nonfinite
+          node actualBudget/tools/check-rule-nonfinite-workflows-http.mjs
           node actualBudget/tools/check-formula-http.mjs --limits
           python3 actualBudget/tools/generate-v5-receipts.py --check
           python3 -m venv "$RUNNER_TEMP/contract-check"

@@ -19,7 +19,12 @@ pub(crate) fn template_actions(
     } else {
         None
     };
-    actions::apply(db, b, row, rule, context.as_mut(), budget)
+    let mut result = actions::apply(db, b, row, rule, context.as_mut(), budget, false)?;
+    numbers::project(&mut result);
+    if result["is_parent"] == true {
+        result["category_id"] = Value::Null;
+    }
+    Ok(result)
 }
 mod conditions;
 mod engine;
@@ -27,7 +32,9 @@ mod entry;
 mod expressions;
 mod import;
 pub mod learning;
+mod numbers;
 mod plan;
+pub(crate) use plan::validate_draft as validate_calculated_transaction;
 mod split_preview;
 use crate::{concurrency as sync, error::Error, store::Store};
 use axum::{

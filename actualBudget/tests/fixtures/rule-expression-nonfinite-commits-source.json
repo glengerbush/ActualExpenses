@@ -1,0 +1,466 @@
+{
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "clock": "2026-11-09T12:00:00Z",
+  "archive": {
+    "filename": "rule-expressions-saved-26.10.zip",
+    "sha256": "35ead5dd57edda3bd04b1b44a2d3c112db3635e868a3ff2fec564897239f63d6"
+  },
+  "subject": "42420000-0000-4000-8000-000000000099",
+  "rules": [
+    {
+      "id": "42420000-0000-4000-8000-000000000101",
+      "stage": null,
+      "conditionsOp": "and",
+      "conditions": [
+        {
+          "op": "is",
+          "field": "account",
+          "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "type": "id"
+        }
+      ],
+      "actions": [
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "type": "string",
+          "options": {
+            "template": "{{notes}} / {{{imported_payee}}}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "42420000-0000-4000-8000-000000000113",
+      "stage": null,
+      "conditionsOp": "and",
+      "conditions": [
+        {
+          "op": "is",
+          "field": "account",
+          "value": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "type": "id"
+        }
+      ],
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": 0,
+          "type": "number",
+          "options": {
+            "formula": "=amount/100+1"
+          }
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "nonfinite parent Infinity",
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": 0,
+          "options": {
+            "template": "Infinity"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": 50,
+          "options": {
+            "splitIndex": 1,
+            "method": "fixed-percent"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "before": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "after": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "error": "Can't convert to integer: null"
+    },
+    {
+      "name": "nonfinite child Infinity",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=\"Infinity\""
+          }
+        },
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "splitIndex": 1,
+            "template": "amount={{amount}} / parent={{parent_amount}}"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "before": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "after": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "error": "Can't convert to integer: null"
+    },
+    {
+      "name": "transient nonfinite Infinity",
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": 0,
+          "options": {
+            "template": "Infinity"
+          }
+        },
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "template": "amount={{amount}}"
+          }
+        },
+        {
+          "op": "set",
+          "field": "amount",
+          "value": -2345
+        }
+      ],
+      "before": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "after": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -2345,
+          "notes": "amount=Infinity",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "nonfinite parent -Infinity",
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": 0,
+          "options": {
+            "template": "-Infinity"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": 50,
+          "options": {
+            "splitIndex": 1,
+            "method": "fixed-percent"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "before": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "after": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "error": "Can't convert to integer: null"
+    },
+    {
+      "name": "nonfinite child -Infinity",
+      "actions": [
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 1,
+            "method": "formula",
+            "formula": "=\"-Infinity\""
+          }
+        },
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "splitIndex": 1,
+            "template": "amount={{amount}} / parent={{parent_amount}}"
+          }
+        },
+        {
+          "op": "set-split-amount",
+          "value": null,
+          "options": {
+            "splitIndex": 2,
+            "method": "remainder"
+          }
+        }
+      ],
+      "before": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "after": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "error": "Can't convert to integer: null"
+    },
+    {
+      "name": "transient nonfinite -Infinity",
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": 0,
+          "options": {
+            "template": "-Infinity"
+          }
+        },
+        {
+          "op": "set",
+          "field": "notes",
+          "value": "",
+          "options": {
+            "template": "amount={{amount}}"
+          }
+        },
+        {
+          "op": "set",
+          "field": "amount",
+          "value": -2345
+        }
+      ],
+      "before": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "after": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -2345,
+          "notes": "amount=-Infinity",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "nonfinite then deleted",
+      "actions": [
+        {
+          "op": "set",
+          "field": "amount",
+          "value": 0,
+          "options": {
+            "template": "Infinity"
+          }
+        },
+        {
+          "op": "delete-transaction"
+        }
+      ],
+      "before": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "after": [
+        {
+          "id": "42420000-0000-4000-8000-000000000099",
+          "parent": false,
+          "amount": -1234,
+          "notes": "expression commit",
+          "date": "2026-11-09",
+          "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+          "category": "18c4cef2-d782-4544-a460-7c04c275a581",
+          "payee": "790d6a36-147d-4e6b-8537-a8b07e85f059",
+          "cleared": false,
+          "is_parent": false,
+          "is_child": false
+        }
+      ],
+      "error": "Can't convert to integer: null"
+    }
+  ]
+}

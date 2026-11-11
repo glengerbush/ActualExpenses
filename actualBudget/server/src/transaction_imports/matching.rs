@@ -54,7 +54,9 @@ pub(super) fn apply(
         .to_string();
     let amounts = rows
         .iter()
-        .map(|r| r["transaction"]["amount"].as_i64().unwrap())
+        // Non-deleted calculated rows were validated before matching. A rule
+        // can delete a nonfinite row; it has no amount candidate to match.
+        .filter_map(|r| r["transaction"]["amount"].as_i64())
         .collect::<BTreeSet<_>>();
     let mut indexed: BTreeMap<i64, Vec<Candidate>> = BTreeMap::new();
     let mut query=db.prepare(&format!("SELECT t.id,t.date,t.payee_id,t.amount,CASE WHEN m.tombstone=0 THEN m.imported_id END FROM transactions t LEFT JOIN transaction_import_metadata m ON m.budget_id=t.budget_id AND m.id=t.id LEFT JOIN transactions parent ON parent.budget_id=t.budget_id AND parent.id=t.parent_id WHERE t.budget_id=?1 AND t.account_id=?2 AND t.tombstone=0 AND (t.parent_id IS NULL OR parent.tombstone=0) AND t.date>=?3 AND t.date<=?4 ORDER BY t.date DESC,t.starting_balance,{} DESC,t.id",crate::android_upgrade::order::SQL))?;
@@ -110,7 +112,9 @@ pub(super) fn apply(
     for (row, date) in rows.iter().zip(dates) {
         let mut selected = vec![];
         if row["match_id"].is_null()
-            && let Some(group) = indexed.get(&row["transaction"]["amount"].as_i64().unwrap())
+            && let Some(group) = row["transaction"]["amount"]
+                .as_i64()
+                .and_then(|amount| indexed.get(&amount))
         {
             for candidate in group {
                 spend(work, 1)?;

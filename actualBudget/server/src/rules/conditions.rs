@@ -250,7 +250,7 @@ pub fn matches(
         });
     }
     if kind == "number" {
-        let Some(mut n) = v.as_f64() else {
+        let Some(mut n) = super::numbers::read(&v) else {
             return Ok(false);
         };
         if c["options"]["outflow"] == true {

@@ -98,11 +98,19 @@ pub(super) fn run(
             .collect::<Vec<_>>();
         let mut target = sign
             * if allocated.is_empty() {
-                after["amount"].as_f64().unwrap_or(amount as f64)
+                after["amount"]
+                    .as_f64()
+                    .ok_or_else(|| Error::invalid("Calculated schedule amount must be finite"))?
             } else {
                 allocated
                     .iter()
-                    .map(|c| c["amount"].as_f64().unwrap_or(0.0))
+                    .map(|c| {
+                        c["amount"].as_f64().ok_or_else(|| {
+                            Error::invalid("Calculated schedule allocation amount must be finite")
+                        })
+                    })
+                    .collect::<Result<Vec<_>, _>>()?
+                    .into_iter()
                     .sum()
             };
         let interval = date["value"]["interval"].as_f64().unwrap_or(1.0);

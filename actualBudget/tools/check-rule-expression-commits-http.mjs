@@ -6,11 +6,13 @@ import { startServer } from "../web/tests/server.mjs";
 const fixture = JSON.parse(
   await readFile(
     new URL(
-      process.argv.includes("--children")
-        ? "../tests/fixtures/rule-expression-child-commits-source.json"
-        : process.argv.includes("--splits")
-          ? "../tests/fixtures/rule-expression-split-commits-source.json"
-          : "../tests/fixtures/rule-expression-commits-source.json",
+      process.argv.includes("--nonfinite")
+        ? "../tests/fixtures/rule-expression-nonfinite-commits-source.json"
+        : process.argv.includes("--children")
+          ? "../tests/fixtures/rule-expression-child-commits-source.json"
+          : process.argv.includes("--splits")
+            ? "../tests/fixtures/rule-expression-split-commits-source.json"
+            : "../tests/fixtures/rule-expression-commits-source.json",
       import.meta.url,
     ),
   ),

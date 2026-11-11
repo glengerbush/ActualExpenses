@@ -544,3 +544,51 @@ checked guard ownership/cleanup, source parity, atomic refusal and recovery.
 
 42 remains open for nonfinite split projection semantics and final qualification.
 No additional acceptance boxes closed, push, version bump or deployment.
+
+## Nonfinite calculations and safe workflow boundaries
+
+Ten new pinned-source observations cover positive/negative Infinity, transient
+invalid amounts repaired by later actions, cross-rule numeric conditions, split
+variables, generated-child retention and deletion. JavaScript nonfinite values
+now survive internal action/rule boundaries, then become JSON null in public
+previews. Source split remainder is zero when parent and total compare equal,
+including Infinity; subtraction alone incorrectly produced NaN. Generated
+children are not mistaken for original stored children, and category inheritance
+remains available until the rule chain finishes.
+
+Seven independent persisted source operations prove invalid final amounts refuse
+without writes, including an invalid amount followed by deletion; repaired
+amounts save successfully. Native public writes and exact retries match these
+observations. Both new source fixtures reproduce without changing earlier goldens
+or the existing saved-rule archive. Evidence:
+`/tmp/rule-nonfinite-source-check.log`,
+`/tmp/rule-nonfinite-commits-check.log`,
+`/tmp/rule-nonfinite-commits-green3.log`,
+`/tmp/rule-nonfinite-no-markers.log`. Private number tags never reach the response.
+
+Public file-import testing first reproduced an internal error during amount
+matching. Invalid calculated rows now receive row errors before matching; an
+attempt to commit them refuses atomically, while selected valid rows commit and
+retry exactly. A row suppressed by a delete rule remains safely skipped.
+Schedule-template testing separately caught silent fallback to the original
+amount/zero after JSON projection. Invalid parent/allocation amounts now report
+calculation errors instead. These are native financial-safety checks, not a claim
+that the source emits identical diagnostic text. Both workflows preserve ledger
+and checkpoint (`/tmp/rule-nonfinite-template-red.log`,
+`/tmp/rule-nonfinite-workflows-green.log`).
+
+The existing mobile editor already renders null amounts as “Invalid amount” and
+disables saving. Extended browser coverage confirms those diagnostics, no private
+tags, keyboard/privacy behavior and large text on plain HTTP. Inspected
+`actualBudget/web/test-results/rule-expressions/nonfinite-split-mobile.png`;
+no product UI changes were needed (`/tmp/rule-nonfinite-browser.log`).
+
+Focused regression checks cover all40 original,22 context,19 chain and12 execution
+previews; five original, four stored-child and six split writes;28 trusted asset
+comparisons; five calculated imports;13 rule tests,13 split tests and all
+195 budget-template financial cases. Warnings-denied Clippy passes. The maintained
+expression commands and release qualification include the new source/API checks.
+Root standards/spec review against `2a6080a` checked internal-number boundaries,
+write validation, stored/new-child distinctions, source evidence and error-state
+rendering. Ticket42 remains open for final consolidated qualification; this is a
+local checkpoint, not publication or deployment.

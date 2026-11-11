@@ -349,6 +349,12 @@ fn plan_input(
         // context; a lazy payee is not visible to templates until saved.
         let display_payee = transaction.as_object_mut().unwrap().remove("payee_name");
         let (mut transaction, matched) = runner.evaluate(db, b, &transaction)?;
+        if transaction["deleted"] != true
+            && let Err(error) = crate::rules::validate_calculated_transaction(&transaction)
+        {
+            errors.push(json!({"row":index,"message":format!("Rule result needs review: {}", error.message)}));
+            continue;
+        }
         if let Some(name) = display_payee {
             transaction
                 .as_object_mut()

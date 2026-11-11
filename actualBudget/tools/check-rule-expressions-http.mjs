@@ -6,13 +6,15 @@ import { startServer } from "../web/tests/server.mjs";
 const fixture = JSON.parse(
   await readFile(
     new URL(
-      process.argv.includes("--execution")
-        ? "../tests/fixtures/rule-expression-execution-source.json"
-        : process.argv.includes("--chains")
-          ? "../tests/fixtures/rule-expression-chain-source.json"
-          : process.argv.includes("--context")
-            ? "../tests/fixtures/rule-expression-context-source.json"
-            : "../tests/fixtures/rule-expressions-source.json",
+      process.argv.includes("--nonfinite")
+        ? "../tests/fixtures/rule-expression-nonfinite-source.json"
+        : process.argv.includes("--execution")
+          ? "../tests/fixtures/rule-expression-execution-source.json"
+          : process.argv.includes("--chains")
+            ? "../tests/fixtures/rule-expression-chain-source.json"
+            : process.argv.includes("--context")
+              ? "../tests/fixtures/rule-expression-context-source.json"
+              : "../tests/fixtures/rule-expressions-source.json",
       import.meta.url,
     ),
   ),
@@ -120,6 +122,10 @@ try {
         ? { rule_ids: test.rules.map((r) => r.id) }
         : { rule: test.rule }),
     });
+    assert.ok(
+      !JSON.stringify(response).includes("$actualRuleNumber"),
+      test.name,
+    );
     if (test.error) {
       assert.ok([400, 422].includes(response.status), test.name);
       assert.match(response.error.message, /template|handlebars/i);
@@ -144,6 +150,7 @@ try {
         test.name,
       );
       if (test.payee_name) assert.equal(actual.payee_name, test.payee_name);
+      if (test.output._deleted) assert.equal(actual.deleted, true);
     }
     assert.deepEqual(
       await call(root + "/checkpoint"),
@@ -184,18 +191,15 @@ try {
     assert.deepEqual(await call(root + "/checkpoint"), ready);
   }
   const after = await call(root + "/transactions");
-  if (
-    process.argv.includes("--chains") ||
-    process.argv.includes("--execution")
-  ) {
+  const changesDefinitions =
+    process.argv.includes("--execution") ||
+    fixture.cases.some((test) => test.rules);
+  if (changesDefinitions) {
     const { snapshot: beforeSnapshot, ...beforeRows } = before;
     const { snapshot: afterSnapshot, ...afterRows } = after;
     assert.deepEqual(afterRows, beforeRows);
   } else assert.deepEqual(after, before);
-  if (
-    !process.argv.includes("--chains") &&
-    !process.argv.includes("--execution")
-  )
+  if (!changesDefinitions)
     assert.deepEqual(await call(root + "/checkpoint"), checkpoint);
   console.log(
     `PASS ${count} source rule-expression previews and unchanged financial state`,

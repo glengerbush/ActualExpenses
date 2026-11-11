@@ -26,13 +26,16 @@ const root = new URL("../tests/fixtures/", import.meta.url),
   check = process.argv.includes("--check"),
   splitCases = process.argv.includes("--splits"),
   childCases = process.argv.includes("--children"),
+  nonfiniteCases = process.argv.includes("--nonfinite"),
   sha = (b) => createHash("sha256").update(b).digest("hex");
 const source = JSON.parse(
     await readFile(
       new URL(
-        splitCases
-          ? "rule-expression-execution-source.json"
-          : "rule-expressions-source.json",
+        nonfiniteCases
+          ? "rule-expression-nonfinite-source.json"
+          : splitCases
+            ? "rule-expression-execution-source.json"
+            : "rule-expressions-source.json",
         root,
       ),
     ),
@@ -97,19 +100,21 @@ const definitions = childCases
         ],
       },
     ].map((test) => ({ ...test, transaction: source.cases[0].transaction }))
-  : splitCases
-    ? source.cases.filter(
-        (c) =>
-          c.name.startsWith("fractional") ||
-          c.name === "generated child variables",
-      )
-    : [
-        "formula amount units",
-        "template numeric prefix",
-        "formula string numeric prefix",
-        "formula failure keeps later actions",
-        "split parent context",
-      ].map((name) => source.cases.find((c) => c.name === name));
+  : nonfiniteCases
+    ? source.cases.filter((c) => !c.following)
+    : splitCases
+      ? source.cases.filter(
+          (c) =>
+            c.name.startsWith("fractional") ||
+            c.name === "generated child variables",
+        )
+      : [
+          "formula amount units",
+          "template numeric prefix",
+          "formula string numeric prefix",
+          "formula failure keeps later actions",
+          "split parent context",
+        ].map((name) => source.cases.find((c) => c.name === name));
 try {
   const engine = await api.init({ dataDir: directory });
   let bytes;
@@ -139,7 +144,7 @@ try {
       assert.equal(saved[key], metadata[key]);
     bytes = await api.exportBudget();
     await writeFile(new URL(filename, root), bytes, { flag: "wx" });
-  } else if (check || splitCases)
+  } else if (check || splitCases || nonfiniteCases)
     bytes = await readFile(new URL(filename, root));
   else {
     bytes = await readFile(new URL(source.seed.filename, root));
@@ -252,11 +257,13 @@ try {
     cases,
   };
   const file = new URL(
-    childCases
-      ? "rule-expression-child-commits-source.json"
-      : splitCases
-        ? "rule-expression-split-commits-source.json"
-        : "rule-expression-commits-source.json",
+    nonfiniteCases
+      ? "rule-expression-nonfinite-commits-source.json"
+      : childCases
+        ? "rule-expression-child-commits-source.json"
+        : splitCases
+          ? "rule-expression-split-commits-source.json"
+          : "rule-expression-commits-source.json",
     root,
   );
   if (check) assert.deepEqual(result, JSON.parse(await readFile(file)));

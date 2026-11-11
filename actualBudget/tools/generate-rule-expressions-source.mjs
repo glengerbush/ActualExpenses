@@ -304,6 +304,7 @@ try {
   const contextCases = process.argv.includes("--context");
   const chainCases = process.argv.includes("--chains");
   const executionCases = process.argv.includes("--execution");
+  const nonfiniteCases = process.argv.includes("--nonfinite");
   if (contextCases) {
     definitions.length = 0;
     const rows = before.filter(
@@ -565,7 +566,88 @@ try {
       },
     );
   }
+  if (nonfiniteCases) {
+    definitions.length = 0;
+    const split = (index, method, formula, value = null) => ({
+      op: "set-split-amount",
+      value,
+      options: { splitIndex: index, method, ...(formula ? { formula } : {}) },
+    });
+    for (const text of ["Infinity", "-Infinity"]) {
+      definitions.push(
+        {
+          name: `nonfinite parent ${text}`,
+          actions: [
+            template("amount", text),
+            split(1, "fixed-percent", null, 50),
+            split(2, "remainder"),
+          ],
+        },
+        {
+          name: `nonfinite child ${text}`,
+          actions: [
+            split(1, "formula", `=${JSON.stringify(text)}`),
+            set("notes", {
+              splitIndex: 1,
+              template: "amount={{amount}} / parent={{parent_amount}}",
+            }),
+            split(2, "remainder"),
+          ],
+        },
+        {
+          name: `transient nonfinite ${text}`,
+          actions: [
+            template("amount", text),
+            template("notes", "amount={{amount}}"),
+            { op: "set", field: "amount", value: -2345 },
+          ],
+        },
+      );
+    }
+    definitions.push({
+      name: "nonfinite amount condition across rules",
+      actions: [template("amount", "Infinity")],
+      following: [
+        {
+          conditions: [{ field: "amount", op: "gt", value: 0 }],
+          actions: [
+            template("notes", "amount={{amount}}"),
+            { op: "set", field: "amount", value: -2345 },
+          ],
+        },
+      ],
+    });
+    definitions.push({
+      name: "nonfinite split variables across rules",
+      actions: [split(1, "formula", '="Infinity"'), split(2, "remainder")],
+      following: [
+        {
+          actions: [
+            set("notes", { splitIndex: 1, template: "first={{amount}}" }),
+            set("notes", { splitIndex: 2, template: "second={{amount}}" }),
+          ],
+        },
+      ],
+    });
+    definitions.push({
+      name: "generated split variables across literal rules",
+      actions: [split(1, "fixed-amount", null, -100), split(2, "remainder")],
+      following: [
+        {
+          actions: [
+            set("notes", { splitIndex: 1 }, "first"),
+            set("notes", { splitIndex: 2 }, "second"),
+          ],
+        },
+      ],
+    });
+    definitions.push({
+      name: "nonfinite then deleted",
+      actions: [template("amount", "Infinity"), { op: "delete-transaction" }],
+    });
+  }
   function normalized(value) {
+    if (typeof value === "number" && !Number.isFinite(value)) return null;
     if (Array.isArray(value)) return value.map(normalized);
     if (!value || typeof value !== "object") return value;
     const out = {};
@@ -639,13 +721,15 @@ try {
     cases,
   };
   const file = new URL(
-    executionCases
-      ? "rule-expression-execution-source.json"
-      : chainCases
-        ? "rule-expression-chain-source.json"
-        : contextCases
-          ? "rule-expression-context-source.json"
-          : "rule-expressions-source.json",
+    nonfiniteCases
+      ? "rule-expression-nonfinite-source.json"
+      : executionCases
+        ? "rule-expression-execution-source.json"
+        : chainCases
+          ? "rule-expression-chain-source.json"
+          : contextCases
+            ? "rule-expression-context-source.json"
+            : "rule-expressions-source.json",
     root,
   );
   if (check) assert.deepEqual(result, JSON.parse(await readFile(file)));

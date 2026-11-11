@@ -337,11 +337,9 @@
           >{t("Amount")}</option
         ><option value="payee">{t("Payee")}</option><option value="category"
           >{t("Category")}</option
-        ><option value="notes"
-          >{t("Notes")}</option
-        ><option value="cleared">{t("Cleared")}</option><option
-          value="reconciled">{t("Reconciled")}</option
-        ></select
+        ><option value="notes">{t("Notes")}</option><option value="cleared"
+          >{t("Cleared")}</option
+        ><option value="reconciled">{t("Reconciled")}</option></select
       ></label
     >
     <label

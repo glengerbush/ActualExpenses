@@ -574,18 +574,18 @@
               /></label
             >
             {#if child.transfer_account_id}<label
-              >Transfer to<select
-                aria-label={`Split ${index + 1} transfer to`}
-                value={child.transfer_account_id ?? ""}
-                onchange={(event) =>
-                  setTransfer(child, event.currentTarget.value)}
+                >Transfer to<select
+                  aria-label={`Split ${index + 1} transfer to`}
+                  value={child.transfer_account_id ?? ""}
+                  onchange={(event) =>
+                    setTransfer(child, event.currentTarget.value)}
+                >
+                  <option value="">No transfer</option>
+                  {#each accounts.filter((a) => a.id !== draft?.fields.account_id && ((!a.closed && !a.deleted) || a.id === child.transfer_account_id)) as account (account.id)}
+                    <option value={account.id}>{account.name}</option>
+                  {/each}
+                </select></label
               >
-                <option value="">No transfer</option>
-                {#each accounts.filter((a) => a.id !== draft?.fields.account_id && ((!a.closed && !a.deleted) || a.id === child.transfer_account_id)) as account (account.id)}
-                  <option value={account.id}>{account.name}</option>
-                {/each}
-              </select></label
-            >
             {/if}<label
               >{t("Payee")}<select
                 disabled={!!child.transfer_account_id}

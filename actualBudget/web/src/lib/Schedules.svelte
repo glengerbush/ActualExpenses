@@ -207,7 +207,8 @@
             {
               field: "account",
               op: "is",
-              value: accounts.find((a) => !a.closed && !a.off_budget)?.id ?? null,
+              value:
+                accounts.find((a) => !a.closed && !a.off_budget)?.id ?? null,
             },
             { field: "amount", op: "is", value: -100 },
           ],
@@ -640,84 +641,86 @@
             >{/if}
           <h3>Conditions</h3>
           <p>
-            Include one date and an amount. Negative amounts are
-            payments; positive amounts are income.
+            Include one date and an amount. Negative amounts are payments;
+            positive amounts are income.
           </p>
-          {#each conditions as condition, index (index)}{#if condition.field !== "account"}<div class="condition">
-              <label
-                >Condition field {index + 1}<select
-                  value={condition.field}
-                  onchange={(e) =>
-                    field(
-                      "conditions",
-                      conditions.map((c, i) =>
-                        i === index
-                          ? {
-                              field: e.currentTarget.value,
-                              op: "is",
-                              value:
-                                e.currentTarget.value === "amount"
-                                  ? 0
-                                  : e.currentTarget.value === "date"
-                                    ? today()
-                                    : null,
-                            }
-                          : c,
-                      ),
-                    )}
-                  >{#each ["date", "payee", "amount", "category", "notes"] as name (name)}<option
-                      value={name}>{name}</option
-                    >{/each}</select
-                ></label
-              ><label
-                >Condition operator {index + 1}<select
-                  value={condition.op}
-                  onchange={(e) =>
-                    field(
-                      "conditions",
-                      conditions.map((c, i) =>
-                        i === index
-                          ? {
-                              ...c,
-                              op: e.currentTarget.value,
-                              value:
-                                e.currentTarget.value === "isbetween"
-                                  ? { num1: 0, num2: 0 }
-                                  : c.value,
-                            }
-                          : c,
-                      ),
-                    )}
-                  ><option value="is">Exactly</option
-                  >{#if ["date", "amount"].includes(condition.field)}<option
-                      value="isapprox">Approximately</option
-                    >{/if}{#if condition.field === "amount"}<option
-                      value="isbetween">Between</option
-                    >{/if}</select
-                ></label
-              ><RegisterCondition
-                {condition}
-                {index}
-                {accounts}
-                {payees}
-                {categories}
-                {groups}
-                rules={true}
-                posting={true}
-                amountFormat={draft.format}
-                onchange={(value) =>
-                  field(
-                    "conditions",
-                    conditions.map((c, i) => (i === index ? value : c)),
-                  )}
-              /><button
-                onclick={() =>
-                  field(
-                    "conditions",
-                    conditions.filter((_, i) => i !== index),
-                  )}>Remove condition {index + 1}</button
+          {#each conditions as condition, index (index)}{#if condition.field !== "account"}<div
+                class="condition"
               >
-            </div>{/if}{/each}<button
+                <label
+                  >Condition field {index + 1}<select
+                    value={condition.field}
+                    onchange={(e) =>
+                      field(
+                        "conditions",
+                        conditions.map((c, i) =>
+                          i === index
+                            ? {
+                                field: e.currentTarget.value,
+                                op: "is",
+                                value:
+                                  e.currentTarget.value === "amount"
+                                    ? 0
+                                    : e.currentTarget.value === "date"
+                                      ? today()
+                                      : null,
+                              }
+                            : c,
+                        ),
+                      )}
+                    >{#each ["date", "payee", "amount", "category", "notes"] as name (name)}<option
+                        value={name}>{name}</option
+                      >{/each}</select
+                  ></label
+                ><label
+                  >Condition operator {index + 1}<select
+                    value={condition.op}
+                    onchange={(e) =>
+                      field(
+                        "conditions",
+                        conditions.map((c, i) =>
+                          i === index
+                            ? {
+                                ...c,
+                                op: e.currentTarget.value,
+                                value:
+                                  e.currentTarget.value === "isbetween"
+                                    ? { num1: 0, num2: 0 }
+                                    : c.value,
+                              }
+                            : c,
+                        ),
+                      )}
+                    ><option value="is">Exactly</option
+                    >{#if ["date", "amount"].includes(condition.field)}<option
+                        value="isapprox">Approximately</option
+                      >{/if}{#if condition.field === "amount"}<option
+                        value="isbetween">Between</option
+                      >{/if}</select
+                  ></label
+                ><RegisterCondition
+                  {condition}
+                  {index}
+                  {accounts}
+                  {payees}
+                  {categories}
+                  {groups}
+                  rules={true}
+                  posting={true}
+                  amountFormat={draft.format}
+                  onchange={(value) =>
+                    field(
+                      "conditions",
+                      conditions.map((c, i) => (i === index ? value : c)),
+                    )}
+                /><button
+                  onclick={() =>
+                    field(
+                      "conditions",
+                      conditions.filter((_, i) => i !== index),
+                    )}>Remove condition {index + 1}</button
+                >
+              </div>{/if}{/each}<button
             onclick={() =>
               field("conditions", [
                 ...conditions,
@@ -725,19 +728,19 @@
               ])}>{t("Add condition")}</button
           >
           {#if draft.body.transfer_account_id}<label
-            >Transfer destination<select
-              value={String(draft.body.transfer_account_id ?? "")}
-              onchange={(e) =>
-                field(
-                  "transfer_account_id",
-                  e.currentTarget.value || undefined,
-                )}
-              ><option value="">Use payee condition</option
-              >{#each accounts.filter((a) => !a.closed) as a (a.id)}<option
-                  value={a.id}>{a.name}</option
-                >{/each}</select
-            ></label
-          >
+              >Transfer destination<select
+                value={String(draft.body.transfer_account_id ?? "")}
+                onchange={(e) =>
+                  field(
+                    "transfer_account_id",
+                    e.currentTarget.value || undefined,
+                  )}
+                ><option value="">Use payee condition</option
+                >{#each accounts.filter((a) => !a.closed) as a (a.id)}<option
+                    value={a.id}>{a.name}</option
+                  >{/each}</select
+              ></label
+            >
           {/if}
           {#if draft.body.action === "create"}<button
               onclick={() => matchPayments()}

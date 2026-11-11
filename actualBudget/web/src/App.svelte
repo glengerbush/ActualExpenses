@@ -164,14 +164,12 @@
       });
       return result;
     }
-    result.push(
-      {
-        id: "manage",
-        label: t("Manage budget"),
-        disabled: locked || disconnected || !compatible,
-        run: () => manage(budget!),
-      },
-    );
+    result.push({
+      id: "manage",
+      label: t("Manage budget"),
+      disabled: locked || disconnected || !compatible,
+      run: () => manage(budget!),
+    });
     result.push({
       id: "custom-reports",
       label: t("Custom reports"),
@@ -641,71 +639,80 @@
           : t("Envelope budget")}
       </p>
       <nav aria-label={t("Views")}>
-      <button class:current={!form} aria-current={!form ? "page" : undefined}
-        onclick={() => selectAccount(null)} disabled={loading}>{t("Transaction history")}</button>
+        <button
+          class:current={!form}
+          aria-current={!form ? "page" : undefined}
+          onclick={() => selectAccount(null)}
+          disabled={loading}>{t("Transaction history")}</button
+        >
 
-      <button
-        class:current={form === "planning"} aria-current={form === "planning" ? "page" : undefined}
-        onclick={() => showForm("planning")}
-        disabled={loading || !compatible}>{t("Budget")}</button
-      >
-      <button
-        class:current={form === "categories"} aria-current={form === "categories" ? "page" : undefined}
-        onclick={() => showForm("categories")}
-        disabled={loading || disconnected}>{t("Categories")}</button
-      >
-      <button
-        class:current={form === "references"} aria-current={form === "references" ? "page" : undefined}
-        onclick={() => showForm("references")}
-        disabled={loading || disconnected || !compatible}
-        >{t("Payees and tags")}</button
-      >
-      <button
-        class:current={form === "transaction-files"} aria-current={form === "transaction-files" ? "page" : undefined}
-        onclick={() => showForm("transaction-files")}
-        disabled={loading || !compatible}>Transaction files</button
-      >
-      <button
-        onclick={() => {
-          rulesPayee = "";
-          void showForm("rules");
-        }}
-        disabled={loading || !compatible}>{t("Rules")}</button
-      >
-      <button
-        class:current={form === "schedules"} aria-current={form === "schedules" ? "page" : undefined}
-        onclick={() => showForm("schedules")}
-        disabled={loading || !compatible}>{t("Schedules")}</button
-      >
-      <button
-        class:current={form === "reports"} aria-current={form === "reports" ? "page" : undefined}
-        onclick={() => showForm("reports")}
-        disabled={loading || !compatible}
-        >{t("Dashboards and reports")}</button
-      >
-      <button
-        class={{ current: form === "settings" }}
-        aria-current={form === "settings" ? "page" : undefined}
-        onclick={() => showForm("settings")}
-        disabled={loading}
-        >{t("Settings")}</button
-      >
-      <button
-        onclick={() => budget && manage(budget)}
-        disabled={loading || disconnected || !compatible}
-        >{t("Manage budget")}</button
-      >
+        <button
+          class:current={form === "planning"}
+          aria-current={form === "planning" ? "page" : undefined}
+          onclick={() => showForm("planning")}
+          disabled={loading || !compatible}>{t("Budget")}</button
+        >
+        <button
+          class:current={form === "categories"}
+          aria-current={form === "categories" ? "page" : undefined}
+          onclick={() => showForm("categories")}
+          disabled={loading || disconnected}>{t("Categories")}</button
+        >
+        <button
+          class:current={form === "references"}
+          aria-current={form === "references" ? "page" : undefined}
+          onclick={() => showForm("references")}
+          disabled={loading || disconnected || !compatible}
+          >{t("Payees and tags")}</button
+        >
+        <button
+          class:current={form === "transaction-files"}
+          aria-current={form === "transaction-files" ? "page" : undefined}
+          onclick={() => showForm("transaction-files")}
+          disabled={loading || !compatible}>Transaction files</button
+        >
+        <button
+          onclick={() => {
+            rulesPayee = "";
+            void showForm("rules");
+          }}
+          disabled={loading || !compatible}>{t("Rules")}</button
+        >
+        <button
+          class:current={form === "schedules"}
+          aria-current={form === "schedules" ? "page" : undefined}
+          onclick={() => showForm("schedules")}
+          disabled={loading || !compatible}>{t("Schedules")}</button
+        >
+        <button
+          class:current={form === "reports"}
+          aria-current={form === "reports" ? "page" : undefined}
+          onclick={() => showForm("reports")}
+          disabled={loading || !compatible}
+          >{t("Dashboards and reports")}</button
+        >
+        <button
+          class={{ current: form === "settings" }}
+          aria-current={form === "settings" ? "page" : undefined}
+          onclick={() => showForm("settings")}
+          disabled={loading}>{t("Settings")}</button
+        >
+        <button
+          onclick={() => budget && manage(budget)}
+          disabled={loading || disconnected || !compatible}
+          >{t("Manage budget")}</button
+        >
       </nav>
     {:else}<p class="muted sidebar-description">
         {t("Your transactions, together.")}
       </p>{/if}
     <nav aria-label={t("Recovery")}>
-    <button onclick={() => showForm("recovery")} disabled={loading}
-      >Recovery tools</button
-    >
-    <button onclick={() => showForm("pending")} disabled={loading}
-      >{t("Review pending expenses")}</button
-    >
+      <button onclick={() => showForm("recovery")} disabled={loading}
+        >Recovery tools</button
+      >
+      <button onclick={() => showForm("pending")} disabled={loading}
+        >{t("Review pending expenses")}</button
+      >
     </nav>
   </aside>
   <main
@@ -926,9 +933,7 @@
       {:else}<div class="empty-state">
           <h2>{t("A place for your transactions")}</h2>
           <p>
-            {t(
-              "Create your first budget, then record your transactions.",
-            )}
+            {t("Create your first budget, then record your transactions.")}
           </p>
         </div>{/if}
       <section aria-label={t("Deleted budget recovery")}>
@@ -969,13 +974,21 @@
         />
       {/key}
     {:else}
-      <div class="page-heading"><div><h1>{t("Transaction history")}</h1><p class="muted">{budget.name}</p></div></div>
+      <div class="page-heading">
+        <div>
+          <h1>{t("Transaction history")}</h1>
+          <p class="muted">{budget.name}</p>
+        </div>
+      </div>
       {#key budget.id + ":all"}<Register
           budgetId={budget.id}
           accountId={null}
           onchanged={refreshAccounts}
         />{/key}
-      {#key budget.id + ":" + cachedAt}<ScheduleUpcoming budgetId={budget.id} onmanage={() => showForm("schedules")} />{/key}
+      {#key budget.id + ":" + cachedAt}<ScheduleUpcoming
+          budgetId={budget.id}
+          onmanage={() => showForm("schedules")}
+        />{/key}
     {/if}
   </main>
 </div>

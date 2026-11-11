@@ -38,8 +38,12 @@ try {
     );
   await page.getByRole("button", { name: "New budget", exact: true }).click();
   await page.getByLabel("Budget name", { exact: true }).fill("Manual history");
-  await page.getByRole("button", { name: "Create budget", exact: true }).click();
-  const budget = (await api("/budgets")).find((row) => row.name === "Manual history").id;
+  await page
+    .getByRole("button", { name: "Create budget", exact: true })
+    .click();
+  const budget = (await api("/budgets")).find(
+    (row) => row.name === "Manual history",
+  ).id;
   await expect(
     page.getByRole("heading", { name: "Transaction history", exact: true }),
   ).toBeVisible();
@@ -129,29 +133,42 @@ try {
     fullPage: true,
   });
   // Simulate a cache saved before automatic destinations existed.
-  await page.evaluate((budget) => new Promise((resolve, reject) => {
-    const open = indexedDB.open("actualBudget.offline.v1", 1);
-    open.onsuccess = () => {
-      const db = open.result;
-      const tx = db.transaction("cache", "readwrite");
-      const store = tx.objectStore("cache");
-      const read = store.get(`budget:${budget}`);
-      read.onsuccess = () => {
-        const value = read.result;
-        delete value.ledgerAccountId;
-        store.put(value, `budget:${budget}`);
-      };
-      tx.oncomplete = () => { db.close(); resolve(); };
-      tx.onerror = () => reject(tx.error);
-    };
-    open.onerror = () => reject(open.error);
-  }), budget);
+  await page.evaluate(
+    (budget) =>
+      new Promise((resolve, reject) => {
+        const open = indexedDB.open("actualBudget.offline.v1", 1);
+        open.onsuccess = () => {
+          const db = open.result;
+          const tx = db.transaction("cache", "readwrite");
+          const store = tx.objectStore("cache");
+          const read = store.get(`budget:${budget}`);
+          read.onsuccess = () => {
+            const value = read.result;
+            delete value.ledgerAccountId;
+            store.put(value, `budget:${budget}`);
+          };
+          tx.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          tx.onerror = () => reject(tx.error);
+        };
+        open.onerror = () => reject(open.error);
+      }),
+    budget,
+  );
   await page.reload();
-  await expect(page.getByRole("button", { name: "Add transaction", exact: true })).toBeEnabled();
-  await page.route("**/api/v1/**", route => route.abort());
+  await expect(
+    page.getByRole("button", { name: "Add transaction", exact: true }),
+  ).toBeEnabled();
+  await page.route("**/api/v1/**", (route) => route.abort());
   await page.reload();
-  await expect(page.getByRole("button", { name: "Add transaction", exact: true })).toBeEnabled();
-  await page.getByRole("button", { name: "Add transaction", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Add transaction", exact: true }),
+  ).toBeEnabled();
+  await page
+    .getByRole("button", { name: "Add transaction", exact: true })
+    .click();
   await expect(page.getByLabel("Amount", { exact: true })).toBeVisible();
   expect(errors).toEqual([]);
   console.log(

@@ -122,7 +122,9 @@
           notice = draft.pending
             ? "Recovered the original import request. Retry or cancel safely."
             : "Recovered your file and mapping. Parse and preview before importing.";
-        } else accountId = accounts.find((a) => !a.closed && !a.off_budget)?.id ?? "";
+        } else
+          accountId =
+            accounts.find((a) => !a.closed && !a.off_budget)?.id ?? "";
       } catch (e) {
         error = errorMessage(e);
       } finally {
@@ -899,7 +901,9 @@
           ><option value="detailed">Detailed, with split allocations</option
           ><option value="standard">Standard, with split totals</option></select
         ></label
-      ><button onclick={download} disabled={busy}>Download transaction CSV</button>
+      ><button onclick={download} disabled={busy}
+        >Download transaction CSV</button
+      >
     </section>
   {/if}
 </section>

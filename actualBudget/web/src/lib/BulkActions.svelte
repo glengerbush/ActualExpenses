@@ -465,9 +465,9 @@
             >{t("Notes")}</option
           ><option value="date">{t("Date")}</option><option value="amount"
             >{t("Amount")}</option
-          ><option
-            value="payee_id">{t("Payee")}</option
-          ><option value="category_id">{t("Category")}</option>
+          ><option value="payee_id">{t("Payee")}</option><option
+            value="category_id">{t("Category")}</option
+          >
         </select>
         {#if field === "date"}<DateInput
             id="bulk-date"

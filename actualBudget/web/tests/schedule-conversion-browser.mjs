@@ -279,7 +279,9 @@ try {
     (await call(`/budgets/${budget}/transactions/${existing}`)).data.notes,
   ).toBe("Newer remote future note");
   // A new expense draft preserves its original identity during schedule conversion.
-  await page.getByRole("button", { name: "Add transaction", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Add transaction", exact: true })
+    .click();
   await page.getByLabel("Amount", { exact: true }).fill("5.00");
   await page.getByLabel("Date", { exact: true }).fill(inputDate);
   await page

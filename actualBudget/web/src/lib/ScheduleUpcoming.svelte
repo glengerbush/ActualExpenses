@@ -7,7 +7,11 @@
     budgetId,
     accountId = null,
     onmanage,
-  }: { budgetId: string; accountId?: string | null; onmanage: () => void } = $props();
+  }: {
+    budgetId: string;
+    accountId?: string | null;
+    onmanage: () => void;
+  } = $props();
   let view = $state.raw<SchedulePage | null>(null),
     error = $state("");
   let previews = $derived(
@@ -43,10 +47,7 @@
       <h2 id="scheduled-preview-title">Upcoming scheduled entries</h2>
       <button onclick={onmanage}>Manage schedules</button>
     </div>
-    <p>
-      Forecast only. These entries are excluded from balances until
-      posted.
-    </p>
+    <p>Forecast only. These entries are excluded from balances until posted.</p>
     {#if error}<p role="status">
         Upcoming entries could not be loaded: {error}
       </p>{/if}

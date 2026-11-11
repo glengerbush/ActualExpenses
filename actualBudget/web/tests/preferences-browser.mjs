@@ -119,7 +119,8 @@ try {
       .filter({
         has: page.getByText("Amount 150", { exact: true }),
       })
-      .locator("td.amount").first(),
+      .locator("td.amount")
+      .first(),
   ).toHaveText("\u202a¥\u202c150");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByText("Experimental features", { exact: true }).click();
@@ -140,7 +141,8 @@ try {
       .filter({
         has: page.getByText("Amount 150", { exact: true }),
       })
-      .locator("td.amount").first(),
+      .locator("td.amount")
+      .first(),
   ).toHaveText("2");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByText("Experimental features", { exact: true }).click();
@@ -195,7 +197,10 @@ try {
     .getByRole("button", { name: "Add transaction", exact: true })
     .click();
   await page.getByLabel("Date", { exact: true }).fill("08/11/2026");
-  await page.getByRole("region", { name: "Add transaction", exact: true }).getByRole("button", { name: "Choose date", exact: true }).click();
+  await page
+    .getByRole("region", { name: "Add transaction", exact: true })
+    .getByRole("button", { name: "Choose date", exact: true })
+    .click();
   await expect(page.getByRole("columnheader").first()).toHaveText("Mon");
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("Enter");

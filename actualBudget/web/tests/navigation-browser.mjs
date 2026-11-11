@@ -110,7 +110,9 @@ try {
   });
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.getByRole("button", { name: "Budget", exact: true }).click();
-  await page.getByRole("button", { name: "Transaction history", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Transaction history", exact: true })
+    .click();
   await expect.poll(() => held.length).toBeGreaterThan(0);
   await expect(page.getByTestId("register-total")).toHaveText("••••");
   for (const route of held) await route.continue();

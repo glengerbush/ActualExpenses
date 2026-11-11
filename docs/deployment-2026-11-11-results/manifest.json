@@ -1,0 +1,59 @@
+{
+  "base_commit": "58550863be6d735797277b623dce34263a7f62f9",
+  "tested_followup_files": {
+    "actualBudget/web/src/lib/RegisterTools.svelte": "6c8b9dd19547e977490479de800d2ffe48a2473e4d9ba8a2bc285428e2a0c32c",
+    "actualBudget/web/tests/concurrency-browser.mjs": "755b2ca279292d9d7b3c6c08790e62128177bf39e35100b3b37ff7b573bc76e7",
+    "actualBudget/web/tests/splits-large-browser.mjs": "d9791247c823f3b3b3cdc048300e8d2ec049c76ca238eb1d7770bcc79f34c8f1",
+    "actualBudget/web/tests/register-review-browser.mjs": "3e50f9bcbdb33dee6d45ae2b3d2cd9364f88f71a3cc3e2cd9ff699e1b74f22e5",
+    "actualBudget/web/tests/public-api-browser.mjs": "391b83816d02315760cda73ccec8659383cdcc9dfa96c37c0b7aebfe87ca2667"
+  },
+  "browser_batch": {
+    "passed": 100,
+    "total": 104,
+    "corrected_reruns_passed": 4
+  },
+  "rust_tests_passed": 459,
+  "matching_oracle_corrected_consecutive_passes": 20,
+  "logs": [
+    {
+      "path": "local-qualification.log.gz",
+      "uncompressed_sha256": "3c65d9d81c3064727ac3898699a514db0ddf55aae9c6086337378a7dacba71e8"
+    },
+    {
+      "path": "browser-batch.log.gz",
+      "uncompressed_sha256": "f137a4679c8b60db0839819d7526cfacef8db406a423939ded30d0741a61c2c1"
+    },
+    {
+      "path": "concurrency-corrected.log.gz",
+      "uncompressed_sha256": "587b818ab688293851974dc156b4fb7352386acfc99436d788da3c3c7e70ceb7"
+    },
+    {
+      "path": "register-corrected.log.gz",
+      "uncompressed_sha256": "40b8bd988d1152a9a4f2e90164323d389ff7e272fe6d0b7b692c8a5b04aa5f0d"
+    },
+    {
+      "path": "register-label-fixed.log.gz",
+      "uncompressed_sha256": "4779f34a9243c60748aa2a80019645a5e0579f18f109a9afdb9e6292d6cdd4d0"
+    },
+    {
+      "path": "public-api-corrected.log.gz",
+      "uncompressed_sha256": "b7b2ed9e6a8e6467093b3f4a5495cb640703caec610c364a197ff77f75bcddb5"
+    },
+    {
+      "path": "release-image-unified.log.gz",
+      "uncompressed_sha256": "259f1042e77e7bf5f7252303a90089d293497342d070c99ed6ced95b30861ea0"
+    },
+    {
+      "path": "final-format.log.gz",
+      "uncompressed_sha256": "f710fdf3560e149c3d84363fb62549c557f2ec49d5f05edebedcab4e3b512cb0"
+    },
+    {
+      "path": "matching-before-5.log.gz",
+      "uncompressed_sha256": "4d3963360daf019547b506348bb09b85a2153b00e677513b19bd7ffa14c77703"
+    },
+    {
+      "path": "matching-after-20.log.gz",
+      "uncompressed_sha256": "c7166abb998dcd4bc72eda2eaab1f01c4e51f68de8ce0011f3612919ce234634"
+    }
+  ]
+}

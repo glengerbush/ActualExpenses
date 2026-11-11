@@ -81,7 +81,19 @@ try {
   assert.equal(
     source.sums.find((s) => s.account === account).total,
     -1434,
-    "Pinned source displayed account total",
+    "Pinned source account total",
+  );
+  assert.equal(
+    source.before
+      .filter((row) => !row.is_child)
+      .reduce((sum, row) => sum + row.amount, 0),
+    -835,
+    "Pinned source unified history total before the batch",
+  );
+  assert.equal(
+    source.sums.reduce((sum, row) => sum + row.total, 0),
+    -1234,
+    "Pinned source unified history total after the batch",
   );
   browser = await chromium.launch({
     executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
@@ -102,12 +114,12 @@ try {
     ({ budget, account }) =>
       localStorage.setItem(
         "actualBudget.selection",
-        JSON.stringify({ budgetId: budget, accountId: account }),
+        JSON.stringify({ budgetId: budget, accountId: null }),
       ),
     { budget, account },
   );
   await page.reload();
-  await expect(page.getByTestId("register-total")).toHaveText("-10.35");
+  await expect(page.getByTestId("register-total")).toHaveText("-8.35");
   await expect(
     page.locator(".register-table tbody tr").filter({ hasText: "=literal" }),
   ).toHaveCount(1);
@@ -131,7 +143,7 @@ try {
   await page
     .getByRole("button", { name: "Refresh transactions", exact: true })
     .click();
-  await expect(page.getByTestId("register-total")).toHaveText("-14.34");
+  await expect(page.getByTestId("register-total")).toHaveText("-12.34");
   const corrected = page
       .locator(".register-table tbody tr")
       .filter({ hasText: "External batch correction" }),
@@ -157,7 +169,7 @@ try {
   await page.screenshot({ path: artifacts + "/desktop.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(corrected).toBeVisible();
-  await expect(page.getByTestId("register-total")).toHaveText("-14.34");
+  await expect(page.getByTestId("register-total")).toHaveText("-12.34");
   await page.screenshot({ path: artifacts + "/mobile.png", fullPage: true });
   await corrected.scrollIntoViewIfNeeded();
   await page.screenshot({ path: artifacts + "/mobile-register-viewport.png" });

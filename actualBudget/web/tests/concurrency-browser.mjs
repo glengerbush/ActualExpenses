@@ -834,6 +834,7 @@ try {
       category_id: category,
       amount: -100,
       date: "2026-01-01",
+      notes: "Latent off-budget category",
     },
     "2026-01-01T00:00:00.000Z-0000-0000000000000001",
   );
@@ -864,7 +865,11 @@ try {
     { budget, off },
   );
   await latentPage.reload();
-  await latentPage.getByRole("button", { name: /^Edit / }).click();
+  await latentPage
+    .getByRole("row")
+    .filter({ hasText: "Latent off-budget category" })
+    .getByRole("button", { name: /^Edit / })
+    .click();
   await latentPage
     .getByLabel("Notes", { exact: true })
     .fill("Only notes changed");

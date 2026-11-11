@@ -391,7 +391,9 @@
             >Field {index + 1}<select
               bind:value={condition.field}
               onchange={() => changeField(condition)}
-              >{#each ["notes", "amount", "date", "cleared", "reconciled", "payee", "category", "category_group", "payee_name", "category_name", "category_group_name", "transfer", "parent"] as field (field)}<option
+              >{#if condition.field === "account"}<option value="account"
+                  >Historical account</option
+                >{/if}{#each ["notes", "amount", "date", "cleared", "reconciled", "payee", "category", "category_group", "payee_name", "category_name", "category_group_name", "transfer", "parent"] as field (field)}<option
                   value={field}>{field.replaceAll("_", " ")}</option
                 >{/each}</select
             ></label

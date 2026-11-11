@@ -156,9 +156,8 @@ try {
       page.getByText("Register settings saved.", { exact: true }),
     ).toBeVisible();
     expect(
-      (await call(`/budgets/${budget}/register-settings`)).settings.views[
-        account
-      ].query.filter.conditions[0].value,
+      (await call(`/budgets/${budget}/register-settings`)).settings.views.all
+        .query.filter.conditions[0].value,
     ).toBe(7036874417766401);
     await page.getByLabel(/^Operator 1/).selectOption("isbetween");
     await page
@@ -172,9 +171,8 @@ try {
       page.getByText("Register settings saved.", { exact: true }),
     ).toBeVisible();
     expect(
-      (await call(`/budgets/${budget}/register-settings`)).settings.views[
-        account
-      ].query.filter.conditions[0].value,
+      (await call(`/budgets/${budget}/register-settings`)).settings.views.all
+        .query.filter.conditions[0].value,
     ).toEqual({ num1: 7036874417766401, num2: 7036874417766401 });
     await page.reload();
     await page.getByText("Filters and columns", { exact: true }).click();
@@ -191,34 +189,39 @@ try {
   }
   if (!run || run === "scope") {
     const { budget, context, page } = await setup(true);
-    await page.getByLabel(/^Account scope/).selectOption("onbudget");
+    await expect(page.getByLabel(/^Account scope/)).toHaveCount(0);
+    await expect(
+      page.getByLabel("Show Account column", { exact: true }),
+    ).toHaveCount(0);
     await page.getByLabel("Show Notes column", { exact: true }).uncheck();
     await page.getByRole("button", { name: "Save view", exact: true }).click();
     await expect(
       page.getByText("Register settings saved.", { exact: true }),
     ).toBeVisible();
     expect(
-      (await call(`/budgets/${budget}/register-settings`)).settings.views
-        .onbudget.columns,
+      (await call(`/budgets/${budget}/register-settings`)).settings.views.all
+        .columns,
     ).not.toContain("notes");
-    await page.getByLabel(/^Account scope/).selectOption("all");
-    await expect(page.getByLabel(/^Account scope/)).toHaveValue("all");
+    await page.reload();
+    await page.getByText("Filters and columns", { exact: true }).click();
+    await expect(page.getByLabel(/^Account scope/)).toHaveCount(0);
     await expect(
       page.getByLabel("Show Notes column", { exact: true }),
-    ).toBeChecked();
+    ).not.toBeChecked();
+    await page.getByLabel("Show Notes column", { exact: true }).check();
     await page.getByRole("button", { name: "Save view", exact: true }).click();
     await expect(
       page.getByText("Register settings saved.", { exact: true }),
     ).toBeVisible();
     await page.reload();
     await page.getByText("Filters and columns", { exact: true }).click();
-    await expect(page.getByLabel(/^Account scope/)).toHaveValue("all");
-    await page.getByLabel(/^Account scope/).selectOption("onbudget");
     await expect(
       page.getByLabel("Show Notes column", { exact: true }),
-    ).not.toBeChecked();
+    ).toBeChecked();
     await context.close();
-    console.log("PASS independent all/on-budget views persist and restore");
+    console.log(
+      "PASS unified history view columns persist and restore without account controls",
+    );
   }
   if (!run || run === "regex") {
     const { budget, account, context, page } = await setup();
@@ -355,12 +358,33 @@ try {
       .getByRole("combobox", { name: /^Saved filter/ })
       .selectOption({ label: "Identity" });
     await expect(page.getByLabel(/^Field 1/)).toHaveValue("account");
+    await expect(
+      page.getByLabel(/^Field 1/).locator("option:checked"),
+    ).toHaveText("Historical account");
     await expect(page.getByLabel(/^Value\s+1/)).toHaveValue(
       "0165d0a7-99e2-4719-a102-c007b7a8daaa",
     );
     await expect(
       page.getByLabel(/^Value\s+1/).locator("option:checked"),
     ).toHaveText("Spending");
+    await mkdir(new URL("../test-results/", import.meta.url), {
+      recursive: true,
+    });
+    await page.screenshot({
+      path: "test-results/register-historical-filter-desktop.png",
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page.screenshot({
+      path: "test-results/register-historical-filter-mobile.png",
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 1280, height: 720 });
     const groupA = randomUUID(),
       groupB = randomUUID(),
       catA = randomUUID(),
@@ -390,6 +414,9 @@ try {
       .getByRole("combobox", { name: /^Saved filter/ })
       .selectOption({ label: "Identity" });
     await page.getByLabel(/^Field 1/).selectOption("category");
+    await expect(
+      page.getByLabel(/^Field 1/).locator('option[value="account"]'),
+    ).toHaveCount(0);
     const value = page.getByLabel(/^Value\s+1/);
     await expect(value.locator(`option[value="${catA}"]`)).toHaveText(
       "House / Food",

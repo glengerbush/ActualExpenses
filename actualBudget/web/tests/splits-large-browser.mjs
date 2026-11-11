@@ -92,10 +92,12 @@ try {
     .locator(".budget-list button")
     .filter({ hasText: copyName })
     .click();
-  await page
-    .getByRole("button", { name: "1001 allocations", exact: true })
+  const largeRow = page
+    .getByRole("row")
+    .filter({ hasText: "Imported 1001 allocations" });
+  await largeRow
+    .getByRole("button", { name: "Edit splits", exact: true })
     .click();
-  await page.getByRole("button", { name: "Edit splits", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Split transaction", exact: true }),
   ).toBeVisible({ timeout: 30000 });
@@ -182,7 +184,9 @@ try {
   );
   expect(current.data.children[0].notes).toBe("Allocation 1");
   await page.unroute("**/transactions/*/splits");
-  await page.getByRole("button", { name: "Edit splits", exact: true }).click();
+  await largeRow
+    .getByRole("button", { name: "Edit splits", exact: true })
+    .click();
   await page.getByLabel("Split 1 amount", { exact: true }).fill("0");
   await page.getByRole("button", { name: "Add split", exact: true }).click();
   await expect(
@@ -199,7 +203,9 @@ try {
   expect(current.data.children[0].amount).toBe(0);
   expect(current.data.children[1001].amount).toBe(-1);
   expect(current.data.amount).toBe(-1001);
-  await page.getByRole("button", { name: "Edit splits", exact: true }).click();
+  await largeRow
+    .getByRole("button", { name: "Edit splits", exact: true })
+    .click();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByLabel("Go to split", { exact: true }).fill("1002");
   await page

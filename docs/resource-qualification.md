@@ -313,8 +313,8 @@ format checks pass; both20-sample comparisons and both steady-idle checks pass
 with the recorded baseline exceptions. No production source changed, so existing
 financial/native functional results remain valid; no broad suite rerun is claimed.
 
-Remaining51 gates: restore latency distributions, repeated
-undo/redo storage growth, graph/rollback and analysis-guard stress, Android
+Remaining51 gates: restore latency distributions,
+graph/rollback and analysis-guard stress, Android
 resource observations, background behavior, due-schedule cross-check and final
 keyboard/accessibility/theme/locale/Impeccable review.52/53 also remain open.
 
@@ -402,3 +402,51 @@ slice. Shared process/counter helpers preserve the opening protocol; sample
 fences refuse accidentally repeating mutating runs. Final archives/hashes,
 240 observations, financial proof and credential exclusion were checked.
 Syntax/format checks pass. Ticket51 remains open for the gates listed above.
+
+## Repeated owned history on the large budget
+
+`check-resource-history.mjs` imports the identical10048-row opening archive into
+a fresh release container, makes40 owned note edits, then executes1000 undo/redo
+cycles through HTTP. Every inverse checks its resulting note. Finally all20
+retained actions undo and redo sequentially, with no further available action at
+either end and unchanged source account balances. All checks pass. This stresses
+the replacement's durable history; it is not a source-browser history benchmark.
+
+[Summary](resource-results-229be58/history/summary.json),
+[raw observations](resource-results-229be58/history/observations.json.gz),
+[stopped-copy storage diagnostics](resource-results-229be58/history/storage-diagnostics.json).
+
+| Command | Samples | HTTP ms p50/p95 | Server CPU ms p50/p95 | Server block writes bytes p50/p95 |
+| --- | ---: | ---: | ---: | ---: |
+| Ordinary owned note edit |40|54/65|48/58|98304/98304|
+| Undo |1000|341/456|329/442|49152/86016|
+| Redo |1000|342/455|329/444|49152/86016|
+
+First/last20 undo CPU medians318/329ms, redo323/335ms. Individual spikes did
+not establish a sustained growth regression. Inverse operations run structural
+validation beyond the changed note, so their cost exceeds ordinary edits. This
+run does not identify exact shares of that cost. Server cgroup memory medians
+stay near276MiB including post-import allocation/cache; no allocator change.
+Counters cover request through complete response; untimed public reads verify
+each result. Node caller counters are not browser costs. Raw empty browser event
+arrays are uninstrumented, not evidence of zero HTTP. Three diagnostic requests
+(two API reads and one static fallback read) occurred during the first100 cycles;
+their samples remain in the observations.
+
+At every snapshot, combined database/WAL/SHM logical file lengths remain
+77855904 bytes. A read-only copy after stopping the disposable container passes
+SQLite integrity_check and contains20 history actions and2040 inverse lineage
+rows. Lineage table/index consume561152/524288 bytes; history actions45056 bytes.
+The database still has965 free4096-byte pages, so stable file lengths do **not**
+prove bounded history storage. Lineage remains retained beyond the20 actions:
+this run consumes about1.04MiB of lineage table/index space for1020 cycles,
+including the final20-action walk. Larger lifetime workloads can grow storage.
+No pruning was added: measured latency/memory stayed stable, while dropping
+aliases without proving sequential ownership could break safe undo. All existing
+remote-edit/relock protections remain unchanged; this slice does not rerun them.
+
+Root reviewed protocol, disposable-target guards, stack assertions and explicit
+measurement limits. JavaScript syntax, format and diff checks pass. Production
+code remains229be58. Large graph/rollback/restore and analysis-guard stress still
+require their separate checks; this result closes only the repeated-history and
+large-budget ordinary-note-write observation gap.

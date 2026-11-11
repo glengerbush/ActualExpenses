@@ -1,0 +1,516 @@
+{
+  "image": "sha256:e400473e4eaa0b079edc496196e9996549bb5dde2e44113be3faf828ec51a22e",
+  "archive_sha256": "859ce7e5dcdafb6c81786ea9a736238e3294ac44c5f89aefc58939393936220d",
+  "count": 1000,
+  "protocol": "Public HTTP; production container; one 10048-row imported budget; 40 owned note edits, repeated undo/redo of newest action, then all20 retained actions; counters include HTTP request/body only; storage snapshots outside timing; caller process is Node, not a browser",
+  "summary": {
+    "edits": {
+      "all": {
+        "samples": 40,
+        "http_ms": {
+          "p50": 53.761837000000014,
+          "p95": 64.56371099999978
+        },
+        "server_cpu_ms": {
+          "p50": 48.186000000000604,
+          "p95": 57.95800000000054
+        },
+        "server_peak_memory_bytes": {
+          "p50": 289456128,
+          "p95": 289837056
+        },
+        "server_write_bytes_by_device": {
+          "259:0": {
+            "p50": 98304,
+            "p95": 98304
+          },
+          "253:0": {
+            "p50": 98304,
+            "p95": 98304
+          }
+        }
+      },
+      "first20": {
+        "samples": 20,
+        "http_ms": {
+          "p50": 55.699665000000095,
+          "p95": 66.23235300000033
+        },
+        "server_cpu_ms": {
+          "p50": 50.46600000000035,
+          "p95": 58.167999999999665
+        },
+        "server_peak_memory_bytes": {
+          "p50": 289456128,
+          "p95": 290013184
+        },
+        "server_write_bytes_by_device": {
+          "259:0": {
+            "p50": 98304,
+            "p95": 98304
+          },
+          "253:0": {
+            "p50": 98304,
+            "p95": 98304
+          }
+        }
+      },
+      "last20": {
+        "samples": 20,
+        "http_ms": {
+          "p50": 51.565497000000505,
+          "p95": 57.64135999999962
+        },
+        "server_cpu_ms": {
+          "p50": 46.58399999999983,
+          "p95": 52.305999999999585
+        },
+        "server_peak_memory_bytes": {
+          "p50": 289284096,
+          "p95": 289804288
+        },
+        "server_write_bytes_by_device": {
+          "259:0": {
+            "p50": 98304,
+            "p95": 98304
+          },
+          "253:0": {
+            "p50": 98304,
+            "p95": 98304
+          }
+        }
+      }
+    },
+    "undo": {
+      "all": {
+        "samples": 1000,
+        "http_ms": {
+          "p50": 341.4702239999315,
+          "p95": 456.09295199997723
+        },
+        "server_cpu_ms": {
+          "p50": 328.67299999995157,
+          "p95": 441.95899999997346
+        },
+        "server_peak_memory_bytes": {
+          "p50": 289263616,
+          "p95": 289894400
+        },
+        "server_write_bytes_by_device": {
+          "259:0": {
+            "p50": 49152,
+            "p95": 86016
+          },
+          "253:0": {
+            "p50": 49152,
+            "p95": 86016
+          }
+        }
+      },
+      "first20": {
+        "samples": 20,
+        "http_ms": {
+          "p50": 332.1201400000009,
+          "p95": 363.7041710000012
+        },
+        "server_cpu_ms": {
+          "p50": 318.14799999999923,
+          "p95": 352.6100000000006
+        },
+        "server_peak_memory_bytes": {
+          "p50": 289030144,
+          "p95": 289353728
+        },
+        "server_write_bytes_by_device": {
+          "259:0": {
+            "p50": 45056,
+            "p95": 98304
+          },
+          "253:0": {
+            "p50": 45056,
+            "p95": 98304
+          }
+        }
+      },
+      "last20": {
+        "samples": 20,
+        "http_ms": {
+          "p50": 341.4702239999315,
+          "p95": 420.4096230000723
+        },
+        "server_cpu_ms": {
+          "p50": 328.6920000000391,
+          "p95": 405.9769999999553
+        },
+        "server_peak_memory_bytes": {
+          "p50": 289255424,
+          "p95": 289521664
+        },
+        "server_write_bytes_by_device": {
+          "259:0": {
+            "p50": 49152,
+            "p95": 86016
+          },
+          "253:0": {
+            "p50": 49152,
+            "p95": 86016
+          }
+        }
+      }
+    },
+    "redo": {
+      "all": {
+        "samples": 1000,
+        "http_ms": {
+          "p50": 342.1253919999581,
+          "p95": 454.6662789999973
+        },
+        "server_cpu_ms": {
+          "p50": 329.23100000002887,
+          "p95": 444.454000000027
+        },
+        "server_peak_memory_bytes": {
+          "p50": 289263616,
+          "p95": 289779712
+        },
+        "server_write_bytes_by_device": {
+          "259:0": {
+            "p50": 49152,
+            "p95": 86016
+          },
+          "253:0": {
+            "p50": 49152,
+            "p95": 86016
+          }
+        }
+      },
+      "first20": {
+        "samples": 20,
+        "http_ms": {
+          "p50": 332.24214799999936,
+          "p95": 377.2126360000002
+        },
+        "server_cpu_ms": {
+          "p50": 322.5010000000002,
+          "p95": 363.28800000000047
+        },
+        "server_peak_memory_bytes": {
+          "p50": 289021952,
+          "p95": 289349632
+        },
+        "server_write_bytes_by_device": {
+          "259:0": {
+            "p50": 45056,
+            "p95": 98304
+          },
+          "253:0": {
+            "p50": 45056,
+            "p95": 98304
+          }
+        }
+      },
+      "last20": {
+        "samples": 20,
+        "http_ms": {
+          "p50": 347.26381999999285,
+          "p95": 409.9785579999443
+        },
+        "server_cpu_ms": {
+          "p50": 334.95799999998417,
+          "p95": 396.2280000000028
+        },
+        "server_peak_memory_bytes": {
+          "p50": 289255424,
+          "p95": 289521664
+        },
+        "server_write_bytes_by_device": {
+          "259:0": {
+            "p50": 49152,
+            "p95": 86016
+          },
+          "253:0": {
+            "p50": 49152,
+            "p95": 86016
+          }
+        }
+      }
+    }
+  },
+  "financial": {
+    "accounts": [
+      {
+        "id": "1c1e03c6-7c75-4cd9-bee0-169482a0de26",
+        "balance": 101600
+      },
+      {
+        "id": "2d0d5b02-942d-483b-a6f5-6e86d6d5bce5",
+        "balance": 200000
+      },
+      {
+        "id": "3076d7dc-590c-475c-bbfc-51e5fbd1eb86",
+        "balance": 1200000
+      },
+      {
+        "id": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "balance": -50402789
+      },
+      {
+        "id": "8a58ef5d-b19e-42f5-aeac-e4e02f18fc85",
+        "balance": 7000
+      },
+      {
+        "id": "fc5467bb-3dba-4d6f-aae9-366eca9678b8",
+        "balance": 2000
+      }
+    ],
+    "transaction": "50500000-0000-4000-8000-000000000000",
+    "amount": -1,
+    "date": "2017-01-01",
+    "final_notes": "Resource history 40",
+    "retained_actions": 20,
+    "sequential_undo_redo": true
+  },
+  "storage": [
+    {
+      "label": "after_import",
+      "files": [
+        {
+          "path": "actualbudget.sqlite3",
+          "bytes": 42754048
+        },
+        {
+          "path": "actualbudget.sqlite3-wal",
+          "bytes": 35003552
+        },
+        {
+          "path": "actualbudget.sqlite3-shm",
+          "bytes": 98304
+        }
+      ],
+      "total_bytes": 77855904
+    },
+    {
+      "label": "after40_edits",
+      "files": [
+        {
+          "path": "actualbudget.sqlite3",
+          "bytes": 42754048
+        },
+        {
+          "path": "actualbudget.sqlite3-wal",
+          "bytes": 35003552
+        },
+        {
+          "path": "actualbudget.sqlite3-shm",
+          "bytes": 98304
+        }
+      ],
+      "total_bytes": 77855904
+    },
+    {
+      "label": "after100_cycles",
+      "files": [
+        {
+          "path": "actualbudget.sqlite3",
+          "bytes": 42754048
+        },
+        {
+          "path": "actualbudget.sqlite3-wal",
+          "bytes": 35003552
+        },
+        {
+          "path": "actualbudget.sqlite3-shm",
+          "bytes": 98304
+        }
+      ],
+      "total_bytes": 77855904
+    },
+    {
+      "label": "after200_cycles",
+      "files": [
+        {
+          "path": "actualbudget.sqlite3",
+          "bytes": 42754048
+        },
+        {
+          "path": "actualbudget.sqlite3-wal",
+          "bytes": 35003552
+        },
+        {
+          "path": "actualbudget.sqlite3-shm",
+          "bytes": 98304
+        }
+      ],
+      "total_bytes": 77855904
+    },
+    {
+      "label": "after300_cycles",
+      "files": [
+        {
+          "path": "actualbudget.sqlite3",
+          "bytes": 42754048
+        },
+        {
+          "path": "actualbudget.sqlite3-wal",
+          "bytes": 35003552
+        },
+        {
+          "path": "actualbudget.sqlite3-shm",
+          "bytes": 98304
+        }
+      ],
+      "total_bytes": 77855904
+    },
+    {
+      "label": "after400_cycles",
+      "files": [
+        {
+          "path": "actualbudget.sqlite3",
+          "bytes": 42754048
+        },
+        {
+          "path": "actualbudget.sqlite3-wal",
+          "bytes": 35003552
+        },
+        {
+          "path": "actualbudget.sqlite3-shm",
+          "bytes": 98304
+        }
+      ],
+      "total_bytes": 77855904
+    },
+    {
+      "label": "after500_cycles",
+      "files": [
+        {
+          "path": "actualbudget.sqlite3",
+          "bytes": 42754048
+        },
+        {
+          "path": "actualbudget.sqlite3-wal",
+          "bytes": 35003552
+        },
+        {
+          "path": "actualbudget.sqlite3-shm",
+          "bytes": 98304
+        }
+      ],
+      "total_bytes": 77855904
+    },
+    {
+      "label": "after600_cycles",
+      "files": [
+        {
+          "path": "actualbudget.sqlite3",
+          "bytes": 42754048
+        },
+        {
+          "path": "actualbudget.sqlite3-wal",
+          "bytes": 35003552
+        },
+        {
+          "path": "actualbudget.sqlite3-shm",
+          "bytes": 98304
+        }
+      ],
+      "total_bytes": 77855904
+    },
+    {
+      "label": "after700_cycles",
+      "files": [
+        {
+          "path": "actualbudget.sqlite3",
+          "bytes": 42754048
+        },
+        {
+          "path": "actualbudget.sqlite3-wal",
+          "bytes": 35003552
+        },
+        {
+          "path": "actualbudget.sqlite3-shm",
+          "bytes": 98304
+        }
+      ],
+      "total_bytes": 77855904
+    },
+    {
+      "label": "after800_cycles",
+      "files": [
+        {
+          "path": "actualbudget.sqlite3",
+          "bytes": 42754048
+        },
+        {
+          "path": "actualbudget.sqlite3-wal",
+          "bytes": 35003552
+        },
+        {
+          "path": "actualbudget.sqlite3-shm",
+          "bytes": 98304
+        }
+      ],
+      "total_bytes": 77855904
+    },
+    {
+      "label": "after900_cycles",
+      "files": [
+        {
+          "path": "actualbudget.sqlite3",
+          "bytes": 42754048
+        },
+        {
+          "path": "actualbudget.sqlite3-wal",
+          "bytes": 35003552
+        },
+        {
+          "path": "actualbudget.sqlite3-shm",
+          "bytes": 98304
+        }
+      ],
+      "total_bytes": 77855904
+    },
+    {
+      "label": "after1000_cycles",
+      "files": [
+        {
+          "path": "actualbudget.sqlite3",
+          "bytes": 42754048
+        },
+        {
+          "path": "actualbudget.sqlite3-wal",
+          "bytes": 35003552
+        },
+        {
+          "path": "actualbudget.sqlite3-shm",
+          "bytes": 98304
+        }
+      ],
+      "total_bytes": 77855904
+    },
+    {
+      "label": "after_sequential20",
+      "files": [
+        {
+          "path": "actualbudget.sqlite3",
+          "bytes": 42754048
+        },
+        {
+          "path": "actualbudget.sqlite3-wal",
+          "bytes": 35003552
+        },
+        {
+          "path": "actualbudget.sqlite3-shm",
+          "bytes": 98304
+        }
+      ],
+      "total_bytes": 77855904
+    }
+  ],
+  "raw_sha256": "401c22d60de04b97b21e8e8c3e09595fc47256f1b5b6ff6848038ed855bacac4",
+  "compressed_sha256": "fb24765b782e46bf029b2cc04fcb41fb046a63d398ba065b597a80b697567d3f",
+  "measurement_notes": [
+    "Node public HTTP caller; raw client counters are not browser costs. Empty network event arrays are uninstrumented, not zero requests; use server cgroup network counters.",
+    "Three diagnostic requests (two API reads and one static fallback read) occurred during the first100 cycles; phase identity was not captured. Preserve those samples as observed.",
+    "Sequential on the same shared development host as browser results; no simultaneous build or other benchmark. Static documentation checks and ordinary host activity continued."
+  ]
+}

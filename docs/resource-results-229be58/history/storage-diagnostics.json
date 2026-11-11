@@ -1,0 +1,19 @@
+{
+  "scope": "Read-only diagnostics on a stopped disposable container copy; never financial expectations",
+  "integrity": "ok",
+  "page_size": 4096,
+  "pages": 10438,
+  "free_pages": 965,
+  "table_rows": {
+    "history_actions": 20,
+    "history_lineage": 2040,
+    "budget_changes": 10078
+  },
+  "table_page_bytes": {
+    "history_actions": 45056,
+    "history_lineage": 561152,
+    "history_owner": 4096,
+    "sqlite_autoindex_history_actions_1": 4096,
+    "sqlite_autoindex_history_lineage_1": 524288
+  }
+}

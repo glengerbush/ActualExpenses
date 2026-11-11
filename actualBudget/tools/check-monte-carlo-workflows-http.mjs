@@ -95,6 +95,19 @@ try {
     },
     201,
   );
+  // The companion's ordinary cleared-expense route must remain responsive too.
+  await call(
+    root + "/transactions",
+    {
+      id: randomUUID(),
+      account_id: account,
+      amount: -1234,
+      date: "2026-01-02",
+      notes: "Expense during simulation",
+      cleared: true,
+    },
+    201,
+  );
   assert.ok(
     performance.now() - started < 2000,
     "Ordinary write blocked behind simulation",
@@ -119,7 +132,7 @@ try {
     },
   };
   const first = (await call(route, linked)).data;
-  assert.equal(first.config.pots[0].startingBalance, 5_000_000);
+  assert.equal(first.config.pots[0].startingBalance, 4_998_766);
   assert.equal(first.cache.hit, false);
   assert.equal(
     (await call(route, { ...linked, request_id: randomUUID() })).data.cache.hit,
@@ -141,7 +154,7 @@ try {
   );
   const changed = (await call(route, { ...linked, request_id: randomUUID() }))
     .data;
-  assert.equal(changed.config.pots[0].startingBalance, 5_010_000);
+  assert.equal(changed.config.pots[0].startingBalance, 5_008_766);
   assert.equal(changed.cache.hit, false);
   assert.notEqual(changed.cache.input_revision, first.cache.input_revision);
   const fallback = (

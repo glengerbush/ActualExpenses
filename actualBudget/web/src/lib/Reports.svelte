@@ -20,6 +20,7 @@
   } from "./reports";
   import { preferences } from "./preferences.svelte";
   import CrossoverFields from "./CrossoverFields.svelte";
+  import MonteCarloFields from "./MonteCarloFields.svelte";
   import FormulaFields from "./FormulaFields.svelte";
   import SankeyFields from "./SankeyFields.svelte";
   import BudgetAnalysisFields from "./BudgetAnalysisFields.svelte";
@@ -108,18 +109,25 @@
       preferences.hasUsableShared &&
       preferences.shared.experimental.formulaMode,
   );
+  let monteCarloEnabled = $derived(
+    preferences.budgetId === budgetId &&
+      preferences.hasUsableShared &&
+      preferences.shared.experimental.monteCarloReport,
+  );
   let displayedWidgets = $derived(
-    tab === "formula"
-      ? widgets.filter((w) => w.config.type === "formula-card")
-      : tab === "forecast"
-        ? widgets.filter((w) => w.config.type === "balance-forecast-card")
-        : tab === "analysis"
-          ? widgets.filter((w) => w.config.type === "budget-analysis-card")
-          : tab === "crossover"
-            ? widgets.filter((w) => w.config.type === "crossover-card")
-            : tab === "sankey"
-              ? widgets.filter((w) => w.config.type === "sankey-card")
-              : widgets,
+    tab === "monte-carlo"
+      ? widgets.filter((w) => w.config.type === "monte-carlo-card")
+      : tab === "formula"
+        ? widgets.filter((w) => w.config.type === "formula-card")
+        : tab === "forecast"
+          ? widgets.filter((w) => w.config.type === "balance-forecast-card")
+          : tab === "analysis"
+            ? widgets.filter((w) => w.config.type === "budget-analysis-card")
+            : tab === "crossover"
+              ? widgets.filter((w) => w.config.type === "crossover-card")
+              : tab === "sankey"
+                ? widgets.filter((w) => w.config.type === "sankey-card")
+                : widgets,
   );
   let types = $derived([
     ["cash-flow-card", "Cash flow"],
@@ -130,6 +138,7 @@
     ["calendar-card", "Transaction calendar"],
     ["custom-report", "Saved custom report"],
     ["crossover-card", "Crossover Point"],
+    ...(monteCarloEnabled ? [["monte-carlo-card", "Monte Carlo"]] : []),
     ...(formulaEnabled ? [["formula-card", "Formula"]] : []),
     ...(sankeyEnabled ? [["sankey-card", "Sankey"]] : []),
     ...(analysisEnabled ? [["budget-analysis-card", "Budget Analysis"]] : []),
@@ -338,30 +347,37 @@
         type,
         ...position,
         width: 6,
-        height: ["sankey-card", "crossover-card"].includes(type) ? 6 : 3,
-        meta: {
-          name: "",
-          timeFrame: {
-            start:
-              type === "crossover-card"
-                ? addMonths(today.slice(0, 7), -120)
-                : type === "budget-analysis-card"
-                  ? addMonths(today.slice(0, 7), -5)
-                  : today.slice(0, 7),
-            end:
-              type === "crossover-card"
-                ? addMonths(today.slice(0, 7), -1)
-                : type === "balance-forecast-card"
-                  ? addMonths(today.slice(0, 7), 11)
-                  : today.slice(0, 7),
-            mode:
-              type === "crossover-card"
-                ? "full"
-                : type === "balance-forecast-card"
-                  ? "static"
-                  : "sliding-window",
-          },
-        },
+        height: ["sankey-card", "crossover-card", "monte-carlo-card"].includes(
+          type,
+        )
+          ? 6
+          : 3,
+        meta:
+          type === "monte-carlo-card"
+            ? { name: "" }
+            : {
+                name: "",
+                timeFrame: {
+                  start:
+                    type === "crossover-card"
+                      ? addMonths(today.slice(0, 7), -120)
+                      : type === "budget-analysis-card"
+                        ? addMonths(today.slice(0, 7), -5)
+                        : today.slice(0, 7),
+                  end:
+                    type === "crossover-card"
+                      ? addMonths(today.slice(0, 7), -1)
+                      : type === "balance-forecast-card"
+                        ? addMonths(today.slice(0, 7), 11)
+                        : today.slice(0, 7),
+                  mode:
+                    type === "crossover-card"
+                      ? "full"
+                      : type === "balance-forecast-card"
+                        ? "static"
+                        : "sliding-window",
+                },
+              },
       },
       tombstone: false,
     });
@@ -489,6 +505,11 @@
       disabled={!!editor || busy}
       onclick={() => switchTab("custom")}>{t("Custom reports")}</button
     >
+    {#if monteCarloEnabled || tab === "monte-carlo"}<button
+        aria-pressed={tab === "monte-carlo"}
+        disabled={!!editor || busy}
+        onclick={() => switchTab("monte-carlo")}>{t("Monte Carlo")}</button
+      >{/if}
     {#if formulaEnabled || tab === "formula"}<button
         aria-pressed={tab === "formula"}
         disabled={!!editor || busy}
@@ -523,6 +544,15 @@
         onchanged={reportsChanged}
       />{/key}
   {:else}
+    {#if tab === "monte-carlo"}<p>
+        {t(
+          "Monte Carlo plans compare possible outcomes from saved assumptions. Choose a dashboard, then create or edit a plan. Calculations run only when requested.",
+        )}
+      </p>
+      {#if !monteCarloEnabled}<p role="status">
+          {t("Enable Monte Carlo report in Settings to run this plan.")}
+        </p>{/if}
+    {/if}
     {#if tab === "forecast"}<p>
         {t(
           "Forecasts are saved dashboard widgets. Choose a dashboard, then create or edit a forecast. Estimates never change recorded balances.",
@@ -633,39 +663,44 @@
           ><button
             onclick={() =>
               newWidget(
-                tab === "formula"
-                  ? "formula-card"
-                  : tab === "forecast"
-                    ? "balance-forecast-card"
-                    : tab === "analysis"
-                      ? "budget-analysis-card"
-                      : tab === "crossover"
-                        ? "crossover-card"
-                        : tab === "sankey"
-                          ? "sankey-card"
-                          : "cash-flow-card",
+                tab === "monte-carlo"
+                  ? "monte-carlo-card"
+                  : tab === "formula"
+                    ? "formula-card"
+                    : tab === "forecast"
+                      ? "balance-forecast-card"
+                      : tab === "analysis"
+                        ? "budget-analysis-card"
+                        : tab === "crossover"
+                          ? "crossover-card"
+                          : tab === "sankey"
+                            ? "sankey-card"
+                            : "cash-flow-card",
               )}
             disabled={busy ||
               !!editor ||
               !!pending ||
               cached ||
               disconnected ||
+              (tab === "monte-carlo" && !monteCarloEnabled) ||
               (tab === "formula" && !formulaEnabled) ||
               (tab === "forecast" && !forecastEnabled) ||
               (tab === "analysis" && !analysisEnabled) ||
               (tab === "sankey" && !sankeyEnabled)}
             >{t(
-              tab === "formula"
-                ? "New formula"
-                : tab === "forecast"
-                  ? "New forecast"
-                  : tab === "analysis"
-                    ? "New analysis"
-                    : tab === "crossover"
-                      ? "New crossover"
-                      : tab === "sankey"
-                        ? "New flow"
-                        : "Add widget",
+              tab === "monte-carlo"
+                ? "New Monte Carlo plan"
+                : tab === "formula"
+                  ? "New formula"
+                  : tab === "forecast"
+                    ? "New forecast"
+                    : tab === "analysis"
+                      ? "New analysis"
+                      : tab === "crossover"
+                        ? "New crossover"
+                        : tab === "sankey"
+                          ? "New flow"
+                          : "Add widget",
             )}</button
           >{/if}
       </div>
@@ -743,6 +778,15 @@
                   ><option value="right">{t("right")}</option></select
                 ></label
               >
+            {:else if editor.config.type === "monte-carlo-card"}<MonteCarloFields
+                {meta}
+                {accounts}
+                onchange={(patch) => {
+                  void change(() => {
+                    if (editor) editor.config.meta = { ...meta, ...patch };
+                  });
+                }}
+              />
             {:else if editor.config.type === "formula-card"}<FormulaFields
                 {budgetId}
                 {accounts}
@@ -970,7 +1014,7 @@
                     ></label
                   >
                 </div>{/if}{/if}
-            {#if !["markdown-card", "crossover-card", "formula-card"].includes(String(editor.config.type))}<ReportConditions
+            {#if !["markdown-card", "crossover-card", "formula-card", "monte-carlo-card"].includes(String(editor.config.type))}<ReportConditions
                 {budgetId}
                 {accounts}
                 sourceCategoryFilters={editor.config.type ===
@@ -1052,6 +1096,7 @@
             tab === "forecast" ||
             tab === "analysis" ||
             tab === "sankey" ||
+            tab === "monte-carlo" ||
             tab === "crossover",
         },
       ]}

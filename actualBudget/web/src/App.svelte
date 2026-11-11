@@ -266,6 +266,21 @@
           showForm("reports");
         },
       });
+    if (
+      preferences.budgetId === budget!.id &&
+      preferences.hasUsableShared &&
+      preferences.shared.experimental.monteCarloReport
+    )
+      result.push({
+        id: "monte-carlo",
+        label: "Monte Carlo",
+        disabled: locked || !compatible,
+        run: async () => {
+          await writeValue(`view:reporting-tab:${budget!.id}`, "monte-carlo");
+          reportEntryKey++;
+          showForm("reports");
+        },
+      });
     const views = [
       ["planning", "Budget", false],
       ["categories", "Categories", disconnected],

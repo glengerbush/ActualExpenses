@@ -1,10 +1,10 @@
-# Monte Carlo planning — tickets39/40 in progress
+# Monte Carlo planning —39 accepted;40 open
 
 Pinned Actual26.10.0 source commit:
 `2bebdbaae0b701120a8cad9d56aafd64fa04c577`. Ticket39 started after42 acceptance
-at `c1cbac2`. Source fixtures and the native calculation API are implemented;
-saved-plan import/recovery qualification is implemented. The interface remains unfinished.
-Neither39 nor40 is accepted yet.
+at `c1cbac2`. Ticket39's baseline is accepted2026-11-10 after public API,
+saved-plan recovery and browser qualification. Ticket40 retains the remaining
+withdrawal strategies/rules, charts, cash flows and individual-run exploration.
 
 ## Source contract
 
@@ -88,12 +88,10 @@ the engine choice if whole-system resource qualification finds a regression.
 
 ## Remaining feature delivery
 
-39 still requires the saved-plan editor, opt-in labeled
-UI with assumptions/errors and summary/distributions, browser verification and
-final review. Preserve linked-account live balance/fallback semantics and exact saved
-metadata.40 adds all remaining strategies/rules, charts/cash flows and accessible
-individual-run inspection. The existing reporting-document storage passes the
-saved-plan public API qualification below; browser editing remains unverified.
+40 adds selection and qualification of all remaining strategies/rules,
+portfolio/cash-flow charts and accessible individual-run inspection. Existing
+advanced settings remain preserved and execute through the source engine; that
+does not establish completion of40's controls, fixtures or inspection workflow.
 
 ## Native calculation API checkpoint
 
@@ -149,7 +147,7 @@ and `npm --prefix actualBudget/web run test:monte-carlo-api`. Release qualificat
 runs these source/API/resource/contract checks. Root review against `f0513a5`
 checked source fidelity, budget isolation, cancellation/permit ownership, SQL-lock
 lifetime, cache inputs, input validation and contract coverage. No unresolved
-native-API finding; whole39 still needs the saved-plan and UI work listed above.
+native-API finding. Later checkpoints below complete39's persistence and UI.
 
 ## Saved-plan migration and recovery checkpoint
 
@@ -177,5 +175,68 @@ preference change's snapshot with the earlier snapshot; it was corrected to
 compare complete financial rows/balances separately from the budget revision.
 No production change was needed. Final evidence: `/tmp/monte-carlo-plans-http.log`.
 The check runs in `test:monte-carlo-api` and release qualification. Root review
-against `7d72bf5` covers standards and ticket39's persistence/migration requirements;
-UI delivery and whole-ticket acceptance remain open.
+against `7d72bf5` covers standards and ticket39's persistence/migration requirements.
+This checkpoint was committed at `ad9a000` before the UI work below.
+
+## Baseline browser delivery and final39 acceptance
+
+The existing dashboard editor now creates/edits Monte Carlo plans. Inputs cover
+ages, run count, return model, inflation, pots/account links/access ages/asset
+mixes/fees, surplus cash, income, contributions, spending phases, minimum spending
+and flat/progressive taxes. The9KiB unminified configuration asset contains the
+unchanged pinned normalization/default/preset helpers; simulation execution stays
+on the server. Its generator checks source/asset hashes, the shipped MIT license,
+absence of the simulation entry point and reproducibility from either working
+directory. Custom mixes start from the departing preset's shares, as upstream does.
+
+Opt-in controls creation, command search and calculation. Each saved widget has
+an explicit Run action, seed, today's-money option and Cancel. Opening/reloading
+the dashboard or changing theme does not run simulations. Results are labeled
+experimental estimates with calculation time/options, warnings, assumptions,
+success/depletion summaries and accessible percentile/depletion tables. Linked
+account fallback and incomplete historical mixes are disclosed. Cached views
+require the same document revision and budget epoch; offline use is read-only.
+Privacy masking covers calculated financial values and probabilities.
+
+`npm --prefix actualBudget/web run test:monte-carlo-browser` passes against the
+running native server over plain HTTP. It verifies disabled opt-in, keyboard run,
+the source baseline's median and every displayed percentile, exact persisted
+income/contribution/spending/tax/fee edits, invalid amount retention after reload,
+real active-job cancellation/recovery, cached reload without recomputation,
+offline refusal/readability, privacy, command navigation, new-plan defaults and
+source-equivalent results, preset/custom-mix editing and explicit fallback notices.
+Desktop1280px, mobile390px,200% text and dark-theme captures were inspected.
+The input test caught a section collapsing after adding an entry; binding the
+native details state fixes it. A new-plan expectation initially changed inflation
+volatility to zero while comparing the default2% source fixture. Matching inputs
+passes without changing the financial oracle. Root review also corrected
+preset-to-custom-mix seeding against the pinned UI implementation.
+
+Evidence: `/tmp/monte-carlo-browser-final.log`,
+`/tmp/monte-carlo-ui-check-final.log`, `/tmp/monte-carlo-ui-build-final.log`,
+`/tmp/monte-carlo-autofix-*-final.log` and
+`actualBudget/web/test-results/monte-carlo/`. Svelte/TypeScript report zero errors
+or warnings; all touched Svelte files passed the Svelte analyzer. The production
+build retains the existing large-chunk advisory; whole-system sizing remains51.
+Source generation checks pass for both server and browser assets. The maintained
+browser suite includes this workflow, so container/release qualification picks it up.
+
+`/tmp/monte-carlo-workflows-ui-final.log` additionally verifies that the companion's
+ordinary cleared-expense API can write during an active long simulation, within
+the same two-second responsiveness bound as account creation. The subsequent
+linked balance includes that expense exactly. Android has no Monte Carlo screen
+or protocol change in this slice; no new device run is claimed. Full native-device
+upgrade/regression qualification remains50, not a missing Monte Carlo feature.
+
+|39 criterion|Authoritative evidence|
+|---|---|
+|Persist/import pots, income, contributions, spending and taxes|Four genuine source widgets; HTTP edits/restart/native restore; browser rich-input persistence|
+|Baseline seeded simulation, cancellation, bounds and distributions|22 independent complete source outputs; API admission/limit/cancellation checks; real browser cancellation and displayed percentiles|
+|Reference equivalence and visible assumptions/errors|Source fixtures; invalid draft retention; explicit experimental/estimate labels, source/fallback warnings and structured API errors|
+|Agreed observable seams, including companion continuity|Running HTTP/browser workflows; cleared-expense public API during calculation; unchanged financial rows through recovery|
+|Complete vertical behavior|Reporting persistence/receipts, versioned calculation contract, source import/native restore, editor/results and error/offline behavior shipped together|
+|UI craft/accessibility and architecture boundaries|Impeccable/Svelte review; inspected responsive/theme/large-text renders; keyboard/labeled controls/tables; plain HTTP, no login, no offline calculation|
+
+Root consolidated standards/spec review against `ad9a000`: no unresolved39
+finding after the fixes above. Whole replacement qualification remains50–53;
+additional Monte Carlo strategies/inspection remain40. No push or deployment.

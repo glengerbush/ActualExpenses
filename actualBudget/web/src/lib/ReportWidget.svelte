@@ -14,6 +14,7 @@
     type Projection,
   } from "./reports";
   import CrossoverWidget from "./CrossoverWidget.svelte";
+  import MonteCarloWidget from "./MonteCarloWidget.svelte";
   import FormulaWidget from "./FormulaWidget.svelte";
   import SankeyWidget from "./SankeyWidget.svelte";
   import BudgetAnalysisWidget from "./BudgetAnalysisWidget.svelte";
@@ -55,6 +56,7 @@
               "budget-analysis-card": t("Budget Analysis"),
               "sankey-card": t("Sankey"),
               "crossover-card": t("Crossover Point"),
+              "monte-carlo-card": t("Monte Carlo"),
               "formula-card": t("Formula"),
               "markdown-card": t("Text"),
               "custom-report": String(
@@ -242,6 +244,12 @@
       {epoch}
       {disconnected}
     />
+  {:else if type === "monte-carlo-card"}{#key epoch}<MonteCarloWidget
+        {budgetId}
+        {document}
+        {epoch}
+        {disconnected}
+      />{/key}
   {:else if type === "formula-card"}<FormulaWidget
       {budgetId}
       {document}

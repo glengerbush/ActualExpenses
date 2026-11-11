@@ -28,7 +28,7 @@
     "test:rule-expression-workflows-source": "node ../tools/generate-transaction-import-rules-source.mjs --expressions --check && node ../tools/generate-forecast-source.mjs --expressions --check && node ../tools/generate-schedule-financial.mjs --expressions --check && node ../tools/generate-budget-template-financial.mjs --expressions --check",
     "test:rule-expression-workflows-api": "node ../tools/check-transaction-import-rules-http.mjs --expressions && node tests/forecast-api.mjs --expressions",
     "test:monte-carlo-source": "node ../tools/generate-monte-carlo-source.mjs --check && node ../tools/generate-monte-carlo-plans-source.mjs --check && node ../tools/generate-monte-carlo-runtime.mjs --check && python3 ../tools/generate-monte-carlo-contract.py --check",
-    "test:monte-carlo-api": "node ../tools/check-monte-carlo-http.mjs --all && node ../tools/check-monte-carlo-workflows-http.mjs --limits && uv run ../tools/check-monte-carlo-contract.py"
+    "test:monte-carlo-api": "node ../tools/check-monte-carlo-http.mjs --all && node ../tools/check-monte-carlo-workflows-http.mjs --limits && node ../tools/check-monte-carlo-plans-http.mjs && uv run ../tools/check-monte-carlo-contract.py"
   },
   "dependencies": {
     "mdast-util-from-markdown": "2.1.0",

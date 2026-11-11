@@ -3,7 +3,7 @@
 Pinned Actual26.10.0 source commit:
 `2bebdbaae0b701120a8cad9d56aafd64fa04c577`. Ticket39 started after42 acceptance
 at `c1cbac2`. Source fixtures and the native calculation API are implemented;
-saved-plan workflow/migration qualification and the interface remain unfinished.
+saved-plan import/recovery qualification is implemented. The interface remains unfinished.
 Neither39 nor40 is accepted yet.
 
 ## Source contract
@@ -88,12 +88,12 @@ the engine choice if whole-system resource qualification finds a regression.
 
 ## Remaining feature delivery
 
-39 still requires saved-plan editing and migration qualification, opt-in labeled
+39 still requires the saved-plan editor, opt-in labeled
 UI with assumptions/errors and summary/distributions, browser verification and
 final review. Preserve linked-account live balance/fallback semantics and exact saved
 metadata.40 adds all remaining strategies/rules, charts/cash flows and accessible
-individual-run inspection. Existing reporting-document storage is a reuse
-candidate, not proof these workflows already work. No acceptance criteria closed.
+individual-run inspection. The existing reporting-document storage passes the
+saved-plan public API qualification below; browser editing remains unverified.
 
 ## Native calculation API checkpoint
 
@@ -150,3 +150,32 @@ runs these source/API/resource/contract checks. Root review against `f0513a5`
 checked source fidelity, budget isolation, cancellation/permit ownership, SQL-lock
 lifetime, cache inputs, input validation and contract coverage. No unresolved
 native-API finding; whole39 still needs the saved-plan and UI work listed above.
+
+## Saved-plan migration and recovery checkpoint
+
+`node actualBudget/tools/check-monte-carlo-plans-http.mjs` imports the hash-checked
+genuine Actual archive into a disposable server. All four widget identities,
+layouts and raw metadata match the source observations, including null/defaults,
+legacy fields, linked accounts, historical mixes, income, contributions, spending
+and taxes. The imported experimental flag remains disabled; enabling it permits
+calculations without changing reporting documents or the financial state.
+
+The check edits the rich plan's income, contributions, spending, taxes and pot
+fees together. It verifies exact persisted fields, one revision increase,
+immutable request replay and stale-revision refusal. A real process restart
+retains those fields and receipts and reproduces the calculated output with a
+cold cache. Native backup download, upload and restore recover a subsequently
+deleted plan, preserve all reporting documents and the enabled preference, and
+reproduce the saved calculation. Restore changes the epoch, invalidates the
+calculation cache and refuses new writes carrying the old epoch. Every financial
+row and reported balance remains unchanged across these operations.
+
+This is recovery qualification of existing storage, not a newly implemented
+storage feature or an independent financial oracle. Financial equivalence remains
+covered by the22 source scenarios above. The first check incorrectly compared a
+preference change's snapshot with the earlier snapshot; it was corrected to
+compare complete financial rows/balances separately from the budget revision.
+No production change was needed. Final evidence: `/tmp/monte-carlo-plans-http.log`.
+The check runs in `test:monte-carlo-api` and release qualification. Root review
+against `7d72bf5` covers standards and ticket39's persistence/migration requirements;
+UI delivery and whole-ticket acceptance remain open.

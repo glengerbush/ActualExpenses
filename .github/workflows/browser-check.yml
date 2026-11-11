@@ -1,0 +1,48 @@
+name: Diagnose all hosted browser workflows
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      RUSTUP_TOOLCHAIN: 1.99.1
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: '24'
+      - name: Build public server and web bundle
+        run: |
+          rustup toolchain install 1.99.1 --profile minimal
+          cargo build --locked --manifest-path actualBudget/server/Cargo.toml
+          npm ci --prefix actualBudget/web
+          npm ci --prefix actualExpenses/tools/compatibility
+          npm --prefix actualBudget/web run build
+      - name: Collect every browser result
+        working-directory: actualBudget/web
+        run: |
+          npx playwright install chromium
+          export CHROMIUM_PATH=$(node --input-type=module -e 'import {chromium} from "@playwright/test"; console.log(chromium.executablePath())')
+          export NODE_OPTIONS="--import=$PWD/tests/diagnose-layout.mjs"
+          python3 - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          commands=json.loads(Path('package.json').read_text())['scripts']['test:browser'].split(' && ')
+          failures=[]
+          for command in commands:
+              print('BROWSER CHECK:',command,flush=True)
+              result=subprocess.run(command,shell=True,timeout=180)
+              if result.returncode: failures.append(command)
+          print('FAILED:',failures,flush=True)
+          raise SystemExit(bool(failures))
+          PY
+      - name: Preserve failing layouts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: hosted-layout-failures
+          path: actualBudget/web/test-results/layout-failure-*.png
+          if-no-files-found: warn

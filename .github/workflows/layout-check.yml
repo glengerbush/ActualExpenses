@@ -1,0 +1,39 @@
+name: Diagnose preferences layout
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  layout:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      RUSTUP_TOOLCHAIN: 1.99.1
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: "24"
+      - name: Build the public server and production web bundle
+        run: |
+          rustup toolchain install 1.99.1 --profile minimal
+          cargo build --locked --manifest-path actualBudget/server/Cargo.toml
+          npm ci --prefix actualBudget/web
+          npm --prefix actualBudget/web run build
+      - name: Exercise preferences on the hosted browser
+        working-directory: actualBudget/web
+        run: |
+          npx playwright install chromium
+          export CHROMIUM_PATH=$(node --input-type=module -e 'import {chromium} from "@playwright/test"; console.log(chromium.executablePath())')
+          fc-match sans-serif
+          node tests/preferences-browser.mjs
+      - name: Preserve layout screenshots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: preferences-layout
+          path: actualBudget/web/test-results/preferences-*.png
+          if-no-files-found: warn

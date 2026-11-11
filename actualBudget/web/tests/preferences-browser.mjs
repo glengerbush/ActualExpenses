@@ -336,17 +336,38 @@ try {
   await page.setViewportSize({ width: 320, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addStyleTag({ content: "html{font-size:200%}" });
+  if (process.env.ACTUALBUDGET_TEST_FONT) {
+    await page.evaluate((font) => {
+      document.documentElement.style.setProperty(
+        "font-family",
+        font,
+        "important",
+      );
+    }, process.env.ACTUALBUDGET_TEST_FONT);
+  }
   for (const theme of ["light", "dark", "midnight"]) {
     await page.locator("#theme").selectOption(theme);
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-    ).toBe(true);
+    const layout = await page.evaluate(() => ({
+      width: innerWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      overflow: [...document.querySelectorAll("main *")]
+        .filter((element) => element.getBoundingClientRect().right > innerWidth)
+        .slice(0, 12)
+        .map((element) => ({
+          tag: element.tagName,
+          id: element.id,
+          text: element.textContent.slice(0, 100),
+          right: element.getBoundingClientRect().right,
+          font: getComputedStyle(element).fontFamily,
+        })),
+    }));
+    if (layout.scrollWidth > layout.width)
+      console.error("Settings overflow", layout);
     await page.screenshot({
       path: `test-results/preferences-${theme}-320-large-text.png`,
       fullPage: true,
     });
+    expect(layout.scrollWidth).toBeLessThanOrEqual(layout.width);
   }
   expect(errors).toEqual([]);
   console.log(

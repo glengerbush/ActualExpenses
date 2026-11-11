@@ -1,0 +1,161 @@
+{
+  "image": "sha256:e400473e4eaa0b079edc496196e9996549bb5dde2e44113be3faf828ec51a22e",
+  "count": 20,
+  "source_archive_sha256": "d944af3e2da270ff063a360ec2a84eaf098b49558d2165f0f2765e4e82188a2d",
+  "protocol": "Production HTTP; pinned101/1001-child split fixture; repeated cap refusal, mid-batch rollback after deleting the large graph, successful owned sparse allocation-note edit, complete split response. Financial checks outside measurements. Node caller counters are not browser costs; browser event arrays uninstrumented, use kernel network counters. No claim for the100000-member ceiling.",
+  "budget_id": "ce9394a6-2c58-4e63-988c-ab4a807836a6",
+  "financial": {
+    "rows": 1104,
+    "ledger_sha256_without_notes": "4c79bb292d1f0839c6c7da77209b7fa5dc092cf2722776593ce6ca7bede0ad66",
+    "balances": [
+      {
+        "id": "1fc28434-32fe-4a0b-a11b-b1474d3938bd",
+        "balance": -1001
+      },
+      {
+        "id": "9be9b0cc-7c44-4207-817d-7c1ad9572858",
+        "balance": -101
+      }
+    ],
+    "graph_members": 1002,
+    "unchanged_after_refusals_and_edits": true
+  },
+  "summary": {
+    "bounded": {
+      "samples": 20,
+      "http_ms": {
+        "p50": 13.711468999999852,
+        "p95": 18.853284999997413
+      },
+      "server_cpu_ms": {
+        "p50": 12.065999999998894,
+        "p95": 16.154999999998836
+      },
+      "server_peak_memory_bytes": {
+        "p50": 176508928,
+        "p95": 233086976
+      },
+      "response_bytes": {
+        "p50": 174,
+        "p95": 174
+      },
+      "server_tx_bytes": {
+        "p50": 535,
+        "p95": 535
+      },
+      "server_write_bytes_by_device": {
+        "259:0": {
+          "p50": 0,
+          "p95": 0
+        },
+        "253:0": {
+          "p50": 0,
+          "p95": 0
+        }
+      }
+    },
+    "rollback": {
+      "samples": 20,
+      "http_ms": {
+        "p50": 660.0975949999993,
+        "p95": 994.0607769999997
+      },
+      "server_cpu_ms": {
+        "p50": 644.4379999999946,
+        "p95": 973.1620000000039
+      },
+      "server_peak_memory_bytes": {
+        "p50": 176472064,
+        "p95": 233086976
+      },
+      "response_bytes": {
+        "p50": 303,
+        "p95": 303
+      },
+      "server_tx_bytes": {
+        "p50": 661,
+        "p95": 661
+      },
+      "server_write_bytes_by_device": {
+        "259:0": {
+          "p50": 73728,
+          "p95": 90112
+        },
+        "253:0": {
+          "p50": 73728,
+          "p95": 90112
+        }
+      }
+    },
+    "edit": {
+      "samples": 20,
+      "http_ms": {
+        "p50": 1049.0777240000025,
+        "p95": 1591.8014249999997
+      },
+      "server_cpu_ms": {
+        "p50": 1021.2050000000017,
+        "p95": 1547.4040000000023
+      },
+      "server_peak_memory_bytes": {
+        "p50": 181948416,
+        "p95": 239009792
+      },
+      "response_bytes": {
+        "p50": 1198292,
+        "p95": 1198293
+      },
+      "server_tx_bytes": {
+        "p50": 1200101,
+        "p95": 1200233
+      },
+      "server_write_bytes_by_device": {
+        "259:0": {
+          "p50": 9957376,
+          "p95": 10117120
+        },
+        "253:0": {
+          "p50": 9957376,
+          "p95": 10117120
+        }
+      }
+    },
+    "response": {
+      "samples": 20,
+      "http_ms": {
+        "p50": 113.26105800000005,
+        "p95": 145.08502900000167
+      },
+      "server_cpu_ms": {
+        "p50": 107.52100000000064,
+        "p95": 136.80299999999988
+      },
+      "server_peak_memory_bytes": {
+        "p50": 182034432,
+        "p95": 239009792
+      },
+      "response_bytes": {
+        "p50": 1198578,
+        "p95": 1198579
+      },
+      "server_tx_bytes": {
+        "p50": 1200123,
+        "p95": 1200188
+      },
+      "server_write_bytes_by_device": {
+        "259:0": {
+          "p50": 0,
+          "p95": 0
+        },
+        "253:0": {
+          "p50": 0,
+          "p95": 0
+        }
+      }
+    }
+  },
+  "raw_sha256": "f2d1c36542dc5f79fe6e5ab0d21ab14165501de5fc31dadb74b8805bb80cbdaf",
+  "compressed_sha256": "075c52ab1be8619a80abe6278213494584ec146e040ec8757a88b9fa4d97edaa",
+  "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
+  "excluded_attempt": "Initial harness tried an ordinary batch patch on a split parent; supported API correctly refused it before the intended second operation. Final harness uses first-operation large-graph deletion followed by an intentionally refused ordinary patch to another split, and successful edits use the sparse split route."
+}

@@ -1,0 +1,365 @@
+{
+  "source_archive_sha256": "d944af3e2da270ff063a360ec2a84eaf098b49558d2165f0f2765e4e82188a2d",
+  "source_version": "26.10.0",
+  "count": 20,
+  "protocol": "Fresh disk browser profile per sample; warm file chooser; source web imports a saved Actual ZIP as a new budget, native reviews a portable ZIP then replaces its existing budget. Native review and activation are measured separately; confirmation typing excluded. Both finish at the1001-child account with the expected balance. Source explicit sync included; financial oracle reads occur outside measurements. No full offline/desktop baseline claim.",
+  "hardware": {
+    "hostname": "thinky",
+    "cpu": "13th Gen Intel(R) Core(TM) i7-1370P",
+    "cpus": 20,
+    "memory": 66972958720,
+    "kernel": "7.2.8-9-omarchy"
+  },
+  "browser": "155.0.8059.84",
+  "financial": {
+    "rows": 1104,
+    "ledger_sha256": "bb92912ebbbf2a3f561b2551f8278e632ddcdb3776c087066d65b56dcf5187f5",
+    "account": "1fc28434-32fe-4a0b-a11b-b1474d3938bd",
+    "parent": "16160000-0000-4000-8000-000010010000",
+    "children": 1001,
+    "balance": -1001
+  },
+  "native_archive_sha256": "7544504dc660292d39cf1a5d913977020659c37def44a4c17cf980ab09e93efb",
+  "archive_bytes": {
+    "baseline": 85857,
+    "native": 98016
+  },
+  "budget_id": "f3baad31-facc-48a2-894a-eec3f7cedc83",
+  "raw_sha256": "2ca32b67f9bfcacad0ca6562ccfe4ca79dcb956999b0b320d3b15f80c42eaa85",
+  "compressed_sha256": "95c352b7cf8deb0e91e845dca2eab32f656fb631a806ca09c7139a66d7112e21",
+  "variants": {
+    "baseline": {
+      "image": "sha256:24645e971da6bb1a1f953d6859e307a0b29be1e8b4130a35b3220c209b5b860c",
+      "phases": {
+        "restore": {
+          "samples": 20,
+          "ui_ready_ms": {
+            "p50": 1847.2497349999976,
+            "p95": 1946.3529810000036
+          },
+          "settled_ms": {
+            "p50": 2011.3165889999982,
+            "p95": 2292.605712999997
+          },
+          "browser_cpu_ms": {
+            "p50": 5530,
+            "p95": 6300
+          },
+          "browser_peak_rss_bytes": {
+            "p50": 1438957568,
+            "p95": 1463771136
+          },
+          "browser_peak_pss_bytes": {
+            "samples": 20,
+            "p50": 729492480,
+            "p95": 752418816
+          },
+          "server_cpu_ms": {
+            "p50": 26.402000000000044,
+            "p95": 41.33399999999892
+          },
+          "server_peak_memory_bytes": {
+            "p50": 87707648,
+            "p95": 89751552
+          },
+          "server_sent_bytes": {
+            "p50": 5727,
+            "p95": 48120
+          },
+          "server_received_bytes": {
+            "p50": 102261,
+            "p95": 106542
+          },
+          "observed_response_body_bytes": {
+            "p50": 28044,
+            "p95": 66402
+          },
+          "observed_requests": {
+            "p50": 18,
+            "p95": 32
+          },
+          "browser_write_bytes": {
+            "p50": 1691648,
+            "p95": 2940928
+          },
+          "server_write_bytes_by_device": {
+            "253:0": {
+              "p50": 634880,
+              "p95": 978944
+            },
+            "259:0": {
+              "p50": 634880,
+              "p95": 978944
+            }
+          },
+          "request_paths": [
+            "/account/validate",
+            "/archived/android-chrome-192x192.png",
+            "/archived/android-chrome-512x512.png",
+            "/archived/apple-touch-icon.png",
+            "/archived/favicon-16x16.png",
+            "/archived/favicon-32x32.png",
+            "/archived/favicon.png",
+            "/archived/maskable-192x192.png",
+            "/archived/maskable-512x512.png",
+            "/archived/mstile-150x150.png",
+            "/data/migrations/1548957970627_remove-db-version.sql",
+            "/data/migrations/1550601598648_payees.sql",
+            "/data/migrations/1555786194328_remove_category_group_unique.sql",
+            "/data/migrations/1561751833510_indexes.sql",
+            "/data/migrations/1567699552727_budget.sql",
+            "/data/migrations/1582384163573_cleared.sql",
+            "/data/migrations/1597756566448_rules.sql",
+            "/data/migrations/1608652596043_parent_field.sql",
+            "/data/migrations/1608652596044_trans_views.sql",
+            "/data/migrations/1612625548236_optimize.sql",
+            "/data/migrations/1614782639336_trans_views2.sql",
+            "/data/migrations/1615745967948_meta.sql",
+            "/data/migrations/1616167010796_accounts_order.sql",
+            "/data/migrations/1618975177358_schedules.sql",
+            "/data/migrations/1632571489012_remove_cache.js",
+            "/static/js/NotesTagFormatter.D2DCNMaj.chunk.js",
+            "/static/js/PayeeRuleCountLabel.CPkSnHXq.chunk.js",
+            "/static/js/TransactionList.DDWVq-0m.chunk.js",
+            "/static/js/indexeddb-main-thread-worker-e59fee74.B9D89_PE.chunk.js",
+            "/static/js/wide.CTbfUtl9.chunk.js",
+            "/sync/sync",
+            "/sync/upload-user-file",
+            "http://127.0.0.1:32875/17baaa05-d8a6-456b-b087-293be7624b48",
+            "http://127.0.0.1:32875/1de594a3-eb2b-4dbd-92a8-05fd55e4f106",
+            "http://127.0.0.1:32875/1eaf17da-559a-4d9e-a1f6-21296d587c37",
+            "http://127.0.0.1:32875/2e6402ac-8e35-4301-933a-d9510d8e0f2d",
+            "http://127.0.0.1:32875/415ef2bd-4e44-470e-8c33-872942df01df",
+            "http://127.0.0.1:32875/526b36ac-198d-4c7a-917e-694cd38b7897",
+            "http://127.0.0.1:32875/59d45100-f0af-4f4c-8d6b-671dc740ee86",
+            "http://127.0.0.1:32875/7583d471-86bb-46fe-9622-fc23be24f0b8",
+            "http://127.0.0.1:32875/974db09b-514c-4ab9-b7bf-7cb18437c561",
+            "http://127.0.0.1:32875/aa222b43-3186-4200-9098-fcce8be9377f",
+            "http://127.0.0.1:32875/afb140d3-0a4d-47b4-8a75-8fae19d03736",
+            "http://127.0.0.1:32875/b7221039-1340-457b-aba4-3eb38bb3bd1b",
+            "http://127.0.0.1:32875/bc3b252d-a83c-4aac-88cb-768f53297888",
+            "http://127.0.0.1:32875/cb69b60c-4878-4924-b4b9-dd8f8f105680",
+            "http://127.0.0.1:32875/d29ae0d7-d047-4fca-a517-440db8f1b78f",
+            "http://127.0.0.1:32875/e188e06f-afc0-4ace-951d-94ed5ec7cb70",
+            "http://127.0.0.1:32875/e426f5ef-70ea-4b89-b4a3-e5b93cf32dbb",
+            "http://127.0.0.1:32875/e8bd8ece-bc81-4806-915f-5f6a92a23639",
+            "http://127.0.0.1:32875/f54e8c5a-d6d3-4867-bfc2-436fcbd7740b",
+            "http://127.0.0.1:32875/fe856118-1a10-4c39-8ef2-65ef892771ac"
+          ]
+        }
+      },
+      "complete_financial_checks": 20,
+      "sum_of_measured_phases": {
+        "ui_ready_ms": {
+          "p50": 1847.2497349999976,
+          "p95": 1946.3529810000036
+        },
+        "browser_cpu_ms": {
+          "p50": 5530,
+          "p95": 6300
+        },
+        "server_cpu_ms": {
+          "p50": 26.402000000000044,
+          "p95": 41.33399999999892
+        },
+        "server_sent_bytes": {
+          "p50": 5727,
+          "p95": 48120
+        },
+        "server_received_bytes": {
+          "p50": 102261,
+          "p95": 106542
+        }
+      }
+    },
+    "native": {
+      "image": "sha256:e400473e4eaa0b079edc496196e9996549bb5dde2e44113be3faf828ec51a22e",
+      "phases": {
+        "restore": {
+          "samples": 20,
+          "ui_ready_ms": {
+            "p50": 1797.5396680000122,
+            "p95": 2065.1310299999896
+          },
+          "settled_ms": {
+            "p50": 1891.5097979999846,
+            "p95": 2228.7690520000033
+          },
+          "browser_cpu_ms": {
+            "p50": 780,
+            "p95": 870
+          },
+          "browser_peak_rss_bytes": {
+            "p50": 964526080,
+            "p95": 974589952
+          },
+          "browser_peak_pss_bytes": {
+            "samples": 20,
+            "p50": 447892480,
+            "p95": 450710528
+          },
+          "server_cpu_ms": {
+            "p50": 1401.045,
+            "p95": 1632.5329999999994
+          },
+          "server_peak_memory_bytes": {
+            "p50": 95965184,
+            "p95": 99401728
+          },
+          "server_sent_bytes": {
+            "p50": 2352538,
+            "p95": 3463029
+          },
+          "server_received_bytes": {
+            "p50": 17673,
+            "p95": 20284
+          },
+          "observed_response_body_bytes": {
+            "p50": 2342529,
+            "p95": 3450821
+          },
+          "observed_requests": {
+            "p50": 21,
+            "p95": 22
+          },
+          "browser_write_bytes": {
+            "p50": 864256,
+            "p95": 2945024
+          },
+          "server_write_bytes_by_device": {
+            "253:0": {
+              "p50": 3801088,
+              "p95": 7684096
+            },
+            "259:0": {
+              "p50": 3801088,
+              "p95": 7684096
+            }
+          },
+          "request_paths": [
+            "/api/v1/budgets/f3baad31-facc-48a2-894a-eec3f7cedc83",
+            "/api/v1/budgets/f3baad31-facc-48a2-894a-eec3f7cedc83/account-groups",
+            "/api/v1/budgets/f3baad31-facc-48a2-894a-eec3f7cedc83/accounts",
+            "/api/v1/budgets/f3baad31-facc-48a2-894a-eec3f7cedc83/categories",
+            "/api/v1/budgets/f3baad31-facc-48a2-894a-eec3f7cedc83/checkpoint",
+            "/api/v1/budgets/f3baad31-facc-48a2-894a-eec3f7cedc83/history",
+            "/api/v1/budgets/f3baad31-facc-48a2-894a-eec3f7cedc83/payees",
+            "/api/v1/budgets/f3baad31-facc-48a2-894a-eec3f7cedc83/preferences",
+            "/api/v1/budgets/f3baad31-facc-48a2-894a-eec3f7cedc83/register-settings",
+            "/api/v1/budgets/f3baad31-facc-48a2-894a-eec3f7cedc83/restores/533f8e5f-5c46-4809-985b-86e30cf3dead/activate",
+            "/api/v1/budgets/f3baad31-facc-48a2-894a-eec3f7cedc83/rules/associations",
+            "/api/v1/budgets/f3baad31-facc-48a2-894a-eec3f7cedc83/schedules",
+            "/api/v1/budgets/f3baad31-facc-48a2-894a-eec3f7cedc83/schedules/due",
+            "/api/v1/budgets/f3baad31-facc-48a2-894a-eec3f7cedc83/transactions",
+            "/api/v1/info"
+          ]
+        },
+        "review": {
+          "samples": 20,
+          "ui_ready_ms": {
+            "p50": 99.30907499999739,
+            "p95": 137.39800899999682
+          },
+          "settled_ms": {
+            "p50": 249.18100800001412,
+            "p95": 267.1750380000158
+          },
+          "browser_cpu_ms": {
+            "p50": 170,
+            "p95": 200
+          },
+          "browser_peak_rss_bytes": {
+            "p50": 928636928,
+            "p95": 941481984
+          },
+          "browser_peak_pss_bytes": {
+            "samples": 20,
+            "p50": 419386368,
+            "p95": 424128512
+          },
+          "server_cpu_ms": {
+            "p50": 3.2230000000017753,
+            "p95": 4.644000000000233
+          },
+          "server_peak_memory_bytes": {
+            "p50": 93503488,
+            "p95": 97296384
+          },
+          "server_sent_bytes": {
+            "p50": 2339,
+            "p95": 2340
+          },
+          "server_received_bytes": {
+            "p50": 99875,
+            "p95": 100211
+          },
+          "observed_response_body_bytes": {
+            "p50": 1365,
+            "p95": 1366
+          },
+          "observed_requests": {
+            "p50": 2,
+            "p95": 2
+          },
+          "browser_write_bytes": {
+            "p50": 430080,
+            "p95": 495616
+          },
+          "server_write_bytes_by_device": {
+            "253:0": {
+              "p50": 77824,
+              "p95": 163840
+            },
+            "259:0": {
+              "p50": 77824,
+              "p95": 163840
+            }
+          },
+          "request_paths": [
+            "/api/v1/budgets/f3baad31-facc-48a2-894a-eec3f7cedc83",
+            "/api/v1/restores"
+          ]
+        }
+      },
+      "complete_financial_checks": 20,
+      "sum_of_measured_phases": {
+        "ui_ready_ms": {
+          "p50": 1893.468915000034,
+          "p95": 2543.9668880000245
+        },
+        "browser_cpu_ms": {
+          "p50": 970,
+          "p95": 1070
+        },
+        "server_cpu_ms": {
+          "p50": 1403.7489999999998,
+          "p95": 1993.0130000000008
+        },
+        "server_sent_bytes": {
+          "p50": 2354877,
+          "p95": 3465368
+        },
+        "server_received_bytes": {
+          "p50": 117882,
+          "p95": 120201
+        }
+      }
+    }
+  },
+  "limits": [
+    "Actual web imports a saved file as a new budget; native restores its own portable backup in place. Equivalent1104 financial rows, different archive bytes and identity semantics.",
+    "Reuses the restarted opening containers and their other fixture budgets. Fresh browser profile per sample; source adds20 files, native restores one cloned target20 times. No isolated-host or equal-server-memory-state claim.",
+    "Initial baseline pilot waited for a file chooser before pressing Select file. Second pilot completed UI recovery but native financial checker requested2000 rows despite the1000-row public page cap. Both excluded; final checker uses snapshot-bound paging. No product correction.",
+    "Same native backup is staged repeatedly; one retained stage ID is reused. First review868ms/activation1945ms; repeated-review median99ms. These are repeat-snapshot distributions, not20 independent cold validation runs."
+  ],
+  "financial_fields": [
+    "id",
+    "account",
+    "date",
+    "amount",
+    "parent_id",
+    "is_parent",
+    "is_child",
+    "notes"
+  ]
+}

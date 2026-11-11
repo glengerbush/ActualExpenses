@@ -2,8 +2,8 @@
 
 Ticket51 is **not accepted**. This note records the production browser comparison
 and its limits. Opening, expense and report distributions are recorded below.
-Restore distributions, large graph/history/guard
-stress, Android resource observations and the consolidated accessibility audit
+Large graph/history and saved-snapshot recovery observations are also recorded.
+Analysis guard exhaustion/recovery, Android resource observations and the consolidated accessibility audit
 remain outstanding. Existing functional evidence is not relabeled as performance
 evidence. Nothing here authorizes release or production cutover.
 
@@ -313,8 +313,7 @@ format checks pass; both20-sample comparisons and both steady-idle checks pass
 with the recorded baseline exceptions. No production source changed, so existing
 financial/native functional results remain valid; no broad suite rerun is claimed.
 
-Remaining51 gates: restore latency distributions,
-graph/rollback and analysis-guard stress, Android
+Remaining51 gates: analysis-guard exhaustion/recovery, Android
 resource observations, background behavior, due-schedule cross-check and final
 keyboard/accessibility/theme/locale/Impeccable review.52/53 also remain open.
 
@@ -450,3 +449,94 @@ measurement limits. JavaScript syntax, format and diff checks pass. Production
 code remains229be58. Large graph/rollback/restore and analysis-guard stress still
 require their separate checks; this result closes only the repeated-history and
 large-budget ordinary-note-write observation gap.
+
+## Web recovery of a saved 1001-child allocation
+
+`measure-browser-restores.mjs` uses the genuine pinned `reconciliation-large.zip`
+fixture: one101-child and one1001-child split,1104 records including parents.
+Actual's direct `Load Backup` menu is Electron-only in the pinned source, so
+this measures its supported web **Import file → Actual → Select file** path.
+The replacement reviews its own portable ZIP and restores an existing budget.
+These achieve equivalent financial recovery with different archive formats and
+identity semantics; they are not identical internal operations.
+
+[Summary](resource-results-229be58/restores/summary.json) and
+[raw observations](resource-results-229be58/restores/observations.json.gz).
+The source archive is85857 bytes; the native portable archive98016 bytes.
+Both recover all1104 record projections (ID/account/date/amount/parent linkage,
+parent/child flags and notes) to the independent pinned-engine hash. All40
+per-sample reconciliations pass; the1001-child account balance remains−1001.
+Native generation changes on every restore. Other migration fields retain their
+separate accepted functional evidence; this performance projection is explicit.
+
+Twenty fresh disk browser profiles per app; auth/file chooser setup excluded.
+Measurements end at the visible1001-child account balance; source explicit sync
+is included. Native archive review and activation are separate measured phases,
+with confirmation typing excluded. Paired phase sums, not sums of quantiles,
+give the native total below. Source/node oracle reads occur outside timing.
+The restarted opening containers are reused, including their other fixture
+budgets. Source imports create20 files; native restores one cloned budget20 times.
+No equal server-state or isolated-host claim.
+
+| Workflow | UI ms p50/p95 | Browser CPU ms p50/p95 | Server CPU ms p50/p95 |
+| --- | ---: | ---: | ---: |
+| Source web saved-file recovery |1847/1946|5530/6300|26/41|
+| Native review + activation |1893/2544|970/1070|1404/1993|
+| Native activation only |1798/2065|780/870|1401/1633|
+
+Native validation reuses one retained stage for the same archive: first review
+868ms, subsequent/repeated-review median99ms; first activation1945ms. This is
+repeat-snapshot qualification, not20 cold validation runs. It resolves the
+earlier1001-child debug deadline question with measured production observations;
+the old30s fixture timeout is not a latency target.
+
+Native summed median server TX/RX is2354877/117882 bytes, source5727/102261.
+Native restores and then reads full split aggregates through HTTP; source keeps
+the imported engine locally. This trades more server/network work for less
+browser CPU. Observed activation browser PSS median427MiB versus source696MiB;
+server cgroup medians92MiB versus84MiB. These states differ from the earlier
+post-import opening run. Full phase memory/CPU/bytes/writes are retained; no
+power or universal latency improvement claimed.
+
+Two preparation attempts are excluded: the first waited for a file chooser
+before pressing Select file; the second completed UI recovery but its native
+checker requested2000 records despite the1000-row public page cap. The final
+checker uses snapshot-bound paging. Neither required a product change.
+
+## Large graph discovery, response and rollback
+
+`check-resource-graphs.mjs` publicly clones the same source-derived fixture,
+then repeats four operations20 times. A1001-member allowance refuses discovery
+of the1002-member parent/children graph. A second batch deletes that entire
+graph, then attempts an ordinary patch on the separate small split: that second
+operation correctly fails. Snapshot/history, parent notes and the complete
+1104-row financial projection remain unchanged. A subsequent supported sparse
+child-note edit succeeds, followed by a complete split read. Both account
+balances and all amounts/dates/identities/parent links remain unchanged.
+
+[Summary](resource-results-229be58/graphs/summary.json) and
+[raw observations](resource-results-229be58/graphs/observations.json.gz).
+
+| Operation | HTTP ms p50/p95 | Server CPU ms p50/p95 | Server block writes bytes p50/p95 |
+| --- | ---: | ---: | ---: |
+| Bounded graph refusal |14/19|12/16|0/0|
+| Rollback after full graph deletion |660/994|644/973|73728/90112|
+| Sparse allocation-note edit |1049/1592|1021/1547|9957376/10117120|
+| Complete split response |113/145|108/137|0/0|
+
+Successful edit/read responses each contain about1.2MB; server cgroup memory
+has median174MiB/p95228MiB during edits. Whole-graph journal protection and
+immutable responses make even a sparse1001-child edit expensive. This run
+measures that cost; it does not claim the100000-child ceiling has been stress
+qualified. Rollback's nonzero physical writes do not mean financial commitment:
+public state and history equality checks pass. Browser event arrays are not
+instrumented in this Node caller; kernel network counters are retained.
+
+The first graph harness incorrectly tried an ordinary batch patch on a split;
+the API refused it before the intended second operation. The final harness uses
+the supported delete/sparse-split paths and confirms the failure names the second
+transaction. All80 final operations and their state assertions pass. Root review,
+syntax/format and diff checks pass; no production code changed.
+
+The remaining51 gates are analysis-guard exhaustion/recovery, Android resource
+observations, background/due-schedule checks and the consolidated UI audit.

@@ -1,0 +1,909 @@
+{
+  "scope": "Expense acknowledgement and one matched cash-flow report; ticket51 incomplete",
+  "variants": {
+    "baseline": {
+      "count": 20,
+      "hardware": {
+        "hostname": "thinky",
+        "cpu": "13th Gen Intel(R) Core(TM) i7-1370P",
+        "cpus": 20,
+        "memory": 66972958720,
+        "kernel": "7.2.8-9-omarchy"
+      },
+      "browser": "155.0.8059.84",
+      "image": "sha256:24645e971da6bb1a1f953d6859e307a0b29be1e8b4130a35b3220c209b5b860c",
+      "profile": "persistent disk profile; warm account; form entry excluded; save click through changed account balance and server acknowledgement; report navigation to one static Oct\u2013Nov2026 cash-flow widget after each new expense; no browser restart between samples; explicit source sync included; DNS loopback only",
+      "raw_sha256": "a5b92e43810080edb6f3e4caa6a7e9a2351c173349773c696d3419d02783c6e4",
+      "compressed_sha256": "cf837187c60195393ffa7ce359fae0c7a66e1a6e33834276776a60198949aadb",
+      "cases": [
+        {
+          "name": "empty",
+          "archive_sha256": "74f98abdbbc0a7071e9c35916c524948f85fa53755076623408a9bb70a8f920b",
+          "browser_errors": [],
+          "summary": {
+            "expense": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 431.89958900000056,
+                "p95": 593.924377000003
+              },
+              "settled_ms": {
+                "p50": 584.7392880000007,
+                "p95": 746.1301460000032
+              },
+              "browser_cpu_ms": {
+                "p50": 760,
+                "p95": 1160
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1528336384,
+                "p95": 1567219712
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 820142080,
+                "p95": 852214784
+              },
+              "server_cpu_ms": {
+                "p50": 8.981999999999971,
+                "p95": 14.318000000000211
+              },
+              "server_peak_memory_bytes": {
+                "p50": 93499392,
+                "p95": 93761536
+              },
+              "server_sent_bytes": {
+                "p50": 1022,
+                "p95": 1111
+              },
+              "server_received_bytes": {
+                "p50": 1779,
+                "p95": 2051
+              },
+              "observed_response_body_bytes": {
+                "p50": 502,
+                "p95": 517
+              },
+              "observed_requests": {
+                "p50": 1,
+                "p95": 1
+              },
+              "browser_write_bytes": {
+                "p50": 212992,
+                "p95": 1265664
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 167936,
+                  "p95": 172032
+                },
+                "259:0": {
+                  "p50": 167936,
+                  "p95": 172032
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/sync/sync"
+              ]
+            },
+            "report": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 237.58526800000254,
+                "p95": 276.0213700000004
+              },
+              "settled_ms": {
+                "p50": 237.6012750000009,
+                "p95": 276.05921899999885
+              },
+              "browser_cpu_ms": {
+                "p50": 470,
+                "p95": 590
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1529167872,
+                "p95": 1563975680
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 822924288,
+                "p95": 852112384
+              },
+              "server_cpu_ms": {
+                "p50": 0,
+                "p95": 0.8270000000002256
+              },
+              "server_peak_memory_bytes": {
+                "p50": 93233152,
+                "p95": 93622272
+              },
+              "server_sent_bytes": {
+                "p50": 0,
+                "p95": 198
+              },
+              "server_received_bytes": {
+                "p50": 0,
+                "p95": 206
+              },
+              "observed_response_body_bytes": {
+                "p50": 0,
+                "p95": 0
+              },
+              "observed_requests": {
+                "p50": 0,
+                "p95": 0
+              },
+              "browser_write_bytes": {
+                "p50": 8192,
+                "p95": 245760
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/static/css/ReportRouter.Dly3Bzm_.css",
+                "/static/js/ReportRouter.KkTypOVC.chunk.js",
+                "/static/js/TransactionList.DgsDTzqb.chunk.js",
+                "/static/js/bootstrapHyperFormula.IIhTcG2D.chunk.js"
+              ]
+            }
+          }
+        },
+        {
+          "name": "typical",
+          "archive_sha256": "29ed85b507ede115a814e02446a665f34365e388f4d3135ac1cc4e81d9bceafb",
+          "browser_errors": [],
+          "summary": {
+            "expense": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 726.5241870000027,
+                "p95": 1014.2248950000067
+              },
+              "settled_ms": {
+                "p50": 879.3943590000126,
+                "p95": 1169.4216920000035
+              },
+              "browser_cpu_ms": {
+                "p50": 1240,
+                "p95": 1970
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1608269824,
+                "p95": 1645998080
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 887797760,
+                "p95": 929813504
+              },
+              "server_cpu_ms": {
+                "p50": 7.5479999999997744,
+                "p95": 12.675000000000182
+              },
+              "server_peak_memory_bytes": {
+                "p50": 95977472,
+                "p95": 96509952
+              },
+              "server_sent_bytes": {
+                "p50": 1048,
+                "p95": 1176
+              },
+              "server_received_bytes": {
+                "p50": 1781,
+                "p95": 2127
+              },
+              "observed_response_body_bytes": {
+                "p50": 527,
+                "p95": 531
+              },
+              "observed_requests": {
+                "p50": 1,
+                "p95": 1
+              },
+              "browser_write_bytes": {
+                "p50": 225280,
+                "p95": 1249280
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 167936,
+                  "p95": 172032
+                },
+                "259:0": {
+                  "p50": 167936,
+                  "p95": 172032
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/sync/sync"
+              ]
+            },
+            "report": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 244.5604699999967,
+                "p95": 401.0901639999938
+              },
+              "settled_ms": {
+                "p50": 244.5782540000073,
+                "p95": 401.1067089999997
+              },
+              "browser_cpu_ms": {
+                "p50": 470,
+                "p95": 860
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1608269824,
+                "p95": 1643724800
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 888776704,
+                "p95": 930494464
+              },
+              "server_cpu_ms": {
+                "p50": 0.15599999999994907,
+                "p95": 0.8040000000000873
+              },
+              "server_peak_memory_bytes": {
+                "p50": 95506432,
+                "p95": 96243712
+              },
+              "server_sent_bytes": {
+                "p50": 0,
+                "p95": 198
+              },
+              "server_received_bytes": {
+                "p50": 0,
+                "p95": 370
+              },
+              "observed_response_body_bytes": {
+                "p50": 0,
+                "p95": 0
+              },
+              "observed_requests": {
+                "p50": 0,
+                "p95": 0
+              },
+              "browser_write_bytes": {
+                "p50": 12288,
+                "p95": 315392
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/static/css/ReportRouter.Dly3Bzm_.css",
+                "/static/js/ReportRouter.KkTypOVC.chunk.js",
+                "/static/js/TransactionList.DgsDTzqb.chunk.js",
+                "/static/js/bootstrapHyperFormula.IIhTcG2D.chunk.js"
+              ]
+            }
+          }
+        },
+        {
+          "name": "large",
+          "archive_sha256": "13d7073a451b5a4604a89bee8e1616b4b5abc5477539818830699535a3659a47",
+          "browser_errors": [],
+          "summary": {
+            "expense": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 787.2074550000252,
+                "p95": 1206.8753429999924
+              },
+              "settled_ms": {
+                "p50": 921.6114570000209,
+                "p95": 1360.0334150000126
+              },
+              "browser_cpu_ms": {
+                "p50": 1480,
+                "p95": 2130
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1666609152,
+                "p95": 1771573248
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 949311488,
+                "p95": 1063424000
+              },
+              "server_cpu_ms": {
+                "p50": 6.765999999999622,
+                "p95": 12.260000000000218
+              },
+              "server_peak_memory_bytes": {
+                "p50": 125194240,
+                "p95": 125775872
+              },
+              "server_sent_bytes": {
+                "p50": 1026,
+                "p95": 1114
+              },
+              "server_received_bytes": {
+                "p50": 1779,
+                "p95": 2323
+              },
+              "observed_response_body_bytes": {
+                "p50": 506,
+                "p95": 519
+              },
+              "observed_requests": {
+                "p50": 1,
+                "p95": 1
+              },
+              "browser_write_bytes": {
+                "p50": 286720,
+                "p95": 2949120
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 167936,
+                  "p95": 188416
+                },
+                "259:0": {
+                  "p50": 167936,
+                  "p95": 188416
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/sync/sync"
+              ]
+            },
+            "report": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 227.67019799997797,
+                "p95": 329.13360299999476
+              },
+              "settled_ms": {
+                "p50": 227.68154399999185,
+                "p95": 329.158059999987
+              },
+              "browser_cpu_ms": {
+                "p50": 450,
+                "p95": 780
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1663090688,
+                "p95": 1743368192
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 948126720,
+                "p95": 1035428864
+              },
+              "server_cpu_ms": {
+                "p50": 0.11200000000098953,
+                "p95": 0.7570000000014261
+              },
+              "server_peak_memory_bytes": {
+                "p50": 124776448,
+                "p95": 125775872
+              },
+              "server_sent_bytes": {
+                "p50": 0,
+                "p95": 198
+              },
+              "server_received_bytes": {
+                "p50": 0,
+                "p95": 206
+              },
+              "observed_response_body_bytes": {
+                "p50": 0,
+                "p95": 0
+              },
+              "observed_requests": {
+                "p50": 0,
+                "p95": 0
+              },
+              "browser_write_bytes": {
+                "p50": 4096,
+                "p95": 135168
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/static/css/ReportRouter.Dly3Bzm_.css",
+                "/static/js/ReportRouter.KkTypOVC.chunk.js",
+                "/static/js/TransactionList.DgsDTzqb.chunk.js",
+                "/static/js/bootstrapHyperFormula.IIhTcG2D.chunk.js"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "native": {
+      "count": 20,
+      "hardware": {
+        "hostname": "thinky",
+        "cpu": "13th Gen Intel(R) Core(TM) i7-1370P",
+        "cpus": 20,
+        "memory": 66972958720,
+        "kernel": "7.2.8-9-omarchy"
+      },
+      "browser": "155.0.8059.84",
+      "image": "sha256:e400473e4eaa0b079edc496196e9996549bb5dde2e44113be3faf828ec51a22e",
+      "profile": "persistent disk profile; warm account; form entry excluded; save click through changed account balance and server acknowledgement; report navigation to one static Oct\u2013Nov2026 cash-flow widget after each new expense; no browser restart between samples; explicit source sync included; DNS loopback only",
+      "raw_sha256": "5f7fd998e43d6fc97a789ec0049307875cf9f457b8f0b3fa55019984c577284b",
+      "compressed_sha256": "19c2387bd55985a00a95f80f5d8c1720ab5f1cfe656b2c6cca4b2715c0214d5c",
+      "cases": [
+        {
+          "name": "empty",
+          "archive_sha256": "74f98abdbbc0a7071e9c35916c524948f85fa53755076623408a9bb70a8f920b",
+          "browser_errors": [],
+          "summary": {
+            "expense": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 228.18392400000084,
+                "p95": 262.6100779999997
+              },
+              "settled_ms": {
+                "p50": 346.29237699999976,
+                "p95": 413.97729099999924
+              },
+              "browser_cpu_ms": {
+                "p50": 430,
+                "p95": 580
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1062764544,
+                "p95": 1090347008
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 531165184,
+                "p95": 555710464
+              },
+              "server_cpu_ms": {
+                "p50": 22.501000000000204,
+                "p95": 25.777000000000044
+              },
+              "server_peak_memory_bytes": {
+                "p50": 284651520,
+                "p95": 285130752
+              },
+              "server_sent_bytes": {
+                "p50": 32984,
+                "p95": 53054
+              },
+              "server_received_bytes": {
+                "p50": 10669,
+                "p95": 10883
+              },
+              "observed_response_body_bytes": {
+                "p50": 29189,
+                "p95": 49061
+              },
+              "observed_requests": {
+                "p50": 13,
+                "p95": 13
+              },
+              "browser_write_bytes": {
+                "p50": 241664,
+                "p95": 487424
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 65536,
+                  "p95": 77824
+                },
+                "259:0": {
+                  "p50": 65536,
+                  "p95": 77824
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/api/v1/amounts/evaluate",
+                "/api/v1/budgets/961c8435-ab29-4e08-82df-c59cf92d72a6/changes",
+                "/api/v1/budgets/961c8435-ab29-4e08-82df-c59cf92d72a6/checkpoint",
+                "/api/v1/budgets/961c8435-ab29-4e08-82df-c59cf92d72a6/history",
+                "/api/v1/budgets/961c8435-ab29-4e08-82df-c59cf92d72a6/rules/preview",
+                "/api/v1/budgets/961c8435-ab29-4e08-82df-c59cf92d72a6/rules/transactions",
+                "/api/v1/budgets/961c8435-ab29-4e08-82df-c59cf92d72a6/schedules",
+                "/api/v1/budgets/961c8435-ab29-4e08-82df-c59cf92d72a6/transactions",
+                "/api/v1/info"
+              ]
+            },
+            "report": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 126.6313880000016,
+                "p95": 155.54614199999924
+              },
+              "settled_ms": {
+                "p50": 234.09618099999898,
+                "p95": 247.4451339999996
+              },
+              "browser_cpu_ms": {
+                "p50": 240,
+                "p95": 350
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1063313408,
+                "p95": 1094377472
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 531320832,
+                "p95": 559791104
+              },
+              "server_cpu_ms": {
+                "p50": 5.574999999999818,
+                "p95": 7.483000000000175
+              },
+              "server_peak_memory_bytes": {
+                "p50": 284114944,
+                "p95": 284778496
+              },
+              "server_sent_bytes": {
+                "p50": 33670,
+                "p95": 34002
+              },
+              "server_received_bytes": {
+                "p50": 2617,
+                "p95": 3219
+              },
+              "observed_response_body_bytes": {
+                "p50": 32677,
+                "p95": 32677
+              },
+              "observed_requests": {
+                "p50": 3,
+                "p95": 3
+              },
+              "browser_write_bytes": {
+                "p50": 69632,
+                "p95": 192512
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/api/v1/budgets/961c8435-ab29-4e08-82df-c59cf92d72a6/reporting",
+                "/api/v1/budgets/961c8435-ab29-4e08-82df-c59cf92d72a6/reports/query"
+              ]
+            }
+          }
+        },
+        {
+          "name": "typical",
+          "archive_sha256": "29ed85b507ede115a814e02446a665f34365e388f4d3135ac1cc4e81d9bceafb",
+          "browser_errors": [],
+          "summary": {
+            "expense": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 310.06249899999966,
+                "p95": 433.0407919999998
+              },
+              "settled_ms": {
+                "p50": 466.6867029999994,
+                "p95": 503.7362670000002
+              },
+              "browser_cpu_ms": {
+                "p50": 580,
+                "p95": 690
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1083359232,
+                "p95": 1133080576
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 544923648,
+                "p95": 593997824
+              },
+              "server_cpu_ms": {
+                "p50": 26.79200000000037,
+                "p95": 30.162999999999556
+              },
+              "server_peak_memory_bytes": {
+                "p50": 285630464,
+                "p95": 286552064
+              },
+              "server_sent_bytes": {
+                "p50": 105022,
+                "p95": 124882
+              },
+              "server_received_bytes": {
+                "p50": 10607,
+                "p95": 10937
+              },
+              "observed_response_body_bytes": {
+                "p50": 100831,
+                "p95": 120757
+              },
+              "observed_requests": {
+                "p50": 13,
+                "p95": 13
+              },
+              "browser_write_bytes": {
+                "p50": 462848,
+                "p95": 589824
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 69632,
+                  "p95": 110592
+                },
+                "259:0": {
+                  "p50": 69632,
+                  "p95": 110592
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/api/v1/amounts/evaluate",
+                "/api/v1/budgets/94077814-b524-4c8d-9ed4-ef5c6caa8975/changes",
+                "/api/v1/budgets/94077814-b524-4c8d-9ed4-ef5c6caa8975/checkpoint",
+                "/api/v1/budgets/94077814-b524-4c8d-9ed4-ef5c6caa8975/history",
+                "/api/v1/budgets/94077814-b524-4c8d-9ed4-ef5c6caa8975/rules/preview",
+                "/api/v1/budgets/94077814-b524-4c8d-9ed4-ef5c6caa8975/rules/transactions",
+                "/api/v1/budgets/94077814-b524-4c8d-9ed4-ef5c6caa8975/schedules",
+                "/api/v1/budgets/94077814-b524-4c8d-9ed4-ef5c6caa8975/transactions",
+                "/api/v1/info"
+              ]
+            },
+            "report": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 131.48613599999953,
+                "p95": 167.48707499999728
+              },
+              "settled_ms": {
+                "p50": 243.01030699999683,
+                "p95": 257.08457400000043
+              },
+              "browser_cpu_ms": {
+                "p50": 230,
+                "p95": 280
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1086119936,
+                "p95": 1133154304
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 548122624,
+                "p95": 594255872
+              },
+              "server_cpu_ms": {
+                "p50": 6.601999999999862,
+                "p95": 7.778000000000247
+              },
+              "server_peak_memory_bytes": {
+                "p50": 284946432,
+                "p95": 285773824
+              },
+              "server_sent_bytes": {
+                "p50": 41169,
+                "p95": 41170
+              },
+              "server_received_bytes": {
+                "p50": 2683,
+                "p95": 2683
+              },
+              "observed_response_body_bytes": {
+                "p50": 40044,
+                "p95": 40044
+              },
+              "observed_requests": {
+                "p50": 3,
+                "p95": 3
+              },
+              "browser_write_bytes": {
+                "p50": 86016,
+                "p95": 327680
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/api/v1/budgets/94077814-b524-4c8d-9ed4-ef5c6caa8975/reporting",
+                "/api/v1/budgets/94077814-b524-4c8d-9ed4-ef5c6caa8975/reports/query"
+              ]
+            }
+          }
+        },
+        {
+          "name": "large",
+          "archive_sha256": "13d7073a451b5a4604a89bee8e1616b4b5abc5477539818830699535a3659a47",
+          "browser_errors": [],
+          "summary": {
+            "expense": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 661.1760060000088,
+                "p95": 862.4669259999937
+              },
+              "settled_ms": {
+                "p50": 803.6986449999968,
+                "p95": 1013.5577399999893
+              },
+              "browser_cpu_ms": {
+                "p50": 860,
+                "p95": 1050
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1145483264,
+                "p95": 1153777664
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 612685824,
+                "p95": 619468800
+              },
+              "server_cpu_ms": {
+                "p50": 144.64600000000064,
+                "p95": 218.59799999999996
+              },
+              "server_peak_memory_bytes": {
+                "p50": 309338112,
+                "p95": 309919744
+              },
+              "server_sent_bytes": {
+                "p50": 256236,
+                "p95": 257715
+              },
+              "server_received_bytes": {
+                "p50": 11197,
+                "p95": 13084
+              },
+              "observed_response_body_bytes": {
+                "p50": 251705,
+                "p95": 252686
+              },
+              "observed_requests": {
+                "p50": 13,
+                "p95": 15
+              },
+              "browser_write_bytes": {
+                "p50": 266240,
+                "p95": 516096
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 65536,
+                  "p95": 81920
+                },
+                "259:0": {
+                  "p50": 65536,
+                  "p95": 81920
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/api/v1/amounts/evaluate",
+                "/api/v1/budgets/a194cb42-f69b-4948-9bf3-2d9eb392828b/changes",
+                "/api/v1/budgets/a194cb42-f69b-4948-9bf3-2d9eb392828b/checkpoint",
+                "/api/v1/budgets/a194cb42-f69b-4948-9bf3-2d9eb392828b/history",
+                "/api/v1/budgets/a194cb42-f69b-4948-9bf3-2d9eb392828b/rules/preview",
+                "/api/v1/budgets/a194cb42-f69b-4948-9bf3-2d9eb392828b/rules/transactions",
+                "/api/v1/budgets/a194cb42-f69b-4948-9bf3-2d9eb392828b/schedules",
+                "/api/v1/budgets/a194cb42-f69b-4948-9bf3-2d9eb392828b/transactions",
+                "/api/v1/info"
+              ]
+            },
+            "report": {
+              "samples": 20,
+              "ui_ready_ms": {
+                "p50": 246.3851810000051,
+                "p95": 344.9864579999994
+              },
+              "settled_ms": {
+                "p50": 353.9664069999999,
+                "p95": 380.325579999997
+              },
+              "browser_cpu_ms": {
+                "p50": 270,
+                "p95": 310
+              },
+              "browser_peak_rss_bytes": {
+                "p50": 1146032128,
+                "p95": 1153929216
+              },
+              "browser_peak_pss_bytes": {
+                "samples": 20,
+                "p50": 612685824,
+                "p95": 618207232
+              },
+              "server_cpu_ms": {
+                "p50": 108.18899999999849,
+                "p95": 130.65499999999884
+              },
+              "server_peak_memory_bytes": {
+                "p50": 308912128,
+                "p95": 309559296
+              },
+              "server_sent_bytes": {
+                "p50": 41563,
+                "p95": 41563
+              },
+              "server_received_bytes": {
+                "p50": 2715,
+                "p95": 2947
+              },
+              "observed_response_body_bytes": {
+                "p50": 40371,
+                "p95": 40371
+              },
+              "observed_requests": {
+                "p50": 3,
+                "p95": 3
+              },
+              "browser_write_bytes": {
+                "p50": 90112,
+                "p95": 245760
+              },
+              "server_write_bytes_by_device": {
+                "253:0": {
+                  "p50": 0,
+                  "p95": 0
+                },
+                "259:0": {
+                  "p50": 0,
+                  "p95": 0
+                }
+              },
+              "incomplete_browser_io_samples": 0,
+              "request_paths": [
+                "/api/v1/budgets/a194cb42-f69b-4948-9bf3-2d9eb392828b/reporting",
+                "/api/v1/budgets/a194cb42-f69b-4948-9bf3-2d9eb392828b/reports/query"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

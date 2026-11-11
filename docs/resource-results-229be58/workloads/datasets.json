@@ -1,0 +1,47 @@
+[
+  {
+    "name": "empty",
+    "reporting": {
+      "page": "98762222-bdb4-407e-8a76-a110c164894c",
+      "name": "Resource latency",
+      "widget_name": "Resource cash flow"
+    },
+    "source_archive_sha256": "894f254a8423554b31a20066ed5035d474f2c9a4ebe049eb231e9d33fbbcb468",
+    "archive_sha256": "74f98abdbbc0a7071e9c35916c524948f85fa53755076623408a9bb70a8f920b",
+    "transactions": 0,
+    "date_range": null,
+    "ledger_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "name": "typical",
+    "reporting": {
+      "page": "33e121c8-4e71-4533-99c2-b53a3a74147c",
+      "name": "Resource latency",
+      "widget_name": "Resource cash flow"
+    },
+    "source_archive_sha256": "718ce38aea766252958fd53d04211179c5fd3a28924f803e83b41a290c9dd621",
+    "archive_sha256": "29ed85b507ede115a814e02446a665f34365e388f4d3135ac1cc4e81d9bceafb",
+    "transactions": 48,
+    "date_range": [
+      "2025-11-12",
+      "2027-01-05"
+    ],
+    "ledger_sha256": "c5afaa82636ec95e3ddca64858a9fa5050199d370f7b0a63dde236cf333ca0d1"
+  },
+  {
+    "name": "large",
+    "reporting": {
+      "page": "e7e79dfb-1c0a-4883-b91f-78a9507145bf",
+      "name": "Resource latency",
+      "widget_name": "Resource cash flow"
+    },
+    "source_archive_sha256": "0f9e8b8f01c7aa5bed01663f2ed6e3eea28ecd0249cd9d9cedcefc930b6cb0a5",
+    "archive_sha256": "13d7073a451b5a4604a89bee8e1616b4b5abc5477539818830699535a3659a47",
+    "transactions": 10048,
+    "date_range": [
+      "2017-01-01",
+      "2027-01-05"
+    ],
+    "ledger_sha256": "447d8bdf276795c1b4eaf8056b163ec6c57d826c9b0ae20fba247d945bb13326"
+  }
+]

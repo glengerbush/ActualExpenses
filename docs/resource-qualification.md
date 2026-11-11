@@ -1,7 +1,8 @@
 # Resource qualification — in progress
 
 Ticket51 is **not accepted**. This note records the production browser comparison
-and its limits. Mutation/report/restore distributions, large graph/history/guard
+and its limits. Opening, expense and report distributions are recorded below.
+Restore distributions, large graph/history/guard
 stress, Android resource observations and the consolidated accessibility audit
 remain outstanding. Existing functional evidence is not relabeled as performance
 evidence. Nothing here authorizes release or production cutover.
@@ -312,7 +313,92 @@ format checks pass; both20-sample comparisons and both steady-idle checks pass
 with the recorded baseline exceptions. No production source changed, so existing
 financial/native functional results remain valid; no broad suite rerun is claimed.
 
-Remaining51 gates: expense/report/restore latency distributions, repeated
+Remaining51 gates: restore latency distributions, repeated
 undo/redo storage growth, graph/rollback and analysis-guard stress, Android
 resource observations, background behavior, due-schedule cross-check and final
 keyboard/accessibility/theme/locale/Impeccable review.52/53 also remain open.
+
+## Acknowledged expenses and cash-flow reports
+
+[Summary](resource-results-229be58/workloads/summary.json),
+[baseline raw](resource-results-229be58/workloads/baseline-workloads.json.gz),
+[replacement raw](resource-results-229be58/workloads/native-workloads.json.gz),
+[datasets](resource-results-229be58/workloads/datasets.json) and
+[independent financial proof](resource-results-229be58/workloads/financial-proof.json).
+
+Same images, hardware, Chromium155 and three financial histories as above,
+in fresh disposable containers. The pinned engine creates one `Resource latency`
+dashboard with one static October–November2026 cash-flow card and removes other
+dashboard pages before exporting identical inputs for both apps. Browser profiles
+live on disk, one fresh profile per case, retained across20 expense/report pairs.
+The account is warm before measurement; form entry is outside each window.
+Each expense is1234 minor units dated2026-11-10, with a unique note and cleared
+false. Measurements include Save through visible changed account balance and
+server acknowledgement. Actual's explicit Server Sync is included; this measures
+server acknowledgement, not its earlier local-only save. The replacement waits
+for the successful mutation response and register refresh. Then navigation to
+Reports through the visible chart is measured, followed by an unmeasured return
+to the account. First lazy chart loading is retained. Counter settlement follows
+the shared opening protocol; no failed samples appear in these final runs.
+
+`check-resource-workloads.mjs` independently downloads all source budgets after
+timing. All60 acknowledged expenses per app match exactly once, every account
+balance matches, and each complete cash-flow result matches the pinned engine.
+The report oracle fixes calendar today to2026-11-10 in UTC while retaining real
+synchronization clocks. All-date account sums deliberately include future-dated
+fixture entries, as do the migration manifest and replacement register.
+
+Latency milliseconds, p50/p95 (20 samples per cell):
+
+| Case | Actual expense | Replacement expense | Actual report | Replacement report |
+| --- | ---: | ---: | ---: | ---: |
+| empty |432/594|228/263|238/276|127/156|
+| typical |727/1014|310/433|245/401|131/167|
+| large |787/1207|661/862|228/329|246/345|
+
+Browser/server CPU milliseconds, medians:
+
+| Case | Actual expense | Replacement expense | Actual report | Replacement report |
+| --- | ---: | ---: | ---: | ---: |
+| empty |760/9|430/23|470/0|240/6|
+| typical |1240/8|580/27|470/<1|230/7|
+| large |1480/7|860/145|450/<1|270/108|
+
+The large replacement report is slightly slower despite lower browser CPU.
+Its server performs the financial calculation instead of the source browser's
+cached engine. Large expense server cost includes mutation, changes/checkpoint,
+history, schedule and register requests. The raw trace shows two100-row register
+responses of122259 bytes each after saving; this is repeated bounded-page work,
+not a full10048-row history download. No claim that every resource improved.
+
+Median server TX bytes, expense/report: Actual1022/0,1048/0,1026/0;
+replacement32984/33670,105022/41169,256236/41563 for empty/typical/large.
+More request/response traffic is a cost of the server-authoritative design.
+Median browser PSS during expenses is782/847/905MiB for Actual and507/520/584MiB
+for replacement, with all20 samples available. Median server cgroup memory is
+89/92/119MiB versus271/272/295MiB, including the retained import allocation and
+charged cache discussed above. Do not sum PSS and cgroup totals as exact physical
+memory or infer power consumption.
+
+Server block writes per expense have medians167936 bytes for Actual in allcases,
+versus65536/69632/65536 for replacement. Reports have zero observed server block
+writes. Device-mapper and underlying-device counters mirror the same writes;
+do not sum them. Browser write counters include profile housekeeping as before;
+full p50/p95 CPU, memory, bytes and writes remain in the summary/raw evidence.
+
+Excluded preparation attempts are not application failures: exploratory selectors
+used a menuitem where Actual exposes a button; an initial replacement run waited
+for the newly saved row to be visible even when future-dated fixture entries put
+it beyond the first100 rows. That committed save and all samples from that run
+were discarded; a fresh container received the original archive. The final
+protocol checks changed balance plus acknowledgement on both apps. Oracle setup
+was corrected to use the source sync group identity, UTC/fixed calendar and
+all-date sums (the SDK balance convenience function defaults to today's cutoff).
+These corrections did not change product code or financial expectations. Earlier
+attempts remain in the disposable lab, outside the published distributions.
+
+Root review against51 found no additional blocking issue in this measurement
+slice. Shared process/counter helpers preserve the opening protocol; sample
+fences refuse accidentally repeating mutating runs. Final archives/hashes,
+240 observations, financial proof and credential exclusion were checked.
+Syntax/format checks pass. Ticket51 remains open for the gates listed above.

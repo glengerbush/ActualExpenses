@@ -11,10 +11,11 @@ const require = createRequire(
   ),
 );
 const api = require("@actual-app/api");
-const [url, output] = process.argv.slice(2);
+const [url, output, mode] = process.argv.slice(2);
+assert.ok(mode === undefined || mode === "--workloads");
 assert.ok(
   url && output,
-  "Usage: node prepare-resource-budgets.mjs http://127.0.0.1:PORT NEW_OUTPUT_DIRECTORY",
+  "Usage: node prepare-resource-budgets.mjs http://127.0.0.1:PORT NEW_OUTPUT_DIRECTORY [--workloads]",
 );
 const server = new URL(url);
 assert.equal(server.protocol, "http:");
@@ -82,7 +83,7 @@ try {
     const originalRemote = (await api.getBudgets()).find(
       (budget) => budget.id === original.id,
     );
-    const label = "Resource " + name;
+    const label = (mode === "--workloads" ? "Workload " : "Resource ") + name;
     await engine.send("close-budget");
     const local = await engine.send("duplicate-budget", {
       id: original.id,
@@ -101,6 +102,39 @@ try {
         })),
       });
     }
+    let reporting;
+    if (mode === "--workloads") {
+      const page = await engine.send("dashboard-create", {
+        name: "Resource latency",
+      });
+      const widget = await engine.send("dashboard-add-widget", {
+        dashboard_page_id: page,
+        type: "cash-flow-card",
+        x: 0,
+        y: 0,
+        width: 12,
+        height: 4,
+        meta: {
+          name: "Resource cash flow",
+          timeFrame: { start: "2026-10", end: "2026-11", mode: "static" },
+          showBalance: true,
+        },
+      });
+      const pages = (await api.aqlQuery(api.q("dashboard_pages").select("id")))
+        .data;
+      for (const previous of pages.filter((item) => item.id !== page))
+        await engine.send("dashboard-delete", previous.id);
+      assert.equal(
+        (await api.aqlQuery(api.q("dashboard_pages").select("id"))).data.length,
+        1,
+      );
+      reporting = {
+        page,
+        widget,
+        name: "Resource latency",
+        widget_name: "Resource cash flow",
+      };
+    }
     await api.sync();
     const exported = Buffer.from(await api.exportBudget());
     await writeFile(directory + "/" + name + ".zip", exported, { flag: "wx" });
@@ -116,6 +150,7 @@ try {
     assert.ok(cloud?.cloudFileId, JSON.stringify(cloud));
     cases.push({
       name,
+      ...(reporting ? { reporting } : {}),
       label,
       local_id: local,
       cloud_id: cloud.cloudFileId,

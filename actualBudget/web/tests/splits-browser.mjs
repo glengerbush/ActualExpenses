@@ -122,6 +122,9 @@ try {
   await expect(
     page.getByRole("button", { name: "Retry saved split", exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Retry saved split", exact: true }),
+  ).toBeEnabled();
   await page.reload();
   await expect(
     page.getByRole("button", { name: "Retry saved split", exact: true }),

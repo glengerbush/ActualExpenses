@@ -2,6 +2,7 @@ import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { readFile, mkdir } from "node:fs/promises";
 import { startServer } from "./server.mjs";
+import { waitForReportingDraft } from "./reporting-draft.mjs";
 import { isolatedImportBytes } from "./import-fixture.mjs";
 const server = await startServer();
 let browser;
@@ -176,6 +177,7 @@ try {
   await editor
     .getByRole("textbox", { name: "Formula", exact: true })
     .fill("=NOT_A_FUNCTION(1)");
+  await waitForReportingDraft(page, budget, { formula: "=NOT_A_FUNCTION(1)" });
   await page.reload();
   await expect(
     editor.getByRole("textbox", { name: "Formula", exact: true }),
@@ -212,6 +214,7 @@ try {
   await editor
     .getByRole("spinbutton", { name: "Font size", exact: true })
     .fill("");
+  await waitForReportingDraft(page, budget, { staticFontSize: "" });
   await page.reload();
   await expect(
     editor.getByRole("spinbutton", { name: "Font size", exact: true }),
@@ -481,6 +484,9 @@ try {
       }),
   );
   await page.reload();
+  // Theme recovery starts a fresh calculation; wait for its financial result
+  // before asserting the restored color (within the API's 15-second deadline).
+  await expect(value).toHaveText(expected, { timeout: 15000 });
   await expect(value).toHaveCSS("color", "rgb(18, 52, 86)");
   await assertColors("light", customCss);
   const recoveredTheme = await page.evaluate(

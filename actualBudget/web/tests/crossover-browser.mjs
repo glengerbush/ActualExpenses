@@ -3,6 +3,7 @@ import { chromium, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile } from "node:fs/promises";
 import { startServer } from "./server.mjs";
+import { waitForReportingDraft } from "./reporting-draft.mjs";
 import { isolatedImportBytes } from "./import-fixture.mjs";
 const server = await startServer();
 let browser;
@@ -184,33 +185,7 @@ try {
   await expect(adjustment).toHaveValue("110.25");
   await expect(growth).toHaveValue("5.125");
   await rate.fill("");
-  // Reload after the async draft write commits, not while navigation can abort it.
-  await expect
-    .poll(() =>
-      page.evaluate(async (budget) => {
-        const db = await new Promise((resolve, reject) => {
-          const request = indexedDB.open("actualBudget.offline.v1", 1);
-          request.onsuccess = () => resolve(request.result);
-          request.onerror = () => reject(request.error);
-        });
-        try {
-          return await new Promise((resolve, reject) => {
-            const request = db
-              .transaction("cache")
-              .objectStore("cache")
-              .get(`reporting-draft:${budget}`);
-            request.onsuccess = () =>
-              resolve(
-                request.result?.document?.config?.meta?.safeWithdrawalRate,
-              );
-            request.onerror = () => reject(request.error);
-          });
-        } finally {
-          db.close();
-        }
-      }, budget),
-    )
-    .toBe("");
+  await waitForReportingDraft(page, budget, { safeWithdrawalRate: "" });
   await page.reload();
   await expect(editor).toBeVisible();
   await expect(rate).toHaveValue("");
@@ -356,6 +331,9 @@ try {
         .evaluate((input) => input.validationMessage),
     )
     .not.toBe("");
+  await waitForReportingDraft(page, budget, {
+    expectedContribution: "not money",
+  });
   await page.reload();
   await expect(editor).toBeVisible();
   await expect(

@@ -191,6 +191,9 @@ try {
   await expect(
     page.getByRole("button", { name: "Retry saved repair", exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Retry saved repair", exact: true }),
+  ).toBeEnabled();
   await page.reload();
   await expect(
     page.getByRole("button", { name: "Retry saved repair", exact: true }),
@@ -353,6 +356,9 @@ try {
   await expect(
     page.getByRole("button", { name: "Retry saved operation", exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Retry saved operation", exact: true }),
+  ).toBeEnabled();
   await page.reload();
   await page
     .getByRole("button", { name: "Recovery tools", exact: true })

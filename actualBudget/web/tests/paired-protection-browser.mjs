@@ -242,6 +242,7 @@ try {
     u.hostname = "127.0.0.1";
     const response = await route.fetch({ url: u.href, headers });
     if (loseSplit) {
+      expect(response.ok()).toBe(true);
       loseSplit = false;
       await route.abort();
     } else await route.fulfill({ response });
@@ -250,6 +251,14 @@ try {
   await expect(
     page.getByRole("button", { name: "Retry saved split", exact: true }),
   ).toBeVisible();
+  await expect.poll(() => loseSplit).toBe(false);
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Cannot reach the server" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Retry saved split", exact: true }),
+  ).toBeEnabled();
+  expect(splitRequests).toHaveLength(1);
   await page.reload();
   await page
     .getByRole("button", { name: "Retry saved split", exact: true })

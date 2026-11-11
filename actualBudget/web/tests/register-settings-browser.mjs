@@ -136,6 +136,9 @@ try {
   await expect(
     page.getByRole("button", { name: "Retry register settings", exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Retry register settings", exact: true }),
+  ).toBeEnabled();
   await expect(stale.getByLabel("Search transactions")).toBeDisabled();
   await page.reload();
   await page

@@ -235,6 +235,7 @@ a {
   font-weight: 750;
   letter-spacing: -0.025em;
   margin: 0 0.65rem 2rem;
+  overflow-wrap: anywhere;
 }
 .sidebar-description {
   margin: 0.65rem;
@@ -349,6 +350,11 @@ main {
   flex-wrap: wrap;
   gap: 0.7rem;
   margin-top: 2rem;
+}
+.actions > button {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .error {
   color: var(--error);

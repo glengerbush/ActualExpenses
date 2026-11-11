@@ -1,0 +1,1335 @@
+{
+  "image": "sha256:24645e971da6bb1a1f953d6859e307a0b29be1e8b4130a35b3220c209b5b860c",
+  "samples": 20,
+  "protocol": "API36 emulator, debug APK and shared Compose instrumentation; process CPU/PSS, UID network and process I/O. Instrumentation/measurement overhead included; not phone battery measurements.",
+  "application": "released baseline",
+  "source_revision": "2b25b070ddee0c6bca5f2e95b11d82ddac269012",
+  "device": "google/sdk_gphone64_x86_64/emu64xa:16/BE2A.250530.026.D1/13818094:user/release-keys",
+  "screen": "Physical size: 1080x2400",
+  "density": "Physical density: 420",
+  "font_scale": "1.0",
+  "instrumentation_sha256": "944602f3c66d9abbf2ecdbf7d02737146bf25b251c0e247dd41cb2142e9936eb",
+  "apk_sha256": "b24b43072ab4367bfa2c7f47681142de8057a4d61b9f5ee42c6081346acf48de",
+  "cases": [
+    {
+      "name": "empty",
+      "budget_id": "78e9f3ea-da5a-4c56-ac3d-16d80b21f341",
+      "transactions": 0,
+      "source_archive_sha256": "894f254a8423554b31a20066ed5035d474f2c9a4ebe049eb231e9d33fbbcb468",
+      "phases": {
+        "background_idle": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 35000,
+              "p95": 35000
+            },
+            "elapsed_ms": {
+              "p50": 35037,
+              "p95": 35037
+            },
+            "process_cpu_ms": {
+              "p50": 56,
+              "p95": 56
+            },
+            "pss_kib": {
+              "p50": 114117,
+              "p95": 114117
+            },
+            "uid_rx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "uid_tx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "syscall_write_bytes": {
+              "p50": 23,
+              "p95": 23
+            }
+          }
+        },
+        "expense_acknowledgement": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 5146,
+              "p95": 5526
+            },
+            "elapsed_ms": {
+              "p50": 5185,
+              "p95": 5582
+            },
+            "process_cpu_ms": {
+              "p50": 3304,
+              "p95": 3615
+            },
+            "pss_kib": {
+              "p50": 117094,
+              "p95": 120269
+            },
+            "uid_rx_bytes": {
+              "p50": 83768,
+              "p95": 147905
+            },
+            "uid_tx_bytes": {
+              "p50": 7459,
+              "p95": 9220
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 294912,
+              "p95": 389120
+            },
+            "syscall_write_bytes": {
+              "p50": 922186,
+              "p95": 1065726
+            }
+          }
+        },
+        "foreground_idle": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 35001,
+              "p95": 35001
+            },
+            "elapsed_ms": {
+              "p50": 35040,
+              "p95": 35040
+            },
+            "process_cpu_ms": {
+              "p50": 71,
+              "p95": 71
+            },
+            "pss_kib": {
+              "p50": 116789,
+              "p95": 116789
+            },
+            "uid_rx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "uid_tx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 20480,
+              "p95": 20480
+            },
+            "syscall_write_bytes": {
+              "p50": 17175,
+              "p95": 17175
+            }
+          }
+        },
+        "settlement": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 2004,
+              "p95": 2004
+            },
+            "elapsed_ms": {
+              "p50": 2037,
+              "p95": 2037
+            },
+            "process_cpu_ms": {
+              "p50": 642,
+              "p95": 642
+            },
+            "pss_kib": {
+              "p50": 116297,
+              "p95": 116297
+            },
+            "uid_rx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "uid_tx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_read_bytes": {
+              "p50": 86016,
+              "p95": 86016
+            },
+            "storage_write_bytes": {
+              "p50": 790528,
+              "p95": 790528
+            },
+            "syscall_write_bytes": {
+              "p50": 812972,
+              "p95": 812972
+            }
+          }
+        },
+        "unchanged_refresh": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 2927,
+              "p95": 2962
+            },
+            "elapsed_ms": {
+              "p50": 2962,
+              "p95": 2999
+            },
+            "process_cpu_ms": {
+              "p50": 1709,
+              "p95": 1764
+            },
+            "pss_kib": {
+              "p50": 109978,
+              "p95": 111516
+            },
+            "uid_rx_bytes": {
+              "p50": 12067,
+              "p95": 12067
+            },
+            "uid_tx_bytes": {
+              "p50": 1939,
+              "p95": 1979
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "syscall_write_bytes": {
+              "p50": 640537,
+              "p95": 662048
+            }
+          }
+        },
+        "warm_foreground": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 3915,
+              "p95": 3943
+            },
+            "elapsed_ms": {
+              "p50": 3954,
+              "p95": 3996
+            },
+            "process_cpu_ms": {
+              "p50": 1461,
+              "p95": 1544
+            },
+            "pss_kib": {
+              "p50": 108266,
+              "p95": 110316
+            },
+            "uid_rx_bytes": {
+              "p50": 12067,
+              "p95": 12067
+            },
+            "uid_tx_bytes": {
+              "p50": 1939,
+              "p95": 1979
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 16384
+            },
+            "syscall_write_bytes": {
+              "p50": 65471,
+              "p95": 82398
+            }
+          }
+        }
+      },
+      "financial_proof": {
+        "added_rows": 20,
+        "before": {
+          "total": 0,
+          "cleared": 0,
+          "uncleared": 0
+        },
+        "after": {
+          "total": -8540,
+          "cleared": -8540,
+          "uncleared": 0
+        },
+        "purchases": [
+          {
+            "id": "b6bb64b1-09b7-415e-a9ee-e56a04e53bec",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "1d67e102-a59c-475c-beb9-0c546d9078f0",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "3e429520-3c8c-475f-8d9e-326c91eeb2e7",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "60818584-4bc4-4cbd-ab51-a3a412d9c222",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "43d11a54-96b1-4c3a-8c36-855c4c64a536",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "214f1174-439a-4b8f-98ef-3f134f140d69",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "ffaaa215-aeda-43b7-80ce-212c7cdd7ffe",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "09da8dfc-26d1-413c-87cc-ac9cc120c058",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "c0b9fbb3-fa12-4cc2-b465-cf2290c0f1db",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "45b24945-8d6d-489c-b591-12d3e1350613",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "cbf35597-68df-46e9-99fa-82ac5606a93f",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "193960ca-173a-47a3-a438-496f161d0691",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "441ac35c-1ada-4360-b057-8428fd24db86",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "a8175bd3-9011-40a3-b47e-9eb08abe7d01",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "c994165a-f934-4bb2-83dc-3bc3ee76e6b3",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "b21abcd2-3174-4a05-8d51-94f52ef265b7",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "eb3ac11a-0ae2-4775-bc93-c8200271b021",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "fb7c49c3-f2a3-4100-8285-a56cafc3db01",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "ed7b3b06-edbf-4f9d-a5bc-e0e6d8d83d86",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "f7487e77-9ac1-41a8-83a8-b057d21f0cf8",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          }
+        ],
+        "source_version": "26.10.0"
+      },
+      "fixture": {
+        "name": "empty",
+        "label": "AAA Android baseline empty 716d3b",
+        "account": "327e6c74-3c22-4a43-bba8-b665f355e025",
+        "account_name": "Checking",
+        "cloud_id": "78e9f3ea-da5a-4c56-ac3d-16d80b21f341",
+        "group_id": "1820f725-4f31-4f46-8240-9b4d87c0814c",
+        "local_id": "AAA-Android-baseline-empty-716d3b-bebb11a",
+        "transactions": 0,
+        "ledger_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "source_archive_sha256": "894f254a8423554b31a20066ed5035d474f2c9a4ebe049eb231e9d33fbbcb468",
+        "before": {
+          "total": 0,
+          "cleared": 0,
+          "uncleared": 0
+        }
+      },
+      "catalog_response_bytes": [
+        9497
+      ],
+      "request_counts": {
+        "GET /info": 64,
+        "POST /account/login": 1,
+        "GET /sync/list-user-files": 63,
+        "GET /sync/download-user-file": 1,
+        "POST /sync/sync": 102
+      }
+    },
+    {
+      "name": "typical",
+      "budget_id": "4b91ba88-620e-41ca-ad2a-fa11312d311e",
+      "transactions": 48,
+      "source_archive_sha256": "718ce38aea766252958fd53d04211179c5fd3a28924f803e83b41a290c9dd621",
+      "phases": {
+        "background_idle": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 35000,
+              "p95": 35000
+            },
+            "elapsed_ms": {
+              "p50": 35032,
+              "p95": 35032
+            },
+            "process_cpu_ms": {
+              "p50": 34,
+              "p95": 34
+            },
+            "pss_kib": {
+              "p50": 117488,
+              "p95": 117488
+            },
+            "uid_rx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "uid_tx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "syscall_write_bytes": {
+              "p50": 38,
+              "p95": 38
+            }
+          }
+        },
+        "expense_acknowledgement": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 5161,
+              "p95": 5523
+            },
+            "elapsed_ms": {
+              "p50": 5196,
+              "p95": 5560
+            },
+            "process_cpu_ms": {
+              "p50": 3501,
+              "p95": 3894
+            },
+            "pss_kib": {
+              "p50": 121142,
+              "p95": 125990
+            },
+            "uid_rx_bytes": {
+              "p50": 80638,
+              "p95": 144780
+            },
+            "uid_tx_bytes": {
+              "p50": 7421,
+              "p95": 9142
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 479232,
+              "p95": 593920
+            },
+            "syscall_write_bytes": {
+              "p50": 1105998,
+              "p95": 1374009
+            }
+          }
+        },
+        "foreground_idle": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 35000,
+              "p95": 35000
+            },
+            "elapsed_ms": {
+              "p50": 35044,
+              "p95": 35044
+            },
+            "process_cpu_ms": {
+              "p50": 75,
+              "p95": 75
+            },
+            "pss_kib": {
+              "p50": 118115,
+              "p95": 118115
+            },
+            "uid_rx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "uid_tx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 20480,
+              "p95": 20480
+            },
+            "syscall_write_bytes": {
+              "p50": 17218,
+              "p95": 17218
+            }
+          }
+        },
+        "settlement": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 2006,
+              "p95": 2006
+            },
+            "elapsed_ms": {
+              "p50": 2041,
+              "p95": 2041
+            },
+            "process_cpu_ms": {
+              "p50": 620,
+              "p95": 620
+            },
+            "pss_kib": {
+              "p50": 117517,
+              "p95": 117517
+            },
+            "uid_rx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "uid_tx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 765952,
+              "p95": 765952
+            },
+            "syscall_write_bytes": {
+              "p50": 787792,
+              "p95": 787792
+            }
+          }
+        },
+        "unchanged_refresh": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 2919,
+              "p95": 2949
+            },
+            "elapsed_ms": {
+              "p50": 2958,
+              "p95": 2984
+            },
+            "process_cpu_ms": {
+              "p50": 1859,
+              "p95": 2008
+            },
+            "pss_kib": {
+              "p50": 114247,
+              "p95": 116047
+            },
+            "uid_rx_bytes": {
+              "p50": 11644,
+              "p95": 11644
+            },
+            "uid_tx_bytes": {
+              "p50": 1939,
+              "p95": 1979
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "syscall_write_bytes": {
+              "p50": 1212852,
+              "p95": 1298570
+            }
+          }
+        },
+        "warm_foreground": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 3926,
+              "p95": 3961
+            },
+            "elapsed_ms": {
+              "p50": 3964,
+              "p95": 4000
+            },
+            "process_cpu_ms": {
+              "p50": 1512,
+              "p95": 1553
+            },
+            "pss_kib": {
+              "p50": 113204,
+              "p95": 115394
+            },
+            "uid_rx_bytes": {
+              "p50": 11644,
+              "p95": 11644
+            },
+            "uid_tx_bytes": {
+              "p50": 1939,
+              "p95": 1979
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 16384
+            },
+            "syscall_write_bytes": {
+              "p50": 122134,
+              "p95": 129697
+            }
+          }
+        }
+      },
+      "financial_proof": {
+        "added_rows": 20,
+        "before": {
+          "total": -407788,
+          "cleared": -407788,
+          "uncleared": 0
+        },
+        "after": {
+          "total": -416328,
+          "cleared": -416328,
+          "uncleared": 0
+        },
+        "purchases": [
+          {
+            "id": "63881bdf-c70f-4cb2-bac5-36d2c5e8a02e",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "607e3971-7f1e-4970-be65-3ab3fe9d139a",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "45f82a77-559b-4a0a-b89b-e5410160888c",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "27f558e6-dec0-4554-81b3-b23588d4d9f8",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "004e6576-4fff-4b1f-a210-ccf8f3780d74",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "825b69c4-e5e5-4b1d-b275-cfbbca61092a",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "f6127d9f-4416-40e3-9f19-34a8d0b56e75",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "c898f8e5-bb2c-464a-8bf7-278246540e37",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "82d1314a-5e83-4ff0-b2ec-6b51e2a1a2c0",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "02929354-9a7d-4817-ae7d-4b4b9f5b4080",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "f3a2a391-cb46-450a-9b51-ac602dcde80b",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "aa066425-5758-493a-8340-36cc4b98f277",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "c9ab3640-41e7-4773-b5b7-03934f9f76fb",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "c7f38762-7c5b-43b9-bd5c-f4576e1cacc2",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "34ce704c-8836-44a5-a622-d189ea214c90",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "24fe0b09-cdb8-4b10-89fc-2aad9b87dc2b",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "cf4a330d-424a-4ce2-a95e-d356d8a46612",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "e402784e-594b-4fd5-8201-7499b09a8f84",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "c8f79cf2-b318-433f-adb3-e0e13e4b4381",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "1c184d2d-6de0-4fe8-ae8a-680964f8d206",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          }
+        ],
+        "source_version": "26.10.0"
+      },
+      "fixture": {
+        "name": "typical",
+        "label": "AAA Android baseline typical 52552f",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "account_name": "checking",
+        "cloud_id": "4b91ba88-620e-41ca-ad2a-fa11312d311e",
+        "group_id": "8b691eaf-5500-4415-ae68-e43ce29c99f7",
+        "local_id": "AAA-Android-baseline-typical-52552f-42ce648",
+        "transactions": 48,
+        "ledger_sha256": "c5afaa82636ec95e3ddca64858a9fa5050199d370f7b0a63dde236cf333ca0d1",
+        "source_archive_sha256": "718ce38aea766252958fd53d04211179c5fd3a28924f803e83b41a290c9dd621",
+        "before": {
+          "total": -407788,
+          "cleared": -407788,
+          "uncleared": 0
+        }
+      },
+      "catalog_response_bytes": [
+        9497
+      ],
+      "request_counts": {
+        "GET /info": 64,
+        "POST /account/login": 1,
+        "GET /sync/list-user-files": 63,
+        "GET /sync/download-user-file": 1,
+        "POST /sync/sync": 102
+      }
+    },
+    {
+      "name": "large",
+      "budget_id": "636a30e4-77a5-4a50-a33a-8c92441a952a",
+      "transactions": 10048,
+      "source_archive_sha256": "0f9e8b8f01c7aa5bed01663f2ed6e3eea28ecd0249cd9d9cedcefc930b6cb0a5",
+      "phases": {
+        "background_idle": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 35001,
+              "p95": 35001
+            },
+            "elapsed_ms": {
+              "p50": 35037,
+              "p95": 35037
+            },
+            "process_cpu_ms": {
+              "p50": 38,
+              "p95": 38
+            },
+            "pss_kib": {
+              "p50": 162611,
+              "p95": 162611
+            },
+            "uid_rx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "uid_tx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "syscall_write_bytes": {
+              "p50": 8,
+              "p95": 8
+            }
+          }
+        },
+        "expense_acknowledgement": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 38429,
+              "p95": 39611
+            },
+            "elapsed_ms": {
+              "p50": 38469,
+              "p95": 39645
+            },
+            "process_cpu_ms": {
+              "p50": 56979,
+              "p95": 59736
+            },
+            "pss_kib": {
+              "p50": 281567,
+              "p95": 301868
+            },
+            "uid_rx_bytes": {
+              "p50": 3843758,
+              "p95": 3908074
+            },
+            "uid_tx_bytes": {
+              "p50": 78060,
+              "p95": 80420
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 36286464,
+              "p95": 36450304
+            },
+            "syscall_write_bytes": {
+              "p50": 37496515,
+              "p95": 37666989
+            }
+          }
+        },
+        "foreground_idle": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 35000,
+              "p95": 35000
+            },
+            "elapsed_ms": {
+              "p50": 35036,
+              "p95": 35036
+            },
+            "process_cpu_ms": {
+              "p50": 31475,
+              "p95": 31475
+            },
+            "pss_kib": {
+              "p50": 200615,
+              "p95": 200615
+            },
+            "uid_rx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "uid_tx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 679936,
+              "p95": 679936
+            },
+            "syscall_write_bytes": {
+              "p50": 698218,
+              "p95": 698218
+            }
+          }
+        },
+        "settlement": {
+          "count": 1,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 2004,
+              "p95": 2004
+            },
+            "elapsed_ms": {
+              "p50": 2050,
+              "p95": 2050
+            },
+            "process_cpu_ms": {
+              "p50": 425,
+              "p95": 425
+            },
+            "pss_kib": {
+              "p50": 273339,
+              "p95": 273339
+            },
+            "uid_rx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "uid_tx_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 16384,
+              "p95": 16384
+            },
+            "syscall_write_bytes": {
+              "p50": 6088,
+              "p95": 6088
+            }
+          }
+        },
+        "unchanged_refresh": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 4865,
+              "p95": 5303
+            },
+            "elapsed_ms": {
+              "p50": 4902,
+              "p95": 5364
+            },
+            "process_cpu_ms": {
+              "p50": 4219,
+              "p95": 4994
+            },
+            "pss_kib": {
+              "p50": 179311,
+              "p95": 184948
+            },
+            "uid_rx_bytes": {
+              "p50": 12391,
+              "p95": 12391
+            },
+            "uid_tx_bytes": {
+              "p50": 1979,
+              "p95": 2019
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 16384
+            },
+            "syscall_write_bytes": {
+              "p50": 1217261,
+              "p95": 1277287
+            }
+          }
+        },
+        "warm_foreground": {
+          "count": 20,
+          "metrics": {
+            "action_elapsed_ms": {
+              "p50": 5382,
+              "p95": 5826
+            },
+            "elapsed_ms": {
+              "p50": 5427,
+              "p95": 5870
+            },
+            "process_cpu_ms": {
+              "p50": 3621,
+              "p95": 3777
+            },
+            "pss_kib": {
+              "p50": 173884,
+              "p95": 179991
+            },
+            "uid_rx_bytes": {
+              "p50": 12391,
+              "p95": 12391
+            },
+            "uid_tx_bytes": {
+              "p50": 1979,
+              "p95": 1979
+            },
+            "storage_read_bytes": {
+              "p50": 0,
+              "p95": 0
+            },
+            "storage_write_bytes": {
+              "p50": 0,
+              "p95": 16384
+            },
+            "syscall_write_bytes": {
+              "p50": 142140,
+              "p95": 158074
+            }
+          }
+        }
+      },
+      "financial_proof": {
+        "added_rows": 20,
+        "before": {
+          "total": -50402789,
+          "cleared": -33741121,
+          "uncleared": -16661668
+        },
+        "after": {
+          "total": -50411329,
+          "cleared": -33749661,
+          "uncleared": -16661668
+        },
+        "purchases": [
+          {
+            "id": "3145a997-4c5b-4ecd-a95c-e2cc4062e533",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "30d162ec-8f28-46a7-b648-55e1a4e78eb3",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "35296a97-d7ad-4fbe-8671-569ca125007c",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "160fd722-3ee0-4f7e-9fef-f1a9f1b69f0b",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "3e545963-8150-4762-9083-26ebda07dd61",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "ab0c1288-b386-4123-9a1f-74ab7e74c32f",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "75a7a185-a852-4872-8a17-0873a4dfbc0d",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "6123413b-599c-456c-87f4-d35aad76b156",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "b0aa76b8-dd6c-4f56-b0a9-a8af474d9c9d",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "55f7a95d-b664-4d45-a3ff-e5a9cd6c8a81",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "1765f95f-d9ed-4bdd-a167-35c4acfe8516",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "10ddbd75-29b3-4ec9-a0fc-93f5f5d9ec39",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "2a1c3124-eab8-46db-921b-7537bdf36ef7",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "487fbb8a-eaca-4de8-b57e-e5d246fe47fc",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "386d50c4-9ff2-444b-8f55-e48f91cae34a",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "33fc1554-6cb5-430f-9b88-7840b935ae2f",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "590df21f-2bce-4849-a526-4a2118f1a458",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "3a193954-14cf-406a-bb03-205e55a20684",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "0ab8beb1-f12b-4f46-897f-0e1567bb7918",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          },
+          {
+            "id": "1e81547f-a5d6-42e2-8483-4aa8673b8435",
+            "amount": -427,
+            "date": "2026-11-11",
+            "cleared": true
+          }
+        ],
+        "source_version": "26.10.0"
+      },
+      "fixture": {
+        "name": "large",
+        "label": "AAA Android baseline large 95d111",
+        "account": "79a2f9e2-41b3-4f2b-a751-8937604f5857",
+        "account_name": "checking",
+        "cloud_id": "636a30e4-77a5-4a50-a33a-8c92441a952a",
+        "group_id": "c9652791-90e5-49f3-90fd-7d9129baaee0",
+        "local_id": "AAA-Android-baseline-large-95d111-7c05c4c",
+        "transactions": 10048,
+        "ledger_sha256": "447d8bdf276795c1b4eaf8056b163ec6c57d826c9b0ae20fba247d945bb13326",
+        "source_archive_sha256": "0f9e8b8f01c7aa5bed01663f2ed6e3eea28ecd0249cd9d9cedcefc930b6cb0a5",
+        "before": {
+          "total": -50402789,
+          "cleared": -33741121,
+          "uncleared": -16661668
+        }
+      },
+      "catalog_response_bytes": [
+        9832
+      ],
+      "request_counts": {
+        "GET /info": 64,
+        "POST /account/login": 1,
+        "GET /sync/list-user-files": 63,
+        "GET /sync/download-user-file": 1,
+        "POST /sync/sync": 102
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "empty.json.gz",
+      "raw_sha256": "8a685d53e1b68358a428bd594fc377edeaaf994d94b316d2ec2e4f0b8acee129",
+      "gzip_sha256": "407a6efd367ccb6ac4acd2f5dd99f66301baa94fcf8eda95b56c59bffb819193"
+    },
+    {
+      "file": "empty-requests.json.gz",
+      "raw_sha256": "ab7f8ed655ae6b853bf99ce8f355ec30185ce34dd8db420fe41a21d9d4c3f19c",
+      "gzip_sha256": "ee5fe7a74355907ee8c43a4c866d9c629024022d945a71d38914ee655b172254"
+    },
+    {
+      "file": "empty-financial-proof.json.gz",
+      "raw_sha256": "ea9ec40ec905c40521a33cf6deebb975405b99db2354f77ec4d0ea32a3fc4e5d",
+      "gzip_sha256": "d19addddde6fddb2f187db3aebb820ca5ac0c7db75a9f0416764f72286d4d66c"
+    },
+    {
+      "file": "typical.json.gz",
+      "raw_sha256": "50a80690954fd672d543b0f7bfb59fcaf6d44d1e4b1507ef5d8968d5b35ed6bd",
+      "gzip_sha256": "77acb2d108bbe064f0247d7fcbe7056cd7f39601404a1fb5fbc14a8da9dfcc92"
+    },
+    {
+      "file": "typical-requests.json.gz",
+      "raw_sha256": "5dab20bb7bcc0446a69462777e88c00be1315fc0cd9431a1f6ec1d55b8dfacba",
+      "gzip_sha256": "e09694542a9937c845a1335f54f31e6302ffb883b068c4c619d45308aba759cd"
+    },
+    {
+      "file": "typical-financial-proof.json.gz",
+      "raw_sha256": "51a72ea1a7826646d3767ca2ebb195739abf6ef23f214d9853bb0c8b911d8988",
+      "gzip_sha256": "8b1f14cbf1816ab120bab93ee00c7ff7422680a02c79d22a0a25c462df8a59fe"
+    },
+    {
+      "file": "large.json.gz",
+      "raw_sha256": "c7f1c8db0def75ac3f3d75665202bfd7663a8bfb4894632048d2b8aaf7d31f82",
+      "gzip_sha256": "55deb82c9fbd92a055e0c733cd0e41e0f00b27cb9bd9f938ac757816a99dc6a5"
+    },
+    {
+      "file": "large-requests.json.gz",
+      "raw_sha256": "f37ef8692be93337f6d2d8a27813ff263b158e34b9621d7484811468560bec44",
+      "gzip_sha256": "783f328a72afbe02a73001c21cf173a02a135c320b9cbc67551a02d975615b34"
+    },
+    {
+      "file": "large-financial-proof.json.gz",
+      "raw_sha256": "eefaa17cca193056690c6c6ff46e7162b1698631bd3ccbf329dce1eac97f1036",
+      "gzip_sha256": "ff51e9481b425675007fe73ac4ad860d9629b97584d4e79d33c595fa7f5da072"
+    },
+    {
+      "file": "large-interrupted.json.gz",
+      "raw_sha256": "10b4d6cd98720099e8d9178b6ceb9c4ff981306d9cab14602b4fe895d4cd6ce5",
+      "gzip_sha256": "6d7423385b748743e9f6c6887f41a0cb5dc25f6327eb62407c4146262964ed2c"
+    }
+  ],
+  "excluded_attempts": [
+    {
+      "kind": "setup",
+      "reason": "Node package exports lookup and chooser virtualization corrected before final measurement; one-sample empty pilot excluded."
+    },
+    {
+      "kind": "watchdog",
+      "reason": "Original900s host watchdog closed proxy during large case. Retained56 observations (20refresh/20foreground/16expense) are excluded from final distributions. Device runner subsequently failed on transport; no financial/idle success claimed. Repeated entire large case with3600s watchdog."
+    }
+  ],
+  "limitations": [
+    "Identical selected financial datasets and hardware; source and replacement server budget catalogs differ after earlier disposable restore tests.",
+    "Old client fetches full file catalog each refresh. Catalog bytes are recorded separately; total wire-byte ratios are not single-budget predictions.",
+    "Shared Compose instrumentation and debug APKs, emulator transport/proxy overhead, normal caches and no host isolation. Not phone latency, power or battery estimates.",
+    "Request traces exhibit roughly one-second inter-request gaps in both variants; server proxy durations alone do not explain UI latency.",
+    "Baseline2b25b07 includes released0.1.2 unchanged-history optimization. Product code is unchanged; copied instrumentation handles login and original encrypted cache filename."
+  ]
+}

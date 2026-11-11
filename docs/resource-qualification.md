@@ -3,8 +3,8 @@
 Ticket51 is **not accepted**. This note records the production browser comparison
 and its limits. Opening, expense and report distributions are recorded below.
 Large graph/history and saved-snapshot recovery observations are also recorded.
-Native Android observations are also recorded. The Android baseline comparison
-and consolidated accessibility audit remain outstanding. Existing functional evidence is not relabeled as performance
+Native and released-baseline Android observations are also recorded. The
+consolidated accessibility audit remains outstanding. Existing functional evidence is not relabeled as performance
 evidence. Nothing here authorizes release or production cutover.
 
 ## Measured boundary
@@ -538,8 +538,8 @@ the supported delete/sparse-split paths and confirms the failure names the secon
 transaction. All80 final operations and their state assertions pass. Root review,
 syntax/format and diff checks pass; no production code changed.
 
-The remaining51 gates are the Android baseline comparison and consolidated UI
-audit. Native resource/idle observations and the due-schedule cross-check follow.
+The remaining51 gate is the consolidated UI audit. Android resource/idle
+comparisons and the due-schedule cross-check follow.
 
 ## Analysis work-limit recovery
 
@@ -690,5 +690,91 @@ Use `--case large` to select one fixture.
 The harness refuses an existing output directory and accepts only emulator serials
 and the local disposable server. Final compile, Python syntax, Rust formatting,
 artifact-checksum and patch checks pass. These observations complete the native
-measurement slice, not51: baseline Android comparison and consolidated UI audit
-remain open, followed by52/53 acceptance.
+measurement slice. The baseline comparison follows; consolidated UI audit and
+52/53 acceptance remain open.
+
+### Released Android baseline comparison
+
+The shared instrumentation also ran against released0.1.2 source `2b25b07`,
+which already includes the user's unchanged-history speed correction. Its tracked
+production files are unchanged. Built debug APK SHA256:
+`b24b43072ab4367bfa2c7f47681142de8057a4d61b9f5ee42c6081346acf48de`.
+The shared probe handles the old login/cache filename and scrolls virtualized
+choosers. Measurement uses the same host, emulator image/geometry and selected
+financial datasets. Genuine source copies are verified against the original
+ledger hashes before measurement. The independent pinned26.10 API then verifies
+one cleared−427 transaction per expected payee,60 distinct IDs,−8540 total/cleared
+delta per account and unchanged uncleared balances.
+
+[Baseline summary, provenance, proofs and compressed raw observations](resource-results-229be58/android-baseline/summary.json)
+retain189 successful observations:180 repeated workflows, six35s idle windows
+and three separately recorded settlement windows. Refresh/foreground cache
+hashes are unchanged for all120 measurements. All six idle windows have zero
+UID RX/TX growth and unchanged encrypted cache. These are successful bounded
+observations, not a claim that the old app never does background work.
+
+UI observation milliseconds **p50 / p95**, including debug instrumentation:
+
+| Case | Action | Released0.1.2 | Replacement |
+| --- | --- | ---: | ---: |
+| empty | unchanged refresh |2927/2962|2918/2934|
+| typical | unchanged refresh |2919/2949|2924/2957|
+| large | unchanged refresh |4865/5303|2928/2960|
+| empty | warm foreground |3915/3943|3920/3949|
+| typical | warm foreground |3926/3961|3927/3961|
+| large | warm foreground |5382/5826|3900/3977|
+| empty | expense |5146/5526|7118/7460|
+| typical | expense |5161/5523|7128/7413|
+| large | expense |38429/39611|7143/7545|
+
+Expense costs, **p50**. The linked summaries retain p95 and every raw counter.
+
+| Case | CPU ms old/new | End PSS KiB old/new | UID received bytes old/new | Physical write bytes old/new |
+| --- | ---: | ---: | ---: | ---: |
+| empty |3304/4118|117094/118616|83768/20550|294912/204800|
+| typical |3501/4066|121142/120968|80638/21140|479232/229376|
+| large |56979/4260|281567/119593|3843758/22464|36286464/212992|
+
+The replacement improves the large-budget case substantially, while small-case
+expense UI time and CPU increase. Request traces explain an important component:
+the new path makes seven requests per new-payee expense versus five in the old
+path, including bounded association/companion refresh and foreground schedule
+checking. Both traces show roughly one-second inter-request gaps although the
+proxy's server exchanges are usually milliseconds. This is an instrumented
+emulator/transport observation; attributing that entire gap to production server
+processing would be incorrect. No speculative product optimization was made to
+hide the measured tradeoff. Process-cold Android opening and phone battery draw
+are not measured.
+
+The selected ledgers are identical, but the **server catalogs differ** after
+earlier disposable restore tests. The old app fetches the entire file list every
+refresh:9497-byte bodies for empty/typical and9832 for the final large run. The
+replacement fetches its catalog once at selection. Old unchanged-refresh UID
+RX is12067/11644/12391 bytes versus3687 for new. These whole-request ratios must
+not be sold as predictions for a one-budget installation; the catalog component
+is explicitly retained in the raw traces. Large expense response/history costs
+remain visible separately from that small catalog body.
+
+Old large foreground idle consumes31475ms process CPU and679936 physical write
+bytes during its35s post-work window, despite zero network/cache changes. Its
+background idle consumes38ms CPU and zero physical writes. This records residual
+post-work cost without assigning it to GC, rendering or another component that
+was not separately profiled. Empty/typical foreground idle use71/75ms CPU and
+20480 write bytes; all old background windows have zero physical writes.
+Zero network traffic is not a claim of zero CPU or disk activity.
+
+Excluded attempts: source-package lookup and chooser-visibility setup corrections,
+one-sample empty pilot, and the initial large run interrupted by the host's900s
+watchdog after20 refreshes,20 foreground transitions and16 expenses. Its56 raw
+observations are retained separately and excluded from quantiles; no financial
+or idle success is claimed for that interrupted run. Only the complete large
+case was repeated with a3600s watchdog. Host timeouts now preserve partial logs
+and proxy events. Final source verification, artifact/hash/credential checks,
+syntax/format checks and root review pass. Owned emulator/proxy stopped.
+
+To reproduce the old side, build/install the unchanged2b25b07 debug APK and a
+test APK containing the shared `ResourceDeviceTest`; pass
+`--baseline-source /path/to/2b25b07-checkout` to the driver. It refuses changed
+tracked source, creates new disposable source copies, passes only lab credentials
+through private app files and removes that file afterward. Never publish the
+lab configuration containing its password/token.

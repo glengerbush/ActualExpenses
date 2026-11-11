@@ -48,3 +48,54 @@ production API surface; it does not claim a fresh complete browser/Android suite
 Remaining: reconcile every story and retained experiment against its complete
 source/fixture/outcome obligations, review caller migration/deviations, then run
 the final consolidated acceptance checks. Resource51 and cutover53 remain open.
+
+## Retained experimental capabilities
+
+2026-11-11 read-only reconciliation against the pinned
+`packages/loot-core/src/types/prefs.ts`: all14 declared feature flags have an
+explicit outcome below. All3088 retained reference-file SHA256 values still
+match their manifest. The107 ordered story IDs,172 evidence links and complete
+67-method/18-resource SDK map pass again. These checks establish inventory and
+source integrity, not a new financial-suite run.
+
+| Pinned flag | Observable replacement and accepted evidence |
+| --- | --- |
+| newSidebarUI | Account navigation, command search, shortcuts and remembered selection: [45](navigation-validation.md). |
+| goalTemplatesEnabled | Note grammar, priorities, targets and progress: [23](budget-automation-validation.md). |
+| goalTemplatesUIEnabled | Visual definitions, selective/all application and recovery: [24](budget-automation-validation.md). |
+| actionTemplating | Calculated rule actions, splits and real import/schedule/companion workflows: [42](rule-expression-validation.md). |
+| formulaMode | Saved formulas, formatting, exact errors and preference changes: [41](formula-validation.md). |
+| currency | Currency display/decimal preferences, including independent JPY rounding cases: [43](../actualBudget/web/docs/preferences-validation.md). No exchange-rate accounting claim. |
+| balanceForecastReport | Saved schedule/tracking forecasts, filters and unchanged-input caching: [35](forecast-validation.md). |
+| customThemes | Built-in/custom slots, retained original CSS and unusable-theme recovery: [44](../actualBudget/web/docs/custom-theme-contract.md). |
+| budgetAnalysisReport | Authoritative aggregates, exact details and bounded reads: [36](budget-analysis-validation.md). |
+| enableBanking | Removed by the explicit manual-only decision: [29](bank-retirement-validation.md). |
+| sankeyReport | Spent/Budgeted source projections and accessible exact details: [37](sankey-validation.md). |
+| akahuBankSync | Removed by the explicit manual-only decision: [29](bank-retirement-validation.md). |
+| mobileCalculator | Calculator-assisted exact amount entry: [03](register-validation.md). |
+| monteCarloReport | Saved plans, strategies, withdrawal rules, cash flows and individual runs: [39/40](monte-carlo-validation.md). |
+
+Monthly cleanup and crossover are also retained independently of that flag union:
+[24](budget-automation-validation.md), [38](crossover-validation.md).
+
+## Deliberate architecture and scope differences
+
+The approved [architecture](adr/0005-server-authoritative-web-architecture.md) removes
+application authentication/encryption, full offline budgeting and desktop
+packaging; limited offline expense capture remains. The later
+[manual-only decision](manual-only-scope.md) removes external account providers,
+not manual file imports or the application's public API.
+
+The [caller migration guide](PUBLIC-API.md) documents route/field translations,
+native budget identities, stable pagination, typed bounded queries and immutable
+mutation recovery. Server-authoritative queries replace a downloaded Node engine;
+remote arbitrary JavaScript/SQL is not promised. The sole removed SDK operation
+is bank refresh. Domain invariants reject contradictory split/transfer writes
+atomically, with source counterexamples retained in [rules](rules-validation.md)
+and [graph integration](1314151646-validation.md). These are explicit validation
+boundaries, not omitted ordinary editing workflows.
+
+Historical WIP statements within feature validation notes describe intermediate
+checkpoints; their final acceptance/review sections and later integration notes
+own the current result. The complete-story ledger remains the index. Final
+consolidated execution and51/53 acceptance are still outstanding.

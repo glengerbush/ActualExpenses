@@ -23,6 +23,7 @@ class ResourceDeviceTest {
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
     private val graph get() = (context.applicationContext as ExpensesApplication).graph
     private val observations = mutableListOf<Map<String, Any?>>()
+    private val baseline get() = InstrumentationRegistry.getArguments().getString("resourceBaseline") == "true"
 
     @After fun saveObservations() {
         if (observations.isNotEmpty()) {
@@ -77,7 +78,7 @@ class ResourceDeviceTest {
     }
 
     private fun cacheHash(): String = MessageDigest.getInstance("SHA-256")
-        .digest(File(context.noBackupFilesDir, "expenses.api-v1.state").readBytes())
+        .digest(File(context.noBackupFilesDir, if (baseline) "expenses.state" else "expenses.api-v1.state").readBytes())
         .joinToString("") { "%02x".format(it.toInt() and 255) }
 
     private fun settleNetwork() {
@@ -103,12 +104,18 @@ class ResourceDeviceTest {
         val account = requireNotNull(args.getString("resourceAccount"))
         val samples = (args.getString("resourceSamples") ?: "20").toInt()
         require(samples in 1..20)
-        compose.waitUntil(15_000) { compose.onAllNodesWithText("Connect to actualBudget").fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(15_000) { compose.onAllNodesWithText(if (baseline) "Connect to Actual" else "Connect to actualBudget").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText("Server address").performTextInput(server)
+        if (baseline) {
+            val secret = File(context.filesDir, "resource-baseline-password")
+            compose.onNodeWithText("Actual password").performTextInput(secret.readText().trim())
+        }
         compose.onNodeWithText("Connect", substring = false).performScrollTo().performClick()
-        compose.waitUntil(30_000) { compose.onAllNodesWithText(budget).fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(30_000) { compose.onAllNodesWithText("Choose a budget").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText(budget))
         compose.onNodeWithText(budget).performScrollTo().performClick()
-        compose.waitUntil(30_000) { compose.onAllNodesWithText(account).fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(30_000) { compose.onAllNodesWithText("Choose an account").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText(account))
         compose.onNodeWithText(account).performScrollTo().performClick()
         ready()
         repeat(samples) { index ->
@@ -117,13 +124,17 @@ class ResourceDeviceTest {
                 compose.onNodeWithContentDescription("Refresh expenses").performClick()
                 ready()
             }
-            assertEquals("Unchanged refresh rewrote encrypted state", hash, cacheHash())
+            val refreshed = cacheHash()
+            observations[observations.lastIndex] = observations.last() + ("cache_unchanged" to (hash == refreshed))
+            if (!baseline) assertEquals("Unchanged refresh rewrote encrypted state", hash, refreshed)
             observe("warm_foreground", index) {
                 compose.activityRule.scenario.moveToState(Lifecycle.State.CREATED)
                 compose.activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
                 ready()
             }
-            assertEquals("Unchanged foreground rewrote encrypted state", hash, cacheHash())
+            val foreground = cacheHash()
+            observations[observations.lastIndex] = observations.last() + ("cache_unchanged" to (refreshed == foreground))
+            if (!baseline) assertEquals("Unchanged foreground rewrote encrypted state", refreshed, foreground)
         }
         repeat(samples) { index ->
             val payee = "Resource expense $budget $index"

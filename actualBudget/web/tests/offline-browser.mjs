@@ -60,7 +60,9 @@ try {
     .getByRole("button", { name: "Save transaction", exact: true })
     .click();
   await expect(
-    page.getByText("Saved on this device. Waiting to sync.", { exact: true }),
+    page
+      .getByTestId("pending-expenses")
+      .getByText("Saved on this device. Waiting to sync.", { exact: true }),
   ).toBeVisible();
   await expect(page.getByTestId("register-total")).toHaveText("1,000.00");
   await expect(page.getByTestId("pending-expenses")).toContainText(

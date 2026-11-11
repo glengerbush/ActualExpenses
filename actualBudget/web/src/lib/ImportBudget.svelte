@@ -416,6 +416,7 @@
   }
   .import-budget h2 {
     margin-top: 2rem;
+    overflow-wrap: anywhere;
   }
   .import-budget h3 {
     margin-top: 1.5rem;

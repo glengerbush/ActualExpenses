@@ -662,12 +662,22 @@
               >Edit month notes</button
             >
           </div>
-          <!-- svelte-ignore a11y_no_noninteractive_tabindex (Scrollable financial table needs keyboard access at enlarged text.) -->
+          <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions (The scroll region itself supports Home/End; child controls retain native keys.) -->
           <div
             class="budget-table-scroll"
             tabindex="0"
             role="region"
             aria-label={`Budget categories for ${title(m.month)}`}
+            onkeydown={(event) => {
+              if (
+                event.target === event.currentTarget &&
+                (event.key === "Home" || event.key === "End")
+              ) {
+                event.preventDefault();
+                event.currentTarget.scrollLeft =
+                  event.key === "End" ? event.currentTarget.scrollWidth : 0;
+              }
+            }}
           >
             <table>
               <caption class="visually-hidden"

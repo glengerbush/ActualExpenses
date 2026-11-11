@@ -116,6 +116,9 @@ textarea {
 }
 button {
   cursor: pointer;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   min-height: 44px;
   border: 1px solid var(--button-border);
   background: var(--button-surface);
@@ -350,11 +353,6 @@ main {
   flex-wrap: wrap;
   gap: 0.7rem;
   margin-top: 2rem;
-}
-.actions > button {
-  min-width: 0;
-  max-width: 100%;
-  overflow-wrap: anywhere;
 }
 .error {
   color: var(--error);

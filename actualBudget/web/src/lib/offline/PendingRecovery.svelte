@@ -161,6 +161,7 @@
   .amount {
     font-variant-numeric: tabular-nums;
     font-weight: 600;
+    white-space: normal;
   }
   .budget-id {
     color: var(--muted);

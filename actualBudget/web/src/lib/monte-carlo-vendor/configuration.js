@@ -80,6 +80,33 @@ function createMonteCarloSpendingPhase(id, fromAge = null) {
 		annualWithdrawal: 2e6
 	};
 }
+/**
+* Phases ordered by starting age (no-age phase first) - the order the
+* engine resolves them in, shared with the UI so they can't disagree
+*/
+function sortMonteCarloSpendingPhases(phases) {
+	return [...phases].sort((phaseA, phaseB) => (phaseA.fromAge ?? -Infinity) - (phaseB.fromAge ?? -Infinity));
+}
+/**
+* The phases the engine actually runs: sorted by starting age, with a
+* default phase standing in when none are configured. Resolve once and
+* pass the result to getActiveSpendingPhase.
+*/
+function resolveSpendingPhases(phases) {
+	return phases.length ? sortMonteCarloSpendingPhases(phases) : [createMonteCarloSpendingPhase("phase-1")];
+}
+/**
+* The phase active at the given age from a resolved (sorted) list: the
+* last phase that has started, or the earliest phase before any has.
+* The engine's planned-spending schedule and the cashflow chart's phase
+* attribution both resolve through here so they can't disagree.
+*/
+function getActiveSpendingPhase(resolvedPhases, age) {
+	let active = resolvedPhases[0];
+	for (const phase of resolvedPhases) if (phase.fromAge == null || phase.fromAge <= age) active = phase;
+	else break;
+	return active;
+}
 function createMonteCarloContribution(id, potId) {
 	return {
 		id,
@@ -144,6 +171,23 @@ function createMonteCarloSurplusPot(id) {
 		taxableFraction: 0,
 		isSurplus: true
 	};
+}
+/**
+* How a pot is referred to in the UI: its name, or a fallback - "Surplus
+* cash" for the surplus pot, otherwise "Pot N" numbered among the
+* ordinary pots so the surplus pot doesn't shift the numbering
+*/
+function getMonteCarloPotLabel(pots, potIndex, translate) {
+	const pot = pots[potIndex];
+	if (pot.name) return pot.name;
+	if (pot.isSurplus) return translate("Surplus cash");
+	const ordinal = pots.slice(0, potIndex + 1).filter((other) => !other.isSurplus).length;
+	return translate("Pot {{number}}", { number: ordinal });
+}
+/** Label for the surplus pot, whether or not the plan currently has one */
+function getMonteCarloSurplusPotLabel(pots, translate) {
+	const surplusPotIndex = pots.findIndex((pot) => pot.isSurplus);
+	return surplusPotIndex >= 0 ? getMonteCarloPotLabel(pots, surplusPotIndex, translate) : translate("Surplus cash");
 }
 function createMonteCarloTaxBand(id, from = 0) {
 	return {
@@ -272,5 +316,320 @@ function monteCarloConfigFromMeta(meta) {
 		simulationCount: meta?.simulationCount ?? MONTE_CARLO_DEFAULTS.simulationCount
 	};
 }
+/**
+* Every simulation index ranked worst-first: by ending balance, using the
+* depletion year to order the failed runs (which all end at zero) among
+* themselves. Shared by the runs table and the cashflow scenario picker so
+* percentile jumps land on the same runs.
+*/
+function rankSimulationsWorstFirst(endingBalances, depletionYearBySimulation) {
+	const rankedIndices = Array.from({ length: endingBalances.length }, (_, index) => index);
+	rankedIndices.sort((runA, runB) => {
+		const balanceDiff = endingBalances[runA] - endingBalances[runB];
+		if (balanceDiff !== 0) return balanceDiff;
+		const runADepletionYear = depletionYearBySimulation[runA];
+		const runBDepletionYear = depletionYearBySimulation[runB];
+		const runASurvived = runADepletionYear === -1;
+		const runBSurvived = runBDepletionYear === -1;
+		if (runASurvived && runBSurvived) return 0;
+		if (runASurvived) return 1;
+		if (runBSurvived) return -1;
+		return runADepletionYear - runBDepletionYear;
+	});
+	return rankedIndices;
+}
 
-export { ALLOCATION_PRESETS, createMonteCarloContribution, createMonteCarloIncomeStream, createMonteCarloPot, createMonteCarloSpendingPhase, createMonteCarloSurplusPot, createMonteCarloTaxBand, getPotAssetWeights, monteCarloConfigFromMeta };
+// reference/actual-26.10.0/packages/desktop-client/src/components/reports/reports/monte-carlo/monteCarloYearStory.ts
+/**
+* Enough precision that multiplying the displayed rate by the balance
+* reproduces the displayed amounts; trailing zeros trimmed so simple
+* rates still read cleanly (4% rather than 4.0000%)
+*/
+function formatRuleRate(rate) {
+	return `${Number((rate * 100).toFixed(4))}%`;
+}
+/**
+* The plain-English summary of one simulated year, as a few sentences
+* that follow cause to effect: what the withdrawal rule decided and why,
+* whether the minimum spending floor stepped in, how the year's spending was
+* funded, and where any money the plan didn't spend ended up. The
+* numbers behind each decision live in the detailed lines, not here
+*/
+function buildMonteCarloYearStory({ row, withdrawalRule, surplusPotName, hasSurplusPot, format, translate }) {
+	const sentences = [];
+	const ruleSentence = row.ruleExplanation != null ? getRuleDecisionSentence(row.ruleExplanation, withdrawalRule, format, translate) : null;
+	if (ruleSentence != null) sentences.push(ruleSentence);
+	if (row.minimumApplied) {
+		const planned = format(row.plannedSpending, "financial");
+		sentences.push(ruleSentence != null ? translate("The minimum spending floor then lifted it to {{planned}}.", { planned }) : translate("The minimum spending floor set this year's spending at {{planned}}.", { planned }));
+	}
+	sentences.push(...getFundingSentences(row, format, translate));
+	const surplusSentence = getSurplusSentence(row, surplusPotName, hasSurplusPot, format, translate);
+	if (surplusSentence != null) sentences.push(surplusSentence);
+	return sentences;
+}
+function getRuleName(rule, translate) {
+	if (rule === "guardrails") return translate("Guardrails");
+	if (rule === "ratcheting") return translate("Ratcheting");
+	return translate("Boundaries");
+}
+function getRuleDecisionSentence(explanation, withdrawalRule, format, translate) {
+	if (explanation.kind === "anchor") return translate("This is the first spending year, so the plan's withdrawal rate was set here.");
+	if (explanation.kind === "floor-ceiling") {
+		const values = {
+			amount: format(explanation.applied === "floor" ? explanation.floor : explanation.ceiling, "financial"),
+			unclamped: format(explanation.unclamped, "financial")
+		};
+		if (explanation.applied === "floor") return translate("Floor & ceiling held spending at {{amount}} - the rate-based amount ({{unclamped}}) fell below the floor.", values);
+		if (explanation.applied === "ceiling") return translate("Floor & ceiling held spending at {{amount}} - the rate-based amount ({{unclamped}}) rose above the ceiling.", values);
+		return null;
+	}
+	const rule = getRuleName(explanation.rule, translate);
+	const planned = format(explanation.planned, "financial");
+	const adjusted = format(explanation.adjusted, "financial");
+	if (explanation.action === "cut") {
+		if (explanation.rule === "boundaries") return translate("{{rule}} cut this year's spending from {{planned}} to {{adjusted}} because the withdrawal rate rose above {{upper}}.", {
+			rule,
+			planned,
+			adjusted,
+			upper: formatRuleRate(withdrawalRule.upperRateThreshold)
+		});
+		return translate("{{rule}} cut this year's spending from {{planned}} to {{adjusted}} because the withdrawal rate had climbed too far above the plan.", {
+			rule,
+			planned,
+			adjusted
+		});
+	}
+	if (explanation.action === "raise") {
+		if (explanation.rule === "boundaries") return translate("{{rule}} raised this year's spending from {{planned}} to {{adjusted}} because the withdrawal rate fell below {{lower}}.", {
+			rule,
+			planned,
+			adjusted,
+			lower: formatRuleRate(withdrawalRule.lowerRateThreshold)
+		});
+		if (explanation.rule === "ratcheting") return translate("{{rule}} raised this year's spending from {{planned}} to {{adjusted}} because the balance had stayed above {{multiple}} its starting level for {{years}} years.", {
+			rule,
+			planned,
+			adjusted,
+			multiple: `${Number(withdrawalRule.balanceThresholdMultiple.toFixed(2))}×`,
+			years: withdrawalRule.consecutiveYears
+		});
+		return translate("{{rule}} raised this year's spending from {{planned}} to {{adjusted}} because the withdrawal rate had fallen well below the plan.", {
+			rule,
+			planned,
+			adjusted
+		});
+	}
+	if (explanation.factor !== 1) return translate("Earlier {{rule}} changes still applied, so this year's spending was {{adjusted}} instead of the {{planned}} planned.", {
+		rule,
+		planned,
+		adjusted
+	});
+	return null;
+}
+function getFundingSentences(row, format, translate) {
+	const spent = format(row.spent, "financial");
+	if (row.spent < row.plannedSpending) {
+		const sentences = [translate("Only {{spent}} of the {{planned}} planned could be funded - the plan ran out of accessible money here.", {
+			spent,
+			planned: format(row.plannedSpending, "financial")
+		})];
+		if (row.inaccessibleBalance != null) sentences.push(translate("{{amount}} was still locked in pots that had not reached their access age.", { amount: format(row.inaccessibleBalance, "financial") }));
+		return sentences;
+	}
+	if (row.income > 0) {
+		const netFromPots = row.withdrawal - row.taxPaid;
+		if (netFromPots <= 0) return [translate("Income covered all of the {{spent}} spent, so nothing had to come from the pots.", { spent })];
+		const fromIncome = row.spent - netFromPots;
+		const netIncome = row.income - row.incomeTax;
+		const toContributions = netIncome - row.unspentIncome - fromIncome;
+		if (fromIncome <= 0) return [translate("The {{netIncome}} income all went into contributions, so the {{spent}} spent came from the pots.", {
+			netIncome: format(netIncome, "financial"),
+			spent
+		})];
+		if (toContributions > 0) return [translate("Income covered {{fromIncome}} of the {{spent}} spent, with another {{toContributions}} of it going into contributions; withdrawals covered the rest.", {
+			fromIncome: format(fromIncome, "financial"),
+			toContributions: format(toContributions, "financial"),
+			spent
+		})];
+		return [translate("Income covered {{fromIncome}} of the {{spent}} spent; withdrawals covered the rest.", {
+			fromIncome: format(fromIncome, "financial"),
+			spent
+		})];
+	}
+	return [translate("Spent {{spent}} as planned, funded from the pots.", { spent })];
+}
+function getSurplusSentence(row, surplusPotName, hasSurplusPot, format, translate) {
+	if (hasSurplusPot && row.surplusSaved > 0) return translate("{{unspent}} of income beyond the plan was saved into {{pot}}.", {
+		pot: surplusPotName,
+		unspent: format(row.surplusSaved, "financial")
+	});
+	if (row.unspentIncome > 0) return translate("{{unspent}} of income beyond the plan went unspent and left the plan.", { unspent: format(row.unspentIncome, "financial") });
+	return null;
+}
+
+// \0chart-theme
+const theme = { reportsNumberNegative: "var(--color-reportsNumberNegative)" };
+
+// \0chart-palette
+function getColorScale(name) {
+	const scales = { qualitative: [
+		"var(--color-chartQual1)",
+		"var(--color-chartQual2)",
+		"var(--color-chartQual3)",
+		"var(--color-chartQual4)",
+		"var(--color-chartQual5)",
+		"var(--color-chartQual6)",
+		"var(--color-chartQual7)",
+		"var(--color-chartQual8)",
+		"var(--color-chartQual9)"
+	] };
+	return name ? scales[name] : scales.qualitative;
+}
+
+// reference/actual-26.10.0/packages/desktop-client/src/components/reports/graphs/util/monteCarloCashflowChart.ts
+function seriesKey(kind, index) {
+	return `${kind}${index}`;
+}
+/**
+* Turns a captured run into the cashflow chart's series and data - the
+* household's yearly cashflow. Money in above zero: each pot's gross
+* withdrawal and each income stream's gross. Money out below zero: the
+* planned spending (coloured by its spending phase), tax on withdrawals
+* and income, each contribution paid into a pot, and money saved into
+* the surplus pot. Spending shows the
+* plan rather than the delivered amount, so in a shortfall year the
+* inflows visibly fall short of the spending bar. Fees stay out - they
+* never pass through the user's hands.
+*/
+function buildMonteCarloCashflowChart({ rows, pots, contributions, incomeStreams, spendingPhases, startAge, translate }) {
+	const colorScale = getColorScale("qualitative");
+	const phases = resolveSpendingPhases(spendingPhases);
+	const hasTax = rows.some((row) => row.taxPaid !== 0 || row.incomeTax !== 0);
+	const inflowColor = (index) => colorScale[index % colorScale.length];
+	const outflowColor = (index) => colorScale[colorScale.length - 1 - index % colorScale.length];
+	const potSeries = pots.map((pot, potIndex) => ({
+		key: seriesKey("pot", potIndex),
+		kind: "pot",
+		label: getMonteCarloPotLabel(pots, potIndex, translate),
+		color: inflowColor(potIndex)
+	}));
+	const incomeSeries = incomeStreams.flatMap((incomeStream, incomeIndex) => rows.some((row) => (row.incomeAmounts[incomeIndex] ?? 0) !== 0) ? [{
+		key: seriesKey("income", incomeIndex),
+		kind: "income",
+		label: incomeStream.name || translate("Income {{number}}", { number: incomeIndex + 1 }),
+		color: inflowColor(pots.length + incomeIndex)
+	}] : []);
+	const phaseSeries = phases.map((phase, phaseIndex) => {
+		const configuredIndex = spendingPhases.indexOf(phase);
+		return {
+			key: seriesKey("phase", phaseIndex),
+			kind: "phase",
+			label: phase.name || translate("Phase {{number}}", { number: configuredIndex === -1 ? 1 : configuredIndex + 1 }),
+			color: outflowColor(phaseIndex)
+		};
+	});
+	const taxSeries = {
+		key: seriesKey("tax", 0),
+		kind: "tax",
+		label: translate("Tax"),
+		color: theme.reportsNumberNegative
+	};
+	const contributionSeries = contributions.flatMap((contribution, contributionIndex) => rows.some((row) => (row.contributionAmounts[contributionIndex] ?? 0) !== 0) ? [{
+		key: seriesKey("contribution", contributionIndex),
+		kind: "contribution",
+		label: contribution.name || translate("Contribution {{number}}", { number: contributionIndex + 1 }),
+		color: outflowColor(phases.length + contributionIndex)
+	}] : []);
+	const hasSurplus = rows.some((row) => row.surplusSaved > 0);
+	const surplusSeries = {
+		key: seriesKey("surplus", 0),
+		kind: "surplus",
+		label: translate("Saved into {{pot}}", { pot: getMonteCarloSurplusPotLabel(pots, translate) }),
+		color: outflowColor(phases.length + contributions.length)
+	};
+	const inflowSeries = [...potSeries, ...incomeSeries];
+	const outflowSeries = [
+		...phaseSeries,
+		...hasTax ? [taxSeries] : [],
+		...contributionSeries,
+		...hasSurplus ? [surplusSeries] : []
+	];
+	const tooltipGroups = [
+		{
+			key: "withdrawals",
+			heading: translate("Withdrawals"),
+			series: potSeries,
+			listMembers: true
+		},
+		...incomeSeries.length > 0 ? [{
+			key: "income",
+			heading: translate("Income"),
+			series: incomeSeries,
+			listMembers: true
+		}] : [],
+		...hasTax ? [{
+			key: "tax",
+			heading: translate("Tax"),
+			series: [taxSeries],
+			listMembers: false
+		}] : [],
+		{
+			key: "spending",
+			heading: translate("Spending"),
+			series: phaseSeries,
+			listMembers: true
+		},
+		...contributionSeries.length > 0 ? [{
+			key: "contributions",
+			heading: translate("Contributions"),
+			series: contributionSeries,
+			listMembers: true
+		}] : [],
+		...hasSurplus ? [{
+			key: "surplus",
+			heading: translate("Saved"),
+			series: [surplusSeries],
+			listMembers: false
+		}] : []
+	];
+	const data = rows.map((row) => {
+		const age = startAge + row.year - 1;
+		const amounts = {};
+		potSeries.forEach((series, potIndex) => {
+			amounts[series.key] = row.potWithdrawals[potIndex] ?? 0;
+		});
+		incomeStreams.forEach((_, incomeIndex) => {
+			amounts[seriesKey("income", incomeIndex)] = row.incomeAmounts[incomeIndex] ?? 0;
+		});
+		const activePhase = getActiveSpendingPhase(phases, age);
+		phaseSeries.forEach((series, phaseIndex) => {
+			amounts[series.key] = phases[phaseIndex] === activePhase ? -row.plannedSpending : 0;
+		});
+		if (hasTax) amounts[taxSeries.key] = -(row.taxPaid + row.incomeTax);
+		contributions.forEach((_, contributionIndex) => {
+			const deposited = row.contributionAmounts[contributionIndex] ?? 0;
+			amounts[seriesKey("contribution", contributionIndex)] = deposited > 0 ? -deposited : 0;
+		});
+		if (hasSurplus) amounts[surplusSeries.key] = row.surplusSaved > 0 ? -row.surplusSaved : 0;
+		return {
+			year: row.year,
+			age,
+			afterDepletion: row.afterDepletion === true,
+			unspentIncome: row.surplusSaved > 0 ? 0 : row.unspentIncome,
+			amounts
+		};
+	});
+	return {
+		data,
+		inflowSeries,
+		outflowSeries,
+		tooltipGroups,
+		stackExtents: data.flatMap((point) => [sumAmounts(point, inflowSeries), sumAmounts(point, outflowSeries)])
+	};
+}
+function sumAmounts(point, series) {
+	return series.reduce((sum, entry) => sum + (point.amounts[entry.key] ?? 0), 0);
+}
+
+export { ALLOCATION_PRESETS, buildMonteCarloCashflowChart, buildMonteCarloYearStory, createMonteCarloContribution, createMonteCarloIncomeStream, createMonteCarloPot, createMonteCarloSpendingPhase, createMonteCarloSurplusPot, createMonteCarloTaxBand, getPotAssetWeights, monteCarloConfigFromMeta, rankSimulationsWorstFirst };

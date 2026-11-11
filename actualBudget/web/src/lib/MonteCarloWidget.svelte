@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { SvelteMap } from "svelte/reactivity";
   import { t } from "./i18n.svelte";
   import { uuid, errorMessage } from "./api";
   import { preferences } from "./preferences.svelte";
@@ -9,9 +10,12 @@
     calculationInputs,
     runMonteCarlo,
     cancelMonteCarlo,
+    validRunDetails,
     type MonteCarloProjection,
+    type RunDetail,
   } from "./monte-carlo";
   import MonteCarloResult from "./MonteCarloResult.svelte";
+  import MonteCarloRuns from "./MonteCarloRuns.svelte";
   let {
     budgetId,
     document,
@@ -29,6 +33,7 @@
     seed: number;
     deflate: boolean;
     calculatedAt: string;
+    detailIndex?: number;
   }
   let saved = $state.raw<SavedResult | null>(null),
     busy = $state(false),
@@ -38,6 +43,8 @@
     seed = $state(1234),
     deflate = $state(false),
     cached = $state(false);
+  const details = new SvelteMap<number, RunDetail[]>();
+  let availableRuns = $derived([...details.keys()]);
   let enabled = $derived(
     preferences.budgetId === budgetId &&
       preferences.hasUsableShared &&
@@ -57,6 +64,11 @@
         projection?.epoch === epoch &&
         !!result &&
         Number.isFinite(projection.config.currentAge) &&
+        [
+          projection.config.pots,
+          projection.config.incomeStreams,
+          projection.config.contributions,
+        ].every(Array.isArray) &&
         Number.isSafeInteger(value.seed) &&
         typeof value.deflate === "boolean" &&
         Number.isFinite(Date.parse(value.calculatedAt)) &&
@@ -94,6 +106,29 @@
         ) &&
         Array.isArray(result.depletionProbabilityByYear) &&
         result.depletionProbabilityByYear.every(Number.isFinite) &&
+        [
+          result.endingBalances,
+          result.depletionYearBySimulation,
+          result.totalWithdrawnBySimulation,
+        ].every(
+          (values) =>
+            Array.isArray(values) &&
+            values.length === result.simulationCount &&
+            values.length <= 10000 &&
+            values.every(Number.isFinite),
+        ) &&
+        Array.isArray(result.worstRunPath) &&
+        result.worstRunPath.every(Number.isFinite) &&
+        (value.detailIndex === undefined ||
+          (Number.isInteger(value.detailIndex) &&
+            value.detailIndex >= 0 &&
+            value.detailIndex < result.simulationCount)) &&
+        (result.runDetail === undefined ||
+          validRunDetails(
+            result.runDetail,
+            projection.config,
+            result.horizonYears,
+          )) &&
         Array.isArray(projection.assumptions) &&
         projection.assumptions.every((s) => typeof s === "string") &&
         Array.isArray(projection.warnings) &&
@@ -102,6 +137,107 @@
     } catch {
       return false;
     }
+  }
+  function remember(index: number, rows: RunDetail[]) {
+    details.delete(index);
+    details.set(index, rows);
+    while (details.size > 4) details.delete(details.keys().next().value!);
+  }
+  async function persist(next: SavedResult) {
+    try {
+      await writeValue(key(), next);
+    } catch {
+      if (alive)
+        notice =
+          "Result is available, but could not be saved for offline viewing.";
+    }
+  }
+  async function inspect(index: number) {
+    const original = saved;
+    if (
+      !original ||
+      busy ||
+      !enabled ||
+      !Number.isInteger(index) ||
+      index < 0 ||
+      index >= original.projection.result.simulationCount
+    )
+      return;
+    let rows = details.get(index);
+    if (!rows && disconnected) return;
+    error = "";
+    notice = "";
+    if (!rows) {
+      busy = true;
+      cancelling = false;
+      const id = uuid(),
+        abort = new AbortController();
+      active = id;
+      controller = abort;
+      try {
+        // Resolve a saved scenario against its captured balances, never today's
+        // linked account values. Only an explicit Run refreshes those balances.
+        const raw = calculationInputs(
+          (document.config.meta ?? null) as Record<string, unknown> | null,
+        );
+        const rawPots =
+          Array.isArray(raw?.pots) && raw.pots.length
+            ? raw.pots
+            : original.projection.config.pots;
+        const frozen = {
+          ...raw,
+          pots: original.projection.config.pots.map((pot, index) => ({
+            ...rawPots[index],
+            accountId: null,
+            startingBalance: pot.startingBalance,
+          })),
+        };
+        const projection = await runMonteCarlo(
+          budgetId,
+          id,
+          frozen,
+          original.seed,
+          original.deflate,
+          abort.signal,
+          index,
+        );
+        if (!alive || cancelling || active !== id) return;
+        if (projection.epoch !== epoch || !projection.result.runDetail)
+          throw Error(
+            "The saved run is unavailable. Reload the budget and run the plan again.",
+          );
+        rows = projection.result.runDetail;
+      } catch (cause) {
+        if (alive && active === id && !cancelling) error = errorMessage(cause);
+        return;
+      } finally {
+        if (active === id) {
+          active = "";
+          controller = null;
+          if (alive) {
+            busy = false;
+            cancelling = false;
+          }
+        }
+      }
+    }
+    if (!alive || !rows) return;
+    const next = {
+      ...original,
+      detailIndex: index,
+      projection: {
+        ...original.projection,
+        result: { ...original.projection.result, runDetail: rows },
+      },
+    };
+    if (!valid(next)) {
+      error =
+        "The saved run is unavailable. Reload the budget and run the plan again.";
+      return;
+    }
+    remember(index, rows);
+    saved = next;
+    await persist(next);
   }
   async function run(event: SubmitEvent) {
     event.preventDefault();
@@ -134,6 +270,7 @@
         seed: selectedSeed,
         deflate: selectedDeflate,
         calculatedAt: new Date().toISOString(),
+        detailIndex: 0,
       };
       if (!valid(next))
         throw Error(
@@ -141,13 +278,9 @@
         );
       saved = next;
       cached = false;
-      try {
-        await writeValue(key(), next);
-      } catch {
-        if (alive)
-          notice =
-            "Result is available, but could not be saved for offline viewing.";
-      }
+      details.clear();
+      if (projection.result.runDetail) remember(0, projection.result.runDetail);
+      await persist(next);
     } catch (cause) {
       if (alive && active === id && !cancelling) error = errorMessage(cause);
     } finally {
@@ -187,6 +320,8 @@
           cached = true;
           seed = value.seed;
           deflate = value.deflate;
+          if (value.projection.result.runDetail)
+            remember(value.detailIndex ?? 0, value.projection.result.runDetail);
         }
       })
       .catch(() => {
@@ -264,6 +399,15 @@
         {t(warning.message)}
       </p>{/each}
     <MonteCarloResult {budgetId} projection={saved.projection} />
+    <MonteCarloRuns
+      {budgetId}
+      projection={saved.projection}
+      selected={saved.detailIndex ?? 0}
+      {availableRuns}
+      {busy}
+      {disconnected}
+      oninspect={inspect}
+    />
   {:else if !busy}<p>
       {t("No result yet. Review the plan assumptions, then run a simulation.")}
     </p>{/if}

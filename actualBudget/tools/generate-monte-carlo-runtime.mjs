@@ -47,10 +47,34 @@ const bundle = await rolldown({
       resolveId(id) {
         if (id === "configuration-entry") return "\0configuration-entry";
         if (id === "@actual-app/core/shared/util") return "\0display-constant";
+        if (
+          frontend &&
+          id === "#components/reports/reports/monte-carlo/monteCarloSimulation"
+        )
+          return simulationPath;
+        if (frontend && id === "#components/reports/chart-theme")
+          return "\0chart-palette";
+        if (frontend && id === "@actual-app/components/theme")
+          return "\0chart-theme";
       },
       async load(id) {
         if (id === "\0configuration-entry")
-          return `export { monteCarloConfigFromMeta, createMonteCarloPot, createMonteCarloSurplusPot, createMonteCarloIncomeStream, createMonteCarloContribution, createMonteCarloSpendingPhase, createMonteCarloTaxBand, ALLOCATION_PRESETS, getPotAssetWeights } from ${JSON.stringify(simulationPath)};`;
+          return `export { monteCarloConfigFromMeta, createMonteCarloPot, createMonteCarloSurplusPot, createMonteCarloIncomeStream, createMonteCarloContribution, createMonteCarloSpendingPhase, createMonteCarloTaxBand, ALLOCATION_PRESETS, getPotAssetWeights, rankSimulationsWorstFirst } from ${JSON.stringify(simulationPath)};
+export { buildMonteCarloYearStory } from ${JSON.stringify(simulationPath.replace("monteCarloSimulation.ts", "monteCarloYearStory.ts"))};
+export { buildMonteCarloCashflowChart } from ${JSON.stringify(base + "packages/desktop-client/src/components/reports/graphs/util/monteCarloCashflowChart.ts")};`;
+        if (id === "\0chart-palette") {
+          const path =
+            "packages/desktop-client/src/components/reports/chart-theme.ts";
+          const text = await readFile(base + path, "utf8");
+          sources[path] = hash(text);
+          const palette = text.match(
+            /export function getColorScale[\s\S]*?\n}/,
+          )?.[0];
+          assert.ok(palette);
+          return { code: palette, moduleType: "ts" };
+        }
+        if (id === "\0chart-theme")
+          return 'export const theme = { reportsNumberNegative: "var(--color-reportsNumberNegative)" };';
         if (id === "\0display-constant") return constant;
         if (id.startsWith(base)) {
           const text = await readFile(id, "utf8");

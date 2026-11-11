@@ -392,6 +392,94 @@ export const fields: Record<Collection, Field[]> = {
     },
   ],
 };
+export interface RunDetail {
+  year: number;
+  startBalance: number;
+  withdrawal: number;
+  plannedSpending: number;
+  spent: number;
+  growth: number;
+  endBalance: number;
+  inflation: number | null;
+  income: number;
+  incomeAmounts: number[];
+  incomeTax: number;
+  unspentIncome: number;
+  surplusSaved: number;
+  contributions: number;
+  potContributions: number[];
+  contributionAmounts: number[];
+  potBalances: number[];
+  potStartBalances: number[];
+  potWithdrawals: number[];
+  potTaxes: number[];
+  potTaxables: number[];
+  taxPaid: number;
+  feesPaid: number;
+  potFees: number[];
+  potReturns: (number | null)[];
+  ruleExplanation?: Record<string, unknown>;
+  minimumApplied?: boolean;
+  inaccessibleBalance?: number;
+  afterDepletion?: boolean;
+}
+export interface PlotSeries {
+  key: string;
+  label: string;
+  values: number[];
+  color: string;
+  dash?: string;
+}
+export function validRunDetails(
+  rows: unknown,
+  config: Plan,
+  horizon: number,
+): rows is RunDetail[] {
+  if (!Array.isArray(rows) || rows.length > horizon || rows.length > 100)
+    return false;
+  const amounts = [
+    "startBalance",
+    "withdrawal",
+    "plannedSpending",
+    "spent",
+    "growth",
+    "endBalance",
+    "income",
+    "incomeTax",
+    "unspentIncome",
+    "surplusSaved",
+    "contributions",
+    "taxPaid",
+    "feesPaid",
+  ];
+  const arrays = {
+    potBalances: config.pots.length,
+    potStartBalances: config.pots.length,
+    potContributions: config.pots.length,
+    potWithdrawals: config.pots.length,
+    potTaxes: config.pots.length,
+    potTaxables: config.pots.length,
+    potFees: config.pots.length,
+    incomeAmounts: config.incomeStreams.length,
+    contributionAmounts: config.contributions.length,
+  };
+  return rows.every(
+    (row, index) =>
+      row &&
+      row.year === index + 1 &&
+      amounts.every((key) => Number.isFinite(row[key])) &&
+      (row.inflation === null || Number.isFinite(row.inflation)) &&
+      Object.entries(arrays).every(
+        ([key, length]) =>
+          Array.isArray(row[key]) &&
+          row[key].length === length &&
+          row[key].every(Number.isFinite),
+      ) &&
+      Array.isArray(row.potReturns) &&
+      row.potReturns.length === config.pots.length &&
+      row.potReturns.every((n: unknown) => n === null || Number.isFinite(n)),
+  );
+}
 export interface MonteCarloProjection {
   config: Plan;
   epoch: string;
@@ -421,6 +509,11 @@ export interface MonteCarloProjection {
     }[];
     depletionHistogram: { year: number; count: number }[];
     depletionProbabilityByYear: number[];
+    worstRunPath: number[];
+    endingBalances: number[];
+    depletionYearBySimulation: number[];
+    totalWithdrawnBySimulation: number[];
+    runDetail?: RunDetail[];
   };
 }
 export async function runMonteCarlo(
@@ -430,6 +523,7 @@ export async function runMonteCarlo(
   seed: number,
   deflate: boolean,
   signal: AbortSignal,
+  captureRunDetail = 0,
 ) {
   const response = await fetch(
     `/api/v1/budgets/${budget}/reports/monte-carlo`,
@@ -441,6 +535,7 @@ export async function runMonteCarlo(
         request_id: id,
         config,
         seed,
+        captureRunDetail,
         deflateToTodaysMoney: deflate,
       }),
       signal: AbortSignal.any([signal, AbortSignal.timeout(25000)]),

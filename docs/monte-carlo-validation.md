@@ -1,11 +1,11 @@
-# Monte Carlo planning —39 accepted;40 open
+# Monte Carlo planning —39 and40 accepted
 
 Pinned Actual26.10.0 source commit:
 `2bebdbaae0b701120a8cad9d56aafd64fa04c577`. Ticket39 started after42 acceptance
 at `c1cbac2`. Ticket39's baseline is accepted2026-11-10 after public API,
-saved-plan recovery and browser qualification. Ticket40 retains the remaining
-charts, cash flows and individual-run exploration. Its strategy/rule selection
-and qualification slice is delivered below;40 is not yet accepted.
+saved-plan recovery and browser qualification. Ticket40 is accepted2026-11-10
+with the strategy/rule selection, charts, cash flows and individual-run
+qualification recorded below. Whole replacement qualification remains50–53.
 
 ## Source contract
 
@@ -25,8 +25,7 @@ minimum spending; stochastic inflation and today's-money presentation;
 historical bootstrap/sequence; valid/incomplete custom asset mixes; empty
 collections and minimum/maximum count/horizon clamps. Historical inputs retain
 the pinned US1928–2025 series and its source caveats. Additional withdrawal
-rules/strategies are qualified by the additional40 fixtures below; broader run
-exploration remains open.
+rules/strategies and run exploration are qualified by the40 evidence below.
 
 The saved-plan generator uses the actual engine's dashboard and preference
 commands, then exports/reloads a genuine archive. Four plans preserve null/new
@@ -88,11 +87,10 @@ cache unchanged resolved inputs, and resolve account-linked balances at a captur
 budget revision. Validate structured inputs before invoking trusted code. Revisit
 the engine choice if whole-system resource qualification finds a regression.
 
-## Remaining feature delivery
+## Feature delivery status
 
-40 still needs portfolio/cash-flow charts and accessible individual-run inspection.
-Strategy/rule selection and source qualification are delivered; this does not
-establish completion of the inspection workflow or the whole ticket.
+39 and40 are accepted. Whole-system resource, device upgrade, complete parity
+and deployment rehearsal gates remain50–53; these scoped proofs do not close them.
 
 ## Native calculation API checkpoint
 
@@ -285,6 +283,81 @@ Evidence: `/tmp/monte-strategies-http.log`,
 `actualBudget/web/test-results/monte-carlo/strategies-*.png`.
 
 Root consolidated standards/spec review covers changes since `71a1b4b`.
-No unresolved finding in this delivered slice.40 remains open for charts,
-cash-flow explanations, individual-run selection and its caching/offline workflow.
+No unresolved finding in that delivered slice. Charts, cash-flow explanations,
+individual-run selection and caching/offline qualification follow below.
 No full-suite/container repeat, push or deployment is claimed.
+
+## 40 acceptance — charts and individual-run inspection
+
+Root review baseline `4e6505c`;2026-11-10. Portfolio charts expose all scenarios,
+individual percentiles and the single worst path, with exact tabular alternatives.
+Runs are ranked with the unchanged source ordering, paged20 at a time, reversible
+best/worst first, and selectable by run number, row or outcome percentile.
+Cash-flow bars retain the source's per-pot, income, spending-phase, tax,
+contribution and surplus series. Annual tables include spending shortfalls and
+synthetic unfunded years after depletion. Expandable funded-year explanations
+show rule decisions, minimums, locked balances, income, tax, contribution and
+per-pot figures. The unchanged source narrative builder supplies the explanations.
+
+Result presentation helpers are generated from the pinned source alongside the
+existing configuration helper. The palette function is extracted without its
+unrelated React hook; theme references use the existing imported CSS variables.
+The asset manifest records source hashes and license provenance. Reproduction
+checks pass for both browser and server assets. Simulation execution still never
+ships to the browser; no server API, engine or financial-write behavior changed.
+
+The first calculation captures run0. Inspecting another run replays the same
+seed, display basis and captured account balances, matching the baseline's
+seeded inspection method. Raw saved inputs keep replay requests within the
+original compact shape rather than adding all normalized defaults; account links
+are detached for this replay only.
+An explicit Run refreshes live balances. A four-entry client cache avoids repeated
+replay of recently inspected runs; the server retains its bounded unchanged-input
+cache. The last inspected result survives reload/offline viewing. Cache validation
+checks epoch, document revision, distributions and captured-row shapes. Sorting,
+paging, chart selection and opening detail sections do not calculate. Detailed
+year bodies render only when opened. Offline misses are disabled; failures preserve
+the prior result and allow explicit retry. Existing cancellation and unmount cleanup
+also cover replay requests.
+
+The new browser workflow first failed on the absent chart. It now proves source
+ranking, every captured cash-flow value, worst-path values, original linked balances
+after a later ordinary expense, no additional calculation on cached switching/
+reload/offline access, refusal of unavailable offline detail, failure/retry, and
+privacy removal of chart geometry. Four additional source scenarios compare every
+charted series and selected source explanations: locked/zero-spending phases and
+minimums; floor/ceiling with depletion; progressive taxes and income-funded
+contributions; and inaccessible bridge failure. The only initial comparison
+failure was insignificant SVG-title whitespace, now normalized by the checker.
+
+Impeccable/Svelte review inspected desktop/mobile, dark and200% text renders.
+Native labeled controls, keyboard-scrollable tables, explicit loading/error states
+and masked sensitive amounts remain available over plain HTTP. Svelte/TypeScript
+report zero errors/warnings; all four touched/new Svelte components pass the analyzer.
+The prior baseline and strategy browser workflows pass. Their maintained npm chain
+now includes inspection, so final container/release qualification will exercise it.
+The existing production chunk-size advisory remains assigned to51.
+
+Evidence: `/tmp/monte-inspection-browser-final.log`,
+`/tmp/monte-inspection-baseline-browser.log`,
+`/tmp/monte-inspection-strategies-browser.log`,
+`/tmp/monte-inspection-check-final.log`, `/tmp/monte-inspection-build-final.log`,
+`/tmp/monte-inspection-autofix-*.log`; chart captures in
+`actualBudget/web/test-results/monte-carlo/` (`portfolio-*`, `cashflow-*`).
+The companion protocol is unchanged. The browser qualification writes its ordinary
+cleared-expense public API and checks that inspection leaves that checkpoint intact;
+the39 long-simulation responsiveness proof remains applicable. No new device run
+is claimed;50 owns complete signed-upgrade qualification.
+
+|40 criterion|Evidence|
+|---|---|
+|All strategies/rules, parameters and limits|15 source fixtures, public API equivalence/cache checks, every editor setting and limits, source replay helpers|
+|Charts, depletion and accessible individual runs|Portfolio/cash-flow charts and tables, ranked/paged runs, exact source-series and narrative comparisons, privacy and responsive renders|
+|Saved settings and no repeated unchanged work|Four genuine source plans, edits/restart/native restore, bounded client/server caches, browser no-request checks for cached interaction|
+|Public seams and companion continuity|Running source/API/browser checks; ordinary cleared expense accepted; no financial mutation from inspection|
+|Complete vertical behavior|Existing persisted widgets and versioned result contract, migration/recovery, controls/results, cancellation, explicit retry and offline reads|
+|UI craft and architectural boundaries|Impeccable/Svelte review, keyboard/labeled controls, dark/mobile/large text, no-login HTTP and no offline computation|
+
+Root consolidated standards/spec review found no unresolved40 gap after the
+shortfall-label, lazy-rendering, frozen-input and cache-validation fixes above.
+45 of49 retained tickets are accepted.50–53 remain open. No push or deployment.

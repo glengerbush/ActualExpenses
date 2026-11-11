@@ -2,9 +2,12 @@
   "source_commit": "2bebdbaae0b701120a8cad9d56aafd64fa04c577",
   "source_hashes": {
     "packages/loot-core/src/shared/util.ts": "f2ba71c3ba432082239dca0a48a79d8b1328ea4d258dfd4aeebb4ac43665c07d",
+    "packages/desktop-client/src/components/reports/graphs/util/monteCarloCashflowChart.ts": "d0553bc1e44de2ed8c047e4df57dfd5683feaf207f0e984e09f7f987b4147287",
+    "packages/desktop-client/src/components/reports/reports/monte-carlo/monteCarloYearStory.ts": "137ebc351394ed40fe3163438eec1235700b501771e5f7ad5543554f2e4c4015",
     "packages/desktop-client/src/components/reports/reports/monte-carlo/monteCarloSimulation.ts": "92cd276efd9a3de0b4951b0c5e68f6c4307b59521f6f422d4ce3f7253f594107",
+    "packages/desktop-client/src/components/reports/chart-theme.ts": "da9774cd88f4893b1055af50891477517bd75118ddf06ecc9e5cd2784ab172b3",
     "packages/desktop-client/src/components/reports/reports/monte-carlo/monteCarloHistoricalReturns.ts": "7e1d9be73385826abb5ab543477c0f0fbad587e52a44eb91e124fa38b2a84ae9"
   },
-  "asset_sha256": "445343eef2947b9b5b5ff776d7a53d5426f84e4bec48057e028c22f1b55e2dc1",
+  "asset_sha256": "7b2ef9967e3cb268ab0e1a782c7b2ae2ded4008b777fbe14da43342e0ea0e4c0",
   "actual_license_sha256": "71e4b3053e4622e1f5fc5d8aa5336350de32ead39247924c596d659b89b47b6f"
 }

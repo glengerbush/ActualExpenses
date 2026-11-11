@@ -2,7 +2,8 @@
   import { t, languageState } from "./i18n.svelte";
   import { preferences } from "./preferences.svelte";
   import { formatAmount } from "./money";
-  import type { MonteCarloProjection } from "./monte-carlo";
+  import type { MonteCarloProjection, PlotSeries } from "./monte-carlo";
+  import MonteCarloPlot from "./MonteCarloPlot.svelte";
   import { getPotAssetWeights } from "./monte-carlo-vendor/configuration.js";
   let {
     budgetId,
@@ -13,7 +14,7 @@
     preferences.budgetId !== budgetId ||
       !preferences.hasUsableShared ||
       preferences.budgetEpoch !== projection.epoch ||
-      preferences.shared.privacy_mode,
+      Boolean(preferences.shared.privacy_mode),
   );
   const money = (value: number) =>
     masked ? "••••" : formatAmount(Math.round(value));
@@ -36,6 +37,34 @@
     "p75",
     "p90",
   ] as const;
+  let graph = $state("all");
+  const lines = [
+    ["p5", "5th percentile", "var(--error)", "2 4"],
+    ["p30", "30th percentile", "var(--text)", "6 4"],
+    ["p50", "Median", "var(--accent)", ""],
+    ["p70", "70th percentile", "var(--text)", "12 4"],
+    ["p90", "90th percentile", "var(--accent)", "2 4"],
+  ] as const;
+  let chart = $derived<PlotSeries[]>(
+    graph === "worst"
+      ? [
+          {
+            key: "worst",
+            label: "Single worst run",
+            values: result.worstRunPath,
+            color: "var(--error)",
+          },
+        ]
+      : lines
+          .filter(([key]) => graph === "all" || graph === key)
+          .map(([key, label, color, dash]) => ({
+            key,
+            label,
+            color,
+            dash,
+            values: result.percentileBands.map((row) => row[key]),
+          })),
+  );
 </script>
 
 <section aria-label={t("Monte Carlo result")}>
@@ -84,6 +113,41 @@
       </dd>
     </div>
   </dl>
+  <label
+    >{t("Portfolio view")}<select bind:value={graph}>
+      <option value="all">{t("All scenarios")}</option>
+      <option value="worst">{t("Single worst run")}</option>
+      {#each lines as [key, label] (key)}<option value={key}>{t(label)}</option
+        >{/each}
+    </select></label
+  >
+  <MonteCarloPlot
+    title="Portfolio performance"
+    series={chart}
+    ages={result.percentileBands.map(
+      (row) => projection.config.currentAge + row.year,
+    )}
+    {masked}
+  />
+  {#if graph === "worst"}
+    <details>
+      <summary>{t("Single worst run values")}</summary>
+      <table aria-label={t("Single worst run values")}>
+        <thead
+          ><tr
+            ><th scope="col">{t("Age")}</th><th scope="col">{t("Balance")}</th
+            ></tr
+          ></thead
+        ><tbody
+          >{#each result.worstRunPath as balance, i (projection.config.currentAge + i)}<tr
+              ><th scope="row">{projection.config.currentAge + i}</th><td
+                >{money(balance)}</td
+              ></tr
+            >{/each}</tbody
+        >
+      </table>
+    </details>
+  {/if}
   <p>
     {t(
       "Percentiles compare simulated outcomes, not a guaranteed range. The median is the 50th percentile. Values are rounded only for display.",
@@ -198,5 +262,14 @@
   p,
   li {
     max-width: 70ch;
+  }
+  label {
+    display: grid;
+    gap: 0.35rem;
+    max-width: 24rem;
+  }
+  select {
+    min-height: 44px;
+    max-width: 100%;
   }
 </style>

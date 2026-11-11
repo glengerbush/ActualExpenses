@@ -35,8 +35,67 @@ requested deployment. [Android0.2.0](https://github.com/glengerbush/ActualExpens
 is published; its downloaded APK checksum, original certificate, package ID and
 versionCode4 were verified. Server0.2.3 reached a successful hosted image build,
 but [its container/browser job failed](https://github.com/glengerbush/ActualExpenses/actions/runs/43066753732/job/130683916198).
-No server image has been published and Coolify remains unchanged. Detailed hosted
-logs require GitHub sign-in; the latest failure log has been requested from the operator.
+GitHub CLI access was subsequently enabled. The failed hosted layout was reproduced
+in a focused workflow: the app name and Settings save button exceeded the320px
+viewport at200% text. Both now wrap within their available width; no clipping or
+smaller text was introduced. [The corrected hosted check](https://github.com/glengerbush/ActualExpenses/actions/runs/43074065856)
+passed all three themes, and screenshots were inspected. Temporary diagnostics
+were removed. [The next full0.2.3 run](https://github.com/glengerbush/ActualExpenses/actions/runs/43074348897)
+passed Settings but exposed an imported-budget heading overflow. A separate
+[hosted browser sweep](https://github.com/glengerbush/ActualExpenses/actions/runs/43076665204)
+collected all104 groups:99 passed, with five failures addressed through8578b58:
+
+- Imported budget names wrap at enlarged text.
+- Recovery dates wrap instead of inheriting the financial table's nowrap style.
+- All action buttons fit their available width, including transaction toolbar buttons.
+- Focused budget tables implement Home/End horizontal scrolling without hijacking
+  keys on child controls. Native End scrolling had moved the page vertically.
+- The offline assertion targets its pending-entry status, excluding transient
+  duplicate success notices. Crossover reload waits for the asynchronous draft
+  write to commit before checking recovery; it no longer races navigation against storage.
+
+The complete DejaVu Sans2.37 regular/bold family reproduces the hosted layout
+failures locally; the earlier font probe had only the regular face. Corrected
+local runs pass all five failed groups plus Settings and unified history, with
+unchanged financial assertions. Import and offline screenshots were inspected.
+Temporary diagnostic scripts/workflows were removed.
+[Release retry at8578b58](https://github.com/glengerbush/ActualExpenses/actions/runs/43079297007)
+passed the layout/offline fixes, then exposed a race in the large-split fault
+injection. The pending retry button becomes visible before request dispatch;
+reloading at that point could cancel the first request, making the later retry
+receive the deliberately dropped acknowledgement. The test now confirms the
+server commit, displayed failure and enabled retry before reloading. Payload,
+identity,1001/1002 allocation and financial assertions remain intact. Release
+qualification now collects every browser-script failure before returning failure;
+publication still requires all scripts to pass. No server image has yet been
+published and Coolify remains unchanged.
+
+[The complete fa53c11 container run](https://github.com/glengerbush/ActualExpenses/actions/runs/43082696607)
+passed101/104 groups, including large splits. Remaining paired-split and reporting
+failures used the same premature-reload pattern. Reporting tests now read the
+actual committed draft before navigation; invalid formula, empty font size and
+invalid contribution recovery retain their original assertions. Related split,
+repair and register-setting retries now wait for enabled controls as well as
+visibility. The formula theme-recovery check waits for the exact source result
+within the existing API deadline before asserting its color. No sleeps, test
+skips or financial expectation changes were added.
+
+## Published release — 2026-11-11
+
+[actualBudget0.2.3](https://github.com/glengerbush/ActualExpenses/releases/tag/actualBudget-v0.2.3)
+published successfully from5384e5b. [Final hosted run](https://github.com/glengerbush/ActualExpenses/actions/runs/43086429153)
+passed459 Rust tests, all source/contract checks and all104 container/browser/API
+groups. Downloaded release metadata/checksum and Cosign provenance were verified
+against the exact workflow, GitHub issuer, source commit and version. An anonymous
+pull succeeded; both0.2.3 and `latest` resolve to
+`sha256:aeabb8c4cf6c365d62a94d6111f38b7b9929f8b17dbba7f3dfe6a9af1e40271a`.
+Runtime user10001:10001 and image labels match the release. Image size149768118bytes.
+The [evidence manifest](deployment-2026-11-11-results/manifest.json) includes the
+full successful hosted log, release metadata and verified signature.
+
+Android0.2.0 remains published and verified. Coolify and the local preview volume
+were not changed. The remaining live step is the user's manual first-cutover
+procedure in the [updated runbook](coolify-replacement.md).
 
 Earlier release blockers were corrected: optional Ubuntu font installation failed
 on the runner's mirror DNS; missed formatting failed Prettier; identical source
@@ -65,7 +124,8 @@ The clean0.2.3 image also passed container persistence/recreation and the initia
 unified-history workflow locally with the same pinned Chromium1254 used in CI.
 The later historical-filter label was checked through the rebuilt production web
 bundle and public server API. All104 browser/API groups pass across the full and
-corrected runs; this is not a claim that the still-unexplained hosted failure passed.
+corrected runs. The hosted layout failure subsequently passed the focused rerun above;
+the full release retry remains separate evidence.
 Final Svelte/autofixer and formatting checks passed. [Evidence manifest](deployment-2026-11-11-results/manifest.json)
 records logs and the exact hashes of the five follow-up files. Live migration still
 requires the [manual cutover procedure](coolify-replacement.md).

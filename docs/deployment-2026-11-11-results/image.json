@@ -1,0 +1,8 @@
+{
+  "commit": "5384e5b4f184e292f09813d09be2840a5e3f8076",
+  "digest": "sha256:aeabb8c4cf6c365d62a94d6111f38b7b9929f8b17dbba7f3dfe6a9af1e40271a",
+  "image": "ghcr.io/glengerbush/actualbudget",
+  "immutable_reference": "ghcr.io/glengerbush/actualbudget@sha256:aeabb8c4cf6c365d62a94d6111f38b7b9929f8b17dbba7f3dfe6a9af1e40271a",
+  "tag": "ghcr.io/glengerbush/actualbudget:0.2.3",
+  "version": "0.2.3"
+}

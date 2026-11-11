@@ -54,6 +54,127 @@
     {
       "path": "matching-after-20.log.gz",
       "uncompressed_sha256": "c7166abb998dcd4bc72eda2eaab1f01c4e51f68de8ce0011f3612919ce234634"
+    },
+    {
+      "path": "layout-diagnostics.log.gz",
+      "uncompressed_sha256": "0de9e2d044914c46c6679847e88c265f52d6cf2ff20ea18efc7644cfb8053644"
+    },
+    {
+      "path": "layout-fixed.log.gz",
+      "uncompressed_sha256": "6c90d588fb95310b495add030275f2899f4083310c46e3f9b7a6bdac0d69afc6"
+    },
+    {
+      "path": "retry-container.log.gz",
+      "uncompressed_sha256": "cb569a5b5347b6448f4f93d3423ff4811624ebf072aa8d4cb388a2dcf39e9cfd"
+    },
+    {
+      "path": "hosted-browser-sweep.log.gz",
+      "uncompressed_sha256": "621d3f5866c99c07013e508d28afa7d49bd3009bdb27736107f48560841772a4"
+    },
+    {
+      "path": "import-real-bold-metrics.log.gz",
+      "uncompressed_sha256": "7a387da52267bc09e2ae38888054a7315d9a870868a68a6178f76643470221f8"
+    },
+    {
+      "path": "import-bold-fixed.log.gz",
+      "uncompressed_sha256": "83ef3c714c15409671da26e0ae68f14b70cc65225fa559f258e9eee1dd6f74cb"
+    },
+    {
+      "path": "sweep-fixes-local.log.gz",
+      "uncompressed_sha256": "c5a1d28e05222e13b54d60a4b96e543946787adcaf0ad32111e3612c14a136f6"
+    },
+    {
+      "path": "sweep-final-local.log.gz",
+      "uncompressed_sha256": "028bcb6cc73907780f0d092d82cee0cf4a1e1b6eaf60e03127ec154446dc4a59"
+    },
+    {
+      "path": "retry-8578-failure.log.gz",
+      "uncompressed_sha256": "1c623c4bc23889af58a63cb9527d4b5d2e7457110814a1795f53b9f15f6ed0cc"
+    },
+    {
+      "path": "large-split-race-fixed.log.gz",
+      "uncompressed_sha256": "6487306f05a848388353b34e5109cb663e9dfae657d9a9c1d8bb10fef460b8ad"
+    },
+    {
+      "path": "retry-fa53-failure.log.gz",
+      "uncompressed_sha256": "8a1431058256251154650f1fb1deee064aa95e8f05aea9c2f7a227a720a92ead"
+    },
+    {
+      "path": "durable-boundaries-fixed.log.gz",
+      "uncompressed_sha256": "2e3e0617af91dcdfe65b5791c5b01739e83d3e262afa4321579a236c4c8a628f"
+    },
+    {
+      "path": "formula-durability-fixed.log.gz",
+      "uncompressed_sha256": "3f819a2aa9036f7bd8609860b34eefb4b8f05a0900eb2a2946a8450a9914b1cc"
+    },
+    {
+      "path": "published-5384.log.gz",
+      "uncompressed_sha256": "a7bd06256f06f4cf532715276d6eb91fffc5a0b015af7b0b8ff60c4e6d927867"
     }
-  ]
+  ],
+  "hosted_layout": {
+    "failed_run": 43073333063,
+    "passed_run": 43074065856,
+    "fix_commit": "cf49799",
+    "width": 320,
+    "text_scale": "200%",
+    "themes": [
+      "light",
+      "dark",
+      "midnight"
+    ],
+    "stylesheet_sha256": "911dcca73884274f02169f915d0af671a49e6f816943feb39971116f51f90c2b"
+  },
+  "hosted_browser_sweep": {
+    "run": 43076665204,
+    "passed": 99,
+    "total": 104,
+    "failed": [
+      "imports",
+      "offline",
+      "offline-epoch",
+      "budgeting",
+      "crossover"
+    ],
+    "corrected_local_reruns": "five failed groups plus preferences and unified history; all pass",
+    "local_fonts": "DejaVu Sans 2.37 regular and bold, selected through an isolated Fontconfig configuration",
+    "fix_commit": "8578b58"
+  },
+  "split_fault_injection": {
+    "failed_run": 43079297007,
+    "fix_commit": "fa53c11",
+    "corrected_local_runs": 3,
+    "financial_assertions": "unchanged"
+  },
+  "durable_recovery_boundaries": {
+    "failed_run": 43082696607,
+    "passed_groups": 101,
+    "total": 104,
+    "fix_commit": "5384e5b",
+    "focused_checks": "paired protection, crossover, formula, splits, recovery, register settings; formula corrected rerun twice",
+    "production_runtime_changes": false
+  },
+  "published_release": {
+    "commit": "5384e5b4f184e292f09813d09be2840a5e3f8076",
+    "digest": "sha256:aeabb8c4cf6c365d62a94d6111f38b7b9929f8b17dbba7f3dfe6a9af1e40271a",
+    "image": "ghcr.io/glengerbush/actualbudget",
+    "immutable_reference": "ghcr.io/glengerbush/actualbudget@sha256:aeabb8c4cf6c365d62a94d6111f38b7b9929f8b17dbba7f3dfe6a9af1e40271a",
+    "tag": "ghcr.io/glengerbush/actualbudget:0.2.3",
+    "version": "0.2.3",
+    "run": 43086429153,
+    "browser_groups_passed": 104,
+    "browser_groups_total": 104,
+    "rust_tests_passed": 459,
+    "anonymous_pull_verified": true,
+    "latest_digest": "sha256:aeabb8c4cf6c365d62a94d6111f38b7b9929f8b17dbba7f3dfe6a9af1e40271a",
+    "runtime_user": "10001:10001",
+    "image_bytes": 149768118,
+    "cosign_identity": "https://github.com/glengerbush/ActualExpenses/.github/workflows/release.yml@refs/heads/main",
+    "cosign_issuer": "https://token.actions.githubusercontent.com",
+    "signature_annotations_verified": {
+      "git_sha": "5384e5b4f184e292f09813d09be2840a5e3f8076",
+      "version": "0.2.3"
+    },
+    "coolify_changed": false
+  }
 }

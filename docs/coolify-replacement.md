@@ -1,9 +1,26 @@
 # Manual Coolify replacement
 
 This operator checklist preserves the existing pull/restart workflow. It is not
-an authorization to switch production. The copied-storage rehearsal below and
-[final consolidated acceptance52](final-parity-audit.md) pass. No live configuration was inspected
-and no replacement image has been published to GHCR by this work.
+an automatic production switch. The copied-storage rehearsal below and
+[final consolidated acceptance52](final-parity-audit.md) pass. No live configuration
+was inspected. [actualBudget0.2.3](https://github.com/glengerbush/ActualExpenses/releases/tag/actualBudget-v0.2.3)
+is now published and verified; the live Coolify cutover remains manual.
+
+## Verified replacement — 2026-11-11
+
+- Image: `ghcr.io/glengerbush/actualbudget:0.2.3`.
+- First-cutover immutable reference: `ghcr.io/glengerbush/actualbudget@sha256:aeabb8c4cf6c365d62a94d6111f38b7b9929f8b17dbba7f3dfe6a9af1e40271a`.
+- Source commit: `5384e5b4f184e292f09813d09be2840a5e3f8076`.
+- `latest` resolves to the same digest. Anonymous pull succeeded; no registry
+  credential is required for this image.
+- Release checksum, exact workflow/issuer signature and commit/version annotations
+  verified independently after download. Image runs as UID/GID10001:10001.
+- [Hosted qualification](https://github.com/glengerbush/ActualExpenses/actions/runs/43086429153)
+  passed459 Rust tests and all104 browser/API command groups, including container
+  persistence and replacement. [Recorded evidence](deployment-2026-11-11-results/manifest.json).
+
+Complete the export/backup/import steps below before the first replacement. The
+published image does not automatically migrate the old Actual data directory.
 
 ## Existing setup to verify
 

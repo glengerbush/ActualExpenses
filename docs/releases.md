@@ -111,7 +111,8 @@ GHCR package access must be configured once: public read access, or a read-only
 registry credential in Coolify. **Pull latest and restart** then adopts the newest
 accepted stable image. Candidate tags do not affect that action. Use an immutable
 version/digest and its matching data backup for rollback; schema rollback and
-post-cutover writes require the separate migration runbook.
+post-cutover writes require the [migration runbook](coolify-replacement.md),
+whose copied-storage rehearsal remains pending.
 
 ## Reproduce automation checks
 
